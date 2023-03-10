@@ -1751,9 +1751,9 @@ typedef struct {
 	ml_value_t *Map, *Key, *Fn;
 	int Count, Index;
 	void *Nodes[];
-} ml_map_align_state_t;
+} ml_map_join_state_t;
 
-static void ml_map_align_state_run(ml_map_align_state_t *State, ml_value_t *Value) {
+static void ml_map_join_state_run(ml_map_join_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	ml_value_t *Map = State->Map;
@@ -1806,10 +1806,10 @@ ML_FUNCTIONX(MLMapJoin) {
 	int N = Count - 1;
 	for (int I = 0; I < N; ++I) ML_CHECKX_ARG_TYPE(I, MLMapT);
 	ML_CHECKX_ARG_TYPE(N, MLFunctionT);
-	ml_map_align_state_t *State = xnew(ml_map_align_state_t, N, ml_value_t *);
+	ml_map_join_state_t *State = xnew(ml_map_join_state_t, N, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_map_align_state_run;
+	State->Base.run = (ml_state_fn)ml_map_join_state_run;
 	State->Count = N;
 	State->Fn = Args[N];
 	State->Map = ml_map();

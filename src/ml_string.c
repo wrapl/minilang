@@ -3164,7 +3164,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 //$= "Hello world":replace(6, "_")
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
 	if (N <= 0) N += Length + 1;
 	if (N <= 0) return MLNil;
@@ -3194,7 +3194,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
 //$= "Hello world":replace(-6, 0, ", how are you?")
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
@@ -3252,7 +3252,7 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLFunctionT) {
 //$= "hello world":replace(1, :upper)
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
 	if (N <= 0) N += Length + 1;
 	if (N <= 0) ML_RETURN(MLNil);
@@ -3286,7 +3286,7 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 //$= "hello world":replace(1, 6, :upper)
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
