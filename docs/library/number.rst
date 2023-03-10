@@ -167,15 +167,7 @@ number
    Returns :mini:`A - B`.
 
 
-:mini:`meth --(Real: double): real`
-   Returns :mini:`Real - 1`
-
-
 :mini:`meth (A: double) / (B: complex): complex`
-   Returns :mini:`A / B`.
-
-
-:mini:`meth (A: double) / (B: double): real`
    Returns :mini:`A / B`.
 
 
@@ -276,6 +268,11 @@ number
    Converts :mini:`Real` to an integer (using default rounding).
 
 
+:mini:`meth (A: double) / (B: double): real`
+   Returns :mini:`A / B`.
+
+
+integer
 :mini:`meth integer(String: string): integer | error`
    Returns the base :mini:`10` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 

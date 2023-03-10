@@ -291,6 +291,7 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 	if (Frame->Reuse) { \
 		while (Top > Frame->Stack) *--Top = NULL; \
 		Frame->Next = MLCachedFrame; \
+		Frame->Base.Caller = NULL; \
 		MLCachedFrame = (ml_frame_t *)Frame; \
 	} else { \
 		Frame->Inst = ReturnInst; \
@@ -494,6 +495,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			while (Top > Frame->Stack) *--Top = NULL;
 			//memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
 			Frame->Next = MLCachedFrame;
+			Frame->Base.Caller = NULL;
 			MLCachedFrame = (ml_frame_t *)Frame;
 		} else {
 			Frame->Line = Inst->Line;
