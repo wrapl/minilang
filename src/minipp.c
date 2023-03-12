@@ -148,7 +148,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Globals, "pop", ml_cfunction(Preprocessor, (void *)ml_preprocessor_pop));
 	stringmap_insert(Globals, "input", ml_cfunction(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Globals, "include", ml_cfunction(Preprocessor, (void *)ml_preprocessor_include));
-	stringmap_insert(Globals, "open", MLFileOpen);
+	stringmap_insert(Globals, "open", MLFileT);
 	ml_parser_t *Parser = ml_parser((void *)ml_preprocessor_line_read, Preprocessor);
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_preprocessor_global_get, Preprocessor);
 	ml_parser_source(Parser, (ml_source_t){InputName, 1});
