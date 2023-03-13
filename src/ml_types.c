@@ -1859,12 +1859,16 @@ typedef struct {
 	ml_value_t *Args[];
 } ml_tuple_call_t;
 
+#ifdef ML_GENERICS
+
 static __attribute__ ((noinline)) void ml_tuple_call_finish(ml_tuple_t *Tuple) {
 	ml_type_t *Types[Tuple->Size + 1];
 	Types[0] = MLTupleT;
 	for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
 	Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
 }
+
+#endif
 
 static void ml_tuple_call_run(ml_tuple_call_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
@@ -1874,7 +1878,9 @@ static void ml_tuple_call_run(ml_tuple_call_t *State, ml_value_t *Result) {
 	Tuple->Values[Index] = Result;
 	ml_tuple_t *Functions = State->Functions;
 	if (++Index == Functions->Size) {
+#ifdef ML_GENERICS
 		ml_tuple_call_finish(Tuple);
+#endif
 		ML_RETURN(Tuple);
 	}
 	State->Index = Index;

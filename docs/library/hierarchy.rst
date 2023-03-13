@@ -62,6 +62,7 @@ hierarchy
       "enum":e -> "stream::seek":w;
       "stream":e -> "stream::buffered":w;
       "stream":e -> "stream::fd":w;
+      "stream::fd":e -> "socket":w;
       "sequence":e -> "set":w;
       "set":e -> "set::mutable":w;
       "enum":e -> "set::order":w;
