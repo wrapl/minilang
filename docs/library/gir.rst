@@ -63,7 +63,7 @@ gir
    *TBD*
 
 
-:mini:`meth (Value: string):append(Arg₂: gir::enumvalue): string`
+:mini:`meth (Value: string::buffer):append(Arg₂: gir::enumvalue): string`
    *TBD*
 
 

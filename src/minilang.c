@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <locale.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
 
@@ -117,6 +118,12 @@ ML_FUNCTION(MLPrint) {
 	return MLNil;
 }
 
+ML_FUNCTION(MLLocale) {
+//@locale
+//>string
+	return ml_string(setlocale(LC_ALL, NULL), -1);
+}
+
 ML_FUNCTION(MLHalt) {
 //@halt
 //<Code?:integer
@@ -217,6 +224,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
+	stringmap_insert(Globals, "locale", MLLocale);
 	stringmap_insert(Globals, "raise", MLRaise);
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "break", MLBreak);

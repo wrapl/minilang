@@ -190,7 +190,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_XML := 1
 	MINILANG_LIBRARY := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
-	MINILANG_TRE := 1
+	MINILANG_TRE := not defined("NOTRE")
 	MINILANG_GENERICS := not defined("NOGENERICS")
 	MINILANG_MUTABLES := 1
 	MINILANG_PQUEUES := 1
@@ -424,6 +424,7 @@ if MINILANG_TRE then
 	let Lib := file("tre/lib/.libs/libtre.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
 		execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzP --strip-components=1")
+		execute("patch", "-p0", "-i", file("tre.patch"))
 		let XMallocH := file("tre/lib/xmalloc.h"):open("w")
 		XMallocH:write(
 '#ifndef XMALLOC_H
@@ -444,8 +445,10 @@ if MINILANG_TRE then
 			"--prefix" is PATH,
 			"--enable-static",
 			"--enable-multibyte",
+			"--enable-wchar",
 			"--disable-shared"
 		})
+		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
 	end

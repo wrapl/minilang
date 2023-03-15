@@ -837,6 +837,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends :mini:`Value` to :mini:`Buffer`.
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
+   *TBD*
+
+
 .. _type-string-buffer:
 
 :mini:`type string::buffer < stream`

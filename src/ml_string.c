@@ -625,7 +625,7 @@ ML_FUNCTIONX(MLString) {
 //$= string("Hello world!\n")
 //$= string([1, 2, 3])
 	ML_CHECKX_ARG_COUNT(1);
-	if (ml_is(Args[0], MLStringT)) ML_RETURN(Args[0]);
+	if (ml_is(Args[0], MLStringT) && Count == 1) ML_RETURN(Args[0]);
 	ml_string_state_t *State = xnew(ml_string_state_t, Count + 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -1182,6 +1182,21 @@ ML_METHOD("append", MLStringBufferT, MLStringT) {
 		return MLSome;
 	} else {
 		return MLNil;
+	}
+}
+
+static regex_t StringFormat[1];
+
+ML_METHOD("append", MLStringBufferT, MLStringT, MLStringT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Format = ml_string_value(Args[2]);
+	const char *Value = ml_string_value(Args[1]);
+	int R = regexec(StringFormat, Format, 0, NULL, 0);
+	if (!R) {
+		ssize_t Written = ml_stringbuffer_printf(Buffer, Format, Value);
+		return Written ? MLSome : MLNil;
+	} else {
+		return ml_error("FormatError", "Invalid format string: %d", R);
 	}
 }
 
@@ -4126,6 +4141,7 @@ void ml_string_init() {
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
+	regcomp(StringFormat, "^\\s*%[-]?[0-9]*[s]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
 	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
 	stringmap_insert(MLRegexT->Exports, "escape", MLRegexEscape);
