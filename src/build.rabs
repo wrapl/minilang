@@ -16,7 +16,6 @@ CFLAGS := old + [
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
 	"-foptimize-sibling-calls",
-	"-fcf-protection=none",
 	"-fno-stack-protector",
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
@@ -63,6 +62,7 @@ if GCC_VERSION then
 		"-mno-sse2",
 		"-mno-align-stringops",
 		"-minline-all-stringops",
+		"-fcf-protection=none",
 		"-fno-tree-loop-distribute-patterns"
 	]
 	if not DEBUG then
