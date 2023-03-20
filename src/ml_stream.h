@@ -27,7 +27,7 @@ ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size);
 
 extern ml_type_t MLStreamFdT[];
 
-ml_value_t *ml_fd_stream(int Fd);
+ml_value_t *ml_fd_stream(ml_type_t *Type, int Fd);
 int ml_fd_stream_fd(ml_value_t *Stream);
 
 #ifdef __cplusplus

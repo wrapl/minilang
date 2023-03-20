@@ -724,9 +724,10 @@ typedef struct {
 ML_TYPE(MLStreamFdT, (MLStreamT), "fd");
 // A file-descriptor based stream.
 
-ml_value_t *ml_fd_stream(int Fd) {
+ml_value_t *ml_fd_stream(ml_type_t *Type, int Fd) {
+	if (!ml_is_subtype(Type, MLStreamFdT)) return ml_error("TypeError", "Type must be a subtype of stream::fd");
 	ml_fd_stream_t *Stream = new(ml_fd_stream_t);
-	Stream->Type = MLStreamFdT;
+	Stream->Type = Type;
 	Stream->Fd = Fd;
 	return (ml_value_t *)Stream;
 }

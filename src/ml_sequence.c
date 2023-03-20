@@ -3116,7 +3116,7 @@ static void ml_split_state_first_iter(ml_split_state_t *State, ml_value_t *Iter)
 
 static void ml_split_state_first_split(ml_split_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) {
+	if (ml_deref(Value) == MLNil) {
 		State->Base.run = (ml_state_fn)ml_split_state_first_iter;
 		return ml_iter_next((ml_state_t *)State, State->Iter);
 	}
@@ -3156,7 +3156,7 @@ static void ml_split_state_skip_iter(ml_split_state_t *State, ml_value_t *Iter);
 
 static void ml_split_state_skip_split(ml_split_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value != MLNil) {
+	if (ml_deref(Value) != MLNil) {
 		State->Base.run = (ml_state_fn)ml_split_state_skip_iter;
 	} else {
 		State->Base.run = (ml_state_fn)ml_split_state_first_iter;
@@ -3216,7 +3216,7 @@ static void ML_TYPED_FN(ml_iter_value, MLSplitInnerT, ml_state_t *Caller, ml_val
 
 static void ml_split_state_inner_split(ml_split_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) {
+	if (ml_deref(Value) == MLNil) {
 		State->Skip = 0;
 		ML_CONTINUE(State->Base.Caller, MLNil);
 	}

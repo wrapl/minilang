@@ -2995,6 +2995,83 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 	return 0;
 }
 
+ML_METHOD("replace2", MLStringT, MLStringT, MLStringT) {
+//<String
+//<Pattern
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+//$= "Hello world":replace2("l", "bb")
+	const char *Subject = ml_string_value(Args[0]);
+	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
+	const char *Pattern = ml_string_value(Args[1]);
+	int PatternLength = ml_string_length(Args[1]);
+	if (!PatternLength) return ml_error("ValueError", "Empty pattern used in replace");
+	const char *Replace = ml_string_value(Args[2]);
+	int ReplaceLength = ml_string_length(Args[2]);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	int Total = 0;
+	const char *Find = strstr(Subject, Pattern);
+	while (Find) {
+		if (Find > Subject) ml_stringbuffer_write(Buffer, Subject, Find - Subject);
+		ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
+		Subject = Find + PatternLength;
+		Find = strstr(Subject, Pattern);
+		++Total;
+	}
+	if (SubjectEnd > Subject) {
+		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
+	}
+	return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+}
+
+ML_METHOD("replace2", MLStringT, MLRegexT, MLStringT) {
+//<String
+//<Pattern
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+//$= "Hello world":replace2(r"l+", "bb")
+	const char *Subject = ml_string_value(Args[0]);
+	int SubjectLength = ml_string_length(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	const char *Replace = ml_string_value(Args[2]);
+	int ReplaceLength = ml_string_length(Args[2]);
+	regmatch_t Matches[1];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	int RegexFlags = 0, Total = 0;
+	for (;;) {
+#ifdef ML_TRE
+		switch (regnexec(Regex, Subject, SubjectLength, 1, Matches, RegexFlags)) {
+
+#else
+		switch (regexec(Regex, Subject, 1, Matches, RegexFlags)) {
+#endif
+		case REG_NOMATCH:
+			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
+			return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+		case REG_ESPACE: {
+			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+			char *ErrorMessage = snew(ErrorSize + 1);
+			regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+			return ml_error("RegexError", "%s", ErrorMessage);
+		}
+		default: {
+			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
+			regoff_t Start = Matches[0].rm_so;
+			regoff_t End = Matches[0].rm_eo;
+			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
+			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
+			Subject += End;
+			SubjectLength -= End;
+			RegexFlags = REG_NOTBOL;
+			++Total;
+		}
+		}
+	}
+	return 0;
+}
+
 typedef struct {
 	union {
 		const char *String;
@@ -3012,8 +3089,8 @@ typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t Buffer[1];
 	const char *Subject;
-	int Length, Count;
-	int RegexFlags;
+	int Length, Count, Total;
+	int RegexFlags, Tuple;
 	ml_str_replacement_t Replacements[];
 } ml_str_replacement_state_t;
 
@@ -3087,6 +3164,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 			}
 		}
 		if (!Match) break;
+		++State->Total;
 		if (MatchStart) ml_stringbuffer_write(State->Buffer, Subject, MatchStart);
 		Subject += MatchEnd;
 		Length -= MatchEnd;
@@ -3101,7 +3179,11 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 		}
 	}
 	if (State->Length) ml_stringbuffer_write(Buffer, Subject, Length);
-	ML_RETURN(ml_stringbuffer_get_value(Buffer));
+	if (State->Tuple) {
+		ML_RETURN(ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(State->Total)));
+	} else {
+		ML_RETURN(ml_stringbuffer_get_value(Buffer));
+	}
 }
 
 ML_METHODX("replace", MLStringT, MLMapT) {
@@ -3142,6 +3224,51 @@ ML_METHODX("replace", MLStringT, MLMapT) {
 	State->Count = NumPatterns;
 	State->Subject = ml_string_value(Args[0]);
 	State->Length = ml_string_length(Args[0]);
+	State->Buffer[0] = ML_STRINGBUFFER_INIT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	return ml_str_replacement_next(State, MLNil);
+}
+
+ML_METHODX("replace2", MLStringT, MLMapT) {
+//<String
+//<Replacements
+//>string
+// Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
+// Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
+//$- "the dog snored as he slept":replace2({
+//$-    r" ([a-z])" is fun(Match, A) '-{A:upper}',
+//$-    "nor" is "narl"
+//$= })
+	int NumPatterns = ml_map_size(Args[1]);
+	ml_str_replacement_state_t *State = xnew(ml_str_replacement_state_t, NumPatterns, ml_str_replacement_t);
+	ml_str_replacement_t *Replacement = State->Replacements;
+	ML_MAP_FOREACH(Args[1], Iter) {
+		if (ml_is(Iter->Key, MLStringT)) {
+			Replacement->Pattern.String = ml_string_value(Iter->Key);
+			Replacement->PatternLength = ml_string_length(Iter->Key);
+			if (!Replacement->PatternLength) ML_ERROR("ValueError", "Empty pattern used in replace");
+		} else if (ml_is(Iter->Key, MLRegexT)) {
+			Replacement->Pattern.Regex = ml_regex_value(Iter->Key);
+			Replacement->PatternLength = -1;
+		} else {
+			ML_ERROR("TypeError", "Unsupported pattern type: <%s>", ml_typeof(Iter->Key)->Name);
+		}
+		if (ml_is(Iter->Value, MLStringT)) {
+			Replacement->Replacement.String = ml_string_value(Iter->Value);
+			Replacement->ReplacementLength = ml_string_length(Iter->Value);
+		} else if (ml_is(Iter->Value, MLFunctionT)) {
+			Replacement->Replacement.Function = Iter->Value;
+			Replacement->ReplacementLength = -1;
+		} else {
+			ML_ERROR("TypeError", "Unsupported replacement type: <%s>", ml_typeof(Iter->Value)->Name);
+		}
+		++Replacement;
+	}
+	State->Count = NumPatterns;
+	State->Subject = ml_string_value(Args[0]);
+	State->Length = ml_string_length(Args[0]);
+	State->Tuple = 1;
 	State->Buffer[0] = ML_STRINGBUFFER_INIT;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

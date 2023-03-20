@@ -736,6 +736,34 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello world":replace("l", "bb") :> "Hebbbbo worbbd"
 
 
+:mini:`meth (String: string):replace2(Replacements: map): string`
+   Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
+   Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
+
+   .. code-block:: mini
+
+      "the dog snored as he slept":replace2({
+         r" ([a-z])" is fun(Match, A) '-{A:upper}',
+         "nor" is "narl"
+      }) :> (the-Dog-Snarled-As-He-Slept, 6)
+
+
+:mini:`meth (String: string):replace2(Pattern: regex, Replacement: string): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+
+   .. code-block:: mini
+
+      "Hello world":replace2(r"l+", "bb") :> (Hebbo worbbd, 2)
+
+
+:mini:`meth (String: string):replace2(Pattern: string, Replacement: string): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+
+   .. code-block:: mini
+
+      "Hello world":replace2("l", "bb") :> (Hebbbbo worbbd, 3)
+
+
 :mini:`meth (String: string):reverse: string`
    Returns a string with the characters in :mini:`String` reversed.
 

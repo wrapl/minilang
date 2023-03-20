@@ -69,6 +69,23 @@ map
       :> {"a" is (1, 6, 3), "p" is (3, nil, 1), "l" is (4, nil, nil), "e" is (5, nil, 2), "b" is (nil, 1, nil), "n" is (nil, 5, nil), "r" is (nil, nil, 4)}
 
 
+.. _fun-map-join2:
+
+:mini:`fun map::join2(Map₁, : map, ..., Fn: function): map`
+   Returns a new map containing the union of the keys of :mini:`Mapᵢ`,  and with values :mini:`Fn(K,  V₁,  ...,  Vₙ)` where each :mini:`Vᵢ` comes from :mini:`Mapᵢ` (or :mini:`nil`).
+
+   .. code-block:: mini
+
+      let A := map(swap("apple"))
+      :> {"a" is 1, "p" is 3, "l" is 4, "e" is 5}
+      let B := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let C := map(swap("pear"))
+      :> {"p" is 1, "e" is 2, "a" is 3, "r" is 4}
+      map::join2(A, B, C, tuple)
+      :> {"a" is (a, 1, 6, 3), "p" is (p, 3, nil, 1), "l" is (l, 4, nil, nil), "e" is (e, 5, nil, 2), "b" is (b, nil, 1, nil), "n" is (n, nil, 5, nil), "r" is (r, nil, nil, 4)}
+
+
 :mini:`meth (Map: map) :: (Key: string): map::node`
    Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
 
@@ -225,8 +242,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
-      M:random :> "k"
+      M:random :> "a"
+      M:random :> "a"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -525,7 +542,7 @@ map
 
 .. _type-map-node-mutable:
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
@@ -533,7 +550,7 @@ map
 
 .. _type-map-node-mutable:
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
