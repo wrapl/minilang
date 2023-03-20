@@ -3,10 +3,13 @@ if PLATFORM = "Darwin" then
 	setenv("PKG_CONFIG_PATH", '/usr/local/opt/libffi/lib/pkgconfig')
 end
 
-GCC_VERSION := with Version := shell(CC, "--version") do
-	if let Match := Version % r"\(GCC\) ([0-9.]+)" then
-		Match[2]
-	end
+CC_TYPE := switch shell(CC, "--version"): string
+case r"\(GCC\) [0-9.]+" do
+	"GCC"
+case r"clang version [0-9.]+" do
+	"CLANG"
+else
+	"OTHER"
 end
 
 CFLAGS := old + [
@@ -20,7 +23,6 @@ CFLAGS := old + [
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
-	"-Werror=cast-function-type",
 	"-Werror=format-security",
 	:>"-Wsuggest-attribute=pure",
 	:>"-Wsuggest-attribute=const",
@@ -55,21 +57,25 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-print('GCC_VERSION = {GCC_VERSION}\n')
+print('CC_TYPE = {CC_TYPE}\n')
 
-if GCC_VERSION then
+if CC_TYPE = "GCC" then
 	CFLAGS := old + [
 		"-mno-sse2",
 		"-mno-align-stringops",
 		"-minline-all-stringops",
 		"-fcf-protection=none",
+		"-Werror=cast-function-type",
 		"-fno-tree-loop-distribute-patterns"
 	]
 	if not DEBUG then
 		CFLAGS := old + ["-fexpensive-optimizations"]
 	end
-else
-	CFLAGS := old + ["-Wno-initializer-overrides"]
+elseif CC_TYPE = "CLANG" then
+	CFLAGS := old + [
+		"-Wno-initializer-overrides",
+		"-Werror=bad-function-cast"
+	]
 end
 
 PREBUILDS := old + [file("ml_config.h")]
