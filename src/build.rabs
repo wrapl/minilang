@@ -73,8 +73,9 @@ if CC_TYPE = "GCC" then
 	end
 elseif CC_TYPE = "CLANG" then
 	CFLAGS := old + [
-		"-Wno-initializer-overrides",
-		"-Werror=bad-function-cast"
+		:>"-Werror=bad-function-cast",
+		"-Wno-initializer-overrides"
+		
 	]
 end
 
