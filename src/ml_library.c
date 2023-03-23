@@ -260,13 +260,13 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
 	if (Handle) {
-		typeof(ml_library_entry0) *init0 = dlsym(Handle, "ml_library_entry0");
+		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
 			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
 			init0(Slot);
 			ML_RETURN(Slot[0]);
 		}
-		typeof(ml_library_entry) *init = dlsym(Handle, "ml_library_entry");
+		ml_library_entry_t init = dlsym(Handle, "ml_library_entry");
 		if (init) {
 			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
 			init(Caller, Slot);
@@ -282,13 +282,13 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) {
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
 	if (Handle) {
-		typeof(ml_library_entry0) *init0 = dlsym(Handle, "ml_library_entry0");
+		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
 			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
 			init0(Slot);
 			return Slot[0];
 		}
-		typeof(ml_library_entry) *init = dlsym(Handle, "ml_library_entry");
+		ml_library_entry_t init = dlsym(Handle, "ml_library_entry");
 		if (init) return ml_library_default_load0(FileName, Slot);
 		dlclose(Handle);
 		return ml_error("LibraryError", "init function missing from %s", FileName);
