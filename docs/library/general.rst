@@ -9,6 +9,12 @@ general
 
 .. rst-class:: mini-api
 
+.. _fun-backtrace:
+
+:mini:`fun backtrace()`
+   *TBD*
+
+
 .. _fun-clock:
 
 :mini:`fun clock()`
@@ -24,12 +30,6 @@ general
 .. _fun-locale:
 
 :mini:`fun locale(): string`
-   *TBD*
-
-
-.. _fun-mlbacktrace:
-
-:mini:`fun mlbacktrace()`
    *TBD*
 
 

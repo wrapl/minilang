@@ -222,9 +222,9 @@ math
       :> -0.905042091321087 + 0.130855248843389i
 
 
-.. _fun-mlrandomseed:
+.. _fun-random-seed:
 
-:mini:`fun mlrandomseed(Arg₁: integer)`
+:mini:`fun random::seed(Arg₁: integer)`
    *TBD*
 
 

@@ -484,6 +484,7 @@ ML_DEF(math::e);
 ML_TYPE(MLRandomT, (MLFunctionT), "random");
 
 ML_FUNCTION(MLRandomSeed) {
+//@random::seed
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	srandom(ml_integer_value(Args[0]));

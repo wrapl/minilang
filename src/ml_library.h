@@ -25,6 +25,24 @@ ml_module_t *ml_library_internal(const char *Name);
 void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot);
 void ml_library_entry0(ml_value_t **Slot);
 
+#ifdef ML_LIBRARY_STATIC
+
+#define ML_LIBRARY_ENTRY(NAME) \
+void ml_ ## NAME ## _init(ml_state_t *Caller, ml_value_t **Slot)
+
+#define ML_LIBRARY_ENTRY0(NAME) \
+void ml_ ## NAME ## _init0(ml_value_t **Slot)
+
+#else
+
+#define ML_LIBRARY_ENTRY(NAME) \
+void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot)
+
+#define ML_LIBRARY_ENTRY0(NAME) \
+void ml_library_entry0(ml_value_t **Slot)
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

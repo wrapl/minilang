@@ -213,7 +213,8 @@ MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
-MINILANG_GIR := old or defined("GIR")
+MINILANG_GIR_BYTECODE := old or defined("GIR_BYTECODE")
+MINILANG_GIR := MINILANG_GIR_BYTECODE or old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
@@ -330,6 +331,10 @@ if MINILANG_GIR then
 	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
 	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0")]
 	InstallHeaders:put("ml_gir.h")
+end
+
+if MINILANG_GIR_BYTECODE then
+	CFLAGS := old + ["-DML_GIR_BYTECODE"]
 end
 
 if MINILANG_LIGHTNING or defined("LIGHTNING") then

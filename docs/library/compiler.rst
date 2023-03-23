@@ -15,9 +15,9 @@ compiler
    Returns the caller source location. Evaluated at compile time if possible.
 
 
-.. _fun-mlnot:
+.. _fun-not:
 
-:mini:`fun mlnot(Arg₁: any)`
+:mini:`fun not(Arg₁: any)`
    *TBD*
 
 
