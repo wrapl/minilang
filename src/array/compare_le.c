@@ -2,4 +2,6 @@
 
 #define LE(A, B) A <= B
 
-COMPARE_FNS(Le, le, LE);
+extern ml_value_t *LessEqualMethod;
+
+COMPARE_FNS(Le, le, LE, LessEqualMethod);

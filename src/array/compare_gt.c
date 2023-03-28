@@ -2,4 +2,6 @@
 
 #define GT(A, B) A > B
 
-COMPARE_FNS(Gt, gt, GT);
+extern ml_value_t *GreaterMethod;
+
+COMPARE_FNS(Gt, gt, GT, GreaterMethod);

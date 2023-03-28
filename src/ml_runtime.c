@@ -165,11 +165,9 @@ ml_result_state_t *ml_result_state(ml_context_t *Context) {
 }
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
+	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
 	ml_call(&State, Value, Count, Args);
-	ml_value_t *Result = State.Value;
-	State.Value = MLNil;
-	return Result;
+	return State.Value;
 }
 
 ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {

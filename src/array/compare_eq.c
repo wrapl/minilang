@@ -2,4 +2,6 @@
 
 #define EQ(A, B) A == B
 
-COMPARE_FNS(Eq, eq, EQ);
+extern ml_value_t *EqualMethod;
+
+COMPARE_FNS(Eq, eq, EQ, EqualMethod);
