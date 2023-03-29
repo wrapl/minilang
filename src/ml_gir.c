@@ -1953,6 +1953,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 #endif
 		}
+		g_base_info_unref(MethodInfo);
 	}
 }
 
@@ -2056,6 +2057,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 				stringmap_insert(Struct->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 			}
+			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -2092,6 +2094,7 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 				stringmap_insert(Union->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 			}
+			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -2127,6 +2130,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 			Value->Value = g_value_info_get_value(ValueInfo);
 			stringmap_insert(Enum->Base.Exports, ValueName, (ml_value_t *)Value);
 			Enum->ByIndex[I] = Value;
+			g_base_info_unref(ValueInfo);
 		}
 		Enum->Info = Info;
 	}

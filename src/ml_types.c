@@ -129,6 +129,14 @@ ML_METHOD("exports", MLTypeT) {
 	return Exports;
 }
 
+ML_METHOD("constructor", MLTypeT) {
+//<Type
+//>function
+// Returns the constructor for :mini:`Type`.
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	return Type->Constructor;
+}
+
 #ifdef ML_GENERICS
 
 ML_TYPE(MLTypeGenericT, (MLTypeT), "generic-type");

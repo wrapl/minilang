@@ -885,7 +885,7 @@ ML_TYPE(GirFunctionT, (MLFunctionT), "gir::function",
 );
 
 typedef struct {
-	GIArgInfo *Info;
+	GIArgInfo Info[1];
 	GITypeInfo Type[1];
 	GIDirection Direction;
 	int SkipIn, SkipOut;
@@ -924,7 +924,8 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		InSize++;
 	}
 	for (int I = 0; I < NumArgs; ++I) {
-		GIArgInfo *ArgInfo = Args[I].Info = g_callable_info_get_arg(Info, I);
+		g_callable_info_load_arg(Info, I, Args[I].Info);
+		GIArgInfo *ArgInfo = Args[I].Info;
 		GIDirection Direction = Args[I].Direction = g_arg_info_get_direction(ArgInfo);
 		g_arg_info_load_type(ArgInfo, Args[I].Type);
 		if (Direction == GI_DIRECTION_IN || Direction == GI_DIRECTION_INOUT) {
@@ -957,6 +958,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					}
 					InSize += 2;
 				}
+				g_base_info_unref(InterfaceInfo);
 				break;
 			}
 			case GI_TYPE_TAG_GLIST:
@@ -1061,6 +1063,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	case GI_TYPE_TAG_INTERFACE: {
@@ -1096,6 +1099,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			// TODO: raise error or add support
 		}
 		}
+		g_base_info_unref(InterfaceInfo);
 		break;
 	}
 	case GI_TYPE_TAG_GLIST: {
@@ -1105,6 +1109,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	case GI_TYPE_TAG_GSLIST: {
@@ -1114,6 +1119,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	case GI_TYPE_TAG_GHASH: {
@@ -1123,10 +1129,12 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	default: // TODO: handle this.
 	}
+	g_base_info_unref(Return);
 	for (int I = 0; I < NumArgs; ++I) {
 		GIDirection Direction = Args[I].Direction;
 		if (Direction == GI_DIRECTION_IN || Direction == GI_DIRECTION_INOUT) {
@@ -1149,6 +1157,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				BASIC_CASES(InstIn)
 				default: // TODO: handle this.
 				}
+				g_base_info_unref(ElementInfo);
 				break;
 			}
 			case GI_TYPE_TAG_INTERFACE: {
@@ -1194,6 +1203,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					}
 					}
 				}
+				g_base_info_unref(InterfaceInfo);
 				break;
 			}
 			case GI_TYPE_TAG_GLIST: {
@@ -1203,6 +1213,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				BASIC_CASES(InstIn)
 				default: // TODO: handle this.
 				}
+				g_base_info_unref(ElementInfo);
 				break;
 			}
 			case GI_TYPE_TAG_GSLIST: {
@@ -1212,6 +1223,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				BASIC_CASES(InstIn)
 				default: // TODO: handle this.
 				}
+				g_base_info_unref(ElementInfo);
 				break;
 			}
 			case GI_TYPE_TAG_GHASH: {
@@ -1221,6 +1233,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				BASIC_CASES(InstIn)
 				default: // TODO: handle this.
 				}
+				g_base_info_unref(ElementInfo);
 				break;
 			}
 			default:
@@ -1312,6 +1325,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					default: // TODO: handle this.
 					}
 				}
+				g_base_info_unref(ElementInfo);
 				break;
 			}
 			default:
@@ -1331,7 +1345,8 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 	int NumAux = 0, Provided = 0;
 	int InSize = 1, OutSize = 1;
 	for (int I = 0; I < NumArgs; ++I) {
-		GIArgInfo *ArgInfo = Args[I].Info = g_callable_info_get_arg(Info, I);
+		g_callable_info_load_arg(Info, I, Args[I].Info);
+		GIArgInfo *ArgInfo = Args[I].Info;
 		g_arg_info_load_type(ArgInfo, Args[I].Type);
 		Provided++;
 		switch (g_type_info_get_tag(Args[I].Type)) {
@@ -1357,6 +1372,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 				if (Closure >= 0) Args[Closure].SkipIn = 1;
 			}
 			InSize += 2;
+			g_base_info_unref(InterfaceInfo);
 			break;
 		}
 		case GI_TYPE_TAG_GLIST:
@@ -1416,6 +1432,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	case GI_TYPE_TAG_INTERFACE: {
@@ -1456,6 +1473,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 			// TODO: raise error or add support
 		}
 		}
+		g_base_info_unref(InterfaceInfo);
 		break;
 	}
 	case GI_TYPE_TAG_GLIST: {
@@ -1465,6 +1483,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	case GI_TYPE_TAG_GSLIST: {
@@ -1474,6 +1493,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	case GI_TYPE_TAG_GHASH: {
@@ -1483,10 +1503,12 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 		BASIC_CASES(InstOut)
 		default: // TODO: handle this.
 		}
+		g_base_info_unref(ElementInfo);
 		break;
 	}
 	default: // TODO: handle this.
 	}
+	g_base_info_unref(Return);
 	for (int I = 0; I < NumArgs; ++I) {
 		if (Args[I].SkipIn) {
 			(InstIn++)->Opcode = GIB_SKIP;
@@ -1516,6 +1538,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 			BASIC_CASES(InstIn)
 			default: // TODO: handle this.
 			}
+			g_base_info_unref(ElementInfo);
 			break;
 		}
 		case GI_TYPE_TAG_INTERFACE: {
@@ -1561,6 +1584,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 				}
 				}
 			}
+			g_base_info_unref(InterfaceInfo);
 			break;
 		}
 		case GI_TYPE_TAG_GLIST: {
@@ -1570,6 +1594,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 			BASIC_CASES(InstIn)
 			default: // TODO: handle this.
 			}
+			g_base_info_unref(ElementInfo);
 			break;
 		}
 		case GI_TYPE_TAG_GSLIST: {
@@ -1579,6 +1604,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 			BASIC_CASES(InstIn)
 			default: // TODO: handle this.
 			}
+			g_base_info_unref(ElementInfo);
 			break;
 		}
 		case GI_TYPE_TAG_GHASH: {
@@ -1588,6 +1614,7 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 			BASIC_CASES(InstIn)
 			default: // TODO: handle this.
 			}
+			g_base_info_unref(ElementInfo);
 			break;
 		}
 		default:

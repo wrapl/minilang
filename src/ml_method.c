@@ -724,7 +724,7 @@ ML_TYPE(MLMethodFunctionT, (MLFunctionT), "method::function",
 
 extern ml_type_t MLClosureT[];
 
-ML_METHODVX("[]", MLMethodT, MLTypeT) {
+ML_METHODVX("[]", MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	--Count; ++Args;
 	uintptr_t Hash = (uintptr_t)Method;
@@ -737,6 +737,7 @@ ML_METHODVX("[]", MLMethodT, MLTypeT) {
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, (ml_type_t **)Args, Hash);
 	if (!Cached) ML_RETURN(ml_no_method_error(Method, Count, Args));
 	if (ml_is(Cached->Callback, MLClosureT)) ML_RETURN(Cached->Callback);
+	if (!Count) ML_RETURN(Cached->Callback);
 	ml_method_function_t *Function = xnew(ml_method_function_t, Count, ml_type_t *);
 	Function->Type = MLMethodFunctionT;
 	Function->Callback = Cached->Callback;
