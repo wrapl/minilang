@@ -471,6 +471,15 @@ int ml_map_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, 
 	return 0;
 }
 
+ML_METHOD("precount", MLMapT) {
+//<Map
+//>integer
+// Returns the number of entries in :mini:`Map`.
+//$= {"A" is 1, "B" is 2, "C" is 3}:count
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return ml_integer(Map->Size);
+}
+
 ML_METHOD("size", MLMapT) {
 //<Map
 //>integer
@@ -1742,9 +1751,9 @@ typedef struct {
 	ml_value_t *Map, *Key, *Fn;
 	int Count, Index;
 	void *Nodes[];
-} ml_map_align_state_t;
+} ml_map_join_state_t;
 
-static void ml_map_align_state_run(ml_map_align_state_t *State, ml_value_t *Value) {
+static void ml_map_join_state_run(ml_map_join_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	ml_value_t *Map = State->Map;
@@ -1754,11 +1763,11 @@ static void ml_map_align_state_run(ml_map_align_state_t *State, ml_value_t *Valu
 	ml_map_node_t *Node = (ml_map_node_t *)State->Nodes[Index];
 	while (Node) {
 		if (!ml_map_search0(Map, Node->Key)) {
+			ml_value_t *Key = State->Key = Node->Key;
 			State->Nodes[Index] = Node->Next;
 			ml_value_t **Args2 = ml_alloc_args(N);
 			for (int I = 0; I < Index; ++I) Args2[I] = MLNil;
 			Args2[Index] = Node->Value;
-			ml_value_t *Key = State->Key = Node->Key;
 			for (int I = Index + 1; I < N; ++I) Args2[I] = ml_map_search(State->Nodes[I], Key);
 			return ml_call(State, State->Fn, N, Args2);
 		}
@@ -1768,12 +1777,12 @@ static void ml_map_align_state_run(ml_map_align_state_t *State, ml_value_t *Valu
 		ml_map_node_t *Node = ((ml_map_t *)State->Nodes[Index])->Head;
 		while (Node) {
 			if (!ml_map_search0(Map, Node->Key)) {
+				ml_value_t *Key = State->Key = Node->Key;
 				State->Nodes[Index] = Node->Next;
 				State->Index = Index;
 				ml_value_t **Args2 = ml_alloc_args(N);
 				for (int I = 0; I < Index; ++I) Args2[I] = MLNil;
 				Args2[Index] = Node->Value;
-				ml_value_t *Key = State->Key = Node->Key;
 				for (int I = Index + 1; I < N; ++I) Args2[I] = ml_map_search(State->Nodes[I], Key);
 				return ml_call(State, State->Fn, N, Args2);
 			}
@@ -1797,25 +1806,105 @@ ML_FUNCTIONX(MLMapJoin) {
 	int N = Count - 1;
 	for (int I = 0; I < N; ++I) ML_CHECKX_ARG_TYPE(I, MLMapT);
 	ML_CHECKX_ARG_TYPE(N, MLFunctionT);
-	ml_map_align_state_t *State = xnew(ml_map_align_state_t, N, ml_value_t *);
+	ml_map_join_state_t *State = xnew(ml_map_join_state_t, N, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_map_align_state_run;
+	State->Base.run = (ml_state_fn)ml_map_join_state_run;
 	State->Count = N;
 	State->Fn = Args[N];
 	State->Map = ml_map();
 	for (int Index = 0; Index < N; ++Index) {
 		ml_map_node_t *Node = ((ml_map_t *)Args[Index])->Head;
 		if (Node) {
+			ml_value_t *Key = State->Key = Node->Key;
 			State->Nodes[Index] = Node->Next;
 			State->Index = Index;
 			for (int I = Index + 1; I < N; ++I) State->Nodes[I] = Args[I];
 			ml_value_t **Args2 = ml_alloc_args(N);
 			for (int I = 0; I < Index; ++I) Args2[I] = MLNil;
 			Args2[Index] = Node->Value;
-			ml_value_t *Key = State->Key = Node->Key;
 			for (int I = Index + 1; I < N; ++I) Args2[I] = ml_map_search(State->Nodes[I], Key);
 			return ml_call(State, State->Fn, N, Args2);
+		}
+	}
+	ML_RETURN(State->Map);
+}
+
+static void ml_map_join2_state_run(ml_map_join_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_value_t *Map = State->Map;
+	ml_map_insert(Map, State->Key, Value);
+	int N = State->Count;
+	int Index = State->Index;
+	ml_map_node_t *Node = (ml_map_node_t *)State->Nodes[Index];
+	while (Node) {
+		if (!ml_map_search0(Map, Node->Key)) {
+			ml_value_t *Key = State->Key = Node->Key;
+			State->Nodes[Index] = Node->Next;
+			ml_value_t **Args2 = ml_alloc_args(N + 1);
+			Args2[0] = Key;
+			for (int I = 0; I < Index; ++I) Args2[I + 1] = MLNil;
+			Args2[Index + 1] = Node->Value;
+			for (int I = Index + 1; I < N; ++I) Args2[I + 1] = ml_map_search(State->Nodes[I], Key);
+			return ml_call(State, State->Fn, N + 1, Args2);
+		}
+		Node = Node->Next;
+	}
+	while (++Index < N) {
+		ml_map_node_t *Node = ((ml_map_t *)State->Nodes[Index])->Head;
+		while (Node) {
+			if (!ml_map_search0(Map, Node->Key)) {
+				ml_value_t *Key = State->Key = Node->Key;
+				State->Nodes[Index] = Node->Next;
+				State->Index = Index;
+				ml_value_t **Args2 = ml_alloc_args(N + 1);
+				Args2[0] = Key;
+				for (int I = 0; I < Index; ++I) Args2[I + 1] = MLNil;
+				Args2[Index + 1] = Node->Value;
+				for (int I = Index + 1; I < N; ++I) Args2[I + 1] = ml_map_search(State->Nodes[I], Key);
+				return ml_call(State, State->Fn, N + 1, Args2);
+			}
+			Node = Node->Next;
+		}
+	}
+	ML_RETURN(State->Map);
+}
+
+ML_FUNCTIONX(MLMapJoin2) {
+//@map::join2
+//<Map/1,...:map
+//<Fn:function
+//>map
+// Returns a new map containing the union of the keys of :mini:`Map/i`, and with values :mini:`Fn(K, V/1, ..., V/n)` where each :mini:`V/i` comes from :mini:`Map/i` (or :mini:`nil`).
+//$= let A := map(swap("apple"))
+//$= let B := map(swap("banana"))
+//$= let C := map(swap("pear"))
+//$= map::join2(A, B, C, tuple)
+	ML_CHECKX_ARG_COUNT(2);
+	int N = Count - 1;
+	for (int I = 0; I < N; ++I) ML_CHECKX_ARG_TYPE(I, MLMapT);
+	ML_CHECKX_ARG_TYPE(N, MLFunctionT);
+	ml_map_join_state_t *State = xnew(ml_map_join_state_t, N, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_join2_state_run;
+	State->Count = N;
+	State->Fn = Args[N];
+	State->Map = ml_map();
+	for (int Index = 0; Index < N; ++Index) {
+		ml_map_node_t *Node = ((ml_map_t *)Args[Index])->Head;
+		if (Node) {
+			ml_value_t *Key = State->Key = Node->Key;
+			State->Nodes[Index] = Node->Next;
+			State->Index = Index;
+			for (int I = Index + 1; I < N; ++I) State->Nodes[I] = Args[I];
+			ml_value_t **Args2 = ml_alloc_args(N + 1);
+			Args2[0] = Key;
+			for (int I = 0; I < Index; ++I) Args2[I + 1] = MLNil;
+			Args2[Index + 1] = Node->Value;
+			for (int I = Index + 1; I < N; ++I) Args2[I + 1] = ml_map_search(State->Nodes[I], Key);
+			return ml_call(State, State->Fn, N + 1, Args2);
 		}
 	}
 	ML_RETURN(State->Map);
@@ -1826,6 +1915,7 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "mutable", MLMapMutableT);
 	stringmap_insert(MLMapT->Exports, "order", MLMapOrderT);
 	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
+	stringmap_insert(MLMapT->Exports, "join2", MLMapJoin2);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #ifdef ML_MUTABLES

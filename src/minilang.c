@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <locale.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
 
@@ -79,13 +80,9 @@
 #include "ml_minijs.h"
 #endif
 
-#ifdef ML_BACKTRACE
-#include <backtrace.h>
-#endif
-
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
-static ml_value_t *global_get(void *Data, const char *Name, const char *Source, int Line) {
+static ml_value_t *global_get(void *Data, const char *Name, const char *Source, int Line, int Mode) {
 	return stringmap_search(Globals, Name);
 }
 
@@ -119,6 +116,12 @@ ML_FUNCTION(MLPrint) {
 	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
 	fflush(stdout);
 	return MLNil;
+}
+
+ML_FUNCTION(MLLocale) {
+//@locale
+//>string
+	return ml_string(setlocale(LC_ALL, NULL), -1);
 }
 
 ML_FUNCTION(MLHalt) {
@@ -161,12 +164,28 @@ static void simple_queue_run() {
 #endif
 
 #ifdef ML_BACKTRACE
+#include <backtrace.h>
+
 struct backtrace_state *BacktraceState = NULL;
 
 static void error_handler(int Signal) {
 	backtrace_print(BacktraceState, 0, stderr);
 	exit(0);
 }
+
+static int ml_backtrace_fn(void *Data, uintptr_t PC, const char *Filename, int Lineno, const char *Function) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Data;
+	ml_stringbuffer_printf(Buffer, "%08x: %s: %s:%d\n", (unsigned int)PC, Function, Filename, Lineno);
+	return 0;
+}
+
+ML_FUNCTION(MLBacktrace) {
+//@backtrace
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	backtrace_full(BacktraceState, 0, ml_backtrace_fn, NULL, Buffer);
+	return ml_stringbuffer_to_string(Buffer);
+}
+
 #endif
 
 static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
@@ -192,6 +211,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_BACKTRACE
 	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
 	signal(SIGSEGV, error_handler);
+	stringmap_insert(Globals, "backtrace", MLBacktrace);
 #endif
 	ml_init(Globals);
 	ml_sequence_init(Globals);
@@ -205,10 +225,12 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
+	stringmap_insert(Globals, "locale", MLLocale);
 	stringmap_insert(Globals, "raise", MLRaise);
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "break", MLBreak);
 	stringmap_insert(Globals, "debugger", MLDebugger);
+	stringmap_insert(Globals, "trace", MLTrace);
 	stringmap_insert(Globals, "memory", ml_module("memory",
 		"trace", MLMemTrace,
 		"size", MLMemSize,
@@ -260,11 +282,6 @@ int main(int Argc, const char *Argv[]) {
 
 	ml_stream_init(IO_EXPORTS);
 	ml_file_init(Globals);
-	stringmap_insert(IO_EXPORTS, "terminal", ml_module("terminal",
-		"Stdin", ml_fd_stream(STDIN_FILENO),
-		"Stdout", ml_fd_stream(STDOUT_FILENO),
-		"Stderr", ml_fd_stream(STDERR_FILENO),
-	NULL));
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
 #endif

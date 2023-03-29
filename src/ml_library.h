@@ -22,8 +22,24 @@ ml_value_t *ml_library_load0(const char *Path, const char *Name);
 void ml_library_register(const char *Name, ml_value_t *Module);
 ml_module_t *ml_library_internal(const char *Name);
 
-void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot);
-void ml_library_entry0(ml_value_t **Slot);
+typedef void (*ml_library_entry_t)(ml_state_t *Caller, ml_value_t **Slot);
+typedef void (*ml_library_entry0_t)(ml_value_t **Slot);
+
+#define STRINGIFY(x) #x
+#define TOSTRING3(x, y, z) STRINGIFY(x ## y ## z)
+
+#define LIBRARY_ENTRY(NAME) TOSTRING3(ml_, NAME, _entry)
+#define LIBRARY_ENTRY0(NAME) TOSTRING3(ml_, NAME, _entry0)
+
+#define ML_LIBRARY_ENTRY(NAME) \
+void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot); \
+void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY(NAME)))); \
+void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot)
+
+#define ML_LIBRARY_ENTRY0(NAME) \
+void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot); \
+void ml_library_entry0(ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY0(NAME)))); \
+void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot)
 
 #ifdef __cplusplus
 }

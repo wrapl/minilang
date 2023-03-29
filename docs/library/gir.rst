@@ -31,6 +31,18 @@ gir
    *TBD*
 
 
+.. _type-gir-callback:
+
+:mini:`type gir::callback < gir::baseinfo`
+   A gobject-introspection callback type.
+
+
+.. _type-gir-callbackinstance:
+
+:mini:`type gir::callbackinstance`
+   A gobject-introspection callback instance.
+
+
 .. _type-gir-enum:
 
 :mini:`type gir::enum < gir::baseinfo`
@@ -51,7 +63,7 @@ gir
    *TBD*
 
 
-:mini:`meth (Value: string):append(Arg₂: gir::enumvalue): string`
+:mini:`meth (Value: string::buffer):append(Arg₂: gir::enumvalue): string`
    *TBD*
 
 
@@ -130,6 +142,16 @@ gir
 .. _type-gir-fieldref-utf8:
 
 :mini:`type gir::fieldref-utf8 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-function:
+
+:mini:`type gir::function < function`
+   *TBD*
+
+
+:mini:`meth (Arg₁: gir::function):list`
    *TBD*
 
 

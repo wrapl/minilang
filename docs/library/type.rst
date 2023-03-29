@@ -56,6 +56,10 @@ type
    Returns the generic type :mini:`Base[Type₁,  ...,  Typeₙ]`.
 
 
+:mini:`meth (Type: type):constructor: function`
+   Returns the constructor for :mini:`Type`.
+
+
 :mini:`meth (Type: type):exports: map`
    Returns a map of all the exports from :mini:`Type`.
 

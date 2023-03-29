@@ -39,6 +39,9 @@ ML_METHOD_DECL(AssignMethod, ":=");
 ML_METHOD_DECL(EqualMethod, "=");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(GreaterMethod, ">");
+ML_METHOD_DECL(NotEqualMethod, "!=");
+ML_METHOD_DECL(LessEqualMethod, "<=");
+ML_METHOD_DECL(GreaterEqualMethod, ">=");
 ML_METHOD_DECL(AddMethod, "+");
 ML_METHOD_DECL(MulMethod, "*");
 ML_METHOD_DECL(AndMethod, "/\\");
@@ -124,6 +127,14 @@ ML_METHOD("exports", MLTypeT) {
 	ml_value_t *Exports = ml_map();
 	stringmap_foreach(Type->Exports, Exports, (void *)ml_type_exports_fn);
 	return Exports;
+}
+
+ML_METHOD("constructor", MLTypeT) {
+//<Type
+//>function
+// Returns the constructor for :mini:`Type`.
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	return Type->Constructor;
 }
 
 #ifdef ML_GENERICS
@@ -1012,6 +1023,34 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLTypeSwitchT, ml_type_switch_t *Sw
 	return Result;
 }
 
+ML_DESERIALIZER("type-switch") {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_type_switch_t *Switch = xnew(ml_type_switch_t, Total, ml_type_case_t);
+	Switch->Type = MLTypeSwitchT;
+	ml_type_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLTypeT)) {
+				Case->Type = (ml_type_t *)Value;
+			} else if (Value == MLNil) {
+				Case->Type = MLNilT;
+			} else {
+				return ml_error("ValueError", "Unsupported value in type case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Type = MLAnyT;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	//Value = ml_deref(Value);
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
@@ -1826,19 +1865,36 @@ static void ml_tuple_assign(ml_state_t *Caller, ml_tuple_t *Ref, ml_value_t *Val
 typedef struct {
 	ml_state_t Base;
 	ml_tuple_t *Functions;
-	ml_value_t *Result;
+	ml_tuple_t *Tuple;
 	int Index, Count;
 	ml_value_t *Args[];
 } ml_tuple_call_t;
 
+#ifdef ML_GENERICS
+
+static __attribute__ ((noinline)) void ml_tuple_call_finish(ml_tuple_t *Tuple) {
+	ml_type_t *Types[Tuple->Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
+	Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
+}
+
+#endif
+
 static void ml_tuple_call_run(ml_tuple_call_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
-	ml_tuple_t *Functions = State->Functions;
 	int Index = State->Index;
-	ml_tuple_set(State->Result, Index, Result);
-	if (Index == Functions->Size) ML_RETURN(State->Result);
-	State->Index = Index + 1;
+	ml_tuple_t *Tuple = State->Tuple;
+	Tuple->Values[Index] = Result;
+	ml_tuple_t *Functions = State->Functions;
+	if (++Index == Functions->Size) {
+#ifdef ML_GENERICS
+		ml_tuple_call_finish(Tuple);
+#endif
+		ML_RETURN(Tuple);
+	}
+	State->Index = Index;
 	return ml_call(State, Functions->Values[Index], State->Count, State->Args);
 }
 
@@ -1849,8 +1905,8 @@ static void ml_tuple_call(ml_state_t *Caller, ml_tuple_t *Functions, int Count, 
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_tuple_call_run;
 	State->Functions = Functions;
-	State->Result = ml_tuple(Functions->Size);
-	State->Index = 1;
+	State->Tuple = (ml_tuple_t *)ml_tuple(Functions->Size);
+	State->Index = 0;
 	State->Count = Count;
 	memcpy(State->Args, Args, Count * sizeof(ml_value_t *));
 	return ml_call(State, Functions->Values[0], Count, Args);
@@ -2718,7 +2774,7 @@ ML_METHOD("add", MLExternalSetT, MLStringT, MLAnyT) {
 	ml_externals_t *Externals = (ml_externals_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	stringmap_insert(Externals->Names, Name, Args[2]);
-	inthash_insert(Externals->Values, (uintptr_t)Args[1], (void *)Name);
+	inthash_insert(Externals->Values, (uintptr_t)Args[2], (void *)Name);
 	return MLNil;
 }
 
@@ -2800,8 +2856,16 @@ ml_value_t *ml_serialize(ml_value_t *Value) {
 	return ml_error("TypeError", "No method to serialize %s", ml_typeof(Value)->Name);
 }
 
-ml_value_t *ml_deserialize(ml_value_t *Value) {
-	return ml_error("InternalError", "Generic deserialization not implemented yet");
+static stringmap_t MLDeserializers[1] = {STRINGMAP_INIT};
+
+void ml_deserializer_define(const char *Type, ml_deserializer_t Deserializer) {
+	stringmap_insert(MLDeserializers, Type, Deserializer);
+}
+
+ml_value_t *ml_deserialize(const char *Type, int Count, ml_value_t **Args) {
+	ml_deserializer_t deserializer = (ml_deserializer_t)stringmap_search(MLDeserializers, Type);
+	if (deserializer) return deserializer(Type, Count, Args);
+	return ml_error("ValueError", "No method to deserialize %s", Type);
 }
 
 // Symbols //
@@ -3052,8 +3116,8 @@ void ml_init(stringmap_t *Globals) {
 	ml_externals_default_add("function", MLFunctionT);
 	ml_externals_default_add("sequence", MLSequenceT);
 	ml_externals_default_add("boolean", MLBooleanT);
-	ml_externals_default_add("true", MLTrue);
-	ml_externals_default_add("false", MLFalse);
+	//ml_externals_default_add("true", MLTrue);
+	//ml_externals_default_add("false", MLFalse);
 	ml_externals_default_add("number", MLNumberT);
 	ml_externals_default_add("integer", MLIntegerT);
 	ml_externals_default_add("real", MLRealT);

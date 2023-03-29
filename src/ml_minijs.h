@@ -2,7 +2,13 @@
 #define ML_JSENCODE_H
 
 #include "minilang.h"
-#include <jansson.h>
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_minijs_t;
+
+extern ml_type_t MLMinijsT[];
 
 typedef struct ml_minijs_encoder_t ml_minijs_encoder_t;
 
@@ -12,7 +18,7 @@ struct ml_minijs_encoder_t {
 	int LastIndex;
 };
 
-json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value);
+ml_value_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value);
 
 void ml_minijs_init(stringmap_t *Globals);
 

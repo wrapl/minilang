@@ -2,4 +2,6 @@
 
 #define GE(A, B) A >= B
 
-COMPARE_FNS(Ge, ge, GE);
+extern ml_value_t *GreaterEqualMethod;
+
+COMPARE_FNS(Ge, ge, GE, GreaterEqualMethod);

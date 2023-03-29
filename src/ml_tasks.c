@@ -276,7 +276,6 @@ ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
 );
 
 ML_METHODX(MLTasksT, MLFunctionT) {
-//@tasks
 //<Main
 //>tasks
 // Creates a new :mini:`tasks` set.
@@ -299,9 +298,8 @@ ML_METHODX(MLTasksT, MLFunctionT) {
 }
 
 ML_METHODX(MLTasksT, MLIntegerT, MLFunctionT) {
-//@tasks
-//<MaxRunning:integer
-//<Main:function
+//<MaxRunning
+//<Main
 //>tasks
 // Creates a new :mini:`tasks` set.
 // If specified, at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).
@@ -323,10 +321,9 @@ ML_METHODX(MLTasksT, MLIntegerT, MLFunctionT) {
 }
 
 ML_METHODX(MLTasksT, MLIntegerT, MLIntegerT, MLFunctionT) {
-//@tasks
-//<MaxRunning:integer
-//<MaxPending:integer
-//<Main:function
+//<MaxRunning
+//<MaxPending
+//<Main
 //>tasks
 // Creates a new :mini:`tasks` set.
 // If specified, at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).

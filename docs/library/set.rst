@@ -154,14 +154,22 @@ set
    Returns the current ordering of :mini:`Set`.
 
 
+:mini:`meth (Set: set):precount: integer`
+   Returns the number of values in :mini:`Set`.
+
+   .. code-block:: mini
+
+      set(["A", "B", "C"]):count :> 3
+
+
 :mini:`meth (List: set):random: any`
    Returns a random (assignable) node from :mini:`Set`.
 
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
-      M:random :> "e"
-      M:random :> "c"
+      M:random :> "k"
+      M:random :> "k"
 
 
 :mini:`meth (Set: set):size: integer`

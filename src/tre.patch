@@ -1,0 +1,10 @@
+--- lib/tre-compile.c	2023-03-15 10:52:09.903301590 +0000
++++ lib/tre-compile.c.new	2023-03-15 10:53:00.390079564 +0000
+@@ -715,6 +715,7 @@
+ 		*result = tre_ast_new_literal(mem, min, max, pos);
+ 		if (*result == NULL)
+ 		  status = REG_ESPACE;
++		((tre_literal_t*)(*result)->obj)->u.class = lit->u.class;
+ 
+ 		if (pos > *max_pos)
+ 		  *max_pos = pos;

@@ -8,6 +8,7 @@
 #include <float.h>
 #include <stdatomic.h>
 #include <gc/gc_typed.h>
+#include <locale.h>
 
 #include "ml_sequence.h"
 #ifdef ML_TRE
@@ -624,7 +625,7 @@ ML_FUNCTIONX(MLString) {
 //$= string("Hello world!\n")
 //$= string([1, 2, 3])
 	ML_CHECKX_ARG_COUNT(1);
-	if (ml_is(Args[0], MLStringT)) ML_RETURN(Args[0]);
+	if (ml_is(Args[0], MLStringT) && Count == 1) ML_RETURN(Args[0]);
 	ml_string_state_t *State = xnew(ml_string_state_t, Count + 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -800,6 +801,9 @@ ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
 	return MLSome;
 }
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
 //!range
 //<Buffer
@@ -807,7 +811,7 @@ ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
-	ml_stringbuffer_printf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g by %." TOSTRING(DBL_DIG) "g", Range->Start, Range->Limit, Range->Step);
 	return MLSome;
 }
 
@@ -817,7 +821,7 @@ ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_printf(Buffer, "%g", ml_double_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", ml_double_value_fast(Args[1]));
 	return MLSome;
 }
 
@@ -859,21 +863,21 @@ ML_METHOD("append", MLStringBufferT, MLComplexT) {
 		} else if (fabs(Imag) <= DBL_EPSILON) {
 			ml_stringbuffer_put(Buffer, '0');
 		} else {
-			ml_stringbuffer_printf(Buffer, "%gi", Imag);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "gi", Imag);
 		}
 	} else if (fabs(Imag) <= DBL_EPSILON) {
-		ml_stringbuffer_printf(Buffer, "%g", Real);
+		ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", Real);
 	} else if (Imag < 0) {
 		if (fabs(Imag + 1) <= DBL_EPSILON) {
-			ml_stringbuffer_printf(Buffer, "%g - i", Real);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g - i", Real);
 		} else {
-			ml_stringbuffer_printf(Buffer, "%g - %gi", Real, -Imag);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g - %." TOSTRING(DBL_DIG) "gi", Real, -Imag);
 		}
 	} else {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			ml_stringbuffer_printf(Buffer, "%g + i", Real);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g + i", Real);
 		} else {
-			ml_stringbuffer_printf(Buffer, "%g + %gi", Real, Imag);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g + %." TOSTRING(DBL_DIG) "gi", Real, Imag);
 		}
 	}
 	return MLSome;
@@ -1181,6 +1185,21 @@ ML_METHOD("append", MLStringBufferT, MLStringT) {
 	}
 }
 
+static regex_t StringFormat[1];
+
+ML_METHOD("append", MLStringBufferT, MLStringT, MLStringT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Format = ml_string_value(Args[2]);
+	const char *Value = ml_string_value(Args[1]);
+	int R = regexec(StringFormat, Format, 0, NULL, 0);
+	if (!R) {
+		ssize_t Written = ml_stringbuffer_printf(Buffer, Format, Value);
+		return Written ? MLSome : MLNil;
+	} else {
+		return ml_error("FormatError", "Invalid format string: %d", R);
+	}
+}
+
 ML_METHOD("length", MLStringT) {
 //<String
 //>integer
@@ -1188,6 +1207,17 @@ ML_METHOD("length", MLStringT) {
 //$= "Hello world":length
 //$= "Hello world":size
 //$= "λ:😀️ → 😺️":length
+//$= "λ:😀️ → 😺️":size
+	return ml_integer(utf8_strlen(Args[0]));
+}
+
+ML_METHOD("precount", MLStringT) {
+//<String
+//>integer
+// Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
+//$= "Hello world":count
+//$= "Hello world":size
+//$= "λ:😀️ → 😺️":count
 //$= "λ:😀️ → 😺️":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
@@ -1210,10 +1240,10 @@ ML_METHOD("code", MLStringT) {
 //$= "A":code
 //$= "😀️":code
 	const char *S = ml_string_value(Args[0]);
-	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
 	uint32_t Mask = (1 << (8 - K)) - 1;
 	uint32_t Value = S[0] & Mask;
-	for (++S, --K; K > 0 && S[0]; --K, ++S) {
+	for (++S, --K; K > 0 && S[0]; ++S, --K) {
 		Value <<= 6;
 		Value += S[0] & 0x3F;
 	}
@@ -1413,7 +1443,7 @@ ML_METHOD("ctype", MLStringT) {
 // Returns the unicode type of the first character of :mini:`String`.
 //$= map("To €2 á\n" => (2, 2 -> :ctype))
 	const char *S = ml_string_value(Args[0]);
-	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
 	uint32_t Mask = (1 << (8 - K)) - 1;
 	uint32_t Value = S[0] & Mask;
 	for (++S, --K; K > 0 && S[0]; --K, ++S) {
@@ -2965,6 +2995,83 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 	return 0;
 }
 
+ML_METHOD("replace2", MLStringT, MLStringT, MLStringT) {
+//<String
+//<Pattern
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+//$= "Hello world":replace2("l", "bb")
+	const char *Subject = ml_string_value(Args[0]);
+	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
+	const char *Pattern = ml_string_value(Args[1]);
+	int PatternLength = ml_string_length(Args[1]);
+	if (!PatternLength) return ml_error("ValueError", "Empty pattern used in replace");
+	const char *Replace = ml_string_value(Args[2]);
+	int ReplaceLength = ml_string_length(Args[2]);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	int Total = 0;
+	const char *Find = strstr(Subject, Pattern);
+	while (Find) {
+		if (Find > Subject) ml_stringbuffer_write(Buffer, Subject, Find - Subject);
+		ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
+		Subject = Find + PatternLength;
+		Find = strstr(Subject, Pattern);
+		++Total;
+	}
+	if (SubjectEnd > Subject) {
+		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
+	}
+	return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+}
+
+ML_METHOD("replace2", MLStringT, MLRegexT, MLStringT) {
+//<String
+//<Pattern
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+//$= "Hello world":replace2(r"l+", "bb")
+	const char *Subject = ml_string_value(Args[0]);
+	int SubjectLength = ml_string_length(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	const char *Replace = ml_string_value(Args[2]);
+	int ReplaceLength = ml_string_length(Args[2]);
+	regmatch_t Matches[1];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	int RegexFlags = 0, Total = 0;
+	for (;;) {
+#ifdef ML_TRE
+		switch (regnexec(Regex, Subject, SubjectLength, 1, Matches, RegexFlags)) {
+
+#else
+		switch (regexec(Regex, Subject, 1, Matches, RegexFlags)) {
+#endif
+		case REG_NOMATCH:
+			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
+			return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+		case REG_ESPACE: {
+			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+			char *ErrorMessage = snew(ErrorSize + 1);
+			regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+			return ml_error("RegexError", "%s", ErrorMessage);
+		}
+		default: {
+			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
+			regoff_t Start = Matches[0].rm_so;
+			regoff_t End = Matches[0].rm_eo;
+			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
+			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
+			Subject += End;
+			SubjectLength -= End;
+			RegexFlags = REG_NOTBOL;
+			++Total;
+		}
+		}
+	}
+	return 0;
+}
+
 typedef struct {
 	union {
 		const char *String;
@@ -2982,8 +3089,8 @@ typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t Buffer[1];
 	const char *Subject;
-	int Length, Count;
-	int RegexFlags;
+	int Length, Count, Total;
+	int RegexFlags, Tuple;
 	ml_str_replacement_t Replacements[];
 } ml_str_replacement_state_t;
 
@@ -3057,6 +3164,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 			}
 		}
 		if (!Match) break;
+		++State->Total;
 		if (MatchStart) ml_stringbuffer_write(State->Buffer, Subject, MatchStart);
 		Subject += MatchEnd;
 		Length -= MatchEnd;
@@ -3071,7 +3179,11 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 		}
 	}
 	if (State->Length) ml_stringbuffer_write(Buffer, Subject, Length);
-	ML_RETURN(ml_stringbuffer_get_value(Buffer));
+	if (State->Tuple) {
+		ML_RETURN(ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(State->Total)));
+	} else {
+		ML_RETURN(ml_stringbuffer_get_value(Buffer));
+	}
 }
 
 ML_METHODX("replace", MLStringT, MLMapT) {
@@ -3118,6 +3230,51 @@ ML_METHODX("replace", MLStringT, MLMapT) {
 	return ml_str_replacement_next(State, MLNil);
 }
 
+ML_METHODX("replace2", MLStringT, MLMapT) {
+//<String
+//<Replacements
+//>string
+// Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
+// Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
+//$- "the dog snored as he slept":replace2({
+//$-    r" ([a-z])" is fun(Match, A) '-{A:upper}',
+//$-    "nor" is "narl"
+//$= })
+	int NumPatterns = ml_map_size(Args[1]);
+	ml_str_replacement_state_t *State = xnew(ml_str_replacement_state_t, NumPatterns, ml_str_replacement_t);
+	ml_str_replacement_t *Replacement = State->Replacements;
+	ML_MAP_FOREACH(Args[1], Iter) {
+		if (ml_is(Iter->Key, MLStringT)) {
+			Replacement->Pattern.String = ml_string_value(Iter->Key);
+			Replacement->PatternLength = ml_string_length(Iter->Key);
+			if (!Replacement->PatternLength) ML_ERROR("ValueError", "Empty pattern used in replace");
+		} else if (ml_is(Iter->Key, MLRegexT)) {
+			Replacement->Pattern.Regex = ml_regex_value(Iter->Key);
+			Replacement->PatternLength = -1;
+		} else {
+			ML_ERROR("TypeError", "Unsupported pattern type: <%s>", ml_typeof(Iter->Key)->Name);
+		}
+		if (ml_is(Iter->Value, MLStringT)) {
+			Replacement->Replacement.String = ml_string_value(Iter->Value);
+			Replacement->ReplacementLength = ml_string_length(Iter->Value);
+		} else if (ml_is(Iter->Value, MLFunctionT)) {
+			Replacement->Replacement.Function = Iter->Value;
+			Replacement->ReplacementLength = -1;
+		} else {
+			ML_ERROR("TypeError", "Unsupported replacement type: <%s>", ml_typeof(Iter->Value)->Name);
+		}
+		++Replacement;
+	}
+	State->Count = NumPatterns;
+	State->Subject = ml_string_value(Args[0]);
+	State->Length = ml_string_length(Args[0]);
+	State->Tuple = 1;
+	State->Buffer[0] = ML_STRINGBUFFER_INIT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	return ml_str_replacement_next(State, MLNil);
+}
+
 ML_METHODX("replace", MLStringT, MLRegexT, MLFunctionT) {
 //<String
 //<Pattern
@@ -3149,7 +3306,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 //$= "Hello world":replace(6, "_")
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
 	if (N <= 0) N += Length + 1;
 	if (N <= 0) return MLNil;
@@ -3179,7 +3336,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
 //$= "Hello world":replace(-6, 0, ", how are you?")
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
@@ -3237,7 +3394,7 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLFunctionT) {
 //$= "hello world":replace(1, :upper)
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
 	if (N <= 0) N += Length + 1;
 	if (N <= 0) ML_RETURN(MLNil);
@@ -3271,7 +3428,7 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 //$= "hello world":replace(1, 6, :upper)
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
-	const char *End = Start + Length;
+	const char *End = Start + ml_string_length(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
@@ -3651,12 +3808,14 @@ ML_FUNCTION_INLINE(MLStringSwitch) {
 //$-       end
 //$= end
 	int Total = 1;
-	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
 	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
 	Switch->Type = MLStringSwitchT;
 	ml_string_case_t *Case = Switch->Cases;
 	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, MLStringT)) {
@@ -3679,25 +3838,44 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLStringSwitchT, ml_string_switch_t
 	ml_list_put(Result, ml_cstring("string-switch"));
 	ml_value_t *Index = NULL, *Last = NULL;
 	for (ml_string_case_t *Case = Switch->Cases;; ++Case) {
-		if (Case->String) {
-			if (Case->Index != Index) {
-				Index = Case->Index;
-				Last = ml_list();
-				ml_list_put(Result, Last);
-			}
-			ml_list_put(Last, (ml_value_t *)Case->String);
-		} else if (Case->Regex) {
-			if (Case->Index != Index) {
-				Index = Case->Index;
-				Last = ml_list();
-				ml_list_put(Result, Last);
-			}
-			ml_list_put(Last, (ml_value_t *)Case->Regex);
-		} else {
-			break;
+		ml_value_t *Match = (ml_value_t *)Case->String;
+		if (!Match) Match = (ml_value_t *)Case->Regex;
+		if (!Match) break;
+		if (Case->Index != Index) {
+			Index = Case->Index;
+			Last = ml_list();
+			ml_list_put(Result, Last);
 		}
+		ml_list_put(Last, Match);
 	}
 	return Result;
+}
+
+ML_DESERIALIZER("string-switch") {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
+	Switch->Type = MLStringSwitchT;
+	ml_string_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLStringT)) {
+				Case->String = (ml_string_t *)Value;
+			} else if (ml_is(Value, MLRegexT)) {
+				Case->Regex = (ml_regex_t *)Value;
+			} else {
+				return ml_error("ValueError", "Unsupported value in string case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
 }
 
 ml_value_t *ml_stringbuffer() {
@@ -4083,12 +4261,14 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 }
 
 void ml_string_init() {
+	setlocale(LC_ALL, "C.UTF-8");
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
+	regcomp(StringFormat, "^\\s*%[-]?[0-9]*[s]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
 	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
 	stringmap_insert(MLRegexT->Exports, "escape", MLRegexEscape);

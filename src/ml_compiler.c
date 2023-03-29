@@ -80,7 +80,7 @@ static void mlc_function_run(mlc_function_t *Function, ml_value_t *Value) {
 ML_TYPE(MLCompilerFunctionT, (MLStateT), "compiler-function");
 
 static ml_source_t ML_TYPED_FN(ml_debugger_source, MLCompilerFunctionT, mlc_function_t *Function) {
-	return (ml_source_t){Function->Source, 0};
+	return (ml_source_t){Function->Source, Function->Frame ? Function->Frame->Line : 0};
 }
 
 #define FRAME_BLOCK_SIZE 2000
@@ -205,6 +205,7 @@ static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
 	Function->Base.Context = Parent->Base.Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Parent->Compiler;
+	Function->Mode = 1;
 	Function->Source = Parent->Source;
 	Function->Old = -1;
 	Function->It = -1;
@@ -1804,6 +1805,7 @@ void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr) {
 	Function->Base.Context = Caller->Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Parent->Compiler;
+	Function->Mode = 1;
 	Function->Source = Parent->Source;
 	Function->Old = -1;
 	Function->It = -1;
@@ -2326,6 +2328,7 @@ static void mlc_inline_call_expr_compile2(mlc_function_t *Parent, ml_value_t *Va
 	Function->Base.Context = Parent->Base.Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Parent->Compiler;
+	Function->Mode = 1;
 	Function->Source = Parent->Source;
 	Function->Old = -1;
 	Function->It = -1;
@@ -2946,6 +2949,7 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 	SubFunction->Base.Context = Function->Base.Context;
 	SubFunction->Base.run = (ml_state_fn)mlc_function_run;
 	SubFunction->Compiler = Function->Compiler;
+	SubFunction->Mode = 0;
 	SubFunction->Up = Function;
 	SubFunction->Source = Expr->Source;
 	SubFunction->Old = -1;
@@ -3108,7 +3112,7 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 	//if (!strcmp(Expr->Ident, "true")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLTrue, Flags);
 	//if (!strcmp(Expr->Ident, "false")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLFalse, Flags);
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Function->Compiler->Vars, Expr->Ident);
-	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident, Expr->Source, Expr->StartLine);
+	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident, Expr->Source, Expr->StartLine, Function->Mode);
 	if (!Value) {
 		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
 	}
@@ -3572,12 +3576,12 @@ static void ml_compiler_call(ml_state_t *Caller, ml_compiler_t *Compiler, int Co
 	ML_RETURN(MLNil);
 }
 
-static ml_value_t *ml_function_global_get(ml_value_t *Function, const char *Name, const char *Source, int Line) {
-	ml_value_t *Value = ml_simple_inline(Function, 3, ml_string(Name, -1), ml_string(Source, -1), ml_integer(Line));
+static ml_value_t *ml_function_global_get(ml_value_t *Function, const char *Name, const char *Source, int Line, int Mode) {
+	ml_value_t *Value = ml_simple_inline(Function, 3, ml_string(Name, -1), ml_string(Source, -1), ml_integer(Line), ml_integer(Mode));
 	return (Value != MLNotFound) ? Value : NULL;
 }
 
-static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name, const char *Source, int Line) {
+static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name, const char *Source, int Line, int Mode) {
 	return ml_map_search0(Map, ml_string(Name, -1));
 }
 
@@ -3596,6 +3600,16 @@ ML_TYPE(MLCompilerT, (MLStateT), "compiler",
 	.Constructor = (ml_value_t *)MLCompiler
 );
 
+ML_FUNCTIONX(MLSource) {
+//@source
+//>tuple[string,integer]
+// Returns the caller source location. Evaluated at compile time if possible.
+	ml_source_t Source = ml_debugger_source(Caller);
+	ML_RETURN(ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+}
+
+static ml_inline_function_t MLSourceInline[1] = {{MLFunctionInlineT, (ml_value_t *)MLSource}};
+
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals) {
 	ml_compiler_t *Compiler = new(ml_compiler_t);
 	Compiler->Type = MLCompilerT;
@@ -3608,9 +3622,9 @@ void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *V
 	stringmap_insert(Compiler->Vars, Name, Value);
 }
 
-ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name, const char *Source, int Line) {
+ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name, const char *Source, int Line, int Mode) {
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Compiler->Vars, Name);
-	if (!Value) Value = Compiler->GlobalGet(Compiler->Globals, Name, Source, Line);
+	if (!Value) Value = Compiler->GlobalGet(Compiler->Globals, Name, Source, Line, Mode);
 	return Value;
 }
 
@@ -4971,6 +4985,7 @@ static ML_METHOD_DECL(MLInMethod, "in");
 static ML_METHOD_DECL(MLIsMethod, "=");
 
 ML_FUNCTION(MLNot) {
+//@not
 	ML_CHECK_ARG_COUNT(1);
 	if (Args[0] == MLNil) return MLSome;
 	return MLNil;
@@ -6032,6 +6047,7 @@ void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Co
 	Function->Base.Context = Caller->Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Compiler;
+	Function->Mode = 0;
 	Function->Source = Expr->Source;
 	Function->Old = -1;
 	Function->It = -1;
@@ -6649,6 +6665,7 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	Function->Base.Context = Caller->Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Compiler;
+	Function->Mode = 0;
 	Function->Source = Parser->Source.Name;
 	Function->Old = -1;
 	Function->It = -1;
@@ -6673,7 +6690,7 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	}
 }
 
-ml_value_t *stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line) {
+ml_value_t *stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Mode) {
 	return (ml_value_t *)stringmap_search(Map, Key);
 }
 
@@ -6772,6 +6789,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
+	stringmap_insert(MLCompilerT->Exports, "source", MLSourceInline);
 	stringmap_insert(MLMacroT->Exports, "expr", ml_macro((ml_value_t *)MLValueExpr));
 	stringmap_insert(MLMacroT->Exports, "subst", ml_macro((ml_value_t *)MLMacroSubst));
 	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);

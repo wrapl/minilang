@@ -505,7 +505,7 @@ gint64 ml_gir_enum_value_value(ml_value_t *Value) {
 	return ((enum_value_t *)Value)->Value;
 }
 
-ML_METHOD("append", MLStringT, GirEnumValueT) {
+ML_METHOD("append", MLStringBufferT, GirEnumValueT) {
 //<Value
 //>string
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
@@ -1353,8 +1353,6 @@ static void set_input_length(GICallableInfo *Info, int Index, GIArgument *ArgsIn
 
 static GIBaseInfo *DestroyNotifyInfo;
 
-//#include "ml_gir_bytecode.c"
-
 static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, ml_value_t **Args) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
 	int NArgsIn = 1, NArgsOut = 0;
@@ -1845,6 +1843,8 @@ static void method_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, m
 	return function_info_invoke(Caller, Info, Count, Args);
 }
 
+static ml_value_t *function_info_compile(GIFunctionInfo *Info);
+
 static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Object) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
 	int NArgsIn = 0;
@@ -1879,7 +1879,11 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 	ml_type_t *Types[NArgsIn];
 	Types[0] = (ml_type_t *)Object;
 	for (int I = 1; I < NArgsIn; ++I) Types[I] = MLAnyT;
+#ifdef ML_GIR_BYTECODE
+	ml_method_define(ml_method(Name), function_info_compile(Info), NArgsIn, 0, Types);
+#else
 	ml_method_define(ml_method(Name), ml_cfunctionx(Info, (ml_callbackx_t)method_invoke), NArgsIn, 0, Types);
+#endif
 }
 
 static void interface_add_signals(object_t *Object, GIInterfaceInfo *Info) {
@@ -1899,10 +1903,13 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			//ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 			method_register(MethodName, MethodInfo, Object);
 		} else {
+#ifdef ML_GIR_BYTECODE
+			stringmap_insert(Object->Base.Exports, MethodName, function_info_compile(MethodInfo));
+#else
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
+#endif
 		}
 	}
 }
@@ -1938,12 +1945,15 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			//ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 			method_register(MethodName, MethodInfo, Object);
-		//} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 		} else {
+#ifdef ML_GIR_BYTECODE
+			stringmap_insert(Object->Base.Exports, MethodName, function_info_compile(MethodInfo));
+#else
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
+#endif
 		}
+		g_base_info_unref(MethodInfo);
 	}
 }
 
@@ -1990,8 +2000,8 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		object_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
+		object_add_methods(Object, Info);
 	}
 	return Slot[0];
 }
@@ -2010,8 +2020,8 @@ static ml_type_t *interface_info_lookup(GIInterfaceInfo *Info) {
 		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		interface_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
+		interface_add_methods(Object, Info);
 	}
 	return Slot[0];
 }
@@ -2047,6 +2057,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 				stringmap_insert(Struct->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 			}
+			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -2083,6 +2094,7 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 				stringmap_insert(Union->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 			}
+			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -2108,6 +2120,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 		Enum->Base.assign = ml_default_assign;
 		Enum->Base.Rank = GirEnumT->Rank + 1;
 		ml_type_init((ml_type_t *)Enum, GirEnumValueT, NULL);
+		Slot[0] = (ml_type_t *)Enum;
 		for (int I = 0; I < NumValues; ++I) {
 			GIValueInfo *ValueInfo = g_enum_info_get_value(Info, I);
 			const char *ValueName = GC_strdup(g_base_info_get_name((GIBaseInfo *)ValueInfo));
@@ -2117,9 +2130,9 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 			Value->Value = g_value_info_get_value(ValueInfo);
 			stringmap_insert(Enum->Base.Exports, ValueName, (ml_value_t *)Value);
 			Enum->ByIndex[I] = Value;
+			g_base_info_unref(ValueInfo);
 		}
 		Enum->Info = Info;
-		Slot[0] = (ml_type_t *)Enum;
 	}
 	return Slot[0];
 }
@@ -2143,7 +2156,11 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		break;
 	}
 	case GI_INFO_TYPE_FUNCTION: {
+#ifdef ML_GIR_BYTECODE
+		return function_info_compile((GIFunctionInfo *)Info);
+#else
 		return ml_cfunctionx(Info, (ml_callbackx_t)function_info_invoke);
+#endif
 	}
 	case GI_INFO_TYPE_CALLBACK: {
 		break;
@@ -2629,6 +2646,12 @@ void ml_gir_loop_run() {
 void ml_gir_loop_quit() {
 	g_main_loop_quit(MainLoop);
 }
+
+#ifdef ML_GIR_BYTECODE
+
+#include "ml_gir_bytecode.c"
+
+#endif
 
 void ml_gir_init(stringmap_t *Globals) {
 	//g_setenv("G_SLICE", "always-malloc", 1);

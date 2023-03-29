@@ -2,4 +2,6 @@
 
 #define NE(A, B) A != B
 
-COMPARE_FNS(Ne, ne, NE);
+extern ml_value_t *NotEqualMethod;
+
+COMPARE_FNS(Ne, ne, NE, NotEqualMethod);

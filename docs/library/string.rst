@@ -654,6 +654,17 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> [0, 2, 3, 7, 10, 11, 14, 15, 19]
 
 
+:mini:`meth (String: string):precount: integer`
+   Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
+
+   .. code-block:: mini
+
+      "Hello world":count :> 11
+      "Hello world":size :> 11
+      "λ:😀️ → 😺️":count :> 9
+      "λ:😀️ → 😺️":size :> 22
+
+
 :mini:`meth (String: string):replace(I: integer, Fn: function): string`
    Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Fn(String[I])`.
 
@@ -723,6 +734,34 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello world":replace("l", "bb") :> "Hebbbbo worbbd"
+
+
+:mini:`meth (String: string):replace2(Replacements: map): string`
+   Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
+   Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
+
+   .. code-block:: mini
+
+      "the dog snored as he slept":replace2({
+         r" ([a-z])" is fun(Match, A) '-{A:upper}',
+         "nor" is "narl"
+      }) :> (the-Dog-Snarled-As-He-Slept, 6)
+
+
+:mini:`meth (String: string):replace2(Pattern: regex, Replacement: string): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+
+   .. code-block:: mini
+
+      "Hello world":replace2(r"l+", "bb") :> (Hebbo worbbd, 2)
+
+
+:mini:`meth (String: string):replace2(Pattern: string, Replacement: string): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+
+   .. code-block:: mini
+
+      "Hello world":replace2("l", "bb") :> (Hebbbbo worbbd, 3)
 
 
 :mini:`meth (String: string):reverse: string`
@@ -824,6 +863,10 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 :mini:`meth (Buffer: string::buffer):append(Value: string)`
    Appends :mini:`Value` to :mini:`Buffer`.
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
+   *TBD*
 
 
 .. _type-string-buffer:

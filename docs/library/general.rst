@@ -9,6 +9,12 @@ general
 
 .. rst-class:: mini-api
 
+.. _fun-backtrace:
+
+:mini:`fun backtrace()`
+   *TBD*
+
+
 .. _fun-clock:
 
 :mini:`fun clock()`
@@ -19,6 +25,12 @@ general
 
 :mini:`fun halt(Code?: integer)`
    Causes the current process to exit with optional exit code :mini:`Code` or :mini:`0` if omitted.
+
+
+.. _fun-locale:
+
+:mini:`fun locale(): string`
+   *TBD*
 
 
 .. _fun-now:
@@ -109,12 +121,6 @@ general
 
 :mini:`fun visit(Value: any, Fn: function): any`
    Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
-
-
-.. _type-gir-function:
-
-:mini:`type gir::function < function`
-   *TBD*
 
 
 .. _type-visitor:

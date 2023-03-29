@@ -165,11 +165,9 @@ ml_result_state_t *ml_result_state(ml_context_t *Context) {
 }
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
+	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
 	ml_call(&State, Value, Count, Args);
-	ml_value_t *Result = State.Value;
-	State.Value = MLNil;
-	return Result;
+	return State.Value;
 }
 
 ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
@@ -884,6 +882,18 @@ ML_METHOD("source", MLStateT) {
 	return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 }
 
+ML_FUNCTIONX(MLTrace) {
+//@trace
+//>list[tuple[string,integer]]
+// Returns the call stack trace (source locations).
+	ml_value_t *Trace = ml_list();
+	for (ml_state_t *State = Caller; State; State = State->Caller) {
+		ml_source_t Source = ml_debugger_source(State);
+		ml_list_put(Trace, ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+	}
+	ML_RETURN(Trace);
+}
+
 // Schedulers //
 
 #ifdef ML_SCHEDULER
@@ -987,6 +997,11 @@ void ml_scheduler_atomic(ml_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(MLAtomic) {
+//@atomic
+//<Args...:any
+//<Fn:function
+//>any
+// Calls :mini:`Fn(Args)` in a new context without a scheduler and returns the result.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = ml_state(Caller);
 	ml_context_set(State->Context, ML_SCHEDULER_INDEX, &AtomicSchedule);

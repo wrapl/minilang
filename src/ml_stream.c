@@ -716,22 +716,27 @@ static void ML_TYPED_FN(ml_stream_write, MLStringBufferT, ml_state_t *Caller, ml
 	ML_RETURN(ml_integer(ml_stringbuffer_write(Buffer, Address, Count)));
 }
 
-typedef struct ml_fd_t {
+typedef struct {
 	const ml_type_t *Type;
 	int Fd;
-} ml_fd_t;
+} ml_fd_stream_t;
 
 ML_TYPE(MLStreamFdT, (MLStreamT), "fd");
 // A file-descriptor based stream.
 
-ml_value_t *ml_fd_stream(int Fd) {
-	ml_fd_t *Stream = new(ml_fd_t);
-	Stream->Type = MLStreamFdT;
+ml_value_t *ml_fd_stream(ml_type_t *Type, int Fd) {
+	if (!ml_is_subtype(Type, MLStreamFdT)) return ml_error("TypeError", "Type must be a subtype of stream::fd");
+	ml_fd_stream_t *Stream = new(ml_fd_stream_t);
+	Stream->Type = Type;
 	Stream->Fd = Fd;
 	return (ml_value_t *)Stream;
 }
 
-static void ML_TYPED_FN(ml_stream_read, MLStreamFdT, ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {
+int ml_fd_stream_fd(ml_value_t *Stream) {
+	return ((ml_fd_stream_t *)Stream)->Fd;
+}
+
+static void ML_TYPED_FN(ml_stream_read, MLStreamFdT, ml_state_t *Caller, ml_fd_stream_t *Stream, void *Address, int Count) {
 	ssize_t Actual = read(Stream->Fd, Address, Count);
 	ml_value_t *Result;
 	if (Actual < 0) {
@@ -747,7 +752,7 @@ ML_METHOD("read", MLStreamFdT, MLBufferT) {
 //<Dest
 //>integer
 // Reads from :mini:`Stream` into :mini:`Dest` returning the actual number of bytes read.
-	ml_fd_t *Stream = (ml_fd_t *)Args[0];
+	ml_fd_stream_t *Stream = (ml_fd_stream_t *)Args[0];
 	ml_address_t *Buffer = (ml_address_t *)Args[1];
 	ssize_t Actual = read(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {
@@ -757,7 +762,7 @@ ML_METHOD("read", MLStreamFdT, MLBufferT) {
 	}
 }
 
-static void ML_TYPED_FN(ml_stream_write, MLStreamFdT, ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {
+static void ML_TYPED_FN(ml_stream_write, MLStreamFdT, ml_state_t *Caller, ml_fd_stream_t *Stream, void *Address, int Count) {
 	ssize_t Actual = write(Stream->Fd, Address, Count);
 	ml_value_t *Result;
 	if (Actual < 0) {
@@ -773,7 +778,7 @@ ML_METHOD("write", MLStreamFdT, MLAddressT) {
 //<Source
 //>integer
 // Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
-	ml_fd_t *Stream = (ml_fd_t *)Args[0];
+	ml_fd_stream_t *Stream = (ml_fd_stream_t *)Args[0];
 	ml_address_t *Buffer = (ml_address_t *)Args[1];
 	ssize_t Actual = write(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {

@@ -47,7 +47,7 @@ method
    Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 
-:mini:`meth (Arg₁: method)[Arg₂: type, ...]`
+:mini:`meth (Arg₁: method)[...]`
    *TBD*
 
 

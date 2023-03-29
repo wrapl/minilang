@@ -3,10 +3,13 @@ if PLATFORM = "Darwin" then
 	setenv("PKG_CONFIG_PATH", '/usr/local/opt/libffi/lib/pkgconfig')
 end
 
-GCC_VERSION := with Version := shell(CC, "--version") do
-	if let Match := Version % r"\(GCC\) ([0-9.]+)" then
-		Match[2]
-	end
+CC_TYPE := switch shell(CC, "--version"): string
+case r"\(GCC\) [0-9.]+" do
+	"GCC"
+case r"clang version [0-9.]+" do
+	"CLANG"
+else
+	"OTHER"
 end
 
 CFLAGS := old + [
@@ -16,12 +19,10 @@ CFLAGS := old + [
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
 	"-foptimize-sibling-calls",
-	"-fcf-protection=none",
 	"-fno-stack-protector",
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
-	"-Werror=cast-function-type",
 	"-Werror=format-security",
 	:>"-Wsuggest-attribute=pure",
 	:>"-Wsuggest-attribute=const",
@@ -56,20 +57,26 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-print('GCC_VERSION = {GCC_VERSION}\n')
+print('CC_TYPE = {CC_TYPE}\n')
 
-if GCC_VERSION then
+if CC_TYPE = "GCC" then
 	CFLAGS := old + [
 		"-mno-sse2",
 		"-mno-align-stringops",
 		"-minline-all-stringops",
+		"-fcf-protection=none",
+		"-Werror=cast-function-type",
 		"-fno-tree-loop-distribute-patterns"
 	]
 	if not DEBUG then
 		CFLAGS := old + ["-fexpensive-optimizations"]
 	end
-else
-	CFLAGS := old + ["-Wno-initializer-overrides"]
+elseif CC_TYPE = "CLANG" then
+	CFLAGS := old + [
+		:>"-Werror=bad-function-cast",
+		"-Wno-initializer-overrides"
+		
+	]
 end
 
 PREBUILDS := old + [file("ml_config.h")]
@@ -190,7 +197,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_XML := 1
 	MINILANG_LIBRARY := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
-	MINILANG_TRE := 1
+	MINILANG_TRE := not defined("NOTRE")
 	MINILANG_GENERICS := not defined("NOGENERICS")
 	MINILANG_MUTABLES := 1
 	MINILANG_PQUEUES := 1
@@ -206,7 +213,8 @@ MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
-MINILANG_GIR := old or defined("GIR")
+MINILANG_GIR_BYTECODE := old or defined("GIR_BYTECODE")
+MINILANG_GIR := MINILANG_GIR_BYTECODE or old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
@@ -229,7 +237,7 @@ MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
-
+MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
 file("ml_config.h") => fun(Target) do
@@ -259,6 +267,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_THREADS then
 		File:write("\n#define ML_THREADS\n")
+	end
+	if MINILANG_RELAX_NAMES then
+		File:write("\n#define ML_RELAX_NAMES\n")
 	end
 	File:write("\n#endif")
 	File:close
@@ -316,9 +327,14 @@ end
 
 if MINILANG_GIR then
 	Objects:put(file("ml_gir.o"))
+	file("ml_gir_init.c")[file("ml_gir_bytecode.c")]
 	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
 	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0")]
 	InstallHeaders:put("ml_gir.h")
+end
+
+if MINILANG_GIR_BYTECODE then
+	CFLAGS := old + ["-DML_GIR_BYTECODE"]
 end
 
 if MINILANG_LIGHTNING or defined("LIGHTNING") then
@@ -419,7 +435,8 @@ if MINILANG_TRE then
 	let Dir := file("tre")
 	let Lib := file("tre/lib/.libs/libtre.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
-		execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzP --strip-components=1")
+		execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzPf - --strip-components=1")
+		execute("patch", "-p0", "-i", file("tre.patch"))
 		let XMallocH := file("tre/lib/xmalloc.h"):open("w")
 		XMallocH:write(
 '#ifndef XMALLOC_H
@@ -439,8 +456,11 @@ if MINILANG_TRE then
 		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', {
 			"--prefix" is PATH,
 			"--enable-static",
+			"--enable-multibyte",
+			"--enable-wchar",
 			"--disable-shared"
 		})
+		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
 	end

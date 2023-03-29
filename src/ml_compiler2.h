@@ -102,6 +102,7 @@ struct mlc_function_t {
 	mlc_upvalue_t *UpValues;
 	ml_inst_t *Next, *Returns;
 	int Top, Size, Old, It, Space;
+	int Mode;
 };
 
 struct mlc_define_t {

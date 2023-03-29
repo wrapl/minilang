@@ -14,8 +14,6 @@ void ml_file_init(stringmap_t *Globals);
 
 ml_value_t *ml_file(FILE *File);
 
-extern ml_cfunction_t MLFileOpen[];
-
 FILE *ml_file_handle(ml_value_t *Value) __attribute__((pure));
 
 #ifdef __cplusplus

@@ -286,16 +286,17 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 
 #define TAIL_CALL(COUNT) \
 	ml_state_t *Caller = Frame->Base.Caller; \
-	ml_value_t **Args = ml_alloc_args(COUNT); \
-	memcpy(Args, Top - COUNT, COUNT * sizeof(ml_value_t *)); \
+	ml_value_t **Args2 = ml_alloc_args(COUNT); \
+	memcpy(Args2, Top - COUNT, COUNT * sizeof(ml_value_t *)); \
 	if (Frame->Reuse) { \
 		while (Top > Frame->Stack) *--Top = NULL; \
 		Frame->Next = MLCachedFrame; \
+		Frame->Base.Caller = NULL; \
 		MLCachedFrame = (ml_frame_t *)Frame; \
 	} else { \
 		Frame->Inst = ReturnInst; \
 	} \
-	return ml_call(Caller, Function, COUNT, Args)
+	return ml_call(Caller, Function, COUNT, Args2)
 
 #define DO_CALL_COUNT(COUNT) \
 	DO_CALL_ ## COUNT: { \
@@ -330,7 +331,16 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 	} \
 	DO_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
-		ml_value_t *Function = Inst[1].Value; \
+		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
+		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
+		if (!Cached) { \
+			Result = ml_no_method_error(Method, COUNT, Args); \
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
+			ERROR(); \
+		} \
+		Inst[3].Data = Cached; \
+		ml_value_t *Function = Cached->Callback; \
 		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
 		Frame->Inst = Next; \
@@ -339,7 +349,17 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 		return ml_call(Frame, Function, COUNT, Args); \
 	} \
 	DO_TAIL_CALL_METHOD_ ## COUNT: { \
-		ml_value_t *Function = Inst[1].Value; \
+		ml_value_t **Args = Top - COUNT; \
+		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
+		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
+		if (!Cached) { \
+			Result = ml_no_method_error(Method, COUNT, Args); \
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
+			ERROR(); \
+		} \
+		Inst[3].Data = Cached; \
+		ml_value_t *Function = Cached->Callback; \
 		ML_STORE_COUNTER(); \
 		TAIL_CALL(COUNT); \
 	}
@@ -475,6 +495,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			while (Top > Frame->Stack) *--Top = NULL;
 			//memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
 			Frame->Next = MLCachedFrame;
+			Frame->Base.Caller = NULL;
 			MLCachedFrame = (ml_frame_t *)Frame;
 		} else {
 			Frame->Line = Inst->Line;
@@ -1173,7 +1194,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
+#ifndef ML_RELAX_NAMES
 						ML_ERROR("NameError", "Unknown named parameters %s", Name);
+#endif
 					}
 				}
 				break;

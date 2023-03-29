@@ -62,6 +62,7 @@ hierarchy
       "enum":e -> "stream::seek":w;
       "stream":e -> "stream::buffered":w;
       "stream":e -> "stream::fd":w;
+      "stream::fd":e -> "socket":w;
       "sequence":e -> "set":w;
       "set":e -> "set::mutable":w;
       "enum":e -> "set::order":w;
@@ -105,7 +106,7 @@ hierarchy
       "real":e -> "double":w;
       "sequence":e -> "integer::range":w;
       "sequence":e -> "real::range":w;
-      "string":e -> "minijs":w;
+      "any":e -> "minijs":w;
       "any":e -> "method::context":w;
       "function":e -> "method":w;
       "function":e -> "random":w;
@@ -125,6 +126,8 @@ hierarchy
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
       "string":e -> "json":w;
+      "gir::baseinfo":e -> "gir::callback":w;
+      "any":e -> "gir::callbackinstance":w;
       "function":e -> "gir::function":w;
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;

@@ -15,17 +15,6 @@ enum
    The base type of enumeration types.
 
 
-:mini:`meth enum(Names: string, ...): enum`
-   Returns a new enumeration type.
-
-   .. code-block:: mini
-
-      let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-      :> <<day>>
-      day::Wed :> Wed
-      day::Fri + 0 :> 5
-
-
 :mini:`meth enum(Name₁ is Value₁, ...): enum`
    Returns a new enumeration type.
 
@@ -35,6 +24,17 @@ enum
       :> <<colour>>
       colour::Red :> Red
       list(colour, _ + 0) :> [10, 20, 30]
+
+
+:mini:`meth enum(Names: string, ...): enum`
+   Returns a new enumeration type.
+
+   .. code-block:: mini
+
+      let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+      :> <<day>>
+      day::Wed :> Wed
+      day::Fri + 0 :> 5
 
 
 :mini:`meth (Enum: enum):count: integer`

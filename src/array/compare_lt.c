@@ -2,4 +2,6 @@
 
 #define LT(A, B) A < B
 
-COMPARE_FNS(Lt, lt, LT);
+extern ml_value_t *LessMethod;
+
+COMPARE_FNS(Lt, lt, LT, LessMethod);

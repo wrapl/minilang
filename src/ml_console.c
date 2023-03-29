@@ -94,10 +94,10 @@ typedef struct {
 	interactive_debugger_t *Debugger;
 } ml_console_debugger_t;
 
-static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugger, const char *Name, const char *Source, int Line) {
+static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugger, const char *Name, const char *Source, int Line, int Mode) {
 	ml_value_t *Value = interactive_debugger_get(ConsoleDebugger->Debugger, Name);
 	if (Value) return Value;
-	return ml_compiler_lookup(ConsoleDebugger->Console->Compiler, Name, Source, Line);
+	return ml_compiler_lookup(ConsoleDebugger->Console->Compiler, Name, Source, Line, Mode);
 }
 
 static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
@@ -105,7 +105,7 @@ static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t
 	ConsoleDebugger->Console = Console;
 	ConsoleDebugger->Debugger = Debugger;
 	printf("Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
-	ml_console(Console->Base.Context, (void *)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
+	ml_console(Console->Base.Context, (ml_getter_t)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
 	interactive_debugger_resume(Debugger, Index);
 }
 

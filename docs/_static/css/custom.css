@@ -121,3 +121,7 @@ div.folders ul li:after {
 .mini-api dt {
 	font-size: 110%;
 }
+
+section {
+	max-width: unset !important;
+}
