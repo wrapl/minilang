@@ -568,9 +568,8 @@ sequence
 
    .. code-block:: mini
 
-      random("cake")
-      :> error("MethodError", "no method found for random::of(string)")
-      random([]) :> 
+      random("cake") :> "k"
+      random([]) :> nil
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`

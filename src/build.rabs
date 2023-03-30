@@ -356,8 +356,13 @@ if MINILANG_LIGHTNING or defined("LIGHTNING") then
 end
 
 if MINILANG_CBOR then
-	let Dir := PATH/"minicbor"
-	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
+	let Minicbor := meta("minicbor";) do
+		let Dir := PATH/"minicbor"
+		Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
+		Dir:chdir
+		execute("git checkout 22661fb")
+	end
+	PREBUILDS := old + [Minicbor]
 	CFLAGS := old + ["-DML_CBOR"]
 	Objects:put(file("ml_cbor.o"))
 	InstallHeaders:put("ml_cbor.h")

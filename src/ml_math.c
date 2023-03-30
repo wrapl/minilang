@@ -493,6 +493,7 @@ ML_FUNCTION(MLRandomSeed) {
 
 void ml_math_init(stringmap_t *Globals) {
 #include "ml_math_init.c"
+	MLRandomT->Constructor = ml_method("random");
 	stringmap_insert(MLRandomT->Exports, "seed", MLRandomSeed);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
