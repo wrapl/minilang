@@ -154,6 +154,8 @@ hierarchy
       "gir::baseinfo":e -> "gir::enum":w;
       "any":e -> "gir::enumvalue":w;
       "any":e -> "gir::objectproperty":w;
+      "any":e -> "gir::instance":w;
+      "type":e -> "gir::type":w;
       "stream":e -> "file":w;
       "sequence":e -> "dir":w;
       "file":e -> "popen":w;

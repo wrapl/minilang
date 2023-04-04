@@ -2511,6 +2511,24 @@ ML_METHOD("::", GirObjectInstanceT, MLStringT) {
 	return (ml_value_t *)Property;
 }
 
+ML_INTERFACE(GirInstanceT, (), "instance");
+
+typedef struct {
+	ml_type_t Base;
+} ml_gir_type_t;
+
+static void instance_constructor_fn(ml_state_t *Caller, ml_gir_type_t *Class, int Count, ml_value_t **Args) {
+
+}
+
+ML_FUNCTION(GirType) {
+
+}
+
+ML_TYPE(GirTypeT, (MLTypeT), "type",
+	.Constructor = (ml_value_t *)GirType
+);
+
 #ifdef ML_SCHEDULER
 
 void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);

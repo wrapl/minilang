@@ -239,6 +239,7 @@ MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
 MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
+MINILANG_COROUTINES := old or defined("COROUTINES")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -419,6 +420,11 @@ if MINILANG_THREADS then
 	LDFLAGS := old + ["-pthread"]
 	Objects:put(file("ml_thread.o"))
 	InstallHeaders:put("ml_thread.h")
+end
+
+if MINILANG_COROUTINES then
+	Objects:put(file("ml_coroutine.o"), file("coro.o"))
+	InstallHeaders:put("ml_coroutine.h")
 end
 
 if MINILANG_JIT then

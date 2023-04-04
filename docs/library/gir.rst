@@ -9,6 +9,12 @@ gir
 
 .. rst-class:: mini-api
 
+.. _fun-girtype:
+
+:mini:`fun girtype()`
+   *TBD*
+
+
 .. _fun-girrun:
 
 :mini:`fun girrun(Arg₁: any)`
@@ -155,6 +161,12 @@ gir
    *TBD*
 
 
+.. _type-gir-instance:
+
+:mini:`type gir::instance`
+   *TBD*
+
+
 .. _type-gir-module:
 
 :mini:`type gir::module`
@@ -212,6 +224,12 @@ gir
 
 
 :mini:`meth (Struct: string::buffer):append(Arg₂: gir::structinstance): string`
+   *TBD*
+
+
+.. _type-gir-type:
+
+:mini:`type gir::type < type`
    *TBD*
 
 
