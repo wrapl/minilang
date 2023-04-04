@@ -2892,6 +2892,7 @@ ml_value_t *ml_symbol(const char *Name) {
 
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLSymbolT, ml_symbol_t *Symbol) {
 	ml_value_t *List = ml_list();
+	ml_list_put(List, ml_cstring("symbol"));
 	ml_list_put(List, ml_string(Symbol->Name, -1));
 	return List;
 }
