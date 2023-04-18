@@ -166,10 +166,31 @@ static void simple_queue_run() {
 #ifdef ML_BACKTRACE
 #include <backtrace.h>
 
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+#include <unistd.h>
+
 struct backtrace_state *BacktraceState = NULL;
 
 static void error_handler(int Signal) {
-	backtrace_print(BacktraceState, 0, stderr);
+	//backtrace_print(BacktraceState, 0, stderr);
+	unw_context_t Context;
+	unw_getcontext(&Context);
+	unw_cursor_t Cursor;
+	unw_init_local2(&Cursor, &Context, UNW_INIT_SIGNAL_FRAME);
+	while (unw_step(&Cursor) > 0) {
+		unw_word_t Offset;
+		char Line[256];
+		int Length;
+		if (unw_get_proc_name(&Cursor, Line, 240, &Offset)) {
+			Length = sprintf(Line, "<unknown>\n");
+		} else {
+			Length = strlen(Line);
+			char *End = Line + Length;
+			Length += sprintf(End, "+%lu\n", Offset);
+		}
+		write(STDERR_FILENO, Line, Length);
+	}
 	exit(0);
 }
 

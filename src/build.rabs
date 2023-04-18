@@ -183,8 +183,8 @@ if MINILANG_STATICGC or defined("STATICGC") then
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-I{Dir/"include"}']
-	LDFLAGS := old + ['-L{Dir/".libs"}', '-pthread']
+	CFLAGS := old + ['-I{Dir / "include"}']
+	LDFLAGS := old + ['-L{Dir / ".libs"}', '-pthread']
 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
@@ -352,13 +352,13 @@ if MINILANG_LIGHTNING or defined("LIGHTNING") then
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-I{Dir/"includes"}', "-DML_LIGHTNING"]
+	CFLAGS := old + ['-I{Dir / "includes"}', "-DML_LIGHTNING"]
 	LDFLAGS := old + [Lib]
 end
 
 if MINILANG_CBOR then
 	let Minicbor := meta("minicbor";) do
-		let Dir := PATH/"minicbor"
+		let Dir := PATH / "minicbor"
 		Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 		Dir:chdir
 		execute("git checkout 22661fb")
@@ -390,7 +390,7 @@ if MINILANG_XE then
 end
 
 if MINILANG_BACKTRACE then
-	let Dir := PATH/"libbacktrace"
+	let Dir := PATH / "libbacktrace"
 	let Lib := Dir / ".libs/libbacktrace.a" => fun() do
 		Dir:rmdir
 		execute("git clone https://github.com/ianlancetaylor/libbacktrace.git", Dir)
@@ -400,8 +400,8 @@ if MINILANG_BACKTRACE then
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir}']
-	LDFLAGS := old + [Lib]
+	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir / "include"}']
+	LDFLAGS := old + [Lib, "-lunwind"]
 end
 
 if MINILANG_LIBRARY then
@@ -538,13 +538,13 @@ elseif PLATFORM = "Darwin" then
 elseif PLATFORM = "Mingw" then
 end
 
-LIBMINILANG := c_library(LIB_DIR/"libminilang.a", Objects, Libraries)
-MINILANG := c_program(BIN_DIR/"minilang", [file("minilang.o")], [LIBMINILANG])
-MINIDBG := (BIN_DIR/"minidbg")[file("minidbg")] => fun(Target) do
+LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
+MINILANG := c_program(BIN_DIR / "minilang", [file("minilang.o")], [LIBMINILANG])
+MINIDBG := (BIN_DIR / "minidbg")[file("minidbg")] => fun(Target) do
 	file("minidbg"):copy(Target)
 	execute("chmod", "+x", Target)
 end
-MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
+MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
 
 if PLATFORM = "Linux" then
 	let Exports := file("exports.lst")
@@ -556,17 +556,17 @@ DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINIPP]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 
-let InstallBin := PREFIX/"bin"
-let InstallInclude := PREFIX/"include/minilang"
-let InstallLib := PREFIX/"lib"
+let InstallBin := PREFIX / "bin"
+let InstallInclude := PREFIX / "include/minilang"
+let InstallLib := PREFIX / "lib"
 
-install(MINILANG, InstallBin/"minilang", "+x")
-install(MINIDBG, InstallBin/"minidbg", "+x")
+install(MINILANG, InstallBin / "minilang", "+x")
+install(MINIDBG, InstallBin / "minidbg", "+x")
 
 for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
 end
 
-install(LIBMINILANG, InstallLib/"libminilang.a")
+install(LIBMINILANG, InstallLib / "libminilang.a")
 
 subdir("test")
