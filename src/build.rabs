@@ -358,8 +358,9 @@ end
 
 if MINILANG_CBOR then
 	let Minicbor := meta("minicbor";) do
-		let Dir := PATH / "minicbor"
-		Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
+		let Dir := PATH/"minicbor"
+		Dir:rmdir
+		execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 		Dir:chdir
 		execute("git checkout 22661fb")
 	end
