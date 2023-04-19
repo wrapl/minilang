@@ -122,11 +122,11 @@ static void ml_task_composed_run(ml_task_composed_t *Composed, ml_value_t *Value
 		}
 	} else if (Value == MLNil) {
 		if (Composed->Else) {
-			Composed->Args[0] = ml_error_unwrap(Value);
+			Composed->Args[0] = Value;
 			Composed->Base.Base.run = (ml_state_fn)ml_task_run;
 			return ml_call((ml_state_t *)Composed, Composed->Else, 1, Composed->Args);
 		}
-	} else {
+	} else if (!Composed->Else) {
 		if (Composed->Then) {
 			Composed->Args[0] = Value;
 			Composed->Base.Base.run = (ml_state_fn)ml_task_run;
