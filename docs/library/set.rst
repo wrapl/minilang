@@ -168,8 +168,8 @@ set
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
+      M:random :> "k"
       M:random :> "c"
-      M:random :> "a"
 
 
 :mini:`meth (Set: set):size: integer`
