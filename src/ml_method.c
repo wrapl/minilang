@@ -724,6 +724,12 @@ ML_TYPE(MLMethodFunctionT, (MLFunctionT), "method::function",
 
 extern ml_type_t MLClosureT[];
 
+int ml_method_is_safe(ml_value_t *Method) {
+	typeof(ml_method_is_safe) *function = ml_typed_fn_get(ml_typeof(Method), ml_method_is_safe);
+	if (function) return function(Method);
+	return 0;
+}
+
 ML_METHODVX("[]", MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	--Count; ++Args;
@@ -736,7 +742,7 @@ ML_METHODVX("[]", MLMethodT) {
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, (ml_type_t **)Args, Hash);
 	if (!Cached) ML_RETURN(ml_no_method_error(Method, Count, Args));
-	if (ml_is(Cached->Callback, MLClosureT)) ML_RETURN(Cached->Callback);
+	if (ml_method_is_safe(Cached->Callback)) ML_RETURN(Cached->Callback);
 	if (!Count) ML_RETURN(Cached->Callback);
 	ml_method_function_t *Function = xnew(ml_method_function_t, Count, ml_type_t *);
 	Function->Type = MLMethodFunctionT;

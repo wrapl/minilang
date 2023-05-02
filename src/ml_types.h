@@ -831,6 +831,8 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 
 ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
 
+int ml_method_is_safe(ml_value_t *Method);
+
 typedef struct ml_method_cached_t ml_method_cached_t;
 
 struct ml_method_cached_t {

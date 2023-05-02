@@ -18,6 +18,8 @@ ML_FIELD("startline", AstExprT);
 
 ML_FIELD("endline", AstExprT);
 
+ML_FIELD("data", AstExprT);
+
 ML_CLASS(AstIfExprT, (AstExprT), "ast::expr::if");
 //@ast::expr::if
 // An :mini:`if` expression

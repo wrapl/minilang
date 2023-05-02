@@ -1845,7 +1845,7 @@ static void method_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, m
 
 static ml_value_t *function_info_compile(GIFunctionInfo *Info);
 
-static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Object) {
+static void method_register(const char *Name, GIFunctionInfo *Info, ml_type_t *Object) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
 	int NArgsIn = 0;
 	for (int I = 0; I < NArgs; ++I) {
@@ -1877,7 +1877,7 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 	}
 	++NArgsIn;
 	ml_type_t *Types[NArgsIn];
-	Types[0] = (ml_type_t *)Object;
+	Types[0] = Object;
 	for (int I = 1; I < NArgsIn; ++I) Types[I] = MLAnyT;
 #ifdef ML_GIR_BYTECODE
 	ml_method_define(ml_method(Name), function_info_compile(Info), NArgsIn, 0, Types);
@@ -1903,7 +1903,7 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			method_register(MethodName, MethodInfo, Object);
+			method_register(MethodName, MethodInfo, (ml_type_t *)Object);
 		} else {
 #ifdef ML_GIR_BYTECODE
 			stringmap_insert(Object->Base.Exports, MethodName, function_info_compile(MethodInfo));
@@ -1945,7 +1945,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			method_register(MethodName, MethodInfo, Object);
+			method_register(MethodName, MethodInfo, (ml_type_t *)Object);
 		} else {
 #ifdef ML_GIR_BYTECODE
 			stringmap_insert(Object->Base.Exports, MethodName, function_info_compile(MethodInfo));
@@ -1953,7 +1953,6 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 #endif
 		}
-		g_base_info_unref(MethodInfo);
 	}
 }
 
@@ -2053,11 +2052,18 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 			if (Flags & GI_FUNCTION_IS_METHOD) {
+#ifdef ML_GIR_BYTECODE
+				method_register(MethodName, MethodInfo, (ml_type_t *)Struct);
+#else
 				ml_methodx_by_name(MethodName, MethodInfo, (ml_callbackx_t)method_invoke, Struct, NULL);
+#endif
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+#ifdef ML_GIR_BYTECODE
+				stringmap_insert(Struct->Base.Exports, MethodName, function_info_compile(MethodInfo));
+#else
 				stringmap_insert(Struct->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
+#endif
 			}
-			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -2090,11 +2096,18 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 			if (Flags & GI_FUNCTION_IS_METHOD) {
+#ifdef ML_GIR_BYTECODE
+				method_register(MethodName, MethodInfo, (ml_type_t *)Union);
+#else
 				ml_methodx_by_name(MethodName, MethodInfo, (ml_callbackx_t)method_invoke, Union, NULL);
+#endif
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+#ifdef ML_GIR_BYTECODE
+				method_register(MethodName, MethodInfo, (ml_type_t *)Union);
+#else
 				stringmap_insert(Union->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
+#endif
 			}
-			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];

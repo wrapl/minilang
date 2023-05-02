@@ -1437,6 +1437,10 @@ static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) 
 	return 1;
 }
 
+static int ML_TYPED_FN(ml_method_is_safe, MLClosureT, ml_closure_t *Closure) {
+	return 1;
+}
+
 ML_TYPE(MLClosureInfoT, (), "closure::info");
 // Information about a closure.
 
