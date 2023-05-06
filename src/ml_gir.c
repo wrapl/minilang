@@ -1998,9 +1998,11 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base.assign = ml_default_assign;
 		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Object;
 		object_add_methods(Object, Info);
+		g_base_info_ref(Info);
 	}
 	return Slot[0];
 }
@@ -2018,6 +2020,7 @@ static ml_type_t *interface_info_lookup(GIInterfaceInfo *Info) {
 		Object->Base.assign = ml_default_assign;
 		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Object;
 		interface_add_methods(Object, Info);
@@ -2038,6 +2041,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base.assign = ml_default_assign;
 		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance);
 		Struct->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Struct, GirStructInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
@@ -2082,6 +2086,7 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 		Union->Base.assign = ml_default_assign;
 		Union->Base.Constructor = ml_cfunction(Union, (void *)union_instance);
 		Union->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Union, GirUnionInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Union;
 		int NumFields = g_union_info_get_n_fields(Info);
@@ -2162,6 +2167,8 @@ static ml_value_t *constant_info_lookup(GIConstantInfo *Info) {
 	return Slot[0];
 }
 
+static ml_type_t *callback_info_lookup(GICallbackInfo *Info);
+
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 	switch (g_base_info_get_type(Info)) {
 	case GI_INFO_TYPE_INVALID:
@@ -2176,7 +2183,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 #endif
 	}
 	case GI_INFO_TYPE_CALLBACK: {
-		break;
+		return (ml_value_t *)callback_info_lookup((GICallbackInfo *)Info);
 	}
 	case GI_INFO_TYPE_STRUCT: {
 		return (ml_value_t *)struct_info_lookup((GIStructInfo *)Info);

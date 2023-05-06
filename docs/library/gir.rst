@@ -43,6 +43,10 @@ gir
    A gobject-introspection callback type.
 
 
+:mini:`meth (Arg₁: gir::callback):list`
+   *TBD*
+
+
 .. _type-gir-callbackinstance:
 
 :mini:`type gir::callbackinstance`
