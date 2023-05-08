@@ -413,6 +413,9 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_GIR
 			case 'g':
 				UseGirLoop = 1;
+#ifdef ML_SCHEDULER
+				if (!SliceSize) SliceSize = 1000;
+#endif
 				break;
 #endif
 #ifdef ML_GTK_CONSOLE
