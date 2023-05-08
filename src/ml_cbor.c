@@ -284,25 +284,25 @@ void ml_cbor_read_negative_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 	}
 }
 
-void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
+void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, size_t Size) {
 	if (!Size) value_handler(Reader, ml_address(NULL, 0));
 }
 
-void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
+void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, size_t Size, int Final) {
 	ml_stringbuffer_write(Reader->Buffer, Bytes, Size);
 	if (Final) value_handler(Reader, ml_stringbuffer_to_address(Reader->Buffer));
 }
 
-void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, int Size) {
+void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, size_t Size) {
 	if (!Size) value_handler(Reader, ml_cstring(""));
 }
 
-void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
+void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, size_t Size, int Final) {
 	ml_stringbuffer_write(Reader->Buffer, Bytes, Size);
 	if (Final) value_handler(Reader, ml_stringbuffer_to_string(Reader->Buffer));
 }
 
-void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, int Size) {
+void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, size_t Size) {
 	if (Size) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Reader->Collection;
@@ -317,8 +317,8 @@ void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, int Size) {
 	}
 }
 
-void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, int Size) {
-	if (Size > 0) {
+void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, size_t Size) {
+	if (Size) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Reader->Collection;
 		Collection->Tags = Reader->Tags;

@@ -41,7 +41,8 @@ typedef enum {
 	GIB_SKIP,
 	GIB_OUTPUT_VALUE,
 	GIB_OUTPUT_ARRAY,
-	GIB_OUTPUT_ARRAY_LENGTH
+	GIB_OUTPUT_ARRAY_LENGTH,
+	GIB_OUTPUT_STRUCT
 } gi_opcode_t;
 
 #define VALUE_CONVERTOR(GTYPE, MLTYPE) \
@@ -55,7 +56,7 @@ static ml_value_t *GTYPE ## _to_glist(ml_value_t *Value, void **Ptr) { \
 	return NULL; \
 } \
 \
-static ml_value_t *GTYPE ## _to_value(void *Ptr) { \
+static ml_value_t *GTYPE ## _to_value(void *Ptr, void *Aux) { \
 	return ml_ ## MLTYPE((g ## GTYPE)(uintptr_t)Ptr); \
 }
 
@@ -271,21 +272,21 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	void **Param = Params;
 	for (gi_inst_t *Inst = Callback->InstIn; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
 	case GIB_SKIP: Param++; break;
-	case GIB_BOOLEAN: *Arg++ = ml_boolean(*(int *)Param++); break;
-	case GIB_INT8: *Arg++ = ml_integer(*(gint8 *)Param++); break;
-	case GIB_UINT8: *Arg++ = ml_integer(*(guint8 *)Param++); break;
-	case GIB_INT16: *Arg++ = ml_integer(*(gint16 *)Param++); break;
-	case GIB_UINT16: *Arg++ = ml_integer(*(guint16 *)Param++); break;
-	case GIB_INT32: *Arg++ = ml_integer(*(gint32 *)Param++); break;
-	case GIB_UINT32: *Arg++ = ml_integer(*(guint32 *)Param++); break;
-	case GIB_INT64: *Arg++ = ml_integer(*(gint64 *)Param++); break;
-	case GIB_UINT64: *Arg++ = ml_integer(*(guint64 *)Param++); break;
-	case GIB_FLOAT: *Arg++ = ml_real(*(gfloat *)Param++); break;
-	case GIB_DOUBLE: *Arg++ = ml_real(*(gdouble *)Param++); break;
+	case GIB_BOOLEAN: *Arg++ = ml_boolean(*(int *)(*Param++)); break;
+	case GIB_INT8: *Arg++ = ml_integer(*(gint8 *)(*Param++)); break;
+	case GIB_UINT8: *Arg++ = ml_integer(*(guint8 *)(*Param++)); break;
+	case GIB_INT16: *Arg++ = ml_integer(*(gint16 *)(*Param++)); break;
+	case GIB_UINT16: *Arg++ = ml_integer(*(guint16 *)(*Param++)); break;
+	case GIB_INT32: *Arg++ = ml_integer(*(gint32 *)(*Param++)); break;
+	case GIB_UINT32: *Arg++ = ml_integer(*(guint32 *)(*Param++)); break;
+	case GIB_INT64: *Arg++ = ml_integer(*(gint64 *)(*Param++)); break;
+	case GIB_UINT64: *Arg++ = ml_integer(*(guint64 *)(*Param++)); break;
+	case GIB_FLOAT: *Arg++ = ml_real(*(gfloat *)(*Param++)); break;
+	case GIB_DOUBLE: *Arg++ = ml_real(*(gdouble *)(*Param++)); break;
 	case GIB_GTYPE: *Arg++ = MLNil; Param++; break;
-	case GIB_STRING: *Arg++ = ml_string(*(gchararray *)Param++, -1); break;
+	case GIB_STRING: *Arg++ = ml_string(*(gchararray *)(*Param++), -1); break;
 	case GIB_ARRAY_LENGTH: {
-		void *Address = *(void **)Param++;
+		void *Address = *(void **)(*Param++);
 		int Length = *(int *)(Params[(Inst++)->Aux]);
 		int Size = 0;
 		ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
@@ -332,7 +333,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		break;
 	}
 	case GIB_ARRAY_FIXED: {
-		void *Address = *(void **)Param++;
+		void *Address = *(void **)(*Param++);
 		int Length = Callback->Aux[(Inst++)->Aux] - (void *)0;
 		int Size = 0;
 		ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
@@ -381,22 +382,22 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	case GIB_STRUCT: {
 		struct_instance_t *Instance = new(struct_instance_t);
 		Instance->Type = (struct_t *)Callback->Aux[(Inst++)->Aux];
-		Instance->Value = *(void **)Param++;
+		Instance->Value = *(void **)(*Param++);
 		*Arg++ = (ml_value_t *)Instance;
 		break;
 	}
 	case GIB_ENUM: {
 		enum_t *Enum = (enum_t *)Callback->Aux[(Inst++)->Aux];
-		*Arg++ = gir_enum_value(Enum, *(int *)Param++);
+		*Arg++ = gir_enum_value(Enum, *(int *)(*Param++));
 		break;
 	}
 	case GIB_OBJECT: {
 		object_t *Object = (object_t *)Callback->Aux[(Inst++)->Aux];
-		*Arg++ = ml_gir_instance_get(*(void **)Param++, (GIBaseInfo *)Object->Info);
+		*Arg++ = ml_gir_instance_get(*(void **)(*Param++), (GIBaseInfo *)Object->Info);
 		break;
 	}
 	case GIB_VALUE: {
-		*Arg++ = _value_to_ml(*(void **)Param++, NULL);
+		*Arg++ = _value_to_ml(*(void **)(*Param++), NULL);
 		break;
 	}
 	case GIB_LIST: {
@@ -419,7 +420,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		default: to_value = unknown_to_value; break;
 		}
 		ml_value_t *List = ml_list();
-		for (GList *Node = (GList *)(*(void **)Param++); Node; Node = Node->next) {
+		for (GList *Node = (GList *)(*(void **)(*Param++)); Node; Node = Node->next) {
 			ml_list_put(List, to_value(Node->data));
 		}
 		*Arg++ = List;
@@ -445,7 +446,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		default: to_value = unknown_to_value; break;
 		}
 		ml_value_t *List = ml_list();
-		for (GSList *Node = (GSList *)(*(void **)Param++); Node; Node = Node->next) {
+		for (GSList *Node = (GSList *)(*(void **)(*Param++)); Node; Node = Node->next) {
 			ml_list_put(List, to_value(Node->data));
 		}
 		*Arg++ = List;
@@ -464,7 +465,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Result = State->Value;
-	for (gi_inst_t *Inst = Callback->InstIn; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
+	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
 	case GIB_BOOLEAN: *(gboolean *)Return = ml_boolean_value(Result); break;
 	case GIB_INT8: *(gint8 *)Return = ml_integer_value(Result); break;
 	case GIB_UINT8: *(guint8 *)Return = ml_integer_value(Result); break;
@@ -489,7 +490,335 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	}
 }
 
-static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *Info);
+typedef struct {
+	GIArgInfo Info[1];
+	GITypeInfo Type[1];
+	GIDirection Direction;
+	int SkipIn, SkipOut;
+	int In, Out, Value;
+} arg_info_t;
+
+static GIBaseInfo *GValueInfo;
+
+#define BASIC_CASES_SIZE(NUM) \
+	case GI_TYPE_TAG_BOOLEAN: \
+	case GI_TYPE_TAG_INT8: \
+	case GI_TYPE_TAG_UINT8: \
+	case GI_TYPE_TAG_INT16: \
+	case GI_TYPE_TAG_UINT16: \
+	case GI_TYPE_TAG_INT32: \
+	case GI_TYPE_TAG_UINT32: \
+	case GI_TYPE_TAG_INT64: \
+	case GI_TYPE_TAG_UINT64: \
+	case GI_TYPE_TAG_FLOAT: \
+	case GI_TYPE_TAG_DOUBLE: \
+	case GI_TYPE_TAG_GTYPE: \
+	case GI_TYPE_TAG_UTF8: \
+	case GI_TYPE_TAG_FILENAME: (NUM++); break;
+
+#define BASIC_CASES_INST(DEST) \
+	case GI_TYPE_TAG_BOOLEAN: (DEST++)->Opcode = GIB_BOOLEAN; break; \
+	case GI_TYPE_TAG_INT8: (DEST++)->Opcode = GIB_INT8; break; \
+	case GI_TYPE_TAG_UINT8: (DEST++)->Opcode = GIB_UINT8; break; \
+	case GI_TYPE_TAG_INT16: (DEST++)->Opcode = GIB_INT16; break; \
+	case GI_TYPE_TAG_UINT16: (DEST++)->Opcode = GIB_UINT16; break; \
+	case GI_TYPE_TAG_INT32: (DEST++)->Opcode = GIB_INT32; break; \
+	case GI_TYPE_TAG_UINT32: (DEST++)->Opcode = GIB_UINT32; break; \
+	case GI_TYPE_TAG_INT64: (DEST++)->Opcode = GIB_INT64; break; \
+	case GI_TYPE_TAG_UINT64: (DEST++)->Opcode = GIB_UINT64; break; \
+	case GI_TYPE_TAG_FLOAT: (DEST++)->Opcode = GIB_FLOAT; break; \
+	case GI_TYPE_TAG_DOUBLE: (DEST++)->Opcode = GIB_DOUBLE; break; \
+	case GI_TYPE_TAG_GTYPE: (DEST++)->Opcode = GIB_GTYPE; break; \
+	case GI_TYPE_TAG_UTF8: (DEST++)->Opcode = GIB_STRING; break; \
+	case GI_TYPE_TAG_FILENAME: (DEST++)->Opcode = GIB_STRING; break;
+
+static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *Info) {
+	int NumArgs = g_callable_info_get_n_args(Info);
+	arg_info_t Args[NumArgs];
+	memset(Args, 0, NumArgs * sizeof(arg_info_t));
+	int NumAux = 0, Provided = 0;
+	int InSize = 1, OutSize = 1;
+	for (int I = 0; I < NumArgs; ++I) {
+		g_callable_info_load_arg(Info, I, Args[I].Info);
+		GIArgInfo *ArgInfo = Args[I].Info;
+		g_arg_info_load_type(ArgInfo, Args[I].Type);
+		int Closure = g_arg_info_get_closure(ArgInfo);
+		if (Closure >= 0) {
+			Args[I].SkipIn = 1;
+		} else {
+			Provided++;
+			switch (g_type_info_get_tag(Args[I].Type)) {
+			case GI_TYPE_TAG_ARRAY: {
+				int Length = g_type_info_get_array_length(Args[I].Type);
+				int Fixed = g_type_info_get_array_fixed_size(Args[I].Type);
+				if (Length >= 0) {
+					Provided--;
+					Args[Length].SkipIn = 1;
+					InSize += 1;
+				} else if (Fixed >= 0) {
+					NumAux++;
+					InSize += 1;
+				}
+				InSize += 2;
+				break;
+			}
+			case GI_TYPE_TAG_INTERFACE: {
+				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
+				NumAux++;
+				if (g_base_info_get_type(InterfaceInfo) == GI_INFO_TYPE_CALLBACK) {
+					int Closure = g_arg_info_get_closure(ArgInfo);
+					if (Closure >= 0) Args[Closure].SkipIn = 1;
+				}
+				InSize += 2;
+				g_base_info_unref(InterfaceInfo);
+				break;
+			}
+			case GI_TYPE_TAG_GLIST:
+			case GI_TYPE_TAG_GSLIST:
+			case GI_TYPE_TAG_GHASH:
+				InSize += 2;
+				break;
+			default:
+				InSize += 1;
+				break;
+			}
+		}
+	}
+	GITypeInfo *Return = g_callable_info_get_return_type((GICallableInfo *)Info);
+	switch (g_type_info_get_tag(Return)) {
+	case GI_TYPE_TAG_VOID:
+		break;
+	 case GI_TYPE_TAG_INTERFACE:
+		OutSize += 2;
+		NumAux++;
+		break;
+	case GI_TYPE_TAG_ARRAY:
+	case GI_TYPE_TAG_GLIST:
+	case GI_TYPE_TAG_GSLIST:
+		OutSize += 2;
+		break;
+	case GI_TYPE_TAG_GHASH:
+		OutSize += 3;
+		break;
+	default:
+		OutSize += 1;
+		break;
+	}
+	callback_t *Callback = xnew(callback_t, NumAux, void *);
+	Callback->Base.Type = GirCallbackT;
+	Callback->Base.Name = TypeName;
+	Callback->Base.hash = ml_default_hash;
+	Callback->Base.call = ml_default_call;
+	Callback->Base.deref = ml_default_deref;
+	Callback->Base.assign = ml_default_assign;
+	ml_type_init((ml_type_t *)Callback, GirCallbackInstanceT, NULL);
+	Callback->Info = Info;
+	g_base_info_ref(Info);
+	Callback->Provided = Provided;
+	gi_inst_t *InstIn = Callback->InstIn = (gi_inst_t *)snew(InSize * sizeof(gi_inst_t));
+	gi_inst_t *InstOut = Callback->InstOut = (gi_inst_t *)snew(OutSize * sizeof(gi_inst_t));
+	NumAux = 0;
+	switch (g_type_info_get_tag(Return)) {
+	case GI_TYPE_TAG_VOID:
+		break;
+	BASIC_CASES_INST(InstOut)
+	case GI_TYPE_TAG_ARRAY: {
+		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
+		if (g_type_info_is_zero_terminated(Return)) {
+			(InstOut++)->Opcode = GIB_ARRAY_ZERO;
+		} else {
+			(InstOut++)->Opcode = GIB_ARRAY;
+		}
+		switch (g_type_info_get_tag(ElementInfo)) {
+		BASIC_CASES_INST(InstOut)
+		default: // TODO: handle this.
+		}
+		g_base_info_unref(ElementInfo);
+		break;
+	}
+	case GI_TYPE_TAG_INTERFACE: {
+		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Return);
+		switch (g_base_info_get_type(InterfaceInfo)) {
+		case GI_INFO_TYPE_CALLBACK: {
+			(InstOut++)->Opcode = GIB_CALLBACK;
+			(InstOut++)->Aux = NumAux;
+			Callback->Aux[NumAux++] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
+			break;
+		}
+		case GI_INFO_TYPE_STRUCT: {
+			(InstOut++)->Opcode = GIB_STRUCT;
+			(InstOut++)->Aux = NumAux;
+			Callback->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+			break;
+		}
+		case GI_INFO_TYPE_ENUM:
+		case GI_INFO_TYPE_FLAGS: {
+			(InstOut++)->Opcode = GIB_ENUM;
+			(InstOut++)->Aux = NumAux;
+			Callback->Aux[NumAux++] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+			break;
+		}
+		case GI_INFO_TYPE_OBJECT: {
+			(InstOut++)->Opcode = GIB_OBJECT;
+			(InstOut++)->Aux = NumAux;
+			Callback->Aux[NumAux++] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
+			break;
+		}
+		case GI_INFO_TYPE_INTERFACE: {
+			(InstOut++)->Opcode = GIB_OBJECT;
+			(InstOut++)->Aux = NumAux;
+			Callback->Aux[NumAux++] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
+			break;
+		}
+		default: {
+			// TODO: raise error or add support
+		}
+		}
+		g_base_info_unref(InterfaceInfo);
+		break;
+	}
+	case GI_TYPE_TAG_GLIST: {
+		(InstOut++)->Opcode = GIB_LIST;
+		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
+		switch (g_type_info_get_tag(ElementInfo)) {
+		BASIC_CASES_INST(InstOut)
+		default: // TODO: handle this.
+		}
+		g_base_info_unref(ElementInfo);
+		break;
+	}
+	case GI_TYPE_TAG_GSLIST: {
+		(InstOut++)->Opcode = GIB_SLIST;
+		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
+		switch (g_type_info_get_tag(ElementInfo)) {
+		BASIC_CASES_INST(InstOut)
+		default: // TODO: handle this.
+		}
+		g_base_info_unref(ElementInfo);
+		break;
+	}
+	case GI_TYPE_TAG_GHASH: {
+		(InstOut++)->Opcode = GIB_HASH;
+		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
+		switch (g_type_info_get_tag(ElementInfo)) {
+		BASIC_CASES_INST(InstOut)
+		default: // TODO: handle this.
+		}
+		g_base_info_unref(ElementInfo);
+		break;
+	}
+	default: // TODO: handle this.
+	}
+	g_base_info_unref(Return);
+	for (int I = 0; I < NumArgs; ++I) {
+		if (Args[I].SkipIn) {
+			(InstIn++)->Opcode = GIB_SKIP;
+		} else switch (g_type_info_get_tag(Args[I].Type)) {
+		case GI_TYPE_TAG_VOID:
+			(InstIn++)->Opcode = GIB_SKIP;
+			break;
+		BASIC_CASES_INST(InstIn)
+		case GI_TYPE_TAG_ARRAY: {
+			int Length = g_type_info_get_array_length(Args[I].Type);
+			int Fixed = g_type_info_get_array_fixed_size(Args[I].Type);
+			//g_type_info_is_zero_terminated(Args[I].Type);
+			if (Length >= 0) {
+				(InstIn++)->Opcode = GIB_ARRAY_LENGTH;
+				(InstIn++)->Aux = Length;
+			} else if (Fixed >= 0) {
+				(InstIn++)->Opcode = GIB_ARRAY_FIXED;
+				(InstIn++)->Aux = NumAux;
+				Callback->Aux[NumAux++] = (void *)0 + Fixed;
+			} else if (g_type_info_is_zero_terminated(Args[I].Type)) {
+				(InstIn++)->Opcode = GIB_ARRAY_ZERO;
+			} else {
+				(InstIn++)->Opcode = GIB_ARRAY;
+			}
+			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
+			switch (g_type_info_get_tag(ElementInfo)) {
+			BASIC_CASES_INST(InstIn)
+			default: // TODO: handle this.
+			}
+			g_base_info_unref(ElementInfo);
+			break;
+		}
+		case GI_TYPE_TAG_INTERFACE: {
+			GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
+			switch (g_base_info_get_type(InterfaceInfo)) {
+			case GI_INFO_TYPE_CALLBACK: {
+				(InstIn++)->Opcode = GIB_CALLBACK;
+				(InstIn++)->Aux = NumAux;
+				Callback->Aux[NumAux++] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
+				break;
+			}
+			case GI_INFO_TYPE_STRUCT: {
+				(InstIn++)->Opcode = GIB_STRUCT;
+				(InstIn++)->Aux = NumAux;
+				Callback->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+				break;
+			}
+			case GI_INFO_TYPE_ENUM:
+			case GI_INFO_TYPE_FLAGS: {
+				(InstIn++)->Opcode = GIB_ENUM;
+				(InstIn++)->Aux = NumAux;
+				Callback->Aux[NumAux++] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+				break;
+			}
+			case GI_INFO_TYPE_OBJECT: {
+				(InstIn++)->Opcode = GIB_OBJECT;
+				(InstIn++)->Aux = NumAux;
+				Callback->Aux[NumAux++] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
+				break;
+			}
+			case GI_INFO_TYPE_INTERFACE: {
+				(InstIn++)->Opcode = GIB_OBJECT;
+				(InstIn++)->Aux = NumAux;
+				Callback->Aux[NumAux++] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
+				break;
+			}
+			default: {
+				// TODO: raise error or add support
+			}
+			}
+			g_base_info_unref(InterfaceInfo);
+			break;
+		}
+		case GI_TYPE_TAG_GLIST: {
+			(InstIn++)->Opcode = GIB_LIST;
+			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
+			switch (g_type_info_get_tag(ElementInfo)) {
+			BASIC_CASES_INST(InstIn)
+			default: // TODO: handle this.
+			}
+			g_base_info_unref(ElementInfo);
+			break;
+		}
+		case GI_TYPE_TAG_GSLIST: {
+			(InstIn++)->Opcode = GIB_SLIST;
+			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
+			switch (g_type_info_get_tag(ElementInfo)) {
+			BASIC_CASES_INST(InstIn)
+			default: // TODO: handle this.
+			}
+			g_base_info_unref(ElementInfo);
+			break;
+		}
+		case GI_TYPE_TAG_GHASH: {
+			(InstIn++)->Opcode = GIB_HASH;
+			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
+			switch (g_type_info_get_tag(ElementInfo)) {
+			BASIC_CASES_INST(InstIn)
+			default: // TODO: handle this.
+			}
+			g_base_info_unref(ElementInfo);
+			break;
+		}
+		default:
+		}
+	}
+	InstIn->Opcode = InstOut->Opcode = GIB_DONE;
+	return (ml_type_t *)Callback;
+}
 
 static ml_type_t *callback_info_lookup(GICallbackInfo *Info) {
 	const char *TypeName = g_base_info_get_name((GIBaseInfo *)Info);
@@ -498,53 +827,132 @@ static ml_type_t *callback_info_lookup(GICallbackInfo *Info) {
 	return Slot[0];
 }
 
+typedef ml_value_t *(*ptr_to_value_fn)(void *);
+
+typedef struct {
+	ml_value_t *(*to_value)(void *, void *);
+	void *Aux;
+	int Size;
+} ptr_to_value_t;
+
+static void ptr_to_value(gi_inst_t **Inst, void **Aux, ptr_to_value_t *Convert) {
+	gi_opcode_t Opcode = ((*Inst)++)->Opcode;
+	switch (Opcode) {
+	case GIB_BOOLEAN:
+		Convert->to_value = boolean_to_value;
+		Convert->Size = sizeof(gboolean);
+		break;
+	case GIB_INT8:
+		Convert->to_value = int8_to_value;
+		Convert->Size = sizeof(gint8);
+		break;
+	case GIB_UINT8:
+		Convert->to_value = uint8_to_value;
+		Convert->Size = sizeof(guint8);
+		break;
+	case GIB_INT16:
+		Convert->to_value = int16_to_value;
+		Convert->Size = sizeof(gint16);
+		break;
+	case GIB_UINT16:
+		Convert->to_value = uint16_to_value;
+		Convert->Size = sizeof(guint16);
+		break;
+	case GIB_INT32:
+		Convert->to_value = int32_to_value;
+		Convert->Size = sizeof(gint32);
+		break;
+	case GIB_UINT32:
+		Convert->to_value = uint32_to_value;
+		Convert->Size = sizeof(guint32);
+		break;
+	case GIB_INT64:
+		Convert->to_value = int64_to_value;
+		Convert->Size = sizeof(gint64);
+		break;
+	case GIB_UINT64:
+		Convert->to_value = uint64_to_value;
+		Convert->Size = sizeof(guint64);
+		break;
+	case GIB_FLOAT:
+		Convert->to_value = float_to_value;
+		Convert->Size = sizeof(gfloat);
+		break;
+	case GIB_DOUBLE:
+		Convert->to_value = double_to_value;
+		Convert->Size = sizeof(gdouble);
+		break;
+	case GIB_STRING:
+		Convert->to_value = string_to_value;
+		Convert->Size = sizeof(gchararray);
+		break;
+	case GIB_GTYPE:
+		Convert->to_value = gtype_to_value;
+		Convert->Size = sizeof(GType);
+		break;
+	}
+}
+
 typedef struct {
 	ml_type_t *Type;
 	GIFunctionInfo *Info;
 	gi_inst_t *InstIn, *InstOut;
 	int NumArgsIn, NumArgsOut;
-	int NumValues, Required;
-	int HasReturn;
+	int NumValues, NumInputs;
+	int NumOutputs, NumResults;
 	void *Aux[];
 } gir_function_t;
 
+typedef struct {
+	ml_value_t *Map;
+	ptr_to_value_t Key[1];
+	ptr_to_value_t Value[1];
+} ghash_to_map_t;
+
+static void ghash_to_map(gpointer Key, gpointer Value, ghash_to_map_t *Convert) {
+	ml_map_insert(Convert->Map,
+		Convert->Key->to_value(Key, Convert->Key->Aux),
+		Convert->Value->to_value(Value, Convert->Value->Aux)
+	);
+}
+
 static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(Function->Required);
-	size_t NumArgs = Function->NumArgsIn + Function->NumArgsOut + 1 + Function->NumArgsOut;
+	ML_CHECKX_ARG_COUNT(Function->NumInputs);
+	size_t NumArgs = Function->NumArgsIn + Function->NumArgsOut + Function->NumOutputs;
 	GIArgument Arguments[NumArgs];
 	memset(Arguments, 0, NumArgs * sizeof(GIArgument));
 	GValue Values[Function->NumValues];
 	memset(Values, 0, Function->NumValues * sizeof(GValue));
-	GIArgument *Argument = Arguments;
+	GIArgument *ArgIn = Arguments, *ArgOut = ArgIn + Function->NumArgsIn, *Outputs = ArgOut + Function->NumArgsOut + 1;
 	GValue *ValuePtr = Values;
 	ml_value_t **Arg = Args;
 	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
 	for (gi_inst_t *Inst = Function->InstIn; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
 	case GIB_SELF: {
 		ml_value_t *Value = *Arg++;
-		(Argument++)->v_pointer = ((object_instance_t *)Value)->Handle;
+		(ArgIn++)->v_pointer = ((object_instance_t *)Value)->Handle;
 		break;
 	}
-	case GIB_SKIP: Argument++; break;
-	case GIB_BOOLEAN: (Argument++)->v_boolean = ml_boolean_value(*Arg++); break;
-	case GIB_INT8: (Argument++)->v_int8 = ml_integer_value(*Arg++); break;
-	case GIB_UINT8: (Argument++)->v_uint8 = ml_integer_value(*Arg++); break;
-	case GIB_INT16: (Argument++)->v_int16 = ml_integer_value(*Arg++); break;
-	case GIB_UINT16: (Argument++)->v_uint16 = ml_integer_value(*Arg++); break;
-	case GIB_INT32: (Argument++)->v_int32 = ml_integer_value(*Arg++); break;
-	case GIB_UINT32: (Argument++)->v_uint32 = ml_integer_value(*Arg++); break;
-	case GIB_INT64: (Argument++)->v_int64 = ml_integer_value(*Arg++); break;
-	case GIB_UINT64: (Argument++)->v_uint64 = ml_integer_value(*Arg++); break;
-	case GIB_FLOAT: (Argument++)->v_float = ml_real_value(*Arg++); break;
-	case GIB_DOUBLE: (Argument++)->v_double = ml_real_value(*Arg++); break;
+	case GIB_SKIP: ArgIn++; break;
+	case GIB_BOOLEAN: (ArgIn++)->v_boolean = ml_boolean_value(*Arg++); break;
+	case GIB_INT8: (ArgIn++)->v_int8 = ml_integer_value(*Arg++); break;
+	case GIB_UINT8: (ArgIn++)->v_uint8 = ml_integer_value(*Arg++); break;
+	case GIB_INT16: (ArgIn++)->v_int16 = ml_integer_value(*Arg++); break;
+	case GIB_UINT16: (ArgIn++)->v_uint16 = ml_integer_value(*Arg++); break;
+	case GIB_INT32: (ArgIn++)->v_int32 = ml_integer_value(*Arg++); break;
+	case GIB_UINT32: (ArgIn++)->v_uint32 = ml_integer_value(*Arg++); break;
+	case GIB_INT64: (ArgIn++)->v_int64 = ml_integer_value(*Arg++); break;
+	case GIB_UINT64: (ArgIn++)->v_uint64 = ml_integer_value(*Arg++); break;
+	case GIB_FLOAT: (ArgIn++)->v_float = ml_real_value(*Arg++); break;
+	case GIB_DOUBLE: (ArgIn++)->v_double = ml_real_value(*Arg++); break;
 	case GIB_STRING: {
 		ml_value_t *Value = *Arg++;
 		if (Value == MLNil) {
-			(Argument++)->v_string = NULL;
+			(ArgIn++)->v_string = NULL;
 		} else if (!ml_is(Value, MLStringT)) {
 			ML_ERROR("TypeError", "Expected string for argument %ld", Arg - Args);
 		} else {
-			(Argument++)->v_string = (char *)ml_string_value(Value);
+			(ArgIn++)->v_string = (char *)ml_string_value(Value);
 		}
 		break;
 	}
@@ -552,21 +960,21 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		ml_value_t *Value = *Arg++;
 		if (ml_is(Value, GirBaseInfoT)) {
 			baseinfo_t *Base = (baseinfo_t *)Value;
-			(Argument++)->v_size = g_registered_type_info_get_g_type((GIRegisteredTypeInfo *)Base->Info);
+			(ArgIn++)->v_size = g_registered_type_info_get_g_type((GIRegisteredTypeInfo *)Base->Info);
 		} else if (ml_is(Value, MLStringT)) {
-			(Argument++)->v_size = g_type_from_name(ml_string_value(Value));
+			(ArgIn++)->v_size = g_type_from_name(ml_string_value(Value));
 		} else if (Value == (ml_value_t *)MLNilT) {
-			(Argument++)->v_size = G_TYPE_NONE;
+			(ArgIn++)->v_size = G_TYPE_NONE;
 		} else if (Value == (ml_value_t *)MLIntegerT) {
-			(Argument++)->v_size = G_TYPE_INT64;
+			(ArgIn++)->v_size = G_TYPE_INT64;
 		} else if (Value == (ml_value_t *)MLStringT) {
-			(Argument++)->v_size = G_TYPE_STRING;
+			(ArgIn++)->v_size = G_TYPE_STRING;
 		} else if (Value == (ml_value_t *)MLDoubleT) {
-			(Argument++)->v_size = G_TYPE_DOUBLE;
+			(ArgIn++)->v_size = G_TYPE_DOUBLE;
 		} else if (Value == (ml_value_t *)MLBooleanT) {
-			(Argument++)->v_size = G_TYPE_BOOLEAN;
+			(ArgIn++)->v_size = G_TYPE_BOOLEAN;
 		} else if (Value == (ml_value_t *)MLAddressT) {
-			(Argument++)->v_size = G_TYPE_POINTER;
+			(ArgIn++)->v_size = G_TYPE_POINTER;
 		} else {
 			ML_ERROR("TypeError", "Expected type for parameter %ld", Arg - Args);
 		}
@@ -633,7 +1041,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		} else {
 			ML_ERROR("TypeError", "Expected list for parameter %ld", Arg - Args);
 		}
-		(Argument++)->v_pointer = Array;
+		(ArgIn++)->v_pointer = Array;
 		break;
 	}
 	case GIB_ARRAY_LENGTH: {
@@ -679,7 +1087,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		} else {
 			ML_ERROR("TypeError", "Expected list for parameter %ld", Arg - Args);
 		}
-		(Argument++)->v_pointer = Array;
+		(ArgIn++)->v_pointer = Array;
 		break;
 	}
 	case GIB_CALLBACK: {
@@ -689,7 +1097,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		Instance->Type = (ml_type_t *)Type;
 		Instance->Context = Caller->Context;
 		Instance->Function = Value;
-		(Argument++)->v_pointer = g_callable_info_prepare_closure(
+		(ArgIn++)->v_pointer = g_callable_info_prepare_closure(
 			Type->Info,
 			Instance->Cif,
 			(GIFFIClosureCallback)callback_fn,
@@ -701,9 +1109,9 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		ml_value_t *Value = *Arg++;
 		ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
 		if (Value == MLNil) {
-			(Argument++)->v_pointer = NULL;
+			(ArgIn++)->v_pointer = NULL;
 		} else if (ml_is(Value, Type)) {
-			(Argument++)->v_pointer = ((struct_instance_t *)Value)->Value;
+			(ArgIn++)->v_pointer = ((struct_instance_t *)Value)->Value;
 		} else {
 			ML_ERROR("TypeError", "Expected %s not %s for parameter %ld", Type->Name, ml_typeof(Value)->Name, Arg - Args);
 		}
@@ -713,9 +1121,9 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		ml_value_t *Value = *Arg++;
 		ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
 		if (Value == MLNil) {
-			(Argument++)->v_int64 = 0;
+			(ArgIn++)->v_int64 = 0;
 		} else if (ml_is(Value, Type)) {
-			(Argument++)->v_int64 = ((enum_value_t *)Value)->Value;
+			(ArgIn++)->v_int64 = ((enum_value_t *)Value)->Value;
 		} else {
 			ML_ERROR("TypeError", "Expected %s not %s for parameter %ld", Type->Name, ml_typeof(Value)->Name, Arg - Args);
 		}
@@ -725,9 +1133,9 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		ml_value_t *Value = *Arg++;
 		ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
 		if (Value == MLNil) {
-			(Argument++)->v_pointer = NULL;
+			(ArgIn++)->v_pointer = NULL;
 		} else if (ml_is(Value, Type)) {
-			(Argument++)->v_pointer = ((object_instance_t *)Value)->Handle;
+			(ArgIn++)->v_pointer = ((object_instance_t *)Value)->Handle;
 		} else {
 			ML_ERROR("TypeError", "Expected %s not %s for parameter %ld", Type->Name, ml_typeof(Value)->Name, Arg - Args);
 		}
@@ -736,7 +1144,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 	case GIB_VALUE: {
 		ml_value_t *Value = *Arg++;
 		to_gvalue(Value, ValuePtr);
-		(Argument++)->v_pointer = ValuePtr++;
+		(ArgIn++)->v_pointer = ValuePtr++;
 		break;
 	}
 	case GIB_LIST: {
@@ -770,7 +1178,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 				Prev = Node;
 			}
 		}
-		(Argument++)->v_pointer = List;
+		(ArgIn++)->v_pointer = List;
 		break;
 	}
 	case GIB_SLIST: {
@@ -802,7 +1210,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 				Slot = &Node->next;
 			}
 		}
-		(Argument++)->v_pointer = List;
+		(ArgIn++)->v_pointer = List;
 		break;
 	}
 	case GIB_HASH: {
@@ -810,46 +1218,58 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		break;
 	}
 	case GIB_OUTPUT_VALUE: {
-		GIArgument *Output = Argument + Function->NumArgsOut;
-		(Argument++)->v_pointer = Output;
+		(ArgOut++)->v_pointer = Outputs++;
 		break;
 	}
 	case GIB_OUTPUT_ARRAY: {
-		GIArgument *Output = Argument + Function->NumArgsOut;
-		(Argument++)->v_pointer = Output;
+		(ArgOut++)->v_pointer = Outputs++;
+		break;
+	}
+	case GIB_OUTPUT_STRUCT: {
+		ml_value_t *Value = *Arg++;
+		ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
+		if (Value == MLNil) {
+			(ArgOut++)->v_pointer = NULL;
+		} else if (ml_is(Value, Type)) {
+			(ArgOut++)->v_pointer = ((struct_instance_t *)Value)->Value;
+		} else {
+			ML_ERROR("TypeError", "Expected %s not %s for parameter %ld", Type->Name, ml_typeof(Value)->Name, Arg - Args);
+		}
+		break;
 	}
 	}
 	GError *Error = 0;
-	GIArgument *Outputs = Arguments + Function->NumArgsIn + 1;
 	gboolean Invoked = g_function_info_invoke(
 		Function->Info,
 		Arguments, Function->NumArgsIn,
-		Outputs, Function->NumArgsOut,
-		Arguments + Function->NumArgsIn,
+		ArgIn, Function->NumArgsOut,
+		ArgOut,
 		&Error
 	);
+	Outputs = ArgOut;
 	if (!Invoked || Error) ML_ERROR("InvokeError", "Error: %s", Error->message);
 	ml_value_t *Results, **Result;
-	if (Function->NumArgsOut) {
-		Results = ml_tuple(Function->NumArgsOut + Function->HasReturn);
-		Result = ((ml_tuple_t *)Result)->Values;
+	if (Function->NumResults > 1) {
+		Results = ml_tuple(Function->NumResults);
+		Result = ((ml_tuple_t *)Results)->Values;
 	} else {
 		Results = MLNil;
 		Result = &Results;
 	}
 	for (gi_inst_t *Inst = Function->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
-	case GIB_SKIP: Argument++; break;
-	case GIB_BOOLEAN: *Result++ = ml_boolean((Argument++)->v_boolean); break;
-	case GIB_INT8: *Result++ = ml_integer((Argument++)->v_int8); break;
-	case GIB_UINT8: *Result++ = ml_integer((Argument++)->v_uint8); break;
-	case GIB_INT16: *Result++ = ml_integer((Argument++)->v_int16); break;
-	case GIB_UINT16: *Result++ = ml_integer((Argument++)->v_uint16); break;
-	case GIB_INT32: *Result++ = ml_integer((Argument++)->v_int32); break;
-	case GIB_UINT32: *Result++ = ml_integer((Argument++)->v_uint32); break;
-	case GIB_INT64: *Result++ = ml_integer((Argument++)->v_int64); break;
-	case GIB_UINT64: *Result++ = ml_integer((Argument++)->v_uint64); break;
-	case GIB_FLOAT: *Result++ = ml_real((Argument++)->v_float); break;
-	case GIB_DOUBLE: *Result++ = ml_real((Argument++)->v_double); break;
+	case GIB_SKIP: ArgOut++; break;
+	case GIB_BOOLEAN: *Result++ = ml_boolean((ArgOut++)->v_boolean); break;
+	case GIB_INT8: *Result++ = ml_integer((ArgOut++)->v_int8); break;
+	case GIB_UINT8: *Result++ = ml_integer((ArgOut++)->v_uint8); break;
+	case GIB_INT16: *Result++ = ml_integer((ArgOut++)->v_int16); break;
+	case GIB_UINT16: *Result++ = ml_integer((ArgOut++)->v_uint16); break;
+	case GIB_INT32: *Result++ = ml_integer((ArgOut++)->v_int32); break;
+	case GIB_UINT32: *Result++ = ml_integer((ArgOut++)->v_uint32); break;
+	case GIB_INT64: *Result++ = ml_integer((ArgOut++)->v_int64); break;
+	case GIB_UINT64: *Result++ = ml_integer((ArgOut++)->v_uint64); break;
+	case GIB_FLOAT: *Result++ = ml_real((ArgOut++)->v_float); break;
+	case GIB_DOUBLE: *Result++ = ml_real((ArgOut++)->v_double); break;
+	case GIB_STRING: *Result++ = ml_string((ArgOut++)->v_string, -1); break;
 	case GIB_ARRAY: {
 		break;
 	}
@@ -857,24 +1277,75 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		break;
 	}
 	case GIB_ARRAY_LENGTH: {
+		int Aux = (Inst++)->Aux;
+		ml_value_t *(*to_value)(void *, void *);
+		int Size;
+		switch ((Inst++)->Opcode) {
+		case GIB_BOOLEAN: to_value = boolean_to_value; Size = sizeof(gboolean); break;
+		case GIB_INT8: to_value = int8_to_value; Size = sizeof(gint8); break;
+		case GIB_UINT8: to_value = uint8_to_value; Size = sizeof(guint8); break;
+		case GIB_INT16: to_value = int16_to_value; Size = sizeof(gint16); break;
+		case GIB_UINT16: to_value = uint16_to_value; Size = sizeof(guint16); break;
+		case GIB_INT32: to_value = int32_to_value; Size = sizeof(gint32); break;
+		case GIB_UINT32: to_value = uint32_to_value; Size = sizeof(guint32); break;
+		case GIB_INT64: to_value = int64_to_value; Size = sizeof(gint64); break;
+		case GIB_UINT64: to_value = uint64_to_value; Size = sizeof(guint64); break;
+		case GIB_FLOAT: to_value = float_to_value; Size = sizeof(gfloat); break;
+		case GIB_DOUBLE: to_value = double_to_value; Size = sizeof(gdouble); break;
+		case GIB_STRING: to_value = string_to_value; Size = sizeof(gchararray); break;
+		case GIB_GTYPE: to_value = gtype_to_value; Size = sizeof(GType); break;
+		//case GIB_BYTES: to_value = bytes_to_value; Size = sizeof(gpointer); break;
+		default: ML_ERROR("TypeError", "Unsupported array type");
+		}
+		void *Array = (ArgOut++)->v_pointer;
+		if (to_value == int8_to_value || to_value == uint8_to_value) {
+			if (Array) {
+				size_t Length = Outputs[Aux].v_int64;
+				char *Buffer = snew(Length + 1);
+				memcpy(Buffer, Array, Length);
+				Buffer[Length] = 0;
+				*Result++ = ml_string(Buffer, Length);
+			} else {
+				*Result++ = MLNil;
+			}
+		} else {
+			ml_value_t *List = ml_list();
+			if (Array) {
+				size_t Length = Outputs[Aux].v_int64;
+				void *Ptr = Array;
+				for (size_t I = 0; I < Length; ++I) {
+					ml_list_put(List, to_value(Ptr, NULL));
+					Ptr += Size;
+				}
+			}
+			*Result++ = List;
+		}
 		break;
 	}
 	case GIB_STRUCT: {
 		struct_instance_t *Instance = new(struct_instance_t);
 		Instance->Type = Function->Aux[(Inst++)->Aux];
-		Instance->Value = (Argument++)->v_pointer;
+		Instance->Value = (ArgOut++)->v_pointer;
 		*Result++ = (ml_value_t *)Instance;
 		break;
 	}
 	case GIB_ENUM: {
 		enum_t *Enum = (enum_t *)Function->Aux[(Inst++)->Aux];
-		*Result++ = (ml_value_t *)Enum->ByIndex[(Argument++)->v_int];
+		*Result++ = (ml_value_t *)Enum->ByIndex[(ArgOut++)->v_int];
 		break;
 	}
 	case GIB_OBJECT: {
 		object_t *Object = (object_t *)Function->Aux[(Inst++)->Aux];
-		*Result++ = ml_gir_instance_get((Argument++)->v_pointer, Object->Info);
+		*Result++ = ml_gir_instance_get((ArgOut++)->v_pointer, Object->Info);
 		break;
+	}
+	case GIB_HASH: {
+		ghash_to_map_t Convert[1];
+		Convert->Map = ml_map();
+		ptr_to_value(&Inst, Function->Aux, Convert->Key);
+		ptr_to_value(&Inst, Function->Aux, Convert->Value);
+		g_hash_table_foreach((GHashTable *)((ArgOut++)->v_pointer), ghash_to_map, Convert);
+		*Result++ = Convert->Map;
 	}
 	}
 	ML_RETURN(Results);
@@ -884,42 +1355,74 @@ ML_TYPE(GirFunctionT, (MLFunctionT), "gir::function",
 	.call = (void *)gir_function_call
 );
 
-typedef struct {
-	GIArgInfo Info[1];
-	GITypeInfo Type[1];
-	GIDirection Direction;
-	int SkipIn, SkipOut;
-	int In, Out;
-	int Aux;
-} arg_info_t;
+static int ML_TYPED_FN(ml_method_is_safe, GirFunctionT, ml_value_t *Function) {
+	return 1;
+}
 
-static GIBaseInfo *GValueInfo;
+static void type_param_size(GITypeInfo *Info, int Index, int *Size, int *NumAux) {
+	GITypeInfo *ElementInfo = g_type_info_get_param_type(Info, Index);
+	switch (g_type_info_get_tag(ElementInfo)) {
+	BASIC_CASES_SIZE((*Size))
+	case GI_TYPE_TAG_INTERFACE: (*Size)++; (*NumAux)++; break;
+	default: // TODO: handle this.
+	}
+	g_base_info_unref(ElementInfo);
+}
 
-#define BASIC_CASES(DEST) \
-	case GI_TYPE_TAG_BOOLEAN: (DEST++)->Opcode = GIB_BOOLEAN; break; \
-	case GI_TYPE_TAG_INT8: (DEST++)->Opcode = GIB_INT8; break; \
-	case GI_TYPE_TAG_UINT8: (DEST++)->Opcode = GIB_UINT8; break; \
-	case GI_TYPE_TAG_INT16: (DEST++)->Opcode = GIB_INT16; break; \
-	case GI_TYPE_TAG_UINT16: (DEST++)->Opcode = GIB_UINT16; break; \
-	case GI_TYPE_TAG_INT32: (DEST++)->Opcode = GIB_INT32; break; \
-	case GI_TYPE_TAG_UINT32: (DEST++)->Opcode = GIB_UINT32; break; \
-	case GI_TYPE_TAG_INT64: (DEST++)->Opcode = GIB_INT64; break; \
-	case GI_TYPE_TAG_UINT64: (DEST++)->Opcode = GIB_UINT64; break; \
-	case GI_TYPE_TAG_FLOAT: (DEST++)->Opcode = GIB_FLOAT; break; \
-	case GI_TYPE_TAG_DOUBLE: (DEST++)->Opcode = GIB_DOUBLE; break; \
-	case GI_TYPE_TAG_GTYPE: (DEST++)->Opcode = GIB_GTYPE; break; \
-	case GI_TYPE_TAG_UTF8: (DEST++)->Opcode = GIB_STRING; break; \
-	case GI_TYPE_TAG_FILENAME: (DEST++)->Opcode = GIB_STRING; break;
+static void type_param_inst(GITypeInfo *Info, int Index, gi_inst_t **Inst, int *NumAux, void **Aux) {
+	GITypeInfo *ElementInfo = g_type_info_get_param_type(Info, Index);
+	switch (g_type_info_get_tag(ElementInfo)) {
+	BASIC_CASES_INST((*Inst))
+	case GI_TYPE_TAG_INTERFACE: {
+		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(ElementInfo);
+		switch (g_base_info_get_type(InterfaceInfo)) {
+		case GI_INFO_TYPE_CALLBACK:
+			((*Inst)++)->Opcode = GIB_CALLBACK;
+			((*Inst)++)->Aux = *NumAux;
+			Aux[(*NumAux)++] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
+			break;
+		case GI_INFO_TYPE_STRUCT:
+			((*Inst)++)->Opcode = GIB_STRUCT;
+			((*Inst)++)->Aux = *NumAux;
+			Aux[(*NumAux)++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+			break;
+		case GI_INFO_TYPE_ENUM:
+		case GI_INFO_TYPE_FLAGS:
+			((*Inst)++)->Opcode = GIB_ENUM;
+			((*Inst)++)->Aux = *NumAux;
+			Aux[(*NumAux)++] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+			break;
+		case GI_INFO_TYPE_OBJECT:
+			((*Inst)++)->Opcode = GIB_OBJECT;
+			((*Inst)++)->Aux = *NumAux;
+			Aux[(*NumAux)++] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
+			break;
+		case GI_INFO_TYPE_INTERFACE:
+			((*Inst)++)->Opcode = GIB_OBJECT;
+			((*Inst)++)->Aux = *NumAux;
+			Aux[(*NumAux)++] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
+			break;
+		default: {
+			// TODO: raise error or add support
+		}
+		}
+		g_base_info_unref(InterfaceInfo);
+		break;
+	}
+	default: // TODO: handle this.
+	}
+	g_base_info_unref(ElementInfo);
+}
 
 static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 	int NumArgs = g_callable_info_get_n_args(Info);
 	arg_info_t Args[NumArgs];
 	memset(Args, 0, NumArgs * sizeof(arg_info_t));
-	int NumIn = 0, NumOut = 0, NumAux = 0, NumValues = 0, Required = 0;
+	int NumIn = 0, NumOut = 0, NumAux = 0, NumValues = 0, NumInputs = 0, NumOutputs = 1;
 	int InSize = 1, OutSize = 1;
 	GIFunctionInfoFlags Flags = g_function_info_get_flags(Info);
 	if (Flags & GI_FUNCTION_IS_METHOD) {
-		Required++;
+		NumInputs++;
 		NumIn++;
 		InSize++;
 	}
@@ -929,13 +1432,13 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		GIDirection Direction = Args[I].Direction = g_arg_info_get_direction(ArgInfo);
 		g_arg_info_load_type(ArgInfo, Args[I].Type);
 		if (Direction == GI_DIRECTION_IN || Direction == GI_DIRECTION_INOUT) {
-			Required++;
+			NumInputs++;
 			Args[I].In = NumIn++;
 			switch (g_type_info_get_tag(Args[I].Type)) {
 			case GI_TYPE_TAG_ARRAY: {
 				int Length = g_type_info_get_array_length(Args[I].Type);
 				if (Length >= 0) {
-					Required--;
+					NumInputs--;
 					Args[Length].SkipIn = 1;
 					InSize += 1;
 				}
@@ -945,16 +1448,20 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			case GI_TYPE_TAG_INTERFACE: {
 				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
 				if (g_base_info_equal(InterfaceInfo, GValueInfo)) {
-					Args[I].Aux = NumValues++;
+					Args[I].Value = NumValues++;
 					InSize += 2;
 				} else if (g_base_info_equal(InterfaceInfo, DestroyNotifyInfo)) {
+					NumInputs--;
 					Args[I].SkipIn = 1;
 					InSize += 1;
 				} else {
-					Args[I].Aux = NumAux++;
+					NumAux++;
 					if (g_base_info_get_type(InterfaceInfo) == GI_INFO_TYPE_CALLBACK) {
 						int Closure = g_arg_info_get_closure(ArgInfo);
-						if (Closure >= 0) Args[Closure].SkipIn = 1;
+						if (Closure >= 0) {
+							NumInputs--;
+							Args[Closure].SkipIn = 1;
+						}
 					}
 					InSize += 2;
 				}
@@ -963,8 +1470,13 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			}
 			case GI_TYPE_TAG_GLIST:
 			case GI_TYPE_TAG_GSLIST:
+				InSize += 1;
+				type_param_size(Args[I].Type, 0, &InSize, &NumAux);
+				break;
 			case GI_TYPE_TAG_GHASH:
-				InSize += 2;
+				InSize += 1;
+				type_param_size(Args[I].Type, 0, &InSize, &NumAux);
+				type_param_size(Args[I].Type, 1, &InSize, &NumAux);
 				break;
 			default:
 				InSize += 1;
@@ -972,43 +1484,59 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			}
 		}
 		if (Direction == GI_DIRECTION_OUT || Direction == GI_DIRECTION_INOUT) {
-			Args[I].Out = NumOut++;
-			switch (g_type_info_get_tag(Args[I].Type)) {
-			case GI_TYPE_TAG_ARRAY: {
-				int Length = g_type_info_get_array_length(Args[I].Type);
-				if (g_arg_info_is_caller_allocates(Args[I].Info)) {
-					Required++;
+			NumOut++;
+			if (g_arg_info_is_caller_allocates(Args[I].Info)) {
+				switch (g_type_info_get_tag(Args[I].Type)) {
+				case GI_TYPE_TAG_ARRAY: {
+					int Length = g_type_info_get_array_length(Args[I].Type);
+					NumInputs++;
 					Args[I].In = NumIn++;
 					if (Length >= 0) {
-						Required--;
+						NumInputs--;
 						Args[Length].SkipIn = 1;
 						InSize += 1;
 					}
 					InSize += 2;
-					OutSize += 1;
-				} else {
+					break;
+				}
+				case GI_TYPE_TAG_INTERFACE: {
+					GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
+					if (g_base_info_get_type(InterfaceInfo) == GI_INFO_TYPE_STRUCT) {
+						NumInputs++;
+						NumAux++;
+						InSize += 2;
+					}
+					g_base_info_unref(InterfaceInfo);
+					break;
+				}
+				}
+			} else {
+				Args[I].Out = NumOutputs++;
+				switch (g_type_info_get_tag(Args[I].Type)) {
+				case GI_TYPE_TAG_ARRAY: {
+					int Length = g_type_info_get_array_length(Args[I].Type);
 					if (Length >= 0) {
 						Args[Length].SkipOut = 1;
+						InSize -= 1;
 						OutSize += 1;
 					}
 					InSize += 1;
 					OutSize += 2;
+					break;
 				}
-				break;
-			}
-			default:
-				InSize += 1;
-				OutSize += 1;
-				break;
+				default:
+					InSize += 1;
+					OutSize += 1;
+					break;
+				}
 			}
 		}
 	}
-	int HasReturn = 1;
 	GITypeInfo *Return = g_callable_info_get_return_type((GICallableInfo *)Info);
+	int NumResults = 1;
 	switch (g_type_info_get_tag(Return)) {
 	case GI_TYPE_TAG_VOID:
-		OutSize += 1;
-		HasReturn = 0;
+		NumResults = 0;
 		break;
 	case GI_TYPE_TAG_ARRAY: {
 		int Length = g_type_info_get_array_length(Return);
@@ -1025,8 +1553,13 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		break;
 	case GI_TYPE_TAG_GLIST:
 	case GI_TYPE_TAG_GSLIST:
+		OutSize += 1;
+		type_param_size(Return, 0, &OutSize, &NumAux);
+		break;
 	case GI_TYPE_TAG_GHASH:
-		OutSize += 2;
+		OutSize += 1;
+		type_param_size(Return, 0, &OutSize, &NumAux);
+		type_param_size(Return, 1, &OutSize, &NumAux);
 		break;
 	default:
 		OutSize += 1;
@@ -1035,19 +1568,20 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 	gir_function_t *Function = xnew(gir_function_t, NumAux, void *);
 	Function->Type = GirFunctionT;
 	Function->Info = Info;
-	Function->Required = Required;
+	g_base_info_ref(Info);
+	Function->NumInputs = NumInputs;
+	Function->NumOutputs = NumOutputs;
 	Function->NumArgsIn = NumIn;
 	Function->NumArgsOut = NumOut;
 	Function->NumValues = NumValues;
-	Function->HasReturn = HasReturn;
 	gi_inst_t *InstIn = Function->InstIn = (gi_inst_t *)snew(InSize * sizeof(gi_inst_t));
 	gi_inst_t *InstOut = Function->InstOut = (gi_inst_t *)snew(OutSize * sizeof(gi_inst_t));
+	NumAux = 0;
 	if (Flags & GI_FUNCTION_IS_METHOD) (InstIn++)->Opcode = GIB_SELF;
 	switch (g_type_info_get_tag(Return)) {
 	case GI_TYPE_TAG_VOID:
-		(InstOut++)->Opcode = GIB_SKIP;
 		break;
-	BASIC_CASES(InstOut)
+	BASIC_CASES_INST(InstOut)
 	case GI_TYPE_TAG_ARRAY: {
 		int Length = g_type_info_get_array_length(Return);
 		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
@@ -1060,7 +1594,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			(InstOut++)->Opcode = GIB_ARRAY;
 		}
 		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
+		BASIC_CASES_INST(InstOut)
 		default: // TODO: handle this.
 		}
 		g_base_info_unref(ElementInfo);
@@ -1071,29 +1605,29 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		switch (g_base_info_get_type(InterfaceInfo)) {
 		case GI_INFO_TYPE_CALLBACK:
 			(InstOut++)->Opcode = GIB_CALLBACK;
-			(InstOut++)->Aux = NumAux - 1;
-			Function->Aux[NumAux - 1] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
+			(InstOut++)->Aux = NumAux;
+			Function->Aux[NumAux++] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
 			break;
 		case GI_INFO_TYPE_STRUCT:
 			(InstOut++)->Opcode = GIB_STRUCT;
-			(InstOut++)->Aux = NumAux - 1;
-			Function->Aux[NumAux - 1] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+			(InstOut++)->Aux = NumAux;
+			Function->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
 			break;
 		case GI_INFO_TYPE_ENUM:
 		case GI_INFO_TYPE_FLAGS:
 			(InstOut++)->Opcode = GIB_ENUM;
-			(InstOut++)->Aux = NumAux - 1;
-			Function->Aux[NumAux - 1] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+			(InstOut++)->Aux = NumAux;
+			Function->Aux[NumAux++] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
 			break;
 		case GI_INFO_TYPE_OBJECT:
 			(InstOut++)->Opcode = GIB_OBJECT;
-			(InstOut++)->Aux = NumAux - 1;
-			Function->Aux[NumAux - 1] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
+			(InstOut++)->Aux = NumAux;
+			Function->Aux[NumAux++] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
 			break;
 		case GI_INFO_TYPE_INTERFACE:
 			(InstOut++)->Opcode = GIB_OBJECT;
-			(InstOut++)->Aux = NumAux - 1;
-			Function->Aux[NumAux - 1] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
+			(InstOut++)->Aux = NumAux;
+			Function->Aux[NumAux++] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
 			break;
 		default: {
 			// TODO: raise error or add support
@@ -1104,32 +1638,18 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 	}
 	case GI_TYPE_TAG_GLIST: {
 		(InstOut++)->Opcode = GIB_LIST;
-		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
+		type_param_inst(Return, 0, &InstOut, &NumAux, Function->Aux);
 		break;
 	}
 	case GI_TYPE_TAG_GSLIST: {
 		(InstOut++)->Opcode = GIB_SLIST;
-		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
+		type_param_inst(Return, 0, &InstOut, &NumAux, Function->Aux);
 		break;
 	}
 	case GI_TYPE_TAG_GHASH: {
 		(InstOut++)->Opcode = GIB_HASH;
-		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
+		type_param_inst(Return, 0, &InstOut, &NumAux, Function->Aux);
+		type_param_inst(Return, 1, &InstOut, &NumAux, Function->Aux);
 		break;
 	}
 	default: // TODO: handle this.
@@ -1141,7 +1661,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			if (Args[I].SkipIn) {
 				(InstIn++)->Opcode = GIB_SKIP;
 			} else switch (g_type_info_get_tag(Args[I].Type)) {
-			BASIC_CASES(InstIn)
+			BASIC_CASES_INST(InstIn)
 			case GI_TYPE_TAG_ARRAY: {
 				int Length = g_type_info_get_array_length(Args[I].Type);
 				if (Length >= 0) {
@@ -1154,7 +1674,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				}
 				GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
 				switch (g_type_info_get_tag(ElementInfo)) {
-				BASIC_CASES(InstIn)
+				BASIC_CASES_INST(InstIn)
 				default: // TODO: handle this.
 				}
 				g_base_info_unref(ElementInfo);
@@ -1164,38 +1684,38 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
 				if (g_base_info_equal(InterfaceInfo, GValueInfo)) {
 					(InstIn++)->Opcode = GIB_VALUE;
-					(InstIn++)->Aux = Args[I].Aux;
+					(InstIn++)->Aux = Args[I].Value;
 				} else {
 					switch (g_base_info_get_type(InterfaceInfo)) {
 					case GI_INFO_TYPE_CALLBACK: {
 						(InstIn++)->Opcode = GIB_CALLBACK;
-						(InstIn++)->Aux = Args[I].Aux;
-						Function->Aux[Args[I].Aux] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
+						(InstIn++)->Aux = NumAux;
+						Function->Aux[NumAux++] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
 						break;
 					}
 					case GI_INFO_TYPE_STRUCT: {
 						(InstIn++)->Opcode = GIB_STRUCT;
-						(InstIn++)->Aux = Args[I].Aux;
-						Function->Aux[Args[I].Aux] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+						(InstIn++)->Aux = NumAux;
+						Function->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
 						break;
 					}
 					case GI_INFO_TYPE_ENUM:
 					case GI_INFO_TYPE_FLAGS: {
 						(InstIn++)->Opcode = GIB_ENUM;
-						(InstIn++)->Aux = Args[I].Aux;
-						Function->Aux[Args[I].Aux] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+						(InstIn++)->Aux = NumAux;
+						Function->Aux[NumAux++] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
 						break;
 					}
 					case GI_INFO_TYPE_OBJECT: {
 						(InstIn++)->Opcode = GIB_OBJECT;
-						(InstIn++)->Aux = Args[I].Aux;
-						Function->Aux[Args[I].Aux] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
+						(InstIn++)->Aux = NumAux;
+						Function->Aux[NumAux++] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
 						break;
 					}
 					case GI_INFO_TYPE_INTERFACE: {
 						(InstIn++)->Opcode = GIB_OBJECT;
-						(InstIn++)->Aux = Args[I].Aux;
-						Function->Aux[Args[I].Aux] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
+						(InstIn++)->Aux = NumAux;
+						Function->Aux[NumAux++] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
 						break;
 					}
 					default: {
@@ -1208,99 +1728,29 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			}
 			case GI_TYPE_TAG_GLIST: {
 				(InstIn++)->Opcode = GIB_LIST;
-				GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-				switch (g_type_info_get_tag(ElementInfo)) {
-				BASIC_CASES(InstIn)
-				default: // TODO: handle this.
-				}
-				g_base_info_unref(ElementInfo);
+				type_param_inst(Args[I].Type, 0, &InstOut, &NumAux, Function->Aux);
 				break;
 			}
 			case GI_TYPE_TAG_GSLIST: {
 				(InstIn++)->Opcode = GIB_SLIST;
-				GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-				switch (g_type_info_get_tag(ElementInfo)) {
-				BASIC_CASES(InstIn)
-				default: // TODO: handle this.
-				}
-				g_base_info_unref(ElementInfo);
+				type_param_inst(Args[I].Type, 0, &InstOut, &NumAux, Function->Aux);
 				break;
 			}
 			case GI_TYPE_TAG_GHASH: {
 				(InstIn++)->Opcode = GIB_HASH;
-				GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-				switch (g_type_info_get_tag(ElementInfo)) {
-				BASIC_CASES(InstIn)
-				default: // TODO: handle this.
-				}
-				g_base_info_unref(ElementInfo);
+				type_param_inst(Args[I].Type, 0, &InstOut, &NumAux, Function->Aux);
+				type_param_inst(Args[I].Type, 1, &InstOut, &NumAux, Function->Aux);
 				break;
 			}
 			default:
 			}
 		}
 		if (Direction == GI_DIRECTION_OUT || Direction == GI_DIRECTION_INOUT) {
-			switch (g_type_info_get_tag(Args[I].Type)) {
-			case GI_TYPE_TAG_BOOLEAN:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_BOOLEAN;
-				break;
-			case GI_TYPE_TAG_INT8:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT8;
-				break;
-			case GI_TYPE_TAG_UINT8:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT8;
-				break;
-			case GI_TYPE_TAG_INT16:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT16;
-				break;
-			case GI_TYPE_TAG_UINT16:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT16;
-				break;
-			case GI_TYPE_TAG_INT32:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT32;
-				break;
-			case GI_TYPE_TAG_UINT32:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT32;
-				break;
-			case GI_TYPE_TAG_INT64:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT64;
-				break;
-			case GI_TYPE_TAG_UINT64:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT64;
-				break;
-			case GI_TYPE_TAG_FLOAT:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_FLOAT;
-				break;
-			case GI_TYPE_TAG_DOUBLE:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_DOUBLE;
-				break;
-			case GI_TYPE_TAG_GTYPE:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_GTYPE;
-				break;
-			case GI_TYPE_TAG_UTF8:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_STRING;
-				break;
-			case GI_TYPE_TAG_FILENAME:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_STRING;
-				break;
-			case GI_TYPE_TAG_ARRAY: {
-				int Length = g_type_info_get_array_length(Args[I].Type);
-				GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-				if (g_arg_info_is_caller_allocates(Args[I].Info)) {
+			if (g_arg_info_is_caller_allocates(Args[I].Info)) {
+				switch (g_type_info_get_tag(Args[I].Type)) {
+				case GI_TYPE_TAG_ARRAY: {
+					int Length = g_type_info_get_array_length(Args[I].Type);
+					GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
 					if (Length >= 0) {
 						(InstIn++)->Opcode = GIB_OUTPUT_ARRAY_LENGTH;
 						(InstIn++)->Aux = Args[Length].In;
@@ -1308,11 +1758,85 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 						(InstIn++)->Opcode = GIB_OUTPUT_ARRAY;
 					}
 					switch (g_type_info_get_tag(ElementInfo)) {
-					BASIC_CASES(InstIn)
+					BASIC_CASES_INST(InstIn)
 					default: // TODO: handle this.
 					}
-					(InstOut++)->Opcode = GIB_SKIP;
-				} else {
+					g_base_info_unref(ElementInfo);
+					break;
+				}
+				case GI_TYPE_TAG_INTERFACE: {
+					GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
+					if (g_base_info_get_type(InterfaceInfo) == GI_INFO_TYPE_STRUCT) {
+						(InstIn++)->Opcode = GIB_OUTPUT_STRUCT;
+						(InstIn++)->Aux = NumAux;
+						Function->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+					}
+					g_base_info_unref(InterfaceInfo);
+					break;
+				}
+				}
+			} else {
+				if (!Args[I].SkipOut) ++NumResults;
+				switch (g_type_info_get_tag(Args[I].Type)) {
+				case GI_TYPE_TAG_BOOLEAN:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_BOOLEAN;
+					break;
+				case GI_TYPE_TAG_INT8:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT8;
+					break;
+				case GI_TYPE_TAG_UINT8:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT8;
+					break;
+				case GI_TYPE_TAG_INT16:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT16;
+					break;
+				case GI_TYPE_TAG_UINT16:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT16;
+					break;
+				case GI_TYPE_TAG_INT32:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT32;
+					break;
+				case GI_TYPE_TAG_UINT32:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT32;
+					break;
+				case GI_TYPE_TAG_INT64:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_INT64;
+					break;
+				case GI_TYPE_TAG_UINT64:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_UINT64;
+					break;
+				case GI_TYPE_TAG_FLOAT:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_FLOAT;
+					break;
+				case GI_TYPE_TAG_DOUBLE:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_DOUBLE;
+					break;
+				case GI_TYPE_TAG_GTYPE:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_GTYPE;
+					break;
+				case GI_TYPE_TAG_UTF8:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_STRING;
+					break;
+				case GI_TYPE_TAG_FILENAME:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_STRING;
+					break;
+				case GI_TYPE_TAG_ARRAY: {
+					int Length = g_type_info_get_array_length(Args[I].Type);
+					GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
 					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
 					if (Length >= 0) {
 						(InstOut++)->Opcode = GIB_ARRAY_LENGTH;
@@ -1321,307 +1845,22 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 						(InstOut++)->Opcode = GIB_ARRAY;
 					}
 					switch (g_type_info_get_tag(ElementInfo)) {
-					BASIC_CASES(InstOut)
+					BASIC_CASES_INST(InstOut)
 					default: // TODO: handle this.
 					}
+					g_base_info_unref(ElementInfo);
+					break;
 				}
-				g_base_info_unref(ElementInfo);
-				break;
-			}
-			default:
-				(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
-				break;
+				default:
+					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
+					break;
+				}
 			}
 		}
 	}
 	InstIn->Opcode = InstOut->Opcode = GIB_DONE;
+	Function->NumResults = NumResults;
 	return (ml_value_t *)Function;
-}
-
-static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *Info) {
-	int NumArgs = g_callable_info_get_n_args(Info);
-	arg_info_t Args[NumArgs];
-	memset(Args, 0, NumArgs * sizeof(arg_info_t));
-	int NumAux = 0, Provided = 0;
-	int InSize = 1, OutSize = 1;
-	for (int I = 0; I < NumArgs; ++I) {
-		g_callable_info_load_arg(Info, I, Args[I].Info);
-		GIArgInfo *ArgInfo = Args[I].Info;
-		g_arg_info_load_type(ArgInfo, Args[I].Type);
-		Provided++;
-		switch (g_type_info_get_tag(Args[I].Type)) {
-		case GI_TYPE_TAG_ARRAY: {
-			int Length = g_type_info_get_array_length(Args[I].Type);
-			int Fixed = g_type_info_get_array_fixed_size(Args[I].Type);
-			if (Length >= 0) {
-				Provided--;
-				Args[Length].SkipIn = 1;
-				InSize += 1;
-			} else if (Fixed >= 0) {
-				Args[I].Aux = NumAux++;
-				InSize += 1;
-			}
-			InSize += 2;
-			break;
-		}
-		case GI_TYPE_TAG_INTERFACE: {
-			GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
-			Args[I].Aux = NumAux++;
-			if (g_base_info_get_type(InterfaceInfo) == GI_INFO_TYPE_CALLBACK) {
-				int Closure = g_arg_info_get_closure(ArgInfo);
-				if (Closure >= 0) Args[Closure].SkipIn = 1;
-			}
-			InSize += 2;
-			g_base_info_unref(InterfaceInfo);
-			break;
-		}
-		case GI_TYPE_TAG_GLIST:
-		case GI_TYPE_TAG_GSLIST:
-		case GI_TYPE_TAG_GHASH:
-			InSize += 2;
-			break;
-		default:
-			InSize += 1;
-			break;
-		}
-	}
-	GITypeInfo *Return = g_callable_info_get_return_type((GICallableInfo *)Info);
-	switch (g_type_info_get_tag(Return)) {
-	case GI_TYPE_TAG_VOID:
-		OutSize += 1;
-		break;
-	 case GI_TYPE_TAG_INTERFACE:
-		OutSize += 2;
-		NumAux++;
-		break;
-	case GI_TYPE_TAG_ARRAY:
-	case GI_TYPE_TAG_GLIST:
-	case GI_TYPE_TAG_GSLIST:
-	case GI_TYPE_TAG_GHASH:
-		OutSize += 2;
-		break;
-	default:
-		OutSize += 1;
-		break;
-	}
-	callback_t *Callback = xnew(callback_t, NumAux, void *);
-	Callback->Base.Type = GirCallbackT;
-	Callback->Base.Name = TypeName;
-	Callback->Base.hash = ml_default_hash;
-	Callback->Base.call = ml_default_call;
-	Callback->Base.deref = ml_default_deref;
-	Callback->Base.assign = ml_default_assign;
-	ml_type_init((ml_type_t *)Callback, GirCallbackInstanceT, NULL);
-	Callback->Info = Info;
-	Callback->Provided = Provided;
-	gi_inst_t *InstIn = Callback->InstIn = (gi_inst_t *)snew(InSize * sizeof(gi_inst_t));
-	gi_inst_t *InstOut = Callback->InstOut = (gi_inst_t *)snew(OutSize * sizeof(gi_inst_t));
-	switch (g_type_info_get_tag(Return)) {
-	case GI_TYPE_TAG_VOID:
-		(InstOut++)->Opcode = GIB_SKIP;
-		break;
-	BASIC_CASES(InstOut)
-	case GI_TYPE_TAG_ARRAY: {
-		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
-		if (g_type_info_is_zero_terminated(Return)) {
-			(InstOut++)->Opcode = GIB_ARRAY_ZERO;
-		} else {
-			(InstOut++)->Opcode = GIB_ARRAY;
-		}
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
-		break;
-	}
-	case GI_TYPE_TAG_INTERFACE: {
-		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Return);
-		switch (g_base_info_get_type(InterfaceInfo)) {
-		case GI_INFO_TYPE_CALLBACK: {
-			(InstOut++)->Opcode = GIB_CALLBACK;
-			(InstOut++)->Aux = NumAux - 1;
-			Callback->Aux[NumAux - 1] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
-			break;
-		}
-		case GI_INFO_TYPE_STRUCT: {
-			(InstOut++)->Opcode = GIB_STRUCT;
-			(InstOut++)->Aux = NumAux - 1;
-			Callback->Aux[NumAux - 1] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
-			break;
-		}
-		case GI_INFO_TYPE_ENUM:
-		case GI_INFO_TYPE_FLAGS: {
-			(InstOut++)->Opcode = GIB_ENUM;
-			(InstOut++)->Aux = NumAux - 1;
-			Callback->Aux[NumAux - 1] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
-			break;
-		}
-		case GI_INFO_TYPE_OBJECT: {
-			(InstOut++)->Opcode = GIB_OBJECT;
-			(InstOut++)->Aux = NumAux - 1;
-			Callback->Aux[NumAux - 1] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
-			break;
-		}
-		case GI_INFO_TYPE_INTERFACE: {
-			(InstOut++)->Opcode = GIB_OBJECT;
-			(InstOut++)->Aux = NumAux - 1;
-			Callback->Aux[NumAux - 1] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
-			break;
-		}
-		default: {
-			// TODO: raise error or add support
-		}
-		}
-		g_base_info_unref(InterfaceInfo);
-		break;
-	}
-	case GI_TYPE_TAG_GLIST: {
-		(InstOut++)->Opcode = GIB_LIST;
-		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
-		break;
-	}
-	case GI_TYPE_TAG_GSLIST: {
-		(InstOut++)->Opcode = GIB_SLIST;
-		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
-		break;
-	}
-	case GI_TYPE_TAG_GHASH: {
-		(InstOut++)->Opcode = GIB_HASH;
-		GITypeInfo *ElementInfo = g_type_info_get_param_type(Return, 0);
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
-		break;
-	}
-	default: // TODO: handle this.
-	}
-	g_base_info_unref(Return);
-	for (int I = 0; I < NumArgs; ++I) {
-		if (Args[I].SkipIn) {
-			(InstIn++)->Opcode = GIB_SKIP;
-		} else switch (g_type_info_get_tag(Args[I].Type)) {
-		case GI_TYPE_TAG_VOID:
-			(InstIn++)->Opcode = GIB_SKIP;
-			break;
-		BASIC_CASES(InstIn)
-		case GI_TYPE_TAG_ARRAY: {
-			int Length = g_type_info_get_array_length(Args[I].Type);
-			int Fixed = g_type_info_get_array_fixed_size(Args[I].Type);
-			//g_type_info_is_zero_terminated(Args[I].Type);
-			if (Length >= 0) {
-				(InstIn++)->Opcode = GIB_ARRAY_LENGTH;
-				(InstIn++)->Aux = Length;
-			} else if (Fixed >= 0) {
-				(InstIn++)->Opcode = GIB_ARRAY_FIXED;
-				(InstIn++)->Aux = Args[I].Aux;
-				Callback->Aux[Args[I].Aux] = (void *)0 + Fixed;
-			} else if (g_type_info_is_zero_terminated(Args[I].Type)) {
-				(InstIn++)->Opcode = GIB_ARRAY_ZERO;
-			} else {
-				(InstIn++)->Opcode = GIB_ARRAY;
-			}
-			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-			switch (g_type_info_get_tag(ElementInfo)) {
-			BASIC_CASES(InstIn)
-			default: // TODO: handle this.
-			}
-			g_base_info_unref(ElementInfo);
-			break;
-		}
-		case GI_TYPE_TAG_INTERFACE: {
-			GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
-			if (g_base_info_equal(InterfaceInfo, GValueInfo)) {
-				(InstIn++)->Opcode = GIB_VALUE;
-				(InstIn++)->Aux = Args[I].Aux;
-			} else {
-				switch (g_base_info_get_type(InterfaceInfo)) {
-				case GI_INFO_TYPE_CALLBACK: {
-					(InstIn++)->Opcode = GIB_CALLBACK;
-					(InstIn++)->Aux = Args[I].Aux;
-					Callback->Aux[Args[I].Aux] = callback_info_lookup((GICallbackInfo *)InterfaceInfo);
-					break;
-				}
-				case GI_INFO_TYPE_STRUCT: {
-					(InstIn++)->Opcode = GIB_STRUCT;
-					(InstIn++)->Aux = Args[I].Aux;
-					Callback->Aux[Args[I].Aux] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
-					break;
-				}
-				case GI_INFO_TYPE_ENUM:
-				case GI_INFO_TYPE_FLAGS: {
-					(InstIn++)->Opcode = GIB_ENUM;
-					(InstIn++)->Aux = Args[I].Aux;
-					Callback->Aux[Args[I].Aux] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
-					break;
-				}
-				case GI_INFO_TYPE_OBJECT: {
-					(InstIn++)->Opcode = GIB_OBJECT;
-					(InstIn++)->Aux = Args[I].Aux;
-					Callback->Aux[Args[I].Aux] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
-					break;
-				}
-				case GI_INFO_TYPE_INTERFACE: {
-					(InstIn++)->Opcode = GIB_OBJECT;
-					(InstIn++)->Aux = Args[I].Aux;
-					Callback->Aux[Args[I].Aux] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
-					break;
-				}
-				default: {
-					// TODO: raise error or add support
-				}
-				}
-			}
-			g_base_info_unref(InterfaceInfo);
-			break;
-		}
-		case GI_TYPE_TAG_GLIST: {
-			(InstIn++)->Opcode = GIB_LIST;
-			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-			switch (g_type_info_get_tag(ElementInfo)) {
-			BASIC_CASES(InstIn)
-			default: // TODO: handle this.
-			}
-			g_base_info_unref(ElementInfo);
-			break;
-		}
-		case GI_TYPE_TAG_GSLIST: {
-			(InstIn++)->Opcode = GIB_SLIST;
-			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-			switch (g_type_info_get_tag(ElementInfo)) {
-			BASIC_CASES(InstIn)
-			default: // TODO: handle this.
-			}
-			g_base_info_unref(ElementInfo);
-			break;
-		}
-		case GI_TYPE_TAG_GHASH: {
-			(InstIn++)->Opcode = GIB_HASH;
-			GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-			switch (g_type_info_get_tag(ElementInfo)) {
-			BASIC_CASES(InstIn)
-			default: // TODO: handle this.
-			}
-			g_base_info_unref(ElementInfo);
-			break;
-		}
-		default:
-		}
-	}
-	InstIn->Opcode = InstOut->Opcode = GIB_DONE;
-	return (ml_type_t *)Callback;
 }
 
 static const char *GIBInstNames[] = {
@@ -1659,14 +1898,29 @@ static const char *GIBInstNames[] = {
 	[GIB_SKIP] = "skip",
 	[GIB_OUTPUT_VALUE] = "output_value",
 	[GIB_OUTPUT_ARRAY] = "output_array",
-	[GIB_OUTPUT_ARRAY_LENGTH] = "output_array_length"
+	[GIB_OUTPUT_ARRAY_LENGTH] = "output_array_length",
+	[GIB_OUTPUT_STRUCT] = "output_struct"
 };
 
-static void callback_list(ml_stringbuffer_t *Buffer, callback_t *Callback) {
-	ml_stringbuffer_printf(Buffer, ", %s", Callback->Base.Name);
+static void type_list(ml_stringbuffer_t *Buffer, gi_inst_t **Inst, void **Aux) {
+	gi_opcode_t Opcode = ((*Inst)++)->Opcode;
+	ml_stringbuffer_printf(Buffer, ", %s", GIBInstNames[Opcode]);
+	switch (Opcode) {
+	case GIB_CALLBACK:
+	case GIB_STRUCT:
+	case GIB_ENUM:
+	case GIB_OBJECT: {
+		ml_type_t *Type = (ml_type_t *)Aux[((*Inst)++)->Aux];
+		ml_stringbuffer_printf(Buffer, "(%s)", Type->Name);
+		break;
+	}
+	}
+}
+
+static void callback_list(ml_stringbuffer_t *Buffer, callback_t *Callback, const char *Indent) {
 	for (gi_inst_t *Inst = Callback->InstIn; Inst->Opcode != GIB_DONE;) {
 		gi_opcode_t Opcode = (Inst++)->Opcode;
-		ml_stringbuffer_printf(Buffer, "\t\tin %s", GIBInstNames[Opcode]);
+		ml_stringbuffer_printf(Buffer, "%s\tin %s", Indent, GIBInstNames[Opcode]);
 		switch (Opcode) {
 		case GIB_ARRAY_LENGTH:
 		case GIB_VALUE:
@@ -1678,23 +1932,27 @@ static void callback_list(ml_stringbuffer_t *Buffer, callback_t *Callback) {
 		case GIB_ARRAY:
 		case GIB_LIST:
 		case GIB_SLIST:
-			ml_stringbuffer_printf(Buffer, ", %s", GIBInstNames[(Inst++)->Opcode]);
+			type_list(Buffer, &Inst, Callback->Aux);
+			break;
+		case GIB_HASH:
+			type_list(Buffer, &Inst, Callback->Aux);
+			type_list(Buffer, &Inst, Callback->Aux);
 			break;
 		case GIB_CALLBACK:
 		case GIB_STRUCT:
 		case GIB_ENUM:
 		case GIB_OBJECT: {
 			ml_type_t *Type = (ml_type_t *)Callback->Aux[(Inst++)->Aux];
-			ml_stringbuffer_printf(Buffer, ", %s", Type->Name);
+			ml_stringbuffer_printf(Buffer, "(%s)", Type->Name);
 			break;
 		}
 		}
 		ml_stringbuffer_write(Buffer, "\n", strlen("\n"));
 	}
-	ml_stringbuffer_printf(Buffer, "\t\tcall(%d)\n", Callback->Provided);
+	ml_stringbuffer_printf(Buffer, "%s\tcall(%d)\n", Indent, Callback->Provided);
 	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) {
 		gi_opcode_t Opcode = (Inst++)->Opcode;
-		ml_stringbuffer_printf(Buffer, "\t\tout %s", GIBInstNames[Opcode]);
+		ml_stringbuffer_printf(Buffer, "%s\tout %s", Indent, GIBInstNames[Opcode]);
 		switch (Opcode) {
 		case GIB_ARRAY_LENGTH:
 		case GIB_VALUE:
@@ -1705,14 +1963,18 @@ static void callback_list(ml_stringbuffer_t *Buffer, callback_t *Callback) {
 		case GIB_ARRAY:
 		case GIB_LIST:
 		case GIB_SLIST:
-			ml_stringbuffer_printf(Buffer, ", %s", GIBInstNames[(Inst++)->Opcode]);
+			type_list(Buffer, &Inst, Callback->Aux);
+			break;
+		case GIB_HASH:
+			type_list(Buffer, &Inst, Callback->Aux);
+			type_list(Buffer, &Inst, Callback->Aux);
 			break;
 		case GIB_CALLBACK:
 		case GIB_STRUCT:
 		case GIB_ENUM:
 		case GIB_OBJECT: {
 			ml_type_t *Type = (ml_type_t *)Callback->Aux[(Inst++)->Aux];
-			ml_stringbuffer_printf(Buffer, ", %s", Type->Name);
+			ml_stringbuffer_printf(Buffer, "(%s)", Type->Name);
 			break;
 		}
 		}
@@ -1720,9 +1982,18 @@ static void callback_list(ml_stringbuffer_t *Buffer, callback_t *Callback) {
 	}
 }
 
+ML_METHOD("list", GirCallbackT) {
+	callback_t *Callback = (callback_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	callback_list(Buffer, Callback, "");
+	return ml_stringbuffer_to_string(Buffer);
+}
+
 ML_METHOD("list", GirFunctionT) {
 	gir_function_t *Function = (gir_function_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "\tinputs = %d\n", Function->NumInputs);
+	ml_stringbuffer_printf(Buffer, "\toutputs = %d\n", Function->NumResults);
 	for (gi_inst_t *Inst = Function->InstIn; Inst->Opcode != GIB_DONE;) {
 		gi_opcode_t Opcode = (Inst++)->Opcode;
 		ml_stringbuffer_printf(Buffer, "\tin %s", GIBInstNames[Opcode]);
@@ -1737,18 +2008,24 @@ ML_METHOD("list", GirFunctionT) {
 		case GIB_ARRAY:
 		case GIB_LIST:
 		case GIB_SLIST:
-			ml_stringbuffer_printf(Buffer, ", %s", GIBInstNames[(Inst++)->Opcode]);
+			type_list(Buffer, &Inst, Function->Aux);
+			break;
+		case GIB_HASH:
+			type_list(Buffer, &Inst, Function->Aux);
+			type_list(Buffer, &Inst, Function->Aux);
 			break;
 		case GIB_CALLBACK: {
 			callback_t *Callback = (ml_callback_t *)Function->Aux[(Inst++)->Aux];
-			callback_list(Buffer, Callback);
-			break;
+			ml_stringbuffer_printf(Buffer, "(%s)\n", Callback->Base.Name);
+			callback_list(Buffer, Callback, "\t");
+			continue;
 		}
 		case GIB_STRUCT:
 		case GIB_ENUM:
-		case GIB_OBJECT: {
+		case GIB_OBJECT:
+		case GIB_OUTPUT_STRUCT: {
 			ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
-			ml_stringbuffer_printf(Buffer, ", %s", Type->Name);
+			ml_stringbuffer_printf(Buffer, "(%s)", Type->Name);
 			break;
 		}
 		}
@@ -1769,14 +2046,18 @@ ML_METHOD("list", GirFunctionT) {
 		case GIB_ARRAY:
 		case GIB_LIST:
 		case GIB_SLIST:
-			ml_stringbuffer_printf(Buffer, ", %s", GIBInstNames[(Inst++)->Opcode]);
+			type_list(Buffer, &Inst, Function->Aux);
+			break;
+		case GIB_HASH:
+			type_list(Buffer, &Inst, Function->Aux);
+			type_list(Buffer, &Inst, Function->Aux);
 			break;
 		case GIB_CALLBACK:
 		case GIB_STRUCT:
 		case GIB_ENUM:
 		case GIB_OBJECT: {
 			ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
-			ml_stringbuffer_printf(Buffer, ", %s", Type->Name);
+			ml_stringbuffer_printf(Buffer, "(%s)", Type->Name);
 			break;
 		}
 		}

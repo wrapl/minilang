@@ -188,6 +188,9 @@ with Output := file("src/ml_ast_types.c", "w") do
 				Output:write('ML_FIELD(\"{FieldName:lower}\", Ast{Name});\n\n')
 			end
 		end
+		if Type = "mlc_expr_t" then
+			Output:write('ML_FIELD(\"data\", AstExprT);\n\n')
+		end
 	end
 	Output:write("\n")
 	Output:write("static void ml_ast_types_init() {\n")
@@ -295,6 +298,7 @@ with Output := file("src/ml_ast_types.c", "w") do
 		end
 	end
 	Output:write("\t}\n")
+	Output:write("\t__builtin_unreachable();\n")
 	Output:write("}\n\n")
 	Output:close
 end

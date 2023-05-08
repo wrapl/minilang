@@ -1194,7 +1194,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
-#ifndef ML_RELAX_NAMES
+#ifdef ML_RELAX_NAMES
+						++I;
+#else
 						ML_ERROR("NameError", "Unknown named parameters %s", Name);
 #endif
 					}
@@ -1432,6 +1434,10 @@ static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) 
 	for (int I = 0; I < Info->NumUpValues; ++I) {
 		if (!ml_value_is_constant(Closure->UpValues[I])) return 0;
 	}
+	return 1;
+}
+
+static int ML_TYPED_FN(ml_method_is_safe, MLClosureT, ml_closure_t *Closure) {
 	return 1;
 }
 

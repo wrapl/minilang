@@ -78,20 +78,16 @@ tasks
 
 
 :mini:`meth tasks(Main: function): tasks`
-   Creates a new :mini:`tasks` set.
-   If specified,  at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).
-   If specified,  at most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
+   Creates a new :mini:`tasks` set with no limits.
 
 
 :mini:`meth tasks(MaxRunning: integer, Main: function): tasks`
-   Creates a new :mini:`tasks` set.
-   If specified,  at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).
-   If specified,  at most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
+   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel.
 
 
 :mini:`meth tasks(MaxRunning: integer, MaxPending: integer, Main: function): tasks`
-   Creates a new :mini:`tasks` set.
-   If specified,  at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).
-   If specified,  at most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
+   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel.
+   
+   At most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
 
 

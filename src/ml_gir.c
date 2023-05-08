@@ -1845,7 +1845,7 @@ static void method_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, m
 
 static ml_value_t *function_info_compile(GIFunctionInfo *Info);
 
-static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Object) {
+static void method_register(const char *Name, GIFunctionInfo *Info, ml_type_t *Object) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
 	int NArgsIn = 0;
 	for (int I = 0; I < NArgs; ++I) {
@@ -1877,7 +1877,7 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 	}
 	++NArgsIn;
 	ml_type_t *Types[NArgsIn];
-	Types[0] = (ml_type_t *)Object;
+	Types[0] = Object;
 	for (int I = 1; I < NArgsIn; ++I) Types[I] = MLAnyT;
 #ifdef ML_GIR_BYTECODE
 	ml_method_define(ml_method(Name), function_info_compile(Info), NArgsIn, 0, Types);
@@ -1903,7 +1903,7 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			method_register(MethodName, MethodInfo, Object);
+			method_register(MethodName, MethodInfo, (ml_type_t *)Object);
 		} else {
 #ifdef ML_GIR_BYTECODE
 			stringmap_insert(Object->Base.Exports, MethodName, function_info_compile(MethodInfo));
@@ -1945,7 +1945,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			method_register(MethodName, MethodInfo, Object);
+			method_register(MethodName, MethodInfo, (ml_type_t *)Object);
 		} else {
 #ifdef ML_GIR_BYTECODE
 			stringmap_insert(Object->Base.Exports, MethodName, function_info_compile(MethodInfo));
@@ -1953,7 +1953,6 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 #endif
 		}
-		g_base_info_unref(MethodInfo);
 	}
 }
 
@@ -1999,9 +1998,11 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base.assign = ml_default_assign;
 		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Object;
 		object_add_methods(Object, Info);
+		g_base_info_ref(Info);
 	}
 	return Slot[0];
 }
@@ -2019,6 +2020,7 @@ static ml_type_t *interface_info_lookup(GIInterfaceInfo *Info) {
 		Object->Base.assign = ml_default_assign;
 		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Object;
 		interface_add_methods(Object, Info);
@@ -2039,6 +2041,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base.assign = ml_default_assign;
 		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance);
 		Struct->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Struct, GirStructInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
@@ -2053,11 +2056,18 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 			if (Flags & GI_FUNCTION_IS_METHOD) {
+#ifdef ML_GIR_BYTECODE
+				method_register(MethodName, MethodInfo, (ml_type_t *)Struct);
+#else
 				ml_methodx_by_name(MethodName, MethodInfo, (ml_callbackx_t)method_invoke, Struct, NULL);
+#endif
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+#ifdef ML_GIR_BYTECODE
+				stringmap_insert(Struct->Base.Exports, MethodName, function_info_compile(MethodInfo));
+#else
 				stringmap_insert(Struct->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
+#endif
 			}
-			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -2076,6 +2086,7 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 		Union->Base.assign = ml_default_assign;
 		Union->Base.Constructor = ml_cfunction(Union, (void *)union_instance);
 		Union->Info = Info;
+		g_base_info_ref(Info);
 		ml_type_init((ml_type_t *)Union, GirUnionInstanceT, NULL);
 		Slot[0] = (ml_type_t *)Union;
 		int NumFields = g_union_info_get_n_fields(Info);
@@ -2090,11 +2101,18 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 			if (Flags & GI_FUNCTION_IS_METHOD) {
+#ifdef ML_GIR_BYTECODE
+				method_register(MethodName, MethodInfo, (ml_type_t *)Union);
+#else
 				ml_methodx_by_name(MethodName, MethodInfo, (ml_callbackx_t)method_invoke, Union, NULL);
+#endif
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+#ifdef ML_GIR_BYTECODE
+				method_register(MethodName, MethodInfo, (ml_type_t *)Union);
+#else
 				stringmap_insert(Union->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
+#endif
 			}
-			g_base_info_unref(MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -2149,6 +2167,8 @@ static ml_value_t *constant_info_lookup(GIConstantInfo *Info) {
 	return Slot[0];
 }
 
+static ml_type_t *callback_info_lookup(GICallbackInfo *Info);
+
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 	switch (g_base_info_get_type(Info)) {
 	case GI_INFO_TYPE_INVALID:
@@ -2163,7 +2183,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 #endif
 	}
 	case GI_INFO_TYPE_CALLBACK: {
-		break;
+		return (ml_value_t *)callback_info_lookup((GICallbackInfo *)Info);
 	}
 	case GI_INFO_TYPE_STRUCT: {
 		return (ml_value_t *)struct_info_lookup((GIStructInfo *)Info);
@@ -2510,6 +2530,24 @@ ML_METHOD("::", GirObjectInstanceT, MLStringT) {
 	Property->Name = ml_string_value(Args[1]);
 	return (ml_value_t *)Property;
 }
+
+ML_INTERFACE(GirInstanceT, (), "instance");
+
+typedef struct {
+	ml_type_t Base;
+} ml_gir_type_t;
+
+static void instance_constructor_fn(ml_state_t *Caller, ml_gir_type_t *Class, int Count, ml_value_t **Args) {
+
+}
+
+ML_FUNCTION(GirType) {
+
+}
+
+ML_TYPE(GirTypeT, (MLTypeT), "type",
+	.Constructor = (ml_value_t *)GirType
+);
 
 #ifdef ML_SCHEDULER
 
