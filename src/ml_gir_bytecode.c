@@ -548,6 +548,10 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 		} else {
 			Provided++;
 			switch (g_type_info_get_tag(Args[I].Type)) {
+			case GI_TYPE_TAG_VOID:
+				Provided--;
+				Args[I].SkipIn = 1;
+				break;
 			case GI_TYPE_TAG_ARRAY: {
 				int Length = g_type_info_get_array_length(Args[I].Type);
 				int Fixed = g_type_info_get_array_fixed_size(Args[I].Type);
