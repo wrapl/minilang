@@ -622,6 +622,39 @@ ML_METHOD("append", MLStringBufferT, MLErrorValueT) {
 	return Args[0];
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLErrorValueT, ml_error_value_t *Value) {
+	ml_value_t *Serialized = ml_list();
+	ml_list_put(Serialized, ml_cstring("error"));
+	ml_list_put(Serialized, ml_string(Value->Error, -1));
+	ml_list_put(Serialized, ml_string(Value->Message, -1));
+	ml_source_t *Source = Value->Trace;
+	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
+		ml_list_put(Serialized, ml_string(Source->Name, -1));
+		ml_list_put(Serialized, ml_integer(Source->Line));
+	}
+	return Serialized;
+}
+
+ML_DESERIALIZER("error") {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	ml_error_value_t *Value = new(ml_error_value_t);
+	Value->Type = MLErrorValueT;
+	Value->Error = ml_string_value(Args[0]);
+	Value->Message = ml_string_value(Args[1]);
+	ml_source_t *Source = Value->Trace;
+	if (Count > (2 + MAX_TRACE * 2)) Count = 2 + MAX_TRACE + 2;
+	for (int I = 2; I < Count; I += 2, ++Source) {
+		ML_CHECK_ARG_TYPE(I, MLStringT);
+		ML_CHECK_ARG_TYPE(I + 1, MLIntegerT);
+		Source->Name = ml_string_value(Args[I]);
+		Source->Line = ml_integer_value(Args[I + 1]);
+	}
+	Value->Value = MLNil;
+	return (ml_value_t *)Value;
+}
+
 // Debugging //
 
 int ml_debugger_check(ml_state_t *State) {

@@ -49,7 +49,7 @@ Provides time and date operations.
    .. code-block:: mini
 
       time("2023-02-09T21:19:33.196413266")
-      :> 2023-02-09T20:19:33.196413266
+      :> 2023-02-09T20:19:33.196413
 
 
 :mini:`meth time(String: string, Format: string): time`
@@ -61,7 +61,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2023-05-07T00:55:59.815965932
+      time() :> 2023-05-11T06:31:12.308737
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
@@ -275,5 +275,13 @@ Provides time and date operations.
 
 :mini:`type time::zoned`
    *TBD*
+
+
+:mini:`meth (Buffer: string::buffer):append(Time: time::zoned): string`
+   Formats :mini:`Time` as a time.
+
+
+:mini:`meth (Buffer: string::buffer):append(Time: time::zoned, Format: string): string`
+   Formats :mini:`Time` as a time according to the specified format.
 
 

@@ -1054,13 +1054,6 @@ ML_METHODX("find", MLSequenceT, MLAnyT) {
 
 /****************************** Random ******************************/
 
-ML_METHODVX("random", MLTypeT) {
-	ml_type_t *Type = (ml_type_t *)Args[0];
-	ml_value_t *Random = stringmap_search(Type->Exports, "random");
-	if (!Random) ML_ERROR("TypeError", "Type %s does not export random", Type->Name);
-	return ml_call(Caller, Random, Count - 1, Args + 1);
-}
-
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Value;
@@ -1089,6 +1082,24 @@ static void random_iterate(ml_random_state_t *State, ml_value_t *Value) {
 		return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 	} else {
 		return ml_iter_next((ml_state_t *)State, Value);
+	}
+}
+
+ML_METHODVX("random", MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Random = stringmap_search(Type->Exports, "random");
+	if (Random) {
+		return ml_call(Caller, Random, Count - 1, Args + 1);
+	} else  if (ml_is(Args[0], MLSequenceT)) {
+		ml_random_state_t *State = new(ml_random_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)random_iterate;
+		State->Index = 0;
+		State->Value = MLNil;
+		return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+	} else {
+		ML_ERROR("TypeError", "Type %s does not export random", Type->Name);
 	}
 }
 
@@ -1952,7 +1963,7 @@ typedef struct {
 	int Remaining;
 } ml_provided_t;
 
-ML_TYPE(MLProvidedT, (MLSequenceT), "until");
+ML_TYPE(MLProvidedT, (MLSequenceT), "provided");
 //!internal
 
 typedef struct {
@@ -1961,7 +1972,7 @@ typedef struct {
 	ml_value_t *Args[1];
 } ml_provided_state_t;
 
-ML_TYPE(MLProvidedStateT, (MLStateT), "until-state");
+ML_TYPE(MLProvidedStateT, (MLStateT), "provided-state");
 //!internal
 
 static void provided_check(ml_provided_state_t *State, ml_value_t *Value);
@@ -2017,6 +2028,20 @@ ML_METHOD("provided", MLSequenceT, MLFunctionT) {
 // Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
 //$= list("banana")
 //$= list("banana" provided (_ != "n"))
+	ml_provided_t *Provided = new(ml_provided_t);
+	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
+	Provided->Value = Args[0];
+	Provided->Fn = Args[1];
+	return (ml_value_t *)Provided;
+}
+
+ML_METHOD("->|", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
+//$= list("banana")
+//$= list("banana" ->| (_ != "n"))
 	ml_provided_t *Provided = new(ml_provided_t);
 	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
 	Provided->Value = Args[0];

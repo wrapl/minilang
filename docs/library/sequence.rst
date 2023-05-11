@@ -416,6 +416,15 @@ sequence
       list(1 .. 10 ->? (2 | _)) :> [2, 4, 6, 8, 10]
 
 
+:mini:`meth (Sequence: sequence) ->| (Fn: function): sequence`
+   Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
+
+   .. code-block:: mini
+
+      list("banana") :> ["b", "a", "n", "a", "n", "a"]
+      list("banana" ->| (_ != "n")) :> ["b", "a"]
+
+
 :mini:`meth (Sequence: sequence) // (Initial: any, Fn: function): sequence`
    Returns an sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
 
