@@ -304,9 +304,9 @@ ML_METHOD("append", MLStringBufferT, MLTimeT) {
 	localtime_r(&Time->Value->tv_sec, &TM);
 	char Temp[60];
 	size_t Length;
-	unsigned long NSec = Time->Value->tv_nsec;
+	unsigned long NSec = Time->Value->tv_nsec / 1000;
 	if (NSec) {
-		int Width = 9;
+		int Width = 6;
 		while (NSec % 10 == 0) {
 			--Width;
 			NSec /= 10;
@@ -332,9 +332,9 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLNilT) {
 	gmtime_r(&Time->Value->tv_sec, &TM);
 	char Temp[60];
 	size_t Length;
-	unsigned long NSec = Time->Value->tv_nsec;
+	unsigned long NSec = Time->Value->tv_nsec / 1000;
 	if (NSec) {
-		int Width = 9;
+		int Width = 6;
 		while (NSec % 10 == 0) {
 			--Width;
 			NSec /= 10;
@@ -782,7 +782,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLTimeZoneT) {
 	timelib_unixtime2local(&TL, Time->Value->tv_sec);
 	struct tm TM = {0,};
 	TM.tm_year = TL.y - 1900;
-	TM.tm_mon = TL.m;
+	TM.tm_mon = TL.m - 1;
 	TM.tm_mday = TL.d;
 	TM.tm_hour = TL.h;
 	TM.tm_min = TL.i;
@@ -791,9 +791,9 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLTimeZoneT) {
 	TM.tm_wday = timelib_day_of_week(TL.y, TL.m, TL.d);
 	char Temp[60];
 	size_t Length;
-	unsigned long NSec = Time->Value->tv_nsec;
+	unsigned long NSec = Time->Value->tv_nsec / 1000;
 	if (NSec) {
-		int Width = 9;
+		int Width = 6;
 		while (NSec % 10 == 0) {
 			--Width;
 			NSec /= 10;
@@ -823,7 +823,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLTimeZoneT) {
 	timelib_unixtime2local(&TL, Time->Value->tv_sec);
 	struct tm TM = {0,};
 	TM.tm_year = TL.y - 1900;
-	TM.tm_mon = TL.m;
+	TM.tm_mon = TL.m - 1;
 	TM.tm_mday = TL.d;
 	TM.tm_hour = TL.h;
 	TM.tm_min = TL.i;
@@ -856,6 +856,64 @@ ML_METHOD("@", MLTimeT, MLTimeZoneT) {
 	timelib_unixtime2local(Zoned->Value, Time->Value->tv_sec);
 	Zoned->Value->us = Time->Value->tv_nsec / 1000;
 	return (ml_value_t *)Zoned;
+}
+
+ML_METHOD("append", MLStringBufferT, MLTimeZonedT) {
+//<Buffer
+//<Time
+//>string
+// Formats :mini:`Time` as a time.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_zoned_t *Zoned = (ml_time_zoned_t *)Args[1];
+	struct tm TM = {0,};
+	TM.tm_year = Zoned->Value->y - 1900;
+	TM.tm_mon = Zoned->Value->m - 1;
+	TM.tm_mday = Zoned->Value->d;
+	TM.tm_hour = Zoned->Value->h;
+	TM.tm_min = Zoned->Value->i;
+	TM.tm_sec = Zoned->Value->s;
+	TM.tm_yday = timelib_day_of_year(Zoned->Value->y, Zoned->Value->m, Zoned->Value->d);
+	TM.tm_wday = timelib_day_of_week(Zoned->Value->y, Zoned->Value->m, Zoned->Value->d);
+	char Temp[60];
+	size_t Length;
+	unsigned long NSec = Zoned->Value->us;
+	if (NSec) {
+		int Width = 6;
+		while (NSec % 10 == 0) {
+			--Width;
+			NSec /= 10;
+		}
+		Length = strftime(Temp, 40, "%FT%T", &TM);
+		Length += sprintf(Temp + Length, ".%0*lu", Width, NSec);
+	} else {
+		Length = strftime(Temp, 60, "%FT%T", &TM);
+	}
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLTimeZonedT, MLStringT) {
+//<Buffer
+//<Time
+//<Format
+//>string
+// Formats :mini:`Time` as a time according to the specified format.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_zoned_t *Zoned = (ml_time_zoned_t *)Args[1];
+	const char *Format = ml_string_value(Args[2]);
+	struct tm TM = {0,};
+	TM.tm_year = Zoned->Value->y - 1900;
+	TM.tm_mon = Zoned->Value->m - 1;
+	TM.tm_mday = Zoned->Value->d;
+	TM.tm_hour = Zoned->Value->h;
+	TM.tm_min = Zoned->Value->i;
+	TM.tm_sec = Zoned->Value->s;
+	TM.tm_yday = timelib_day_of_year(Zoned->Value->y, Zoned->Value->m, Zoned->Value->d);
+	TM.tm_wday = timelib_day_of_week(Zoned->Value->y, Zoned->Value->m, Zoned->Value->d);
+	char Temp[120];
+	size_t Length = strftime(Temp, 120, Format, &TM);
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
 }
 
 #endif

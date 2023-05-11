@@ -1952,7 +1952,7 @@ typedef struct {
 	int Remaining;
 } ml_provided_t;
 
-ML_TYPE(MLProvidedT, (MLSequenceT), "until");
+ML_TYPE(MLProvidedT, (MLSequenceT), "provided");
 //!internal
 
 typedef struct {
@@ -1961,7 +1961,7 @@ typedef struct {
 	ml_value_t *Args[1];
 } ml_provided_state_t;
 
-ML_TYPE(MLProvidedStateT, (MLStateT), "until-state");
+ML_TYPE(MLProvidedStateT, (MLStateT), "provided-state");
 //!internal
 
 static void provided_check(ml_provided_state_t *State, ml_value_t *Value);
@@ -2017,6 +2017,20 @@ ML_METHOD("provided", MLSequenceT, MLFunctionT) {
 // Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
 //$= list("banana")
 //$= list("banana" provided (_ != "n"))
+	ml_provided_t *Provided = new(ml_provided_t);
+	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
+	Provided->Value = Args[0];
+	Provided->Fn = Args[1];
+	return (ml_value_t *)Provided;
+}
+
+ML_METHOD("->|", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
+//$= list("banana")
+//$= list("banana" ->| (_ != "n"))
 	ml_provided_t *Provided = new(ml_provided_t);
 	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
 	Provided->Value = Args[0];
