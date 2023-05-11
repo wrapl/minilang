@@ -1054,13 +1054,6 @@ ML_METHODX("find", MLSequenceT, MLAnyT) {
 
 /****************************** Random ******************************/
 
-ML_METHODVX("random", MLTypeT) {
-	ml_type_t *Type = (ml_type_t *)Args[0];
-	ml_value_t *Random = stringmap_search(Type->Exports, "random");
-	if (!Random) ML_ERROR("TypeError", "Type %s does not export random", Type->Name);
-	return ml_call(Caller, Random, Count - 1, Args + 1);
-}
-
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Value;
@@ -1089,6 +1082,24 @@ static void random_iterate(ml_random_state_t *State, ml_value_t *Value) {
 		return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 	} else {
 		return ml_iter_next((ml_state_t *)State, Value);
+	}
+}
+
+ML_METHODVX("random", MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Random = stringmap_search(Type->Exports, "random");
+	if (Random) {
+		return ml_call(Caller, Random, Count - 1, Args + 1);
+	} else  if (ml_is(Args[0], MLSequenceT)) {
+		ml_random_state_t *State = new(ml_random_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)random_iterate;
+		State->Index = 0;
+		State->Value = MLNil;
+		return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+	} else {
+		ML_ERROR("TypeError", "Type %s does not export random", Type->Name);
 	}
 }
 
