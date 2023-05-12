@@ -1276,7 +1276,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 		return 3;
 	}
 	}
-	__builtin_unreachable();
+	return 0;
 }
 
 void ml_closure_info_labels(ml_closure_info_t *Info) {
@@ -1350,7 +1350,7 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	case MLIT_SWITCH:
 		return 3;
 	}
-	__builtin_unreachable();
+	return 0;
 }
 
 static void ml_closure_info_hash(ml_closure_info_t *Info) {
