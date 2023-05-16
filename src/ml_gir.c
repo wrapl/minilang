@@ -2183,7 +2183,9 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 #endif
 	}
 	case GI_INFO_TYPE_CALLBACK: {
+#ifdef ML_GIR_BYTECODE
 		return (ml_value_t *)callback_info_lookup((GICallbackInfo *)Info);
+#endif
 	}
 	case GI_INFO_TYPE_STRUCT: {
 		return (ml_value_t *)struct_info_lookup((GIStructInfo *)Info);
