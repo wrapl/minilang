@@ -3,7 +3,6 @@
 #include "ml_stream.h"
 #include <yajl/yajl_common.h>
 #include <yajl/yajl_parse.h>
-#include <yajl/yajl_gen.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "json"
@@ -250,33 +249,83 @@ static void ML_TYPED_FN(ml_stream_flush, MLJsonDecoderT, ml_state_t *Caller, ml_
 	ML_RETURN(Decoder);
 }
 
-static ml_value_t *ml_json_encode(yajl_gen Handle, ml_value_t *Value) {
+static void ml_json_encode_string(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	ml_stringbuffer_write(Buffer, "\"", 1);
+	const unsigned char *String = (const unsigned char *)ml_string_value(Value);
+	const unsigned char *End = String + ml_string_length(Value);
+	while (String < End) {
+		unsigned char Char = *String++;
+		switch (Char) {
+		case '\r': ml_stringbuffer_write(Buffer, "\\r", 2); break;
+		case '\n': ml_stringbuffer_write(Buffer, "\\n", 2); break;
+		case '\\': ml_stringbuffer_write(Buffer, "\\\\", 2); break;
+		case '\"': ml_stringbuffer_write(Buffer, "\\\"", 2); break;
+		case '\f': ml_stringbuffer_write(Buffer, "\\f", 2); break;
+		case '\b': ml_stringbuffer_write(Buffer, "\\b", 2); break;
+		case '\t': ml_stringbuffer_write(Buffer, "\\t", 2); break;
+		default:
+			if (Char < 32) {
+				ml_stringbuffer_printf(Buffer, "\\u%02x", Char);
+			} else {
+				ml_stringbuffer_put(Buffer, Char);
+			}
+			break;
+		}
+	}
+	ml_stringbuffer_write(Buffer, "\"", 1);
+}
+
+static ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	if (Value == MLNil) {
-		yajl_gen_null(Handle);
+		ml_stringbuffer_write(Buffer, "null", 4);
 	} else if (ml_is(Value, MLBooleanT)) {
-		yajl_gen_bool(Handle, ml_boolean_value(Value));
+		if (ml_boolean_value(Value)) {
+			ml_stringbuffer_write(Buffer, "true", 4);
+		} else {
+			ml_stringbuffer_write(Buffer, "false", 5);
+		}
 	} else if (ml_is(Value, MLIntegerT)) {
-		yajl_gen_integer(Handle, ml_integer_value(Value));
+		ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Value));
 	} else if (ml_is(Value, MLDoubleT)) {
-		yajl_gen_double(Handle, ml_real_value(Value));
+		ml_stringbuffer_printf(Buffer, "%.20g", ml_real_value(Value));
 	} else if (ml_is(Value, MLStringT)) {
-		yajl_gen_string(Handle, (const unsigned char *)ml_string_value(Value), ml_string_length(Value));
+		ml_json_encode_string(Buffer, Value);
 	} else if (ml_is(Value, MLListT)) {
-		yajl_gen_array_open(Handle);
-		ML_LIST_FOREACH(Value, Iter) {
-			ml_value_t *Error = ml_json_encode(Handle, Iter->Value);
+		ml_list_node_t *Node = ((ml_list_t *)Value)->Head;
+		if (Node) {
+			ml_stringbuffer_write(Buffer, "[", 1);
+			ml_value_t *Error = ml_json_encode(Buffer, Node->Value);
 			if (Error) return Error;
+			while ((Node = Node->Next)) {
+				ml_stringbuffer_write(Buffer, ",", 1);
+				ml_value_t *Error = ml_json_encode(Buffer, Node->Value);
+				if (Error) return Error;
+			}
+			ml_stringbuffer_write(Buffer, "]", 1);
+		} else {
+			ml_stringbuffer_write(Buffer, "[]", 2);
 		}
-		yajl_gen_array_close(Handle);
 	} else if (ml_is(Value, MLMapT)) {
-		yajl_gen_map_open(Handle);
-		ML_MAP_FOREACH(Value, Iter) {
-			if (!ml_is(Iter->Key, MLStringT)) return ml_error("JSONError", "Invalid map key: expected string not %s", ml_typeof(Iter->Key)->Name);
-			yajl_gen_string(Handle, (const unsigned char *)ml_string_value(Iter->Key), ml_string_length(Iter->Key));
-			ml_value_t *Error = ml_json_encode(Handle, Iter->Value);
+		ml_map_node_t *Node = ((ml_map_t *)Value)->Head;
+		if (Node) {
+			ml_stringbuffer_write(Buffer, "{", 1);
+			if (!ml_is(Node->Key, MLStringT)) return ml_error("JSONError", "JSON keys must be strings");
+			ml_json_encode_string(Buffer, Node->Key);
+			ml_stringbuffer_write(Buffer, ":", 1);
+			ml_value_t *Error = ml_json_encode(Buffer, Node->Value);
 			if (Error) return Error;
+			while ((Node = Node->Next)) {
+				ml_stringbuffer_write(Buffer, ",", 1);
+				if (!ml_is(Node->Key, MLStringT)) return ml_error("JSONError", "JSON keys must be strings");
+				ml_json_encode_string(Buffer, Node->Key);
+				ml_stringbuffer_write(Buffer, ":", 1);
+				ml_value_t *Error = ml_json_encode(Buffer, Node->Value);
+				if (Error) return Error;
+			}
+			ml_stringbuffer_write(Buffer, "}", 1);
+		} else {
+			ml_stringbuffer_write(Buffer, "{}", 2);
 		}
-		yajl_gen_map_close(Handle);
 	} else {
 		return ml_error("JSONError", "Invalid type for JSON: %s", ml_typeof(Value)->Name);
 	}
@@ -289,10 +338,8 @@ ML_FUNCTION(JsonEncode) {
 //>string|error
 // Encodes :mini:`Value` into JSON, raising an error if :mini:`Value` cannot be represented as JSON.
 	ML_CHECK_ARG_COUNT(1);
-	yajl_gen Handle = yajl_gen_alloc(&AllocFuncs);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	yajl_gen_config(Handle, yajl_gen_print_callback, ml_stringbuffer_write, Buffer);
-	return ml_json_encode(Handle, Args[0]) ?: ml_stringbuffer_get_value(Buffer);
+	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_get_value(Buffer);
 }
 
 extern ml_type_t MLJsonT[];
@@ -303,10 +350,8 @@ ML_FUNCTION(MLJson) {
 //>json
 // Encodes :mini:`Value` into JSON.
 	ML_CHECK_ARG_COUNT(1);
-	yajl_gen Handle = yajl_gen_alloc(&AllocFuncs);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	yajl_gen_config(Handle, yajl_gen_print_callback, ml_stringbuffer_write, Buffer);
-	ml_value_t *Error = ml_json_encode(Handle, Args[0]);
+	ml_value_t *Error = ml_json_encode(Buffer, Args[0]);
 	if (Error) return Error;
 	ml_value_t *Json = ml_stringbuffer_to_string(Buffer);
 	Json->Type = MLJsonT;

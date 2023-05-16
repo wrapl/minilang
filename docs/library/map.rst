@@ -242,8 +242,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
-      M:random :> "a"
+      M:random :> "k"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -477,6 +477,30 @@ map
       M3 :> {3 is "k", 1 is "c", 4 is "e"}
 
 
+:mini:`meth (Map: map::mutable):push(Key: any, Value: any): map`
+   Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
+
+   .. code-block:: mini
+
+      let M := {"B" is 2, "C" is 3, "A" is 1}:order(map::order::Descending)
+      M:push("A", 10) :> {"A" is 10, "B" is 2, "C" is 3}
+      M:push("D", 20)
+      :> {"D" is 20, "A" is 10, "B" is 2, "C" is 3}
+      M :> {"D" is 20, "A" is 10, "B" is 2, "C" is 3}
+
+
+:mini:`meth (Map: map::mutable):put(Key: any, Value: any): map`
+   Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
+
+   .. code-block:: mini
+
+      let M := {"B" is 2, "C" is 3, "A" is 1}:order(map::order::Descending)
+      M:put("A", 10) :> {"B" is 2, "C" is 3, "A" is 10}
+      M:put("D", 20)
+      :> {"B" is 2, "C" is 3, "A" is 10, "D" is 20}
+      M :> {"B" is 2, "C" is 3, "A" is 10, "D" is 20}
+
+
 :mini:`meth (Map: map::mutable):reverse: map`
    Reverses the iteration order of :mini:`Map` in-place and returns it.
 
@@ -561,7 +585,7 @@ map
 :mini:`type map::order < enum`
    * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end,  no reordering on access.
    * :mini:`map::order::Ascending` |harr| inserted pairs are kept in ascending key order,  no reordering on access.
-   * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order,  no reordering on access.
+   * :mini:`map::order::Descending` |harr| inserted pairs are kept in descending key order,  no reordering on access.
    * :mini:`map::order::MRU` |harr| inserted pairs are put at start,  accessed pairs are moved to start.
    * :mini:`map::order::LRU` |harr| inserted pairs are put at end,  accessed pairs are moved to end.
 
