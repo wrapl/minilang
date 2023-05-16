@@ -400,7 +400,7 @@ if MINILANG_BACKTRACE then
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir / "include"}']
+	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir}']
 	LDFLAGS := old + [Lib, "-lunwind"]
 end
 
