@@ -492,10 +492,10 @@ ML_METHOD("[]", MLSetT, MLAnyT) {
 //<Value
 //>some|nil
 // Returns :mini:`Value` if it is in :mini:`Set`, otherwise returns :mini:`nil`..
-//$- let M := set(["A", "B", "C"])
-//$= M["A"]
-//$= M["D"]
-//$= M
+//$- let S := set(["A", "B", "C"])
+//$= S["A"]
+//$= S["D"]
+//$= S
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
 	if (!Node) return MLNil;
@@ -523,8 +523,8 @@ ML_METHOD("empty", MLSetMutableT) {
 //<Set
 //>set
 // Deletes all values from :mini:`Set` and returns it.
-//$= let M := set(["A", "B", "C"])
-//$= M:empty
+//$= let S := set(["A", "B", "C"])
+//$= S:empty
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	Set->Root = Set->Head = Set->Tail = NULL;
 	Set->Size = 0;
@@ -539,21 +539,21 @@ ML_METHOD("pop", MLSetMutableT) {
 //>any|nil
 // Deletes the first value from :mini:`Set` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Set` is empty.
 //$- :> Insertion order (default)
-//$= let M1 := set("cake")
-//$= M1:pop
-//$= M1
+//$= let S1 := set("cake")
+//$= S1:pop
+//$= S1
 //$-
 //$- :> LRU order
-//$= let M2 := set("cake"):order(set::order::LRU)
-//$- M2[2]; M2[4]; M2[1]; M2[3]
-//$= M2:pop
-//$= M2
+//$= let S2 := set("cake"):order(set::order::LRU)
+//$- S2["a"]; S2["e"]; S2["c"]; S2["k"]
+//$= S2:pop
+//$= S2
 //$-
 //$- :> MRU order
-//$= let M3 := set("cake"):order(set::order::MRU)
-//$- M3[2]; M3[4]; M3[1]; M3[3]
-//$= M3:pop
-//$= M3
+//$= let S3 := set("cake"):order(set::order::MRU)
+//$- S3["a"]; S3["e"]; S3["c"]; S3["k"]
+//$= S3:pop
+//$= S3
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_set_node_t *Node = Set->Head;
 	if (!Node) return MLNil;
@@ -566,21 +566,21 @@ ML_METHOD("pull", MLSetMutableT) {
 //>any|nil
 // Deletes the last value from :mini:`Set` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Set` is empty.
 //$- :> Insertion order (default)
-//$= let M1 := set("cake")
-//$= M1:pull
-//$= M1
+//$= let S1 := set("cake")
+//$= S1:pull
+//$= S1
 //$-
 //$- :> LRU order
-//$= let M2 := set("cake"):order(set::order::LRU)
-//$- M2[2]; M2[4]; M2[1]; M2[3]
-//$= M2:pull
-//$= M2
+//$= let S2 := set("cake"):order(set::order::LRU)
+//$- S2["a"]; S2["e"]; S2["c"]; S2["k"]
+//$= S2:pull
+//$= S2
 //$-
 //$- :> MRU order
-//$= let M3 := set("cake"):order(set::order::MRU)
-//$- M3[2]; M3[4]; M3[1]; M3[3]
-//$= M3:pull
-//$= M3
+//$= let S3 := set("cake"):order(set::order::MRU)
+//$- S3["a"]; S3["e"]; S3["c"]; S3["k"]
+//$= S3:pull
+//$= S3
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_set_node_t *Node = Set->Tail;
 	if (!Node) return MLNil;
@@ -594,10 +594,10 @@ ML_METHOD("insert", MLSetMutableT, MLAnyT) {
 //>some|nil
 // Inserts :mini:`Value` into :mini:`Set`.
 // Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
-//$- let M := set(["A", "B", "C"])
-//$= M:insert("A")
-//$= M:insert("D")
-//$= M
+//$- let S := set(["A", "B", "C"])
+//$= S:insert("A")
+//$= S:insert("D")
+//$= S
 	return ml_set_insert(Args[0], Args[1]);
 }
 
@@ -606,11 +606,11 @@ ML_METHODV("push", MLSetMutableT, MLAnyT) {
 //<Value
 //>set
 // Inserts each :mini:`Value` into :mini:`Set` at the start.
-//$- let M := set(["A", "B", "C"])
-//$= M:push("A")
-//$= M:push("D")
-//$= M:push("E", "B")
-//$= M
+//$- let S := set(["A", "B", "C"])
+//$= S:push("A")
+//$= S:push("D")
+//$= S:push("E", "B")
+//$= S
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
 		ml_value_t *Key = Args[I];
@@ -628,11 +628,11 @@ ML_METHODV("put", MLSetMutableT, MLAnyT) {
 //<Value
 //>set
 // Inserts each :mini:`Value` into :mini:`Set` at the end.
-//$- let M := set(["A", "B", "C"])
-//$= M:put("A")
-//$= M:put("D")
-//$= M:put("E", "B")
-//$= M
+//$- let S := set(["A", "B", "C"])
+//$= S:put("A")
+//$= S:put("D")
+//$= S:put("E", "B")
+//$= S
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
 		ml_value_t *Key = Args[I];
@@ -650,10 +650,10 @@ ML_METHOD("delete", MLSetMutableT, MLAnyT) {
 //<Value
 //>some|nil
 // Removes :mini:`Value` from :mini:`Set` and returns it if found, otherwise :mini:`nil`.
-//$- let M := set(["A", "B", "C"])
-//$= M:delete("A")
-//$= M:delete("D")
-//$= M
+//$- let S := set(["A", "B", "C"])
+//$= S:delete("A")
+//$= S:delete("D")
+//$= S
 	ml_value_t *Set = (ml_value_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	return ml_set_delete(Set, Key);
@@ -664,10 +664,10 @@ ML_METHOD("missing", MLSetMutableT, MLAnyT) {
 //<Value
 //>some|nil
 // If :mini:`Value` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Value` into :mini:`Set` and returns :mini:`some`.
-//$- let M := set(["A", "B", "C"])
-//$= M:missing("A")
-//$= M:missing("D")
-//$= M
+//$- let S := set(["A", "B", "C"])
+//$= S:missing("A")
+//$= S:missing("D")
+//$= S
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	int Size = Set->Size;
@@ -692,9 +692,9 @@ ML_METHOD("from", MLSetT, MLAnyT) {
 //<Value
 //>sequence|nil
 // Returns the subset of :mini:`Set` after :mini:`Value` as a sequence.
-//$- let M := set(["A", "B", "C", "D", "E"])
-//$= set(M:from("C"))
-//$= set(M:from("F"))
+//$- let S := set(["A", "B", "C", "D", "E"])
+//$= set(S:from("C"))
+//$= set(S:from("F"))
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_set_node_t *Node = ml_set_find_node(Set, Key);
@@ -982,8 +982,8 @@ ML_METHODX("sort", MLSetMutableT) {
 //<Set
 //>Set
 // Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Value/i < Value/j` and returns :mini:`Set`.
-//$= let M := set("cake")
-//$= M:sort
+//$= let S := set("cake")
+//$= S:sort
 	if (!ml_set_size(Args[0])) ML_RETURN(Args[0]);
 	ml_set_sort_state_t *State = new(ml_set_sort_state_t);
 	State->Base.Caller = Caller;
@@ -1007,8 +1007,8 @@ ML_METHODX("sort", MLSetMutableT, MLFunctionT) {
 //<Cmp
 //>Set
 // Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Value/i, Value/j)` and returns :mini:`Set`
-//$= let M := set("cake")
-//$= M:sort(>)
+//$= let S := set("cake")
+//$= S:sort(>)
 	if (!ml_set_size(Args[0])) ML_RETURN(Args[0]);
 	ml_set_sort_state_t *State = new(ml_set_sort_state_t);
 	State->Base.Caller = Caller;
@@ -1031,8 +1031,8 @@ ML_METHOD("reverse", MLSetMutableT) {
 //<Set
 //>set
 // Reverses the iteration order of :mini:`Set` in-place and returns it.
-//$= let M := set("cake")
-//$= M:reverse
+//$= let S := set("cake")
+//$= S:reverse
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_set_node_t *Prev = Set->Head;
 	if (!Prev) return (ml_value_t *)Set;
@@ -1055,9 +1055,9 @@ ML_METHOD("random", MLSetT) {
 //<List
 //>any
 // Returns a random (assignable) node from :mini:`Set`.
-//$= let M := set("cake")
-//$= M:random
-//$= M:random
+//$= let S := set("cake")
+//$= S:random
+//$= S:random
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	int Limit = Set->Size;
 	if (Limit <= 0) return MLNil;
