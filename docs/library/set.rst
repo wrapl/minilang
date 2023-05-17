@@ -103,8 +103,8 @@ set
       A >< B :> {n, r, e, d}
 
 
-:mini:`meth (Set: set)[Key: any]: some | nil`
-   Returns the node corresponding to :mini:`Key` in :mini:`Set`. If :mini:`Key` is not in :mini:`Set` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Set` if assigned.
+:mini:`meth (Set: set)[Value: any]: some | nil`
+   Returns :mini:`Value` if it is in :mini:`Set`,  otherwise returns :mini:`nil`..
 
    .. code-block:: mini
 
@@ -136,8 +136,8 @@ set
    Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
 
 
-:mini:`meth (Set: set):from(Key: any): sequence | nil`
-   Returns the subset of :mini:`Set` after :mini:`Key` as a sequence.
+:mini:`meth (Set: set):from(Value: any): sequence | nil`
+   Returns the subset of :mini:`Set` after :mini:`Value` as a sequence.
 
    .. code-block:: mini
 
@@ -168,8 +168,8 @@ set
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
-      M:random :> "k"
-      M:random :> "e"
+      M:random :> "a"
+      M:random :> "a"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -194,8 +194,8 @@ set
    *TBD*
 
 
-:mini:`meth (Set: set::mutable):delete(Key: any): some | nil`
-   Removes :mini:`Key` from :mini:`Set` and returns the corresponding value if any,  otherwise :mini:`nil`.
+:mini:`meth (Set: set::mutable):delete(Value: any): some | nil`
+   Removes :mini:`Value` from :mini:`Set` and returns it if found,  otherwise :mini:`nil`.
 
    .. code-block:: mini
 
@@ -222,8 +222,8 @@ set
       set("cake"):grow("banana") :> {c, a, k, e, b, n}
 
 
-:mini:`meth (Set: set::mutable):insert(Key: any, Value: any): some | nil`
-   Inserts :mini:`Key` into :mini:`Set` with corresponding value :mini:`Value`.
+:mini:`meth (Set: set::mutable):insert(Value: any): some | nil`
+   Inserts :mini:`Value` into :mini:`Set`.
    Returns the previous value associated with :mini:`Key` if any,  otherwise :mini:`nil`.
 
    .. code-block:: mini
@@ -234,8 +234,8 @@ set
       M :> {A, B, C, D}
 
 
-:mini:`meth (Set: set::mutable):missing(Key: any): some | nil`
-   If :mini:`Key` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Set` with value :mini:`some` and returns :mini:`some`.
+:mini:`meth (Set: set::mutable):missing(Value: any): some | nil`
+   If :mini:`Value` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Value` into :mini:`Set` and returns :mini:`some`.
 
    .. code-block:: mini
 
@@ -299,6 +299,30 @@ set
       M3 :> {c, a, k}
 
 
+:mini:`meth (Set: set::mutable):push(Value: any, ...): set`
+   Inserts each :mini:`Value` into :mini:`Set` at the start.
+
+   .. code-block:: mini
+
+      let M := set(["A", "B", "C"])
+      M:push("A") :> {A, B, C}
+      M:push("D") :> {D, A, B, C}
+      M:push("E", "B") :> {B, E, D, A, C}
+      M :> {B, E, D, A, C}
+
+
+:mini:`meth (Set: set::mutable):put(Value: any, ...): set`
+   Inserts each :mini:`Value` into :mini:`Set` at the end.
+
+   .. code-block:: mini
+
+      let M := set(["A", "B", "C"])
+      M:put("A") :> {B, C, A}
+      M:put("D") :> {B, C, A, D}
+      M:put("E", "B") :> {C, A, D, E, B}
+      M :> {C, A, D, E, B}
+
+
 :mini:`meth (Set: set::mutable):reverse: set`
    Reverses the iteration order of :mini:`Set` in-place and returns it.
 
@@ -331,7 +355,7 @@ set
 :mini:`type set::order < enum`
    * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end,  no reordering on access.
    * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order,  no reordering on access.
-   * :mini:`set::order::Ascending` |harr| inserted values are kept in descending order,  no reordering on access.
+   * :mini:`set::order::Descending` |harr| inserted values are kept in descending order,  no reordering on access.
    * :mini:`set::order::MRU` |harr| inserted values are put at start,  accessed values are moved to start.
    * :mini:`set::order::LRU` |harr| inserted values are put at end,  accessed values are moved to end.
 

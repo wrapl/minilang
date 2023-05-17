@@ -1134,9 +1134,7 @@ ML_METHOD("delete", MLMapMutableT, MLAnyT) {
 //$= M:delete("A")
 //$= M:delete("D")
 //$= M
-	ml_value_t *Map = (ml_value_t *)Args[0];
-	ml_value_t *Key = Args[1];
-	return ml_map_delete(Map, Key);
+	return ml_map_delete(Args[0], Args[1]);
 }
 
 ML_METHOD("missing", MLMapMutableT, MLAnyT) {

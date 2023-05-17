@@ -44,7 +44,7 @@ static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
 ML_ENUM2(MLSetOrderT, "set::order",
 // * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.
 // * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order, no reordering on access.
-// * :mini:`set::order::Ascending` |harr| inserted values are kept in descending order, no reordering on access.
+// * :mini:`set::order::Descending` |harr| inserted values are kept in descending order, no reordering on access.
 // * :mini:`set::order::MRU` |harr| inserted values are put at start, accessed values are moved to start.
 // * :mini:`set::order::LRU` |harr| inserted values are put at end, accessed values are moved to end.
 	"Insert", SET_ORDER_INSERT,
@@ -489,9 +489,9 @@ static void ml_set_move_node_tail(ml_set_t *Set, ml_set_node_t *Node) {
 
 ML_METHOD("[]", MLSetT, MLAnyT) {
 //<Set
-//<Key
+//<Value
 //>some|nil
-// Returns the node corresponding to :mini:`Key` in :mini:`Set`. If :mini:`Key` is not in :mini:`Set` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Set` if assigned.
+// Returns :mini:`Value` if it is in :mini:`Set`, otherwise returns :mini:`nil`..
 //$- let M := set(["A", "B", "C"])
 //$= M["A"]
 //$= M["D"]
@@ -504,11 +504,11 @@ ML_METHOD("[]", MLSetT, MLAnyT) {
 	} else if (Set->Order == SET_ORDER_MRU) {
 		ml_set_move_node_head(Set, Node);
 	}
-	return MLSome;
+	return Args[1];
 }
 
 ML_METHOD("in", MLAnyT, MLSetT) {
-//<Key
+//<Value
 //<Set
 //>any|nil
 // Returns :mini:`Key` if it is in :mini:`Map`, otherwise return :mini:`nil`.
@@ -590,25 +590,66 @@ ML_METHOD("pull", MLSetMutableT) {
 
 ML_METHOD("insert", MLSetMutableT, MLAnyT) {
 //<Set
-//<Key
 //<Value
 //>some|nil
-// Inserts :mini:`Key` into :mini:`Set` with corresponding value :mini:`Value`.
+// Inserts :mini:`Value` into :mini:`Set`.
 // Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 //$- let M := set(["A", "B", "C"])
 //$= M:insert("A")
 //$= M:insert("D")
 //$= M
-	ml_value_t *Set = (ml_value_t *)Args[0];
-	ml_value_t *Key = Args[1];
-	return ml_set_insert(Set, Key);
+	return ml_set_insert(Args[0], Args[1]);
+}
+
+ML_METHODV("push", MLSetMutableT, MLAnyT) {
+//<Set
+//<Value
+//>set
+// Inserts each :mini:`Value` into :mini:`Set` at the start.
+//$- let M := set(["A", "B", "C"])
+//$= M:push("A")
+//$= M:push("D")
+//$= M:push("E", "B")
+//$= M
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Key = Args[I];
+		ml_set_node_t *Node = ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+		ml_set_move_node_head(Set, Node);
+#ifdef ML_GENERICS
+		ml_set_update_generic(Set, Key);
+#endif
+	}
+	return (ml_value_t *)Set;
+}
+
+ML_METHODV("put", MLSetMutableT, MLAnyT) {
+//<Set
+//<Value
+//>set
+// Inserts each :mini:`Value` into :mini:`Set` at the end.
+//$- let M := set(["A", "B", "C"])
+//$= M:put("A")
+//$= M:put("D")
+//$= M:put("E", "B")
+//$= M
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Key = Args[I];
+		ml_set_node_t *Node = ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+		ml_set_move_node_tail(Set, Node);
+#ifdef ML_GENERICS
+		ml_set_update_generic(Set, Key);
+#endif
+	}
+	return (ml_value_t *)Set;
 }
 
 ML_METHOD("delete", MLSetMutableT, MLAnyT) {
 //<Set
-//<Key
+//<Value
 //>some|nil
-// Removes :mini:`Key` from :mini:`Set` and returns the corresponding value if any, otherwise :mini:`nil`.
+// Removes :mini:`Value` from :mini:`Set` and returns it if found, otherwise :mini:`nil`.
 //$- let M := set(["A", "B", "C"])
 //$= M:delete("A")
 //$= M:delete("D")
@@ -620,9 +661,9 @@ ML_METHOD("delete", MLSetMutableT, MLAnyT) {
 
 ML_METHOD("missing", MLSetMutableT, MLAnyT) {
 //<Set
-//<Key
+//<Value
 //>some|nil
-// If :mini:`Key` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Set` with value :mini:`some` and returns :mini:`some`.
+// If :mini:`Value` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Value` into :mini:`Set` and returns :mini:`some`.
 //$- let M := set(["A", "B", "C"])
 //$= M:missing("A")
 //$= M:missing("D")
@@ -648,9 +689,9 @@ static void ML_TYPED_FN(ml_iterate, MLSetFromT, ml_state_t *Caller, ml_set_from_
 
 ML_METHOD("from", MLSetT, MLAnyT) {
 //<Set
-//<Key
+//<Value
 //>sequence|nil
-// Returns the subset of :mini:`Set` after :mini:`Key` as a sequence.
+// Returns the subset of :mini:`Set` after :mini:`Value` as a sequence.
 //$- let M := set(["A", "B", "C", "D", "E"])
 //$= set(M:from("C"))
 //$= set(M:from("F"))
