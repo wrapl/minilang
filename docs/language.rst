@@ -1,7 +1,7 @@
 Language
 ========
 
-*Minilang* has a simple syntax, similar to *Pascal* and *Oberon-2*. Keywords are in lower case, statements are delimited by semicolons ``;``, these can be and are usually omitted at the end of a line.
+*Minilang* has a simple syntax, similar to *Lua*, *Pascal* and *Oberon-2*. Keywords are in lower case, statements are delimited by semicolons ``;``, these can be and are usually omitted at the end of a line.
 
 As *Minilang* is designed to be embedded into larger applications, there is no implicit requirement to store *Minilang* code in source files with any specific extension (or indeed to store *Minilang* in files at all). However, :file:`.mini` is used for the sample and test scripts and there are highlighters created for *GtkSourceview* and *Visual Studio Code* that recognize this extension.
 
@@ -84,10 +84,9 @@ The following identifiers are reserved as keywords.
 
 .. code-block:: mini
 
-   _ and case debug def do each else elseif end exit for
-   fun if in is let loop meth next nil not old on or ref
+   _ and case debug def do each else elseif end exit for fun
+   if in is it let loop meth must next nil not old on or ref
    ret susp switch then to until var when while with
-
 
 Whitespace and Line Breaks
 --------------------------
