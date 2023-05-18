@@ -3,4 +3,4 @@ sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
 sphinx_toolbox
 sphinx-a4doc
-sphinxawesome-theme >= 3.3.7
+sphinxawesome-theme == 3.3.7
