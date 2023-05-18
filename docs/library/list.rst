@@ -9,8 +9,6 @@ list
 
 .. rst-class:: mini-api
 
-.. _type-list:
-
 :mini:`type list < sequence`
    A list of elements.
 
@@ -102,7 +100,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "e"
-      L:random :> "c"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -124,8 +122,6 @@ list
       B:append([1, 2, 3, 4], " - ")
       B:rest :> "1 - 2 - 3 - 4"
 
-
-.. _type-list-mutable:
 
 :mini:`type list::mutable < list`
    *TBD*
@@ -259,14 +255,10 @@ list
    Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
 
 
-.. _type-list-node:
-
 :mini:`type list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
-
-.. _type-list-node-mutable:
 
 :mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
@@ -274,15 +266,11 @@ list
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-.. _type-list-node-mutable:
-
 :mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
-
-.. _type-list-slice:
 
 :mini:`type list::slice`
    A slice of a list.

@@ -9,19 +9,13 @@ xe
 
 .. rst-class:: mini-api
 
-.. _fun-xe-parse:
-
 :mini:`fun xe::parse(String: string): xe::node`
    *TBD*
 
 
-.. _type-xe-node:
-
 :mini:`type xe::node < sequence`
    *TBD*
 
-
-.. _fun-xe-node:
 
 :mini:`fun xe::node(Tag: string): xe::node`
    *TBD*
@@ -47,13 +41,9 @@ xe
    *TBD*
 
 
-.. _type-xe-var:
-
 :mini:`type xe::var`
    *TBD*
 
-
-.. _fun-xe-var:
 
 :mini:`fun xe::var(Name: string): xe::var`
    *TBD*

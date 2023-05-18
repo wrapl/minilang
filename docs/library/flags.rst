@@ -9,8 +9,6 @@ flags
 
 .. rst-class:: mini-api
 
-.. _type-flags:
-
 :mini:`type flags < type`
    The base type of flag types.
 
@@ -37,8 +35,6 @@ flags
       mode::Read + mode::Write :> Write,Read
 
 
-.. _type-flags-spec:
-
 :mini:`type flags::spec`
    A pair of flag sets for including and excluding flags.
 
@@ -46,8 +42,6 @@ flags
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: flags::spec)`
    *TBD*
 
-
-.. _type-flags-value:
 
 :mini:`type flags::value`
    An instance of a flags type.

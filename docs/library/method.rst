@@ -9,19 +9,13 @@ method
 
 .. rst-class:: mini-api
 
-.. _fun-method-list:
-
 :mini:`fun method::list(): list[method]`
    *TBD*
 
 
-.. _fun-method-isolate:
-
 :mini:`fun method::isolate(Args: any, ..., Fn: function): any`
    Evaluates :mini:`Fn(Args)` in a new method context and returns the result.
 
-
-.. _type-method:
 
 :mini:`type method < function`
    A map of type signatures to functions. Each type signature consists of a number of types and a flag denoting whether the signature is variadic.
@@ -67,16 +61,12 @@ method
    *TBD*
 
 
-.. _type-method-context:
-
 :mini:`type method::context`
    A context for isolating method definitions.
    
    :mini:`(C: method::context)(Args: any,  ...,  Fn: function): any`
        Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
 
-
-.. _fun-method-context:
 
 :mini:`fun method::context(): method::context`
    Returns a new context for method definitions. The new context will inherit methods definitions from the current context.

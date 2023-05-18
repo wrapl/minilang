@@ -9,8 +9,6 @@ table
 
 .. rst-class:: mini-api
 
-.. _type-table:
-
 :mini:`type table < sequence`
    A table is a set of named arrays. The arrays must have the same length.
 
@@ -54,8 +52,6 @@ table
 :mini:`meth (Buffer: string::buffer):append(Value: table)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
-
-.. _type-table-row:
 
 :mini:`type table::row < sequence`
    A row in a table.

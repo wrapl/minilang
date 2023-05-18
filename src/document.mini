@@ -274,7 +274,7 @@ end
 
 fun write_function(Category, Kind, Name, Params, Return, Description, Examples, Location) do
 	let Buffer := string::buffer()
-	Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
+	:>Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
 	var Terminator := ""
 	Buffer:write(':mini:`fun ', Name, "(")
 	var Seperator := ""
@@ -315,7 +315,7 @@ end
 
 fun write_constructor(Category, Kind, Name, Params, Return, Description, Location) do
 	let Buffer := string::buffer()
-	Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
+	:>Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
 	var Terminator := ""
 	Buffer:write(':mini:`constructor ', Name, "(")
 	var Seperator := ""
@@ -350,7 +350,7 @@ let TypesGraph := string::buffer()
 fun write_type(Category, Name, Parents, Description, Examples, Location) do
 	let TypeName := type_name(Name)
 	let Buffer := string::buffer()
-	Buffer:write('.. _type-{TypeName:replace("::", "-")}:\n\n')
+	:>Buffer:write('.. _type-{TypeName:replace("::", "-")}:\n\n')
 	Buffer:write(':mini:`type {TypeName}')
 	if Parents:length > 0 then
 		Buffer:write(" < ")
@@ -380,7 +380,7 @@ end
 
 fun write_value(Category, Name, Type, Description, Location) do
 	let Buffer := string::buffer()
-	Buffer:write('.. _value-{Name:replace("::", "-")}:\n\n')
+	:>Buffer:write('.. _value-{Name:replace("::", "-")}:\n\n')
 	Buffer:write(':mini:`def {Name}: {type_name(Type)}`\n')
 	for Line in Description do
 		Buffer:write("   ", Line)

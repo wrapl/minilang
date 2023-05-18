@@ -9,8 +9,6 @@ polynomial
 
 .. rst-class:: mini-api
 
-.. _fun-polynomial-roots:
-
 :mini:`fun polynomial::roots(Coeffs: list): list[complex]`
    Returns the roots of the single variable polynomial :math:`Coeff_{0} + Coeff_{1}x + Coeff_{2}x^{2} + ...`. If the degree is less than 5,  the relevant formula is used to calculate the roots,  otherwise the roots are estimated using an iterative process.
 
@@ -50,8 +48,6 @@ polynomial
 :mini:`meth (A: number) / (B: polynomial): polynomial::rational`
    Returns :mini:`A / B`.
 
-
-.. _type-polynomial:
 
 :mini:`type polynomial < function`
    A polynomial with numeric (real or complex) coefficients.
@@ -158,8 +154,6 @@ polynomial
 :mini:`meth (Buffer: string::buffer):append(Poly: polynomial)`
    Appends a representation of :mini:`Poly` to :mini:`Buffer`.
 
-
-.. _type-polynomial-rational:
 
 :mini:`type polynomial::rational`
    *TBD*

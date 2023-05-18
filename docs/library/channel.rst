@@ -9,13 +9,9 @@ channel
 
 .. rst-class:: mini-api
 
-.. _fun-channel:
-
 :mini:`fun channel()`
    *TBD*
 
-
-.. _type-channel:
 
 :mini:`type channel`
    *TBD*

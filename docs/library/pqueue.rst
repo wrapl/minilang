@@ -9,8 +9,6 @@ pqueue
 
 .. rst-class:: mini-api
 
-.. _type-pqueue:
-
 :mini:`type pqueue < sequence`
    A priority queue with values and associated priorities.
 
@@ -38,8 +36,6 @@ pqueue
 :mini:`meth (Queue: pqueue):peek: pqueue::entry | nil`
    Returns the highest priority entry in :mini:`Queue` without removing it,  or :mini:`nil` if :mini:`Queue` is empty.
 
-
-.. _type-pqueue-entry:
 
 :mini:`type pqueue::entry`
    A entry in a priority queue.

@@ -9,8 +9,6 @@ module
 
 .. rst-class:: mini-api
 
-.. _type-module:
-
 :mini:`type module`
    *TBD*
 

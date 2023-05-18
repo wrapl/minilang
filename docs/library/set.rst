@@ -19,8 +19,6 @@ set
       "D" in S :> nil
 
 
-.. _type-set:
-
 :mini:`type set < sequence`
    A set of values.
    Values can be of any type supporting hashing and comparison.
@@ -168,8 +166,8 @@ set
    .. code-block:: mini
 
       let S := set("cake") :> {c, a, k, e}
-      S:random :> "e"
       S:random :> "k"
+      S:random :> "c"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -187,8 +185,6 @@ set
 :mini:`meth (Buffer: string::buffer):append(Set: set, Sep: string)`
    Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
 
-
-.. _type-set-mutable:
 
 :mini:`type set::mutable < set`
    *TBD*
@@ -349,8 +345,6 @@ set
       let S := set("cake") :> {c, a, k, e}
       S:sort(>) :> {k, e, c, a}
 
-
-.. _type-set-order:
 
 :mini:`type set::order < enum`
    * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end,  no reordering on access.

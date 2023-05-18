@@ -9,13 +9,9 @@ rwlock
 
 .. rst-class:: mini-api
 
-.. _type-rwlock:
-
 :mini:`type rwlock`
    A read-write lock for synchronizing concurrent code.
 
-
-.. _fun-rwlock:
 
 :mini:`fun rwlock(): rwlock`
    Returns a new read-write lock.

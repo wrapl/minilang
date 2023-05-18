@@ -9,8 +9,6 @@ function
 
 .. rst-class:: mini-api
 
-.. _type-function:
-
 :mini:`type function`
    The base type of all functions.
 
@@ -58,8 +56,6 @@ function
 :mini:`meth /(Function: function): function`
    Returns a function equivalent to :mini:`fun(Args...) Function()`.
 
-
-.. _type-function-partial:
 
 :mini:`type function::partial < function, sequence`
    *TBD*

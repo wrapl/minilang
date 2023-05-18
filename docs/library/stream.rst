@@ -9,8 +9,6 @@ stream
 
 .. rst-class:: mini-api
 
-.. _type-stream:
-
 :mini:`type stream`
    Base type of readable and writable byte streams.
 
@@ -71,8 +69,6 @@ stream
    Writes each :mini:`Valueᵢ` in turn to :mini:`Stream`.
 
 
-.. _type-stream-buffered:
-
 :mini:`type stream::buffered < stream`
    A stream that buffers reads and writes from another stream.
 
@@ -85,8 +81,6 @@ stream
    Writes any bytes in the buffer.
 
 
-.. _type-stream-fd:
-
 :mini:`type stream::fd < stream`
    A file-descriptor based stream.
 
@@ -98,8 +92,6 @@ stream
 :mini:`meth (Stream: stream::fd):write(Source: address): integer`
    Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
 
-
-.. _type-stream-seek:
 
 :mini:`type stream::seek < enum`
    *TBD*

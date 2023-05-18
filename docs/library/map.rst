@@ -19,8 +19,6 @@ map
       "D" in M :> nil
 
 
-.. _type-map:
-
 :mini:`type map < sequence`
    A map of key-value pairs.
    Keys can be of any type supporting hashing and comparison.
@@ -52,8 +50,6 @@ map
       map() :> {}
 
 
-.. _fun-map-join:
-
 :mini:`fun map::join(Map₁, : map, ..., Fn: function): map`
    Returns a new map containing the union of the keys of :mini:`Mapᵢ`,  and with values :mini:`Fn(V₁,  ...,  Vₙ)` where each :mini:`Vᵢ` comes from :mini:`Mapᵢ` (or :mini:`nil`).
 
@@ -68,8 +64,6 @@ map
       map::join(A, B, C, tuple)
       :> {"a" is (1, 6, 3), "p" is (3, nil, 1), "l" is (4, nil, nil), "e" is (5, nil, 2), "b" is (nil, 1, nil), "n" is (nil, 5, nil), "r" is (nil, nil, 4)}
 
-
-.. _fun-map-join2:
 
 :mini:`fun map::join2(Map₁, : map, ..., Fn: function): map`
    Returns a new map containing the union of the keys of :mini:`Mapᵢ`,  and with values :mini:`Fn(K,  V₁,  ...,  Vₙ)` where each :mini:`Vᵢ` comes from :mini:`Mapᵢ` (or :mini:`nil`).
@@ -242,8 +236,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
-      M:random :> "a"
+      M:random :> "e"
+      M:random :> "k"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -261,8 +255,6 @@ map
 :mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
    Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
 
-
-.. _type-map-mutable:
 
 :mini:`type map::mutable < map`
    *TBD*
@@ -557,14 +549,10 @@ map
       B :> {}
 
 
-.. _type-map-node:
-
 :mini:`type map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 
-
-.. _type-map-node-mutable:
 
 :mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
@@ -572,15 +560,11 @@ map
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-.. _type-map-node-mutable:
-
 :mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
-
-.. _type-map-order:
 
 :mini:`type map::order < enum`
    * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end,  no reordering on access.
