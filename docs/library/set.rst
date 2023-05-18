@@ -9,7 +9,7 @@ set
 
 .. rst-class:: mini-api
 
-:mini:`meth (Key: any):in(Set: set): any | nil`
+:mini:`meth (Value: any):in(Set: set): any | nil`
    Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
 
    .. code-block:: mini
@@ -18,8 +18,6 @@ set
       "A" in S :> "A"
       "D" in S :> nil
 
-
-.. _type-set:
 
 :mini:`type set < sequence`
    A set of values.
@@ -103,15 +101,15 @@ set
       A >< B :> {n, r, e, d}
 
 
-:mini:`meth (Set: set)[Key: any]: some | nil`
-   Returns the node corresponding to :mini:`Key` in :mini:`Set`. If :mini:`Key` is not in :mini:`Set` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Set` if assigned.
+:mini:`meth (Set: set)[Value: any]: some | nil`
+   Returns :mini:`Value` if it is in :mini:`Set`,  otherwise returns :mini:`nil`..
 
    .. code-block:: mini
 
-      let M := set(["A", "B", "C"])
-      M["A"] :> some
-      M["D"] :> nil
-      M :> {A, B, C}
+      let S := set(["A", "B", "C"])
+      S["A"] :> "A"
+      S["D"] :> nil
+      S :> {A, B, C}
 
 
 :mini:`meth (Set₁: set) \/ (Set₂: set): set`
@@ -136,14 +134,14 @@ set
    Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
 
 
-:mini:`meth (Set: set):from(Key: any): sequence | nil`
-   Returns the subset of :mini:`Set` after :mini:`Key` as a sequence.
+:mini:`meth (Set: set):from(Value: any): sequence | nil`
+   Returns the subset of :mini:`Set` after :mini:`Value` as a sequence.
 
    .. code-block:: mini
 
-      let M := set(["A", "B", "C", "D", "E"])
-      set(M:from("C")) :> {C, D, E}
-      set(M:from("F")) :> {}
+      let S := set(["A", "B", "C", "D", "E"])
+      set(S:from("C")) :> {C, D, E}
+      set(S:from("F")) :> {}
 
 
 :mini:`meth (Set: set):last`
@@ -167,9 +165,9 @@ set
 
    .. code-block:: mini
 
-      let M := set("cake") :> {c, a, k, e}
-      M:random :> "e"
-      M:random :> "e"
+      let S := set("cake") :> {c, a, k, e}
+      S:random :> "k"
+      S:random :> "c"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -188,21 +186,19 @@ set
    Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
 
 
-.. _type-set-mutable:
-
 :mini:`type set::mutable < set`
    *TBD*
 
 
-:mini:`meth (Set: set::mutable):delete(Key: any): some | nil`
-   Removes :mini:`Key` from :mini:`Set` and returns the corresponding value if any,  otherwise :mini:`nil`.
+:mini:`meth (Set: set::mutable):delete(Value: any): some | nil`
+   Removes :mini:`Value` from :mini:`Set` and returns it if found,  otherwise :mini:`nil`.
 
    .. code-block:: mini
 
-      let M := set(["A", "B", "C"])
-      M:delete("A") :> some
-      M:delete("D") :> nil
-      M :> {B, C}
+      let S := set(["A", "B", "C"])
+      S:delete("A") :> some
+      S:delete("D") :> nil
+      S :> {B, C}
 
 
 :mini:`meth (Set: set::mutable):empty: set`
@@ -210,8 +206,8 @@ set
 
    .. code-block:: mini
 
-      let M := set(["A", "B", "C"]) :> {A, B, C}
-      M:empty :> {}
+      let S := set(["A", "B", "C"]) :> {A, B, C}
+      S:empty :> {}
 
 
 :mini:`meth (Set: set::mutable):grow(Sequence: sequence, ...): set`
@@ -222,27 +218,27 @@ set
       set("cake"):grow("banana") :> {c, a, k, e, b, n}
 
 
-:mini:`meth (Set: set::mutable):insert(Key: any, Value: any): some | nil`
-   Inserts :mini:`Key` into :mini:`Set` with corresponding value :mini:`Value`.
+:mini:`meth (Set: set::mutable):insert(Value: any): some | nil`
+   Inserts :mini:`Value` into :mini:`Set`.
    Returns the previous value associated with :mini:`Key` if any,  otherwise :mini:`nil`.
 
    .. code-block:: mini
 
-      let M := set(["A", "B", "C"])
-      M:insert("A") :> some
-      M:insert("D") :> nil
-      M :> {A, B, C, D}
+      let S := set(["A", "B", "C"])
+      S:insert("A") :> some
+      S:insert("D") :> nil
+      S :> {A, B, C, D}
 
 
-:mini:`meth (Set: set::mutable):missing(Key: any): some | nil`
-   If :mini:`Key` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Set` with value :mini:`some` and returns :mini:`some`.
+:mini:`meth (Set: set::mutable):missing(Value: any): some | nil`
+   If :mini:`Value` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Value` into :mini:`Set` and returns :mini:`some`.
 
    .. code-block:: mini
 
-      let M := set(["A", "B", "C"])
-      M:missing("A") :> nil
-      M:missing("D") :> some
-      M :> {A, B, C, D}
+      let S := set(["A", "B", "C"])
+      S:missing("A") :> nil
+      S:missing("D") :> some
+      S :> {A, B, C, D}
 
 
 :mini:`meth (Set: set::mutable):order(Order: set::order): set`
@@ -255,23 +251,23 @@ set
    .. code-block:: mini
 
       :> Insertion order (default)
-      let M1 := set("cake") :> {c, a, k, e}
-      M1:pop :> "c"
-      M1 :> {a, k, e}
+      let S1 := set("cake") :> {c, a, k, e}
+      S1:pop :> "c"
+      S1 :> {a, k, e}
       
       :> LRU order
-      let M2 := set("cake"):order(set::order::LRU)
+      let S2 := set("cake"):order(set::order::LRU)
       :> {c, a, k, e}
-      M2[2]; M2[4]; M2[1]; M2[3]
-      M2:pop :> "c"
-      M2 :> {a, k, e}
+      S2["a"]; S2["e"]; S2["c"]; S2["k"]
+      S2:pop :> "a"
+      S2 :> {e, c, k}
       
       :> MRU order
-      let M3 := set("cake"):order(set::order::MRU)
+      let S3 := set("cake"):order(set::order::MRU)
       :> {c, a, k, e}
-      M3[2]; M3[4]; M3[1]; M3[3]
-      M3:pop :> "c"
-      M3 :> {a, k, e}
+      S3["a"]; S3["e"]; S3["c"]; S3["k"]
+      S3:pop :> "k"
+      S3 :> {c, e, a}
 
 
 :mini:`meth (Set: set::mutable):pull: any | nil`
@@ -280,23 +276,47 @@ set
    .. code-block:: mini
 
       :> Insertion order (default)
-      let M1 := set("cake") :> {c, a, k, e}
-      M1:pull :> "e"
-      M1 :> {c, a, k}
+      let S1 := set("cake") :> {c, a, k, e}
+      S1:pull :> "e"
+      S1 :> {c, a, k}
       
       :> LRU order
-      let M2 := set("cake"):order(set::order::LRU)
+      let S2 := set("cake"):order(set::order::LRU)
       :> {c, a, k, e}
-      M2[2]; M2[4]; M2[1]; M2[3]
-      M2:pull :> "e"
-      M2 :> {c, a, k}
+      S2["a"]; S2["e"]; S2["c"]; S2["k"]
+      S2:pull :> "k"
+      S2 :> {a, e, c}
       
       :> MRU order
-      let M3 := set("cake"):order(set::order::MRU)
+      let S3 := set("cake"):order(set::order::MRU)
       :> {c, a, k, e}
-      M3[2]; M3[4]; M3[1]; M3[3]
-      M3:pull :> "e"
-      M3 :> {c, a, k}
+      S3["a"]; S3["e"]; S3["c"]; S3["k"]
+      S3:pull :> "a"
+      S3 :> {k, c, e}
+
+
+:mini:`meth (Set: set::mutable):push(Value: any, ...): set`
+   Inserts each :mini:`Value` into :mini:`Set` at the start.
+
+   .. code-block:: mini
+
+      let S := set(["A", "B", "C"])
+      S:push("A") :> {A, B, C}
+      S:push("D") :> {D, A, B, C}
+      S:push("E", "B") :> {B, E, D, A, C}
+      S :> {B, E, D, A, C}
+
+
+:mini:`meth (Set: set::mutable):put(Value: any, ...): set`
+   Inserts each :mini:`Value` into :mini:`Set` at the end.
+
+   .. code-block:: mini
+
+      let S := set(["A", "B", "C"])
+      S:put("A") :> {B, C, A}
+      S:put("D") :> {B, C, A, D}
+      S:put("E", "B") :> {C, A, D, E, B}
+      S :> {C, A, D, E, B}
 
 
 :mini:`meth (Set: set::mutable):reverse: set`
@@ -304,8 +324,8 @@ set
 
    .. code-block:: mini
 
-      let M := set("cake") :> {c, a, k, e}
-      M:reverse :> {e, k, a, c}
+      let S := set("cake") :> {c, a, k, e}
+      S:reverse :> {e, k, a, c}
 
 
 :mini:`meth (Set: set::mutable):sort: Set`
@@ -313,8 +333,8 @@ set
 
    .. code-block:: mini
 
-      let M := set("cake") :> {c, a, k, e}
-      M:sort :> {a, c, e, k}
+      let S := set("cake") :> {c, a, k, e}
+      S:sort :> {a, c, e, k}
 
 
 :mini:`meth (Set: set::mutable):sort(Cmp: function): Set`
@@ -322,16 +342,14 @@ set
 
    .. code-block:: mini
 
-      let M := set("cake") :> {c, a, k, e}
-      M:sort(>) :> {k, e, c, a}
+      let S := set("cake") :> {c, a, k, e}
+      S:sort(>) :> {k, e, c, a}
 
-
-.. _type-set-order:
 
 :mini:`type set::order < enum`
    * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end,  no reordering on access.
    * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order,  no reordering on access.
-   * :mini:`set::order::Ascending` |harr| inserted values are kept in descending order,  no reordering on access.
+   * :mini:`set::order::Descending` |harr| inserted values are kept in descending order,  no reordering on access.
    * :mini:`set::order::MRU` |harr| inserted values are put at start,  accessed values are moved to start.
    * :mini:`set::order::LRU` |harr| inserted values are put at end,  accessed values are moved to end.
 

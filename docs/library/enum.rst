@@ -9,8 +9,6 @@ enum
 
 .. rst-class:: mini-api
 
-.. _type-enum:
-
 :mini:`type enum < type, sequence`
    The base type of enumeration types.
 
@@ -51,13 +49,9 @@ enum
    *TBD*
 
 
-.. _type-enum-range:
-
 :mini:`type enum::range < sequence`
    A range of enum values.
 
-
-.. _type-enum-value:
 
 :mini:`type enum::value < integer`
    An instance of an enumeration type.

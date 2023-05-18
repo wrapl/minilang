@@ -9,43 +9,29 @@ macro
 
 .. rst-class:: mini-api
 
-.. _fun-macro-block:
-
 :mini:`fun macro::block(): blockbuilder`
    Returns a new block builder.
 
-
-.. _fun-macro-call:
 
 :mini:`fun macro::call(): exprbuilder`
    Returns a new call builder.
 
 
-.. _fun-macro-list:
-
 :mini:`fun macro::list(): exprbuilder`
    Returns a new list builder.
 
-
-.. _fun-macro-map:
 
 :mini:`fun macro::map(): exprbuilder`
    Returns a new list builder.
 
 
-.. _fun-macro-tuple:
-
 :mini:`fun macro::tuple(): exprbuilder`
    Returns a new list builder.
 
 
-.. _fun-macro-value:
-
 :mini:`fun macro::value(Value: any): expr`
    Returns a new value expression.
 
-
-.. _type-block-builder:
 
 :mini:`type block::builder`
    Utility object for building a block expression.
@@ -71,13 +57,9 @@ macro
    Adds a :mini:`var`-declaration to a block with initializer :mini:`Expr`.
 
 
-.. _type-expr:
-
 :mini:`type expr`
    An expression value used by the compiler to implement macros.
 
-
-.. _fun-macro-subst:
 
 :mini:`fun macro::subst(Expr: expr): macro`
    Returns a new macro which substitutes its arguments into :mini:`Expr`.
@@ -111,8 +93,6 @@ macro
    Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expression :mini:`Subᵢ`.
 
 
-.. _type-expr-builder:
-
 :mini:`type expr::builder`
    Utility object for building a block expression.
 
@@ -125,26 +105,18 @@ macro
    Finishes a block and returns it as an expression.
 
 
-.. _type-macro:
-
 :mini:`type macro`
    A macro.
 
-
-.. _fun-macro:
 
 :mini:`fun macro(Function: function): macro`
    Returns a new macro which applies :mini:`Function` when compiled.
    :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr,  Expr₂: expr,  ...): expr`.
 
 
-.. _fun-macro-fun:
-
 :mini:`fun macro::fun(Params: map, Arg₂: expr): expr`
    Returns a new function expression.
 
-
-.. _fun-macro-ident:
 
 :mini:`fun macro::ident(Name: string): expr`
    Returns a new identifier expression.

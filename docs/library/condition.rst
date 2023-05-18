@@ -9,13 +9,9 @@ condition
 
 .. rst-class:: mini-api
 
-.. _type-condition:
-
 :mini:`type condition`
    A condition for synchronizing concurrent code.
 
-
-.. _fun-condition:
 
 :mini:`fun condition(): condition`
    Returns a new condition.

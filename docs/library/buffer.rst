@@ -17,8 +17,6 @@ buffer
       buffer("Hello world") :> <11:48656C6C6F20776F726C64>
 
 
-.. _type-buffer:
-
 :mini:`type buffer < address`
    A buffer represents a writable bounded section of memory.
 
@@ -29,8 +27,8 @@ buffer
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:2002D3CDF97F00006F77497465725400>
-      B + 8 :> <8:6F77497465725400>
+      :> <16:401423432B7F0000206E6F742063616C>
+      B + 8 :> <8:206E6F742063616C>
 
 
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`
@@ -95,6 +93,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:C008D3CDF97F00007461626C65293A64>
+      buffer(16) :> <16:801923432B7F0000203C67632F67635F>
 
 

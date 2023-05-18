@@ -9,8 +9,6 @@ tasks
 
 .. rst-class:: mini-api
 
-.. _fun-parallel:
-
 :mini:`fun parallel(Sequence: any, Max?: integer, Min?: integer, Fn: function): nil | error`
    Iterates through :mini:`Sequence` and calls :mini:`Fn(Key,  Value)` for each :mini:`Key,  Value` pair produced **without** waiting for the call to return.
    The call to :mini:`parallel` returns when all calls to :mini:`Fn` return,  or an error occurs.
@@ -34,8 +32,6 @@ tasks
    *TBD*
 
 
-.. _fun-buffered:
-
 :mini:`fun buffered(Sequence: sequence, Size: integer, Fn: function): sequence`
    Returns the sequence :mini:`(Kᵢ,  Fn(Kᵢ,  Vᵢ))` where :mini:`Kᵢ,  Vᵢ` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel,  with at most :mini:`Size` calls at a time. The original sequence order is preserved (using an internal buffer).
 
@@ -44,8 +40,6 @@ tasks
       list(buffered(1 .. 10, 5, tuple))
       :> [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10)]
 
-
-.. _type-task:
 
 :mini:`type task < function`
    A task representing a value that will eventually be completed.
@@ -70,8 +64,6 @@ tasks
 :mini:`meth (Task: task):wait: any | error`
    Waits until :mini:`Task` is completed and returns its result.
 
-
-.. _type-tasks:
 
 :mini:`type tasks < function`
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).

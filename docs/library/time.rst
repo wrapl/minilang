@@ -11,13 +11,9 @@ time
 
 Provides time and date operations.
 
-.. _fun-time-mdays:
-
 :mini:`fun time::mdays(Year: integer, Month: integer): integer`
    *TBD*
 
-
-.. _type-time:
 
 :mini:`type time`
    An instant in time with nanosecond resolution.
@@ -61,7 +57,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2023-05-11T06:31:12.308737
+      time() :> 2023-05-18T05:37:05.932341
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
@@ -245,19 +241,13 @@ Provides time and date operations.
    Formats :mini:`Time` as a time in :mini:`TimeZone`.
 
 
-.. _type-time-day:
-
 :mini:`type time::day < enum`
    *TBD*
 
 
-.. _type-time-month:
-
 :mini:`type time::month < enum`
    *TBD*
 
-
-.. _type-time-zone:
 
 :mini:`type time::zone`
    A time zone.
@@ -270,8 +260,6 @@ Provides time and date operations.
 :mini:`meth (Name: time::zone::type) :: (Arg₂: string): time::zone | error`
    Returns the time zone identified by :mini:`Name` or an error if no time zone is found.
 
-
-.. _type-time-zoned:
 
 :mini:`type time::zoned`
    *TBD*

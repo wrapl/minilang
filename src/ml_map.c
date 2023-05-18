@@ -47,7 +47,7 @@ static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Va
 ML_ENUM2(MLMapOrderT, "map::order",
 // * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end, no reordering on access.
 // * :mini:`map::order::Ascending` |harr| inserted pairs are kept in ascending key order, no reordering on access.
-// * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order, no reordering on access.
+// * :mini:`map::order::Descending` |harr| inserted pairs are kept in descending key order, no reordering on access.
 // * :mini:`map::order::MRU` |harr| inserted pairs are put at start, accessed pairs are moved to start.
 // * :mini:`map::order::LRU` |harr| inserted pairs are put at end, accessed pairs are moved to end.
 	"Insert", MAP_ORDER_INSERT,
@@ -1068,10 +1068,61 @@ ML_METHOD("insert", MLMapMutableT, MLAnyT, MLAnyT) {
 //$= M:insert("A", 10)
 //$= M:insert("D", 20)
 //$= M
-	ml_value_t *Map = (ml_value_t *)Args[0];
+	return ml_map_insert(Args[0], Args[1], Args[2]);
+}
+
+ML_METHOD("push", MLMapMutableT, MLAnyT, MLAnyT) {
+//<Map
+//<Key
+//<Value
+//>map
+// Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
+//$- let M := {"B" is 2, "C" is 3, "A" is 1}:order(map::order::Descending)
+//$= M:push("A", 10)
+//$= M:push("D", 20)
+//$= M
+	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_value_t *Value = Args[2];
-	return ml_map_insert(Map, Key, Value);
+	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	Node->Value = Value;
+	ml_type_t *ValueType0 = ml_typeof(Value);
+	if (ValueType0 == MLUninitializedT) {
+		ml_uninitialized_use(Value, &Node->Value);
+		ValueType0 = MLAnyT;
+	}
+	ml_map_move_node_head(Map, Node);
+#ifdef ML_GENERICS
+	ml_map_update_generic(Map, Key, Value);
+#endif
+	return (ml_value_t *)Map;
+}
+
+ML_METHOD("put", MLMapMutableT, MLAnyT, MLAnyT) {
+//<Map
+//<Key
+//<Value
+//>map
+// Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
+//$- let M := {"B" is 2, "C" is 3, "A" is 1}:order(map::order::Descending)
+//$= M:put("A", 10)
+//$= M:put("D", 20)
+//$= M
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_value_t *Value = Args[2];
+	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	Node->Value = Value;
+	ml_type_t *ValueType0 = ml_typeof(Value);
+	if (ValueType0 == MLUninitializedT) {
+		ml_uninitialized_use(Value, &Node->Value);
+		ValueType0 = MLAnyT;
+	}
+	ml_map_move_node_tail(Map, Node);
+#ifdef ML_GENERICS
+	ml_map_update_generic(Map, Key, Value);
+#endif
+	return (ml_value_t *)Map;
 }
 
 ML_METHOD("delete", MLMapMutableT, MLAnyT) {
@@ -1083,9 +1134,7 @@ ML_METHOD("delete", MLMapMutableT, MLAnyT) {
 //$= M:delete("A")
 //$= M:delete("D")
 //$= M
-	ml_value_t *Map = (ml_value_t *)Args[0];
-	ml_value_t *Key = Args[1];
-	return ml_map_delete(Map, Key);
+	return ml_map_delete(Args[0], Args[1]);
 }
 
 ML_METHOD("missing", MLMapMutableT, MLAnyT) {

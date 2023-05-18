@@ -30,13 +30,9 @@ When creating a substring,  the first index is inclusive and second index is exc
    Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
 
 
-.. _type-regex:
-
 :mini:`type regex < function`
    A regular expression.
 
-
-.. _fun-regex:
 
 :mini:`fun regex(String: string): regex | error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
@@ -129,13 +125,9 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
-.. _type-string:
-
 :mini:`type string < address, sequence`
    A string of characters in UTF-8 encoding.
 
-
-.. _fun-string:
 
 :mini:`fun string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.
@@ -148,8 +140,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       string([1, 2, 3]) :> "[1, 2, 3]"
 
 
-.. _fun-regex-escape:
-
 :mini:`fun regex::escape(String: string): string`
    Escapes characters in :mini:`String` that are treated specially in regular expressions.
 
@@ -157,8 +147,6 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
 
-
-.. _fun-string-escape:
 
 :mini:`fun string::escape(String: string): string`
    Escapes characters in :mini:`String`.
@@ -869,13 +857,9 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
-.. _type-string-buffer:
-
 :mini:`type string::buffer < stream`
    A string buffer that automatically grows and shrinks as required.
 
-
-.. _fun-string-buffer:
 
 :mini:`fun string::buffer(): string::buffer`
    Returns a new :mini:`string::buffer`
@@ -926,8 +910,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "1 + 1 = 2"
 
 
-.. _type-string-ctype:
-
 :mini:`type string::ctype < enum`
    
    * :mini:`string::ctype::Cn`: General Other Types
@@ -962,8 +944,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`string::ctype::Pf`: Final Punctuation
 
 
-.. _type-string-norm:
-
 :mini:`type string::norm < enum`
    
    * :mini:`string::norm::NFC`
@@ -971,8 +951,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`string::norm::NFKC`
    * :mini:`string::norm::NFKD`
 
-
-.. _fun-string-switch:
 
 :mini:`fun string::switch(Cases: string|regex, ...)`
    Implements :mini:`switch` for string values. Case values must be strings or regular expressions.

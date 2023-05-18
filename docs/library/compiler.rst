@@ -9,25 +9,17 @@ compiler
 
 .. rst-class:: mini-api
 
-.. _fun-source:
-
 :mini:`fun source(): tuple[string, integer]`
    Returns the caller source location. Evaluated at compile time if possible.
 
-
-.. _fun-not:
 
 :mini:`fun not(Arg₁: any)`
    *TBD*
 
 
-.. _type-compiler:
-
 :mini:`type compiler < state`
    *TBD*
 
-
-.. _fun-compiler:
 
 :mini:`fun compiler(Global: function|map): compiler`
    *TBD*
@@ -73,8 +65,6 @@ compiler
    *TBD*
 
 
-.. _type-compiler-function:
-
 :mini:`type compiler::function < state`
    *TBD*
 
@@ -95,31 +85,21 @@ compiler
    *TBD*
 
 
-.. _type-function-inline:
-
 :mini:`type function::inline < function`
    *TBD*
 
-
-.. _type-global:
 
 :mini:`type global`
    *TBD*
 
 
-.. _type-macro-subst:
-
 :mini:`type macro::subst < function`
    *TBD*
 
 
-.. _type-parser:
-
 :mini:`type parser`
    *TBD*
 
-
-.. _fun-parser:
 
 :mini:`fun parser(Read?: function): parser`
    *TBD*

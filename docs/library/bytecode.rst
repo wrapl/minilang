@@ -11,13 +11,9 @@ bytecode
 
 This is a mostly internal module,  subject to change.
 
-.. _type-closure:
-
 :mini:`type closure < function, sequence`
    A Minilang function.
 
-
-.. _fun-closure:
 
 :mini:`fun closure(Original: closure): closure`
    Returns a copy of :mini:`Closure`.
@@ -43,19 +39,13 @@ This is a mostly internal module,  subject to change.
    Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 
 
-.. _type-closure-info:
-
 :mini:`type closure::info`
    Information about a closure.
 
 
-.. _type-continuation:
-
 :mini:`type continuation < state, sequence`
    A bytecode function frame which can be resumed.
 
-
-.. _type-variable:
 
 :mini:`type variable`
    A variable,  which can hold another value (returned when dereferenced) and assigned a new value.

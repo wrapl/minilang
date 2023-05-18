@@ -61,8 +61,6 @@ range
    Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 
 
-.. _type-integer-range:
-
 :mini:`type integer::range < sequence`
    *TBD*
 
@@ -154,8 +152,6 @@ range
 :mini:`meth (Start: number):by(Step: number): real::range`
    *TBD*
 
-
-.. _type-real-range:
 
 :mini:`type real::range < sequence`
    *TBD*

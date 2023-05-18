@@ -9,13 +9,9 @@ library
 
 .. rst-class:: mini-api
 
-.. _fun-getpath:
-
 :mini:`fun getpath()`
    *TBD*
 
-
-.. _type-importer:
 
 :mini:`type importer < function`
    *TBD*
@@ -25,8 +21,6 @@ library
    *TBD*
 
 
-.. _type-module-dir:
-
 :mini:`type module::dir`
    *TBD*
 
@@ -35,13 +29,9 @@ library
    *TBD*
 
 
-.. _fun-addpath:
-
 :mini:`fun addpath(Arg₁: string)`
    *TBD*
 
-
-.. _fun-unload:
 
 :mini:`fun unload(Path: string): nil`
    *TBD*

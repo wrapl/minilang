@@ -9,8 +9,6 @@ any
 
 .. rst-class:: mini-api
 
-.. _type-any:
-
 :mini:`type any`
    Base type for all values.
 

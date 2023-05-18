@@ -35,13 +35,9 @@ Provides a specialized encoding of Minilang values to and from JSON with support
    *TBD*
 
 
-.. _type-minijs:
-
 :mini:`type minijs`
    *TBD*
 
-
-.. _fun-minijs:
 
 :mini:`fun minijs(Value: any): minijs`
    *TBD*

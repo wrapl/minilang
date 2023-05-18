@@ -17,6 +17,7 @@ ML_TYPE(MLFieldT, (), "field",
 );
 
 static void ml_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_value_t *Value) {
+	if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Field->Value);
 	Field->Value = Value;
 	ML_RETURN(Value);
 }
@@ -83,12 +84,15 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 					ML_ERROR("ValueError", "Class %s does not have field %s", Class->Base.Name, Name);
 				}
 				ml_field_t *Field = &Object->Fields[Info->Index];
+				ml_value_t *Value = *++Arg2;
+				if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Field->Value);
 				Field->Value = *++Arg2;
 			}
 			break;
 		} else if (I > Class->NumFields) {
 			break;
 		} else {
+			if (ml_typeof(Arg) == MLUninitializedT) ml_uninitialized_use(Arg, &Object->Fields[I].Value);
 			Object->Fields[I].Value = Arg;
 		}
 	}
@@ -458,6 +462,16 @@ static void ML_TYPED_FN(ml_value_set_name, MLNamedTypeT, ml_named_type_t *Class,
 static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const char *Name) {
 	Class->Base.Name = Name;
 	stringmap_foreach(Class->Base.Exports, (void *)Name, (void *)ml_class_set_name_fn);
+}
+
+static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const char *Name) {
+	ml_value_t *NameField = stringmap_search(Object->Type->Base.Exports, "name");
+	if (!NameField) return;
+	if (!ml_is(NameField, MLMethodT)) return;
+	ml_field_info_t *Info = stringmap_search(Object->Type->Names, ml_method_name(NameField));
+	if (!Info) return;
+	ml_field_t *Field = &Object->Fields[Info->Index];
+	Field->Value = ml_string(Name, -1);
 }
 
 typedef struct ml_property_t {

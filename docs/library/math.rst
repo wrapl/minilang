@@ -222,8 +222,6 @@ math
       :> -0.905042091321087 + 0.130855248843389i
 
 
-.. _fun-random-seed:
-
 :mini:`fun random::seed(Arg₁: integer)`
    *TBD*
 
@@ -275,13 +273,9 @@ math
       math::square(10) :> 100
 
 
-.. _value-math-pi:
-
 :mini:`def math::pi: real`
    Pi.
 
-
-.. _value-math-e:
 
 :mini:`def math::e: real`
    Euler's constant.
@@ -294,8 +288,6 @@ math
 
       2.3 ^ (1 + 2i) :> -0.218221674358723 + 2.28962427066977i
 
-
-.. _type-random:
 
 :mini:`type random < function`
    *TBD*

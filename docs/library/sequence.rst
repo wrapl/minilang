@@ -26,8 +26,6 @@ sequence
       :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
-.. _type-chained:
-
 :mini:`type chained < function, sequence`
    A chained function or sequence,  consisting of a base function or sequence and any number of additional functions or filters.
    
@@ -35,8 +33,6 @@ sequence
    
    Filters do not affect the result but will shortcut a function call or skip an iteration if :mini:`nil` is returned. I.e. filters remove values from a sequence that fail a condition without affecting the values that pass.
 
-
-.. _fun-chained:
 
 :mini:`fun chained(Base: any, Fn₁, : function, ...): chained`
    Returns a new chained function or sequence with base :mini:`Base` and additional functions or filters :mini:`Fn₁,  ...,  Fnₙ`.
@@ -61,8 +57,6 @@ sequence
       F("cake") :> "CAKECAKECAKE"
 
 
-.. _type-grouped:
-
 :mini:`type grouped < sequence`
    *TBD*
 
@@ -70,8 +64,6 @@ sequence
 :mini:`meth (Arg₁: integer::range) & (Arg₂: integer::range)`
    *TBD*
 
-
-.. _type-iterator:
 
 :mini:`type iterator`
    An iterator.
@@ -89,13 +81,9 @@ sequence
    Returns the current value produced by :mini:`Iterator`.
 
 
-.. _type-sequence:
-
 :mini:`type sequence`
    The base type for any sequence value.
 
-
-.. _fun-all:
 
 :mini:`fun all(Sequence: sequence): some | nil`
    Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Sequence`. Otherwise returns :mini:`some`. If :mini:`Sequence` is empty,  then :mini:`some` is returned.
@@ -106,8 +94,6 @@ sequence
       all([1, 2, nil, 4]) :> nil
       all([]) :> some
 
-
-.. _fun-batch:
 
 :mini:`fun batch(Sequence: sequence, Size: integer, Shift?: integer, Function: function): sequence`
    Returns a new sequence that calls :mini:`Function` with each batch of :mini:`Size` values produced by :mini:`Sequence` and produces the results. If a :mini:`Shift` is provided then :mini:`Size - Shift` values of each batch come from the previous batch.
@@ -120,8 +106,6 @@ sequence
       :> [(1, 2, 3, 4), (3, 4, 5, 6), (5, 6, 7, 8), (7, 8, 9, 10), (9, 10, 11, 12), (11, 12, 13, 14), (13, 14, 15, 16), (15, 16, 17, 18), (17, 18, 19, 20)]
 
 
-.. _fun-count:
-
 :mini:`fun count(Sequence: sequence): integer`
    Returns the count of the values produced by :mini:`Sequence`. For some types of sequences (e.g. :mini:`list`,  :mini:`map`,  etc),  the count is simply retrieved. For all other types,  the sequence is iterated and the total number of values counted.
 
@@ -131,8 +115,6 @@ sequence
       count(1 .. 10 ->? (2 | _)) :> 5
 
 
-.. _fun-count2:
-
 :mini:`fun count2(Sequence: sequence): map`
    Returns a map of the values produced by :mini:`Sequence` with associated counts.
 
@@ -140,8 +122,6 @@ sequence
 
       count2("banana") :> {"b" is 1, "a" is 3, "n" is 2}
 
-
-.. _fun-fold:
 
 :mini:`fun fold(Sequence: sequence): sequence`
    Returns a new sequence that treats alternating values produced by :mini:`Sequence` as keys and values respectively.
@@ -151,8 +131,6 @@ sequence
       map(fold(1 .. 10))
       :> {1 is 2, 3 is 4, 5 is 6, 7 is 8, 9 is 10}
 
-
-.. _fun-grid:
 
 :mini:`fun grid(Sequence₁, : sequence, ..., Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁,  V₂,  ...,  Vₙ)` for all possible combinations of :mini:`V₁,  ...,  Vₙ`,  where :mini:`Vᵢ` are the values produced by :mini:`Sequenceᵢ`.
@@ -165,13 +143,9 @@ sequence
       :> ["c", "a", "k", "e", "cc", "aa", "kk", "ee", "ccc", "aaa", "kkk", "eee"]
 
 
-.. _fun-iterate:
-
 :mini:`fun iterate(Sequence: sequence): iterator | nil`
    Create an iterator for :mini:`Sequence`. Returns :mini:`nil` is :mini:`Sequence` is empty.
 
-
-.. _fun-key:
 
 :mini:`fun key(Sequence: sequence)`
    Returns a new sequence which produces the keys of :mini:`Sequence`.
@@ -182,8 +156,6 @@ sequence
       :> ["A", "B", "C"]
 
 
-.. _fun-max:
-
 :mini:`fun max(Sequence: sequence): any | nil`
    Returns the largest value (using :mini:`:max`) produced by :mini:`Sequence`.
 
@@ -191,8 +163,6 @@ sequence
 
       max([1, 5, 2, 10, 6]) :> 10
 
-
-.. _fun-max2:
 
 :mini:`fun max2(Sequence: sequence): tuple | nil`
    Returns a tuple with the key and value of the largest value (using :mini:`>`) produced by :mini:`Sequence`.  Returns :mini:`nil` if :mini:`Sequence` is empty.
@@ -202,8 +172,6 @@ sequence
       max2([1, 5, 2, 10, 6]) :> (4, 10)
 
 
-.. _fun-min:
-
 :mini:`fun min(Sequence: sequence): any | nil`
    Returns the smallest value (using :mini:`:min`) produced by :mini:`Sequence`.
 
@@ -211,8 +179,6 @@ sequence
 
       min([1, 5, 2, 10, 6]) :> 1
 
-
-.. _fun-min2:
 
 :mini:`fun min2(Sequence: sequence): tuple | nil`
    Returns a tuple with the key and value of the smallest value (using :mini:`<`) produced by :mini:`Sequence`.  Returns :mini:`nil` if :mini:`Sequence` is empty.
@@ -222,13 +188,9 @@ sequence
       min2([1, 5, 2, 10, 6]) :> (1, 1)
 
 
-.. _fun-pair:
-
 :mini:`fun pair(Sequence₁: sequence, Sequence₂: sequence): sequence`
    Returns a new sequence that produces the values from :mini:`Sequence₁` as keys and the values from :mini:`Sequence₂` as values.
 
-
-.. _fun-prod:
 
 :mini:`fun prod(Sequence: sequence): any | nil`
    Returns the product of the values (using :mini:`*`) produced by :mini:`Sequence`.
@@ -237,8 +199,6 @@ sequence
 
       prod([1, 5, 2, 10, 6]) :> 600
 
-
-.. _fun-reduce:
 
 :mini:`fun reduce(Initial?: any, Sequence: sequence, Fn: function): any | nil`
    Returns :mini:`Fn(Fn( ... Fn(Initial,  V₁),  V₂) ...,  Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Sequence`.
@@ -251,8 +211,6 @@ sequence
       :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
-.. _fun-reduce2:
-
 :mini:`fun reduce2(Initial?: any, Sequence: sequence, Fn: function): any | nil`
    Returns :mini:`Fn(Fn( ... Fn(Initial,  K₁,  V₁),  K₂,  V₂) ...,  Kₙ,  Vₙ)` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Sequence`.
    If :mini:`Initial` is omitted,  a tuple with the first key and value produced by :mini:`Sequence` is used.
@@ -263,8 +221,6 @@ sequence
       :> [(1, c), (2, a), (3, k), (4, e)]
 
 
-.. _fun-some:
-
 :mini:`fun some(Sequence: sequence): any | nil`
    Returns the first value produced by :mini:`Sequence` that is not :mini:`nil`.
 
@@ -274,8 +230,6 @@ sequence
       some([nil, nil, nil, nil]) :> nil
 
 
-.. _fun-sum:
-
 :mini:`fun sum(Sequence: sequence): any | nil`
    Returns the sum of the values (using :mini:`+`) produced by :mini:`Sequence`.
 
@@ -283,8 +237,6 @@ sequence
 
       sum([1, 5, 2, 10, 6]) :> 24
 
-
-.. _fun-swap:
 
 :mini:`fun swap(Sequence: sequence)`
    Returns a new sequence which swaps the keys and values produced by :mini:`Sequence`.
@@ -295,8 +247,6 @@ sequence
       :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
 
 
-.. _fun-unfold:
-
 :mini:`fun unfold(Sequence: sequence): sequence`
    Returns a new sequence that treats produces alternatively the keys and values produced by :mini:`Sequence`.
 
@@ -305,8 +255,6 @@ sequence
       list(unfold("cake")) :> [1, "c", 2, "a", 3, "k", 4, "e"]
 
 
-.. _fun-unique:
-
 :mini:`fun unique(Sequence: sequence): sequence`
    Returns an sequence that returns the unique values produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
 
@@ -314,8 +262,6 @@ sequence
 
       list(unique("banana")) :> ["b", "a", "n"]
 
-
-.. _fun-unpack:
 
 :mini:`fun unpack(Sequence: sequence): sequence`
    Returns a new sequence unpacks each value generated by :mini:`Sequence` as keys and values respectively.
@@ -326,8 +272,6 @@ sequence
       map(unpack(L)) :> {"A" is "a", "B" is "b", "C" is "c"}
 
 
-.. _fun-weave:
-
 :mini:`fun weave(Sequence₁, : sequence, ...): sequence`
    Returns a new sequence that produces interleaved values :mini:`Vᵢ` from each of :mini:`Sequenceᵢ`.
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
@@ -336,8 +280,6 @@ sequence
 
       list(weave(1 .. 3, "cake")) :> [1, "c", 2, "a", 3, "k"]
 
-
-.. _fun-zip:
 
 :mini:`fun zip(Sequence₁, : sequence, ..., Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁₁,  ...,  Vₙ₁),  Function(V₁₂,  ...,  Vₙ₂),  ...` where :mini:`Vᵢⱼ` is the :mini:`j`-th value produced by :mini:`Sequenceᵢ`.
@@ -348,8 +290,6 @@ sequence
       list(zip(1 .. 3, "cake", tuple))
       :> [(1, c), (2, a), (3, k)]
 
-
-.. _fun-zip2:
 
 :mini:`fun zip2(Sequence₁, : sequence, ..., KeyFn: any, ValueFn: any): sequence`
    Returns a new sequence that produces :mini:`KeyFn(K₁₁,  ...,  Kₙ₁) - ValueFn(V₁₁,  ...,  Vₙ₁),  ...` where :mini:`Kᵢⱼ - Vᵢⱼ` are the :mini:`j`-th key and value produced by :mini:`Sequenceᵢ`.
@@ -577,7 +517,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "k"
+      random("cake") :> "a"
       random([]) :> nil
 
 
@@ -593,8 +533,6 @@ sequence
 :mini:`meth (Arg₁: sequence):split(Arg₂: function)`
    *TBD*
 
-
-.. _type-split:
 
 :mini:`type split < sequence`
    *TBD*

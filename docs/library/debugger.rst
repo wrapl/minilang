@@ -9,8 +9,6 @@ debugger
 
 .. rst-class:: mini-api
 
-.. _fun-debugger:
-
 :mini:`fun debugger(Function: any): debugger`
    Returns a new debugger for :mini:`Function()`.
 

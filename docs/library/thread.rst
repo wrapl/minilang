@@ -9,19 +9,13 @@ thread
 
 .. rst-class:: mini-api
 
-.. _fun-thread-sleep:
-
 :mini:`fun thread::sleep(Duration: number): nil`
    Causes the current thread to sleep for :mini:`Duration` microseconds.
 
 
-.. _type-thread:
-
 :mini:`type thread`
    A thread.
 
-
-.. _fun-thread:
 
 :mini:`fun thread(Args: any, ..., Fn: function): thread`
    Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
@@ -32,13 +26,9 @@ thread
    Waits until the thread :mini:`Thread` completes and returns its result.
 
 
-.. _type-thread-channel:
-
 :mini:`type thread::channel`
    A channel for thread communication.
 
-
-.. _fun-thread-channel:
 
 :mini:`fun thread::channel(Capacity: integer): thread::channel`
    Creates a new channel with capacity :mini:`Capacity`.
@@ -53,13 +43,9 @@ thread
    Blocks if :mini:`Channel` is currently full.
 
 
-.. _type-thread-condition:
-
 :mini:`type thread::condition`
    A condition.
 
-
-.. _fun-thread-condition:
 
 :mini:`fun thread::condition(): thread::condition`
    Creates a new condition.
@@ -77,13 +63,9 @@ thread
    Waits for a signal on :mini:`Condition`,  using :mini:`Mutex` for synchronization.
 
 
-.. _type-thread-mutex:
-
 :mini:`type thread::mutex`
    A mutex.
 
-
-.. _fun-thread-mutex:
 
 :mini:`fun thread::mutex(): thread::mutex`
    Creates a new mutex.
@@ -100,8 +82,6 @@ thread
 :mini:`meth (Mutex: thread::mutex):unlock: thread::mutex`
    Unlocks :mini:`Mutex`.
 
-
-.. _type-thread-protected:
 
 :mini:`type thread::protected`
    A thread-safe (protected) wrapper for another value.

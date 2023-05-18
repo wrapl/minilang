@@ -9,8 +9,6 @@ socket
 
 .. rst-class:: mini-api
 
-.. _type-socket:
-
 :mini:`type socket < stream::fd`
    *TBD*
 
