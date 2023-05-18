@@ -42,7 +42,7 @@ function
    
       Use :mini:`$!` instead.
    
-   Returns a function equivalent to :mini:`fun(Args...) Function(List₁,  List₂,  ...,  Args...)`.
+   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
 
 
 :mini:`meth (Function: function) $ (Values: any, ...): function::partial`
@@ -50,7 +50,7 @@ function
 
 
 :mini:`meth (Function: function) $! (List: list): function::partial`
-   Returns a function equivalent to :mini:`fun(Args...) Function(List₁,  List₂,  ...,  Args...)`.
+   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
 
 
 :mini:`meth /(Function: function): function`
