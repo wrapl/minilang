@@ -329,7 +329,7 @@ end
 if MINILANG_GIR then
 	Objects:put(file("ml_gir.o"))
 	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
-	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0")]
+	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0 gio-2.0")]
 	InstallHeaders:put("ml_gir.h")
 end
 
