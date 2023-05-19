@@ -16,6 +16,8 @@ static ML_METHOD_DECL(FilterDuoMethod, "=>?");
 static ML_METHOD_DECL(SoloApplyMethod, "->!");
 static ML_METHOD_DECL(FilterSoloApplyMethod, "->!?");
 static ML_METHOD_DECL(ApplyMethod, "!");
+static ML_METHOD_DECL(WhileSoloMethod, "->|");
+static ML_METHOD_DECL(WhileDuoMethod, "=>|");
 static ML_METHOD_DECL(Precount, "precount");
 
 typedef struct ml_chained_state_t {
@@ -149,6 +151,13 @@ static void ml_chained_iterator_filter(ml_chained_iterator_t *State, ml_value_t 
 	return ml_chained_iterator_continue(State);
 }
 
+static void ml_chained_iterator_while(ml_chained_iterator_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
+	return ml_chained_iterator_continue(State);
+}
+
 static void ml_chained_iterator_value(ml_chained_iterator_t *State, ml_value_t *Value) {
 	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -198,6 +207,18 @@ static void ml_chained_iterator_continue(ml_chained_iterator_t *State) {
 		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
 		State->Base.run = (void *)ml_chained_iterator_filter;
+		return ml_call(State, Function, 2, State->Values);
+	} else if (Function == WhileSoloMethod) {
+		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+		State->Current = Entry + 2;
+		State->Base.run = (void *)ml_chained_iterator_while;
+		return ml_call(State, Function, 1, State->Values + 1);
+	} else if (Function == WhileDuoMethod) {
+		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+		State->Current = Entry + 2;
+		State->Base.run = (void *)ml_chained_iterator_while;
 		return ml_call(State, Function, 2, State->Values);
 	} else if (Function == SoloApplyMethod) {
 		Function = Entry[1];
@@ -456,6 +477,67 @@ ML_METHOD("=>?", MLChainedT, MLFunctionT) {
 	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = FilterDuoMethod;
+	Chained->Entries[N + 1] = Args[1];
+	return (ml_value_t *)Chained;
+}
+
+
+
+ML_METHOD("->|", MLSequenceT, MLFunctionT) {
+//<Base
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` while :mini:`F(V/j)` returns non-:mini:`nil`.
+//$= list(1 .. 10 ->? (5 !| _))
+//$= list(1 .. 10 ->| (5 !| _))
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = WhileSoloMethod;
+	Chained->Entries[2] = Args[1];
+	//Chained->Entries[3] = NULL;
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("->|", MLChainedT, MLFunctionT) {
+//!internal
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 3, ml_value_t *);
+	Chained->Type = MLChainedT;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N] = WhileSoloMethod;
+	Chained->Entries[N + 1] = Args[1];
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("=>|", MLSequenceT, MLFunctionT) {
+//<Base
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` while :mini:`F(K/j, V/j)` returns non-:mini:`nil`.
+//$= let M := map(1 .. 10 -> fun(X) X ^ 2 % 10)
+//$= map(M =>? fun(K, V) K + V < 15)
+//$= map(M =>| fun(K, V) K + V < 15)
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = WhileDuoMethod;
+	Chained->Entries[2] = Args[1];
+	//Chained->Entries[3] = NULL;
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("=>|", MLChainedT, MLFunctionT) {
+//!internal
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 3, ml_value_t *);
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N] = WhileDuoMethod;
 	Chained->Entries[N + 1] = Args[1];
 	return (ml_value_t *)Chained;
 }
@@ -2028,20 +2110,6 @@ ML_METHOD("provided", MLSequenceT, MLFunctionT) {
 // Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
 //$= list("banana")
 //$= list("banana" provided (_ != "n"))
-	ml_provided_t *Provided = new(ml_provided_t);
-	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
-	Provided->Value = Args[0];
-	Provided->Fn = Args[1];
-	return (ml_value_t *)Provided;
-}
-
-ML_METHOD("->|", MLSequenceT, MLFunctionT) {
-//<Sequence
-//<Fn
-//>sequence
-// Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
-//$= list("banana")
-//$= list("banana" ->| (_ != "n"))
 	ml_provided_t *Provided = new(ml_provided_t);
 	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
 	Provided->Value = Args[0];

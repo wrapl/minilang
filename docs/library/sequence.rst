@@ -356,13 +356,13 @@ sequence
       list(1 .. 10 ->? (2 | _)) :> [2, 4, 6, 8, 10]
 
 
-:mini:`meth (Sequence: sequence) ->| (Fn: function): sequence`
-   Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
+:mini:`meth (Base: sequence) ->| (F: function): sequence`
+   Returns a chained sequence equivalent to :mini:`(Kⱼ,  Vⱼ),  ...` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base` while :mini:`F(Vⱼ)` returns non-:mini:`nil`.
 
    .. code-block:: mini
 
-      list("banana") :> ["b", "a", "n", "a", "n", "a"]
-      list("banana" ->| (_ != "n")) :> ["b", "a"]
+      list(1 .. 10 ->? (5 !| _)) :> [1, 2, 3, 4, 6, 7, 8, 9]
+      list(1 .. 10 ->| (5 !| _)) :> [1, 2, 3, 4]
 
 
 :mini:`meth (Sequence: sequence) // (Initial: any, Fn: function): sequence`
@@ -419,6 +419,19 @@ sequence
       :> {1 is 1, 2 is 4, 3 is 9, 4 is 6, 5 is 5, 6 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
       map(M =>? !=)
       :> {2 is 4, 3 is 9, 4 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
+
+
+:mini:`meth (Base: sequence) =>| (F: function): sequence`
+   Returns a chained sequence equivalent to :mini:`(Kⱼ,  Vⱼ),  ...` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base` while :mini:`F(Kⱼ,  Vⱼ)` returns non-:mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := map(1 .. 10 -> fun(X) X ^ 2 % 10)
+      :> {1 is 1, 2 is 4, 3 is 9, 4 is 6, 5 is 5, 6 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
+      map(M =>? fun(K, V) K + V < 15)
+      :> {1 is 1, 2 is 4, 3 is 9, 4 is 6, 5 is 5, 6 is 6, 8 is 4, 9 is 1, 10 is 0}
+      map(M =>| fun(K, V) K + V < 15)
+      :> {1 is 1, 2 is 4, 3 is 9, 4 is 6, 5 is 5, 6 is 6}
 
 
 :mini:`meth (Sequence: sequence) ^ (Function: function): sequence`
@@ -517,7 +530,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "k"
+      random("cake") :> "a"
       random([]) :> nil
 
 
