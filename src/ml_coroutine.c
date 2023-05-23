@@ -84,3 +84,14 @@ void ml_coro_enter(ml_state_t *Caller, ml_callback_t Function, int Count, ml_val
 	ml_coro_entry_t Entry = {Function, Args, Count};
 	return ml_coro_resume(State, &Entry);
 }
+
+static void ml_cofunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
+	for (int I = Count; --I >= 0;) Args[I] = ml_deref(Args[I]);
+	return ml_coro_enter(Caller, Function->Callback, Count, Args);
+}
+
+ML_TYPE(MLCoFunctionT, (MLFunctionT), "co-function",
+//!internal
+	.call = (void *)ml_cofunction_call
+);
+

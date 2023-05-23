@@ -27,8 +27,8 @@ buffer
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:E09DEC78467F0000646472657373542C>
-      B + 8 :> <8:646472657373542C>
+      :> <16:00AA0902677F0000206E6F742063616C>
+      B + 8 :> <8:206E6F742063616C>
 
 
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`
@@ -93,6 +93,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:8074E078467F0000203C666C6F61742E>
+      buffer(16) :> <16:80940102677F00004C5F434F4D504C45>
 
 
