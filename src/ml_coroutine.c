@@ -35,6 +35,12 @@ static void ml_coro_resume(ml_coro_state_t *State, ml_value_t *Value) {
 	State->Value = Value;
 	Current = State;
 	coro_transfer(State->Return, State->Context);
+	if (State->Count == -1) {
+		State->Next = CoroCache;
+		CoroCache = State;
+		ML_CONTINUE(State->Base.Caller, State->Value);
+	}
+	return ml_call(State, State->Value, State->Count, State->Args);
 }
 
 static void ml_coro_start(ml_coro_state_t *State) {
@@ -58,12 +64,5 @@ void ml_coro_create(ml_state_t *Caller, ml_callback_t Function, int Count, ml_va
 	State->Function = Function;
 	State->Count = Count;
 	State->Args = Args;
-	Current = State;
-	coro_transfer(State->Return, State->Context);
-	if (State->Count == -1) {
-		State->Next = CoroCache;
-		CoroCache = State;
-		ML_RETURN(State->Value);
-	}
-	return ml_call(State, State->Value, State->Count, State->Args);
+	return ml_coro_resume(State, MLNil);
 }
