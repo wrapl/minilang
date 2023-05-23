@@ -5,14 +5,11 @@
 
 #define STACK_SIZE (1 << 20)
 
-typedef struct ml_coro_state_t ml_coro_state_t;
-
 struct ml_coro_state_t {
 	ml_state_t Base;
 	ml_coro_state_t *Next;
-	ml_callback_t Function;
-	ml_value_t *Value, **Args;
-	int Count;
+	void *Data;
+	void (*Callback)(ml_coro_state_t *, void *);
 	coro_context Return[1];
 	coro_context Context[1];
 };
@@ -21,37 +18,60 @@ static
 #ifdef ML_THREADS
 __thread
 #endif
-ml_coro_state_t *CoroCache = NULL, *Current;
+ml_coro_state_t *CoroCache = NULL, *Current = NULL;
+
+void *ml_coro_escape(void *Data, void (*Callback)(ml_coro_state_t *, void *)) {
+	ml_coro_state_t *State = Current;
+	if (!State) return ml_error("StateError", "Must be called from a coroutine");
+	State->Callback = Callback;
+	State->Data = Data;
+	Current = NULL;
+	coro_transfer(State->Context, State->Return);
+	Current = State;
+	State->Callback = NULL;
+	return State->Data;
+}
+
+void ml_coro_resume(ml_coro_state_t *State, void *Data) {
+	State->Data = Data;
+	coro_transfer(State->Return, State->Context);
+	Current = NULL;
+	if (State->Callback) return State->Callback(State, State->Data);
+	State->Next = CoroCache;
+	CoroCache = State;
+	ML_CONTINUE(State->Base.Caller, State->Data);
+}
+
+typedef struct {
+	ml_value_t *Function, **Args;
+	int Count;
+} ml_coro_call_t;
+
+static void ml_coro_escape_call(ml_coro_state_t *State, ml_coro_call_t *Call) {
+	return ml_call(State, Call->Function, Call->Count, Call->Args);
+}
 
 ml_value_t *ml_coro_call(ml_value_t *Function, int Count, ml_value_t **Args) {
-	Current->Value = Function;
-	Current->Count = Count;
-	Current->Args = Args;
-	coro_transfer(Current->Context, Current->Return);
-	return Current->Value;
+	ml_coro_call_t Call = {Function, Args, Count};
+	return ml_coro_escape(&Call, (void *)ml_coro_escape_call);
 }
 
-static void ml_coro_resume(ml_coro_state_t *State, ml_value_t *Value) {
-	State->Value = Value;
-	Current = State;
-	coro_transfer(State->Return, State->Context);
-	if (State->Count == -1) {
-		State->Next = CoroCache;
-		CoroCache = State;
-		ML_CONTINUE(State->Base.Caller, State->Value);
-	}
-	return ml_call(State, State->Value, State->Count, State->Args);
-}
+typedef struct {
+	ml_callback_t Function;
+	ml_value_t **Args;
+	int Count;
+} ml_coro_entry_t;
 
 static void ml_coro_start(ml_coro_state_t *State) {
 	for (;;) {
-		State->Value = State->Function(State, State->Count, State->Args);
-		State->Count = -1;
+		Current = State;
+		ml_coro_entry_t *Entry = (ml_coro_entry_t *)State->Data;
+		State->Data = Entry->Function(State, Entry->Count, Entry->Args);
 		coro_transfer(State->Context, State->Return);
 	}
 }
 
-void ml_coro_create(ml_state_t *Caller, ml_callback_t Function, int Count, ml_value_t **Args) {
+void ml_coro_enter(ml_state_t *Caller, ml_callback_t Function, int Count, ml_value_t **Args) {
 	ml_coro_state_t *State = CoroCache;
 	if (!State) {
 		State = new(ml_coro_state_t);
@@ -61,8 +81,6 @@ void ml_coro_create(ml_state_t *Caller, ml_callback_t Function, int Count, ml_va
 	}
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Function = Function;
-	State->Count = Count;
-	State->Args = Args;
-	return ml_coro_resume(State, MLNil);
+	ml_coro_entry_t Entry = {Function, Args, Count};
+	return ml_coro_resume(State, &Entry);
 }
