@@ -99,12 +99,14 @@ gir::run(;) do
 		Buffer:get_bounds(Start, End)
 		let Text := Buffer:get_text(Start, End, false)
 		let P := parser()
-		:>P:permissive(true)
+		P:permissive(true)
 		P:source("test", 0)
 		P:input(Text)
 		let Expr := P:parse:ast
+		let Warnings := P:warnings
 		:>OutputBuffer:set_text(string(Expr), -1)
 		print('Expr = {Expr}\n')
+		print('Warnings = {Warnings}\n')
 		let Desc := string::buffer()
 		describe(Desc, "", Expr)
 		OutputBuffer:set_text(Desc:rest, -1)

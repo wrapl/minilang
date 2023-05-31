@@ -45,13 +45,16 @@ typedef struct mlc_expr_t mlc_expr_t;
 typedef const char *(*ml_reader_t)(void *);
 
 ml_parser_t *ml_parser(ml_reader_t Read, void *Data);
-void ml_parser_reset(ml_parser_t *Compiler);
-void ml_parser_input(ml_parser_t *Compiler, const char *Text);
-const char *ml_parser_name(ml_parser_t *Compiler);
-ml_source_t ml_parser_source(ml_parser_t *Compiler, ml_source_t Source);
+void ml_parser_reset(ml_parser_t *Parser);
+void ml_parser_permissive(ml_parser_t *Parser, int Permissive);
+ml_value_t *ml_parser_warnings(ml_parser_t *Parser);
+void ml_parser_input(ml_parser_t *Parser, const char *Text);
+const char *ml_parser_name(ml_parser_t *Parser);
+ml_source_t ml_parser_source(ml_parser_t *Parser, ml_source_t Source);
 ml_value_t *ml_parser_value(ml_parser_t *Parser);
-const char *ml_parser_clear(ml_parser_t *Compiler);
-void ml_parse_error(ml_parser_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
+const char *ml_parser_clear(ml_parser_t *Parser);
+//void ml_parse_error(ml_parser_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
+void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, ...);
 mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals);

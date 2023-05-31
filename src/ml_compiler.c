@@ -42,11 +42,11 @@ struct ml_parser_t {
 		mlc_expr_t *Expr;
 		const char *Ident;
 	};
+	ml_value_t *Warnings;
 	ml_source_t Source;
-	ml_token_t Token;
 	int Line;
-	int Permissive;
 	jmp_buf OnError;
+	ml_token_t Token;
 };
 
 struct ml_compiler_t {
@@ -228,7 +228,7 @@ ML_VALUE(MLExprGoto, MLExprGotoT);
 //!internal
 
 static void ml_unknown_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
-	MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "unknown expression cannot be compiled"));
+	MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Unknown expression cannot be compiled"));
 }
 
 static void ml_register_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
@@ -649,7 +649,7 @@ static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 			if (Loop->Name && !strcmp(Loop->Name, Expr->Name)) break;
 			Loop = Loop->Up;
 		}
-		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop named %s", Expr->Name));
+		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Exit not in loop named %s", Expr->Name));
 	}
 	if (Function->Top > Loop->NextTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
@@ -665,13 +665,13 @@ static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 
 static void ml_next_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_loop_t *Loop = Function->Loop;
-	if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "next not in loop"));
+	if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Next not in loop"));
 	if (Expr->Name) {
 		while (Loop) {
 			if (Loop->Name && !strcmp(Loop->Name, Expr->Name)) break;
 			Loop = Loop->Up;
 		}
-		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop named %s", Expr->Name));
+		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Exit not in loop named %s", Expr->Name));
 	}
 	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
@@ -748,13 +748,13 @@ static void ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	mlc_loop_t *Loop = Function->Loop;
-	if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop"));
+	if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Exit not in loop"));
 	if (Expr->Name) {
 		while (Loop) {
 			if (Loop->Name && !strcmp(Loop->Name, Expr->Name)) break;
 			Loop = Loop->Up;
 		}
-		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop named %s", Expr->Name));
+		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Exit not in loop named %s", Expr->Name));
 	}
 	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
@@ -1758,7 +1758,7 @@ static void ml_assign_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *
 }
 
 static void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
-	if (Function->Old < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "old must be used in assigment expression"));
+	if (Function->Old < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Old must be used in assigment expression"));
 	if (Flags & MLCF_PUSH) {
 		ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
 		LocalInst[1].Count = Function->Old - Function->Top;
@@ -1771,7 +1771,7 @@ static void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int 
 }
 
 static void ml_it_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
-	if (Function->It < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "it must be used in guard expression"));
+	if (Function->It < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "It must be used in guard expression"));
 	if (Flags & MLCF_PUSH) {
 		ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
 		LocalInst[1].Count = Function->It - Function->Top;
@@ -2488,7 +2488,7 @@ static void ml_guard_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *E
 		Frame->Guard = Expr->Child->Next;
 		return mlc_compile(Function, Expr->Child, MLCF_PUSH);
 	} else {
-		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "guard expression used outside of function call"));
+		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Guard expression used outside of function call"));
 	}
 }
 
@@ -3114,7 +3114,7 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Function->Compiler->Vars, Expr->Ident);
 	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident, Expr->Source, Expr->StartLine, Function->Mode);
 	if (!Value) {
-		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
+		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Identifier %s not declared", Expr->Ident));
 	}
 	if (ml_is_error(Value)) MLC_EXPR_ERROR(Expr, Value);
 	return ml_ident_expr_finish(Function, Expr, Value, Flags);
@@ -3502,7 +3502,7 @@ static void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *E
 			}
 		}
 	}
-	MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "identifier %s not defined", Expr->Ident));
+	MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Identifier %s not defined", Expr->Ident));
 }
 
 #include "ml_expr_types.c"
@@ -3691,6 +3691,14 @@ void ml_parser_reset(ml_parser_t *Parser) {
 	Parser->Next = "";
 }
 
+void ml_parser_permissive(ml_parser_t *Parser, int Permissive) {
+	Parser->Warnings = Permissive ? ml_list() : NULL;
+}
+
+ml_value_t *ml_parser_warnings(ml_parser_t *Parser) {
+	return Parser->Warnings;
+}
+
 void ml_parser_input(ml_parser_t *Parser, const char *Text) {
 	Parser->Next = Text;
 	++Parser->Line;
@@ -3702,7 +3710,7 @@ const char *ml_parser_clear(ml_parser_t *Parser) {
 	return Next;
 }
 
-void ml_parse_error(ml_parser_t *Parser, const char *Error, const char *Format, ...) {
+/*void ml_parse_error(ml_parser_t *Parser, const char *Error, const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	ml_value_t *Value = ml_errorv(Error, Format, Args);
@@ -3710,6 +3718,28 @@ void ml_parse_error(ml_parser_t *Parser, const char *Error, const char *Format, 
 	ml_error_trace_add(Value, Parser->Source);
 	Parser->Value = Value;
 	longjmp(Parser->OnError, 1);
+}*/
+
+void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, ...) {
+	if (!Parser->Warnings) {
+		va_list Args;
+		va_start(Args, Format);
+		ml_value_t *Value = ml_errorv(Error, Format, Args);
+		va_end(Args);
+		ml_error_trace_add(Value, Parser->Source);
+		Parser->Value = Value;
+		longjmp(Parser->OnError, 1);
+	}
+	char *Message;
+	va_list Args;
+	va_start(Args, Format);
+	int Length = GC_vasprintf(&Message, Format, Args);
+	va_end(Args);
+	ml_list_put(Parser->Warnings, ml_tuplev(3,
+		ml_string(Parser->Source.Name, -1),
+		ml_integer(Parser->Line),
+		ml_string(Message, Length)
+	));
 }
 
 typedef enum {
@@ -3732,7 +3762,9 @@ static inline uint8_t ml_nibble(ml_parser_t *Parser, char C) {
 	case '0' ... '9': return C - '0';
 	case 'A' ... 'F': return (C - 'A') + 10;
 	case 'a' ... 'f': return (C - 'a') + 10;
-	default: ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
+	default:
+		ml_parse_warn(Parser, "ParseError", "Invalid character in escape sequence");
+		return 0;
 	}
 }
 
@@ -3745,11 +3777,9 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 		if (!C) {
 			End = Parser->Read(Parser->Data);
 			if (!End) {
-				if (Parser->Permissive) {
-					Parser->Next = "";
-					goto eoi;
-				}
-				ml_parse_error(Parser, "ParseError", "end of input while parsing string");
+				ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+				Parser->Next = "";
+				goto eoi;
 			}
 			++Parser->Line;
 		} else if (C == '\'') {
@@ -3767,8 +3797,8 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			Parser->Next = End;
 			mlc_string_part_t *Part = new(mlc_string_part_t);
 			ml_accept_arguments(Parser, MLT_RIGHT_BRACE, &Part->Child);
-			if (!Part->Child && !Parser->Permissive) {
-				ml_parse_error(Parser, "ParserError", "empty string expression");
+			if (!Part->Child) {
+				ml_parse_warn(Parser, "ParserError", "Empty string expression");
 			}
 			Part->Line = Parser->Source.Line;
 			End = Parser->Next;
@@ -3814,7 +3844,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			case '{': ml_stringbuffer_put(Buffer, '{'); break;
 			case '\n': break;
 			case 0:
-				if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "end of line while parsing string");
+				ml_parse_warn(Parser, "ParseError", "End of line while parsing string");
 				Parser->Next = "";
 				goto eoi;
 			}
@@ -3951,12 +3981,21 @@ static inline char *ml_scan_utf8(char *D, uint32_t Code) {
 
 static int ml_scan_string(ml_parser_t *Parser) {
 	const char *End = Parser->Next;
+	int Closed = 1;
 	while (End[0] != '\"') {
 		if (!End[0]) {
-			if (Parser->Permissive) {--End; break;}
-			ml_parse_error(Parser, "ParseError", "End of input while parsing string");
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			Closed = 0;
+			break;
 		}
-		if (End[0] == '\\') ++End;
+		if (End[0] == '\\') {
+			++End;
+			if (!End[0]) {
+				ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+				Closed = 0;
+				break;
+			}
+		}
 		++End;
 	}
 	int Length = End - Parser->Next;
@@ -4008,7 +4047,7 @@ static int ml_scan_string(ml_parser_t *Parser) {
 eoi:
 	*D = 0;
 	Parser->Ident = Quoted;
-	Parser->Next = End + 1;
+	Parser->Next = End + Closed;
 	return D - Quoted;
 }
 
@@ -4016,7 +4055,8 @@ static int ml_scan_raw_string(ml_parser_t *Parser) {
 	const char *End = Parser->Next;
 	while (End[0] != '\"') {
 		if (!End[0]) {
-			ml_parse_error(Parser, "ParseError", "End of input while parsing string");
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
 		}
 		if (End[0] == '\\') ++End;
 		++End;
@@ -4101,7 +4141,10 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			//Ident[Length] = 0;
 			if (End[0] == '\"') {
 				string_fn_t StringFn = stringmap_search(StringFns, Ident);
-				if (!StringFn) ml_parse_error(Parser, "ParseError", "Unknown string prefix: %s", Ident);
+				if (!StringFn) {
+					ml_parse_warn(Parser, "ParseError", "Unknown string prefix: %s", Ident);
+					StringFn = ml_string;
+				}
 				Parser->Next = End + 1;
 				int Length = ml_scan_raw_string(Parser);
 				ml_value_t *Value = StringFn(Parser->Ident, Length);
@@ -4233,8 +4276,9 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 					case 0:
 						Next = Parser->Read(Parser->Data);
 						if (!Next) {
-							Parser->Next = "";
-							ml_parse_error(Parser, "ParseError", "End of input in comment");
+							Parser->Next = Next = "";
+							ml_parse_warn(Parser, "ParseError", "End of input in comment");
+							Level = 0;
 						}
 						break;
 					case '>':
@@ -4291,7 +4335,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			return Parser->Token;
 		}
 		DO_CHAR_OTHER: {
-			if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "unexpected character <%c>", Char);
+			ml_parse_warn(Parser, "ParseError", "Unexpected character <%c>", Char);
 			++Next;
 		}
 	}
@@ -4344,17 +4388,14 @@ static inline int ml_parse2(ml_parser_t *Parser, ml_token_t Token) {
 
 static void ml_accept(ml_parser_t *Parser, ml_token_t Token) {
 	if (ml_parse2(Parser, Token)) return;
-	if (!Parser->Permissive) {
-		if (Parser->Token == MLT_IDENT) {
-			ml_parse_error(Parser, "ParseError", "Expected %s not %s (%s)", MLTokens[Token], MLTokens[Parser->Token], Parser->Ident);
-		} else {
-			ml_parse_error(Parser, "ParseError", "Expected %s not %s", MLTokens[Token], MLTokens[Parser->Token]);
-		}
+	if (Parser->Token == MLT_IDENT) {
+		ml_parse_warn(Parser, "ParseError", "Expected %s not %s (%s)", MLTokens[Token], MLTokens[Parser->Token], Parser->Ident);
 	} else {
-		if (Token == MLT_IDENT) {
-			Parser->Token = MLT_NONE;
-			Parser->Ident = "?";
-		}
+		ml_parse_warn(Parser, "ParseError", "Expected %s not %s", MLTokens[Token], MLTokens[Parser->Token]);
+	}
+	if (Token == MLT_IDENT) {
+		Parser->Token = MLT_NONE;
+		Parser->Ident = "?";
 	}
 }
 
@@ -4472,7 +4513,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 	MethodExpr->Value = MLMethodDefine;
 	mlc_expr_t *Method = ml_parse_term(Parser, 1);
 	if (!Method) {
-		if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "Expected <factor> not <%s>", MLTokens[Parser->Token]);
+		ml_parse_warn(Parser, "ParseError", "Expected <factor> not <%s>", MLTokens[Parser->Token]);
 		Method = new(mlc_expr_t);
 		Method->Source = Parser->Source.Name;
 		Method->StartLine = Method->EndLine = Parser->Source.Line;
@@ -4494,7 +4535,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 					ArgsSlot = &Arg->Next;
 					break;
 				} else {
-					ml_parse_error(Parser, "ParseError", "Expected <identfier> not %s (%s)", MLTokens[Parser->Token], Parser->Ident);
+					ml_parse_warn(Parser, "ParseError", "Expected <identfier> not %s (%s)", MLTokens[Parser->Token], Parser->Ident);
 				}
 			}
 			mlc_param_t *Param = ParamSlot[0] = new(mlc_param_t);
@@ -4587,9 +4628,8 @@ static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, 
 		} else if (Token == MLT_VALUE && ml_typeof(Parser->Value) == MLStringT) {
 			ml_next(Parser);
 			ml_names_add(Names, Parser->Value);
-		} else if (!Parser->Permissive) {
-			ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or string");
 		} else {
+			ml_parse_warn(Parser, "ParseError", "Argument names must be identifiers or string");
 			goto resume;
 		}
 		if (!ml_parse2(Parser, MLT_COLON)) ml_accept(Parser, MLT_IS);
@@ -4623,11 +4663,11 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 				} else if (Arg->compile == (void *)ml_value_expr_compile) {
 					ml_value_t *Name = ((mlc_value_expr_t *)Arg)->Value;
 					if (ml_typeof(Name) != MLStringT) {
-						ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or strings");
+						ml_parse_warn(Parser, "ParseError", "Argument names must be identifiers or strings");
 					}
 					ml_names_add(Names, Name);
 				} else {
-					ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or strings");
+					ml_parse_warn(Parser, "ParseError", "Argument names must be identifiers or strings");
 				}
 				ML_EXPR(NamesArg, value, value);
 				NamesArg->Value = Names;
@@ -5176,7 +5216,7 @@ with_name:
 					} else if (ml_parse2(Parser, MLT_OPERATOR)) {
 						Method = ml_method(Parser->Ident);
 					}
-					if (!Method) ml_parse_error(Parser, "ParseError", "Expected operator not %s", MLTokens[Parser->Token]);
+					if (!Method) ml_parse_warn(Parser, "ParseError", "Expected operator not %s", MLTokens[Parser->Token]);
 					IdentExpr->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
 					ML_EXPR(CallExpr, parent_value, const_call);
 					CallExpr->Value = Method;
@@ -5477,7 +5517,7 @@ static mlc_expr_t *ml_accept_term(ml_parser_t *Parser) {
 	ml_skip_eol(Parser);
 	mlc_expr_t *Expr = ml_parse_term(Parser, 0);
 	if (!Expr) {
-		if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "Expected <expression> not %s", MLTokens[Parser->Token]);
+		ml_parse_warn(Parser, "ParseError", "Expected <expression> not %s", MLTokens[Parser->Token]);
 		Expr = new(mlc_expr_t);
 		Expr->Source = Parser->Source.Name;
 		Expr->StartLine = Expr->EndLine = Parser->Source.Line;
@@ -5590,7 +5630,7 @@ static mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Lev
 	ml_skip_eol(Parser);
 	mlc_expr_t *Expr = ml_parse_expression(Parser, Level);
 	if (!Expr) {
-		if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "Expected <expression> not %s", MLTokens[Parser->Token]);
+		ml_parse_warn(Parser, "ParseError", "Expected <expression> not %s", MLTokens[Parser->Token]);
 		Expr = new(mlc_expr_t);
 		Expr->Source = Parser->Source.Name;
 		Expr->StartLine = Expr->EndLine = Parser->Source.Line;
@@ -5895,8 +5935,8 @@ static mlc_expr_t *ml_parse_block_expr(ml_parser_t *Parser, ml_accept_block_t *A
 			ml_accept_block_t Previous = *Accept;
 			mlc_expr_t *Child = ml_parse_block_expr(Parser, Accept);
 			if (!Child) {
-				if (Parser->Permissive) return Expr;
-				ml_parse_error(Parser, "ParseError", "Expected expression");
+				ml_parse_warn(Parser, "ParseError", "Expected expression");
+				return Expr;
 			}
 			if (Accept->VarsSlot != Previous.VarsSlot) {
 				Accept->ExprSlot[0] = Child;
@@ -5913,13 +5953,13 @@ static mlc_expr_t *ml_parse_block_expr(ml_parser_t *Parser, ml_accept_block_t *A
 			} else {
 				mlc_parent_expr_t *CallExpr = (mlc_parent_expr_t *)Child;
 				if (CallExpr->compile != ml_call_expr_compile) {
-					if (Parser->Permissive) return Expr;
-					ml_parse_error(Parser, "ParseError", "Invalid declaration");
+					ml_parse_warn(Parser, "ParseError", "Invalid declaration");
+					return Expr;
 				}
 				mlc_ident_expr_t *IdentExpr = (mlc_ident_expr_t *)CallExpr->Child;
 				if (!IdentExpr || IdentExpr->compile != ml_ident_expr_compile) {
-					if (Parser->Permissive) return Expr;
-					ml_parse_error(Parser, "ParseError", "Invalid declaration");
+					ml_parse_warn(Parser, "ParseError", "Invalid declaration");
+					return Expr;
 				}
 				mlc_local_t *Local = Accept->DefsSlot[0] = mlc_local_new(IdentExpr->Ident, IdentExpr->StartLine);
 				Accept->DefsSlot = &Local->Next;
@@ -6088,8 +6128,19 @@ ML_METHOD("permissive", MLParserT, MLBooleanT) {
 //<Permissive
 //>parser
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
-	Parser->Permissive = ml_boolean_value(Args[1]);
+	if (ml_boolean_value(Args[1])) {
+		Parser->Warnings = ml_list();
+	} else {
+		Parser->Warnings = NULL;
+	}
 	return (ml_value_t *)Parser;
+}
+
+ML_METHOD("warnings", MLParserT) {
+//<Parser
+//>parser
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	return Parser->Warnings ?: MLNil;
 }
 
 ML_METHOD("parse", MLParserT) {
@@ -6297,18 +6348,18 @@ typedef struct {
 } ml_global_t;
 
 static ml_value_t *ml_global_deref(ml_global_t *Global) {
-	//if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);
+	//if (!Global->Value) return ml_error("NameError", "Identifier %s not declared", Global->Name);
 	if (!Global->Value) return Global->Value = ml_uninitialized(Global->Name);
 	return ml_deref(Global->Value);
 }
 
 static void ml_global_assign(ml_state_t *Caller, ml_global_t *Global, ml_value_t *Value) {
-	if (!Global->Value) ML_ERROR("NameError", "identifier %s not declared", Global->Name);
+	if (!Global->Value) ML_ERROR("NameError", "Identifier %s not declared", Global->Name);
 	return ml_assign(Caller, Global->Value, Value);
 }
 
 static void ml_global_call(ml_state_t *Caller, ml_global_t *Global, int Count, ml_value_t **Args) {
-	if (!Global->Value) ML_ERROR("NameError", "identifier %s not declared", Global->Name);
+	if (!Global->Value) ML_ERROR("NameError", "Identifier %s not declared", Global->Name);
 	return ml_call(Caller, Global->Value, Count, Args);
 }
 
@@ -6733,15 +6784,15 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	static const char *DefaultParameters[] = {"Args", NULL};
 	if (!Parameters) Parameters = DefaultParameters;
 	FILE *File = fopen(FileName, "r");
-	if (!File) ML_ERROR("LoadError", "error opening %s", FileName);
+	if (!File) ML_ERROR("LoadError", "Error opening %s", FileName);
 	ml_parser_t *Parser = ml_parser(ml_load_file_read, File);
 	Parser->Source.Name = FileName;
 	const char *Line = ml_load_file_read(File);
-	if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
+	if (!Line) ML_ERROR("LoadError", "Empty file %s", FileName);
 	if (Line[0] == '#' && Line[1] == '!') {
 		Parser->Line = 2;
 		Line = ml_load_file_read(File);
-		if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
+		if (!Line) ML_ERROR("LoadError", "Empty file %s", FileName);
 	} else {
 		Parser->Line = 1;
 	}
