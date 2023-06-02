@@ -13,8 +13,6 @@ else
 end
 
 CFLAGS := old + [
-	"-march=native",
-	"-mtune=native",
 	"-momit-leaf-frame-pointer",
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
@@ -61,6 +59,8 @@ print('CC_TYPE = {CC_TYPE}\n')
 
 if CC_TYPE = "GCC" then
 	CFLAGS := old + [
+		"-march=native",
+		"-mtune=native",
 		"-mno-sse2",
 		"-mno-align-stringops",
 		"-minline-all-stringops",
