@@ -160,6 +160,8 @@ let InstallHeaders := [
 	"stringmap.h"
 ]
 
+var GC
+
 if MINILANG_STATICGC or defined("STATICGC") then
 	let Dir := file("gc")
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
@@ -182,6 +184,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 		execute("make clean")
 		execute("make -j4")
 	end
+	GC := Lib
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ['-I{Dir / "include"}']
 	LDFLAGS := old + ['-L{Dir / ".libs"}', '-pthread']
@@ -444,7 +447,7 @@ end
 
 if MINILANG_TRE then
 	let Dir := file("tre")
-	let Lib := file("tre/lib/.libs/libtre.a") => fun(Lib) do
+	let Lib := file("tre/lib/.libs/libtre.a")[GC] => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
 		execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzPf - --strip-components=1")
 		execute("patch", "-p0", "-i", file("tre.patch"))
@@ -495,7 +498,7 @@ end
 
 if MINILANG_TIMEZONES then
 	let Header := file("timelib_mem.h")
-	let TIMELIB := file("timelib/timelib.a")[Header] => fun(Target) do
+	let TIMELIB := file("timelib/timelib.a")[GC, Header] => fun(Target) do
 		file("timelib"):rmdir
 		execute("git clone https://github.com/derickr/timelib.git", Dir)
 		file("timelib"):chdir
