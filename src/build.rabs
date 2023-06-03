@@ -183,11 +183,12 @@ if MINILANG_STATICGC or defined("STATICGC") then
 		execute('CC={CC} ./configure', Configuration)
 		execute("make clean")
 		execute("make -j4")
+		execute("make install")
 	end
 	GC := Lib
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-I{Dir / "include"}']
-	LDFLAGS := old + ['-L{Dir / ".libs"}', '-pthread']
+	CFLAGS := old + ['-I{PATH / "include"}']
+	LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
