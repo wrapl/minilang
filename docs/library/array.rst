@@ -50,7 +50,7 @@ array
       let A := $[[1, 2, 3], [4, 5, 6]] :> 
       let B := $[[7, 8, 9], [10, 11, 12]] :> 
       array::hcat(A, B)
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`fun array::vcat(Array₁: array, ...): array`
@@ -61,7 +61,7 @@ array
       let A := $[[1, 2, 3], [4, 5, 6]] :> 
       let B := $[[7, 8, 9], [10, 11, 12]] :> 
       array::vcat(A, B)
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) != (B: any): array`
@@ -113,12 +113,12 @@ array
       let C := array([5, 10, 15]) :> 
       A * B :> 
       B * A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A * C :> 
       C * A :> 
       B * C :> 
       C * B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) * (B: complex): array`
@@ -158,10 +158,10 @@ array
       let B := array([[7, 2], [4, 11]]) :> 
       A:shape :> [3]
       B:shape
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       let C := A ** B :> 
       C:shape
-      :> error("CompilerError", "identifier C not declared")
+      :> error("CompilerError", "Identifier C not declared")
 
 
 :mini:`meth (A: array) + (B: array): array`
@@ -180,12 +180,12 @@ array
       let C := array([5, 10, 15]) :> 
       A + B :> 
       B + A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A + C :> 
       C + A :> 
       B + C :> 
       C + B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) + (B: complex): array`
@@ -225,10 +225,10 @@ array
       let B := array([[7, 2], [4, 11]]) :> 
       A:shape :> [3]
       B:shape
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       let C := A ++ B :> 
       C:shape
-      :> error("CompilerError", "identifier C not declared")
+      :> error("CompilerError", "Identifier C not declared")
 
 
 :mini:`meth -(Array: array): array`
@@ -251,12 +251,12 @@ array
       let C := array([5, 10, 15]) :> 
       A - B :> 
       B - A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A - C :> 
       C - A :> 
       B - C :> 
       C - B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) - (B: complex): array`
@@ -296,10 +296,10 @@ array
       let B := array([[7, 2], [4, 11]]) :> 
       A:shape :> [3]
       B:shape
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       let C := A -- B :> 
       C:shape
-      :> error("CompilerError", "identifier C not declared")
+      :> error("CompilerError", "Identifier C not declared")
 
 
 :mini:`meth (A: array) . (B: array): array`
@@ -322,12 +322,12 @@ array
       let C := array([5, 10, 15]) :> 
       A / B :> 
       B / A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A / C :> 
       C / A :> 
       B / C :> 
       C / B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) / (B: complex): array`
@@ -367,10 +367,10 @@ array
       let B := array([[7, 2], [4, 11]]) :> 
       A:shape :> [3]
       B:shape
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       let C := A // B :> 
       C:shape
-      :> error("CompilerError", "identifier C not declared")
+      :> error("CompilerError", "Identifier C not declared")
 
 
 :mini:`meth (A: array) /\ (B: array): array`
@@ -389,12 +389,12 @@ array
       let C := array([5, 10, 15]) :> 
       A /\ B :> 
       B /\ A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A /\ C :> 
       C /\ A :> 
       B /\ C :> 
       C /\ B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) /\ (B: integer): array`
@@ -558,12 +558,12 @@ array
       let C := array([5, 10, 15]) :> 
       A >< B :> 
       B >< A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A >< C :> 
       C >< A :> 
       B >< C :> 
       C >< B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) >< (B: integer): array`
@@ -644,7 +644,7 @@ array
       A[[(1, 2, 3), (2, 1, 1)]] :> 
       let B := A > 10 :> 
       type(B)
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A[B] :> 
       let C := A:maxidx(2) :> 
       type(C) :> 
@@ -672,12 +672,12 @@ array
       let C := array([5, 10, 15]) :> 
       A \/ B :> 
       B \/ A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A \/ C :> 
       C \/ A :> 
       B \/ C :> 
       C \/ B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array) \/ (B: integer): array`
@@ -748,12 +748,12 @@ array
       let C := array([5, 10, 15]) :> 
       A max B :> 
       B max A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A max C :> 
       C max A :> 
       B max C :> 
       C max B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array):max(B: integer): array`
@@ -828,12 +828,12 @@ array
       let C := array([5, 10, 15]) :> 
       A min B :> 
       B min A
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       A min C :> 
       C min A :> 
       B min C :> 
       C min B
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
 
 
 :mini:`meth (A: array):min(B: integer): array`
@@ -1342,7 +1342,7 @@ array
       let A := $[[1, 2, 3], [4, 5, 6]] :> 
       let B := $[[7, 8, 9], [10, 11, 12]] :> 
       array::cat(1, A, B)
-      :> error("CompilerError", "identifier B not declared")
+      :> error("CompilerError", "Identifier B not declared")
       array::cat(2, A, B) :> 
 
 
@@ -1703,7 +1703,7 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:403661AAC47F000055524E2856616C75>
+      :> <16:A016E1AFBF7F0000732D3E466E735B4D>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> 
 
 

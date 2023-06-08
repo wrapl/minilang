@@ -3117,8 +3117,8 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
 	stringmap_insert(MLExternalT->Exports, "default", MLExternalDefault);
+	stringmap_insert(MLExternalT->Exports, "some", MLSome);
 	ml_externals_default_add("any", MLAnyT);
-	ml_externals_default_add("some", MLSome);
 	ml_externals_default_add("type", MLTypeT);
 	ml_externals_default_add("function", MLFunctionT);
 	ml_externals_default_add("sequence", MLSequenceT);

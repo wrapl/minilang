@@ -91,6 +91,10 @@ general
    Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
 
 
+:mini:`type list2 < sequence`
+   *TBD*
+
+
 :mini:`type visitor < function`
    Used to apply a transformation recursively to values.
    

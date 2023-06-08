@@ -986,6 +986,13 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_cbor_writer_t *Writer, ml_
 	for (int I = 0; I < Info->NumUpValues; ++I) ml_cbor_write(Writer, Closure->UpValues[I]);
 }
 
+static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Global) {
+	minicbor_write_tag(Writer, 27);
+	minicbor_write_array(Writer, 1);
+	minicbor_write_string(Writer, 4);
+	Writer->WriteFn(Writer->Data, (void *)"some", 4);
+}
+
 static void ML_TYPED_FN(ml_cbor_write, MLGlobalT, ml_cbor_writer_t *Writer, ml_value_t *Global) {
 	ml_cbor_write(Writer, ml_global_get(Global));
 }

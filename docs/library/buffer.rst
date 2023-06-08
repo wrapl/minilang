@@ -27,7 +27,7 @@ buffer
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:009E65AAC47F0000646472657373542C>
+      :> <16:C066D8AFBF7F0000646472657373542C>
       B + 8 :> <8:646472657373542C>
 
 
@@ -93,6 +93,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:80C45AAAC47F0000203C666C6F61742E>
+      buffer(16) :> <16:E06DD8AFBF7F0000203C666C6F61742E>
 
 

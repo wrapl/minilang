@@ -116,6 +116,7 @@ hierarchy
       "any":e -> "map::node":w;
       "map::node":e -> "map::node::mutable":w;
       "any":e -> "map::node::mutable":w;
+      "sequence":e -> "list2":w;
       "sequence":e -> "list":w;
       "list":e -> "list::mutable":w;
       "any":e -> "list::node":w;
