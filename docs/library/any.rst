@@ -18,7 +18,7 @@ any
 
 
 :mini:`meth (Arg₁: any) != (Arg₂: any, Arg₃: any, ...): any | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+   Returns :mini:`Argₙ` if :mini:`Arg₁ != Argᵢ` for i = 2,  ...,  n and :mini:`nil` otherwise.
 
 
 :mini:`meth #(Value: any): integer`
@@ -26,11 +26,11 @@ any
 
 
 :mini:`meth (Arg₁: any) < (Arg₂: any, Arg₃: any, ...): any | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+   Returns :mini:`Argₙ` if :mini:`Arg₁ < Arg₂ < ... < Argₙ` and :mini:`nil` otherwise.
 
 
 :mini:`meth (Arg₁: any) <= (Arg₂: any, Arg₃: any, ...): any | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+   Returns :mini:`Argₙ` if :mini:`Arg₁ <= Arg₂ <= ... <= Argₙ` and :mini:`nil` otherwise.
 
 
 :mini:`meth (Value₁: any) <> (Value₂: any): integer`
@@ -43,15 +43,15 @@ any
 
 
 :mini:`meth (Arg₁: any) = (Arg₂: any, Arg₃: any, ...): any | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+   Returns :mini:`Argₙ` if :mini:`Arg₁ = Arg₂ = ... = Argₙ` and :mini:`nil` otherwise.
 
 
 :mini:`meth (Arg₁: any) > (Arg₂: any, Arg₃: any, ...): any | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+   Returns :mini:`Argₙ` if :mini:`Arg₁ > Arg₂ > ... > Argₙ` and :mini:`nil` otherwise.
 
 
 :mini:`meth (Arg₁: any) >= (Arg₂: any, Arg₃: any, ...): any | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+   Returns :mini:`Argₙ` if :mini:`Arg₁ >= Arg₂ >= ... >= Argₙ` and :mini:`nil` otherwise.
 
 
 :mini:`meth (Value: any):in(Type: type): Value | nil`

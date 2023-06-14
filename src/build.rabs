@@ -124,6 +124,7 @@ let Objects := [
 	file("ml_debugger.o"),
 	file("ml_file.o"),
 	file("ml_list.o"),
+	file("ml_list2.o"),
 	file("ml_map.o"),
 	file("ml_method.o"),
 	file("ml_number.o"),

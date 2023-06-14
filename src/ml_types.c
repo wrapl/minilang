@@ -1154,10 +1154,10 @@ static void ml_compare_state_run(ml_compare_state_t *State, ml_value_t *Result) 
 	}
 }
 
-#define ml_comp_any_any_any(NAME) \
+#define ml_comp_any_any_any(NAME, SYMBOL) \
 ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
 /*>any|nil
-// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+// Returns :mini:`Arg/n` if :mini:`Arg/1 SYMBOL Arg/2 SYMBOL ... SYMBOL Arg/n` and :mini:`nil` otherwise.
 */\
 	ml_compare_state_t *State = xnew(ml_compare_state_t, Count - 1, ml_value_t *); \
 	State->Base.Caller = Caller; \
@@ -1170,12 +1170,36 @@ ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
 	return ml_call((ml_state_t *)State, State->Comparison, 2, Args); \
 }
 
-ml_comp_any_any_any("=");
-ml_comp_any_any_any("!=");
-ml_comp_any_any_any("<");
-ml_comp_any_any_any("<=");
-ml_comp_any_any_any(">");
-ml_comp_any_any_any(">=");
+ml_comp_any_any_any("=", =);
+ml_comp_any_any_any("<", <);
+ml_comp_any_any_any("<=", <=);
+ml_comp_any_any_any(">", >);
+ml_comp_any_any_any(">=", >=);
+
+static void ml_distinct_state_run(ml_compare_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
+	State->Args[0] = State->Comparison;
+	if (++State->Args == State->End) {
+		return ml_call(State->Base.Caller, NotEqualMethod, 2, State->Args - 1);
+	} else {
+		return ml_call((ml_state_t *)State, NotEqualMethod, 2, State->Args - 1);
+	}
+}
+
+ML_METHODVX("!=", MLAnyT, MLAnyT, MLAnyT) {
+//>any|nil
+// Returns :mini:`Arg/n` if :mini:`Arg/1 != Arg/i` for i = 2, ..., n and :mini:`nil` otherwise.
+	ml_compare_state_t *State = xnew(ml_compare_state_t, Count - 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_distinct_state_run;
+	State->Comparison = Args[0];
+	for (int I = 2; I < Count; ++I) State->Values[I - 1] = Args[I];
+	State->Args = State->Values;
+	State->End = State->Args + (Count - 2);
+	return ml_call((ml_state_t *)State, NotEqualMethod, 2, Args);
+}
 
 typedef struct {
 	ml_state_t Base;
