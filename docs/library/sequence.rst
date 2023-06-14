@@ -57,6 +57,10 @@ sequence
       F("cake") :> "CAKECAKECAKE"
 
 
+:mini:`meth (Arg₁: function):repeat`
+   *TBD*
+
+
 :mini:`type grouped < sequence`
    *TBD*
 
@@ -530,7 +534,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "e"
+      random("cake") :> "a"
       random([]) :> nil
 
 

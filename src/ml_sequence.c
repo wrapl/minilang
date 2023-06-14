@@ -1756,6 +1756,62 @@ ML_METHOD("@", MLAnyT, MLFunctionT) {
 	return (ml_value_t *)Repeated;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Function;
+} ml_function_sequence_t;
+
+ML_TYPE(MLFunctionSequenceT, (MLSequenceT), "function-sequence");
+//!internal
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Function;
+	ml_value_t *Value;
+	int Index;
+} ml_function_state_t;
+
+ML_TYPE(MLFunctionStateT, (MLStateT), "function-state");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_next, MLFunctionStateT, ml_state_t *Caller, ml_function_state_t *State) {
+	State->Base.Caller = Caller;
+	return ml_call(State, State->Function, 0, NULL);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLFunctionStateT, ml_state_t *Caller, ml_function_state_t *State) {
+	ML_RETURN(ml_integer(State->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLFunctionStateT, ml_state_t *Caller, ml_function_state_t *State) {
+	ML_RETURN(State->Value);
+}
+
+static void ml_function_state_run(ml_function_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value == MLNil) ML_RETURN(Value);
+	State->Value = Value;
+	ML_RETURN(State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLFunctionSequenceT, ml_state_t *Caller, ml_function_sequence_t *Sequence) {
+	ml_function_state_t *State = new(ml_function_state_t);
+	State->Base.Type = MLFunctionStateT;
+	State->Base.Context = Caller->Context;
+	State->Base.Caller = Caller;
+	State->Base.run = (ml_state_fn)ml_function_state_run;
+	State->Function = Sequence->Function;
+	return ml_call(State, State->Function, 0, NULL);
+}
+
+ML_METHOD("repeat", MLFunctionT) {
+	ml_function_sequence_t *Sequence = new(ml_function_sequence_t);
+	Sequence->Type = MLFunctionSequenceT;
+	Sequence->Function = Args[0];
+	return (ml_value_t *)Sequence;
+}
+
 typedef struct ml_sequenced_t {
 	ml_type_t *Type;
 	ml_value_t *First, *Second;
