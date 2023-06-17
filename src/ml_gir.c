@@ -3150,7 +3150,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	}
 	}
 	ml_result_state_t *State = ml_result_state(Instance->Context);
-	ml_call(State, Instance->Function, Callback->Provided, Args);
+	ml_call(State, Instance->Function, Arg - Args, Args);
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Result = State->Value;
