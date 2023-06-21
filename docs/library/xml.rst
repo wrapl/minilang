@@ -135,6 +135,10 @@ xml
    Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Node: xml):remove: xml`
+   Removes :mini:`Node` from its parent.
+
+
 :mini:`type xml::decoder < stream`
    A callback based streaming XML decoder.
 
@@ -193,6 +197,10 @@ xml
 
 :mini:`meth (Xml: xml::element):attributes: map`
    Returns the attributes of :mini:`Xml`.
+
+
+:mini:`meth (Parent: xml::element):empty: xml`
+   Removes the contents of :mini:`Parent`.
 
 
 :mini:`meth (Parent: xml::element):grow(Children: sequence, ...): xml`

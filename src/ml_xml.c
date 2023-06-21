@@ -170,25 +170,27 @@ ml_value_t *ml_xml_element_head(ml_value_t *Value) {
 	return (ml_value_t *)((ml_xml_element_t *)Value)->Head;
 }
 
-void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
-	if (Child->Parent) {
-		ml_xml_element_t *OldParent = Child->Parent;
-		if (Child->Prev) {
-			Child->Prev->Next = Child->Next;
-		} else {
-			OldParent->Head = Child->Next;
-		}
-		if (Child->Next) {
-			Child->Next->Prev = Child->Prev;
-		} else {
-			OldParent->Tail = Child->Prev;
-		}
-		size_t Index = Child->Index;
-		for (ml_xml_node_t *Node = Child->Next; Node; Node = Node->Next) {
-			Node->Index = Index++;
-		}
-		--OldParent->Base.Base.Length;
+void ml_xml_node_remove(ml_xml_node_t *Child) {
+	ml_xml_element_t *OldParent = Child->Parent;
+	if (Child->Prev) {
+		Child->Prev->Next = Child->Next;
+	} else {
+		OldParent->Head = Child->Next;
 	}
+	if (Child->Next) {
+		Child->Next->Prev = Child->Prev;
+	} else {
+		OldParent->Tail = Child->Prev;
+	}
+	size_t Index = Child->Index;
+	for (ml_xml_node_t *Node = Child->Next; Node; Node = Node->Next) {
+		Node->Index = Index++;
+	}
+	--OldParent->Base.Base.Length;
+}
+
+void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
+	if (Child->Parent) ml_xml_node_remove(Child);
 	Child->Index = ++Parent->Base.Base.Length;
 	Child->Parent = Parent;
 	if (Parent->Tail) {
@@ -399,6 +401,33 @@ ML_METHODVX("put", MLXmlElementT, MLXmlElementT) {
 		return ml_call(Caller, PutMethod, Count - 1, Args + 1);
 	}
 	ML_RETURN(Parent);
+}
+
+ML_METHOD("empty", MLXmlElementT) {
+//<Parent
+//>xml
+// Removes the contents of :mini:`Parent`.
+	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
+	for (ml_xml_node_t *Child = Parent->Head; Child; Child = Child->Next) {
+		Child->Parent = NULL;
+		Child->Next = Child->Prev = NULL;
+	}
+	Parent->Head = Parent->Tail = NULL;
+	Parent->Base.Base.Length = 0;
+	return (ml_value_t *)Parent;
+}
+
+ML_METHOD("remove", MLXmlT) {
+//<Node
+//>xml
+// Removes :mini:`Node` from its parent.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (Node->Parent) {
+		ml_xml_node_remove(Node);
+		Node->Parent = NULL;
+		Node->Next = Node->Prev = NULL;
+	}
+	return (ml_value_t *)Node;
 }
 
 typedef struct {
