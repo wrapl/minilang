@@ -77,25 +77,27 @@ void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t
 
 void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value);
 
-#ifndef GENERATE_INIT
-
-#define ML_TYPE(TYPE, PARENTS, NAME, ...) \
-static ml_method_t CONCAT2(TYPE, Of)[1] = {{MLMethodT, NAME "::of"}}; \
-\
-ml_type_t TYPE[1] = {{ \
+#define ML_TYPE_INIT(CONSTRUCTOR, PARENTS, NAME, ...) { \
 	.Type = MLTypeT, \
 	.Name = NAME, \
 	.hash = ml_default_hash, \
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
-	.Constructor = (ml_value_t *)CONCAT2(TYPE, Of), \
+	.Constructor = CONSTRUCTOR, \
 	.TypedFns = {INTHASH_INIT}, \
 	.Exports = {STRINGMAP_INIT}, \
 	.Rank = 0, \
 	.Interface = 0, \
 	__VA_ARGS__ \
-}}
+}
+
+#ifndef GENERATE_INIT
+
+#define ML_TYPE(TYPE, PARENTS, NAME, ...) \
+static ml_method_t CONCAT2(TYPE, Of)[1] = {{MLMethodT, NAME "::of"}}; \
+\
+ml_type_t TYPE[1] = {ML_TYPE_INIT((ml_value_t *)CONCAT2(TYPE, Of), PARENTS, NAME, __VA_ARGS__)}
 
 #else
 

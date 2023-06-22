@@ -1154,10 +1154,10 @@ static void ml_compare_state_run(ml_compare_state_t *State, ml_value_t *Result) 
 	}
 }
 
-#define ml_comp_any_any_any(NAME) \
+#define ml_comp_any_any_any(NAME, SYMBOL) \
 ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
 /*>any|nil
-// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+// Returns :mini:`Arg/n` if :mini:`Arg/1 SYMBOL Arg/2 SYMBOL ... SYMBOL Arg/n` and :mini:`nil` otherwise.
 */\
 	ml_compare_state_t *State = xnew(ml_compare_state_t, Count - 1, ml_value_t *); \
 	State->Base.Caller = Caller; \
@@ -1170,12 +1170,36 @@ ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
 	return ml_call((ml_state_t *)State, State->Comparison, 2, Args); \
 }
 
-ml_comp_any_any_any("=");
-ml_comp_any_any_any("!=");
-ml_comp_any_any_any("<");
-ml_comp_any_any_any("<=");
-ml_comp_any_any_any(">");
-ml_comp_any_any_any(">=");
+ml_comp_any_any_any("=", =);
+ml_comp_any_any_any("<", <);
+ml_comp_any_any_any("<=", <=);
+ml_comp_any_any_any(">", >);
+ml_comp_any_any_any(">=", >=);
+
+static void ml_distinct_state_run(ml_compare_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
+	State->Args[0] = State->Comparison;
+	if (++State->Args == State->End) {
+		return ml_call(State->Base.Caller, NotEqualMethod, 2, State->Args - 1);
+	} else {
+		return ml_call((ml_state_t *)State, NotEqualMethod, 2, State->Args - 1);
+	}
+}
+
+ML_METHODVX("!=", MLAnyT, MLAnyT, MLAnyT) {
+//>any|nil
+// Returns :mini:`Arg/n` if :mini:`Arg/1 != Arg/i` for i = 2, ..., n and :mini:`nil` otherwise.
+	ml_compare_state_t *State = xnew(ml_compare_state_t, Count - 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_distinct_state_run;
+	State->Comparison = Args[0];
+	for (int I = 2; I < Count; ++I) State->Values[I - 1] = Args[I];
+	State->Args = State->Values;
+	State->End = State->Args + (Count - 2);
+	return ml_call((ml_state_t *)State, NotEqualMethod, 2, Args);
+}
 
 typedef struct {
 	ml_state_t Base;
@@ -1719,7 +1743,7 @@ ML_METHOD("$!", MLFunctionT, MLListT) {
 //<Function
 //<List
 //>function::partial
-// Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
+// Returns a function equivalent to :mini:`fun(Args...) Function(List[1], List[2], ..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
 	Partial->Type = MLFunctionPartialT;
@@ -1740,7 +1764,7 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 //
 //    Use :mini:`$!` instead.
 //
-// Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
+// Returns a function equivalent to :mini:`fun(Args...) Function(List[1], List[2], ..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
 	Partial->Type = MLFunctionPartialT;
@@ -3117,8 +3141,8 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
 	stringmap_insert(MLExternalT->Exports, "default", MLExternalDefault);
+	stringmap_insert(MLExternalT->Exports, "some", MLSome);
 	ml_externals_default_add("any", MLAnyT);
-	ml_externals_default_add("some", MLSome);
 	ml_externals_default_add("type", MLTypeT);
 	ml_externals_default_add("function", MLFunctionT);
 	ml_externals_default_add("sequence", MLSequenceT);

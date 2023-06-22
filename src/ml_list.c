@@ -720,6 +720,9 @@ ML_METHOD("empty", MLListMutableT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
+#ifdef ML_GENERICS
+	List->Type = MLListMutableT;
+#endif
 	return (ml_value_t *)List;
 }
 

@@ -3090,7 +3090,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		break;
 	}
 	case GIB_LIST: {
-		ml_value_t *(*to_value)(void *) = NULL;
+		ml_value_t *(*to_value)(void *, void *) = NULL;
 		switch ((Inst++)->Opcode) {
 		case GIB_BOOLEAN: to_value = boolean_to_value; break;
 		case GIB_INT8: to_value = int8_to_value; break;
@@ -3110,13 +3110,13 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		}
 		ml_value_t *List = ml_list();
 		for (GList *Node = (GList *)(*(void **)(*Param++)); Node; Node = Node->next) {
-			ml_list_put(List, to_value(Node->data));
+			ml_list_put(List, to_value(Node->data, NULL));
 		}
 		*Arg++ = List;
 		break;
 	}
 	case GIB_SLIST: {
-		ml_value_t *(*to_value)(void *) = NULL;
+		ml_value_t *(*to_value)(void *, void *) = NULL;
 		switch ((Inst++)->Opcode) {
 		case GIB_BOOLEAN: to_value = boolean_to_value; break;
 		case GIB_INT8: to_value = int8_to_value; break;
@@ -3136,7 +3136,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		}
 		ml_value_t *List = ml_list();
 		for (GSList *Node = (GSList *)(*(void **)(*Param++)); Node; Node = Node->next) {
-			ml_list_put(List, to_value(Node->data));
+			ml_list_put(List, to_value(Node->data, NULL));
 		}
 		*Arg++ = List;
 		break;
@@ -3150,7 +3150,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	}
 	}
 	ml_result_state_t *State = ml_result_state(Instance->Context);
-	ml_call(State, Instance->Function, Callback->Provided, Args);
+	ml_call(State, Instance->Function, Arg - Args, Args);
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Result = State->Value;

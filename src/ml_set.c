@@ -529,7 +529,7 @@ ML_METHOD("empty", MLSetMutableT) {
 	Set->Root = Set->Head = Set->Tail = NULL;
 	Set->Size = 0;
 #ifdef ML_GENERICS
-	Set->Type = MLSetT;
+	Set->Type = MLSetMutableT;
 #endif
 	return (ml_value_t *)Set;
 }
