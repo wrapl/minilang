@@ -44,6 +44,14 @@ ML_METHOD("parent", MLXmlT) {
 	return (ml_value_t *)Node->Parent ?: MLNil;
 }
 
+ML_METHOD("index", MLXmlT) {
+//<Node
+//>integer|nil
+// Returns the index of :mini:`Node` in its parent or :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	return Node->Parent ? ml_integer(Node->Index) : MLNil;
+}
+
 ML_METHOD("prev", MLXmlT) {
 //<Xml
 //>xml|nil
@@ -346,61 +354,69 @@ ML_METHOD("set", MLXmlElementT, MLStringT, MLStringT) {
 	return (ml_value_t *)Element;
 }
 
-ML_METHOD_DECL(PutMethod, "put");
+typedef struct {
+	ml_xml_element_t *Parent;
+	ml_xml_node_t *Head, *Tail;
+	ml_stringbuffer_t Buffer[1];
+} ml_xml_grower_t;
 
-ML_METHODVX("put", MLXmlElementT, MLStringT) {
-//<Parent
-//<String
-//>xml
-// Adds a new text node containing :mini:`String` to :mini:`Parent`.
-	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
-	ml_xml_node_t *Tail = Parent->Tail;
-	if (Tail && Tail->Base.Type == MLXmlTextT) {
-		ml_xml_node_t *Text = new(ml_xml_node_t);
-		Text->Base.Type = MLXmlTextT;
-		size_t Length1 = ml_string_length(Args[1]);
-		size_t Length = Text->Base.Length = Tail->Base.Length + Length1;
-		char *Value = snew(Length + 1);
-		memcpy(Value, Tail->Base.Value, Tail->Base.Length);
-		memcpy(Value + Tail->Base.Length, ml_string_value(Args[1]), Length1);
-		Value[Length] = 0;
-		Text->Base.Value = Value;
-		Text->Index = Tail->Index;
-		Text->Prev = Tail->Prev;
-		Text->Parent = Tail->Parent;
-		if (Text->Prev) {
-			Text->Prev->Next = Text;
-		} else {
-			Parent->Head = Text;
+static ml_value_t *ml_xml_grow(ml_xml_grower_t *Grower, ml_value_t *Value) {
+	if (!Value) {
+		if (Grower->Buffer->Length) {
+			ml_xml_node_t *Text = new(ml_xml_node_t);
+			Text->Base.Type = MLXmlTextT;
+			Text->Base.Length = Grower->Buffer->Length;
+			Text->Base.Value = ml_stringbuffer_get_string(Grower->Buffer);
+			Text->Parent = Grower->Parent;
+			Text->Prev = Grower->Tail;
+			if (Grower->Tail) Grower->Tail->Next = Text; else Grower->Head = Text;
+			Grower->Tail = Text;
 		}
-		Parent->Tail = Text;
+	} else if (ml_is(Value, MLXmlT)) {
+		if (Grower->Buffer->Length) {
+			ml_xml_node_t *Text = new(ml_xml_node_t);
+			Text->Base.Type = MLXmlTextT;
+			Text->Base.Length = Grower->Buffer->Length;
+			Text->Base.Value = ml_stringbuffer_get_string(Grower->Buffer);
+			Text->Parent = Grower->Parent;
+			Text->Prev = Grower->Tail;
+			if (Grower->Tail) Grower->Tail->Next = Text; else Grower->Head = Text;
+			Grower->Tail = Text;
+		}
+		ml_xml_node_t *Child = (ml_xml_node_t *)Value;
+		if (Child->Parent) ml_xml_node_remove(Child);
+		Child->Parent = Grower->Parent;
+		Child->Prev = Grower->Tail;
+		if (Grower->Tail) Grower->Tail->Next = Child; else Grower->Head = Child;
+		Grower->Tail = Child;
+	} else if (ml_is(Value, MLStringT)) {
+		ml_stringbuffer_write(Grower->Buffer, ml_string_value(Value), ml_string_length(Value));
 	} else {
-		ml_xml_node_t *Text = new(ml_xml_node_t);
-		Text->Base.Type = MLXmlTextT;
-		Text->Base.Length = ml_string_length(Args[1]);
-		Text->Base.Value = ml_string_value(Args[1]);
-		ml_xml_element_put(Parent, Text);
+		return ml_error("TypeError", "Invalid type for XML node");
 	}
-	if (Count > 2) {
-		Args[1] = (ml_value_t *)Parent;
-		return ml_call(Caller, PutMethod, Count - 1, Args + 1);
-	}
-	ML_RETURN(Parent);
+	return NULL;
 }
 
-ML_METHODVX("put", MLXmlElementT, MLXmlElementT) {
+ML_METHODV("put", MLXmlElementT, MLAnyT) {
 //<Parent
 //<Child
 //>xml
 // Adds :mini:`Child` to :mini:`Parent`.
 	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
-	ml_xml_node_t *Child = (ml_xml_node_t *)Args[1];
-	ml_xml_element_put(Parent, Child);
-	if (Count > 2) {
-		Args[1] = (ml_value_t *)Parent;
-		return ml_call(Caller, PutMethod, Count - 1, Args + 1);
+	ml_xml_grower_t Grower[1] = {{Parent, NULL, NULL, {ML_STRINGBUFFER_INIT}}};
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Error = ml_xml_grow(Grower, Args[I]);
+		if (Error) return Error;
 	}
-	ML_RETURN(Parent);
+	ml_xml_grow(Grower, NULL);
+	Grower->Tail->Next = NULL;
+	Grower->Head->Prev = Parent->Tail;
+	if (Parent->Tail) Parent->Tail->Next = Grower->Head; else Parent->Head = Grower->Head;
+	Parent->Tail = Grower->Tail;
+	size_t Index = Parent->Base.Base.Length;
+	for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
+	Parent->Base.Base.Length = Index;
+	return (ml_value_t *)Parent;
 }
 
 ML_METHOD("empty", MLXmlElementT) {
@@ -428,6 +444,56 @@ ML_METHOD("remove", MLXmlT) {
 		Node->Next = Node->Prev = NULL;
 	}
 	return (ml_value_t *)Node;
+}
+
+ML_METHODV("add_next", MLXmlT, MLAnyT) {
+//<Node
+//<Other
+//>xml
+// Inserts :mini:`Other` directly after :mini:`Node`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	ml_xml_element_t *Parent = Node->Parent;
+	if (!Parent) return ml_error("ValueError", "Node does not currently have a parent");
+	ml_xml_grower_t Grower[1] = {{Parent, NULL, NULL, {ML_STRINGBUFFER_INIT}}};
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Error = ml_xml_grow(Grower, Args[I]);
+		if (Error) return Error;
+	}
+	ml_xml_grow(Grower, NULL);
+	ml_xml_node_t *Next = Node->Next;
+	Grower->Tail->Next = Next;
+	Grower->Head->Prev = Node;
+	Node->Next = Grower->Head;
+	if (Next) Next->Prev = Grower->Tail; else Parent->Tail = Grower->Tail;
+	size_t Index = Node->Index;
+	for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
+	Parent->Base.Base.Length = Index;
+	return (ml_value_t *)Grower->Tail;
+}
+
+ML_METHODV("add_prev", MLXmlT, MLAnyT) {
+//<Node
+//<Other
+//>xml
+// Inserts :mini:`Other` directly before :mini:`Node`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	ml_xml_element_t *Parent = Node->Parent;
+	if (!Parent) return ml_error("ValueError", "Node does not currently have a parent");
+	ml_xml_grower_t Grower[1] = {{Parent, NULL, NULL, {ML_STRINGBUFFER_INIT}}};
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Error = ml_xml_grow(Grower, Args[I]);
+		if (Error) return Error;
+	}
+	ml_xml_grow(Grower, NULL);
+	ml_xml_node_t *Prev = Node->Prev;
+	Grower->Head->Prev = Prev;
+	Grower->Tail->Next = Node;
+	if (Prev) Prev->Next = Grower->Head; else Parent->Head = Grower->Head;
+	Node->Prev = Grower->Tail;
+	size_t Index = Node->Index - 1;
+	for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
+	Parent->Base.Base.Length = Index;
+	return (ml_value_t *)Grower->Tail;
 }
 
 typedef struct {
