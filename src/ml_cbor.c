@@ -119,8 +119,8 @@ typedef struct tag_t {
 } tag_t;
 
 struct ml_cbor_reader_t {
-	collection_t *Collection;
-	tag_t *Tags;
+	collection_t *Collection, *FreeCollection;
+	tag_t *Tags, *FreeTag;
 	ml_value_t *Value;
 	ml_cbor_tag_fns_t *TagFns;
 	ml_external_fn_t GlobalGet;
@@ -221,25 +221,55 @@ ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	}
 }
 
+static collection_t *collection_push(ml_cbor_reader_t *Reader) {
+	collection_t *Collection = Reader->FreeCollection;
+	if (Collection) Reader->FreeCollection = Collection->Prev; else Collection = new(collection_t);
+	Collection->Prev = Reader->Collection;
+	Collection->Tags = Reader->Tags;
+	Reader->Tags = NULL;
+	Reader->Collection = Collection;
+	return Collection;
+}
+
+static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value);
+
+static void collection_pop(ml_cbor_reader_t *Reader) {
+	collection_t *Collection = Reader->Collection;
+	Reader->Collection = Collection->Prev;
+	Reader->Tags = Collection->Tags;
+	ml_value_t *Value = Collection->Collection;
+	Collection->Prev = Reader->FreeCollection;
+	Reader->FreeCollection = Collection;
+	value_handler(Reader, Value);
+}
+
 static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		Reader->Value = Value;
 		return minicbor_reader_finish(Reader->Reader);
 	}
-	for (tag_t *Tag = Reader->Tags; Tag; Tag = Tag->Prev) {
-		if (Tag->Handler == ml_cbor_mark_reused) {
-			ml_value_t *Uninitialized = Reader->Reused[Tag->Index];
-			if (Uninitialized) ml_uninitialized_set(Uninitialized, Value);
-			Reader->Reused[Tag->Index] = Value;
-		} else {
-			Value = Tag->Handler(Reader, Value);
-			if (ml_is_error(Value)) {
-				Reader->Value = Value;
-				return minicbor_reader_finish(Reader->Reader);
+	tag_t *Tags = Reader->Tags;
+	if (Tags) {
+		tag_t *Tag = Tags;
+		for (;;) {
+			if (Tag->Handler == ml_cbor_mark_reused) {
+				ml_value_t *Uninitialized = Reader->Reused[Tag->Index];
+				if (Uninitialized) ml_uninitialized_set(Uninitialized, Value);
+				Reader->Reused[Tag->Index] = Value;
+			} else {
+				Value = Tag->Handler(Reader, Value);
+				if (ml_is_error(Value)) {
+					Reader->Value = Value;
+					return minicbor_reader_finish(Reader->Reader);
+				}
 			}
+			if (!Tag->Prev) break;
+			Tag = Tag->Prev;
 		}
+		Tag->Prev = Reader->FreeTag;
+		Reader->FreeTag = Tags;
+		Reader->Tags = NULL;
 	}
-	Reader->Tags = 0;
 	collection_t *Collection = Reader->Collection;
 	if (!Collection) {
 		Reader->Value = Value;
@@ -247,16 +277,12 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	} else if (Collection->Key == IsList) {
 		ml_list_put(Collection->Collection, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
-			Reader->Collection = Collection->Prev;
-			Reader->Tags = Collection->Tags;
-			value_handler(Reader, Collection->Collection);
+			collection_pop(Reader);
 		}
 	} else if (Collection->Key) {
 		ml_map_insert(Collection->Collection, Collection->Key, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
-			Reader->Collection = Collection->Prev;
-			Reader->Tags = Collection->Tags;
-			value_handler(Reader, Collection->Collection);
+			collection_pop(Reader);
 		} else {
 			Collection->Key = NULL;
 		}
@@ -304,14 +330,10 @@ void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, s
 
 void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, size_t Size) {
 	if (Size) {
-		collection_t *Collection = new(collection_t);
-		Collection->Prev = Reader->Collection;
-		Collection->Tags = Reader->Tags;
-		Reader->Tags = 0;
+		collection_t *Collection = collection_push(Reader);
 		Collection->Remaining = Size;
 		Collection->Key = IsList;
 		Collection->Collection = ml_list();
-		Reader->Collection = Collection;
 	} else {
 		value_handler(Reader, ml_list());
 	}
@@ -319,14 +341,10 @@ void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, size_t Size) {
 
 void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, size_t Size) {
 	if (Size) {
-		collection_t *Collection = new(collection_t);
-		Collection->Prev = Reader->Collection;
-		Collection->Tags = Reader->Tags;
-		Reader->Tags = 0;
+		collection_t *Collection = collection_push(Reader);
 		Collection->Remaining = Size;
-		Collection->Key = 0;
+		Collection->Key = NULL;
 		Collection->Collection = ml_map();
-		Reader->Collection = Collection;
 	} else {
 		value_handler(Reader, ml_map());
 	}
@@ -335,7 +353,8 @@ void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, size_t Size) {
 void ml_cbor_read_tag_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 	ml_cbor_tag_fn Handler = ml_cbor_tag_fn_get(Reader->TagFns, Value);
 	if (Handler) {
-		tag_t *Tag = new(tag_t);
+		tag_t *Tag = Reader->FreeTag;
+		if (Tag) Reader->FreeTag = Tag->Prev; else Tag = new(tag_t);
 		Tag->Prev = Reader->Tags;
 		Tag->Handler = Handler;
 		// TODO: Reimplement this without hard-coding tag 28
@@ -366,10 +385,7 @@ void ml_cbor_read_simple_fn(ml_cbor_reader_t *Reader, int Value) {
 }
 
 void ml_cbor_read_break_fn(ml_cbor_reader_t *Reader) {
-	collection_t *Collection = Reader->Collection;
-	Reader->Collection = Collection->Prev;
-	Reader->Tags = Collection->Tags;
-	value_handler(Reader, Collection->Collection);
+	collection_pop(Reader);
 }
 
 void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *Message) {

@@ -978,6 +978,45 @@ ML_METHOD("<>", MLDoubleT, MLDoubleT) {
 	return (ml_value_t *)Zero;
 }
 
+ML_METHOD("div", MLRealT, MLRealT) {
+//<Real/1
+//<Real/2
+//>integer
+// Returns the quotient of :mini:`Real/1` divided by :mini:`Real/2`.
+// The result is calculated by rounding down in all cases.
+	double RealA = ml_real_value(Args[0]);
+	double RealB = ml_real_value(Args[1]);
+	if (fabs(RealB) < DBL_EPSILON) return ml_error("ValueError", "Division by 0");
+	return ml_integer(floor(RealA / RealB));
+}
+
+ML_METHOD("mod", MLRealT, MLRealT) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
+// Note: the result is calculated by rounding down in all cases. In particular, the result is always nonnegative.
+	double RealA = ml_real_value(Args[0]);
+	double RealB = ml_real_value(Args[1]);
+	if (fabs(RealB) < DBL_EPSILON) return ml_error("ValueError", "Division by 0");
+	return ml_real(RealA - floor(RealA / RealB) * RealB);
+}
+
+ML_METHOD("%", MLRealT, MLRealT) {
+//<Real/1
+//<Real/2
+//>integer
+// Returns the remainder of :mini:`Real/1` divided by :mini:`Real/2`.
+// Note: the result is calculated by rounding towards 0. In particular, if :mini:`Real/1` is negative, the result will be negative.
+// For a nonnegative remainder, use :mini:`Real/1 mod Real/2`.
+	double RealA = ml_real_value(Args[0]);
+	double RealB = ml_real_value(Args[1]);
+	if (fabs(RealB) < DBL_EPSILON) return ml_error("ValueError", "Division by 0");
+	double Q = RealA / RealB;
+	double D = Q < 0 ? ceil(Q) : floor(Q);
+	return ml_real(RealA - D * RealB);
+}
+
 ML_METHOD("isfinite", MLDoubleT) {
 //<Number:number
 //>number|nil

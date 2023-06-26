@@ -543,16 +543,22 @@ number
    *TBD*
 
 
-:mini:`def real::Inf: real`
-   Positive infinity.
-
-
 :mini:`def real::NaN: real`
    Not a number.
 
 
+:mini:`def real::Inf: real`
+   Positive infinity.
+
+
 :mini:`meth real(String: string): real | error`
    Returns the real number in :mini:`String` or an error if :mini:`String` does not contain a valid real number.
+
+
+:mini:`meth (Real₁: real) % (Real₂: real): integer`
+   Returns the remainder of :mini:`Real₁` divided by :mini:`Real₂`.
+   Note: the result is calculated by rounding towards 0. In particular,  if :mini:`Real₁` is negative,  the result will be negative.
+   For a nonnegative remainder,  use :mini:`Real₁ mod Real₂`.
 
 
 :mini:`meth complex(Arg₁: real)`
@@ -561,6 +567,16 @@ number
 
 :mini:`meth complex(Arg₁: real, Arg₂: real)`
    *TBD*
+
+
+:mini:`meth (Real₁: real):div(Real₂: real): integer`
+   Returns the quotient of :mini:`Real₁` divided by :mini:`Real₂`.
+   The result is calculated by rounding down in all cases.
+
+
+:mini:`meth (Int₁: real):mod(Int₂: real): integer`
+   Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
+   Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
 
 
 :mini:`meth number(String: string): integer | real | complex | error`
