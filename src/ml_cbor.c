@@ -239,6 +239,8 @@ static void collection_pop(ml_cbor_reader_t *Reader) {
 	Reader->Tags = Collection->Tags;
 	ml_value_t *Value = Collection->Collection;
 	Collection->Prev = Reader->FreeCollection;
+	Collection->Collection = NULL;
+	Collection->Key = NULL;
 	Reader->FreeCollection = Collection;
 	value_handler(Reader, Value);
 }
