@@ -41,6 +41,13 @@ struct mlc_token_t {
 	ml_token_t Token;
 };
 
+typedef struct mlc_expected_delimiter_t mlc_expected_delimiter_t;
+
+struct mlc_expected_delimiter_t {
+	mlc_expected_delimiter_t *Prev;
+	ml_token_t Token;
+};
+
 struct ml_parser_t {
 	ml_type_t *Type;
 	const char *Next;
@@ -50,10 +57,9 @@ struct ml_parser_t {
 		ml_value_t *Value;
 		mlc_expr_t *Expr;
 		const char *Ident;
-		void *General;
 	};
-	mlc_token_t *Saved;
 	ml_value_t *Warnings;
+	mlc_expected_delimiter_t *ExpectedDelimiter;
 	ml_source_t Source;
 	int Line;
 	jmp_buf OnError;
@@ -4104,14 +4110,6 @@ static const char *ml_ident(const char *Next, int Length) {
 }
 
 static ml_token_t ml_scan(ml_parser_t *Parser) {
-	mlc_token_t *Saved = Parser->Saved;
-	if (Saved) {
-		Parser->Saved = Saved->Next;
-		Parser->General = Saved->General;
-		Parser->Source = Saved->Source;
-		Parser->Token = Saved->Token;
-		return Parser->Token;
-	}
 	const char *Next = Parser->Next;
 	for (;;) {
 		char Char = Next[0];
@@ -4516,34 +4514,16 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 		} while (ml_parse2(Parser, MLT_COMMA));
 		ml_accept(Parser, EndToken);
 	}
-	mlc_token_t *Saved = NULL, **Slot = &Saved;
-	for (;;) {
-		ml_token_t Token = ml_current2(Parser);
-		if (Token == MLT_RIGHT_PAREN || Token == MLT_RIGHT_SQUARE) {
-			mlc_token_t *Next = Slot[0] = new(mlc_token_t);
-			ml_next(Parser);
-			Next->Source = Parser->Source;
-			Next->Token = Token;
-			Slot = &Next->Next;
-		} else {
-			break;
-		}
+	mlc_expected_delimiter_t *Expected = Parser->ExpectedDelimiter;
+	while (Expected && ml_current2(Parser) == Expected->Token) {
+		ml_next(Parser);
+		Expected->Token = MLT_NONE;
+		Expected = Expected->Prev;
 	}
 	if (ml_parse2(Parser, MLT_COLON)) {
 		FunExpr->ReturnType = ml_parse_term(Parser, 0);
 	}
 	mlc_expr_t *Body = BodySlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
-	if (Saved) {
-		ml_token_t Token = ml_current(Parser);
-		mlc_token_t *Next = Slot[0] = new(mlc_token_t);
-		if (Token != MLT_NONE) {
-			ml_next(Parser);
-			Next->General = Parser->General;
-			Next->Source = Parser->Source;
-			Next->Token = Token;
-		}
-		Parser->Saved = Saved;
-	}
 	FunExpr->StartLine = Body->StartLine;
 	return ML_EXPR_END(FunExpr);
 }
@@ -4661,7 +4641,13 @@ static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, 
 		ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
 		return;
 	}
+	mlc_expected_delimiter_t Expected = {Parser->ExpectedDelimiter, EndToken};
+	Parser->ExpectedDelimiter = &Expected;
 	Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
+	if (Expected.Token != EndToken) {
+		Parser->ExpectedDelimiter = Expected.Prev;
+		return;
+	}
 	ArgsSlot = &Arg->Next;
 	while (ml_parse2(Parser, MLT_COMMA)) {
 		ml_token_t Token = ml_current2(Parser);
@@ -4677,13 +4663,19 @@ static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, 
 		}
 		if (!ml_parse2(Parser, MLT_COLON)) ml_accept(Parser, MLT_IS);
 		if (ml_parse2(Parser, MLT_SEMICOLON)) {
+			Parser->ExpectedDelimiter = Expected.Prev;
 			ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
 			return;
 		}
 		Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
+		if (Expected.Token != EndToken) {
+			Parser->ExpectedDelimiter = Expected.Prev;
+			return;
+		}
 		ArgsSlot = &Arg->Next;
 	}
 resume:
+	Parser->ExpectedDelimiter = Expected.Prev;
 	if (ml_parse2(Parser, MLT_SEMICOLON)) {
 		mlc_expr_t *FunExpr = ml_accept_fun_expr(Parser, NULL, EndToken);
 		FunExpr->Next = NamesSlot[0];
@@ -4697,8 +4689,15 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 	if (ml_parse2(Parser, MLT_SEMICOLON)) {
 		ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
 	} else if (!ml_parse2(Parser, EndToken)) {
+		mlc_expected_delimiter_t Expected = {Parser->ExpectedDelimiter, EndToken};
+		Parser->ExpectedDelimiter = &Expected;
 		do {
 			mlc_expr_t *Arg = ml_accept_expression(Parser, EXPR_DEFAULT);
+			if (Expected.Token != EndToken) {
+				ArgsSlot[0] = Arg;
+				Parser->ExpectedDelimiter = Expected.Prev;
+				return;
+			}
 			if (ml_parse2(Parser, MLT_COLON) || ml_parse2(Parser, MLT_IS)) {
 				ml_value_t *Names = ml_names();
 				if (Arg->compile == (void *)ml_ident_expr_compile) {
@@ -4715,12 +4714,13 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 				ML_EXPR(NamesArg, value, value);
 				NamesArg->Value = Names;
 				ArgsSlot[0] = ML_EXPR_END(NamesArg);
+				Parser->ExpectedDelimiter = Expected.Prev;
 				return ml_accept_named_arguments(Parser, EndToken, ArgsSlot, Names);
-			} else {
-				ArgsSlot[0] = Arg;
-				ArgsSlot = &Arg->Next;
 			}
+			ArgsSlot[0] = Arg;
+			ArgsSlot = &Arg->Next;
 		} while (ml_parse2(Parser, MLT_COMMA));
+		Parser->ExpectedDelimiter = Expected.Prev;
 		if (ml_parse2(Parser, MLT_SEMICOLON)) {
 			ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
 		} else {
