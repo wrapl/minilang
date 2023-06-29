@@ -32,6 +32,15 @@ struct mlc_try_t {
 
 #define ML_EXPR_END(EXPR) (((mlc_expr_t *)EXPR)->EndLine = Parser->Source.Line, (mlc_expr_t *)EXPR)
 
+typedef struct mlc_token_t mlc_token_t;
+
+struct mlc_token_t {
+	mlc_token_t *Next;
+	void *General;
+	ml_source_t Source;
+	ml_token_t Token;
+};
+
 struct ml_parser_t {
 	ml_type_t *Type;
 	const char *Next;
@@ -41,7 +50,9 @@ struct ml_parser_t {
 		ml_value_t *Value;
 		mlc_expr_t *Expr;
 		const char *Ident;
+		void *General;
 	};
+	mlc_token_t *Saved;
 	ml_value_t *Warnings;
 	ml_source_t Source;
 	int Line;
@@ -4093,6 +4104,14 @@ static const char *ml_ident(const char *Next, int Length) {
 }
 
 static ml_token_t ml_scan(ml_parser_t *Parser) {
+	mlc_token_t *Saved = Parser->Saved;
+	if (Saved) {
+		Parser->Saved = Saved->Next;
+		Parser->General = Saved->General;
+		Parser->Source = Saved->Source;
+		Parser->Token = Saved->Token;
+		return Parser->Token;
+	}
 	const char *Next = Parser->Next;
 	for (;;) {
 		char Char = Next[0];
@@ -4497,10 +4516,34 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 		} while (ml_parse2(Parser, MLT_COMMA));
 		ml_accept(Parser, EndToken);
 	}
+	mlc_token_t *Saved = NULL, **Slot = &Saved;
+	for (;;) {
+		ml_token_t Token = ml_current2(Parser);
+		if (Token == MLT_RIGHT_PAREN || Token == MLT_RIGHT_SQUARE) {
+			mlc_token_t *Next = Slot[0] = new(mlc_token_t);
+			ml_next(Parser);
+			Next->Source = Parser->Source;
+			Next->Token = Token;
+			Slot = &Next->Next;
+		} else {
+			break;
+		}
+	}
 	if (ml_parse2(Parser, MLT_COLON)) {
 		FunExpr->ReturnType = ml_parse_term(Parser, 0);
 	}
 	mlc_expr_t *Body = BodySlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
+	if (Saved) {
+		ml_token_t Token = ml_current(Parser);
+		mlc_token_t *Next = Slot[0] = new(mlc_token_t);
+		if (Token != MLT_NONE) {
+			ml_next(Parser);
+			Next->General = Parser->General;
+			Next->Source = Parser->Source;
+			Next->Token = Token;
+		}
+		Parser->Saved = Saved;
+	}
 	FunExpr->StartLine = Body->StartLine;
 	return ML_EXPR_END(FunExpr);
 }
