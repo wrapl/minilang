@@ -237,7 +237,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "k"
-      M:random :> "k"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):size: integer`
