@@ -60,6 +60,10 @@ file
    Waits for the subprocess to finish and returns the exit status.
 
 
+:mini:`fun file::exists(Path: string): string | nil`
+   *TBD*
+
+
 :mini:`fun file::rename(Old: string, New: string)`
    Renames the file :mini:`Old` to :mini:`New`.
 

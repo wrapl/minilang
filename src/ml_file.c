@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "file"
@@ -131,6 +132,19 @@ ml_value_t *ml_file(FILE *Handle) {
 	File->Handle = Handle;
 	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
+}
+
+ML_FUNCTION(MLFileExists) {
+//!file
+//@file::exists
+//<Path
+//>string|nil
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Path = ml_string_value(Args[0]);
+	struct stat Stat[1];
+	if (stat(Path, Stat)) return MLNil;
+	return Args[0];
 }
 
 ML_FUNCTION(MLFileRename) {
@@ -291,6 +305,7 @@ ML_METHOD("close", MLPOpenT) {
 
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
+	stringmap_insert(MLFileT->Exports, "exists", MLFileExists);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
 	if (Globals) {
