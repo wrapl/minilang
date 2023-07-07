@@ -479,11 +479,11 @@ if MINILANG_TRE then
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
+		execute('make -j4 -C lib PREFIX={PATH} install')
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ["-DML_TRE", '-I{Dir / "lib"}']
-	:>LDFLAGS := old + ["-ltre"]
-	Libraries:put(Lib)
+	CFLAGS := old + ["-DML_TRE"]
+	LDFLAGS := old + ["-ltre"]
 end
 
 if MINILANG_PQUEUES then
