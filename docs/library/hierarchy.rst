@@ -158,6 +158,8 @@ hierarchy
       "any":e -> "gir::callbackinstance":w;
       "function":e -> "gir::function":w;
       "stream":e -> "file":w;
+      "any":e -> "file::stat":w;
+      "enum":e -> "file::mode":w;
       "sequence":e -> "dir":w;
       "file":e -> "popen":w;
       "state":e -> "compiler::function":w;

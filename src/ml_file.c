@@ -1,6 +1,8 @@
 #include "ml_file.h"
+#include "ml_object.h"
 #include "ml_macros.h"
 #include "ml_stream.h"
+#include "ml_time.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -178,6 +180,64 @@ ML_FUNCTION(MLFileUnlink) {
 	return MLNil;
 }
 
+extern ml_type_t MLFileStatT[1];
+
+typedef struct {
+	ml_type_t *Type;
+	struct stat Handle[1];
+} ml_file_stat_t;
+
+ML_FUNCTION(MLFileStat) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_file_stat_t *Stat = new(ml_file_stat_t);
+	Stat->Type = MLFileStatT;
+	const char *Name = ml_string_value(Args[0]);
+	if (stat(Name, Stat->Handle)) {
+		return ml_error("FileError", "failed to stat %s: %s", Name, strerror(errno));
+	}
+	return (ml_value_t *)Stat;
+}
+
+ML_TYPE(MLFileStatT, (), "file::stat",
+	.Constructor = (ml_value_t *)MLFileStat
+);
+
+ML_METHOD("size", MLFileStatT) {
+	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+	return ml_integer(Stat->Handle->st_size);
+}
+
+ML_METHOD("atime", MLFileStatT) {
+	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+	return ml_time(Stat->Handle->st_atim.tv_sec, Stat->Handle->st_atim.tv_nsec);
+}
+
+ML_METHOD("mtime", MLFileStatT) {
+	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+	return ml_time(Stat->Handle->st_mtim.tv_sec, Stat->Handle->st_mtim.tv_nsec);
+}
+
+ML_METHOD("ctime", MLFileStatT) {
+	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+	return ml_time(Stat->Handle->st_ctim.tv_sec, Stat->Handle->st_ctim.tv_nsec);
+}
+
+ML_ENUM2(MLFileModeT, "file::mode",
+	"DIR", S_IFDIR,
+	"CHR", S_IFCHR,
+	"BLK", S_IFBLK,
+	"REG", S_IFREG,
+	"LNK", S_IFLNK,
+	"SOCK", S_IFSOCK,
+	"FIFO", S_IFIFO
+);
+
+ML_METHOD("mode", MLFileStatT) {
+	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+	return ml_enum_value(MLFileModeT, Stat->Handle->st_mode & S_IFMT);
+}
+
 typedef struct {
 	ml_type_t *Type;
 	DIR *Handle;
@@ -305,6 +365,8 @@ ML_METHOD("close", MLPOpenT) {
 
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
+	stringmap_insert(MLFileT->Exports, "stat", MLFileStat);
+	stringmap_insert(MLFileT->Exports, "mode", MLFileModeT);
 	stringmap_insert(MLFileT->Exports, "exists", MLFileExists);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);

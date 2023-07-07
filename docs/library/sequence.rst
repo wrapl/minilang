@@ -534,7 +534,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "e"
+      random("cake") :> "k"
       random([]) :> nil
 
 
