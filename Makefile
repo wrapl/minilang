@@ -12,18 +12,18 @@ $(SUBDIRS):
 
 *.o: *.h
 
-CFLAGS += \
+override CFLAGS += \
 	-std=gnu99 -fstrict-aliasing -foptimize-sibling-calls \
 	-Wstrict-aliasing -Wall \
 	-Iobj -Isrc -pthread -DGC_THREADS -D_GNU_SOURCE -D$(PLATFORM)
-LDFLAGS += -lm
+override LDFLAGS += -lm
 
 ifdef DEBUG
-	CFLAGS += -g -DGC_DEBUG -DDEBUG
-	LDFLAGS += -g
+	override CFLAGS += -g -DGC_DEBUG -DDEBUG
+	override LDFLAGS += -g
 else
-	CFLAGS += -O3 -g
-	LDFLAGS += -g
+	override CFLAGS += -O3 -g
+	override LDFLAGS += -g
 endif
 
 obj/ml_config.h: | obj
@@ -80,23 +80,23 @@ common_objects = \
 platform_objects =
 
 ifeq ($(MACHINE), i686)
-	CFLAGS += -fno-pic
+	override CFLAGS += -fno-pic
 endif
 
 ifeq ($(PLATFORM), Linux)
 	platform_objects += obj/linenoise.o
-	LDFLAGS += -lgc
+	override LDFLAGS += -lgc
 endif
 
 ifeq ($(PLATFORM), FreeBSD)
 	platform_objects += obj/linenoise.o
-	CFLAGS += -I/usr/local/include
-	LDFLAGS += -L/usr/local/lib -lgc-threaded
+	override CFLAGS += -I/usr/local/include
+	override LDFLAGS += -L/usr/local/lib -lgc-threaded
 endif
 
 ifeq ($(PLATFORM), Darwin)
 	platform_objects += obj/linenoise.o
-	LDFLAGS += -lgc
+	override LDFLAGS += -lgc
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \

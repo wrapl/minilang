@@ -1372,11 +1372,13 @@ ML_FUNCTION(DecodeClosureInfo) {
 	ml_inst_t *Inst = Code;
 	Info->Return = Inst + VLQ64_NEXT();
 	int Line = VLQ64_NEXT() + Info->StartLine;
+	int EndLine = Info->StartLine;
 	int Index = 1;
 	while (Inst < Halt) {
 		ml_opcode_t Opcode = (ml_opcode_t)VLQ64_NEXT();
 		if (Opcode == MLI_LINK) {
 			Line += VLQ64_NEXT();
+			if (Line > EndLine) EndLine = Line;
 			continue;
 		}
 		Inst->Opcode = Opcode;
@@ -1451,6 +1453,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 		}
 		}
 	}
+	Info->EndLine = EndLine;
 	return (ml_value_t *)Info;
 }
 

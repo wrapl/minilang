@@ -4282,7 +4282,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			(InstOut++)->Opcode = GIB_ARRAY_LENGTH;
 			(InstOut++)->Aux = Args[Length].Out;
 		} else if (g_type_info_is_zero_terminated(Return)) {
-			(InstIn++)->Opcode = GIB_ARRAY_ZERO;
+			(InstOut++)->Opcode = GIB_ARRAY_ZERO;
 		} else {
 			(InstOut++)->Opcode = GIB_ARRAY;
 		}
@@ -4551,7 +4551,11 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			}
 		}
 	}
-	InstIn->Opcode = InstOut->Opcode = GIB_DONE;
+	(InstIn++)->Opcode = (InstOut++)->Opcode = GIB_DONE;
+	//fprintf(stderr, "InSize = %d, InstIn - Function->InstIn = %d\n", InSize, InstIn - Function->InstIn);
+	//fprintf(stderr, "OutSize = %d, InstOut - Function->InstOut = %d\n", OutSize, InstOut - Function->InstOut);
+	if (InstIn - Function->InstIn > InSize) asm("int3");
+	if (InstOut - Function->InstOut > OutSize) asm("int3");
 	Function->NumResults = NumResults;
 	return (ml_value_t *)Function;
 }
