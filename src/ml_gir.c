@@ -2405,7 +2405,6 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 
 typedef struct {
 	object_instance_t *Instance;
-	GISignalInfo *SignalInfo;
 	ml_context_t *Context;
 	ml_value_t *Function;
 	int NumArgs;
@@ -2414,7 +2413,6 @@ typedef struct {
 
 static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, void *Data) {
 	gir_closure_info_t *Info = (gir_closure_info_t *)Closure->data;
-	GICallableInfo *SignalInfo = (GICallableInfo *)Info->SignalInfo;
 	ml_value_t *MLArgs[NumArgs];
 	MLArgs[0] = _value_to_ml(Args, NULL);
 	for (guint I = 1; I < NumArgs; ++I) MLArgs[I] = _value_to_ml(Args + I, Info->Args[I]);
@@ -2476,7 +2474,6 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	GC_register_disappearing_link((void **)&Info->Instance);
 	Info->Context = Caller->Context;
 	Info->Function = Args[2];
-	Info->SignalInfo = SignalInfo;
 	Info->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) {
 		GIArgInfo *ArgInfo = g_callable_info_get_arg(SignalInfo, I);
@@ -2791,7 +2788,7 @@ static ml_value_t *string_to_glist(ml_value_t *Value, void **Ptr) {
 	return NULL;
 }
 
-static ml_value_t *string_to_value(void *Ptr) {
+static ml_value_t *string_to_value(void *Ptr, void *Aux) {
 	return ml_string_copy(Ptr, -1);
 }
 
@@ -2843,7 +2840,7 @@ static ml_value_t *gtype_to_glist(ml_value_t *Value, void **Ptr) {
 	return NULL;
 }
 
-static ml_value_t *gtype_to_value(void *Ptr) {
+static ml_value_t *gtype_to_value(void *Ptr, void *Aux) {
 	return ml_string(g_type_name((GType)Ptr), -1);
 }
 
@@ -2887,7 +2884,7 @@ static ml_value_t *gtype_to_value(void *Ptr) {
 	return NULL;
 }*/
 
-static ml_value_t *unknown_to_value(void *Ptr) {
+static ml_value_t *unknown_to_value(void *Ptr, void *Aux) {
 	return ml_error("TypeError", "Unsupported value type");
 }
 
@@ -4022,6 +4019,10 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 			}
 			*Result++ = List;
 		}
+		if (Free) {
+			g_free(Array);
+			Free = 0;
+		}
 		break;
 	}
 	case GIB_STRUCT: {
@@ -4228,6 +4229,9 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				Args[I].Out = NumOutputs++;
 				switch (g_type_info_get_tag(Args[I].Type)) {
 				case GI_TYPE_TAG_ARRAY: {
+					if (g_arg_info_get_ownership_transfer(Args[I].Info) != GI_TRANSFER_NOTHING) {
+						OutSize += 1;
+					}
 					int Length = g_type_info_get_array_length(Args[I].Type);
 					if (Length >= 0) {
 						Args[Length].SkipOut = 1;
@@ -4555,6 +4559,9 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					(InstOut++)->Opcode = Args[I].SkipOut ? GIB_SKIP : GIB_STRING;
 					break;
 				case GI_TYPE_TAG_ARRAY: {
+					if (g_arg_info_get_ownership_transfer(Args[I].Info) != GI_TRANSFER_NOTHING) {
+						(InstOut++)->Opcode = GIB_FREE;
+					}
 					int Length = g_type_info_get_array_length(Args[I].Type);
 					GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
 					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
