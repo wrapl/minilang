@@ -1879,6 +1879,7 @@ static void method_register(const char *Name, GIFunctionInfo *Info, ml_type_t *O
 	ml_type_t *Types[NArgsIn];
 	Types[0] = Object;
 	for (int I = 1; I < NArgsIn; ++I) Types[I] = MLAnyT;
+	//if (!strcmp(Name, "wait")) asm("int3");
 #ifdef ML_GIR_BYTECODE
 	ml_method_define(ml_method(Name), function_info_compile(Info), NArgsIn, 0, Types);
 #else
@@ -1944,6 +1945,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		GIFunctionInfo *MethodInfo = g_object_info_get_method(Info, I);
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
+		//if (!strcmp(MethodName, "query")) asm("int3");
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			method_register(MethodName, MethodInfo, (ml_type_t *)Object);
 		} else {
@@ -2718,6 +2720,7 @@ typedef enum {
 	GIB_ARRAY,
 	GIB_CALLBACK,
 	GIB_STRUCT,
+	GIB_UNION,
 	GIB_ENUM,
 	GIB_OBJECT,
 	GIB_SELF,
@@ -3080,6 +3083,13 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		*Arg++ = (ml_value_t *)Instance;
 		break;
 	}
+	case GIB_UNION: {
+		union_instance_t *Instance = new(union_instance_t);
+		Instance->Type = (union_t *)Callback->Aux[(Inst++)->Aux];
+		Instance->Value = *(void **)(*Param++);
+		*Arg++ = (ml_value_t *)Instance;
+		break;
+	}
 	case GIB_ENUM: {
 		enum_t *Enum = (enum_t *)Callback->Aux[(Inst++)->Aux];
 		*Arg++ = gir_enum_value(Enum, *(int *)(*Param++));
@@ -3349,6 +3359,12 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 			Callback->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
 			break;
 		}
+		case GI_INFO_TYPE_UNION: {
+			(InstOut++)->Opcode = GIB_UNION;
+			(InstOut++)->Aux = NumAux;
+			Callback->Aux[NumAux++] = union_info_lookup((GIUnionInfo *)InterfaceInfo);
+			break;
+		}
 		case GI_INFO_TYPE_ENUM:
 		case GI_INFO_TYPE_FLAGS: {
 			(InstOut++)->Opcode = GIB_ENUM;
@@ -3453,6 +3469,12 @@ static ml_type_t *callback_info_compile(const char *TypeName, GICallbackInfo *In
 				(InstIn++)->Opcode = GIB_STRUCT;
 				(InstIn++)->Aux = NumAux;
 				Callback->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+				break;
+			}
+			case GI_INFO_TYPE_UNION: {
+				(InstIn++)->Opcode = GIB_UNION;
+				(InstIn++)->Aux = NumAux;
+				Callback->Aux[NumAux++] = union_info_lookup((GIUnionInfo *)InterfaceInfo);
 				break;
 			}
 			case GI_INFO_TYPE_ENUM:
@@ -3815,6 +3837,18 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		}
 		break;
 	}
+	case GIB_UNION: {
+		ml_value_t *Value = *Arg++;
+		ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
+		if (Value == MLNil) {
+			(ArgIn++)->v_pointer = NULL;
+		} else if (ml_is(Value, Type)) {
+			(ArgIn++)->v_pointer = ((union_instance_t *)Value)->Value;
+		} else {
+			ML_ERROR("TypeError", "Expected %s not %s for parameter %ld", Type->Name, ml_typeof(Value)->Name, Arg - Args);
+		}
+		break;
+	}
 	case GIB_ENUM: {
 		ml_value_t *Value = *Arg++;
 		ml_type_t *Type = (ml_type_t *)Function->Aux[(Inst++)->Aux];
@@ -4036,6 +4070,17 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		}
 		break;
 	}
+	case GIB_UNION: {
+		union_instance_t *Instance = new(union_instance_t);
+		Instance->Type = Function->Aux[(Inst++)->Aux];
+		Instance->Value = (ArgOut++)->v_pointer;
+		*Result++ = (ml_value_t *)Instance;
+		if (Free) {
+			// TODO: mark instance for cleanup
+			Free = 0;
+		}
+		break;
+	}
 	case GIB_ENUM: {
 		enum_t *Enum = (enum_t *)Function->Aux[(Inst++)->Aux];
 		*Result++ = (ml_value_t *)Enum->ByIndex[(ArgOut++)->v_int];
@@ -4077,7 +4122,7 @@ static void type_param_size(GITypeInfo *Info, int Index, int *Size, int *NumAux)
 	GITypeInfo *ElementInfo = g_type_info_get_param_type(Info, Index);
 	switch (g_type_info_get_tag(ElementInfo)) {
 	BASIC_CASES_SIZE((*Size))
-	case GI_TYPE_TAG_INTERFACE: (*Size)++; (*NumAux)++; break;
+	case GI_TYPE_TAG_INTERFACE: *Size += 2; (*NumAux)++; break;
 	default: // TODO: handle this.
 	}
 	g_base_info_unref(ElementInfo);
@@ -4099,6 +4144,11 @@ static void type_param_inst(GITypeInfo *Info, int Index, gi_inst_t **Inst, int *
 			((*Inst)++)->Opcode = GIB_STRUCT;
 			((*Inst)++)->Aux = *NumAux;
 			Aux[(*NumAux)++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+			break;
+		case GI_INFO_TYPE_UNION:
+			((*Inst)++)->Opcode = GIB_UNION;
+			((*Inst)++)->Aux = *NumAux;
+			Aux[(*NumAux)++] = union_info_lookup((GIUnionInfo *)InterfaceInfo);
 			break;
 		case GI_INFO_TYPE_ENUM:
 		case GI_INFO_TYPE_FLAGS:
@@ -4134,7 +4184,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 	memset(Args, 0, NumArgs * sizeof(arg_info_t));
 	int NumIn = 0, NumOut = 0, NumAux = 0, NumValues = 0, NumInputs = 0, NumOutputs = 1;
 	//int InSize = 1, OutSize = 1;
-	int InSize = 4, OutSize = 4;
+	int InSize = 1, OutSize = 1;
 	GIFunctionInfoFlags Flags = g_function_info_get_flags(Info);
 	if (Flags & GI_FUNCTION_IS_METHOD) {
 		NumInputs++;
@@ -4151,13 +4201,14 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			Args[I].In = NumIn++;
 			switch (g_type_info_get_tag(Args[I].Type)) {
 			case GI_TYPE_TAG_ARRAY: {
+				InSize += 1;
 				int Length = g_type_info_get_array_length(Args[I].Type);
 				if (Length >= 0) {
 					NumInputs--;
 					Args[Length].SkipIn = 1;
 					InSize += 1;
 				}
-				InSize += 2;
+				type_param_size(Args[I].Type, 0, &InSize, &NumAux);
 				break;
 			}
 			case GI_TYPE_TAG_INTERFACE: {
@@ -4211,7 +4262,8 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 						Args[Length].SkipIn = 1;
 						InSize += 1;
 					}
-					InSize += 2;
+					InSize += 1;
+					type_param_size(Args[I].Type, 0, &InSize, &NumAux);
 					break;
 				}
 				case GI_TYPE_TAG_INTERFACE: {
@@ -4232,14 +4284,15 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					if (g_arg_info_get_ownership_transfer(Args[I].Info) != GI_TRANSFER_NOTHING) {
 						OutSize += 1;
 					}
+					OutSize += 1;
 					int Length = g_type_info_get_array_length(Args[I].Type);
 					if (Length >= 0) {
 						Args[Length].SkipOut = 1;
-						InSize -= 1;
+						//InSize -= 1;
 						OutSize += 1;
 					}
 					InSize += 1;
-					OutSize += 2;
+					type_param_size(Args[I].Type, 0, &OutSize, &NumAux);
 					break;
 				}
 				default:
@@ -4266,7 +4319,8 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			Args[Length].SkipOut = 1;
 			OutSize += 1;
 		}
-		OutSize += 2;
+		OutSize += 1;
+		type_param_size(Return, 0, &OutSize, &NumAux);
 		break;
 	}
 	case GI_TYPE_TAG_INTERFACE:
@@ -4318,11 +4372,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		} else {
 			(InstOut++)->Opcode = GIB_ARRAY;
 		}
-		switch (g_type_info_get_tag(ElementInfo)) {
-		BASIC_CASES_INST(InstOut)
-		default: // TODO: handle this.
-		}
-		g_base_info_unref(ElementInfo);
+		type_param_inst(Return, 0, &InstOut, &NumAux, Function->Aux);
 		break;
 	}
 	case GI_TYPE_TAG_INTERFACE: {
@@ -4337,6 +4387,11 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			(InstOut++)->Opcode = GIB_STRUCT;
 			(InstOut++)->Aux = NumAux;
 			Function->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+			break;
+		case GI_INFO_TYPE_UNION:
+			(InstOut++)->Opcode = GIB_UNION;
+			(InstOut++)->Aux = NumAux;
+			Function->Aux[NumAux++] = union_info_lookup((GIUnionInfo *)InterfaceInfo);
 			break;
 		case GI_INFO_TYPE_ENUM:
 		case GI_INFO_TYPE_FLAGS:
@@ -4396,12 +4451,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				} else {
 					(InstIn++)->Opcode = GIB_ARRAY;
 				}
-				GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
-				switch (g_type_info_get_tag(ElementInfo)) {
-				BASIC_CASES_INST(InstIn)
-				default: // TODO: handle this.
-				}
-				g_base_info_unref(ElementInfo);
+				type_param_inst(Args[I].Type, 0, &InstIn, &NumAux, Function->Aux);
 				break;
 			}
 			case GI_TYPE_TAG_INTERFACE: {
@@ -4421,6 +4471,12 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 						(InstIn++)->Opcode = GIB_STRUCT;
 						(InstIn++)->Aux = NumAux;
 						Function->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
+						break;
+					}
+					case GI_INFO_TYPE_UNION: {
+						(InstIn++)->Opcode = GIB_UNION;
+						(InstIn++)->Aux = NumAux;
+						Function->Aux[NumAux++] = union_info_lookup((GIUnionInfo *)InterfaceInfo);
 						break;
 					}
 					case GI_INFO_TYPE_ENUM:
@@ -4452,21 +4508,22 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 			}
 			case GI_TYPE_TAG_GLIST: {
 				(InstIn++)->Opcode = GIB_LIST;
-				type_param_inst(Args[I].Type, 0, &InstOut, &NumAux, Function->Aux);
+				type_param_inst(Args[I].Type, 0, &InstIn, &NumAux, Function->Aux);
 				break;
 			}
 			case GI_TYPE_TAG_GSLIST: {
 				(InstIn++)->Opcode = GIB_SLIST;
-				type_param_inst(Args[I].Type, 0, &InstOut, &NumAux, Function->Aux);
+				type_param_inst(Args[I].Type, 0, &InstIn, &NumAux, Function->Aux);
 				break;
 			}
 			case GI_TYPE_TAG_GHASH: {
 				(InstIn++)->Opcode = GIB_HASH;
-				type_param_inst(Args[I].Type, 0, &InstOut, &NumAux, Function->Aux);
-				type_param_inst(Args[I].Type, 1, &InstOut, &NumAux, Function->Aux);
+				type_param_inst(Args[I].Type, 0, &InstIn, &NumAux, Function->Aux);
+				type_param_inst(Args[I].Type, 1, &InstIn, &NumAux, Function->Aux);
 				break;
 			}
 			default:
+				(InstIn++)->Opcode = GIB_SKIP;
 			}
 		}
 		if (Direction == GI_DIRECTION_OUT || Direction == GI_DIRECTION_INOUT) {
@@ -4481,11 +4538,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					} else {
 						(InstIn++)->Opcode = GIB_OUTPUT_ARRAY;
 					}
-					switch (g_type_info_get_tag(ElementInfo)) {
-					BASIC_CASES_INST(InstIn)
-					default: // TODO: handle this.
-					}
-					g_base_info_unref(ElementInfo);
+					type_param_inst(Args[I].Type, 0, &InstIn, &NumAux, Function->Aux);
 					break;
 				}
 				case GI_TYPE_TAG_INTERFACE: {
@@ -4563,7 +4616,6 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 						(InstOut++)->Opcode = GIB_FREE;
 					}
 					int Length = g_type_info_get_array_length(Args[I].Type);
-					GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
 					(InstIn++)->Opcode = GIB_OUTPUT_VALUE;
 					if (Length >= 0) {
 						(InstOut++)->Opcode = GIB_ARRAY_LENGTH;
@@ -4571,11 +4623,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					} else {
 						(InstOut++)->Opcode = GIB_ARRAY;
 					}
-					switch (g_type_info_get_tag(ElementInfo)) {
-					BASIC_CASES_INST(InstOut)
-					default: // TODO: handle this.
-					}
-					g_base_info_unref(ElementInfo);
+					type_param_inst(Args[I].Type, 0, &InstOut, &NumAux, Function->Aux);
 					break;
 				}
 				default:
@@ -4586,13 +4634,15 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 		}
 	}
 	(InstIn++)->Opcode = (InstOut++)->Opcode = GIB_DONE;
-	if (InstIn - Function->InstIn > InSize) {
-		fprintf(stderr, "InSize = %d, InstIn - Function->InstIn = %d\n", InSize, InstIn - Function->InstIn);
-		asm("int3");
+	if (InstIn - Function->InstIn != InSize) {
+		//fprintf(stderr, "Function = 0x%lx\n", Function);
+		printf("Warning: InSize = %d, InstIn - Function->InstIn = %d\n", InSize, InstIn - Function->InstIn);
+		//asm("int3");
 	}
-	if (InstOut - Function->InstOut > OutSize) {
-		fprintf(stderr, "OutSize = %d, InstOut - Function->InstOut = %d\n", OutSize, InstOut - Function->InstOut);
-		asm("int3");
+	if (InstOut - Function->InstOut != OutSize) {
+		//fprintf(stderr, "Function = 0x%lx\n", Function);
+		printf("Warning: OutSize = %d, InstOut - Function->InstOut = %d\n", OutSize, InstOut - Function->InstOut);
+		//asm("int3");
 	}
 	Function->NumResults = NumResults;
 	return (ml_value_t *)Function;
