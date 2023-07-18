@@ -342,7 +342,7 @@ const char *ml_uninitialized_name(ml_value_t *Uninitialized) {
 	return ((ml_uninitialized_t *)Uninitialized)->Name;
 }
 
-ml_source_t ml_uninitialize_source(ml_value_t *Uninitialized) {
+ml_source_t ml_uninitialized_source(ml_value_t *Uninitialized) {
 	return ((ml_uninitialized_t *)Uninitialized)->Source;
 }
 
