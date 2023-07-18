@@ -19,7 +19,11 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Base.Exports, Name);
-	if (!Slot[0]) Slot[0] = ml_uninitialized(Name, ml_debugger_source(Caller));
+	if (!Slot[0]) {
+		char *FullName = snew(strlen(Module->Base.Path) + strlen("Name") + 3);
+		strcpy(stpcpy(stpcpy(FullName, Module->Base.Path), "::"), Name);
+		Slot[0] = ml_uninitialized(FullName, ml_debugger_source(Caller));
+	}
 	ML_RETURN(Slot[0]);
 }
 
