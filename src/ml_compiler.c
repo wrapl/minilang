@@ -3092,7 +3092,7 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 		for (ml_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
 			if (Hash == Decl->Hash && !strcmp(Decl->Ident, Expr->Ident)) {
 				if (Decl->Flags == MLC_DECL_CONSTANT) {
-					if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
+					if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident, (ml_source_t){Expr->Source, Expr->StartLine});
 					return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
 				} else {
 					int Index = ml_upvalue_find(Function, Decl, UpFunction, Expr->StartLine);
@@ -6392,7 +6392,7 @@ typedef struct {
 
 static ml_value_t *ml_global_deref(ml_global_t *Global) {
 	//if (!Global->Value) return ml_error("NameError", "Identifier %s not declared", Global->Name);
-	if (!Global->Value) return Global->Value = ml_uninitialized(Global->Name);
+	if (!Global->Value) return Global->Value = ml_uninitialized(Global->Name, (ml_source_t){"global", 0});
 	return ml_deref(Global->Value);
 }
 

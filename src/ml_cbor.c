@@ -208,7 +208,7 @@ ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 			return ml_error("CBORError", "Invalid previous index");
 		} else {
 			Value = Reader->Reused[Index];
-			if (!Value) Value = Reader->Reused[Index] = ml_uninitialized("CBOR");
+			if (!Value) Value = Reader->Reused[Index] = ml_uninitialized("CBOR", (ml_source_t){"cbor", 0});
 			return Value;
 		}
 	} else if (ml_is(Value, MLStringT)) {

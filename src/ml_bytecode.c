@@ -864,7 +864,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LOCALI: {
 		ml_value_t **Slot = &Top[Inst[1].Count];
 		Result = Slot[0];
-		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Chars);
+		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Chars, (ml_source_t){Frame->Source, Inst->Line});
 		ADVANCE(Inst + 3);
 	}
 	DO_TUPLE_NEW: {
@@ -903,7 +903,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			int Index = Inst[2 + I].Count;
 			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
-			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>");
+			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>", (ml_source_t){Frame->Source, Inst->Line});
 			if (ml_typeof(Value) == MLUninitializedT) {
 				ml_uninitialized_use(Value, &Closure->UpValues[I]);
 			}
@@ -928,7 +928,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			int Index = Inst[2 + I].Count;
 			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
-			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>");
+			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>", (ml_source_t){Frame->Source, Inst->Line});
 			if (ml_typeof(Value) == MLUninitializedT) {
 				ml_uninitialized_use(Value, &Closure->UpValues[I]);
 			}
