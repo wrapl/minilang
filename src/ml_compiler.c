@@ -2760,6 +2760,7 @@ static void ml_resolve_expr_compile2(mlc_function_t *Function, ml_value_t *Value
 
 static void ml_resolve_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, int Flags) {
 	MLC_FRAME(ml_resolve_expr_frame_t, ml_resolve_expr_compile2);
+	Function->Frame->Line = Expr->StartLine;
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	mlc_compile(Function, Expr->Child, MLCF_CONSTANT);
