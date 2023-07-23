@@ -576,7 +576,7 @@ ml_value_t *ml_minijs_decode(ml_minijs_decoder_t *Decoder, ml_value_t *Json) {
 			if (Value) return Value;
 			char *Name;
 			GC_asprintf(&Name, "@%d", Index);
-			Value = ml_uninitialized(Name);
+			Value = ml_uninitialized(Name, (ml_source_t){"minijs", 0});
 			inthash_insert(Decoder->Cached, Index, Value);
 			return Value;
 		}

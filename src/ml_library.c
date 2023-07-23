@@ -75,7 +75,7 @@ static char *path_join(const char *Base, const char *Rest, int Remove, int Space
 		if (Base[BaseLength] == '/') --Remove;
 	}
 	if (Remove) return NULL;
-	char *Path = snew(BaseLength + 1 + strlen(Rest) + Space);
+	char *Path = snew(BaseLength + 2 + strlen(Rest) + Space);
 	char *End = mempcpy(Path, Base, BaseLength);
 	if (Rest[0]) {
 		*End++ = '/';

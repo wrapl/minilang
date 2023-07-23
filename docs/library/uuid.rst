@@ -18,11 +18,15 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      address(uuid()) :> <16:2A8CDE5B3B294C708B86B72948E6F388>
+      address(uuid()) :> <16:A99495CE237B40299D136FD31693E8EF>
 
 
 :mini:`type uuid`
    A UUID.
+
+
+:mini:`meth uuid(Address: address): uuid | error`
+   Returns a new UUID with the bytes of :mini:`Address`.
 
 
 :mini:`meth uuid(String: string): uuid | error`
@@ -42,7 +46,7 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      uuid() :> daecb9b2-0ed9-4511-a85d-9590d03aa63a
+      uuid() :> 604d5ca3-5b06-4e38-8e77-cb1f3df2cab6
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`

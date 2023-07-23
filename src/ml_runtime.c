@@ -313,6 +313,7 @@ typedef struct ml_uninitialized_t {
 	const char *Name;
 	ml_uninitialized_slot_t *Slots;
 	stringmap_t Unresolved[1];
+	ml_source_t Source;
 } ml_uninitialized_t;
 
 static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, int Count, ml_value_t **Args) {
@@ -329,15 +330,20 @@ ML_TYPE(MLUninitializedT, (), "uninitialized",
 	.assign = (void *)ml_unitialized_assign
 );
 
-ml_value_t *ml_uninitialized(const char *Name) {
+ml_value_t *ml_uninitialized(const char *Name, ml_source_t Source) {
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
 	Uninitialized->Name = Name;
+	Uninitialized->Source = Source;
 	return (ml_value_t *)Uninitialized;
 }
 
 const char *ml_uninitialized_name(ml_value_t *Uninitialized) {
 	return ((ml_uninitialized_t *)Uninitialized)->Name;
+}
+
+ml_source_t ml_uninitialized_source(ml_value_t *Uninitialized) {
+	return ((ml_uninitialized_t *)Uninitialized)->Source;
 }
 
 void ml_uninitialized_use(ml_value_t *Uninitialized0, ml_value_t **Value) {
@@ -389,12 +395,12 @@ void ml_uninitialized_set(ml_value_t *Uninitialized0, ml_value_t *Value) {
 	}
 }
 
-ML_METHOD("::", MLUninitializedT, MLStringT) {
+ML_METHODX("::", MLUninitializedT, MLStringT) {
 	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Uninitialized->Unresolved, Name);
-	if (!Slot[0]) Slot[0] = ml_uninitialized(Name);
-	return Slot[0];
+	if (!Slot[0]) Slot[0] = ml_uninitialized(Name, ml_debugger_source(Caller));
+	ML_RETURN(Slot[0]);
 }
 
 // Errors //

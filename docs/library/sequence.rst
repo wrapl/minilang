@@ -127,6 +127,18 @@ sequence
       count2("banana") :> {"b" is 1, "a" is 3, "n" is 2}
 
 
+:mini:`fun distill(Initial?: any, Sequence: sequence, Fn: function): any | nil`
+   Returns a sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
+   If :mini:`Initial` is omitted,  the first value produced by :mini:`Sequence` is used.
+
+   .. code-block:: mini
+
+      list(distill(1 .. 10, +))
+      :> [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
+      list(distill(20, 1 .. 10, +))
+      :> [21, 23, 26, 30, 35, 41, 48, 56, 65, 75]
+
+
 :mini:`fun fold(Sequence: sequence): sequence`
    Returns a new sequence that treats alternating values produced by :mini:`Sequence` as keys and values respectively.
 
@@ -370,7 +382,11 @@ sequence
 
 
 :mini:`meth (Sequence: sequence) // (Initial: any, Fn: function): sequence`
-   Returns an sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
+   Returns a sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
+   
+   .. deprecated:: 2.9.0
+   
+      Use :mini:`distill` instead.
 
    .. code-block:: mini
 
@@ -379,7 +395,11 @@ sequence
 
 
 :mini:`meth (Sequence: sequence) // (Fn: function): sequence`
-   Returns an sequence that produces :mini:`V₁`,  :mini:`Fn(V₁,  V₂)`,  :mini:`Fn(Fn(V₁,  V₂),  V₃)`,  ... .
+   Returns a sequence that produces :mini:`V₁`,  :mini:`Fn(V₁,  V₂)`,  :mini:`Fn(Fn(V₁,  V₂),  V₃)`,  ... .
+   
+   .. deprecated:: 2.9.0
+   
+      Use :mini:`distill` instead.
 
    .. code-block:: mini
 
@@ -534,7 +554,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "k"
       random([]) :> nil
 
 

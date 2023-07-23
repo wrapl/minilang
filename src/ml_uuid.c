@@ -58,6 +58,17 @@ ML_METHOD(MLUUIDT, MLStringT) {
 	return ml_uuid_parse(ml_string_value(Args[0]), ml_string_length(Args[0]));
 }
 
+ML_METHOD(MLUUIDT, MLAddressT) {
+//<Address
+//>uuid|error
+// Returns a new UUID with the bytes of :mini:`Address`.
+	if (ml_address_length(Args[0]) < sizeof(uuid_t)) return ml_error("UUIDError", "16 bytes required for UUID");
+	ml_uuid_t *UUID = new(ml_uuid_t);
+	UUID->Type = MLUUIDT;
+	memcpy(UUID->Value, ml_address_value(Args[0]), sizeof(uuid_t));
+	return (ml_value_t *)UUID;
+}
+
 ML_METHOD(MLAddressT, MLUUIDT) {
 //<UUID
 //>address

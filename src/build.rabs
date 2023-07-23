@@ -45,8 +45,9 @@ end
 GC_DEBUG := defined("GC_DEBUG")
 
 if DEBUG then
-	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
+	CFLAGS := old + ["-O1", "-g", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
+	GC_DEBUG and CFLAGS:put("-DGC_DEBUG")
 elseif GC_DEBUG then
 	CFLAGS := old + ["-O3", "-g", "-DGC_DEBUG"]
 	LDFLAGS := old + ["-g"]
@@ -189,7 +190,8 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	GC := Lib
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ['-I{PATH / "include"}']
-	LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
+	Libraries:put(Lib)
+	:>LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
@@ -479,10 +481,10 @@ if MINILANG_TRE then
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
+		execute('make -j4 -C lib PREFIX={PATH} install')
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ["-DML_TRE", '-I{Dir / "lib"}']
-	:>LDFLAGS := old + ["-ltre"]
+	CFLAGS := old + ["-DML_TRE"]
 	Libraries:put(Lib)
 end
 
@@ -500,15 +502,15 @@ end
 
 if MINILANG_TIMEZONES then
 	let Header := file("timelib_mem.h")
-	let TIMELIB := file("timelib/timelib.a")[GC, Header] => fun(Target) do
+	let Lib := file("timelib/timelib.a")[GC, Header] => fun(Target) do
 		file("timelib"):rmdir
 		execute("git clone https://github.com/derickr/timelib.git", Dir)
 		file("timelib"):chdir
 		execute('make timelib.a FLAGS=\"{CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"')
 	end
-	PREBUILDS := old + [TIMELIB]
+	PREBUILDS := old + [Lib]
 	CFLAGS := old + ["-DML_TIMEZONES"]
-	Libraries:put(TIMELIB)
+	Libraries:put(Lib)
 end
 
 if MINILANG_UUID then
@@ -532,14 +534,14 @@ end
 
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
-	LDFLAGS := old + ["-lgc"]
+	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "FreeBSD" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-I/usr/local/include"]
-	LDFLAGS := old + ["-L/usr/local/lib", "-lgc-threaded"]
+	GC or LDFLAGS := old + ["-L/usr/local/lib", "-lgc-threaded"]
 elseif PLATFORM = "Darwin" then
 	Objects:put(file("linenoise.o"))
-	LDFLAGS := old + ["-lgc"]
+	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
 end
 

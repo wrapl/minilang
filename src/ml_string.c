@@ -144,7 +144,7 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 	if (Offset < 0) return ml_error("SizeError", "Offset must be non-negative");
 	if (Offset > Address->Length) return ml_error("SizeError", "Offset larger than buffer");
 	ml_address_t *Address2 = new(ml_address_t);
-	Address2->Type = MLAddressT;
+	Address2->Type = Address->Type;
 	Address2->Value = Address->Value + Offset;
 	Address2->Length = Address->Length - Offset;
 	return (ml_value_t *)Address2;
@@ -477,24 +477,6 @@ ML_METHOD("const", MLVisitorT, MLBufferT) {
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);
 	return ml_address(Value, Size);
-}
-
-ML_METHOD("+", MLBufferT, MLIntegerT) {
-//!buffer
-//<Buffer
-//<Offset
-//>buffer
-// Returns the buffer at offset :mini:`Offset` from :mini:`Address`.
-//$= let B := buffer(16)
-//$= B + 8
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	long Offset = ml_integer_value_fast(Args[1]);
-	if (Offset > Buffer->Length) return ml_error("SizeError", "Offset larger than buffer");
-	ml_address_t *Buffer2 = new(ml_address_t);
-	Buffer2->Type = MLBufferT;
-	Buffer2->Value = Buffer->Value + Offset;
-	Buffer2->Length = Buffer->Length - Offset;
-	return (ml_value_t *)Buffer2;
 }
 
 ML_METHOD("put8", MLBufferT, MLIntegerT) {

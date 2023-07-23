@@ -409,13 +409,15 @@ ML_METHODV("put", MLXmlElementT, MLAnyT) {
 		if (Error) return Error;
 	}
 	ml_xml_grow(Grower, NULL);
-	Grower->Tail->Next = NULL;
-	Grower->Head->Prev = Parent->Tail;
-	if (Parent->Tail) Parent->Tail->Next = Grower->Head; else Parent->Head = Grower->Head;
-	Parent->Tail = Grower->Tail;
-	size_t Index = Parent->Base.Base.Length;
-	for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
-	Parent->Base.Base.Length = Index;
+	if (Grower->Tail) {
+		Grower->Tail->Next = NULL;
+		Grower->Head->Prev = Parent->Tail;
+		if (Parent->Tail) Parent->Tail->Next = Grower->Head; else Parent->Head = Grower->Head;
+		Parent->Tail = Grower->Tail;
+		size_t Index = Parent->Base.Base.Length;
+		for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
+		Parent->Base.Base.Length = Index;
+	}
 	return (ml_value_t *)Parent;
 }
 
@@ -460,15 +462,19 @@ ML_METHODV("add_next", MLXmlT, MLAnyT) {
 		if (Error) return Error;
 	}
 	ml_xml_grow(Grower, NULL);
-	ml_xml_node_t *Next = Node->Next;
-	Grower->Tail->Next = Next;
-	Grower->Head->Prev = Node;
-	Node->Next = Grower->Head;
-	if (Next) Next->Prev = Grower->Tail; else Parent->Tail = Grower->Tail;
-	size_t Index = Node->Index;
-	for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
-	Parent->Base.Base.Length = Index;
-	return (ml_value_t *)Grower->Tail;
+	if (Grower->Tail) {
+		ml_xml_node_t *Next = Node->Next;
+		Grower->Tail->Next = Next;
+		Grower->Head->Prev = Node;
+		Node->Next = Grower->Head;
+		if (Next) Next->Prev = Grower->Tail; else Parent->Tail = Grower->Tail;
+		size_t Index = Node->Index;
+		for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
+		Parent->Base.Base.Length = Index;
+		return (ml_value_t *)Grower->Tail;
+	} else {
+		return (ml_value_t *)Node;
+	}
 }
 
 ML_METHODV("add_prev", MLXmlT, MLAnyT) {
@@ -485,15 +491,19 @@ ML_METHODV("add_prev", MLXmlT, MLAnyT) {
 		if (Error) return Error;
 	}
 	ml_xml_grow(Grower, NULL);
-	ml_xml_node_t *Prev = Node->Prev;
-	Grower->Head->Prev = Prev;
-	Grower->Tail->Next = Node;
-	if (Prev) Prev->Next = Grower->Head; else Parent->Head = Grower->Head;
-	Node->Prev = Grower->Tail;
-	size_t Index = Node->Index - 1;
-	for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
-	Parent->Base.Base.Length = Index;
-	return (ml_value_t *)Grower->Tail;
+	if (Grower->Tail) {
+		ml_xml_node_t *Prev = Node->Prev;
+		Grower->Head->Prev = Prev;
+		Grower->Tail->Next = Node;
+		if (Prev) Prev->Next = Grower->Head; else Parent->Head = Grower->Head;
+		Node->Prev = Grower->Tail;
+		size_t Index = Node->Index - 1;
+		for (ml_xml_node_t *Child = Grower->Head; Child; Child = Child->Next) Child->Index = ++Index;
+		Parent->Base.Base.Length = Index;
+		return (ml_value_t *)Grower->Tail;
+	} else {
+		return (ml_value_t *)Node;
+	}
 }
 
 typedef struct {

@@ -1648,7 +1648,11 @@ ML_METHOD("//", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Fn
 //>sequence
-// Returns an sequence that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
+// Returns a sequence that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
+//
+// .. deprecated:: 2.9.0
+//
+//    Use :mini:`distill` instead.
 //$= list(1 .. 10 // +)
 	ml_stacked_t *Stacked = new(ml_stacked_t);
 	Stacked->Type = MLStackedT;
@@ -1662,7 +1666,11 @@ ML_METHOD("//", MLSequenceT, MLAnyT, MLFunctionT) {
 //<Initial
 //<Fn
 //>sequence
-// Returns an sequence that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
+// Returns a sequence that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
+//
+// .. deprecated:: 2.9.0
+//
+//    Use :mini:`distill` instead.
 //$= list(1 .. 10 // (10, +))
 	ml_stacked_t *Stacked = new(ml_stacked_t);
 	Stacked->Type = MLStackedT;
@@ -1670,6 +1678,36 @@ ML_METHOD("//", MLSequenceT, MLAnyT, MLFunctionT) {
 	Stacked->Initial = Args[1];
 	Stacked->ReduceFn = Args[2];
 	return (ml_value_t *)Stacked;
+}
+
+ML_FUNCTION(Distill) {
+//<Initial?:any
+//<Sequence:sequence
+//<Fn:function
+//>any | nil
+// Returns a sequence that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
+// If :mini:`Initial` is omitted, the first value produced by :mini:`Sequence` is used.
+//$= list(distill(1 .. 10, +))
+//$= list(distill(20, 1 .. 10, +))
+	ML_CHECK_ARG_COUNT(2);
+	if (Count == 2) {
+		ML_CHECK_ARG_TYPE(0, MLSequenceT);
+		ML_CHECK_ARG_TYPE(1, MLFunctionT);
+		ml_stacked_t *Stacked = new(ml_stacked_t);
+		Stacked->Type = MLStackedT;
+		Stacked->Value = Args[0];
+		Stacked->ReduceFn = Args[1];
+		return (ml_value_t *)Stacked;
+	} else {
+		ML_CHECK_ARG_TYPE(1, MLSequenceT);
+		ML_CHECK_ARG_TYPE(2, MLFunctionT);
+		ml_stacked_t *Stacked = new(ml_stacked_t);
+		Stacked->Type = MLStackedT;
+		Stacked->Initial = Args[0];
+		Stacked->Value = Args[1];
+		Stacked->ReduceFn = Args[2];
+		return (ml_value_t *)Stacked;
+	}
 }
 
 typedef struct ml_repeated_t {
@@ -3607,6 +3645,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "random", ml_method("random"));
 		stringmap_insert(Globals, "reduce", Reduce);
+		stringmap_insert(Globals, "distill", Distill);
 		stringmap_insert(Globals, "min", Min);
 		stringmap_insert(Globals, "max", Max);
 		stringmap_insert(Globals, "sum", Sum);

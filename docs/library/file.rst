@@ -45,6 +45,34 @@ file
    Flushes any pending writes to :mini:`File`.
 
 
+:mini:`type file::mode < enum`
+   *TBD*
+
+
+:mini:`type file::stat`
+   *TBD*
+
+
+:mini:`meth (Arg₁: file::stat):atime`
+   *TBD*
+
+
+:mini:`meth (Arg₁: file::stat):ctime`
+   *TBD*
+
+
+:mini:`meth (Arg₁: file::stat):mode`
+   *TBD*
+
+
+:mini:`meth (Arg₁: file::stat):mtime`
+   *TBD*
+
+
+:mini:`meth (Arg₁: file::stat):size`
+   *TBD*
+
+
 :mini:`type popen < file`
    A file that reads or writes to a running subprocess.
 
@@ -60,11 +88,19 @@ file
    Waits for the subprocess to finish and returns the exit status.
 
 
+:mini:`fun file::exists(Path: string): string | nil`
+   *TBD*
+
+
 :mini:`fun file::rename(Old: string, New: string)`
    Renames the file :mini:`Old` to :mini:`New`.
 
 
 :mini:`fun file::unlink(Path: string)`
    Removes the file at :mini:`Path`.
+
+
+:mini:`fun mlfilestat(Arg₁: string)`
+   *TBD*
 
 
