@@ -21,16 +21,6 @@ buffer
    A buffer represents a writable bounded section of memory.
 
 
-:mini:`meth (Buffer: buffer) + (Offset: integer): buffer`
-   Returns the buffer at offset :mini:`Offset` from :mini:`Address`.
-
-   .. code-block:: mini
-
-      let B := buffer(16)
-      :> <16:804DC219997F0000206E6F742063616C>
-      B + 8 :> <8:206E6F742063616C>
-
-
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`
    Puts the bytes of :mini:`Value` in :mini:`Buffer`.
 
@@ -93,6 +83,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:4082C019997F0000203C6C6F63616C65>
+      buffer(16) :> <16:00271034647F0000655F726F775F7420>
 
 
