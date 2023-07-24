@@ -1844,6 +1844,27 @@ static void ML_TYPED_FN(ml_iterate, MLFunctionSequenceT, ml_state_t *Caller, ml_
 }
 
 ML_METHOD("repeat", MLFunctionT) {
+//<Function
+//>sequence
+// Returns a sequence that generates the result of calling :mini:`Function()` at each iteration until :mini:`nil` is returned.
+//
+// .. deprecated:: 2.9.0
+//
+//    Use :mini:`^` instead.
+//$- let L := [1, 2, 3, 4]
+//$= list(L:pull(_):repeat)
+	ml_function_sequence_t *Sequence = new(ml_function_sequence_t);
+	Sequence->Type = MLFunctionSequenceT;
+	Sequence->Function = Args[0];
+	return (ml_value_t *)Sequence;
+}
+
+ML_METHOD("^", MLFunctionT) {
+//<Function
+//>sequence
+// Returns a sequence that generates the result of calling :mini:`Function()` at each iteration until :mini:`nil` is returned.
+//$- let L := [1, 2, 3, 4]
+//$= list(^fun L:pull)
 	ml_function_sequence_t *Sequence = new(ml_function_sequence_t);
 	Sequence->Type = MLFunctionSequenceT;
 	Sequence->Function = Args[0];

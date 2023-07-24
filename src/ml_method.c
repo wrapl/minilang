@@ -741,7 +741,25 @@ ML_METHODVX("[]", MLMethodT) {
 	}
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, (ml_type_t **)Args, Hash);
-	if (!Cached) ML_RETURN(ml_no_method_error(Method, Count, Args));
+	if (!Cached) {
+		int Length = 4;
+		for (int I = 0; I < Count; ++I) Length += strlen(((ml_type_t *)Args[I])->Name) + 2;
+		char *Types = snew(Length);
+		Types[0] = 0;
+		char *P = Types;
+#ifdef __MINGW32__
+		for (int I = 0; I < Count; ++I) {
+			strcpy(P, Args[I]->Type->Path);
+			P += strlen(Args[I]->Type->Path);
+			strcpy(P, ", ");
+			P += 2;
+		}
+#else
+		for (int I = 0; I < Count; ++I) P = stpcpy(stpcpy(P, ((ml_type_t *)Args[I])->Name), ", ");
+#endif
+		P[-2] = 0;
+		ML_ERROR("MethodError", "no method found for %s(%s)", Method->Name, Types);
+	}
 	if (ml_method_is_safe(Cached->Callback)) ML_RETURN(Cached->Callback);
 	if (!Count) ML_RETURN(Cached->Callback);
 	ml_method_function_t *Function = xnew(ml_method_function_t, Count, ml_type_t *);

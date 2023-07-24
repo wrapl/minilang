@@ -57,8 +57,26 @@ sequence
       F("cake") :> "CAKECAKECAKE"
 
 
-:mini:`meth (Arg₁: function):repeat`
-   *TBD*
+:mini:`meth ^(Function: function): sequence`
+   Returns a sequence that generates the result of calling :mini:`Function()` at each iteration until :mini:`nil` is returned.
+
+   .. code-block:: mini
+
+      let L := [1, 2, 3, 4]
+      list(^fun L:pull) :> [4, 3, 2, 1]
+
+
+:mini:`meth (Function: function):repeat: sequence`
+   Returns a sequence that generates the result of calling :mini:`Function()` at each iteration until :mini:`nil` is returned.
+   
+   .. deprecated:: 2.9.0
+   
+      Use :mini:`^` instead.
+
+   .. code-block:: mini
+
+      let L := [1, 2, 3, 4]
+      list(L:pull(_):repeat) :> [4, 3, 2, 1]
 
 
 :mini:`type grouped < sequence`
@@ -554,7 +572,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "k"
+      random("cake") :> "e"
       random([]) :> nil
 
 
