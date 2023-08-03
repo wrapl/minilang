@@ -3170,6 +3170,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_externals_default_add("address", MLAddressT);
 	ml_externals_default_add("buffer", MLBufferT);
 	ml_externals_default_add("string", MLStringT);
+	ml_externals_default_add("string::buffer", MLStringBufferT);
 	ml_externals_default_add("regex", MLRegexT);
 	ml_externals_default_add("tuple", MLTupleT);
 	ml_externals_default_add("list", MLListT);
