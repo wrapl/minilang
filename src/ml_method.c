@@ -702,9 +702,9 @@ typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Callback;
 	ml_method_cached_t *Cached;
-} ml_method_function_t;
+} ml_method_instance_t;
 
-static void ml_method_function_call(ml_state_t *Caller, ml_method_function_t *Function, int Count, ml_value_t **Args) {
+static void ml_method_function_call(ml_state_t *Caller, ml_method_instance_t *Function, int Count, ml_value_t **Args) {
 	ml_method_cached_t *Cached = Function->Cached;
 	ML_CHECKX_ARG_COUNT(Cached->Count);
 	for (int I = 0; I < Cached->Count; ++I) {
@@ -717,10 +717,28 @@ static void ml_method_function_call(ml_state_t *Caller, ml_method_function_t *Fu
 	return ml_call(Caller, Function->Callback, Count, Args);
 }
 
-ML_TYPE(MLMethodFunctionT, (MLFunctionT), "method::function",
+ML_TYPE(MLMethodInstanceT, (MLFunctionT), "method::instance",
 //!internal
 	.call = (void *)ml_method_function_call
 );
+
+static int ML_TYPED_FN(ml_function_source, MLMethodInstanceT, ml_method_instance_t *Function, const char **Source, int *Line) {
+	return ml_function_source(Function->Callback, Source, Line);
+}
+
+ML_METHOD("append", MLStringBufferT, MLMethodInstanceT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_method_cached_t *Cached = ((ml_method_instance_t *)Args[1])->Cached;
+	ml_stringbuffer_put(Buffer, ':');
+	ml_stringbuffer_write(Buffer, Cached->Method->Name, strlen(Cached->Method->Name));
+	ml_stringbuffer_put(Buffer, '[');
+	for (int I = 0; I < Cached->Count; ++I) {
+		if (I) ml_stringbuffer_write(Buffer, ", ", 2);
+		ml_stringbuffer_write(Buffer, Cached->Types[I]->Name, strlen(Cached->Types[I]->Name));
+	}
+	ml_stringbuffer_put(Buffer, ']');
+	return MLSome;
+}
 
 extern ml_type_t MLClosureT[];
 
@@ -762,8 +780,8 @@ ML_METHODVX("[]", MLMethodT) {
 	}
 	if (ml_method_is_safe(Cached->Callback)) ML_RETURN(Cached->Callback);
 	if (!Count) ML_RETURN(Cached->Callback);
-	ml_method_function_t *Function = xnew(ml_method_function_t, Count, ml_type_t *);
-	Function->Type = MLMethodFunctionT;
+	ml_method_instance_t *Function = xnew(ml_method_instance_t, Count, ml_type_t *);
+	Function->Type = MLMethodInstanceT;
 	Function->Callback = Cached->Callback;
 	Function->Cached = Cached;
 	ML_RETURN(Function);

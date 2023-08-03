@@ -13,6 +13,42 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
+:mini:`meth (A: any) * (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> 
+      2 * B :> 
+
+
+:mini:`meth (A: any) + (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> 
+      2 + B :> 
+
+
+:mini:`meth (A: any) - (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> 
+      2 - B :> 
+
+
+:mini:`meth (A: any) / (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> 
+      2 / B :> 
+
+
 :mini:`meth (A: any) < (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
 
@@ -97,6 +133,15 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
 
+:mini:`meth (A: array) * (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A * 2 :> 
+
+
 :mini:`meth (A: array) * (B: array): array`
    Returns :mini:`A * B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
@@ -121,33 +166,6 @@ array
       :> error("CompilerError", "Identifier B not declared")
 
 
-:mini:`meth (A: array) * (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A * (1 + 1i) :> 
-
-
-:mini:`meth (A: array) * (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A * 2 :> 
-
-
-:mini:`meth (A: array) * (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A * 2.5 :> 
-
-
 :mini:`meth (A: array) ** (B: array): array`
    Returns an array with :mini:`Aᵢ * Bⱼ` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
    
@@ -162,6 +180,15 @@ array
       let C := A ** B :> 
       C:shape
       :> error("CompilerError", "Identifier C not declared")
+
+
+:mini:`meth (A: array) + (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A + 2 :> 
 
 
 :mini:`meth (A: array) + (B: array): array`
@@ -188,33 +215,6 @@ array
       :> error("CompilerError", "Identifier B not declared")
 
 
-:mini:`meth (A: array) + (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A + (1 + 1i) :> 
-
-
-:mini:`meth (A: array) + (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A + 2 :> 
-
-
-:mini:`meth (A: array) + (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A + 2.5 :> 
-
-
 :mini:`meth (A: array) ++ (B: array): array`
    Returns an array with :mini:`Aᵢ + Bⱼ` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
    
@@ -233,6 +233,15 @@ array
 
 :mini:`meth -(Array: array): array`
    Returns an array with the negated values from :mini:`Array`.
+
+
+:mini:`meth (A: array) - (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A - 2 :> 
 
 
 :mini:`meth (A: array) - (B: array): array`
@@ -259,33 +268,6 @@ array
       :> error("CompilerError", "Identifier B not declared")
 
 
-:mini:`meth (A: array) - (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A - (1 + 1i) :> 
-
-
-:mini:`meth (A: array) - (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A - 2 :> 
-
-
-:mini:`meth (A: array) - (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A - 2.5 :> 
-
-
 :mini:`meth (A: array) -- (B: array): array`
    Returns an array with :mini:`Aᵢ - Bⱼ` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
    
@@ -304,6 +286,15 @@ array
 
 :mini:`meth (A: array) . (B: array): array`
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match,  skipping any dimensions of size :mini:`1`.
+
+
+:mini:`meth (A: array) / (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A / 2 :> 
 
 
 :mini:`meth (A: array) / (B: array): array`
@@ -328,33 +319,6 @@ array
       B / C :> 
       C / B
       :> error("CompilerError", "Identifier B not declared")
-
-
-:mini:`meth (A: array) / (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A / (1 + 1i) :> 
-
-
-:mini:`meth (A: array) / (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A / 2 :> 
-
-
-:mini:`meth (A: array) / (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A / 2.5 :> 
 
 
 :mini:`meth (A: array) // (B: array): array`
@@ -1025,6 +989,42 @@ array
    *TBD*
 
 
+:mini:`meth (A: array::complex) * (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A * (1 + 1i) :> 
+
+
+:mini:`meth (A: array::complex) + (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A + (1 + 1i) :> 
+
+
+:mini:`meth (A: array::complex) - (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A - (1 + 1i) :> 
+
+
+:mini:`meth (A: array::complex) / (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A / (1 + 1i) :> 
+
+
 :mini:`type array::complex32 < array::complex`
    *TBD*
 
@@ -1091,6 +1091,42 @@ array
 
 :mini:`type array::integer < array::real`
    *TBD*
+
+
+:mini:`meth (A: array::integer) * (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A * 2 :> 
+
+
+:mini:`meth (A: array::integer) + (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A + 2 :> 
+
+
+:mini:`meth (A: array::integer) - (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A - 2 :> 
+
+
+:mini:`meth (A: array::integer) / (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A / 2 :> 
 
 
 :mini:`type array::mutable < array, buffer`
@@ -1242,6 +1278,42 @@ array
    *TBD*
 
 
+:mini:`meth (A: array::real) * (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A * 2.5 :> 
+
+
+:mini:`meth (A: array::real) + (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A + 2.5 :> 
+
+
+:mini:`meth (A: array::real) - (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A - 2.5 :> 
+
+
+:mini:`meth (A: array::real) / (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> 
+      A / 2.5 :> 
+
+
 :mini:`type array::uint16 < array::integer`
    *TBD*
 
@@ -1278,7 +1350,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: complex) * (B: array): array`
+:mini:`meth (A: complex) * (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
 
    .. code-block:: mini
@@ -1287,7 +1359,7 @@ array
       (1 + 1i) * A :> 
 
 
-:mini:`meth (A: complex) + (B: array): array`
+:mini:`meth (A: complex) + (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
 
    .. code-block:: mini
@@ -1296,7 +1368,7 @@ array
       (1 + 1i) + A :> 
 
 
-:mini:`meth (A: complex) - (B: array): array`
+:mini:`meth (A: complex) - (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
 
    .. code-block:: mini
@@ -1305,7 +1377,7 @@ array
       (1 + 1i) - A :> 
 
 
-:mini:`meth (A: complex) / (B: array): array`
+:mini:`meth (A: complex) / (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
 
    .. code-block:: mini
@@ -1350,7 +1422,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: integer) * (B: array): array`
+:mini:`meth (A: integer) * (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
 
    .. code-block:: mini
@@ -1359,7 +1431,7 @@ array
       2 * A :> 
 
 
-:mini:`meth (A: integer) + (B: array): array`
+:mini:`meth (A: integer) + (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
 
    .. code-block:: mini
@@ -1368,7 +1440,7 @@ array
       2 + A :> 
 
 
-:mini:`meth (A: integer) - (B: array): array`
+:mini:`meth (A: integer) - (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
 
    .. code-block:: mini
@@ -1377,7 +1449,7 @@ array
       2 - A :> 
 
 
-:mini:`meth (A: integer) / (B: array): array`
+:mini:`meth (A: integer) / (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
 
    .. code-block:: mini
@@ -1619,7 +1691,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: real) * (B: array): array`
+:mini:`meth (A: real) * (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
 
    .. code-block:: mini
@@ -1628,7 +1700,7 @@ array
       2.5 * A :> 
 
 
-:mini:`meth (A: real) + (B: array): array`
+:mini:`meth (A: real) + (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
 
    .. code-block:: mini
@@ -1637,7 +1709,7 @@ array
       2.5 + A :> 
 
 
-:mini:`meth (A: real) - (B: array): array`
+:mini:`meth (A: real) - (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
 
    .. code-block:: mini
@@ -1646,7 +1718,7 @@ array
       2.5 - A :> 
 
 
-:mini:`meth (A: real) / (B: array): array`
+:mini:`meth (A: real) / (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
 
    .. code-block:: mini
@@ -1703,7 +1775,7 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:20C5D9F5177F0000545F455850525F56>
+      :> <16:C055DCBC7F7F00004652414D455F4445>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> 
 
 

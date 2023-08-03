@@ -21,6 +21,9 @@
 #include "ml_object.h"
 #include "gtk_console_completion.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "gtk_console"
+
 #define MAX_HISTORY 128
 
 struct gtk_console_t {
@@ -1031,7 +1034,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", "3.0", 0, &Error);
 	g_irepository_require(NULL, "GtkSource", "4", 0, &Error);
-	stringmap_insert(Console->Globals, "print", ml_cfunction(Console, (void *)gtk_console_print));
+	stringmap_insert(Console->Globals, "print", ml_cfunction2(Console, (void *)gtk_console_print, ML_CATEGORY, __LINE__));
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window, NULL));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView, NULL));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView, NULL));

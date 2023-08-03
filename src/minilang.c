@@ -80,6 +80,9 @@
 #include "ml_minijs.h"
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "minilang"
+
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name, const char *Source, int Line, int Mode) {

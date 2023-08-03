@@ -1771,13 +1771,13 @@ ML_FUNCTION(MLArrayVCat) {
  ML_METHOD(#NAME, ATYPE, MLNumberT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	CTYPE Value = FROM_VAL(Args[1]); \
-	ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 	update_row_fn_t Update = Update ## TITLE ## RowFns[Array->Format * MAX_FORMATS + FORMAT]; \
 	if (!Update) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", ml_typeof(Args[0])->Name, ml_typeof(Args[1])->Name); \
 	if (Array->Degree == 0) { \
+		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 		Update(ValueDimension, Array->Base.Value, ValueDimension, (char *)&Value); \
 	} else { \
-		update_prefix(Update, Array->Degree - 1, Array->Dimensions, Array->Base.Value, 0, ValueDimension, (char *)&Value); \
+		update_prefix(Update, Array->Degree - 1, Array->Dimensions, Array->Base.Value, 0, NULL, (char *)&Value); \
 	} \
 	return Args[0]; \
 }
@@ -2166,7 +2166,7 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 		if (Target->Degree == 0) { \
 			Update(ValueDimension, Target->Base.Value, ValueDimension, (char *)&Value); \
 		} else { \
-			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, ValueDimension, (char *)&Value); \
+			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, NULL, (char *)&Value); \
 		} \
 		ML_RETURN(Value); \
 	} else if (ml_is(Value, MLNumberT)) { \
@@ -2177,7 +2177,7 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 		if (Target->Degree == 0) { \
 			Update(ValueDimension, Target->Base.Value, ValueDimension, (char *)&CValue); \
 		} else { \
-			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, ValueDimension, (char *)&CValue); \
+			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, NULL, (char *)&CValue); \
 		} \
 		ML_RETURN(Value); \
 	} else { \
@@ -4090,9 +4090,9 @@ INFIX_METHOD(max)
 
 #endif
 
-#define ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT) \
+#define ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT, METHOD) \
 \
-ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
+ML_METHOD(#NAME, MLArrayT, MLAnyT) { \
 /*<A
 //<B
 //>array
@@ -4102,7 +4102,48 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	ml_value_t *B = Args[1]; \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_ANY, Degree); \
+	int DataSize = array_copy(C, A); \
+	ml_value_t **Values = (ml_value_t **)C->Base.Value; \
+	for (int I = DataSize / sizeof(ml_value_t *); --I >= 0; ++Values) { \
+		*Values = ml_simple_inline(METHOD, 2, *Values, B); \
+	} \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#NAME, MLAnyT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
+//$= let B := array([[1, 2], [3, 4]])
+//$= 2 NAME B
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
+	ml_value_t *B = Args[0]; \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_ANY, Degree); \
+	int DataSize = array_copy(C, A); \
+	ml_value_t **Values = (ml_value_t **)C->Base.Value; \
+	for (int I = DataSize / sizeof(ml_value_t *); --I >= 0; ++Values) { \
+		*Values = ml_simple_inline(METHOD, 2, B, *Values); \
+	} \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#NAME, MLArrayIntegerT, MLIntegerT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A NAME 2
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
@@ -4136,7 +4177,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
+ML_METHOD(#NAME, MLIntegerT, MLArrayIntegerT) { \
 /*<A
 //<B
 //>array
@@ -4146,7 +4187,6 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
@@ -4180,7 +4220,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLArrayT, MLRealT) { \
+ML_METHOD(#NAME, MLArrayRealT, MLRealT) { \
 /*<A
 //<B
 //>array
@@ -4190,7 +4230,6 @@ ML_METHOD(#NAME, MLArrayT, MLRealT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_real_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
@@ -4209,7 +4248,7 @@ ML_METHOD(#NAME, MLArrayT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLRealT, MLArrayT) { \
+ML_METHOD(#NAME, MLRealT, MLArrayRealT) { \
 /*<A
 //<B
 //>array
@@ -4219,7 +4258,6 @@ ML_METHOD(#NAME, MLRealT, MLArrayT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_real_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
@@ -4240,10 +4278,10 @@ ML_METHOD(#NAME, MLRealT, MLArrayT) { \
 
 #ifdef ML_COMPLEX
 
-#define ML_ARITH_METHOD(NAME, MIN_FORMAT) \
-ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT) \
+#define ML_ARITH_METHOD(NAME, MIN_FORMAT, METHOD) \
+ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT, METHOD) \
 \
-ML_METHOD(#NAME, MLArrayT, MLComplexT) { \
+ML_METHOD(#NAME, MLArrayComplexT, MLComplexT) { \
 /*<A
 //<B
 //>array
@@ -4253,7 +4291,6 @@ ML_METHOD(#NAME, MLArrayT, MLComplexT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	complex_double B = ml_complex_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
@@ -4263,7 +4300,7 @@ ML_METHOD(#NAME, MLArrayT, MLComplexT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLComplexT, MLArrayT) { \
+ML_METHOD(#NAME, MLComplexT, MLArrayComplexT) { \
 /*<A
 //<B
 //>array
@@ -4273,7 +4310,6 @@ ML_METHOD(#NAME, MLComplexT, MLArrayT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	complex_double B = ml_complex_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
@@ -4285,15 +4321,15 @@ ML_METHOD(#NAME, MLComplexT, MLArrayT) { \
 
 #else
 
-#define ML_ARITH_METHOD(NAME, MIN_FORMAT) \
-ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT)
+#define ML_ARITH_METHOD(NAME, MIN_FORMAT, METHOD) \
+ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT, METHOD)
 
 #endif
 
-ML_ARITH_METHOD(+, ML_ARRAY_FORMAT_I64);
-ML_ARITH_METHOD(*, ML_ARRAY_FORMAT_I64);
-ML_ARITH_METHOD(-, ML_ARRAY_FORMAT_I64);
-ML_ARITH_METHOD(/, ML_ARRAY_FORMAT_F64);
+ML_ARITH_METHOD(+, ML_ARRAY_FORMAT_I64, AddMethod);
+ML_ARITH_METHOD(*, ML_ARRAY_FORMAT_I64, MulMethod);
+ML_ARITH_METHOD(-, ML_ARRAY_FORMAT_I64, SubMethod);
+ML_ARITH_METHOD(/, ML_ARRAY_FORMAT_F64, DivMethod);
 
 #define ML_ARITH_METHOD_BITWISE(NAME, SYMBOL, OP) \
 \
