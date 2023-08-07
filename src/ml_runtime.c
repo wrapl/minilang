@@ -1007,6 +1007,10 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 
 #ifdef ML_THREADS
 
+pthread_mutex_t *ml_default_queue_lock() {
+	return Queue->Lock;
+}
+
 ml_queued_state_t ml_default_queue_next_wait() {
 	pthread_mutex_lock(Queue->Lock);
 	while (!Queue->Fill) pthread_cond_wait(Queue->Available, Queue->Lock);

@@ -216,6 +216,7 @@ extern ml_cfunctionx_t MLAtomic[];
 #endif
 
 #ifdef ML_THREADS
+pthread_mutex_t *ml_default_queue_lock();
 ml_queued_state_t ml_default_queue_next_wait();
 void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 #else

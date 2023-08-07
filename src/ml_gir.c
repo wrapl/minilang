@@ -2987,7 +2987,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 		int Length = *(int *)(Params[(Inst++)->Aux]);
 		int Size = 0;
 		ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
-		ml_value_t *(*to_value)(void *) = NULL;
+		ml_value_t *(*to_value)(void *, void *) = NULL;
 		switch ((Inst++)->Opcode) {
 		case GIB_BOOLEAN: {
 			Size = sizeof(gboolean);
@@ -3018,7 +3018,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 			Array = ml_array(Format, 1, Length);
 			ml_value_t **Slot = (ml_value_t **)Array->Base.Value;
 			void **Input = (void **)Address;
-			for (int I = 0; I < Length; ++I) *Slot++ = to_value(*Input++);
+			for (int I = 0; I < Length; ++I) *Slot++ = to_value(*Input++, NULL);
 		} else {
 			Array = ml_array_alloc(Format, 1);
 			Array->Dimensions[0].Stride = Size;
