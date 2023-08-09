@@ -13,8 +13,6 @@ typedef struct {
 	int Count;
 } ml_thread_t;
 
-__thread ml_thread_t *CurrentThread;
-
 ml_value_t *ml_is_threadsafe(ml_value_t *Value) {
 	typeof(ml_is_threadsafe) *function = ml_typed_fn_get(ml_typeof(Value), ml_is_threadsafe);
 	if (function) return function(Value);
@@ -156,7 +154,6 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLUUIDT, ml_value_t *Value) {
 #endif
 
 static void *ml_thread_fn(ml_thread_t *Thread) {
-	CurrentThread = Thread;
 	ml_context_t *Context = Thread->Base.Context;
 #ifdef ML_SCHEDULER
 	ml_default_queue_init(8);
