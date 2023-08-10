@@ -188,6 +188,9 @@ typedef struct {
 } ml_file_stat_t;
 
 ML_FUNCTION(MLFileStat) {
+//@file::stat
+//<Path
+//>file::stat
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_file_stat_t *Stat = new(ml_file_stat_t);
@@ -200,6 +203,7 @@ ML_FUNCTION(MLFileStat) {
 }
 
 ML_TYPE(MLFileStatT, (), "file::stat",
+//@file::stat
 	.Constructor = (ml_value_t *)MLFileStat
 );
 
@@ -315,6 +319,33 @@ static void ML_TYPED_FN(ml_iterate, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
 	ML_RETURN(Dir);
 }
 
+ML_FUNCTION(MLDirCreate) {
+//@dir::create
+//<Path
+//<Mode
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	const char *Name = ml_string_value(Args[0]);
+	int Mode = ml_integer_value(Args[1]);
+	if (mkdir(Name, Mode)) {
+		return ml_error("FileError", "failed to create directory %s: %s", Name, strerror(errno));
+	}
+	return MLNil;
+}
+
+ML_FUNCTION(MLDirRemove) {
+//@dir::remove
+//<Path
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Name = ml_string_value(Args[0]);
+	if (rmdir(Name)) {
+		return ml_error("FileError", "failed to remove directory %s: %s", Name, strerror(errno));
+	}
+	return MLNil;
+}
+
 static void ml_popen_finalize(ml_file_t *File, void *Data) {
 	if (File->Handle) {
 		pclose(File->Handle);
@@ -370,6 +401,8 @@ void ml_file_init(stringmap_t *Globals) {
 	stringmap_insert(MLFileT->Exports, "exists", MLFileExists);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
+	stringmap_insert(MLDirT->Exports, "create", MLDirCreate);
+	stringmap_insert(MLDirT->Exports, "remove", MLDirRemove);
 	if (Globals) {
 		stringmap_insert(Globals, "file", MLFileT);
 		stringmap_insert(Globals, "dir", MLDirT);

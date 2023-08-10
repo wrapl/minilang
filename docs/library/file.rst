@@ -53,6 +53,10 @@ file
    *TBD*
 
 
+:mini:`fun file::stat(Path: string): file::stat`
+   *TBD*
+
+
 :mini:`meth (Arg₁: file::stat):atime`
    *TBD*
 
@@ -88,6 +92,14 @@ file
    Waits for the subprocess to finish and returns the exit status.
 
 
+:mini:`fun dir::create(Path: string, Mode: integer)`
+   *TBD*
+
+
+:mini:`fun dir::remove(Path: string)`
+   *TBD*
+
+
 :mini:`fun file::exists(Path: string): string | nil`
    *TBD*
 
@@ -98,9 +110,5 @@ file
 
 :mini:`fun file::unlink(Path: string)`
    Removes the file at :mini:`Path`.
-
-
-:mini:`fun mlfilestat(Arg₁: string)`
-   *TBD*
 
 
