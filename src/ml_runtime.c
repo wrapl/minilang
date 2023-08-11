@@ -1037,10 +1037,8 @@ typedef struct {
 	ml_scheduler_queue_t *Queue;
 } ml_scheduler_block_t;
 
-#define MAX_BLOCKS 8
-
 static ml_scheduler_thread_t *NextThread = NULL;
-static int NumBlocking = 0;
+static int NumBlocking = 0, MaxBlocking = 8;
 static pthread_mutex_t ThreadLock[1] = {PTHREAD_MUTEX_INITIALIZER};
 static pthread_cond_t ThreadAvailable[1] = {PTHREAD_COND_INITIALIZER};
 
@@ -1069,9 +1067,13 @@ static void *ml_scheduler_thread_fn(void *Data) {
 	return NULL;
 }
 
+void ml_threads_set_max_count(int Max) {
+	MaxBlocking = Max;
+}
+
 void ml_default_scheduler_block() {
 	pthread_mutex_lock(ThreadLock);
-	while (NumBlocking >= MAX_BLOCKS) pthread_cond_wait(ThreadAvailable, ThreadLock);
+	while (NumBlocking >= MaxBlocking) pthread_cond_wait(ThreadAvailable, ThreadLock);
 	++NumBlocking;
 	ml_scheduler_thread_t *Thread = NextThread;
 	if (Thread) {
