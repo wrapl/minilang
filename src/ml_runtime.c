@@ -1071,7 +1071,7 @@ void ml_threads_set_max_count(int Max) {
 	MaxBlocking = Max;
 }
 
-void ml_default_scheduler_block() {
+void ml_default_scheduler_split() {
 	pthread_mutex_lock(ThreadLock);
 	while (NumBlocking >= MaxBlocking) pthread_cond_wait(ThreadAvailable, ThreadLock);
 	++NumBlocking;
@@ -1087,7 +1087,7 @@ void ml_default_scheduler_block() {
 	pthread_mutex_unlock(ThreadLock);
 }
 
-void ml_default_scheduler_unblock() {
+void ml_default_scheduler_join() {
 	ml_scheduler_block_t Block = {
 		{NULL, NULL, ml_scheduler_thread_resume},
 		{PTHREAD_COND_INITIALIZER}
