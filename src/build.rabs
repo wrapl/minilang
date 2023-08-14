@@ -283,6 +283,10 @@ file("ml_config.h") => fun(Target) do
 	File:close
 end
 
+if defined("ASSERTS") then
+	CFLAGS := old + ["-ML_ASSERTS"]
+end
+
 if MINILANG_TABLES then
 	Objects:put(file("ml_table.o"))
 	CFLAGS := old + ["-DML_TABLES"]

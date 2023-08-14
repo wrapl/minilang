@@ -26,6 +26,12 @@ typedef struct ml_state_t ml_state_t;
 #define _CONCAT3(X, Y, Z) X ## Y ## _ ## Z
 #define CONCAT3(X, Y, Z) _CONCAT3(X, Y, Z)
 
+#ifdef ML_ASSERTS
+#define ml_assert(CONDITION) { if (!(CONDITION)) asm("int3"); }
+#else
+#define ml_assert(CONDITION) {}
+#endif
+
 // Values and Types //
 
 struct ml_value_t {
@@ -254,7 +260,10 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
-#define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
+#define ml_call(CALLER, VALUE, COUNT, ARGS) ({ \
+	ml_assert(CALLER); \
+	ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS); \
+})
 
 #define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
 	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
