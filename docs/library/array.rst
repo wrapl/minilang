@@ -1775,7 +1775,7 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:20FE1BBC9B7F0000457870722D3E5661>
+      :> <16:60E5A5991B7F00006572544D4C537472>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> 
 
 

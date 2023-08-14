@@ -1082,7 +1082,8 @@ void ml_default_scheduler_split() {
 		pthread_cond_signal(Thread->Resume);
 	} else {
 		pthread_t Thread;
-		pthread_create(&Thread, NULL, ml_scheduler_thread_fn, Queue);
+		GC_pthread_create(&Thread, NULL, ml_scheduler_thread_fn, Queue);
+		pthread_setname_np(Thread, "minilang");
 	}
 	pthread_mutex_unlock(ThreadLock);
 }
