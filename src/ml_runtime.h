@@ -215,6 +215,15 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value);
 extern ml_cfunctionx_t MLAtomic[];
 #endif
 
+#define ML_STATE_FN2(NAME, FUNCTION) \
+static void *FUNCTION(ml_state_t *State, ml_value_t *Value); \
+\
+static ml_state_t NAME[1] = {{MLStateT, FUNCTION, NULL, &MLRootContext}}; \
+\
+static void *FUNCTION(ml_state_t *State, ml_value_t *Value)
+
+#define ML_STATE_FN(NAME) ML_STATE_FN2(NAME, CONCAT3(ml_state_fn_, __LINE__, __COUNTER__))
+
 #ifdef ML_THREADS
 ml_queued_state_t ml_default_queue_next_wait();
 void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
