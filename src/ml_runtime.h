@@ -218,7 +218,7 @@ extern ml_cfunctionx_t MLAtomic[];
 #define ML_STATE_FN2(NAME, FUNCTION) \
 static void *FUNCTION(ml_state_t *State, ml_value_t *Value); \
 \
-static ml_state_t NAME[1] = {{MLStateT, FUNCTION, NULL, &MLRootContext}}; \
+static ml_state_t NAME[1] = {{MLStateT, NULL, FUNCTION, &MLRootContext}}; \
 \
 static void *FUNCTION(ml_state_t *State, ml_value_t *Value)
 
