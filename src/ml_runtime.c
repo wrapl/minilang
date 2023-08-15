@@ -1004,6 +1004,29 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 	return Fill;
 }
 
+int ml_default_queue_push(ml_state_t *State, ml_value_t *Value) {
+#ifdef ML_THREADS
+	pthread_mutex_lock(Queue->Lock);
+#endif
+	if (++Queue->Fill > Queue->Size) {
+		int NewQueueSize = Queue->Size * 2;
+		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
+		memcpy(NewQueuedStates, Queue->States, Queue->Size * sizeof(ml_queued_state_t));
+		Queue->Read = 0;
+		Queue->Write = Queue->Size;
+		Queue->States = NewQueuedStates;
+		Queue->Size = NewQueueSize;
+	}
+	int Read = (Queue->Read ?: Queue->Size) - 1;
+	Queue->States[Read] = (ml_queued_state_t){State, Value};
+	Queue->Read = Read;
+	int Fill = Queue->Fill;
+#ifdef ML_THREADS
+	pthread_mutex_unlock(Queue->Lock);
+#endif
+	return Fill;
+}
+
 #ifdef ML_THREADS
 
 ml_queued_state_t ml_default_queue_next_wait() {
@@ -1021,6 +1044,10 @@ ml_queued_state_t ml_default_queue_next_wait() {
 
 void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
 	if (ml_default_queue_add(State, Value) == 1) pthread_cond_signal(Queue->Available);
+}
+
+void ml_default_queue_push_signal(ml_state_t *State, ml_value_t *Value) {
+	if (ml_default_queue_push(State, Value) == 1) pthread_cond_signal(Queue->Available);
 }
 
 typedef struct ml_scheduler_thread_t ml_scheduler_thread_t;
