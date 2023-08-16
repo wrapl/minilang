@@ -1702,8 +1702,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		}
 		return 3;
 	}
+	default: __builtin_unreachable();
 	}
-	__builtin_unreachable();
 }
 
 static int ML_TYPED_FN(ml_function_source, MLClosureT, ml_closure_t *Closure, const char **Source, int *Line) {

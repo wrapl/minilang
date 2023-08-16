@@ -337,7 +337,11 @@ static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 
 __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, int Count, ml_value_t **Args) {
 	int Length = 4;
-	for (int I = 0; I < Count; ++I) Length += strlen(ml_typeof(Args[I])->Name) + 2;
+	for (int I = 0; I < Count; ++I) {
+		ml_type_t *Type = ml_typeof_deref(Args[I]);
+		if (Type == MLUninitializedT) return ml_error("ValueError", "%s is uninitialized", ml_uninitialized_name(Args[I]));
+		Length += strlen(Type->Name) + 2;
+	}
 	char *Types = snew(Length);
 	Types[0] = 0;
 	char *P = Types;
@@ -350,8 +354,8 @@ __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, i
 	}
 #else
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = ml_deref(Args[I]);
-		P = stpcpy(stpcpy(P, ml_typeof(Arg)->Name), ", ");
+		ml_type_t *Type = ml_typeof_deref(Args[I]);
+		P = stpcpy(stpcpy(P, Type->Name), ", ");
 	}
 #endif
 	P[-2] = 0;

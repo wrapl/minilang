@@ -954,7 +954,9 @@ ml_scheduler_queue_t *Queue = NULL;
 
 void ml_default_queue_init(int Size) {
 	Queue = (ml_scheduler_queue_t *)GC_malloc_uncollectable(sizeof(ml_scheduler_queue_t));
-	Queue->Size = Size;
+	int Actual = 1;
+	while (Actual < Size) Actual <<= 1;
+	Queue->Size = Actual;
 	Queue->States = anew(ml_queued_state_t, Size);
 #ifdef ML_THREADS
 	pthread_mutex_init(Queue->Lock, NULL);
@@ -973,7 +975,7 @@ ml_queued_state_t ml_default_queue_next() {
 		Next = States[Read];
 		States[Read] = (ml_queued_state_t){NULL, NULL};
 		--Queue->Fill;
-		Queue->Read = (Read + 1) % Queue->Size;
+		Queue->Read = (Read + 1) & (Queue->Size - 1);
 	}
 #ifdef ML_THREADS
 	pthread_mutex_unlock(Queue->Lock);
@@ -996,7 +998,7 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 	}
 	int Write = Queue->Write;
 	Queue->States[Write] = (ml_queued_state_t){State, Value};
-	Queue->Write = (Write + 1) % Queue->Size;
+	Queue->Write = (Write + 1) & (Queue->Size - 1);
 	int Fill = Queue->Fill;
 #ifdef ML_THREADS
 	pthread_mutex_unlock(Queue->Lock);
@@ -1037,7 +1039,7 @@ ml_queued_state_t ml_default_queue_next_wait() {
 	ml_queued_state_t QueuedState = States[Read];
 	States[Read] = (ml_queued_state_t){NULL, NULL};
 	--Queue->Fill;
-	Queue->Read = (Read + 1) % Queue->Size;
+	Queue->Read = (Read + 1) & (Queue->Size - 1);
 	pthread_mutex_unlock(Queue->Lock);
 	return QueuedState;
 }
@@ -1132,7 +1134,7 @@ void ml_default_scheduler_join() {
 	}
 	int Write = Queue->Write;
 	Queue->States[Write] = (ml_queued_state_t){(ml_state_t *)&Block, MLNil};
-	Queue->Write = (Write + 1) % Queue->Size;
+	Queue->Write = (Write + 1) & (Queue->Size - 1);
 	if (Queue->Fill == 1) pthread_cond_signal(Queue->Available);
 	pthread_cond_wait(Block.Resume, Queue->Lock);
 	pthread_mutex_unlock(Queue->Lock);

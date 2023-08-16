@@ -2268,7 +2268,6 @@ ARRAY_DECL(T, any, AnyT, any, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_
 
 static ml_value_t *ml_array_ref_deref(ml_array_ref_t *Ref) {
 	switch (Ref->Array->Format) {
-	case ML_ARRAY_FORMAT_NONE: break;
 	case ML_ARRAY_FORMAT_U8: return ml_array_uint8_t_deref(Ref->Array);
 	case ML_ARRAY_FORMAT_I8: return ml_array_int8_t_deref(Ref->Array);
 	case ML_ARRAY_FORMAT_U16: return ml_array_uint16_t_deref(Ref->Array);
@@ -2284,13 +2283,12 @@ static ml_value_t *ml_array_ref_deref(ml_array_ref_t *Ref) {
 	case ML_ARRAY_FORMAT_C64: return ml_array_complex_double_deref(Ref->Array);
 #endif
 	case ML_ARRAY_FORMAT_ANY: return ml_array_any_deref(Ref->Array);
+	default: __builtin_unreachable();
 	}
-	__builtin_unreachable();
 }
 
 static void ml_array_ref_assign(ml_state_t *Caller, ml_array_ref_t *Ref, ml_value_t *Value) {
 	switch (Ref->Array->Format) {
-	case ML_ARRAY_FORMAT_NONE: break;
 	case ML_ARRAY_FORMAT_U8: return ml_array_uint8_t_assign(Caller, Ref->Array, Value);
 	case ML_ARRAY_FORMAT_I8: return ml_array_int8_t_assign(Caller, Ref->Array, Value);
 	case ML_ARRAY_FORMAT_U16: return ml_array_uint16_t_assign(Caller, Ref->Array, Value);
@@ -2306,6 +2304,7 @@ static void ml_array_ref_assign(ml_state_t *Caller, ml_array_ref_t *Ref, ml_valu
 	case ML_ARRAY_FORMAT_C64: return ml_array_complex_double_assign(Caller, Ref->Array, Value);
 #endif
 	case ML_ARRAY_FORMAT_ANY: return ml_array_any_assign(Caller, Ref->Array, Value);
+	default: __builtin_unreachable();
 	}
 }
 
