@@ -88,7 +88,8 @@ map
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
       M::A
       :> error("MethodError", "no method found for ::(visitor, string)")
-      M::D :> 
+      M::D
+      :> error("MethodError", "no method found for ::(visitor, string)")
 
 
 :mini:`meth (Map₁: map) * (Map₂: map): map`
@@ -174,7 +175,8 @@ map
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
       M["A"]
       :> error("MethodError", "no method found for [](visitor, string)")
-      M["D"] :> 
+      M["D"]
+      :> error("MethodError", "no method found for [](visitor, string)")
 
 
 :mini:`meth (Map₁: map) \/ (Map₂: map): map`
@@ -236,8 +238,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "e"
       M:random :> "a"
+      M:random :> "k"
 
 
 :mini:`meth (Map: map):size: integer`
