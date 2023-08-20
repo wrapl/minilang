@@ -382,7 +382,6 @@ end
 
 if MINILANG_JSON then
 	CFLAGS := old + ['-DML_JSON']
-	LDFLAGS := old + ["-lyajl"]
 	Objects:put(file("ml_json.o"))
 	InstallHeaders:put("ml_json.h")
 end

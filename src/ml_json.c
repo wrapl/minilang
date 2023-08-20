@@ -1,8 +1,6 @@
 #include "ml_json.h"
 #include "ml_macros.h"
 #include "ml_stream.h"
-#include <yajl/yajl_common.h>
-#include <yajl/yajl_parse.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "json"
@@ -19,6 +17,39 @@
 // * *array* |harr| :mini:`list`
 // * *object* |harr| :mini:`map`
 
+typedef enum {
+	JS_VALUE,
+	JS_OBJECT_START,
+	JS_OBJECT_REST,
+	JS_ARRAY_START,
+	JS_ARRAY_REST,
+	JS_KEY,
+	JS_COLON,
+	JS_KEYWORD,
+	JS_SIGN,
+	JS_ZERO,
+	JS_DIGITS,
+	JS_FRACTION_FIRST,
+	JS_FRACTION,
+	JS_EXPONENT_SIGN,
+	JS_EXPONENT_FIRST,
+	JS_EXPONENT,
+	JS_STRING,
+	JS_ESCAPE,
+	JS_UNICODE_1,
+	JS_UNICODE_2,
+	JS_UNICODE_3,
+	JS_UNICODE_4,
+	JS_TRAILING
+} json_state_t;
+
+typedef enum {
+	JSM_VALUE,
+	JSM_ARRAY,
+	JSM_OBJECT_KEY,
+	JSM_OBJECT_VALUE
+} json_mode_t;
+
 #define ML_JSON_STACK_SIZE 10
 
 typedef struct json_stack_t json_stack_t;
@@ -29,135 +60,530 @@ struct json_stack_t {
 	int Index;
 };
 
-typedef struct {
-	void (*Callback)(void *Data, ml_value_t *Value);
+typedef struct json_parser_t json_parser_t;
+
+struct json_parser_t {
+	void (*emit)(json_parser_t *Parser, ml_value_t *Value);
 	void *Data;
-	ml_value_t *Key, *Value;
+	ml_value_t *Collection, *Key;
 	json_stack_t *Stack;
+	ml_stringbuffer_t Buffer[1];
 	json_stack_t Stack0;
-} json_decoder_t;
+	uint32_t CodePoint;
+	json_state_t State;
+	json_mode_t Mode;
+};
 
-static int value_handler(json_decoder_t *Decoder, ml_value_t *Value) {
-	if (Decoder->Value) {
-		if (Decoder->Key) {
-			ml_map_insert(Decoder->Value, Decoder->Key, Value);
-			Decoder->Key = NULL;
+static void json_parser_init(json_parser_t *Parser, void (*emit)(json_parser_t *Parser, ml_value_t *Value), void *Data) {
+	memset(Parser, 0, sizeof(json_parser_t));
+	Parser->emit = emit;
+	Parser->Data = Data;
+	Parser->Stack = &Parser->Stack0;
+	Parser->Buffer[0] = ML_STRINGBUFFER_INIT;
+	Parser->State = JS_VALUE;
+	Parser->Mode = JSM_VALUE;
+}
+
+static void json_parser_push(json_parser_t *Parser, ml_value_t *Collection) {
+	if (Parser->Collection) {
+		if (Parser->Key) {
+			ml_map_insert(Parser->Collection, Parser->Key, Collection);
+			Parser->Key = NULL;
 		} else {
-			ml_list_put(Decoder->Value, Value);
-		}
-	} else {
-		Decoder->Callback(Decoder->Data, Value);
-	}
-	return 1;
-}
-
-static int null_handler(json_decoder_t *Decoder) {
-	return value_handler(Decoder, MLNil);
-}
-
-static int boolean_handler(json_decoder_t *Decoder, int Value) {
-	return value_handler(Decoder, ml_boolean(Value));
-}
-
-static int integer_handler(json_decoder_t *Decoder, long long Value) {
-	return value_handler(Decoder, ml_integer(Value));
-}
-
-static int real_handler(json_decoder_t *Decoder, double Value) {
-	return value_handler(Decoder, ml_real(Value));
-}
-
-static int string_handler(json_decoder_t *Decoder, const char *Value, size_t Length) {
-	return value_handler(Decoder, ml_string_copy(Value, Length));
-}
-
-static int push_value(json_decoder_t *Decoder, ml_value_t *Value) {
-	if (Decoder->Value) {
-		if (Decoder->Key) {
-			ml_map_insert(Decoder->Value, Decoder->Key, Value);
-			Decoder->Key = NULL;
-		} else {
-			ml_list_put(Decoder->Value, Value);
+			ml_list_put(Parser->Collection, Collection);
 		}
 	}
-	json_stack_t *Stack = Decoder->Stack;
+	json_stack_t *Stack = Parser->Stack;
 	if (Stack->Index == ML_JSON_STACK_SIZE) {
 		json_stack_t *NewStack = new(json_stack_t);
 		NewStack->Prev = Stack;
-		Stack = Decoder->Stack = NewStack;
+		Stack = Parser->Stack = NewStack;
 	}
-	Stack->Values[Stack->Index] = Decoder->Value;
+	Stack->Values[Stack->Index] = Parser->Collection;
 	++Stack->Index;
-	Decoder->Value = Value;
-	return 1;
+	Parser->Collection = Collection;
 }
 
-static int pop_value(json_decoder_t *Decoder) {
-	json_stack_t *Stack = Decoder->Stack;
+static void json_parser_pop(json_parser_t *Parser) {
+	json_stack_t *Stack = Parser->Stack;
 	if (Stack->Index == 0) {
-		if (!Stack->Prev) return 1;
-		Stack = Decoder->Stack = Stack->Prev;
+		Stack = Parser->Stack = Stack->Prev;
 	}
-	ml_value_t *Value = Decoder->Value;
+	ml_value_t *Collection = Parser->Collection;
 	--Stack->Index;
-	Decoder->Value = Stack->Values[Stack->Index];
+	Parser->Collection = Stack->Values[Stack->Index];
 	Stack->Values[Stack->Index] = NULL;
-	if (!Decoder->Value) {
-		Decoder->Callback(Decoder->Data, Value);
+	if (!Parser->Collection) {
+		Parser->State = JS_VALUE;
+		Parser->emit(Parser, Collection);
+	} else if (ml_is(Parser->Collection, MLListT)) {
+		Parser->State = JS_ARRAY_REST;
+	} else if (ml_is(Parser->Collection, MLMapT)) {
+		Parser->State = JS_OBJECT_REST;
 	}
-	return 1;
 }
 
-static int start_map_handler(json_decoder_t *Decoder) {
-	return push_value(Decoder, ml_map());
+static void json_finish_number(json_parser_t *Parser) {
+	char *String = ml_stringbuffer_get_string(Parser->Buffer);
+	ml_value_t *Number;
+	for (char *P = String; *P; ++P) {
+		if (*P == '.' || *P == 'e' || *P == 'E') {
+			Number = ml_real(strtod(String, NULL));
+			goto real;
+		}
+	}
+	Number = ml_integer(strtoll(String, NULL, 10));
+real:
+	if (Parser->Collection) {
+		if (Parser->Key) {
+			ml_map_insert(Parser->Collection, Parser->Key, Number);
+			Parser->Key = NULL;
+			Parser->State = JS_OBJECT_REST;
+		} else if (ml_is(Parser->Collection, MLListT)) {
+			ml_list_put(Parser->Collection, Number);
+			Parser->State = JS_ARRAY_REST;
+		}
+	} else {
+		Parser->State = JS_VALUE;
+		Parser->emit(Parser, Number);
+	}
 }
 
-static int map_key_handler(json_decoder_t *Decoder, const char *Key, size_t Length) {
-	Decoder->Key = ml_string_copy(Key, Length);
-	return 1;
+static ml_value_t *json_finish_keyword(json_parser_t *Parser) {
+	char *String = ml_stringbuffer_get_string(Parser->Buffer);
+	ml_value_t *Value;
+	if (!strcmp(String, "true")) {
+		Value = (ml_value_t *)MLTrue;
+	} else if (!strcmp(String, "false")) {
+		Value = (ml_value_t *)MLFalse;
+	} else if (!strcmp(String, "null")) {
+		Value = MLNil;
+	} else {
+		return ml_error("JSONError", "Invalid keyword: %s", String);
+	}
+	if (Parser->Collection) {
+		if (Parser->Key) {
+			ml_map_insert(Parser->Collection, Parser->Key, Value);
+			Parser->Key = NULL;
+			Parser->State = JS_OBJECT_REST;
+		} else if (ml_is(Parser->Collection, MLListT)) {
+			ml_list_put(Parser->Collection, Value);
+			Parser->State = JS_ARRAY_REST;
+		}
+	} else {
+		Parser->State = JS_VALUE;
+		Parser->emit(Parser, Value);
+	}
+	return NULL;
 }
 
-static int end_map_handler(json_decoder_t *Decoder) {
-	return pop_value(Decoder);
+static ml_value_t *json_parser_parse(json_parser_t *Parser, const char *Input, size_t Size) {
+	while (Size-- > 0) {
+		char Char = *Input++;
+		switch (Parser->State) {
+		case JS_ARRAY_START:
+			if (Char == ']') {
+				json_parser_pop(Parser);
+				break;
+			}
+			// no break
+		case JS_VALUE:
+			switch (Char) {
+			case ' ': case '\r': case '\n': case '\t': break;
+			case '\"':
+				Parser->State = JS_STRING;
+				break;
+			case '-':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_SIGN;
+				break;
+			case '0':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_ZERO;
+				break;
+			case '1' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_DIGITS;
+				break;
+			case '{':
+				json_parser_push(Parser, ml_map());
+				Parser->State = JS_OBJECT_START;
+				break;
+			case '[':
+				json_parser_push(Parser, ml_list());
+				Parser->State = JS_ARRAY_START;
+				break;
+			case 'a' ... 'z':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_KEYWORD;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_ARRAY_REST:
+			switch (Char) {
+			case ' ': case '\r': case '\n': case '\t': break;
+			case ',':
+				Parser->State = JS_VALUE;
+				break;
+			case ']':
+				json_parser_pop(Parser);
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_OBJECT_START:
+			if (Char == '}') {
+				json_parser_pop(Parser);
+				break;
+			}
+			//no break
+		case JS_KEY:
+			switch (Char) {
+			case ' ': case '\r': case '\n': case '\t': break;
+			case '\"':
+				Parser->State = JS_STRING;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_COLON:
+			switch (Char) {
+			case ' ': case '\r': case '\n': case '\t': break;
+			case ':':
+				Parser->State = JS_VALUE;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_OBJECT_REST:
+			switch (Char) {
+			case ' ': case '\r': case '\n': case '\t': break;
+			case ',':
+				Parser->State = JS_KEY;
+				break;
+			case '}':
+				json_parser_pop(Parser);
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_STRING:
+			switch (Char) {
+			case '\"': {
+				ml_value_t *String = ml_stringbuffer_to_string(Parser->Buffer);
+				if (Parser->Collection) {
+					if (Parser->Key) {
+						ml_map_insert(Parser->Collection, Parser->Key, String);
+						Parser->Key = NULL;
+						Parser->State = JS_OBJECT_REST;
+					} else if (ml_is(Parser->Collection, MLMapT)) {
+						Parser->Key = String;
+						Parser->State = JS_COLON;
+					} else if (ml_is(Parser->Collection, MLListT)) {
+						ml_list_put(Parser->Collection, String);
+						Parser->State = JS_ARRAY_REST;
+					}
+				} else {
+					Parser->State = JS_VALUE;
+					Parser->emit(Parser, String);
+				}
+				break;
+			}
+			case '\\':
+				Parser->State = JS_ESCAPE;
+				break;
+			case 0 ... 31:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			default:
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				break;
+			}
+			break;
+		case JS_ESCAPE:
+			switch (Char) {
+			case '\"': case '\\': case '/':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_STRING;
+				break;
+			case 'b':
+				ml_stringbuffer_put(Parser->Buffer, '\b');
+				Parser->State = JS_STRING;
+				break;
+			case 'f':
+				ml_stringbuffer_put(Parser->Buffer, '\f');
+				Parser->State = JS_STRING;
+				break;
+			case 'n':
+				ml_stringbuffer_put(Parser->Buffer, '\n');
+				Parser->State = JS_STRING;
+				break;
+			case 'r':
+				ml_stringbuffer_put(Parser->Buffer, '\r');
+				Parser->State = JS_STRING;
+				break;
+			case 't':
+				ml_stringbuffer_put(Parser->Buffer, '\t');
+				Parser->State = JS_STRING;
+				break;
+			case 'u':
+				Parser->CodePoint = 0;
+				Parser->State = JS_UNICODE_1;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_UNICODE_1:
+			switch (Char) {
+			case 'a' ... 'f':
+				Parser->CodePoint += ((Char - 'a') + 10) << 12;
+				Parser->State = JS_UNICODE_2;
+				break;
+			case 'A' ... 'F':
+				Parser->CodePoint += ((Char - 'A') + 10) << 12;
+				Parser->State = JS_UNICODE_2;
+				break;
+			case '0' ... '9':
+				Parser->CodePoint += (Char - '0') << 12;
+				Parser->State = JS_UNICODE_2;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_UNICODE_2:
+			switch (Char) {
+			case 'a' ... 'f':
+				Parser->CodePoint += ((Char - 'a') + 10) << 8;
+				Parser->State = JS_UNICODE_3;
+				break;
+			case 'A' ... 'F':
+				Parser->CodePoint += ((Char - 'A') + 10) << 8;
+				Parser->State = JS_UNICODE_3;
+				break;
+			case '0' ... '9':
+				Parser->CodePoint += (Char - '0') << 8;
+				Parser->State = JS_UNICODE_3;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_UNICODE_3:
+			switch (Char) {
+			case 'a' ... 'f':
+				Parser->CodePoint += ((Char - 'a') + 10) << 4;
+				Parser->State = JS_UNICODE_4;
+				break;
+			case 'A' ... 'F':
+				Parser->CodePoint += ((Char - 'A') + 10) << 4;
+				Parser->State = JS_UNICODE_4;
+				break;
+			case '0' ... '9':
+				Parser->CodePoint += (Char - '0') << 4;
+				Parser->State = JS_UNICODE_4;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_UNICODE_4:
+			switch (Char) {
+			case 'a' ... 'f':
+				Parser->CodePoint += ((Char - 'a') + 10);
+				ml_stringbuffer_put32(Parser->Buffer, Parser->CodePoint);
+				Parser->State = JS_STRING;
+				break;
+			case 'A' ... 'F':
+				Parser->CodePoint += ((Char - 'A') + 10);
+				ml_stringbuffer_put32(Parser->Buffer, Parser->CodePoint);
+				Parser->State = JS_STRING;
+				break;
+			case '0' ... '9':
+				Parser->CodePoint += (Char - '0');
+				ml_stringbuffer_put32(Parser->Buffer, Parser->CodePoint);
+				Parser->State = JS_STRING;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_SIGN:
+			switch (Char) {
+			case '0':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_ZERO;
+				break;
+			case '1' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_DIGITS;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_DIGITS:
+			switch (Char) {
+			case '0' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				break;
+			case '.':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_FRACTION_FIRST;
+				break;
+			case 'e': case 'E':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_EXPONENT_SIGN;
+				break;
+			default:
+				json_finish_number(Parser);
+				--Input;
+				++Size;
+				break;
+			}
+			break;
+		case JS_ZERO:
+			switch (Char) {
+			case '.':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_FRACTION_FIRST;
+				break;
+			case 'e': case 'E':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_EXPONENT_SIGN;
+				break;
+			default:
+				json_finish_number(Parser);
+				--Input;
+				++Size;
+				break;
+			}
+			break;
+		case JS_FRACTION_FIRST:
+			switch (Char) {
+			case '0' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_FRACTION;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_FRACTION:
+			switch (Char) {
+			case '0' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				break;
+			case 'e': case 'E':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_EXPONENT_SIGN;
+				break;
+			default:
+				json_finish_number(Parser);
+				--Input;
+				++Size;
+				break;
+			}
+			break;
+		case JS_EXPONENT_SIGN:
+			switch (Char) {
+			case '0' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_EXPONENT;
+				break;
+			case '+': case '-':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_EXPONENT_FIRST;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_EXPONENT_FIRST:
+			switch (Char) {
+			case '0' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				Parser->State = JS_EXPONENT;
+				break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		case JS_EXPONENT:
+			switch (Char) {
+			case '0' ... '9':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				break;
+			default: {
+				json_finish_number(Parser);
+				--Input;
+				++Size;
+				break;
+			}
+			}
+			break;
+		case JS_KEYWORD:
+			switch (Char) {
+			case 'a' ... 'z':
+				ml_stringbuffer_put(Parser->Buffer, Char);
+				break;
+			default: {
+				ml_value_t *Error = json_finish_keyword(Parser);
+				if (Error) return Error;
+				--Input;
+				++Size;
+				break;
+			}
+			}
+			break;
+		case JS_TRAILING:
+			switch (Char) {
+			case ' ': case '\r': case '\n': case '\t': break;
+			default:
+				return ml_error("JSONError", "Invalid character: %c", Char);
+			}
+			break;
+		}
+	}
+	return NULL;
 }
 
-static int start_array_handler(json_decoder_t *Decoder) {
-	return push_value(Decoder, ml_list());
+static ml_value_t *json_parser_finish(json_parser_t *Parser) {
+	switch (Parser->State) {
+	case JS_DIGITS:
+		json_finish_number(Parser);
+		break;
+	case JS_ZERO:
+		json_finish_number(Parser);
+		break;
+	case JS_FRACTION:
+		json_finish_number(Parser);
+		break;
+	case JS_EXPONENT_SIGN:
+		json_finish_number(Parser);
+		break;
+	case JS_EXPONENT:
+		json_finish_number(Parser);
+		break;
+	case JS_KEYWORD: {
+		ml_value_t *Error = json_finish_keyword(Parser);
+		if (Error) return Error;
+		break;
+	}
+	default: break;
+	}
+	return NULL;
 }
 
-static int end_array_handler(json_decoder_t *Decoder) {
-	return pop_value(Decoder);
-}
-
-static yajl_callbacks Callbacks = {
-	.yajl_null = (void *)null_handler,
-	.yajl_boolean = (void *)boolean_handler,
-	.yajl_integer = (void *)integer_handler,
-	.yajl_double = (void *)real_handler,
-	.yajl_number = (void *)NULL,
-	.yajl_string = (void *)string_handler,
-	.yajl_start_map = (void *)start_map_handler,
-	.yajl_map_key = (void *)map_key_handler,
-	.yajl_end_map = (void *)end_map_handler,
-	.yajl_start_array = (void *)start_array_handler,
-	.yajl_end_array = (void *)end_array_handler
-};
-
-static void *ml_alloc(void *Ctx, size_t Size) {
-	return GC_MALLOC(Size);
-}
-
-static void *ml_realloc(void *Ctx, void *Ptr, size_t Size) {
-	return GC_REALLOC(Ptr, Size);
-}
-
-static void ml_free(void *Ctx, void *Ptr) {
-}
-
-static yajl_alloc_funcs AllocFuncs = {ml_alloc, ml_realloc, ml_free, NULL};
-
-static void json_decode_callback(ml_value_t **Result, ml_value_t *Value) {
-	Result[0] = Value;
+static void json_decode_single_fn(json_parser_t *Parser, ml_value_t *Value) {
+	Parser->State = JS_TRAILING;
+	*(ml_value_t **)Parser->Data = Value;
 }
 
 ML_FUNCTION(JsonDecode) {
@@ -168,23 +594,12 @@ ML_FUNCTION(JsonDecode) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_value_t *Result = NULL;
-	json_decoder_t Decoder = {0,};
-	Decoder.Callback = (void *)json_decode_callback;
-	Decoder.Data = &Result;
-	Decoder.Stack = &Decoder.Stack0;
-	yajl_handle Handle = yajl_alloc(&Callbacks, &AllocFuncs, &Decoder);
-	const unsigned char *Text = (const unsigned char *)ml_string_value(Args[0]);
-	size_t Length = ml_string_length(Args[0]);
-	if (yajl_parse(Handle, Text, Length) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
-		size_t Position = yajl_get_bytes_consumed(Handle);
-		return ml_error("JSONError", "@%ld: %s", Position, Error);
-	}
-	if (yajl_complete_parse(Handle) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
-		size_t Position = yajl_get_bytes_consumed(Handle);
-		return ml_error("JSONError", "@%ld: %s", Position, Error);
-	}
+	json_parser_t Parser[1];
+	json_parser_init(Parser, (void *)json_decode_single_fn, &Result);
+	ml_value_t *Error = json_parser_parse(Parser, ml_string_value(Args[0]), ml_string_length(Args[0]));
+	if (Error) return Error;
+	Error = json_parser_finish(Parser);
+	if (Error) return Error;
 	return Result ?: ml_error("JSONError", "Incomplete JSON");
 }
 
@@ -192,13 +607,13 @@ typedef struct {
 	ml_state_t Base;
 	ml_value_t *Callback;
 	ml_value_t *Args[1];
-	yajl_handle Handle;
-	json_decoder_t Decoder[1];
+	json_parser_t Parser[1];
 } ml_json_decoder_t;
 
 extern ml_type_t MLJsonDecoderT[];
 
-static void ml_json_decode_callback(ml_json_decoder_t *Decoder, ml_value_t *Value) {
+static void json_decode_fn(json_parser_t *Parser, ml_value_t *Value) {
+	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Parser->Data;
 	Decoder->Args[0] = Value;
 	ml_call((ml_state_t *)Decoder, Decoder->Callback, 1, Decoder->Args);
 }
@@ -217,11 +632,7 @@ ML_FUNCTIONX(JsonDecoder) {
 	Decoder->Base.Context = Caller->Context;
 	Decoder->Base.run = ml_json_decoder_run;
 	Decoder->Callback = Args[0];
-	Decoder->Decoder->Callback = (void *)ml_json_decode_callback;
-	Decoder->Decoder->Data = Decoder;
-	Decoder->Decoder->Stack = &Decoder->Decoder->Stack0;
-	Decoder->Handle = yajl_alloc(&Callbacks, &AllocFuncs, &Decoder->Decoder);
-	yajl_config(Decoder->Handle, yajl_allow_multiple_values, 1);
+	json_parser_init(Decoder->Parser, json_decode_fn, Decoder);
 	ML_RETURN(Decoder);
 }
 
@@ -232,20 +643,14 @@ ML_TYPE(MLJsonDecoderT, (MLStreamT), "json-decoder",
 );
 
 static void ML_TYPED_FN(ml_stream_write, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder, const void *Address, int Count) {
-	if (yajl_parse(Decoder->Handle, Address, Count) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
-		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
-		ML_ERROR("JSONError", "@%ld: %s", Position, Error);
-	}
+	ml_value_t *Error = json_parser_parse(Decoder->Parser, Address, Count);
+	if (Error) ML_RETURN(Error);
 	ML_RETURN(ml_integer(Count));
 }
 
 static void ML_TYPED_FN(ml_stream_flush, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder) {
-	if (yajl_complete_parse(Decoder->Handle) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
-		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
-		ML_ERROR("JSONError", "@%ld: %s", Position, Error);
-	}
+	ml_value_t *Error = json_parser_finish(Decoder->Parser);
+	if (Error) ML_RETURN(Error);
 	ML_RETURN(Decoder);
 }
 
@@ -368,23 +773,14 @@ ML_METHOD("decode", MLJsonT) {
 //>any|error
 // Decodes the JSON string in :mini:`Json` into a Minilang value.
 	ml_value_t *Result = NULL;
-	json_decoder_t Decoder = {0,};
-	Decoder.Callback = (void *)json_decode_callback;
-	Decoder.Data = &Result;
-	Decoder.Stack = &Decoder.Stack0;
-	yajl_handle Handle = yajl_alloc(&Callbacks, &AllocFuncs, &Decoder);
-	const unsigned char *Text = (const unsigned char *)ml_string_value(Args[0]);
+	json_parser_t Parser[1];
+	json_parser_init(Parser, json_decode_single_fn, &Result);
+	const char *Text = ml_string_value(Args[0]);
 	size_t Length = ml_string_length(Args[0]);
-	if (yajl_parse(Handle, Text, Length) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
-		size_t Position = yajl_get_bytes_consumed(Handle);
-		return ml_error("JSONError", "@%ld: %s", Position, Error);
-	}
-	if (yajl_complete_parse(Handle) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
-		size_t Position = yajl_get_bytes_consumed(Handle);
-		return ml_error("JSONError", "@%ld: %s", Position, Error);
-	}
+	ml_value_t *Error = json_parser_parse(Parser, Text, Length);
+	if (Error) return Error;
+	Error = json_parser_finish(Parser);
+	if (Error) return Error;
 	return Result ?: ml_error("JSONError", "Incomplete JSON");
 }
 

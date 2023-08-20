@@ -4082,21 +4082,21 @@ ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
 ml_value_t *ml_stringbuffer_to_address(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	char *Chars = snew(Length + 1);
-	ml_stringbuffer_finish(Buffer, Chars);
+	if (Length) ml_stringbuffer_finish(Buffer, Chars);
 	return ml_address(Chars, Length);
 }
 
 ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	char *Chars = snew(Length + 1);
-	ml_stringbuffer_finish(Buffer, Chars);
+	if (Length) ml_stringbuffer_finish(Buffer, Chars);
 	return ml_buffer(Chars, Length);
 }
 
 ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	char *Chars = snew(Length + 1);
-	ml_stringbuffer_finish(Buffer, Chars);
+	if (Length) ml_stringbuffer_finish(Buffer, Chars);
 	return ml_string(Chars, Length);
 }
 
