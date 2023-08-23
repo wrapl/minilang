@@ -171,6 +171,61 @@ ML_METHODVX(MLMapT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter, *Map, *Reduce;
+	ml_map_node_t *Slot;
+	ml_value_t *Args[2];
+} ml_map_reduce_t;
+
+static void map_reduce_iterate(ml_map_reduce_t *State, ml_value_t *Value);
+
+static void map_reduce_call(ml_map_reduce_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) {
+		ml_map_delete(State->Map, State->Slot->Key);
+	} else {
+		State->Slot->Value = Value;
+	}
+	State->Base.run = (void *)map_reduce_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void map_reduce_value(ml_map_reduce_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[1] = Value;
+	State->Base.run = (void *)map_reduce_call;
+	return ml_call(State, State->Reduce, 2, State->Args);
+}
+
+static void map_reduce_key(ml_map_reduce_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Slot = ml_map_slot(State->Map, ml_deref(Value));
+	State->Args[0] = State->Slot->Value ?: MLNil;
+	State->Base.run = (void *)map_reduce_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter);
+}
+
+static void map_reduce_iterate(ml_map_reduce_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Map);
+	State->Base.run = (void *)map_reduce_key;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_FUNCTIONX(MLMapReduce) {
+//@map::reduce
+//<Reduce:function
+//<Sequence:sequence
+	ml_map_reduce_t *State = new(ml_map_reduce_t);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)map_reduce_iterate;
+	State->Base.Context = Caller->Context;
+	State->Map = ml_map();
+	State->Reduce = Args[0];
+	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
+}
+
 ML_METHODVX("grow", MLMapMutableT, MLSequenceT) {
 //<Map
 //<Sequence
@@ -1965,6 +2020,7 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "order", MLMapOrderT);
 	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
 	stringmap_insert(MLMapT->Exports, "join2", MLMapJoin2);
+	stringmap_insert(MLMapT->Exports, "reduce", MLMapReduce);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #ifdef ML_MUTABLES
