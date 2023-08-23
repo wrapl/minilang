@@ -210,14 +210,30 @@ typedef struct {
 void ml_default_queue_init(int Size);
 ml_queued_state_t ml_default_queue_next();
 int ml_default_queue_add(ml_state_t *State, ml_value_t *Value);
+int ml_default_queue_push(ml_state_t *State, ml_value_t *Value);
 
 #ifdef ML_SCHEDULER
 extern ml_cfunctionx_t MLAtomic[];
 #endif
 
+#define ML_STATE_FN2(NAME, FUNCTION) \
+static void FUNCTION(ml_state_t *State, ml_value_t *Value); \
+\
+static ml_state_t NAME[1] = {{MLStateT, NULL, FUNCTION, &MLRootContext}}; \
+\
+static void FUNCTION(ml_state_t *State, ml_value_t *Value)
+
+#define ML_STATE_FN(NAME) ML_STATE_FN2(NAME, CONCAT3(ml_state_fn_, __LINE__, __COUNTER__))
+
 #ifdef ML_THREADS
 ml_queued_state_t ml_default_queue_next_wait();
 void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
+void ml_default_queue_push_signal(ml_state_t *State, ml_value_t *Value);
+
+void ml_threads_set_max_count(int Max);
+void ml_default_scheduler_split();
+void ml_default_scheduler_join();
+
 #else
 #define ml_default_queue_next_wait ml_default_queue_next
 #define ml_default_queue_add_signal ml_default_queue_add

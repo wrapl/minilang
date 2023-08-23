@@ -87,7 +87,7 @@ fun is_symbol(Method) Method:lower = Method:upper
 
 method: image()
 
-meth image(V: any) string(V)
+meth image(V: any) := string
 meth image(V: nil) "nil"
 meth image(S: string) '\"{S:escape}\"'
 meth image(A: address) with B := string::buffer() do
@@ -133,15 +133,18 @@ fun write_examples(Buffer, Examples) do
 	end
 	Buffer:write("\n   .. code-block:: mini\n\n")
 	for Example in Examples do
+		print('Example = {Example}\n')
 		var Result := ""
 		let Last := Example:after("\n", -1) or Example
-		Parser:input(Example)
+		Parser:reset:input(Example)
 		loop
 			let Next := Parser:evaluate(Compiler)
-			until Next = compiler::EOI
+			until type(Next) = any and Next = compiler::EOI
 			Result := image(Next)
+			print('\tResult = {Result}\n')
 		on Error do
 			Result := image(Error)
+			print('\tError = {Error}\n')
 			exit
 		end
 		if (Last + Result):length > 60 then

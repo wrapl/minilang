@@ -41,11 +41,19 @@ stream
    Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
-:mini:`meth (Stream: stream):readi(Count: integer, Delimiters: string): string | nil`
+:mini:`meth (Stream: stream):readi(Delimiters: string): string | nil`
+   Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):readi(Delimiters: string, Count: integer): string | nil`
    Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
-:mini:`meth (Stream: stream):readx(Count: integer, Delimiters: string): string | nil`
+:mini:`meth (Stream: stream):readx(Delimiters: string): string | nil`
+   Returns the next text from :mini:`Stream`,  upto but excluding any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):readx(Delimiters: string, Count: integer): string | nil`
    Returns the next text from :mini:`Stream`,  upto but excluding any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 

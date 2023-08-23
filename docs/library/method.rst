@@ -72,6 +72,10 @@ method
    Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: method::instance)`
+   *TBD*
+
+
 :mini:`meth (Type: type):MLMethodDefine(Types: type, ..., ..?: any, Function: function): Function`
    Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 

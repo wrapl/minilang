@@ -49,6 +49,8 @@ If expressions
 
 An :mini:`if`-expression evaluates its condition expressions and evaluates the :mini:`then`-block if the condition value is not :mini:`nil`. Otherwise it evaluates the :mini:`else`-block is present, or :mini:`nil` otherwise. Additional :mini:`elseif` branches can used to avoid nesting the :mini:`else` blocks.
 
+The condition value itself can optionally contain a variable declaration using :mini:`let` or :mini:`var` (including an unpacking declaration) allowing a computed value such as a regular expression match to be used as the condition without needing an extra declaration.
+
 .. parser-rule-diagram:: 'if' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block ( 'elseif' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block )* ( 'else' block )? 'end'
 
 When expressions

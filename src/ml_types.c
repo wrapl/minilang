@@ -74,6 +74,16 @@ int ml_function_source(ml_value_t *Value, const char **Source, int *Line) {
 	return 0;
 }
 
+ML_METHOD("source", MLFunctionT) {
+	const char *Source;
+	int Line;
+	if (ml_function_source(Args[0], &Source, &Line)) {
+		return ml_tuplev(2, ml_string(Source, -1), ml_integer(Line));
+	} else {
+		return MLNil;
+	}
+}
+
 ML_FUNCTION(MLType) {
 //!type
 //@type
@@ -3160,6 +3170,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_externals_default_add("address", MLAddressT);
 	ml_externals_default_add("buffer", MLBufferT);
 	ml_externals_default_add("string", MLStringT);
+	ml_externals_default_add("string::buffer", MLStringBufferT);
 	ml_externals_default_add("regex", MLRegexT);
 	ml_externals_default_add("tuple", MLTupleT);
 	ml_externals_default_add("list", MLListT);

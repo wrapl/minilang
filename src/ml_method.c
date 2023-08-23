@@ -337,7 +337,11 @@ static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 
 __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, int Count, ml_value_t **Args) {
 	int Length = 4;
-	for (int I = 0; I < Count; ++I) Length += strlen(ml_typeof(Args[I])->Name) + 2;
+	for (int I = 0; I < Count; ++I) {
+		ml_type_t *Type = ml_typeof_deref(Args[I]);
+		if (Type == MLUninitializedT) return ml_error("ValueError", "%s is uninitialized", ml_uninitialized_name(Args[I]));
+		Length += strlen(Type->Name) + 2;
+	}
 	char *Types = snew(Length);
 	Types[0] = 0;
 	char *P = Types;
@@ -350,8 +354,8 @@ __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, i
 	}
 #else
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = ml_deref(Args[I]);
-		P = stpcpy(stpcpy(P, ml_typeof(Arg)->Name), ", ");
+		ml_type_t *Type = ml_typeof_deref(Args[I]);
+		P = stpcpy(stpcpy(P, Type->Name), ", ");
 	}
 #endif
 	P[-2] = 0;
@@ -702,9 +706,9 @@ typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Callback;
 	ml_method_cached_t *Cached;
-} ml_method_function_t;
+} ml_method_instance_t;
 
-static void ml_method_function_call(ml_state_t *Caller, ml_method_function_t *Function, int Count, ml_value_t **Args) {
+static void ml_method_function_call(ml_state_t *Caller, ml_method_instance_t *Function, int Count, ml_value_t **Args) {
 	ml_method_cached_t *Cached = Function->Cached;
 	ML_CHECKX_ARG_COUNT(Cached->Count);
 	for (int I = 0; I < Cached->Count; ++I) {
@@ -717,10 +721,28 @@ static void ml_method_function_call(ml_state_t *Caller, ml_method_function_t *Fu
 	return ml_call(Caller, Function->Callback, Count, Args);
 }
 
-ML_TYPE(MLMethodFunctionT, (MLFunctionT), "method::function",
+ML_TYPE(MLMethodInstanceT, (MLFunctionT), "method::instance",
 //!internal
 	.call = (void *)ml_method_function_call
 );
+
+static int ML_TYPED_FN(ml_function_source, MLMethodInstanceT, ml_method_instance_t *Function, const char **Source, int *Line) {
+	return ml_function_source(Function->Callback, Source, Line);
+}
+
+ML_METHOD("append", MLStringBufferT, MLMethodInstanceT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_method_cached_t *Cached = ((ml_method_instance_t *)Args[1])->Cached;
+	ml_stringbuffer_put(Buffer, ':');
+	ml_stringbuffer_write(Buffer, Cached->Method->Name, strlen(Cached->Method->Name));
+	ml_stringbuffer_put(Buffer, '[');
+	for (int I = 0; I < Cached->Count; ++I) {
+		if (I) ml_stringbuffer_write(Buffer, ", ", 2);
+		ml_stringbuffer_write(Buffer, Cached->Types[I]->Name, strlen(Cached->Types[I]->Name));
+	}
+	ml_stringbuffer_put(Buffer, ']');
+	return MLSome;
+}
 
 extern ml_type_t MLClosureT[];
 
@@ -762,8 +784,8 @@ ML_METHODVX("[]", MLMethodT) {
 	}
 	if (ml_method_is_safe(Cached->Callback)) ML_RETURN(Cached->Callback);
 	if (!Count) ML_RETURN(Cached->Callback);
-	ml_method_function_t *Function = xnew(ml_method_function_t, Count, ml_type_t *);
-	Function->Type = MLMethodFunctionT;
+	ml_method_instance_t *Function = xnew(ml_method_instance_t, Count, ml_type_t *);
+	Function->Type = MLMethodInstanceT;
 	Function->Callback = Cached->Callback;
 	Function->Cached = Cached;
 	ML_RETURN(Function);

@@ -94,4 +94,3 @@ ML_TYPE(MLCoFunctionT, (MLFunctionT), "co-function",
 //!internal
 	.call = (void *)ml_cofunction_call
 );
-

@@ -9,6 +9,10 @@ type
 
 .. rst-class:: mini-api
 
+:mini:`meth (Arg₁: function):source`
+   *TBD*
+
+
 :mini:`type type < function`
    Type of all types.
    Every type contains a set of named exports,  which allows them to be used as modules.

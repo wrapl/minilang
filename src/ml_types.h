@@ -26,6 +26,12 @@ typedef struct ml_state_t ml_state_t;
 #define _CONCAT3(X, Y, Z) X ## Y ## _ ## Z
 #define CONCAT3(X, Y, Z) _CONCAT3(X, Y, Z)
 
+#ifdef ML_ASSERTS
+#define ml_assert(CONDITION) { if (!(CONDITION)) asm("int3"); }
+#else
+#define ml_assert(CONDITION) {}
+#endif
+
 // Values and Types //
 
 struct ml_value_t {
@@ -254,7 +260,10 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
-#define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
+#define ml_call(CALLER, VALUE, COUNT, ARGS) ({ \
+	ml_assert(CALLER); \
+	ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS); \
+})
 
 #define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
 	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
@@ -340,11 +349,11 @@ extern ml_type_t MLCFunctionT[];
 extern ml_type_t MLCFunctionXT[];
 extern ml_type_t MLCFunctionZT[];
 
-#define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA, __FILE__, __LINE__}}
+#define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA, ML_CATEGORY, __LINE__}}
 
-#define ML_CFUNCTIONX(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, CALLBACK, DATA, __FILE__, __LINE__}}
+#define ML_CFUNCTIONX(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, CALLBACK, DATA, ML_CATEGORY, __LINE__}}
 
-#define ML_CFUNCTIONZ(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, CALLBACK, DATA, __FILE__, __LINE__}}
+#define ML_CFUNCTIONZ(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, CALLBACK, DATA, ML_CATEGORY, __LINE__}}
 
 extern ml_cfunctionx_t MLCallCC[];
 extern ml_cfunctionx_t MLMarkCC[];
@@ -370,7 +379,7 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_
 
 #define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
 \
-ml_cfunction_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL}}; \
+ml_cfunction_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \
 \
 static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
 
@@ -378,7 +387,7 @@ static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
 
 #define ML_FUNCTIONX2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
 \
-ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL}}; \
+ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \
 \
 static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
@@ -386,7 +395,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_FUNCTIONZ2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
 \
-ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, FUNCTION, NULL}}; \
+ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \
 \
 static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 

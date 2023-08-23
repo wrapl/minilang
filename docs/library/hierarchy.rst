@@ -153,7 +153,6 @@ hierarchy
       "any":e -> "gir::enumvalue":w;
       "any":e -> "gir::objectproperty":w;
       "any":e -> "gir::instance":w;
-      "type":e -> "gir::type":w;
       "gir::baseinfo":e -> "gir::callback":w;
       "any":e -> "gir::callbackinstance":w;
       "function":e -> "gir::function":w;

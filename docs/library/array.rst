@@ -13,6 +13,42 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
+:mini:`meth (A: any) * (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 * B :> <<2 4> <6 8>>
+
+
+:mini:`meth (A: any) + (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 + B :> <<3 4> <5 6>>
+
+
+:mini:`meth (A: any) - (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 - B :> <<1 0> <-1 -2>>
+
+
+:mini:`meth (A: any) / (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 / B :> <<2 1> <0.666667 0.5>>
+
+
 :mini:`meth (A: any) < (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
 
@@ -47,10 +83,10 @@ array
 
    .. code-block:: mini
 
-      let A := $[[1, 2, 3], [4, 5, 6]] :> 
-      let B := $[[7, 8, 9], [10, 11, 12]] :> 
-      array::hcat(A, B)
-      :> error("CompilerError", "Identifier B not declared")
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]]
+      :> <<7 8 9> <10 11 12>>
+      array::hcat(A, B) :> <<1 2 3 7 8 9> <4 5 6 10 11 12>>
 
 
 :mini:`fun array::vcat(Array₁: array, ...): array`
@@ -58,10 +94,10 @@ array
 
    .. code-block:: mini
 
-      let A := $[[1, 2, 3], [4, 5, 6]] :> 
-      let B := $[[7, 8, 9], [10, 11, 12]] :> 
-      array::vcat(A, B)
-      :> error("CompilerError", "Identifier B not declared")
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]]
+      :> <<7 8 9> <10 11 12>>
+      array::vcat(A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
 
 
 :mini:`meth (A: array) != (B: any): array`
@@ -78,11 +114,13 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> 
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> 
-      let C := array([1, 5, 10]) :> 
-      A != B :> 
-      A != C :> 
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
+      let C := array([1, 5, 10]) :> <1 5 10>
+      A != B :> <<1 1 1> <0 1 1>>
+      A != C :> <<0 1 1> <1 0 1>>
 
 
 :mini:`meth (A: array) != (B: complex): array`
@@ -97,6 +135,15 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
 
+:mini:`meth (A: array) * (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A * 2 :> <<2 4> <6 8>>
+
+
 :mini:`meth (A: array) * (B: array): array`
    Returns :mini:`A * B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
@@ -108,44 +155,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A * B :> 
-      B * A
-      :> error("CompilerError", "Identifier B not declared")
-      A * C :> 
-      C * A :> 
-      B * C :> 
-      C * B
-      :> error("CompilerError", "Identifier B not declared")
-
-
-:mini:`meth (A: array) * (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A * (1 + 1i) :> 
-
-
-:mini:`meth (A: array) * (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A * 2 :> 
-
-
-:mini:`meth (A: array) * (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A * 2.5 :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A * B :> <<7 16 27> <40 55 72>>
+      B * A :> <<7 16 27> <40 55 72>>
+      A * C :> <<5 20 45> <20 50 90>>
+      C * A :> <<5 20 45> <20 50 90>>
+      B * C :> <<35 80 135> <50 110 180>>
+      C * B :> <<35 80 135> <50 110 180>>
 
 
 :mini:`meth (A: array) ** (B: array): array`
@@ -154,14 +174,22 @@ array
 
    .. code-block:: mini
 
-      let A := array([1, 8, 3]) :> 
-      let B := array([[7, 2], [4, 11]]) :> 
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
       A:shape :> [3]
-      B:shape
-      :> error("CompilerError", "Identifier B not declared")
-      let C := A ** B :> 
-      C:shape
-      :> error("CompilerError", "Identifier C not declared")
+      B:shape :> [2, 2]
+      let C := A ** B
+      :> <<<7 2> <4 11>> <<56 16> <32 88>> <<21 6> <12 33>>>
+      C:shape :> [3, 2, 2]
+
+
+:mini:`meth (A: array) + (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A + 2 :> <<3 4> <5 6>>
 
 
 :mini:`meth (A: array) + (B: array): array`
@@ -175,44 +203,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A + B :> 
-      B + A
-      :> error("CompilerError", "Identifier B not declared")
-      A + C :> 
-      C + A :> 
-      B + C :> 
-      C + B
-      :> error("CompilerError", "Identifier B not declared")
-
-
-:mini:`meth (A: array) + (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A + (1 + 1i) :> 
-
-
-:mini:`meth (A: array) + (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A + 2 :> 
-
-
-:mini:`meth (A: array) + (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A + 2.5 :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A + B :> <<8 10 12> <14 16 18>>
+      B + A :> <<8 10 12> <14 16 18>>
+      A + C :> <<6 12 18> <9 15 21>>
+      C + A :> <<6 12 18> <9 15 21>>
+      B + C :> <<12 18 24> <15 21 27>>
+      C + B :> <<12 18 24> <15 21 27>>
 
 
 :mini:`meth (A: array) ++ (B: array): array`
@@ -221,18 +222,26 @@ array
 
    .. code-block:: mini
 
-      let A := array([1, 8, 3]) :> 
-      let B := array([[7, 2], [4, 11]]) :> 
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
       A:shape :> [3]
-      B:shape
-      :> error("CompilerError", "Identifier B not declared")
-      let C := A ++ B :> 
-      C:shape
-      :> error("CompilerError", "Identifier C not declared")
+      B:shape :> [2, 2]
+      let C := A ++ B
+      :> <<<8 3> <5 12>> <<15 10> <12 19>> <<10 5> <7 14>>>
+      C:shape :> [3, 2, 2]
 
 
 :mini:`meth -(Array: array): array`
    Returns an array with the negated values from :mini:`Array`.
+
+
+:mini:`meth (A: array) - (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A - 2 :> <<-1 0> <1 2>>
 
 
 :mini:`meth (A: array) - (B: array): array`
@@ -246,44 +255,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A - B :> 
-      B - A
-      :> error("CompilerError", "Identifier B not declared")
-      A - C :> 
-      C - A :> 
-      B - C :> 
-      C - B
-      :> error("CompilerError", "Identifier B not declared")
-
-
-:mini:`meth (A: array) - (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A - (1 + 1i) :> 
-
-
-:mini:`meth (A: array) - (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A - 2 :> 
-
-
-:mini:`meth (A: array) - (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A - 2.5 :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A - B :> <<-6 -6 -6> <-6 -6 -6>>
+      B - A :> <<6 6 6> <6 6 6>>
+      A - C :> <<-4 -8 -12> <-1 -5 -9>>
+      C - A :> <<4 8 12> <1 5 9>>
+      B - C :> <<2 -2 -6> <5 1 -3>>
+      C - B :> <<-2 2 6> <-5 -1 3>>
 
 
 :mini:`meth (A: array) -- (B: array): array`
@@ -292,18 +274,26 @@ array
 
    .. code-block:: mini
 
-      let A := array([1, 8, 3]) :> 
-      let B := array([[7, 2], [4, 11]]) :> 
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
       A:shape :> [3]
-      B:shape
-      :> error("CompilerError", "Identifier B not declared")
-      let C := A -- B :> 
-      C:shape
-      :> error("CompilerError", "Identifier C not declared")
+      B:shape :> [2, 2]
+      let C := A -- B
+      :> <<<-6 -1> <-3 -10>> <<1 6> <4 -3>> <<-4 1> <-1 -8>>>
+      C:shape :> [3, 2, 2]
 
 
 :mini:`meth (A: array) . (B: array): array`
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match,  skipping any dimensions of size :mini:`1`.
+
+
+:mini:`meth (A: array) / (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A / 2 :> <<0.5 1> <1.5 2>>
 
 
 :mini:`meth (A: array) / (B: array): array`
@@ -317,44 +307,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A / B :> 
-      B / A
-      :> error("CompilerError", "Identifier B not declared")
-      A / C :> 
-      C / A :> 
-      B / C :> 
-      C / B
-      :> error("CompilerError", "Identifier B not declared")
-
-
-:mini:`meth (A: array) / (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A / (1 + 1i) :> 
-
-
-:mini:`meth (A: array) / (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A / 2 :> 
-
-
-:mini:`meth (A: array) / (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> 
-      A / 2.5 :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A / B :> <<0.142857 0.25 0.333333> <0.4 0.454545 0.5>>
+      B / A :> <<7 4 3> <2.5 2.2 2>>
+      A / C :> <<0.2 0.2 0.2> <0.8 0.5 0.4>>
+      C / A :> <<5 5 5> <1.25 2 2.5>>
+      B / C :> <<1.4 0.8 0.6> <2 1.1 0.8>>
+      C / B :> <<0.714286 1.25 1.66667> <0.5 0.909091 1.25>>
 
 
 :mini:`meth (A: array) // (B: array): array`
@@ -363,14 +326,13 @@ array
 
    .. code-block:: mini
 
-      let A := array([1, 8, 3]) :> 
-      let B := array([[7, 2], [4, 11]]) :> 
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
       A:shape :> [3]
-      B:shape
-      :> error("CompilerError", "Identifier B not declared")
-      let C := A // B :> 
-      C:shape
-      :> error("CompilerError", "Identifier C not declared")
+      B:shape :> [2, 2]
+      let C := A // B
+      :> <<<0.142857 0.5> <0.25 0.0909091>> <<1.14286 4> <2 0.727273>> <<0.428571 1.5> <0.75 0.272727>>>
+      C:shape :> [3, 2, 2]
 
 
 :mini:`meth (A: array) /\ (B: array): array`
@@ -384,17 +346,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A /\ B :> 
-      B /\ A
-      :> error("CompilerError", "Identifier B not declared")
-      A /\ C :> 
-      C /\ A :> 
-      B /\ C :> 
-      C /\ B
-      :> error("CompilerError", "Identifier B not declared")
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A /\ B :> <<1 0 1> <0 1 4>>
+      B /\ A :> <<1 0 1> <0 1 4>>
+      A /\ C :> <<1 2 3> <4 0 6>>
+      C /\ A :> <<1 2 3> <4 0 6>>
+      B /\ C :> <<5 8 9> <0 10 12>>
+      C /\ B :> <<5 8 9> <0 10 12>>
 
 
 :mini:`meth (A: array) /\ (B: integer): array`
@@ -402,8 +364,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      A /\ 2 :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A /\ 2 :> <<0 2> <2 0>>
 
 
 :mini:`meth (A: array) < (B: any): array`
@@ -420,11 +382,13 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> 
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> 
-      let C := array([1, 5, 10]) :> 
-      A < B :> 
-      A < C :> 
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
+      let C := array([1, 5, 10]) :> <1 5 10>
+      A < B :> <<1 0 1> <0 1 0>>
+      A < C :> <<0 0 1> <0 0 0>>
 
 
 :mini:`meth (A: array) < (B: complex): array`
@@ -453,11 +417,13 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> 
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> 
-      let C := array([1, 5, 10]) :> 
-      A <= B :> 
-      A <= C :> 
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
+      let C := array([1, 5, 10]) :> <1 5 10>
+      A <= B :> <<1 0 1> <1 1 0>>
+      A <= C :> <<1 0 1> <0 1 0>>
 
 
 :mini:`meth (A: array) <= (B: complex): array`
@@ -490,11 +456,13 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> 
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> 
-      let C := array([1, 5, 10]) :> 
-      A = B :> 
-      A = C :> 
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
+      let C := array([1, 5, 10]) :> <1 5 10>
+      A = B :> <<0 0 0> <1 0 0>>
+      A = C :> <<1 0 0> <0 1 0>>
 
 
 :mini:`meth (A: array) = (B: complex): array`
@@ -523,11 +491,13 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> 
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> 
-      let C := array([1, 5, 10]) :> 
-      A > B :> 
-      A > C :> 
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
+      let C := array([1, 5, 10]) :> <1 5 10>
+      A > B :> <<0 1 0> <0 0 1>>
+      A > C :> <<0 1 0> <1 0 1>>
 
 
 :mini:`meth (A: array) > (B: complex): array`
@@ -553,17 +523,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A >< B :> 
-      B >< A
-      :> error("CompilerError", "Identifier B not declared")
-      A >< C :> 
-      C >< A :> 
-      B >< C :> 
-      C >< B
-      :> error("CompilerError", "Identifier B not declared")
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A >< B :> <<7 10 11> <14 15 14>>
+      B >< A :> <<7 10 11> <14 15 14>>
+      A >< C :> <<5 10 15> <5 15 15>>
+      C >< A :> <<5 10 15> <5 15 15>>
+      B >< C :> <<7 10 15> <15 11 15>>
+      C >< B :> <<7 10 15> <15 11 15>>
 
 
 :mini:`meth (A: array) >< (B: integer): array`
@@ -571,8 +541,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      A >< 2 :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A >< 2 :> <<3 0> <1 6>>
 
 
 :mini:`meth (A: array) >= (B: any): array`
@@ -589,11 +559,13 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> 
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> 
-      let C := array([1, 5, 10]) :> 
-      A >= B :> 
-      A >= C :> 
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
+      let C := array([1, 5, 10]) :> <1 5 10>
+      A >= B :> <<0 1 0> <1 0 1>>
+      A >= C :> <<1 1 0> <1 1 1>>
 
 
 :mini:`meth (A: array) >= (B: complex): array`
@@ -634,21 +606,20 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A[1] :> 
-      A[1, 2] :> 
-      A[1, 2, 3] :> 
-      A[nil, 2] :> 
-      A[.., 3] :> 
-      A[.., 1 .. 2] :> 
-      A[(1, 2, 3)] :> 
-      A[[(1, 2, 3), (2, 1, 1)]] :> 
-      let B := A > 10 :> 
-      type(B)
-      :> error("CompilerError", "Identifier B not declared")
-      A[B] :> 
-      let C := A:maxidx(2) :> 
-      type(C) :> 
-      A[C] :> 
+      A[1] :> <<19 16 12> <4 7 20>>
+      A[1, 2] :> <4 7 20>
+      A[1, 2, 3] :> 20
+      A[nil, 2] :> <<4 7 20> <20 9 20>>
+      A[.., 3] :> <<12 20> <8 20>>
+      A[.., 1 .. 2] :> <<<19 16> <4 7>> <<5 17> <20 9>>>
+      A[(1, 2, 3)] :> 20
+      A[[(1, 2, 3), (2, 1, 1)]] :> <20 5>
+      let B := A > 10 :> <<<1 1 1> <0 0 1>> <<0 1 0> <1 0 1>>>
+      type(B) :> <<array::mutable::int8>>
+      A[B] :> <19 16 12 20 17 20 20>
+      let C := A:maxidx(2) :> <<2 3> <2 1>>
+      type(C) :> <<matrix::mutable::int32>>
+      A[C] :> <20 20>
 
 
 :mini:`meth (Array: array)[Indices: map]: array`
@@ -667,17 +638,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A \/ B :> 
-      B \/ A
-      :> error("CompilerError", "Identifier B not declared")
-      A \/ C :> 
-      C \/ A :> 
-      B \/ C :> 
-      C \/ B
-      :> error("CompilerError", "Identifier B not declared")
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A \/ B :> <<7 10 11> <14 15 14>>
+      B \/ A :> <<7 10 11> <14 15 14>>
+      A \/ C :> <<5 10 15> <5 15 15>>
+      C \/ A :> <<5 10 15> <5 15 15>>
+      B \/ C :> <<7 10 15> <15 11 15>>
+      C \/ B :> <<7 10 15> <15 11 15>>
 
 
 :mini:`meth (A: array) \/ (B: integer): array`
@@ -685,8 +656,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      A \/ 2 :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A \/ 2 :> <<3 2> <3 6>>
 
 
 :mini:`meth ^(Array: array): array`
@@ -694,8 +665,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      ^A :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      ^A :> <<1 4> <2 5> <3 6>>
 
 
 :mini:`meth (Array: array):copy: array`
@@ -711,8 +683,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:count :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:count :> 6
 
 
 :mini:`meth (Array: array):degree: integer`
@@ -720,8 +693,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:degree :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:degree :> 2
 
 
 :mini:`meth (Array: array):expand(Indices: list): array`
@@ -743,17 +717,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A max B :> 
-      B max A
-      :> error("CompilerError", "Identifier B not declared")
-      A max C :> 
-      C max A :> 
-      B max C :> 
-      C max B
-      :> error("CompilerError", "Identifier B not declared")
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A max B :> <<7 8 9> <10 11 12>>
+      B max A :> <<7 8 9> <10 11 12>>
+      A max C :> <<5 10 15> <5 10 15>>
+      C max A :> <<5 10 15> <5 10 15>>
+      B max C :> <<7 10 15> <10 11 15>>
+      C max B :> <<7 10 15> <10 11 15>>
 
 
 :mini:`meth (A: array):max(B: integer): array`
@@ -761,8 +735,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      A max 2 :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A max 2 :> <<2 2> <3 4>>
 
 
 :mini:`meth (A: array):max(B: real): array`
@@ -770,8 +744,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      A max 2.5 :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A max 2.5 :> <<2.5 2.5> <3 4>>
 
 
 :mini:`meth (Array: array):maxidx: array`
@@ -780,7 +754,7 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:maxidx :> 
+      A:maxidx :> <1 2 3>
 
 
 :mini:`meth (Array: array):maxidx(Count: integer): array`
@@ -789,8 +763,8 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:maxidx(1) :> 
-      A:maxidx(2) :> 
+      A:maxidx(1) :> <<<1> <3>> <<2> <1>>>
+      A:maxidx(2) :> <<2 3> <2 1>>
 
 
 :mini:`meth (Array: array):maxval: number`
@@ -799,7 +773,7 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:maxval :> 
+      A:maxval :> 20
 
 
 :mini:`meth (Array: array):maxval(Count: integer): array`
@@ -808,8 +782,8 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:maxval(1) :> 
-      A:maxval(2) :> 
+      A:maxval(1) :> <<19 20> <17 20>>
+      A:maxval(2) :> <20 20>
 
 
 :mini:`meth (A: array):min(B: array): array`
@@ -823,17 +797,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> 
-      let C := array([5, 10, 15]) :> 
-      A min B :> 
-      B min A
-      :> error("CompilerError", "Identifier B not declared")
-      A min C :> 
-      C min A :> 
-      B min C :> 
-      C min B
-      :> error("CompilerError", "Identifier B not declared")
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A min B :> <<1 2 3> <4 5 6>>
+      B min A :> <<1 2 3> <4 5 6>>
+      A min C :> <<1 2 3> <4 5 6>>
+      C min A :> <<1 2 3> <4 5 6>>
+      B min C :> <<5 8 9> <5 10 12>>
+      C min B :> <<5 8 9> <5 10 12>>
 
 
 :mini:`meth (A: array):min(B: integer): array`
@@ -841,8 +815,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      A min 2 :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A min 2 :> <<1 2> <2 2>>
 
 
 :mini:`meth (A: array):min(B: real): array`
@@ -850,8 +824,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      A min 2.5 :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A min 2.5 :> <<1 2> <2.5 2.5>>
 
 
 :mini:`meth (Array: array):minidx: array`
@@ -860,7 +834,7 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:minidx :> 
+      A:minidx :> <1 2 1>
 
 
 :mini:`meth (Array: array):minidx(Count: integer): array`
@@ -869,8 +843,8 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:minidx(1) :> 
-      A:minidx(2) :> 
+      A:minidx(1) :> <<<3> <1>> <<1> <2>>>
+      A:minidx(2) :> <<2 1> <1 1970037078>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -879,7 +853,7 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:minval :> 
+      A:minval :> 4
 
 
 :mini:`meth (Array: array):minval(Count: integer): array`
@@ -888,8 +862,8 @@ array
    .. code-block:: mini
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
-      A:minval(1) :> 
-      A:minval(2) :> 
+      A:minval(1) :> <<12 4> <5 9>>
+      A:minval(2) :> <4 5>
 
 
 :mini:`meth (Array: array):permute(Indices: integer, ...): array`
@@ -898,10 +872,11 @@ array
    .. code-block:: mini
 
       let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-      :> 
-      A:shape :> 
-      let B := A:permute(2, 3, 1) :> 
-      B:shape :> 
+      :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      A:shape :> [2, 2, 3]
+      let B := A:permute(2, 3, 1)
+      :> <<<1 7> <2 8> <3 9>> <<4 10> <5 11> <6 12>>>
+      B:shape :> [2, 3, 2]
 
 
 :mini:`meth (Array: array):permute(Indices: list): array`
@@ -910,10 +885,11 @@ array
    .. code-block:: mini
 
       let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-      :> 
-      A:shape :> 
-      let B := A:permute([2, 3, 1]) :> 
-      B:shape :> 
+      :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      A:shape :> [2, 2, 3]
+      let B := A:permute([2, 3, 1])
+      :> <<<1 7> <2 8> <3 9>> <<4 10> <5 11> <6 12>>>
+      B:shape :> [2, 3, 2]
 
 
 :mini:`meth (Array: array):prod: number`
@@ -921,8 +897,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:prod :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:prod :> 720
 
 
 :mini:`meth (Array: array):prod(Count: integer): array`
@@ -930,8 +907,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:prod(1) :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:prod(1) :> <6 120>
 
 
 :mini:`meth (Array: array):prods(Index: integer): array`
@@ -950,8 +928,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:shape :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:shape :> [2, 3]
 
 
 :mini:`meth (Array: array):split(Index: integer, Sizes: list): array`
@@ -967,8 +946,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:sum :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:sum :> 21
 
 
 :mini:`meth (Array: array):sum(Index: integer): array`
@@ -976,8 +956,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:sum(1) :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:sum(1) :> <6 15>
 
 
 :mini:`meth (Array: array):sums(Index: integer): array`
@@ -989,8 +970,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> 
-      A:swap :> 
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:swap :> <<1 4> <2 5> <3 6>>
 
 
 :mini:`meth (Array: array):swap(Index₁: integer, Index₂: integer): array`
@@ -1023,6 +1005,42 @@ array
 
 :mini:`type array::complex < array`
    *TBD*
+
+
+:mini:`meth (A: array::complex) * (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A * (1 + 1i) :> <<1 + 1i 2 + 2i> <3 + 3i 4 + 4i>>
+
+
+:mini:`meth (A: array::complex) + (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A + (1 + 1i) :> <<2 + 1i 3 + 1i> <4 + 1i 5 + 1i>>
+
+
+:mini:`meth (A: array::complex) - (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A - (1 + 1i) :> <<0 - 1i 1 - 1i> <2 - 1i 3 - 1i>>
+
+
+:mini:`meth (A: array::complex) / (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A / (1 + 1i) :> <<0.5 - 0.5i 1 - 1i> <1.5 - 1.5i 2 - 2i>>
 
 
 :mini:`type array::complex32 < array::complex`
@@ -1091,6 +1109,42 @@ array
 
 :mini:`type array::integer < array::real`
    *TBD*
+
+
+:mini:`meth (A: array::integer) * (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A * 2 :> <<2 4> <6 8>>
+
+
+:mini:`meth (A: array::integer) + (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A + 2 :> <<3 4> <5 6>>
+
+
+:mini:`meth (A: array::integer) - (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A - 2 :> <<-1 0> <1 2>>
+
+
+:mini:`meth (A: array::integer) / (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A / 2 :> <<0.5 1> <1.5 2>>
 
 
 :mini:`type array::mutable < array, buffer`
@@ -1242,6 +1296,42 @@ array
    *TBD*
 
 
+:mini:`meth (A: array::real) * (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A * 2.5 :> <<2.5 5> <7.5 10>>
+
+
+:mini:`meth (A: array::real) + (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A + 2.5 :> <<3.5 4.5> <5.5 6.5>>
+
+
+:mini:`meth (A: array::real) - (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A - 2.5 :> <<-1.5 -0.5> <0.5 1.5>>
+
+
+:mini:`meth (A: array::real) / (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A / 2.5 :> <<0.4 0.8> <1.2 1.6>>
+
+
 :mini:`type array::uint16 < array::integer`
    *TBD*
 
@@ -1278,40 +1368,41 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: complex) * (B: array): array`
+:mini:`meth (A: complex) * (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      (1 + 1i) * A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      (1 + 1i) * A :> <<1 + 1i 2 + 2i> <3 + 3i 4 + 4i>>
 
 
-:mini:`meth (A: complex) + (B: array): array`
+:mini:`meth (A: complex) + (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      (1 + 1i) + A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      (1 + 1i) + A :> <<2 + 1i 3 + 1i> <4 + 1i 5 + 1i>>
 
 
-:mini:`meth (A: complex) - (B: array): array`
+:mini:`meth (A: complex) - (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      (1 + 1i) - A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      (1 + 1i) - A :> <<0 + 1i -1 + 1i> <-2 + 1i -3 + 1i>>
 
 
-:mini:`meth (A: complex) / (B: array): array`
+:mini:`meth (A: complex) / (B: array::complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      (1 + 1i) / A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      (1 + 1i) / A
+      :> <<1 + 1i 0.5 + 0.5i> <0.333333 + 0.333333i 0.25 + 0.25i>>
 
 
 :mini:`meth (A: complex) < (B: array): array`
@@ -1339,51 +1430,52 @@ array
 
    .. code-block:: mini
 
-      let A := $[[1, 2, 3], [4, 5, 6]] :> 
-      let B := $[[7, 8, 9], [10, 11, 12]] :> 
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]]
+      :> <<7 8 9> <10 11 12>>
       array::cat(1, A, B)
-      :> error("CompilerError", "Identifier B not declared")
-      array::cat(2, A, B) :> 
+      :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
+      array::cat(2, A, B) :> <<1 2 3 7 8 9> <4 5 6 10 11 12>>
 
 
 :mini:`meth (A: integer) != (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: integer) * (B: array): array`
+:mini:`meth (A: integer) * (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 * A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 * A :> <<2 4> <6 8>>
 
 
-:mini:`meth (A: integer) + (B: array): array`
+:mini:`meth (A: integer) + (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 + A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 + A :> <<3 4> <5 6>>
 
 
-:mini:`meth (A: integer) - (B: array): array`
+:mini:`meth (A: integer) - (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 - A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 - A :> <<1 0> <-1 -2>>
 
 
-:mini:`meth (A: integer) / (B: array): array`
+:mini:`meth (A: integer) / (B: array::integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 / A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 / A :> <<2 1> <0.666667 0.5>>
 
 
 :mini:`meth (A: integer) /\ (B: array): array`
@@ -1391,8 +1483,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 /\ A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 /\ A :> <<0 2> <2 0>>
 
 
 :mini:`meth (A: integer) < (B: array): array`
@@ -1416,8 +1508,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 >< A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 >< A :> <<3 0> <1 6>>
 
 
 :mini:`meth (A: integer) >= (B: array): array`
@@ -1429,8 +1521,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 \/ A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 \/ A :> <<3 2> <3 6>>
 
 
 :mini:`meth (A: integer):max(B: array): array`
@@ -1438,8 +1530,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 max A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 max A :> <<2 2> <3 4>>
 
 
 :mini:`meth (A: integer):min(B: array): array`
@@ -1447,8 +1539,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2 min A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 min A :> <<1 2> <2 2>>
 
 
 :mini:`meth $(List: list): array`
@@ -1619,40 +1711,40 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: real) * (B: array): array`
+:mini:`meth (A: real) * (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2.5 * A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 * A :> <<2.5 5> <7.5 10>>
 
 
-:mini:`meth (A: real) + (B: array): array`
+:mini:`meth (A: real) + (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A + Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2.5 + A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 + A :> <<3.5 4.5> <5.5 6.5>>
 
 
-:mini:`meth (A: real) - (B: array): array`
+:mini:`meth (A: real) - (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A - Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2.5 - A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 - A :> <<1.5 0.5> <-0.5 -1.5>>
 
 
-:mini:`meth (A: real) / (B: array): array`
+:mini:`meth (A: real) / (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A / Bᵥ`.
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2.5 / A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 / A :> <<2.5 1.25> <0.833333 0.625>>
 
 
 :mini:`meth (A: real) < (B: array): array`
@@ -1680,8 +1772,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2.5 max A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 max A :> <<2 2> <3 4>>
 
 
 :mini:`meth (A: real):min(B: array): array`
@@ -1689,8 +1781,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2], [3, 4]]) :> 
-      2.5 min A :> 
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 min A :> <<1 2> <2 2>>
 
 
 :mini:`fun array::new(Arg₁: type, Arg₂: list)`
@@ -1703,8 +1795,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:20C5D9F5177F0000545F455850525F56>
-      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> 
+      :> <16:009A2A8E1E7F00000000000000000000>
+      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
+      :> <<<39424 36394> <32542 0>> <<0 0> <0 0>>>
 
 
 :mini:`type vector < array`
@@ -1812,8 +1905,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5]) :> 
-      let B := A:softmax :> 
+      let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5])
+      :> <1 4.2 0.6 1.23 4.3 1.2 2.5>
+      let B := A:softmax
+      :> <0.01659 0.406995 0.0111206 0.0208802 0.449799 0.0202631 0.0743513>
 
 
 :mini:`type vector::mutable::uint16 < vector::uint16, vector::mutable::integer, array::mutable::uint16`

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 #include <inttypes.h>
 #include "ml_bytecode.h"
 #include "ml_debugger.h"
@@ -256,24 +257,57 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #ifndef DEBUG_VERSION
 
 #ifdef ML_THREADSAFE
-
-static __thread ml_frame_t *MLCachedFrame = NULL;
-
+static ml_frame_t * _Atomic FrameCache = NULL;
 #else
-
-static ml_frame_t *MLCachedFrame = NULL;
-
+static ml_frame_t *FrameCache = NULL;
 #endif
+
+#define ML_FRAME_REUSE_SIZE 384
+
+static ml_frame_t *ml_frame() {
+#ifdef ML_THREADSAFE
+	ml_frame_t *Next = FrameCache, *CacheNext;
+	do {
+		if (!Next) {
+			Next = bnew(ML_FRAME_REUSE_SIZE);
+			Next->Reuse = 1;
+			break;
+		}
+		CacheNext = Next->Next;
+	} while (!atomic_compare_exchange_weak(&FrameCache, &Next, CacheNext));
+#else
+	ml_frame_t *Next = FrameCache;
+	if (!Next) {
+		Next = bnew(ML_FRAME_REUSE_SIZE);
+		Next->Reuse = 1;
+	} else {
+		FrameCache = Next->Next;
+	}
+#endif
+	Next->Next = NULL;
+	return Next;
+}
+
+static void ml_frame_reuse(ml_frame_t *Frame) {
+	Frame->Base.Caller = NULL;
+#ifdef ML_THREADSAFE
+	ml_frame_t *CacheNext = FrameCache;
+	do {
+		Frame->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&FrameCache, &CacheNext, Frame));
+#else
+	Frame->Next = FrameCache;
+	FrameCache = Frame;
+#endif
+}
 
 size_t ml_count_cached_frames() {
 	size_t Count = 0;
-	for (ml_frame_t *Frame = MLCachedFrame; Frame; Frame = Frame->Next) ++Count;
+	for (ml_frame_t *Frame = FrameCache; Frame; Frame = Frame->Next) ++Count;
 	return Count;
 }
 
 extern ml_value_t *SymbolMethod;
-
-#define ML_FRAME_REUSE_SIZE 384
 
 #ifdef ML_SCHEDULER
 #define ML_STORE_COUNTER() Frame->Schedule->Counter = Counter
@@ -290,9 +324,7 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 	memcpy(Args2, Top - COUNT, COUNT * sizeof(ml_value_t *)); \
 	if (Frame->Reuse) { \
 		while (Top > Frame->Stack) *--Top = NULL; \
-		Frame->Next = MLCachedFrame; \
-		Frame->Base.Caller = NULL; \
-		MLCachedFrame = (ml_frame_t *)Frame; \
+		ml_frame_reuse((ml_frame_t *)Frame); \
 	} else { \
 		Frame->Inst = ReturnInst; \
 	} \
@@ -494,9 +526,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			while (Top > Frame->Stack) *--Top = NULL;
 			//memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
-			Frame->Next = MLCachedFrame;
-			Frame->Base.Caller = NULL;
-			MLCachedFrame = (ml_frame_t *)Frame;
+			ml_frame_reuse((ml_frame_t *)Frame);
 		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
@@ -1101,12 +1131,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
 	if (Size <= ML_FRAME_REUSE_SIZE) {
-		if ((Frame = (DEBUG_STRUCT(frame) *)MLCachedFrame)) {
-			MLCachedFrame = Frame->Next;
-		} else {
-			Frame = bnew(ML_FRAME_REUSE_SIZE);
-			Frame->Reuse = 1;
-		}
+		Frame = (DEBUG_STRUCT(frame) *)ml_frame();
 	} else {
 		Frame = bnew(Size);
 	}
@@ -1677,8 +1702,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		}
 		return 3;
 	}
+	default: __builtin_unreachable();
 	}
-	__builtin_unreachable();
 }
 
 static int ML_TYPED_FN(ml_function_source, MLClosureT, ml_closure_t *Closure, const char **Source, int *Line) {
@@ -1761,9 +1786,6 @@ ML_METHOD("jit", MLClosureT) {
 #undef DEBUG_VERSION
 
 void ml_bytecode_init() {
-#ifdef ML_THREADS
-	GC_add_roots(&MLCachedFrame, &MLCachedFrame + 1);
-#endif
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLClosureT, MLFunctionT, ML_TYPE_ARG(1), NULL);
 #endif
