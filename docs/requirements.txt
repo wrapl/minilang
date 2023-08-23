@@ -1,4 +1,4 @@
-sphinx
+sphinx<7
 sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
 sphinx_toolbox
