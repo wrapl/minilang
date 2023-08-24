@@ -1012,6 +1012,7 @@ static int ml_default_queue_write(ml_state_t *State, ml_value_t *Value) {
 		int ReadIndex = Queue->ReadIndex, Copy = QUEUE_BLOCK_SIZE - ReadIndex;
 		memcpy(ReadBlock->States + ReadIndex, Block->States + ReadIndex, Copy * sizeof(ml_queued_state_t));
 		memset(Block->States + ReadIndex, 0, Copy * sizeof(ml_queued_state_t));
+		ReadBlock->Next = Block->Next;
 		Queue->ReadBlock = Block->Next = ReadBlock;
 		Queue->Space += QUEUE_BLOCK_SIZE;
 	}
