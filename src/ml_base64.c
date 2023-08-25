@@ -7,7 +7,7 @@
 static const unsigned char Base64Chars[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static uint8_t Base64Value[256];
 
-void _encode(unsigned char *OutChars, const unsigned char *InChars, size_t InLength) {
+static void _encode(unsigned char *OutChars, const unsigned char *InChars, size_t InLength) {
 	int NumBlocks = InLength / 3;
 	int Remainder = InLength % 3;
 	while (--NumBlocks >= 0) {
@@ -50,7 +50,7 @@ ML_FUNCTION(Base64Encode) {
 	return ml_string(OutChars, OutSize);
 }
 
-size_t _decode(unsigned char *OutChars, const unsigned char *InChars, size_t InLength) {
+static size_t _decode(unsigned char *OutChars, const unsigned char *InChars, size_t InLength) {
 	int NumBlocks = InLength / 4;
 	size_t OutLength = 0;
 	while (--NumBlocks >= 0) {
