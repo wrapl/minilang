@@ -80,6 +80,11 @@
 #include "ml_minijs.h"
 #endif
 
+#ifdef ML_ENCODINGS
+#include "ml_base16.h"
+#include "ml_base64.h"
+#endif
+
 #undef ML_CATEGORY
 #define ML_CATEGORY "minilang"
 
@@ -348,6 +353,10 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_MINIJS
 	ml_minijs_init(FMT_EXPORTS);
+#endif
+#ifdef ML_ENCODINGS
+	ml_base16_init(Globals);
+	ml_base64_init(Globals);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);

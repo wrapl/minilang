@@ -84,7 +84,7 @@ PREBUILDS := old + [file("ml_config.h")]
 INIT_HEADERS := [file("ml_types.h")]
 
 fun generate_init_file(Source) do
-	let InitFile := Source:basename:replace(".c", "_init.c")
+	let InitFile := string(Source):replace(".c", "_init.c")
 	let Target := file(InitFile)[Source, PREBUILDS, INIT_HEADERS] => fun() do
 		Target:open("w"):close
 		let Init := shell(CC, CFLAGS, "-E -P -DGENERATE_INIT", Source)
@@ -106,7 +106,7 @@ end
 PARENT."generate_init_file" := generate_init_file
 
 fun generate_init_files() do
-	for Source in PATH:ls(".*\\.c") do
+	for Source in PATH:ls(".*\\.c", :R) do
 		Source:basename:find("_init") and next
 		generate_init_file(Source)
 	end
@@ -211,6 +211,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_TIME := 1
 	MINILANG_UUID := 1
 	MINILANG_ICU := 1
+	MINILANG_ENCODINGS := 1
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 	end
@@ -247,6 +248,7 @@ MINILANG_MINIJS := old or defined("MINIJS")
 MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
+MINILANG_ENCODINGS := old or defined("ENCODINGS")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -533,6 +535,12 @@ if MINILANG_MINIJS then
 	CFLAGS := old + ["-DML_MINIJS"]
 	LDFLAGS := old + ["-ljansson"]
 	InstallHeaders:put("ml_minijs.h")
+end
+
+if MINILANG_ENCODINGS then
+	Objects:put(file("ml_base16.o"), file("ml_base64.o"))
+	CFLAGS := old + ["-DML_ENCODINGS"]
+	InstallHeaders:put("ml_base16.h", "ml_base64.h")
 end
 
 if PLATFORM = "Linux" then
