@@ -227,8 +227,7 @@ static void FUNCTION(ml_state_t *State, ml_value_t *Value)
 
 #ifdef ML_THREADS
 ml_queued_state_t ml_default_queue_next_wait();
-void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
-void ml_default_queue_push_signal(ml_state_t *State, ml_value_t *Value);
+int ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 
 void ml_threads_set_max_count(int Max);
 void ml_default_scheduler_split();

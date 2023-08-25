@@ -1039,17 +1039,6 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 	return Fill;
 }
 
-int ml_default_queue_push(ml_state_t *State, ml_value_t *Value) {
-#ifdef ML_THREADS
-	pthread_mutex_lock(Queue->Lock);
-#endif
-	int Fill = ml_default_queue_write(State, Value);
-#ifdef ML_THREADS
-	pthread_mutex_unlock(Queue->Lock);
-#endif
-	return Fill;
-}
-
 #ifdef ML_THREADS
 
 ml_queued_state_t ml_default_queue_next_wait() {
@@ -1060,12 +1049,10 @@ ml_queued_state_t ml_default_queue_next_wait() {
 	return Next;
 }
 
-void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
-	if (ml_default_queue_add(State, Value) == 1) pthread_cond_signal(Queue->Available);
-}
-
-void ml_default_queue_push_signal(ml_state_t *State, ml_value_t *Value) {
-	if (ml_default_queue_push(State, Value) == 1) pthread_cond_signal(Queue->Available);
+int ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
+	int Fill = ml_default_queue_add(State, Value);
+	if (Fill == 1) pthread_cond_signal(Queue->Available);
+	return Fill;
 }
 
 typedef struct ml_scheduler_thread_t ml_scheduler_thread_t;
