@@ -38,12 +38,11 @@ ML_FUNCTION(Base16Decode) {
 	int Odd = 1;
 	for (int I = InSize; --I >= 0;) {
 		unsigned char C = *InChars++;
-		if (C >= 'a') {
-			C -= ('a' - 10);
-		} else if (C >= 'A') {
-			C -= ('A' - 10);
-		} else {
-			C -= '0';
+		switch (C) {
+		case 'a' ... 'f': C -= ('a' - 10); break;
+		case 'A' ... 'F': C -= ('A' - 10); break;
+		case '0' ... '9': C -= '0'; break;
+		default: return ml_error("ValueError", "Invalid base 16 value");
 		}
 		if (Odd) {
 			*Out = C << 4;
