@@ -3094,7 +3094,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 	int Length = State->Length;
 	ml_stringbuffer_t *Buffer = State->Buffer;
 	for (;;) {
-		int MatchStart = Length, MatchEnd;
+		int MatchStart = Length, MatchEnd = Length;
 		ml_str_replacement_t *Test = State->Replacements, *Match = NULL;
 		ml_value_t **SubArgs = NULL;
 		int SubCount;
