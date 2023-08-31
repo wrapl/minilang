@@ -42,6 +42,7 @@ obj/%_init.c: src/%.c obj/ml_config.h | obj
 obj/ml_bytecode.o: obj/ml_bytecode_init.c
 obj/ml_compiler.o: obj/ml_compiler_init.c
 obj/ml_file.o: obj/ml_file_init.c
+obj/ml_json.o: obj/ml_json_init.c
 obj/ml_list.o: obj/ml_list_init.c
 obj/ml_map.o: obj/ml_map_init.c
 obj/ml_math.o: obj/ml_math_init.c
@@ -53,6 +54,7 @@ obj/ml_sequence.o: obj/ml_sequence_init.c
 obj/ml_set.o: obj/ml_set_init.c
 obj/ml_stream.o: obj/ml_stream_init.c
 obj/ml_string.o: obj/ml_string_init.c
+obj/ml_time.o: obj/ml_time_init.c
 obj/ml_types.o: obj/ml_types_init.c
 
 common_objects = \
@@ -62,6 +64,7 @@ common_objects = \
 	obj/ml_console.o \
 	obj/ml_debugger.o \
 	obj/ml_file.o \
+	obj/ml_json.o \
 	obj/ml_list.o \
 	obj/ml_map.o \
 	obj/ml_method.o \
@@ -73,6 +76,7 @@ common_objects = \
 	obj/ml_set.o \
 	obj/ml_stream.o \
 	obj/ml_string.o \
+	obj/ml_time.o \
 	obj/ml_types.o \
 	obj/sha256.o \
 	obj/stringmap.o
@@ -132,11 +136,13 @@ install_h = \
 	$(install_include)/ml_compiler.h \
 	$(install_include)/ml_console.h \
 	$(install_include)/ml_file.h \
+	$(install_include)/ml_json.h \
 	$(install_include)/ml_macros.h \
 	$(install_include)/ml_object.h \
 	$(install_include)/ml_opcodes.h \
 	$(install_include)/ml_runtime.h \
 	$(install_include)/ml_sequence.h \
+	$(install_include)/ml_time.h \
 	$(install_include)/ml_types.h \
 	$(install_include)/sha256.h \
 	$(install_include)/stringmap.h

@@ -8,8 +8,6 @@
 extern "C" {
 #endif
 
-#define ML_THREAD_INDEX 4
-
 extern ml_type_t MLThreadT[];
 
 void ml_thread_init(stringmap_t *Globals);

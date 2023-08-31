@@ -2553,12 +2553,9 @@ static void instance_constructor_fn(ml_state_t *Caller, ml_gir_type_t *Class, in
 
 void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
 
-ml_schedule_t GirSchedule[1] = {{256, ml_gir_queue_add}};
-
 static gboolean ml_gir_queue_run(void *Data) {
 	ml_queued_state_t QueuedState = ml_default_queue_next();
 	if (!QueuedState.State) return FALSE;
-	GirSchedule->Counter = 256;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	return TRUE;
 }
@@ -2587,7 +2584,7 @@ ML_FUNCTIONX(MLSleep) {
 ML_FUNCTIONX(GirRun) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = ml_state(Caller);
-	ml_context_set(State->Context, ML_SCHEDULER_INDEX, GirSchedule);
+	ml_context_set(State->Context, ML_SCHEDULER_INDEX, ml_gir_queue_add);
 	return ml_call(State, Args[0], 0, NULL);
 }
 
@@ -2674,7 +2671,7 @@ static GMainLoop *MainLoop = NULL;
 
 void ml_gir_loop_init(ml_context_t *Context) {
 	MainLoop = g_main_loop_new(NULL, TRUE);
-	ml_context_set(Context, ML_SCHEDULER_INDEX, GirSchedule);
+	ml_context_set(Context, ML_SCHEDULER_INDEX, ml_gir_queue_add);
 }
 
 void ml_gir_loop_run() {

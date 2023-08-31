@@ -155,22 +155,6 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 	return Result;
 }
 
-#ifdef ML_SCHEDULER
-
-static unsigned int SliceSize = 256;
-static ml_value_t *MainResult = NULL;
-static ml_schedule_t MainSchedule[1] = {{256, (void *)ml_default_queue_add_signal}};
-
-static void simple_queue_run() {
-	while (!MainResult) {
-		ml_queued_state_t QueuedState = ml_default_queue_next_wait();
-		MainSchedule->Counter = SliceSize;
-		QueuedState.State->run(QueuedState.State, QueuedState.Value);
-	}
-}
-
-#endif
-
 #ifdef ML_BACKTRACE
 #include <backtrace.h>
 
@@ -216,6 +200,8 @@ ML_FUNCTION(MLBacktrace) {
 }
 
 #endif
+
+static ml_value_t *MainResult = NULL;
 
 static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
@@ -367,6 +353,9 @@ int main(int Argc, const char *Argv[]) {
 	int LoadModule = 0;
 #endif
 	int BreakOnExit = 0;
+#ifdef ML_SCHEDULER
+	int SliceSize = 256;
+#endif
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
@@ -451,16 +440,9 @@ int main(int Argc, const char *Argv[]) {
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		MainSchedule->Counter = SliceSize;
-		ml_default_queue_init(8);
+		ml_default_queue_init(Main->Context, SliceSize);
 #ifdef ML_GIR
-		if (UseGirLoop) {
-			ml_gir_loop_init(Main->Context);
-		} else {
-#endif
-			ml_context_set(Main->Context, ML_SCHEDULER_INDEX, MainSchedule);
-#ifdef ML_GIR
-		}
+		if (UseGirLoop) ml_gir_loop_init(Main->Context);
 #endif
 	}
 #endif
@@ -495,7 +477,12 @@ int main(int Argc, const char *Argv[]) {
 			ml_gir_loop_run();
 		} else {
 #endif
-		if (SliceSize) simple_queue_run();
+		if (SliceSize) {
+			while (!MainResult) {
+				ml_queued_state_t Queued = ml_default_queue_next_wait();
+				Queued.State->run(Queued.State, Queued.Value);
+			}
+		}
 #ifdef ML_GIR
 		}
 		if (BreakOnExit) {
@@ -510,6 +497,14 @@ int main(int Argc, const char *Argv[]) {
 		ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
 		ml_parser_input(Parser, Command);
 		ml_command_evaluate(Main, Parser, Compiler);
+#ifdef ML_SCHEDULER
+		if (SliceSize) {
+			while (!MainResult) {
+				ml_queued_state_t Queued = ml_default_queue_next_wait();
+				Queued.State->run(Queued.State, Queued.Value);
+			}
+		}
+#endif
 	} else {
 		ml_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
 	}

@@ -117,7 +117,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
-	ml_schedule_t *Schedule;
+	uint64_t *Counter;
 #endif
 	unsigned int Line;
 	unsigned int Reentry:1;
@@ -136,6 +136,10 @@ struct DEBUG_STRUCT(frame) {
 
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
+	Frame->Base.Context = Caller->Context;
+#ifdef ML_SCHEDULER
+	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+#endif
 	Frame->Reuse = 0;
 	ml_state_schedule((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 	ML_RETURN(MLNil);
@@ -310,7 +314,7 @@ size_t ml_count_cached_frames() {
 extern ml_value_t *SymbolMethod;
 
 #ifdef ML_SCHEDULER
-#define ML_STORE_COUNTER() Frame->Schedule->Counter = Counter
+#define ML_STORE_COUNTER() Frame->Counter[0] = Counter
 #else
 #define ML_STORE_COUNTER() {}
 
@@ -494,7 +498,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	CALL_LABELS(CALL_METHOD);
 	CALL_LABELS(TAIL_CALL_METHOD);
 #ifdef ML_SCHEDULER
-	uint64_t Counter = Frame->Schedule->Counter;
+	uint64_t Counter = Frame->Counter[0];
 #endif
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -1115,7 +1119,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
-		return Frame->Schedule->add((ml_state_t *)Frame, Result);
+		ml_schedule_fn Add = (ml_schedule_fn)Frame->Base.Context->Values[ML_SCHEDULER_INDEX];
+		return Add((ml_state_t *)Frame, Result);
 	}
 #endif
 }
@@ -1203,6 +1208,28 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		}
 		Frame->Stack[NumParams] = Options;
 		++NumParams;
+	} else if (Flags & ML_CLOSURE_RELAX_NAMES) {
+		for (; I < Count; ++I) {
+			ml_value_t *Arg = ml_deref(Args[I]);
+			if (ml_is_error(Arg)) ML_RETURN(Arg);
+#ifdef ML_NANBOXING
+			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
+#else
+			if (Arg->Type == MLNamesT) {
+#endif
+				ML_NAMES_CHECKX_ARG_COUNT(I);
+				ML_NAMES_FOREACH(Arg, Node) {
+					const char *Name = ml_string_value(Node->Value);
+					int Index = (intptr_t)stringmap_search(Info->Params, Name);
+					if (Index) {
+						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
+					} else {
+						++I;
+					}
+				}
+				break;
+			}
+		}
 	} else {
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = ml_deref(Args[I]);
@@ -1219,11 +1246,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
-#ifdef ML_RELAX_NAMES
-						++I;
-#else
 						ML_ERROR("NameError", "Unknown named parameters %s", Name);
-#endif
 					}
 				}
 				break;
@@ -1243,7 +1266,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Inst = Info->Entry;
 	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
-	Frame->Schedule = (ml_schedule_t *)Caller->Context->Values[ML_SCHEDULER_INDEX];
+	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
 #endif
 #ifdef DEBUG_VERSION
 	Frame->Debugger = Debugger;
@@ -1537,6 +1560,13 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	Closure->Type = MLClosureT;
 	Closure->Info = Info;
 	return (ml_value_t *)Closure;
+}
+
+void ml_closure_relax_names(ml_value_t *Value) {
+	if (ml_is(Value, MLClosureT)) {
+		ml_closure_t *Closure = (ml_closure_t *)Value;
+		Closure->Info->Flags |= ML_CLOSURE_RELAX_NAMES;
+	}
 }
 
 static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {

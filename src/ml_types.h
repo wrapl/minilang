@@ -821,8 +821,6 @@ struct ml_method_t {
 	const char *Name;
 };
 
-#define ML_METHODS_INDEX 0
-
 extern ml_type_t MLMethodT[];
 
 ml_value_t *ml_method(const char *Name);

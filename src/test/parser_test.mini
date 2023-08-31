@@ -47,6 +47,7 @@ gir::run(;) do
 
 	let Window := gtk::Window::new(gtk::WindowType::toplevel)
 	let HPaned := gtk::Paned::new(gtk::Orientation::horizontal)
+	let VPaned := gtk::Paned::new(gtk::Orientation::vertical)
 
 	let Font := do
 		pango::font_description_from_string(Config:get_value("gtk-console", "font"))
@@ -72,7 +73,10 @@ gir::run(;) do
 	Editor:set_show_line_numbers(true)
 	let EditorScrolled := gtk::ScrolledWindow::new(nil, nil)
 	EditorScrolled:add(Editor)
-	HPaned:add(EditorScrolled)
+	VPaned:add(EditorScrolled)
+	let WarningView := gtk::TextView::new()
+	VPaned:add(WarningView)
+	HPaned:add(VPaned)
 
 	let Output := gtk::TextView::new()
 	Output:set_wrap_mode(gtk::WrapMode::char)
@@ -83,15 +87,17 @@ gir::run(;) do
 	OutputScrolled:add(Output)
 	HPaned:add(OutputScrolled)
 
-	HPaned:set_position(300)
+	VPaned:set_position(600)
+	HPaned:set_position(400)
 	Window:add(HPaned)
-	Window:set_default_size(600, 600)
+	Window:set_default_size(800, 800)
 	Window:show_all
 
 	Editor:grab_focus
 
 	let EditBuffer := Editor:get_buffer
 	let OutputBuffer := Output:get_buffer
+	let WarningBuffer := WarningView:get_buffer
 
 	EditBuffer:connect("changed"; Buffer) do
 		let Start := gtk::TextIter()
@@ -110,6 +116,7 @@ gir::run(;) do
 		let Desc := string::buffer()
 		describe(Desc, "", Expr)
 		OutputBuffer:set_text(Desc:rest, -1)
+		WarningBuffer:set_text(Warnings:join("\n"), -1)
 	on Error do
 		OutputBuffer:set_text(string(Error), -1)
 	end

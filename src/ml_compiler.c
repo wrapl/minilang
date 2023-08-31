@@ -3012,6 +3012,9 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 		if (Param->Type) HasParamTypes = 1;
 		DeclSlot = &Decl->Next;
 	}
+#ifdef ML_RELAX_NAMES
+	Info->Flags |= ML_CLOSURE_RELAX_NAMES;
+#endif
 	Info->NumParams = NumParams;
 	SubFunction->Top = SubFunction->Size = NumParams;
 	SubFunction->Next = anew(ml_inst_t, 128);

@@ -606,6 +606,34 @@ ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	return Args[0];
 }
 
+static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (ml_is(Arg, MLStringT)) {
+		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Arg));
+		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
+		ML_RETURN(Value);
+	} else if (ml_is(Arg, MLIntegerT)) {
+		ml_enum_value_t **Values = Enum->Values;
+		int Index = ml_integer_value_fast(Arg);
+		for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
+			if (Values[I]->Base.Value == Index) ML_RETURN(Values[I]);
+		}
+		ML_ERROR("EnumError", "Invalid enum index");
+	} else {
+		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
+	}
+}
+
+ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
+// The base type of enumeration types.
+	.call = (void *)ml_enum_call
+);
+
+static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char *Name) {
+	Enum->Base.Name = Name;
+}
+
 ML_METHODV(MLEnumT, MLStringT) {
 //<Names...
 //>enum
@@ -748,34 +776,6 @@ uint64_t ml_enum_value_value(ml_value_t *Value) {
 
 const char *ml_enum_value_name(ml_value_t *Value) {
 	return ml_string_value(((ml_enum_value_t *)Value)->Name);
-}
-
-static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *Arg = ml_deref(Args[0]);
-	if (ml_is(Arg, MLStringT)) {
-		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Arg));
-		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
-		ML_RETURN(Value);
-	} else if (ml_is(Arg, MLIntegerT)) {
-		ml_enum_value_t **Values = Enum->Values;
-		int Index = ml_integer_value_fast(Arg);
-		for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
-			if (Values[I]->Base.Value == Index) ML_RETURN(Values[I]);
-		}
-		ML_ERROR("EnumError", "Invalid enum index");
-	} else {
-		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
-	}
-}
-
-ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
-// The base type of enumeration types.
-	.call = (void *)ml_enum_call
-);
-
-static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char *Name) {
-	Enum->Base.Name = Name;
 }
 
 ML_METHOD("count", MLEnumT) {
@@ -924,7 +924,6 @@ static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Cou
 	uint64_t Value = ml_enum_value_value(Arg);
 	for (ml_enum_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Min <= Value && Case->Max >= Value) ML_RETURN(Case->Index);
-		if (Case->Min == UINT64_MAX) ML_RETURN(Case->Index);
 	}
 	ML_RETURN(MLNil);
 }
@@ -977,7 +976,8 @@ static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Ar
 			++Case;
 		}
 	}
-	Case->Min = Case->Max = UINT64_MAX;
+	Case->Min = 0;
+	Case->Max = UINT64_MAX;
 	Case->Index = ml_integer(Count);
 	return (ml_value_t *)Switch;
 }
