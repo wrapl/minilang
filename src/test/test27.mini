@@ -1,0 +1,53 @@
+enum: colour("Red", "Orange", "Yellow", "Green", "Blue", "Violet")
+
+print('Colours = {list(colour)}\n')
+print('{colour::Yellow} .. {colour::Violet} = {list(colour::Yellow .. colour::Violet)}\n')
+print('{colour::Violet} .. {colour::Yellow} = {list(colour::Violet .. colour::Yellow)}\n')
+
+print('Red + Blue = {integer(colour::Red) + integer(colour::Blue)}\n')
+
+fun test_colour(Colour) do
+	switch Colour: colour
+	case ::Red, ::Orange, ::Violet do
+		"reddish"
+	case ::Yellow .. ::Green do
+		"greenish"
+	else
+		"blueish"
+	end
+end
+
+for Name in ["Red", "Orange", "Yellow", "Green", "Blue", "Violet", "Turquoise"] do
+	print('{Name} -> ')
+	let Colour := colour(Name)
+	print(test_colour(Colour), "\n")
+on Error do
+	print('Error = {Error}\n')
+end
+
+enum::cyclic: day("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
+print('Days = {list(day)}\n')
+print('{day::Mon} .. {day::Fri} = {list(day::Mon .. day::Fri)}\n')
+print('{day::Fri} .. {day::Mon} = {list(day::Fri .. day::Mon)}\n')
+
+
+fun test_day(Day) do
+	switch Day: day
+	case ::Tue, ::Thu do
+		"work"
+	case ::Fri .. ::Mon do
+		"play"
+	else
+		"sleep"
+	end
+end
+
+for Name in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] do
+	print('{Name} -> ')
+	let Day := day(Name)
+	print(test_day(Day), "\n")
+on Error do
+	print('Error = {Error}\n')
+end
+

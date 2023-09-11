@@ -12,6 +12,7 @@
 #include <locale.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
+//#include "ml_struct.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -231,6 +232,8 @@ int main(int Argc, const char *Argv[]) {
 	ml_init(Globals);
 	ml_sequence_init(Globals);
 	ml_object_init(Globals);
+	//ml_struct_init(Globals);
+
 #ifdef ML_SCHEDULER
 	ml_tasks_init(Globals);
 #endif

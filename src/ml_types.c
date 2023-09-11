@@ -94,11 +94,11 @@ ML_FUNCTION(MLType) {
 	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
-static long ml_type_hash(ml_type_t *Type) {
+long ml_type_hash(ml_type_t *Type) {
 	return (intptr_t)Type;
 }
 
-static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
+void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
 	return ml_call(Caller, Type->Constructor, Count, Args);
 }
 

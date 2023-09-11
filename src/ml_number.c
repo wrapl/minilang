@@ -299,10 +299,8 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
-	if (Tag == 0) {
-		if (Value->Type == MLInt64T) {
-			return ((ml_integer_t *)Value)->Value;
-		}
+	if ((Tag == 0) && ml_is_subtype(Value->Type, MLInt64T)) {
+		return ((ml_integer_t *)Value)->Value;
 	}
 	return 0;
 }

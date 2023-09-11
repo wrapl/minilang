@@ -62,8 +62,8 @@ extern ml_type_t MLEnumValueT[];
 ml_type_t *ml_enum(const char *Name, ...);
 ml_type_t *ml_enum2(const char *Name, ...);
 
-ml_value_t *ml_enum_value(ml_type_t *Type, uint64_t Enum);
-uint64_t ml_enum_value_value(ml_value_t *Value);
+ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Enum);
+int64_t ml_enum_value_value(ml_value_t *Value);
 const char *ml_enum_value_name(ml_value_t *Value);
 
 extern ml_type_t MLFlagsT[];

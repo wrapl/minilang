@@ -21,7 +21,7 @@ enum
       let colour := enum(Red is 10, Green is 20, Blue is 30)
       :> <<colour>>
       colour::Red :> Red
-      list(colour, _ + 0) :> [10, 20, 30]
+      list(colour, _ + 0) :> [Red, Green, Blue]
 
 
 :mini:`meth enum(Names: string, ...): enum`
@@ -32,7 +32,7 @@ enum
       let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
       :> <<day>>
       day::Wed :> Wed
-      day::Fri + 0 :> 5
+      day::Fri + 0 :> Fri
 
 
 :mini:`meth (Enum: enum):count: integer`
@@ -49,12 +49,24 @@ enum
    *TBD*
 
 
+:mini:`type enum::cyclic < enum`
+   *TBD*
+
+
 :mini:`type enum::range < sequence`
    A range of enum values.
 
 
 :mini:`type enum::value < integer`
    An instance of an enumeration type.
+
+
+:mini:`meth (Arg₁: enum::value) + (Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: enum::value) - (Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth (Min: enum::value) .. (Max: enum::value): enum::range`
@@ -67,7 +79,54 @@ enum
       day::Mon .. day::Fri :> <enum-range[day]>
 
 
+:mini:`meth (Arg₁: enum::value) <> (Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth integer(Arg₁: enum::value)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: enum::value):next`
+   *TBD*
+
+
+:mini:`meth (Arg₁: enum::value):prev`
+   *TBD*
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
    *TBD*
+
+
+:mini:`meth (Arg₁: integer) + (Arg₂: enum::value)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: integer) <> (Arg₂: enum::value)`
+   *TBD*
+
+
+:mini:`meth enum::cyclic(Name₁ is Value₁, ...): enum`
+   Returns a new enumeration type.
+
+   .. code-block:: mini
+
+      let colour := enum::cyclic(Red is 10, Green is 20, Blue is 30)
+      :> error("MethodError", "no method found for enum::cyclic::of(names, int32, int32, int32)")
+      colour::Red :> <uninitialized>
+      list(colour, _ + 0)
+      :> error("ValueError", "colour is uninitialized")
+
+
+:mini:`meth enum::cyclic(Names: string, ...): enum`
+   Returns a new enumeration type.
+
+   .. code-block:: mini
+
+      let day := enum::cyclic("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+      :> <<day>>
+      day::Wed :> Wed
+      day::Fri + 0 :> Fri
 
 

@@ -50,6 +50,12 @@ hierarchy
       "function":e -> "tasks":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
+      "any":e -> "instance::field":w;
+      "any":e -> "instance":w;
+      "function":e -> "struct::getter":w;
+      "function":e -> "struct::getter::fast":w;
+      "type":e -> "struct":w;
+      "any":e -> "ref":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
       "address":e -> "string":w;
@@ -94,6 +100,7 @@ hierarchy
       "integer":e -> "enum::value":w;
       "type":e -> "enum":w;
       "sequence":e -> "enum":w;
+      "enum":e -> "enum::cyclic":w;
       "sequence":e -> "enum::range":w;
       "type":e -> "flags":w;
       "any":e -> "flags::value":w;

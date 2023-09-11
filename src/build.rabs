@@ -130,6 +130,7 @@ let Objects := [
 	file("ml_method.o"),
 	file("ml_number.o"),
 	file("ml_object.o"),
+	:>file("ml_struct.o"),
 	file("ml_opcodes.o"),
 	file("ml_runtime.o"),
 	file("ml_sequence.o"),

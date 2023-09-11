@@ -120,17 +120,12 @@ ML_METHOD("::", MLObjectT, MLStringT) {
 	return (ml_value_t *)&Object->Fields[Info->Index];
 }
 
-static void ml_class_call(ml_state_t *Caller, ml_type_t *Class, int Count, ml_value_t **Args) {
-	ml_value_t *Constructor = Class->Constructor;
-	return ml_call(Caller, Constructor, Count, Args);
-}
-
 extern ml_cfunctionx_t MLClass[];
 
 ML_TYPE(MLClassT, (MLTypeT), "class",
 //!object
 // Type of all object classes.
-	.call = (void *)ml_class_call,
+	.call = (void *)ml_type_call,
 	.Constructor = (ml_value_t *)MLClass
 );
 
@@ -171,7 +166,7 @@ typedef struct {
 
 ML_TYPE(MLNamedTypeT, (MLTypeT), "named-type",
 //!internal
-	.call = (void *)ml_class_call
+	.call = (void *)ml_type_call
 );
 
 typedef struct {
@@ -345,7 +340,7 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.deref = NativeType->deref;
 		Class->Base.assign = NativeType->assign;
 		Class->Native = NativeType;
-		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
+		ml_value_t *Constructor = ml_cfunctionz(Class, (void *)ml_named_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		for (int I = 0; I < Count; ++I) {
 			if (ml_is(Args[I], MLTypeT)) {
@@ -362,7 +357,7 @@ ML_FUNCTIONX(MLClass) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
 						Class->Initializer = Value;
-						Class->Base.Constructor = ml_cfunctionx(Class, (void *)ml_named_initializer_fn);
+						Class->Base.Constructor = ml_cfunctionz(Class, (void *)ml_named_initializer_fn);
 					}
 				}
 				break;
@@ -378,7 +373,7 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
-		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
+		ml_value_t *Constructor = ml_cfunctionz(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		ml_value_t *Const = NULL;
 		for (int I = 0; I < Count; ++I) {
@@ -580,7 +575,7 @@ typedef struct {
 typedef struct {
 	ml_type_t Base;
 	ml_value_t *Switch;
-	ml_enum_value_t *Values[];
+	ml_enum_value_t Values[];
 } ml_enum_t;
 
 static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
@@ -614,10 +609,10 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
 		ML_RETURN(Value);
 	} else if (ml_is(Arg, MLIntegerT)) {
-		ml_enum_value_t **Values = Enum->Values;
-		int Index = ml_integer_value_fast(Arg);
-		for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
-			if (Values[I]->Base.Value == Index) ML_RETURN(Values[I]);
+		ml_enum_value_t *Value = Enum->Values;
+		int64_t Index = ml_integer_value_fast(Arg);
+		for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++Value) {
+			if (Value->Base.Value == Index) ML_RETURN(Value);
 		}
 		ML_ERROR("EnumError", "Invalid enum index");
 	} else {
@@ -630,10 +625,63 @@ ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
 	.call = (void *)ml_enum_call
 );
 
+ML_TYPE(MLEnumCyclicT, (MLEnumT), "enum::cyclic",
+//@enum::cyclic
+	.call = (void *)ml_enum_call
+);
+
 static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char *Name) {
 	Enum->Base.Name = Name;
 }
 
+static ml_value_t *ml_enum_string_fn(void *Type, int Count, ml_value_t **Args) {
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_enum_value_t);
+	Enum->Base.Type = (ml_type_t *)Type;
+	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_enum_value_t *Value = Enum->Values;
+	for (int I = 0; I < Count; ++I, ++Value) {
+		Value->Base.Type = (ml_type_t *)Enum;
+		Value->Name = Args[I];
+		Value->Base.Value = I + 1;
+		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
+	}
+	return (ml_value_t *)Enum;
+}
+
+static ml_value_t *ml_enum_names_fn(void *Type, int Count, ml_value_t **Args) {
+	ML_NAMES_CHECK_ARG_COUNT(0);
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_enum_value_t);
+	Enum->Base.Type = (ml_type_t *)Type;
+	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_enum_value_t *Value = Enum->Values;
+	int Index = 0;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		Value->Base.Type = (ml_type_t *)Enum;
+		Value->Name = Iter->Value;
+		Value->Base.Value = ml_integer_value(Args[++Index]);
+		stringmap_insert(Enum->Base.Exports, ml_string_value(Iter->Value), Value);
+		++Value;
+	}
+	return (ml_value_t *)Enum;
+}
+
+/*
 ML_METHODV(MLEnumT, MLStringT) {
 //<Names...
 //>enum
@@ -642,7 +690,7 @@ ML_METHODV(MLEnumT, MLStringT) {
 //$= day::Wed
 //$= day::Fri + 0
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
-	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_value_t *);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_enum_value_t);
 	Enum->Base.Type = MLEnumT;
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
@@ -652,11 +700,10 @@ ML_METHODV(MLEnumT, MLStringT) {
 	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
-	for (int I = 0; I < Count; ++I) {
-		ml_enum_value_t *Value = new(ml_enum_value_t);
+	ml_enum_value_t *Value = Enum->Values;
+	for (int I = 0; I < Count; ++I, ++Value) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Args[I];
-		Enum->Values[I] = Value;
 		Value->Base.Value = I + 1;
 		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
 	}
@@ -672,7 +719,7 @@ ML_METHODV(MLEnumT, MLNamesT) {
 //$= list(colour, _ + 0)
 	ML_NAMES_CHECK_ARG_COUNT(0);
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
-	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_value_t *);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_enum_value_t);
 	Enum->Base.Type = MLEnumT;
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
@@ -682,17 +729,79 @@ ML_METHODV(MLEnumT, MLNamesT) {
 	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
-	int I = 0;
+	ml_enum_value_t *Value = Enum->Values;
+	int Index = 0;
 	ML_NAMES_FOREACH(Args[0], Iter) {
-		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Iter->Value;
-		Enum->Values[I] = Value;
-		Value->Base.Value = ml_integer_value(Args[++I]);
+		Value->Base.Value = ml_integer_value(Args[++Index]);
 		stringmap_insert(Enum->Base.Exports, ml_string_value(Iter->Value), Value);
+		++Value;
 	}
 	return (ml_value_t *)Enum;
 }
+
+ML_METHODV(MLEnumCyclicT, MLStringT) {
+//@enum::cyclic
+//<Names...
+//>enum
+// Returns a new enumeration type.
+//$= let day := enum::cyclic("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+//$= day::Wed
+//$= day::Fri + 0
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_enum_value_t);
+	Enum->Base.Type = MLEnumCyclicT;
+	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_enum_value_t *Value = Enum->Values;
+	for (int I = 0; I < Count; ++I, ++Value) {
+		Value->Base.Type = (ml_type_t *)Enum;
+		Value->Name = Args[I];
+		Value->Base.Value = I + 1;
+		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
+	}
+	return (ml_value_t *)Enum;
+}
+
+ML_METHODV(MLEnumCyclicT, MLNamesT) {
+//@enum::cyclic
+//<Name,Value
+//>enum
+// Returns a new enumeration type.
+//$= let colour := enum::cyclic(Red is 10, Green is 20, Blue is 30)
+//$= colour::Red
+//$= list(colour, _ + 0)
+	ML_NAMES_CHECK_ARG_COUNT(0);
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_enum_value_t);
+	Enum->Base.Type = MLEnumCyclicT;
+	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_enum_value_t *Value = Enum->Values;
+	int Index = 0;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		Value->Base.Type = (ml_type_t *)Enum;
+		Value->Name = Iter->Value;
+		Value->Base.Value = ml_integer_value(Args[++Index]);
+		stringmap_insert(Enum->Base.Exports, ml_string_value(Iter->Value), Value);
+		++Value;
+	}
+	return (ml_value_t *)Enum;
+}
+*/
 
 ml_type_t *ml_enum(const char *TypeName, ...) {
 	va_list Args;
@@ -700,7 +809,7 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 	va_start(Args, TypeName);
 	while (va_arg(Args, const char *)) ++Size;
 	va_end(Args);
-	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_value_t *);
+	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_enum_value_t);
 	Enum->Base.Type = MLEnumT;
 	Enum->Base.Name = TypeName;
 	Enum->Base.deref = ml_default_deref;
@@ -710,17 +819,17 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_enum_value_t *Value = Enum->Values;
 	int Index = 0;
 	va_start(Args, TypeName);
 	const char *String;
 	while ((String = va_arg(Args, const char *))) {
 		ml_value_t *Name = ml_string(String, -1);
-		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
-		Enum->Values[Index++] = Value;
-		Value->Base.Value = Index;
+		Value->Base.Value = ++Index;
 		stringmap_insert(Enum->Base.Exports, String, Value);
+		++Value;
 	}
 	va_end(Args);
 	return (ml_type_t *)Enum;
@@ -735,7 +844,7 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 		va_arg(Args, int);
 	}
 	va_end(Args);
-	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_value_t *);
+	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_enum_value_t);
 	Enum->Base.Type = MLEnumT;
 	Enum->Base.Name = TypeName;
 	Enum->Base.deref = ml_default_deref;
@@ -745,37 +854,42 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
-	int Index = 0;
+	ml_enum_value_t *Value = Enum->Values;
 	va_start(Args, TypeName);
 	const char *String;
 	while ((String = va_arg(Args, const char *))) {
 		ml_value_t *Name = ml_string(String, -1);
-		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
-		Enum->Values[Index++] = Value;
 		Value->Base.Value = va_arg(Args, int);
 		stringmap_insert(Enum->Base.Exports, String, Value);
+		++Value;
 	}
 	va_end(Args);
 	return (ml_type_t *)Enum;
 }
 
-ml_value_t *ml_enum_value(ml_type_t *Type, uint64_t Index) {
+ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Value) {
 	const ml_enum_t *Enum = (ml_enum_t *)Type;
-	ml_enum_value_t **Values = (ml_enum_value_t **)Enum->Values;
-	for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
-		if (Values[I]->Base.Value == Index) return (ml_value_t *)Values[I];
+	const ml_enum_value_t *EnumValue = Enum->Values;
+	for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++EnumValue) {
+		if (EnumValue->Base.Value == Value) return (ml_value_t *)EnumValue;
 	}
 	return ml_error("EnumError", "Invalid enum index");
 }
 
-uint64_t ml_enum_value_value(ml_value_t *Value) {
-	return (uint64_t)((ml_enum_value_t *)Value)->Base.Value;
+int64_t ml_enum_value_value(ml_value_t *Value) {
+	return ((ml_enum_value_t *)Value)->Base.Value;
 }
 
 const char *ml_enum_value_name(ml_value_t *Value) {
 	return ml_string_value(((ml_enum_value_t *)Value)->Name);
+}
+
+int ml_enum_value_index(ml_value_t *Value) {
+	ml_enum_value_t *EnumValue = (ml_enum_value_t *)Value;
+	ml_enum_t *Enum = (ml_enum_t *)EnumValue->Base.Type;
+	return EnumValue - Enum->Values;
 }
 
 ML_METHOD("count", MLEnumT) {
@@ -796,12 +910,16 @@ ML_METHOD("random", MLEnumT) {
 	int Divisor = RAND_MAX / Limit;
 	int Random;
 	do Random = random() / Divisor; while (Random >= Limit);
-	return (ml_value_t *)Enum->Values[Random];
+	return (ml_value_t *)(Enum->Values + Random);
+}
+
+ML_METHOD(MLIntegerT, MLEnumValueT) {
+	return ml_integer(ml_enum_value_value(Args[0]));
 }
 
 typedef struct {
 	ml_type_t *Type;
-	ml_enum_value_t **Values;
+	ml_enum_value_t *Values;
 	int Index, Size;
 } ml_enum_iter_t;
 
@@ -829,13 +947,14 @@ static void ML_TYPED_FN(ml_iter_key, MLEnumIterT, ml_state_t *Caller, ml_enum_it
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLEnumIterT, ml_state_t *Caller, ml_enum_iter_t *Iter) {
-	ML_RETURN(Iter->Values[Iter->Index]);
+	ML_RETURN(Iter->Values + Iter->Index);
 }
 
 typedef struct {
 	ml_type_t *Type;
-	ml_enum_value_t **Current, **Limit;
-	int Index;
+	ml_enum_value_t *Values;
+	int Index, Count;
+	int Current, Max;
 } ml_enum_range_iter_t;
 
 ML_TYPE(MLEnumRangeIterT, (), "enum-range-iter");
@@ -844,7 +963,7 @@ ML_TYPE(MLEnumRangeIterT, (), "enum-range-iter");
 typedef struct {
 	ml_type_t *Type;
 	ml_enum_t *Enum;
-	int Min, Max;
+	int Start, Count;
 } ml_enum_range_t;
 
 ML_TYPE(MLEnumRangeT, (MLSequenceT), "enum-range");
@@ -870,28 +989,36 @@ ML_METHOD("..", MLEnumValueT, MLEnumValueT) {
 	Range->Type = MLEnumRangeT;
 #endif
 	ml_enum_t *Enum = Range->Enum = (ml_enum_t *)ValueA->Base.Type;
-	for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
-		if (Enum->Values[I] == ValueA) Range->Min = I;
-		if (Enum->Values[I] == ValueB) Range->Max = I;
+	int Start = Range->Start = ValueA - Enum->Values;
+	int Last = ValueB - Enum->Values;
+	if (Last >= Range->Start) {
+		Range->Count = (Last - Start) + 1;
+	} else if (Enum->Base.Type == MLEnumCyclicT) {
+		Range->Count = (Last + Enum->Base.Exports->Size - Start) + 1;
+	} else {
+		Range->Count = 0;
 	}
 	return (ml_value_t *)Range;
 }
 
 static void ML_TYPED_FN(ml_iterate, MLEnumRangeT, ml_state_t *Caller, ml_enum_range_t *Range) {
-	if (Range->Max < Range->Min) ML_RETURN(MLNil);
+	if (Range->Count == 0) ML_RETURN(MLNil);
 	ml_enum_range_iter_t *Iter = new(ml_enum_range_iter_t);
 	Iter->Type = MLEnumRangeIterT;
+	Iter->Values = Range->Enum->Values;
 	Iter->Index = 1;
-	Iter->Current = Range->Enum->Values + Range->Min;
-	Iter->Limit = Range->Enum->Values + Range->Max + 1;
+	Iter->Count = Range->Count;
+	Iter->Current = Range->Start;
+	Iter->Max = Range->Enum->Base.Exports->Size;
 	ML_RETURN(Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
-	if (++Iter->Current == Iter->Limit) {
+	if (Iter->Index == Iter->Count) {
 		ML_RETURN(MLNil);
 	} else {
 		++Iter->Index;
+		if (++Iter->Current == Iter->Max) Iter->Current = 0;
 		ML_RETURN(Iter);
 	}
 }
@@ -901,18 +1028,13 @@ static void ML_TYPED_FN(ml_iter_key, MLEnumRangeIterT, ml_state_t *Caller, ml_en
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
-	ML_RETURN(Iter->Current[0]);
+	ML_RETURN(Iter->Values + Iter->Current);
 }
-
-typedef struct {
-	ml_value_t *Index;
-	uint64_t Min, Max;
-} ml_enum_case_t;
 
 typedef struct {
 	ml_type_t *Type;
 	ml_enum_t *Enum;
-	ml_enum_case_t Cases[];
+	ml_value_t *Cases[];
 } ml_enum_switch_t;
 
 static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Count, ml_value_t **Args) {
@@ -921,11 +1043,7 @@ static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Cou
 	if (!ml_is(Arg, (ml_type_t *)Switch->Enum)) {
 		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Enum->Base.Name);
 	}
-	uint64_t Value = ml_enum_value_value(Arg);
-	for (ml_enum_case_t *Case = Switch->Cases;; ++Case) {
-		if (Case->Min <= Value && Case->Max >= Value) ML_RETURN(Case->Index);
-	}
-	ML_RETURN(MLNil);
+	ML_RETURN(Switch->Cases[ml_enum_value_index(Arg)]);
 }
 
 ML_TYPE(MLEnumSwitchT, (MLFunctionT), "enum-switch",
@@ -939,46 +1057,53 @@ static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Ar
 		ML_CHECK_ARG_TYPE(I, MLListT);
 		Total += ml_list_length(Args[I]);
 	}
-	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Total, ml_enum_case_t);
+	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Total, ml_value_t *);
 	Switch->Type = MLEnumSwitchT;
 	Switch->Enum = Enum;
-	ml_enum_case_t *Case = Switch->Cases;
+	ml_value_t *Default = ml_integer(Count);
+	int Size = Enum->Base.Exports->Size;
+	for (int I = 0; I < Size; ++I) Switch->Cases[I] = Default;
 	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Case = ml_integer(I);
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, (ml_type_t *)Enum)) {
-				Case->Min = Case->Max = ml_enum_value_value(Value);
+				Switch->Cases[ml_enum_value_index(Value)] = Case;
 			} else if (ml_is(Value, MLSymbolT)) {
 				ml_enum_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_symbol_name(Value));
 				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
-				Case->Min = Case->Max = EnumValue->Base.Value;
+				Switch->Cases[EnumValue - Enum->Values] = Case;
 			} else if (ml_is(Value, MLStringT)) {
-				ml_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
+				ml_enum_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
 				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
-				Case->Min = Case->Max = ml_enum_value_value(EnumValue);
+				Switch->Cases[EnumValue - Enum->Values] = Case;
 			} else if (ml_is(Value, MLEnumRangeT)) {
 				ml_enum_range_t *Range = (ml_enum_range_t *)Value;
 				if (Range->Enum != Enum) return ml_error("ValueError", "Unsupported value in enum case");
-				Case->Min = Enum->Values[Range->Min]->Base.Value;
-				Case->Max = Enum->Values[Range->Max]->Base.Value;
+				int J = Range->Start;
+				for (int L = Range->Count; --L >= 0;) {
+					Switch->Cases[J] = Case;
+					if (++J == Size) J = 0;
+				}
 			} else if (ml_is(Value, MLSymbolRangeT)) {
 				ml_symbol_range_t *Range = (ml_symbol_range_t *)Value;
 				ml_enum_value_t *Min = stringmap_search(Enum->Base.Exports, Range->First);
 				ml_enum_value_t *Max = stringmap_search(Enum->Base.Exports, Range->Last);
 				if (!Min) return ml_error("EnumError", "Invalid enum name");
 				if (!Max) return ml_error("EnumError", "Invalid enum name");
-				Case->Min = Min->Base.Value;
-				Case->Max = Max->Base.Value;
+				int MinIndex = Min - Enum->Values;
+				int MaxIndex = Max - Enum->Values;
+				if (MaxIndex >= MinIndex) {
+					for (int J = MinIndex; J <= MaxIndex; ++J) Switch->Cases[J] = Case;
+				} else if (Enum->Base.Type == MLEnumCyclicT) {
+					for (int J = MinIndex; J < Size; ++J) Switch->Cases[J] = Case;
+					for (int J = 0; J <= MaxIndex; ++J) Switch->Cases[J] = Case;
+				}
 			} else {
 				return ml_error("ValueError", "Unsupported value in enum case");
 			}
-			Case->Index = ml_integer(I);
-			++Case;
 		}
 	}
-	Case->Min = 0;
-	Case->Max = UINT64_MAX;
-	Case->Index = ml_integer(Count);
 	return (ml_value_t *)Switch;
 }
 
@@ -987,6 +1112,95 @@ ML_METHOD(MLCompilerSwitch, MLEnumT) {
 	ml_enum_t *Enum = (ml_enum_t *)Args[0];
 	if (!Enum->Switch) Enum->Switch = ml_inline_function(ml_cfunction(Enum, (ml_callback_t)ml_enum_switch_fn));
 	return Enum->Switch;
+}
+
+ML_METHOD("<>", MLEnumValueT, MLIntegerT) {
+	ml_type_t *TypeA = ml_typeof(Args[0]);
+	ml_type_t *TypeB = ml_typeof(Args[1]);
+	if (TypeA < TypeB) return ml_integer(-1);
+	if (TypeA > TypeB) return ml_integer(1);
+	int64_t A = ml_enum_value_value(Args[0]);
+	int64_t B = ml_integer_value(Args[1]);
+	if (A < B) return ml_integer(-1);
+	if (A > B) return ml_integer(1);
+	return ml_integer(0);
+}
+
+ML_METHOD("<>", MLIntegerT, MLEnumValueT) {
+	ml_type_t *TypeA = ml_typeof(Args[0]);
+	ml_type_t *TypeB = ml_typeof(Args[1]);
+	if (TypeA < TypeB) return ml_integer(-1);
+	if (TypeA > TypeB) return ml_integer(1);
+	int64_t A = ml_integer_value(Args[0]);
+	int64_t B = ml_enum_value_value(Args[1]);
+	if (A < B) return ml_integer(-1);
+	if (A > B) return ml_integer(1);
+	return ml_integer(0);
+}
+
+ML_METHOD("+", MLEnumValueT, MLIntegerT) {
+	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+	int64_t Value = A->Base.Value + ml_integer_value(Args[1]);
+	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
+	if (Enum->Base.Type == MLEnumCyclicT) {
+		int Index = (Value - 1) % Enum->Base.Exports->Size;
+		if (Index < 0) Index += Enum->Base.Exports->Size;
+		return (ml_value_t *)(Enum->Values + Index);
+	} else {
+		return ml_enum_value((ml_type_t *)Enum, Value);
+	}
+}
+
+ML_METHOD("+", MLIntegerT, MLEnumValueT) {
+	ml_enum_value_t *A = (ml_enum_value_t *)Args[1];
+	int64_t Value = A->Base.Value + ml_integer_value(Args[0]);
+	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
+	if (Enum->Base.Type == MLEnumCyclicT) {
+		int Index = (Value - 1) % Enum->Base.Exports->Size;
+		if (Index < 0) Index += Enum->Base.Exports->Size;
+		return (ml_value_t *)(Enum->Values + Index);
+	} else {
+		return ml_enum_value((ml_type_t *)Enum, Value);
+	}
+}
+
+ML_METHOD("-", MLEnumValueT, MLIntegerT) {
+	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+	int64_t Value = A->Base.Value - ml_integer_value(Args[1]);
+	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
+	if (Enum->Base.Type == MLEnumCyclicT) {
+		int Index = (Value - 1) % Enum->Base.Exports->Size;
+		if (Index < 0) Index += Enum->Base.Exports->Size;
+		return (ml_value_t *)(Enum->Values + Index);
+	} else {
+		return ml_enum_value((ml_type_t *)Enum, Value);
+	}
+}
+
+ML_METHOD("next", MLEnumValueT) {
+	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+	int64_t Value = A->Base.Value + 1;
+	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
+	if (Enum->Base.Type == MLEnumCyclicT) {
+		int Index = (Value - 1) % Enum->Base.Exports->Size;
+		if (Index < 0) Index += Enum->Base.Exports->Size;
+		return (ml_value_t *)(Enum->Values + Index);
+	} else {
+		return ml_enum_value((ml_type_t *)Enum, Value);
+	}
+}
+
+ML_METHOD("prev", MLEnumValueT) {
+	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+	int64_t Value = A->Base.Value - 1;
+	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
+	if (Enum->Base.Type == MLEnumCyclicT) {
+		int Index = (Value - 1) % Enum->Base.Exports->Size;
+		if (Index < 0) Index += Enum->Base.Exports->Size;
+		return (ml_value_t *)(Enum->Values + Index);
+	} else {
+		return ml_enum_value((ml_type_t *)Enum, Value);
+	}
 }
 
 //!flags
@@ -1474,6 +1688,10 @@ ML_METHOD(MLListT, MLFlagsValueT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
+	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_string_fn, MLStringT, NULL);
+	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_names_fn, MLNamesT, NULL);
+	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_string_fn, MLStringT, NULL);
+	stringmap_insert(MLEnumT->Exports, "cyclic", MLEnumCyclicT);
 	ml_externals_default_add("property", MLPropertyT);
 	ml_externals_default_add("object", MLObjectT);
 	ml_externals_default_add("class", MLClassT);

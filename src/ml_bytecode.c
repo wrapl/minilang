@@ -1485,8 +1485,8 @@ static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) 
 	return 1;
 }
 
-static int ML_TYPED_FN(ml_method_is_safe, MLClosureT, ml_closure_t *Closure) {
-	return 1;
+static ml_value_t * ML_TYPED_FN(ml_method_wrap, MLClosureT, ml_value_t *Closure, int Count, ml_type_t **Types) {
+	return Closure;
 }
 
 ML_TYPE(MLClosureInfoT, (), "closure::info");
@@ -1584,8 +1584,8 @@ ML_METHOD("append", MLStringBufferT, MLClosureT) {
 	return MLSome;
 }
 
-static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {
-	ml_list_set(Parameters, (intptr_t)Value, ml_string(Name, -1));
+static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters[]) {
+	Parameters[(intptr_t)Value * 2 - 2] = ml_string(Name, -1);
 	return 0;
 }
 
@@ -1594,10 +1594,19 @@ ML_METHOD("parameters", MLClosureT) {
 //>list
 // Returns the list of parameter names of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	ml_value_t *Parameters = ml_list();
-	ml_list_grow(Parameters, Closure->Info->Params->Size);
+	ml_value_t *Parameters[Closure->Info->Params->Size * 2];
+	for (int I = 0; I < Closure->Info->Params->Size; ++I) {
+		Parameters[I * 2 + 1] = MLNil;
+	}
 	stringmap_foreach(Closure->Info->Params, Parameters, (void *)ml_closure_parameter_fn);
-	return Parameters;
+	for (ml_param_type_t *Param = Closure->ParamTypes; Param; Param = Param->Next) {
+		Parameters[Param->Index * 2 + 1] = (ml_value_t *)Param->Type;
+	}
+	ml_value_t *Map = ml_map();
+	for (int I = 0; I < Closure->Info->Params->Size; ++I) {
+		ml_map_insert(Map, Parameters[I * 2], Parameters[I * 2 + 1]);
+	}
+	return Map;
 }
 
 ML_METHOD("sha256", MLClosureT) {
