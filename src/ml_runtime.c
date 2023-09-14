@@ -1081,7 +1081,7 @@ static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 
 	pthread_mutex_lock(ThreadLock);
 	ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
-	NextThread->Next = &Thread;
+	NextThread = &Thread;
 	--NumBlocking;
 	pthread_cond_signal(ThreadAvailable);
 	pthread_cond_wait(Thread.Resume, ThreadLock);
