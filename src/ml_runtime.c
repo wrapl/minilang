@@ -1104,7 +1104,12 @@ void ml_threads_set_max_count(int Max) {
 
 void ml_default_scheduler_split() {
 	pthread_mutex_lock(ThreadLock);
-	while (NumBlocking >= MaxBlocking) pthread_cond_wait(ThreadAvailable, ThreadLock);
+	while (NumBlocking >= MaxBlocking) {
+		pthread_mutex_unlock(ThreadLock);
+		ml_queued_state_t Queued = ml_default_queue_next_wait();
+		Queued.State->run(Queued.State, Queued.Value);
+		pthread_mutex_lock(ThreadLock);
+	}
 	++NumBlocking;
 	ml_scheduler_thread_t *Thread = NextThread;
 	if (Thread) {
