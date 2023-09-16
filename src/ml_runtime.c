@@ -1071,7 +1071,6 @@ typedef struct {
 static ml_scheduler_thread_t *NextThread = NULL;
 static int NumBlocking = 0, MaxBlocking = 8;
 static pthread_mutex_t ThreadLock[1] = {PTHREAD_MUTEX_INITIALIZER};
-static pthread_cond_t ThreadAvailable[1] = {PTHREAD_COND_INITIALIZER};
 
 static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 	ml_scheduler_block_t *Block = (ml_scheduler_block_t *)State;
@@ -1083,7 +1082,6 @@ static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 	ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
 	NextThread = &Thread;
 	--NumBlocking;
-	pthread_cond_signal(ThreadAvailable);
 	pthread_cond_wait(Thread.Resume, ThreadLock);
 	pthread_mutex_unlock(ThreadLock);
 	Queue = Thread.Queue;
@@ -1107,7 +1105,15 @@ void ml_default_scheduler_split() {
 	while (NumBlocking >= MaxBlocking) {
 		pthread_mutex_unlock(ThreadLock);
 		ml_queued_state_t Queued = ml_default_queue_next_wait();
-		Queued.State->run(Queued.State, Queued.Value);
+		if (Queued.State->run == ml_scheduler_thread_resume) {
+			ml_scheduler_block_t *Block = (ml_scheduler_block_t *)Queued.State;
+			pthread_mutex_lock(Queue->Lock);
+			pthread_cond_signal(Block->Resume);
+			pthread_mutex_unlock(Queue->Lock);
+			return;
+		} else {
+			Queued.State->run(Queued.State, Queued.Value);
+		}
 		pthread_mutex_lock(ThreadLock);
 	}
 	++NumBlocking;

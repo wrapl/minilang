@@ -44,7 +44,11 @@ JSON values are mapped to Minilang as follows:
    Returns a new JSON decoder that calls :mini:`Callback(Value)` whenever a complete JSON value is written to the decoder.
 
 
-:mini:`fun json::decode(Json: string): any`
+:mini:`meth json::decode(Stream: stream): any`
+   Decodes the content of :mini:`Json` into a Minilang value.
+
+
+:mini:`meth json::decode(Json: string): any`
    Decodes :mini:`Json` into a Minilang value.
 
 

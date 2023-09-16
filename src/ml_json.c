@@ -586,13 +586,13 @@ static void json_decode_single_fn(json_parser_t *Parser, ml_value_t *Value) {
 	*(ml_value_t **)Parser->Data = Value;
 }
 
-ML_FUNCTION(JsonDecode) {
+ML_METHOD_ANON(JsonDecode, "json::decode");
+
+ML_METHOD(JsonDecode, MLStringT) {
 //@json::decode
 //<Json
 //>any
 // Decodes :mini:`Json` into a Minilang value.
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_value_t *Result = NULL;
 	json_parser_t Parser[1];
 	json_parser_init(Parser, (void *)json_decode_single_fn, &Result);
@@ -601,6 +601,45 @@ ML_FUNCTION(JsonDecode) {
 	Error = json_parser_finish(Parser);
 	if (Error) return Error;
 	return Result ?: ml_error("JSONError", "Incomplete JSON");
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Stream;
+	typeof(ml_stream_read) *read;
+	ml_value_t *Result;
+	json_parser_t Parser[1];
+	char Text[ML_STRINGBUFFER_NODE_SIZE];
+} ml_json_stream_state_t;
+
+static void ml_json_stream_state_run(ml_json_stream_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	size_t Length = ml_integer_value(Result);
+	if (Length) {
+		ml_value_t *Error = json_parser_parse(State->Parser, State->Text, Length);
+		if (Error) ML_RETURN(Error);
+		return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
+	} else {
+		ml_value_t *Error = json_parser_finish(State->Parser);
+		if (Error) ML_RETURN(Error);
+		ML_RETURN(State->Result ?: ml_error("XMLError", "Incomplete JSON"));
+	}
+}
+
+ML_METHODX(JsonDecode, MLStreamT) {
+//@json::decode
+//<Stream
+//>any
+// Decodes the content of :mini:`Json` into a Minilang value.
+	ml_json_stream_state_t *State = new(ml_json_stream_state_t);
+	json_parser_init(State->Parser, (void *)json_decode_single_fn, &State->Result);
+	State->Stream = Args[0];
+	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_json_stream_state_run;
+	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
 }
 
 typedef struct {
