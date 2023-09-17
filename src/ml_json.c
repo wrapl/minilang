@@ -644,7 +644,7 @@ ML_METHODX(JsonDecode, MLStreamT) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Callback;
+	ml_value_t *Values, *Callback, *Result;
 	ml_value_t *Args[1];
 	json_parser_t Parser[1];
 } ml_json_decoder_t;
@@ -653,11 +653,18 @@ extern ml_type_t MLJsonDecoderT[];
 
 static void json_decode_fn(json_parser_t *Parser, ml_value_t *Value) {
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Parser->Data;
-	Decoder->Args[0] = Value;
-	ml_call((ml_state_t *)Decoder, Decoder->Callback, 1, Decoder->Args);
+	ml_list_put(Decoder->Values, Value);
 }
 
-static void ml_json_decoder_run(ml_state_t *State, ml_value_t *Value) {
+static void ml_json_decoder_run(ml_json_decoder_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (ml_list_length(State->Values)) {
+		State->Args[0] = ml_list_pop(State->Values);
+		return ml_call(State, State->Callback, 1, State->Args);
+	} else {
+		ML_RETURN(State->Result);
+	}
 }
 
 ML_FUNCTIONX(JsonDecoder) {
@@ -669,7 +676,8 @@ ML_FUNCTIONX(JsonDecoder) {
 	ml_json_decoder_t *Decoder = new(ml_json_decoder_t);
 	Decoder->Base.Type = MLJsonDecoderT;
 	Decoder->Base.Context = Caller->Context;
-	Decoder->Base.run = ml_json_decoder_run;
+	Decoder->Base.run = (ml_state_fn)ml_json_decoder_run;
+	Decoder->Values = ml_list();
 	Decoder->Callback = Args[0];
 	json_parser_init(Decoder->Parser, json_decode_fn, Decoder);
 	ML_RETURN(Decoder);
@@ -684,12 +692,22 @@ ML_TYPE(MLJsonDecoderT, (MLStreamT), "json-decoder",
 static void ML_TYPED_FN(ml_stream_write, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder, const void *Address, int Count) {
 	ml_value_t *Error = json_parser_parse(Decoder->Parser, Address, Count);
 	if (Error) ML_RETURN(Error);
+	if (ml_list_length(Decoder->Values)) {
+		Decoder->Base.Caller = Caller;
+		Decoder->Result = ml_integer(Count);
+		return ml_json_decoder_run(Decoder, MLNil);
+	}
 	ML_RETURN(ml_integer(Count));
 }
 
 static void ML_TYPED_FN(ml_stream_flush, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder) {
 	ml_value_t *Error = json_parser_finish(Decoder->Parser);
 	if (Error) ML_RETURN(Error);
+	if (ml_list_length(Decoder->Values)) {
+		Decoder->Base.Caller = Caller;
+		Decoder->Result = (ml_value_t *)Decoder;
+		return ml_json_decoder_run(Decoder, MLNil);
+	}
 	ML_RETURN(Decoder);
 }
 
