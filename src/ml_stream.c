@@ -501,9 +501,136 @@ ML_METHODX("close", MLStreamT) {
 //>nil
 // Closes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 	ml_value_t *Stream = Args[0];
-	typeof(ml_stream_tell) *close = ml_typed_fn_get(ml_typeof(Stream), ml_stream_close);
+	typeof(ml_stream_close) *close = ml_typed_fn_get(ml_typeof(Stream), ml_stream_close);
 	if (!close) ML_ERROR("StreamError", "No close method defined for %s", ml_typeof(Args[0])->Name);
 	return close(Caller, Stream);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Stream, *Parser, *Value;
+	typeof(ml_stream_read) *read;
+	typeof(ml_stream_write) *write;
+	typeof(ml_stream_flush) *flush;
+	ml_value_t *Values;
+	char *Buffer;
+	size_t BufferSize, Offset, Available;
+	int Index;
+} ml_stream_parser_t;
+
+static void ml_stream_parser_call(ml_state_t *Caller, ml_stream_parser_t *Parser, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_list_put(Parser->Values, Args[0]);
+	ML_RETURN(MLNil);
+}
+
+static void ml_stream_parser_init(ml_stream_parser_t *Parser, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	ml_state_t *Caller = Parser->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!ml_is(Value, MLStreamT)) ML_ERROR("TypeError", "Expected stream not %s", ml_typeof(Value)->Name);
+	Parser->Parser = Value;
+	Parser->write = ml_typed_fn_get(ml_typeof(Value), ml_stream_write);
+	Parser->flush = ml_typed_fn_get(ml_typeof(Value), ml_stream_flush);
+	Parser->Values = ml_list();
+	Parser->Buffer = snew(Parser->BufferSize);
+	ML_RETURN(Parser);
+}
+
+ML_TYPE(MLStreamParserT, (MLFunctionT, MLSequenceT), "stream::parser",
+	.call = (void *)ml_stream_parser_call
+);
+
+ML_METHODX("parse", MLStreamT, MLFunctionT) {
+	ml_value_t *Stream = Args[0];
+	ml_stream_parser_t *Parser = new(ml_stream_parser_t);
+	Parser->Base.Type = MLStreamParserT;
+	Parser->Base.Caller = Caller;
+	Parser->Base.Context = Caller->Context;
+	Parser->Base.run = (ml_state_fn)ml_stream_parser_init;
+	Parser->Stream = Stream;
+	Parser->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read);
+	Parser->BufferSize = 256;
+	ml_value_t *Constructor = Args[1];
+	Args[0] = (ml_value_t *)Parser;
+	return ml_call((ml_state_t *)Parser, Constructor, 1, Args);
+}
+
+static void ml_stream_parser_read(ml_stream_parser_t *Parser, ml_value_t *Value);
+
+static void ml_stream_parser_flush(ml_stream_parser_t *Parser, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	ml_state_t *Caller = Parser->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	if (!ml_list_length(Parser->Values)) ML_RETURN(MLNil);
+	Parser->Value = ml_list_pop(Parser->Values);
+	++Parser->Index;
+	ML_RETURN(Parser);
+}
+
+static void ml_stream_parser_write(ml_stream_parser_t *Parser, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	ml_state_t *Caller = Parser->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	size_t Actual = ml_integer_value(Value);
+	if (Actual < Parser->Available) {
+		Parser->Available -= Actual;
+		Parser->Offset += Actual;
+		return Parser->write((ml_state_t *)Parser, Parser->Parser, Parser->Buffer + Parser->Offset, Parser->Available);
+	}
+	if (!ml_list_length(Parser->Values)) {
+		Parser->Base.run = (ml_state_fn)ml_stream_parser_read;
+		return Parser->read((ml_state_t *)Parser, Parser->Stream, Parser->Buffer, Parser->BufferSize);
+	}
+	Parser->Value = ml_list_pop(Parser->Values);
+	++Parser->Index;
+	ML_RETURN(Parser);
+}
+
+static void ml_stream_parser_read(ml_stream_parser_t *Parser, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	ml_state_t *Caller = Parser->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	size_t Actual = ml_integer_value(Value);
+	if (!Actual) {
+		Parser->Stream = NULL;
+		Parser->Base.run = (ml_state_fn)ml_stream_parser_flush;
+		return Parser->flush((ml_state_t *)Parser, Parser->Parser);
+	}
+	Parser->Offset = 0;
+	Parser->Available = Actual;
+	Parser->Base.run = (ml_state_fn)ml_stream_parser_write;
+	return Parser->write((ml_state_t *)Parser, Parser->Parser, Parser->Buffer, Actual);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLStreamParserT, ml_state_t *Caller, ml_stream_parser_t *Parser) {
+	if (!Parser->Stream) ML_RETURN(MLNil);
+	Parser->Base.Caller = Caller;
+	Parser->Base.Context = Caller->Context;
+	Parser->Base.run = (ml_state_fn)ml_stream_parser_read;
+	Parser->Index = 0;
+	return Parser->read((ml_state_t *)Parser, Parser->Stream, Parser->Buffer, Parser->BufferSize);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLStreamParserT, ml_state_t *Caller, ml_stream_parser_t *Parser) {
+	if (ml_list_length(Parser->Values)) {
+		Parser->Value = ml_list_pop(Parser->Values);
+		++Parser->Index;
+		ML_RETURN(Parser);
+	}
+	if (!Parser->Stream) ML_RETURN(MLNil);
+	Parser->Base.Caller = Caller;
+	Parser->Base.Context = Caller->Context;
+	Parser->Base.run = (ml_state_fn)ml_stream_parser_read;
+	return Parser->read((ml_state_t *)Parser, Parser->Stream, Parser->Buffer, Parser->BufferSize);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLStreamParserT, ml_state_t *Caller, ml_stream_parser_t *Parser) {
+	ML_RETURN(ml_integer(Parser->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLStreamParserT, ml_state_t *Caller, ml_stream_parser_t *Parser) {
+	ML_RETURN(Parser->Value);
 }
 
 typedef struct {
@@ -520,6 +647,7 @@ typedef struct {
 } ml_buffered_reader_t;
 
 static void ml_buffered_reader_run0(ml_buffered_reader_t *Reader, ml_value_t *Result) {
+	Result = ml_deref(Result);
 	ml_state_t *Caller = Reader->Base.Caller;
 	Reader->Base.Caller = NULL;
 	if (ml_is_error(Result)) ML_RETURN(Result);
@@ -528,6 +656,7 @@ static void ml_buffered_reader_run0(ml_buffered_reader_t *Reader, ml_value_t *Re
 }
 
 static void ml_buffered_reader_run1(ml_buffered_reader_t *Reader, ml_value_t *Result) {
+	Result = ml_deref(Result);
 	ml_state_t *Caller = Reader->Base.Caller;
 	Reader->Base.Caller = NULL;
 	if (ml_is_error(Result)) ML_RETURN(Result);
@@ -589,6 +718,7 @@ typedef struct {
 } ml_buffered_writer_t;
 
 static void ml_buffered_writer_run(ml_buffered_writer_t *Writer, ml_value_t *Result) {
+	Result = ml_deref(Result);
 	ml_state_t *Caller = Writer->Base.Caller;
 	if (ml_is_error(Result)) {
 		Writer->Base.Caller = NULL;

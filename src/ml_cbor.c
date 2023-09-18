@@ -521,6 +521,82 @@ ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
 	return ml_cbor_reader_get(Reader);
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Values, *Callback, *Result;
+	ml_value_t *Args[1];
+	ml_cbor_reader_t Reader[1];
+} ml_cbor_decoder_t;
+
+static void ml_cbor_decoder_run(ml_cbor_decoder_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!ml_list_length(State->Values)) ML_RETURN(State->Result);
+	State->Args[0] = ml_list_pop(State->Values);
+	return ml_call(State, State->Callback, 1, State->Args);
+}
+
+extern ml_type_t MLCborDecoderT[];
+
+ML_FUNCTION(MLCborDecoder) {
+//@cbor::decoder
+//<Callback
+//>cbor::decoder
+// Returns a new CBOR decoder that calls :mini:`Callback(Value)` whenever a complete CBOR value is written to the decoder.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLFunctionT);
+	ml_cbor_decoder_t *Decoder = new(ml_cbor_decoder_t);
+	Decoder->Base.Type = MLCborDecoderT;
+	Decoder->Base.run = (ml_state_fn)ml_cbor_decoder_run;
+	Decoder->Values = ml_list();
+	Decoder->Callback = Args[0];
+	Decoder->Reader->TagFns = DefaultTagFns;
+	Decoder->Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
+	Decoder->Reader->Globals = MLExternals;
+	Decoder->Reader->Reused = NULL;
+	minicbor_reader_init(Decoder->Reader->Reader);
+	Decoder->Reader->Reader->UserData = Decoder->Reader;
+	return (ml_value_t *)Decoder;
+}
+
+ML_TYPE(MLCborDecoderT, (MLStreamT), "cbor::decoder",
+//@cbor::decoder
+// A CBOR decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
+	.Constructor = (ml_value_t *)MLCborDecoder
+);
+
+static void ML_TYPED_FN(ml_stream_write, MLCborDecoderT, ml_state_t *Caller, ml_cbor_decoder_t *Decoder, const void *Address, int Count) {
+	Decoder->Result = ml_integer(Count);
+	ml_cbor_reader_t *Reader = Decoder->Reader;
+	for (;;) {
+		minicbor_read(Reader->Reader, Address, Count);
+		if (!Reader->Value) ML_RETURN(Decoder->Result);
+		if (ml_is_error(Reader->Value)) ML_RETURN(Reader->Value);
+		ml_list_put(Decoder->Values, Reader->Value);
+		Reader->Value = NULL;
+		int Extra = ml_cbor_reader_extra(Reader);
+		Reader->Reused = NULL;
+		minicbor_reader_init(Reader->Reader);
+		if (!Extra) break;
+		Address += (Count - Extra);
+		Count = Extra;
+	}
+	if (!ml_list_length(Decoder->Values)) ML_RETURN(Decoder->Result);
+	Decoder->Base.Caller = Caller;
+	Decoder->Base.Context = Caller->Context;
+	Decoder->Args[0] = ml_list_pop(Decoder->Values);
+	return ml_call(Decoder, Decoder->Callback, 1, Decoder->Args);
+}
+
+static void ML_TYPED_FN(ml_stream_flush, MLCborDecoderT, ml_state_t *Caller, ml_cbor_decoder_t *Decoder) {
+	int Extra = ml_cbor_reader_extra(Decoder->Reader);
+	if (Extra) ML_ERROR("CBORError", "Extra bytes after decoding: %d", Extra);
+	Decoder->Base.Caller = Caller;
+	Decoder->Base.Context = Caller->Context;
+	Decoder->Args[0] = ml_list_pop(Decoder->Values);
+	return ml_call(Decoder, Decoder->Callback, 1, Decoder->Args);
+}
+
 struct ml_cbor_writer_t {
 	void *Data;
 	ml_cbor_write_fn WriteFn;
@@ -1494,6 +1570,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
 			"encode", CborEncode,
 			"decode", CborDecode,
+			"decoder", MLCborDecoderT,
 		NULL));
 	}
 }

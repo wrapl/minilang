@@ -32,7 +32,7 @@ hierarchy
       "xml":e -> "xml::element":w;
       "sequence":e -> "xml::element":w;
       "function":e -> "xml::filter":w;
-      "stream":e -> "xml::decoder":w;
+      "stream":e -> "xml::parser":w;
       "sequence":e -> "xe::node":w;
       "any":e -> "xe::var":w;
       "any":e -> "uuid":w;
@@ -66,6 +66,8 @@ hierarchy
       "stream":e -> "string::buffer":w;
       "any":e -> "stream":w;
       "enum":e -> "stream::seek":w;
+      "function":e -> "stream::parser":w;
+      "sequence":e -> "stream::parser":w;
       "stream":e -> "stream::buffered":w;
       "stream":e -> "stream::fd":w;
       "stream::fd":e -> "socket":w;
@@ -178,6 +180,7 @@ hierarchy
       "state":e -> "compiler":w;
       "any":e -> "parser":w;
       "any":e -> "global":w;
+      "stream":e -> "cbor::decoder":w;
       "any":e -> "variable":w;
       "state":e -> "continuation":w;
       "sequence":e -> "continuation":w;

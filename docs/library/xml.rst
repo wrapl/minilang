@@ -151,14 +151,6 @@ xml
    Removes :mini:`Node` from its parent.
 
 
-:mini:`type xml::decoder < stream`
-   A callback based streaming XML decoder.
-
-
-:mini:`fun xml::decoder(Callback: any): xml::decoder`
-   Returns a new decoder that calls :mini:`Callback(Xml)` each time a complete XML document is parsed.
-
-
 :mini:`type xml::element < xml, sequence`
    An XML element node.
 
@@ -253,6 +245,14 @@ xml
 
 :mini:`meth xml::filter(Tag: string, Attr₁ is Value₁, ...): xml::filter`
    Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attrᵢ = Valueᵢ`.
+
+
+:mini:`type xml::parser < stream`
+   A callback based streaming XML parser.
+
+
+:mini:`fun xml::parser(Callback: any): xml::parser`
+   Returns a new parser that calls :mini:`Callback(Xml)` each time a complete XML document is parsed.
 
 
 :mini:`meth (Sequence: xml::sequence) / (Args: any, ...): sequence`

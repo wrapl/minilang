@@ -37,7 +37,7 @@ JSON values are mapped to Minilang as follows:
 
 
 :mini:`type json::decoder < stream`
-   A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is parsed.
+   A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
 
 
 :mini:`fun json::decoder(Callback: any): json::decoder`

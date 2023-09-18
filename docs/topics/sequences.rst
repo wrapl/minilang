@@ -66,6 +66,23 @@ As well as iterating over a sequence with :mini:`for`-loop, *Minilang* provides 
    L = [c, a, t]
    M = {1 is c, 2 is a, 3 is t}
 
+Sequence Comprehensions
+-----------------------
+
+Sequences can be written in *Minilang* using comprehensions. Usually the resulting sequence will be used in a call to :mini:`list`, :mini:`map`, etc, but they are first class values that can be passed to other functions, stored in variables, etc.
+
+.. parser-rule-diagram:: expression ( 'to' expression )? ( 'for' identifier ( ',' identifier )* 'in' expression | 'if' expression | 'with' identifier ':=' expression )+
+
+.. code-block:: mini
+
+   list(X + 1 for X in 1 .. 10)
+   map(X to X:code for X in "cat")
+
+.. code-block:: console
+
+   [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+   {c is 99, a is 97, t is 116}
+
 Chaining Sequences
 ------------------
 
