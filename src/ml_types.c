@@ -3177,6 +3177,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_externals_default_add("map", MLMapT);
 	ml_externals_default_add("set", MLSetT);
 	ml_externals_default_add("error", MLErrorT);
+	ml_externals_default_add("copy", MLCopy);
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "some", MLSome);

@@ -3,6 +3,10 @@
 
 #include "minilang.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value;
@@ -21,5 +25,9 @@ struct ml_minijs_encoder_t {
 ml_value_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value);
 
 void ml_minijs_init(stringmap_t *Globals);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

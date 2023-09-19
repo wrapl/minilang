@@ -3,6 +3,10 @@
 
 #include "minilang.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void ml_xml_init(stringmap_t *Globals);
 
 extern ml_type_t MLXmlT[];
@@ -24,5 +28,9 @@ typedef struct ml_xml_element_t ml_xml_element_t;
 ml_xml_element_t *ml_xml_element(const char *Tag);
 ml_xml_node_t *ml_xml_text(const char *Content, int Length);
 void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

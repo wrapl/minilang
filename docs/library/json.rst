@@ -36,6 +36,10 @@ JSON values are mapped to Minilang as follows:
    Decodes the JSON string in :mini:`Json` into a Minilang value.
 
 
+:mini:`meth (Json: json):value: any | error`
+   Decodes the JSON string in :mini:`Json` into a Minilang value.
+
+
 :mini:`type json::decoder < stream`
    A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
 

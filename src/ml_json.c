@@ -800,8 +800,6 @@ ML_FUNCTION(JsonEncode) {
 	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_get_value(Buffer);
 }
 
-extern ml_type_t MLJsonT[];
-
 ML_FUNCTION(MLJson) {
 //@json
 //<Value:any
@@ -822,6 +820,22 @@ ML_TYPE(MLJsonT, (MLStringT), "json",
 );
 
 ML_METHOD("decode", MLJsonT) {
+//<Json
+//>any|error
+// Decodes the JSON string in :mini:`Json` into a Minilang value.
+	ml_value_t *Result = NULL;
+	json_decoder_t Decoder[1];
+	json_decoder_init(Decoder, json_decode_single_fn, &Result);
+	const char *Text = ml_string_value(Args[0]);
+	size_t Length = ml_string_length(Args[0]);
+	ml_value_t *Error = json_decoder_parse(Decoder, Text, Length);
+	if (Error) return Error;
+	Error = json_decoder_finish(Decoder);
+	if (Error) return Error;
+	return Result ?: ml_error("JSONError", "Incomplete JSON");
+}
+
+ML_METHOD("value", MLJsonT) {
 //<Json
 //>any|error
 // Decodes the JSON string in :mini:`Json` into a Minilang value.
