@@ -723,7 +723,7 @@ static void ml_json_encode_string(ml_stringbuffer_t *Buffer, ml_value_t *Value) 
 		case '\t': ml_stringbuffer_write(Buffer, "\\t", 2); break;
 		default:
 			if (Char < 32) {
-				ml_stringbuffer_printf(Buffer, "\\u%02x", Char);
+				ml_stringbuffer_printf(Buffer, "\\u00%02x", Char);
 			} else {
 				ml_stringbuffer_put(Buffer, Char);
 			}
