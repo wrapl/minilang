@@ -1069,20 +1069,26 @@ typedef struct {
 } ml_scheduler_block_t;
 
 static ml_scheduler_thread_t *NextThread = NULL;
-static int NumBlocking = 0, MaxBlocking = 8;
+static int MaxIdle = 8;
 static pthread_mutex_t ThreadLock[1] = {PTHREAD_MUTEX_INITIALIZER};
 
 static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
+	static int NumIdle = 0;
 	ml_scheduler_block_t *Block = (ml_scheduler_block_t *)State;
 	pthread_mutex_lock(Queue->Lock);
 	pthread_cond_signal(Block->Resume);
 	pthread_mutex_unlock(Queue->Lock);
 
 	pthread_mutex_lock(ThreadLock);
+	if (NumIdle >= MaxIdle) {
+		pthread_mutex_unlock(ThreadLock);
+		pthread_exit(NULL);
+	}
 	ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
 	NextThread = &Thread;
-	--NumBlocking;
+	++NumIdle;
 	pthread_cond_wait(Thread.Resume, ThreadLock);
+	--NumIdle;
 	pthread_mutex_unlock(ThreadLock);
 	Queue = Thread.Queue;
 }
@@ -1097,34 +1103,22 @@ static void *ml_scheduler_thread_fn(void *Data) {
 }
 
 void ml_threads_set_max_count(int Max) {
-	MaxBlocking = Max;
+	MaxIdle = Max;
 }
 
 void ml_default_scheduler_split() {
 	pthread_mutex_lock(ThreadLock);
-	while (NumBlocking >= MaxBlocking) {
-		pthread_mutex_unlock(ThreadLock);
-		ml_queued_state_t Queued = ml_default_queue_next_wait();
-		if (Queued.State->run == ml_scheduler_thread_resume) {
-			ml_scheduler_block_t *Block = (ml_scheduler_block_t *)Queued.State;
-			pthread_mutex_lock(Queue->Lock);
-			pthread_cond_signal(Block->Resume);
-			pthread_mutex_unlock(Queue->Lock);
-			return;
-		} else {
-			Queued.State->run(Queued.State, Queued.Value);
-		}
-		pthread_mutex_lock(ThreadLock);
-	}
-	++NumBlocking;
 	ml_scheduler_thread_t *Thread = NextThread;
 	if (Thread) {
 		NextThread = Thread->Next;
 		Thread->Queue = Queue;
 		pthread_cond_signal(Thread->Resume);
 	} else {
+		pthread_attr_t Attr;
+		pthread_attr_init(&Attr);
+		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
-		GC_pthread_create(&Thread, NULL, ml_scheduler_thread_fn, Queue);
+		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Queue);
 		pthread_setname_np(Thread, "minilang");
 	}
 	pthread_mutex_unlock(ThreadLock);
