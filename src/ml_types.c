@@ -311,8 +311,10 @@ static inthash_t MLTypedFns[1] = {INTHASH_INIT};
 void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 	ML_TYPED_FN_LOCK();
 	inthash_result_t Result = inthash_search2_inline(Type->TypedFns, (uintptr_t)TypedFn);
-	ML_TYPED_FN_UNLOCK();
-	if (Result.Present) return Result.Value;
+	if (Result.Present) {
+		ML_TYPED_FN_UNLOCK();
+		return Result.Value;
+	}
 	int BestRank = -1;
 	void *BestFn = NULL;
 	for (ml_typed_fn_entry_t *Entry = inthash_search(MLTypedFns, (uintptr_t)TypedFn); Entry; Entry = Entry->Next) {
@@ -321,7 +323,6 @@ void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 			BestFn = Entry->Fn;
 		}
 	}
-	ML_TYPED_FN_LOCK();
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, BestFn);
 	ML_TYPED_FN_UNLOCK();
 	return BestFn;

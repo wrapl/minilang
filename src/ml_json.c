@@ -790,7 +790,9 @@ static ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) 
 	return NULL;
 }
 
-ML_FUNCTION(JsonEncode) {
+ML_METHOD_ANON(JsonEncode, "json::encode");
+
+ML_METHOD(JsonEncode, MLAnyT) {
 //@json::encode
 //<Value
 //>string|error

@@ -20,7 +20,7 @@ JSON values are mapped to Minilang as follows:
 * *array* |harr| :mini:`list`
 * *object* |harr| :mini:`map`
 
-:mini:`fun json::encode(Value: any): string | error`
+:mini:`meth json::encode(Value: any): string | error`
    Encodes :mini:`Value` into JSON,  raising an error if :mini:`Value` cannot be represented as JSON.
 
 
