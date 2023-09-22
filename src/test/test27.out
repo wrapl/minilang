@@ -8,8 +8,7 @@ Yellow -> greenish
 Green -> greenish
 Blue -> blueish
 Violet -> reddish
-Turquoise -> Error = EnumError: Invalid enum name
-	/home/raja/Work/Minilang/src/test/test27.mini:22
+Turquoise -> Error = Invalid enum name
 Days = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
 Mon .. Fri = [Mon, Tue, Wed, Thu, Fri]
 Fri .. Mon = [Fri, Sat, Sun, Mon]

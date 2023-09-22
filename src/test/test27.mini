@@ -22,7 +22,7 @@ for Name in ["Red", "Orange", "Yellow", "Green", "Blue", "Violet", "Turquoise"] 
 	let Colour := colour(Name)
 	print(test_colour(Colour), "\n")
 on Error do
-	print('Error = {Error}\n')
+	print('Error = {Error:message}\n')
 end
 
 enum::cyclic: day("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
@@ -48,6 +48,6 @@ for Name in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] do
 	let Day := day(Name)
 	print(test_day(Day), "\n")
 on Error do
-	print('Error = {Error}\n')
+	print('Error = {Error:message}\n')
 end
 
