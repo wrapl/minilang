@@ -1057,11 +1057,11 @@ static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Ar
 		ML_CHECK_ARG_TYPE(I, MLListT);
 		Total += ml_list_length(Args[I]);
 	}
-	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Total, ml_value_t *);
+	int Size = Enum->Base.Exports->Size;
+	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Size, ml_value_t *);
 	Switch->Type = MLEnumSwitchT;
 	Switch->Enum = Enum;
 	ml_value_t *Default = ml_integer(Count);
-	int Size = Enum->Base.Exports->Size;
 	for (int I = 0; I < Size; ++I) Switch->Cases[I] = Default;
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Case = ml_integer(I);
