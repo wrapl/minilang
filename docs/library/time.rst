@@ -57,7 +57,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2023-09-22T09:27:39.873092
+      time() :> 2023-09-23T11:09:12.657881
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
@@ -95,6 +95,10 @@ Provides time and date operations.
 
 :mini:`meth (A: time) <> (B: time): integer`
    Compares the times :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
+
+
+:mini:`meth (Time: time) @ (TimeZone: string): time::zoned`
+   Returns a *zoned* time,  that contains an instant of time and an associated time zone.
 
 
 :mini:`meth (Time: time) @ (TimeZone: time::zone): time::zoned`
@@ -241,11 +245,11 @@ Provides time and date operations.
    Formats :mini:`Time` as a time in :mini:`TimeZone`.
 
 
-:mini:`type time::day < enum`
+:mini:`type time::day < enum::cyclic`
    *TBD*
 
 
-:mini:`type time::month < enum`
+:mini:`type time::month < enum::cyclic`
    *TBD*
 
 
@@ -262,6 +266,10 @@ Provides time and date operations.
 
 
 :mini:`type time::zoned`
+   *TBD*
+
+
+:mini:`meth time(Arg₁: time::zoned)`
    *TBD*
 
 

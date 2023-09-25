@@ -835,6 +835,38 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 	return (ml_type_t *)Enum;
 }
 
+ml_type_t *ml_enum_cyclic(const char *TypeName, ...) {
+	va_list Args;
+	int Size = 0;
+	va_start(Args, TypeName);
+	while (va_arg(Args, const char *)) ++Size;
+	va_end(Args);
+	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_enum_value_t);
+	Enum->Base.Type = MLEnumCyclicT;
+	Enum->Base.Name = TypeName;
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_enum_value_t *Value = Enum->Values;
+	int Index = 0;
+	va_start(Args, TypeName);
+	const char *String;
+	while ((String = va_arg(Args, const char *))) {
+		ml_value_t *Name = ml_string(String, -1);
+		Value->Base.Type = (ml_type_t *)Enum;
+		Value->Name = Name;
+		Value->Base.Value = ++Index;
+		stringmap_insert(Enum->Base.Exports, String, Value);
+		++Value;
+	}
+	va_end(Args);
+	return (ml_type_t *)Enum;
+}
+
 ml_type_t *ml_enum2(const char *TypeName, ...) {
 	va_list Args;
 	int Size = 0;

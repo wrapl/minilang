@@ -37,8 +37,8 @@ hierarchy
       "any":e -> "xe::var":w;
       "any":e -> "uuid":w;
       "any":e -> "time":w;
-      "enum":e -> "time::day":w;
-      "enum":e -> "time::month":w;
+      "enum::cyclic":e -> "time::day":w;
+      "enum::cyclic":e -> "time::month":w;
       "any":e -> "time::zone":w;
       "any":e -> "time::zoned":w;
       "any":e -> "thread":w;

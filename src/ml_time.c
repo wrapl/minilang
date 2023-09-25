@@ -486,7 +486,7 @@ ML_METHOD("precision", MLTimeT, MLIntegerT) {
 	return ml_time(Sec, NSec);
 }
 
-ML_ENUM(MLTimeDayT, "time::day",
+ML_ENUM_CYCLIC(MLTimeDayT, "time::day",
 	"Monday",
 	"Tuesday",
 	"Wednesday",
@@ -496,7 +496,7 @@ ML_ENUM(MLTimeDayT, "time::day",
 	"Sunday"
 );
 
-ML_ENUM(MLTimeMonthT, "time::month",
+ML_ENUM_CYCLIC(MLTimeMonthT, "time::month",
 	"January",
 	"February",
 	"March",
@@ -577,7 +577,7 @@ extern ml_type_t MLTimeZoneT[];
 
 static ml_value_t *ml_time_zone(const char *Id) {
 	if (!timelib_timezone_id_is_valid(Id, timelib_builtin_db())) {
-		return ml_error("TimeZoneError", "Time zone not found");
+		return ml_error("TimeZoneError", "Time zone %s not found", Id);
 	}
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLTimeZoneT->Exports, Id);
 	if (!Slot[0]) {
@@ -598,11 +598,14 @@ static ml_value_t *ml_time_zone_deref(ml_time_zone_t *TimeZone) {
 }
 
 static void ml_time_zone_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *NameArg = ml_deref(Args[0]);
-	if (!ml_is(NameArg, MLStringT)) ML_ERROR("TypeError", "Expected string not %s for arg 1", ml_typeof(NameArg)->Name);
-	const char *Name = ml_string_value(NameArg);
-	ML_RETURN(ml_time_zone(Name));
+	if (Count == 0) {
+		ML_RETURN(ml_time_zone(tzname[0]));
+	} else {
+		ml_value_t *NameArg = ml_deref(Args[0]);
+		if (!ml_is(NameArg, MLStringT)) ML_ERROR("TypeError", "Expected string not %s for arg 1", ml_typeof(NameArg)->Name);
+		const char *Name = ml_string_value(NameArg);
+		ML_RETURN(ml_time_zone(Name));
+	}
 }
 
 ML_TYPE(MLTimeZoneTypeT, (MLTypeT, MLSequenceT), "type(time::zone)",
@@ -856,6 +859,28 @@ ML_METHOD("@", MLTimeT, MLTimeZoneT) {
 	timelib_unixtime2local(Zoned->Value, Time->Value->tv_sec);
 	Zoned->Value->us = Time->Value->tv_nsec / 1000;
 	return (ml_value_t *)Zoned;
+}
+
+ML_METHOD("@", MLTimeT, MLStringT) {
+//<Time
+//<TimeZone
+//>time::zoned
+// Returns a *zoned* time, that contains an instant of time and an associated time zone.
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	ml_value_t *TimeZone = ml_time_zone(ml_string_value(Args[1]));
+	if (ml_is_error(TimeZone)) return TimeZone;
+	TimeZone = ml_time_zone_deref((ml_time_zone_t *)TimeZone);
+	ml_time_zoned_t *Zoned = new(ml_time_zoned_t);
+	Zoned->Type = MLTimeZonedT;
+	timelib_set_timezone(Zoned->Value, ((ml_time_zone_t *)TimeZone)->Info);
+	timelib_unixtime2local(Zoned->Value, Time->Value->tv_sec);
+	Zoned->Value->us = Time->Value->tv_nsec / 1000;
+	return (ml_value_t *)Zoned;
+}
+
+ML_METHOD(MLTimeT, MLTimeZonedT) {
+	ml_time_zoned_t *Zoned = (ml_time_zoned_t *)Args[0];
+	return ml_time(Zoned->Value->sse, Zoned->Value->us * 1000);
 }
 
 ML_METHOD("append", MLStringBufferT, MLTimeZonedT) {
