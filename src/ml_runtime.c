@@ -1075,9 +1075,9 @@ static pthread_mutex_t ThreadLock[1] = {PTHREAD_MUTEX_INITIALIZER};
 static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 	static int NumIdle = 0;
 	ml_scheduler_block_t *Block = (ml_scheduler_block_t *)State;
-	pthread_mutex_lock(Queue->Lock);
+	//pthread_mutex_lock(Queue->Lock);
 	pthread_cond_signal(Block->Resume);
-	pthread_mutex_unlock(Queue->Lock);
+	//pthread_mutex_unlock(Queue->Lock);
 
 	pthread_mutex_lock(ThreadLock);
 	if (NumIdle >= MaxIdle) {
