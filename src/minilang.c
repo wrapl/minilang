@@ -290,17 +290,21 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "io", IO);
 	ml_module_t *Util = ml_library_internal("util");
 	stringmap_insert(Globals, "util", Util);
+	ml_module_t *Enc = ml_library_internal("enc");
+	stringmap_insert(Globals, "enc", Enc);
 #define SYS_EXPORTS Sys->Exports
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports
 #define IO_EXPORTS IO->Exports
 #define UTIL_EXPORTS Util->Exports
+#define ENC_EXPORTS Enc->Exports
 #else
 #define SYS_EXPORTS Globals
 #define STD_EXPORTS Globals
 #define FMT_EXPORTS Globals
 #define IO_EXPORTS Globals
 #define UTIL_EXPORTS Globals
+#define ENC_EXPORTS Globals
 #endif
 
 	ml_stream_init(IO_EXPORTS);
@@ -349,8 +353,8 @@ int main(int Argc, const char *Argv[]) {
 	ml_minijs_init(FMT_EXPORTS);
 #endif
 #ifdef ML_ENCODINGS
-	ml_base16_init(Globals);
-	ml_base64_init(Globals);
+	ml_base16_init(ENC_EXPORTS);
+	ml_base64_init(ENC_EXPORTS);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);

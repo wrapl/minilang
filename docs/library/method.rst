@@ -37,16 +37,16 @@ method
    Returns the method with name :mini:`Name`.
 
 
-:mini:`meth (Method: method):MLMethodDefine(Types: type, ..., ..?: any, Function: function): Function`
-   Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
-
-
 :mini:`meth (Arg₁: method)[...]`
    *TBD*
 
 
 :mini:`meth (Arg₁: method):list`
    *TBD*
+
+
+:mini:`meth method::define(Method: method, Types: type, ..., ..?: any, Function: function): Function`
+   Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 
 :mini:`meth (Method: method):name: string`
@@ -72,7 +72,7 @@ method
    Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
 
 
-:mini:`meth (Type: type):MLMethodDefine(Types: type, ..., ..?: any, Function: function): Function`
+:mini:`meth method::define(Type: type, Types: type, ..., ..?: any, Function: function): Function`
    Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 

@@ -619,8 +619,10 @@ static inline void ml_method_set(ml_methods_t *Methods, int NumTypes, ml_type_t 
 }
 
 ML_METHOD_ANON(MLMethodDefine, "method::define");
+//@method::define
 
 ML_METHODVX(MLMethodDefine, MLMethodT) {
+//@method::define
 //<Method
 //<Types...:type
 //<..?
@@ -648,6 +650,7 @@ ML_METHODVX(MLMethodDefine, MLMethodT) {
 }
 
 ML_METHODVX(MLMethodDefine, MLTypeT) {
+//@method::define
 //<Type
 //<Types...:type
 //<..?
