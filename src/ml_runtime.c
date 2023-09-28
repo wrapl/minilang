@@ -1031,6 +1031,11 @@ int ml_scheduler_queue_add_signal(ml_scheduler_queue_t *Queue, ml_state_t *State
 	return Fill;
 }
 
+#else
+
+#define ml_scheduler_queue_next_wait ml_scheduler_queue_next
+#define ml_scheduler_queue_add_signal ml_scheduler_queue_add
+
 #endif
 
 static
