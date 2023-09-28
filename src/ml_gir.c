@@ -1604,14 +1604,15 @@ static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpoi
 	GOutputStream *Stream = (GOutputStream *)Object;
 	ml_state_t *Caller = ml_gio_callback_use((ml_gio_callback_t *)Data);
 	GError *Error = NULL;
-	gssize Count = g_output_stream_write_finish(Stream, Result, &Error);
+	gsize Count;
+	g_output_stream_write_all_finish(Stream, Result, &Count, &Error);
 	if (Error) ML_ERROR("GirError", "%s", Error->message);
 	ML_RETURN(ml_integer(Count));
 }
 
 static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GOutputStream *Stream = (GOutputStream *)Value->Handle;
-	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, ml_gio_callback(Caller));
+	g_output_stream_write_all_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, ml_gio_callback(Caller));
 }
 
 typedef struct ml_gir_value_t ml_gir_value_t;
