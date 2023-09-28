@@ -1119,8 +1119,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
-		ml_schedule_fn Add = (ml_schedule_fn)Frame->Base.Context->Values[ML_SCHEDULER_INDEX];
-		return Add((ml_state_t *)Frame, Result);
+		ml_state_schedule((ml_state_t *)Frame, Result);
 	}
 #endif
 }

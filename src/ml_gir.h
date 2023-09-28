@@ -26,8 +26,6 @@ void *ml_gir_struct_instance_value(ml_value_t *Value);
 ml_value_t *ml_gir_enum_value(ml_value_t *Enum, gint64 Value);
 gint64 ml_gir_enum_value_value(ml_value_t *Value);
 
-void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
-
 #ifndef GENERATE_INIT
 
 #define ML_GIR_TYPELIB(VALUE, NAME, VERSION) \

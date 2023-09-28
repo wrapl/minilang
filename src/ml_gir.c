@@ -1496,8 +1496,6 @@ static void instance_constructor_fn(ml_state_t *Caller, ml_gir_type_t *Class, in
 
 #ifdef ML_SCHEDULER
 
-void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
-
 static gboolean ml_gir_queue_run(void *Data) {
 	ml_queued_state_t QueuedState = ml_default_queue_next();
 	if (!QueuedState.State) return FALSE;
@@ -1505,8 +1503,15 @@ static gboolean ml_gir_queue_run(void *Data) {
 	return TRUE;
 }
 
-void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value) {
-	if (ml_default_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
+typedef struct {
+	ml_scheduler_t Base;
+	ml_scheduler_t *Parent;
+} gir_scheduler_t;
+
+int ml_gir_queue_add(gir_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value) {
+	int Fill = Scheduler->Parent->add(Scheduler->Parent, State, Value);
+	if (Fill == 1) g_idle_add(ml_gir_queue_run, NULL);
+	return Fill;
 }
 
 static ptrset_t SleepSet[1] = {PTRSET_INIT};
@@ -1529,7 +1534,10 @@ ML_FUNCTIONX(MLSleep) {
 ML_FUNCTIONX(GirRun) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = ml_state(Caller);
-	ml_context_set(State->Context, ML_SCHEDULER_INDEX, ml_gir_queue_add);
+	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
+	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
+	Scheduler->Parent = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	ml_context_set(State->Context, ML_SCHEDULER_INDEX, Scheduler);
 	return ml_call(State, Args[0], 0, NULL);
 }
 
@@ -1616,7 +1624,10 @@ static GMainLoop *MainLoop = NULL;
 
 void ml_gir_loop_init(ml_context_t *Context) {
 	MainLoop = g_main_loop_new(NULL, TRUE);
-	ml_context_set(Context, ML_SCHEDULER_INDEX, ml_gir_queue_add);
+	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
+	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
+	Scheduler->Parent = ml_context_get(Context, ML_SCHEDULER_INDEX);
+	ml_context_set(Context, ML_SCHEDULER_INDEX, Scheduler);
 }
 
 void ml_gir_loop_run() {
