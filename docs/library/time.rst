@@ -27,7 +27,7 @@ Provides time and date operations.
    Returns the time specified by the provided components in UTC.
 
 
-:mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer, Arg₇: time::zone): time`
+:mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer, TimeZone: time::zone): time`
    Returns the time specified by the provided components in the specified time zone.
 
 
@@ -35,7 +35,7 @@ Provides time and date operations.
    Returns the time specified by the provided components in UTC.
 
 
-:mini:`meth time(Year: integer, Month: integer, Day: integer, Arg₄: time::zone): time`
+:mini:`meth time(Year: integer, Month: integer, Day: integer, TimeZone: time::zone): time`
    Returns the time specified by the provided components in the specified time zone.
 
 
@@ -52,12 +52,21 @@ Provides time and date operations.
    Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time.
 
 
+:mini:`meth time(String: string, TimeZone: time::zone): time`
+   Parses the :mini:`String` as a time in the specified time zone.
+
+   .. code-block:: mini
+
+      time("2023-02-09T21:19:33.196413266", time::zone::"America/Chicago")
+      :> 2023-02-10T03:19:33.196413
+
+
 :mini:`meth time(): time`
    Returns the current time.
 
    .. code-block:: mini
 
-      time() :> 2023-10-03T09:53:06.28097
+      time() :> 2023-10-04T00:20:11.615593
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
@@ -95,10 +104,6 @@ Provides time and date operations.
 
 :mini:`meth (A: time) <> (B: time): integer`
    Compares the times :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
-
-
-:mini:`meth (Time: time) @ (TimeZone: string): time::zoned`
-   Returns a *zoned* time,  that contains an instant of time and an associated time zone.
 
 
 :mini:`meth (Time: time) @ (TimeZone: time::zone): time::zoned`
@@ -266,10 +271,6 @@ Provides time and date operations.
 
 
 :mini:`type time::zoned`
-   *TBD*
-
-
-:mini:`meth time(Arg₁: time::zoned)`
    *TBD*
 
 
