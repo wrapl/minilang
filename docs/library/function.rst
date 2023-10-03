@@ -53,6 +53,35 @@ function
    Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
 
 
+:mini:`meth (Base: function) -> (Function: function): chained`
+   Returns a chained function equivalent to :mini:`Function(Base(...))`.
+
+   .. code-block:: mini
+
+      let F := :upper -> (3 * _)
+      F("hello") :> "HELLOHELLOHELLO"
+      F("cake") :> "CAKECAKECAKE"
+
+
+:mini:`meth (Base: function) ->! (F: function): function`
+   Returns a chained function equivalent to :mini:`F ! Base(...)`.
+
+   .. code-block:: mini
+
+      let F := list ->! 3 :> <chained>
+      F("cat") :> "t"
+
+
+:mini:`meth (Base: function) ->? (F: function): function`
+   Returns a chained function equivalent to :mini:`Base(...){F(it)}`.
+
+   .. code-block:: mini
+
+      let F := 1 ->? (2 | _) -> (_ / 2) :> <chained>
+      list(1 .. 10 -> F)
+      :> [nil, 2, nil, 4, nil, 6, nil, 8, nil, 10]
+
+
 :mini:`meth /(Function: function): function`
    Returns a function equivalent to :mini:`fun(Args...) Function()`.
 

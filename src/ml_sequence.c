@@ -283,6 +283,7 @@ ML_METHODX("precount", MLChainedT) {
 }
 
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
+//!function
 //<Base
 //<Function
 //>chained
@@ -385,10 +386,11 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 }
 
 ML_METHOD("->!", MLFunctionT, MLFunctionT) {
+//!function
 //<Base
 //<F
 //>function
-// Returns a chained function equivalent to :mini:`F(Base(...))`.
+// Returns a chained function equivalent to :mini:`F ! Base(...)`.
 //$= let F := list ->! 3
 //$= F("cat")
 	ml_value_t *Partial = ml_partial_function(ApplyMethod, 1);
@@ -439,6 +441,23 @@ static inline ml_type_t *ml_generic_sequence(ml_type_t *Base, ml_value_t *Sequen
 	}
 #endif
 	return Base;
+}
+
+ML_METHOD("->?", MLFunctionT, MLFunctionT) {
+//!function
+//<Base
+//<F
+//>function
+// Returns a chained function equivalent to :mini:`Base(...){F(it)}`.
+//$= let F := 1 ->? (2 | _) -> (_ / 2)
+//$= list(1 .. 10 -> F)
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = FilterSoloMethod;
+	Chained->Entries[2] = Args[1];
+	//Chained->Entries[3] = NULL;
+	return (ml_value_t *)Chained;
 }
 
 ML_METHOD("->?", MLSequenceT, MLFunctionT) {
