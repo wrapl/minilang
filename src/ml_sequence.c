@@ -384,6 +384,23 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+ML_METHOD("->!", MLFunctionT, MLFunctionT) {
+//<Base
+//<F
+//>function
+// Returns a chained function equivalent to :mini:`F(Base(...))`.
+//$= let F := list ->! 3
+//$= F("cat")
+	ml_value_t *Partial = ml_partial_function(ApplyMethod, 1);
+	ml_partial_function_set(Partial, 0, Args[1]);
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
+	Chained->Type = MLChainedT;
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = Partial;
+	//Chained->Entries[2] = NULL;
+	return (ml_value_t *)Chained;
+}
+
 ML_METHOD("->!", MLSequenceT, MLFunctionT) {
 //<Base
 //<F
