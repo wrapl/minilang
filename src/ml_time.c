@@ -760,31 +760,6 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLTimeZoneT) {
 	return (ml_value_t *)Time;
 }
 
-#define ML_TIME_PART_WITH_ZONE(NAME, DESC, EXPR) \
-\
-ML_METHOD(NAME, MLTimeT, MLTimeZoneT) { \
-/*<Time
-//<TimeZone
-//>integer
-// Returns the DESC from :mini:`Time` in :mini:`TimeZone`.
-*/ \
-	ml_time_t *Time = (ml_time_t *)Args[0]; \
-	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1]; \
-	timelib_time TL = {0,}; \
-	timelib_set_timezone(&TL, TimeZone->Info); \
-	timelib_unixtime2local(&TL, Time->Value->tv_sec); \
-	return EXPR; \
-}
-
-ML_TIME_PART_WITH_ZONE("year", year, ml_integer(TL.y))
-ML_TIME_PART_WITH_ZONE("month", month, ml_enum_value(MLTimeMonthT, TL.m))
-ML_TIME_PART_WITH_ZONE("day", date, ml_integer(TL.d))
-ML_TIME_PART_WITH_ZONE("yday", number of days from the start of the year, ml_integer(timelib_day_of_year(TL.y, TL.m, TL.d) + 1))
-ML_TIME_PART_WITH_ZONE("wday", day of the week, ml_enum_value(MLTimeDayT, timelib_iso_day_of_week(TL.y, TL.m, TL.d)))
-ML_TIME_PART_WITH_ZONE("hour", hour, ml_integer(TL.h))
-ML_TIME_PART_WITH_ZONE("minute", minute, ml_integer(TL.i))
-ML_TIME_PART_WITH_ZONE("second", second, ml_integer(TL.s))
-
 ML_METHODV("with", MLTimeT, MLTimeZoneT, MLNamesT) {
 	ML_NAMES_CHECK_ARG_COUNT(2);
 	for (int I = 3; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
@@ -892,7 +867,7 @@ typedef struct {
 	ml_time_zone_t *Zone;
 } ml_time_zoned_t;
 
-ML_TYPE(MLTimeZonedT, (), "time::zoned");
+ML_TYPE(MLTimeZonedT, (MLTimeT), "time::zoned");
 
 ML_METHOD("@", MLTimeT, MLTimeZoneT) {
 //<Time
@@ -970,6 +945,39 @@ ML_METHOD("append", MLStringBufferT, MLTimeZonedT, MLStringT) {
 	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
 }
+
+#define ML_TIME_PART_WITH_ZONE(NAME, DESC, EXPR) \
+\
+ML_METHOD(NAME, MLTimeT, MLTimeZoneT) { \
+/*<Time
+//<TimeZone
+//>integer
+// Returns the DESC from :mini:`Time` in :mini:`TimeZone`.
+*/ \
+	ml_time_t *Time = (ml_time_t *)Args[0]; \
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1]; \
+	timelib_time TL = {0,}; \
+	timelib_set_timezone(&TL, TimeZone->Info); \
+	timelib_unixtime2local(&TL, Time->Value->tv_sec); \
+	return EXPR; \
+} \
+\
+ML_METHOD(NAME, MLTimeZonedT) { \
+	ml_time_zoned_t *Zoned = (ml_time_zoned_t *)Args[0]; \
+	timelib_time TL = {0,}; \
+	timelib_set_timezone(&TL, Zoned->Zone->Info); \
+	timelib_unixtime2local(&TL, Zoned->Base.Value->tv_sec); \
+	return EXPR; \
+}
+
+ML_TIME_PART_WITH_ZONE("year", year, ml_integer(TL.y))
+ML_TIME_PART_WITH_ZONE("month", month, ml_enum_value(MLTimeMonthT, TL.m))
+ML_TIME_PART_WITH_ZONE("day", date, ml_integer(TL.d))
+ML_TIME_PART_WITH_ZONE("yday", number of days from the start of the year, ml_integer(timelib_day_of_year(TL.y, TL.m, TL.d) + 1))
+ML_TIME_PART_WITH_ZONE("wday", day of the week, ml_enum_value(MLTimeDayT, timelib_iso_day_of_week(TL.y, TL.m, TL.d)))
+ML_TIME_PART_WITH_ZONE("hour", hour, ml_integer(TL.h))
+ML_TIME_PART_WITH_ZONE("minute", minute, ml_integer(TL.i))
+ML_TIME_PART_WITH_ZONE("second", second, ml_integer(TL.s))
 
 #endif
 
