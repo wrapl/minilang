@@ -113,10 +113,9 @@ enum
    .. code-block:: mini
 
       let colour := enum::cyclic(Red is 10, Green is 20, Blue is 30)
-      :> error("MethodError", "no method found for enum::cyclic::of(names, int32, int32, int32)")
-      colour::Red :> <uninitialized>
-      list(colour, _ + 0)
-      :> error("ValueError", "colour is uninitialized")
+      :> <<colour>>
+      colour::Red :> Red
+      list(colour, _ + 0) :> [Red, Green, Blue]
 
 
 :mini:`meth enum::cyclic(Names: string, ...): enum`

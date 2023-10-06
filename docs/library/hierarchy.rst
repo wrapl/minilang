@@ -40,7 +40,6 @@ hierarchy
       "enum::cyclic":e -> "time::day":w;
       "enum::cyclic":e -> "time::month":w;
       "any":e -> "time::zone":w;
-      "time":e -> "time::zoned":w;
       "any":e -> "thread":w;
       "any":e -> "thread::channel":w;
       "any":e -> "thread::mutex":w;

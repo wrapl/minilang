@@ -1723,6 +1723,7 @@ void ml_object_init(stringmap_t *Globals) {
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_string_fn, MLStringT, NULL);
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_names_fn, MLNamesT, NULL);
 	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_string_fn, MLStringT, NULL);
+	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_names_fn, MLNamesT, NULL);
 	stringmap_insert(MLEnumT->Exports, "cyclic", MLEnumCyclicT);
 	ml_externals_default_add("property", MLPropertyT);
 	ml_externals_default_add("object", MLObjectT);

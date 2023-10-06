@@ -94,10 +94,10 @@ typedef struct {
 	interactive_debugger_t *Debugger;
 } ml_console_debugger_t;
 
-static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugger, const char *Name, const char *Source, int Line, int Mode) {
+static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugger, const char *Name, const char *Source, int Line, int Eval) {
 	ml_value_t *Value = interactive_debugger_get(ConsoleDebugger->Debugger, Name);
 	if (Value) return Value;
-	return ml_compiler_lookup(ConsoleDebugger->Console->Compiler, Name, Source, Line, Mode);
+	return ml_compiler_lookup(ConsoleDebugger->Console->Compiler, Name, Source, Line, Eval);
 }
 
 static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
