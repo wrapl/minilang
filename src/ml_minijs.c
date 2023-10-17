@@ -166,6 +166,7 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLVariableT, ml_minijs_encoder_
 	ml_value_t *Json = ml_list();
 	ml_list_put(Json, ml_cstring("v"));
 	inthash_insert(Encoder->Cached, (uintptr_t)Value, Json);
+	ml_list_put(Json, ml_minijs_encode(Encoder, ml_deref(Value)));
 	return Json;
 }
 
@@ -732,7 +733,10 @@ static ml_value_t *ml_minijs_decode_array(ml_minijs_decoder_t *Decoder, ml_list_
 #endif
 
 static ml_value_t *ml_minijs_decode_variable(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
-	return ml_variable(MLNil, NULL);
+	ml_value_t *Variable = ml_variable(MLNil, NULL);
+	if (Index >= 0) inthash_insert(Decoder->Cached, Index, Variable);
+	if (Node) ml_variable_set(Variable, ml_minijs_decode(Decoder, Node->Value));
+	return Variable;
 }
 
 #define CLOSURE_NEXT(TYPE, FN) ({ \

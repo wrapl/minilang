@@ -57,6 +57,14 @@ ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {
 	return (ml_value_t *)Variable;
 }
 
+ml_value_t *ml_variable_set(ml_value_t *_Variable, ml_value_t *Value) {
+	ml_variable_t *Variable = (ml_variable_t *)_Variable;
+	if (Variable->VarType && !ml_is(Value, Variable->VarType)) {
+		return ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
+	}
+	return Variable->Value = Value;
+}
+
 ML_METHOD(MLVariableT) {
 //>variable
 // Return a new untyped variable with current value :mini:`nil`.
