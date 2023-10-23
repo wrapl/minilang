@@ -273,13 +273,16 @@ extern ml_type_t MLTasksT[];
 
 ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
 // A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
+//
+// :mini:`fun (Tasks: tasks)(Arg/1, ..., Arg/n, Fn): task`
+//    Creates a new :mini:`task` that runs :mini:`Fn(Arg/1, ..., Arg/n)`.
 	.call = (void *)ml_tasks_call
 );
 
 ML_METHODX(MLTasksT, MLFunctionT) {
 //<Main
-//>tasks
-// Creates a new :mini:`tasks` set with no limits.
+//>nil|error
+// Creates a new :mini:`tasks` set with no limits, and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
@@ -299,8 +302,8 @@ ML_METHODX(MLTasksT, MLFunctionT) {
 ML_METHODX(MLTasksT, MLIntegerT, MLFunctionT) {
 //<MaxRunning
 //<Main
-//>tasks
-// Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel.
+//>nil|error
+// Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel, and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
@@ -321,8 +324,8 @@ ML_METHODX(MLTasksT, MLIntegerT, MLIntegerT, MLFunctionT) {
 //<MaxRunning
 //<MaxPending
 //<Main
-//>tasks
-// Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel.
+//>nil|error
+// Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel, and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
 //
 // At most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
 	ml_tasks_t *Tasks = new(ml_tasks_t);

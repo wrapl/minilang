@@ -53,6 +53,7 @@ struct ml_parser_t {
 	const char *Next;
 	void *Data;
 	const char *(*Read)(void *);
+	ml_value_t *(*Special)(void *);
 	union {
 		ml_value_t *Value;
 		mlc_expr_t *Expr;
@@ -3676,6 +3677,10 @@ ML_TYPE(MLParserT, (), "parser",
 	.Constructor = (ml_value_t *)MLParser
 );
 
+static ml_value_t *ml_parser_default_special(void *Data) {
+	return ml_error("ParseError", "Parser does support special values");
+}
+
 ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLParserT;
@@ -3761,6 +3766,10 @@ void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, .
 		ml_integer(Parser->Line),
 		ml_string(Message, Length)
 	));
+}
+
+void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *)) {
+	Parser->Special = Special;
 }
 
 typedef enum {
@@ -3906,7 +3915,8 @@ typedef enum {
 	ML_CHAR_DELIM,
 	ML_CHAR_COLON,
 	ML_CHAR_SQUOTE,
-	ML_CHAR_DQUOTE
+	ML_CHAR_DQUOTE,
+	ML_CHAR_SPECIAL
 } ml_char_type_t;
 
 static const unsigned char CharTypes[256] = {
@@ -3949,7 +3959,9 @@ static const unsigned char CharTypes[256] = {
 	[','] = ML_CHAR_DELIM,
 	['\''] = ML_CHAR_SQUOTE,
 	['\"'] = ML_CHAR_DQUOTE,
-	[128 ... 255] = ML_CHAR_ALPHA
+	[128 ... 238] = ML_CHAR_ALPHA,
+	[239] = ML_CHAR_SPECIAL,
+	[240 ... 253] = ML_CHAR_ALPHA
 };
 
 static const ml_token_t CharTokens[256] = {
@@ -4148,6 +4160,15 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 		DO_CHAR_SPACE:
 			++Next;
 			continue;
+		DO_CHAR_SPECIAL: {
+			if ((unsigned char)Next[1] == 0xBF && (unsigned char)Next[2] == 0xBC) {
+				Parser->Next = Next + 3;
+				Parser->Value = Parser->Special(Parser->Data);
+				Parser->Token = MLT_VALUE;
+				return Parser->Token;
+			}
+			// no break;
+		}
 		DO_CHAR_ALPHA: {
 			const char *End = Next + 1;
 			while (ml_isidchar(*End)) ++End;
