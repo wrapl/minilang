@@ -85,6 +85,7 @@ static inline stringmap_t *ml_closure_params(ml_value_t *Closure) {
 typedef struct ml_frame_t ml_frame_t;
 
 ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type);
+ml_value_t *ml_variable_set(ml_value_t *Variable, ml_value_t *Value);
 
 extern ml_type_t MLVariableT[];
 
