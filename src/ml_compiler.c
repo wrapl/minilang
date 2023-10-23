@@ -3691,6 +3691,7 @@ ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	Parser->Line = 0;
 	Parser->Data = Data;
 	Parser->Read = Read ?: ml_parser_no_input;
+	Parser->Special = ml_parser_default_special;
 	return Parser;
 }
 
@@ -4143,7 +4144,8 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			&&DO_CHAR_DELIM,
 			&&DO_CHAR_COLON,
 			&&DO_CHAR_SQUOTE,
-			&&DO_CHAR_DQUOTE
+			&&DO_CHAR_DQUOTE,
+			&&DO_CHAR_SPECIAL
 		};
 		goto *Labels[CharTypes[(unsigned char)Char]];
 		DO_CHAR_EOI:
