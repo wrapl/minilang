@@ -525,6 +525,10 @@ ml_value_t *ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
 	return Value;
 }
 
+void ml_error_value_set(ml_value_t *Error, ml_value_t *Value) {
+	((ml_error_t *)Error)->Error->Value = Value;
+}
+
 void ml_error_print(const ml_value_t *Value) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	printf("Error: %s\n", Error->Error->Message);
