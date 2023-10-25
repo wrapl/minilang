@@ -958,7 +958,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_GENERICS
 		// closure <info> <upvalue_1> ...
 		if (!ml_is(Result, MLTypeT)) {
-			Result = ml_error("InternalError", "expected type, not %s", ml_typeof(Result)->Name);
+			Result = ml_error("TypeError", "expected type, not %s", ml_typeof(Result)->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
