@@ -57,7 +57,7 @@ const char *ml_parser_clear(ml_parser_t *Parser);
 void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, ...);
 mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 
-void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *));
+void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals);
 void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value);

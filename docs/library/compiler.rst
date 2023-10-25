@@ -149,6 +149,10 @@ compiler
    *TBD*
 
 
+:mini:`meth (Parser: parser):special(Callback: function): parser`
+   *TBD*
+
+
 :mini:`meth (Parser: parser):warnings: parser`
    *TBD*
 

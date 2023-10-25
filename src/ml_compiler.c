@@ -51,7 +51,7 @@ struct mlc_expected_delimiter_t {
 struct ml_parser_t {
 	ml_type_t *Type;
 	const char *Next;
-	void *Data;
+	void *ReadData, *SpecialData;
 	const char *(*Read)(void *);
 	ml_value_t *(*Special)(void *);
 	union {
@@ -3689,7 +3689,7 @@ ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	Parser->Source.Name = "";
 	Parser->Source.Line = 0;
 	Parser->Line = 0;
-	Parser->Data = Data;
+	Parser->ReadData = Data;
 	Parser->Read = Read ?: ml_parser_no_input;
 	Parser->Special = ml_parser_default_special;
 	return Parser;
@@ -3769,8 +3769,9 @@ void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, .
 	));
 }
 
-void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *)) {
+void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data) {
 	Parser->Special = Special;
+	Parser->SpecialData = Data;
 }
 
 typedef enum {
@@ -3806,7 +3807,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 	for (;;) {
 		char C = *End++;
 		if (!C) {
-			End = Parser->Read(Parser->Data);
+			End = Parser->Read(Parser->ReadData);
 			if (!End) {
 				ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
 				Parser->Next = "";
@@ -4149,7 +4150,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 		};
 		goto *Labels[CharTypes[(unsigned char)Char]];
 		DO_CHAR_EOI:
-			Next = Parser->Read(Parser->Data);
+			Next = Parser->Read(Parser->ReadData);
 			if (Next) continue;
 			Parser->Next = "";
 			Parser->Token = MLT_EOI;
@@ -4165,7 +4166,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 		DO_CHAR_SPECIAL: {
 			if ((unsigned char)Next[1] == 0xBF && (unsigned char)Next[2] == 0xBC) {
 				Parser->Next = Next + 3;
-				Parser->Value = Parser->Special(Parser->Data);
+				Parser->Value = Parser->Special(Parser->SpecialData);
 				Parser->Token = MLT_VALUE;
 				return Parser->Token;
 			}
@@ -4321,7 +4322,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 						++Parser->Line;
 						break;
 					case 0:
-						Next = Parser->Read(Parser->Data);
+						Next = Parser->Read(Parser->ReadData);
 						if (!Next) {
 							Parser->Next = Next = "";
 							ml_parse_warn(Parser, "ParseError", "End of input in comment");
@@ -6285,6 +6286,19 @@ ML_METHOD("input", MLParserT, MLStringT) {
 //>compiler
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
 	ml_parser_input(Parser, ml_string_value(Args[1]));
+	return Args[0];
+}
+
+static ml_value_t *ml_parser_special_fn(ml_value_t *Callback) {
+	return ml_simple_call(Callback, 0, NULL);
+}
+
+ML_METHOD("special", MLParserT, MLFunctionT) {
+//<Parser
+//<Callback
+//>parser
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	ml_parser_special(Parser, (void *)ml_parser_special_fn, Args[1]);
 	return Args[0];
 }
 
