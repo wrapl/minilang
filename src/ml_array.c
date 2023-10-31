@@ -31,21 +31,27 @@ ML_TYPE(MLArrayT, (MLAddressT, MLSequenceT), "array",
 	.Constructor = (ml_value_t *)MLArray
 );
 
-ML_TYPE(MLArrayMutableT, (MLArrayT, MLBufferT), "array::mutable");
+ML_TYPE(MLArrayMutableT, (MLArrayT, MLBufferT), "array::mutable",
+	.Constructor = (ml_value_t *)MLArray
+);
 
 ML_TYPE(MLVectorT, (MLArrayT), "vector",
 // Arrays with exactly 1 dimension.
 	.Constructor = (ml_value_t *)MLArray
 );
 
-ML_TYPE(MLVectorMutableT, (MLVectorT, MLArrayMutableT), "vector::mutable");
+ML_TYPE(MLVectorMutableT, (MLVectorT, MLArrayMutableT), "vector::mutable",
+	.Constructor = (ml_value_t *)MLArray
+);
 
 ML_TYPE(MLMatrixT, (MLArrayT), "matrix",
 // Arrays with exactly 2 dimensions.
 	.Constructor = (ml_value_t *)MLArray
 );
 
-ML_TYPE(MLMatrixMutableT, (MLMatrixT, MLArrayMutableT), "matrix::mutable");
+ML_TYPE(MLMatrixMutableT, (MLMatrixT, MLArrayMutableT), "matrix::mutable",
+	.Constructor = (ml_value_t *)MLArray
+);
 
 #ifdef ML_COMPLEX
 

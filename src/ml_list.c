@@ -1641,6 +1641,7 @@ ML_METHOD(MLListT, MLNamesT) {
 void ml_list_init() {
 #include "ml_list_init.c"
 	stringmap_insert(MLListT->Exports, "mutable", MLListMutableT);
+	MLListMutableT->Constructor = MLListT->Constructor;
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLListT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #ifdef ML_MUTABLES

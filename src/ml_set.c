@@ -1205,6 +1205,7 @@ void ml_set_init() {
 #include "ml_set_init.c"
 	stringmap_insert(MLSetT->Exports, "order", MLSetOrderT);
 	stringmap_insert(MLSetT->Exports, "mutable", MLSetMutableT);
+	MLSetMutableT->Constructor = MLSetT->Constructor;
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLSetT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(1), NULL);
 #ifdef ML_MUTABLES

@@ -2019,6 +2019,7 @@ ML_FUNCTIONX(MLMapJoin2) {
 void ml_map_init() {
 #include "ml_map_init.c"
 	stringmap_insert(MLMapT->Exports, "mutable", MLMapMutableT);
+	MLMapMutableT->Constructor = MLMapT->Constructor;
 	stringmap_insert(MLMapT->Exports, "order", MLMapOrderT);
 	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
 	stringmap_insert(MLMapT->Exports, "join2", MLMapJoin2);
