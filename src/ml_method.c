@@ -362,6 +362,8 @@ __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, i
 	return ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types);
 }
 
+ML_METHOD_ANON(MLMethodDefault, "method::default");
+
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
@@ -372,7 +374,11 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 	if (__builtin_expect(Callback != NULL, 1)) {
 		return ml_call(Caller, Callback, Count, Args);
 	} else {
-		ML_RETURN(ml_no_method_error(Method, Count, Args));
+		//ML_RETURN(ml_no_method_error(Method, Count, Args));
+		ml_value_t **Args2 = ml_alloc_args(Count + 1);
+		memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
+		Args2[0] = Value;
+		return ml_call(Caller, MLMethodDefault, Count + 1, Args2);
 	}
 }
 
@@ -398,6 +404,35 @@ ML_TYPE(MLMethodAnonT, (MLMethodT), "method::anon",
 
 static void ML_TYPED_FN(ml_value_set_name, MLMethodAnonT, ml_method_t *Method, const char *Name) {
 	Method->Name = Name;
+}
+
+ML_METHODV(MLMethodDefault, MLMethodT) {
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	//printf("Calling default method for %s", Method->Name);
+	int Length = 4;
+	for (int I = 1; I < Count; ++I) {
+		ml_type_t *Type = ml_typeof_deref(Args[I]);
+		if (Type == MLUninitializedT) return ml_error("ValueError", "%s is uninitialized", ml_uninitialized_name(ml_deref(Args[I])));
+		Length += strlen(Type->Name) + 2;
+	}
+	char *Types = snew(Length);
+	Types[0] = 0;
+	char *P = Types;
+#ifdef __MINGW32__
+	for (int I = 0; I < Count; ++I) {
+		strcpy(P, Args[I]->Type->Path);
+		P += strlen(Args[I]->Type->Path);
+		strcpy(P, ", ");
+		P += 2;
+	}
+#else
+	for (int I = 1; I < Count; ++I) {
+		ml_type_t *Type = ml_typeof_deref(Args[I]);
+		P = stpcpy(stpcpy(P, Type->Name), ", ");
+	}
+#endif
+	P[-2] = 0;
+	return ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types);
 }
 
 #ifdef ML_THREADSAFE
@@ -650,6 +685,7 @@ ML_METHODVX(MLMethodDefine, MLMethodT) {
 }
 
 ML_METHODVX(MLMethodDefine, MLTypeT) {
+//!internal
 //@method::define
 //<Type
 //<Types...:type
@@ -801,5 +837,6 @@ void ml_method_init() {
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	stringmap_insert(MLMethodT->Exports, "isolate", MLMethodIsolate);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);
+	stringmap_insert(MLMethodT->Exports, "default", MLMethodDefault);
 	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);
 }

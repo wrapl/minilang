@@ -77,7 +77,6 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 			ML_NAMES_CHECKX_ARG_COUNT(I);
 			ml_value_t **Arg2 = Args + I;
 			ML_NAMES_FOREACH(Args[I], Iter) {
-				++I;
 				const char *Name = ml_string_value(Iter->Value);
 				ml_field_info_t *Info = stringmap_search(Class->Names, Name);
 				if (!Info) {
@@ -86,7 +85,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 				ml_field_t *Field = &Object->Fields[Info->Index];
 				ml_value_t *Value = *++Arg2;
 				if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Field->Value);
-				Field->Value = *++Arg2;
+				Field->Value = Value;
 			}
 			break;
 		} else if (I > Class->NumFields) {
@@ -296,7 +295,7 @@ static void ml_object_call(ml_state_t *Caller, ml_object_t *Object, int Count, m
 	return ml_call(Caller, Object->Type->Call, Count + 1, Args2);
 }
 
-ML_FUNCTIONX(MLClass) {
+ML_FUNCTIONZ(MLClass) {
 //!object
 //@class
 //<Parents...:class
@@ -306,6 +305,8 @@ ML_FUNCTIONX(MLClass) {
 // Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 	ml_type_t *NativeType = NULL;
 	for (int I = 0; I < Count; ++I) {
+		if (ml_typeof(Args[I]) == MLNamesT) break;
+		Args[I] = ml_deref(Args[I]);
 		if (ml_typeof(Args[I]) == MLMethodT) {
 		} else if (ml_is(Args[I], MLClassT)) {
 		} else if (ml_is(Args[I], MLNamedTypeT)) {
@@ -325,8 +326,6 @@ ML_FUNCTIONX(MLClass) {
 				}
 				NativeType = Parent;
 			}
-		} else if (ml_is(Args[I], MLNamesT)) {
-			break;
 		} else {
 			ML_ERROR("TypeError", "Unexpected argument type: <%s>", ml_typeof(Args[I])->Name);
 		}
@@ -486,15 +485,7 @@ static void ml_property_call(ml_state_t *Caller, ml_property_t *Property, int Co
 	return ml_call(Caller, Property->Value, Count, Args);
 }
 
-extern ml_cfunctionx_t MLProperty[];
-
-ML_TYPE(MLPropertyT, (), "property",
-// A value with an associated setter function.
-	.deref = (void *)ml_property_deref,
-	.assign = (void *)ml_property_assign,
-	.call = (void *)ml_property_call,
-	.Constructor = (ml_value_t *)MLProperty
-);
+extern ml_type_t MLPropertyT[];
 
 ML_FUNCTIONX(MLProperty) {
 //@property
@@ -509,6 +500,14 @@ ML_FUNCTIONX(MLProperty) {
 	Property->Setter = Args[1];
 	ML_RETURN(Property);
 }
+
+ML_TYPE(MLPropertyT, (), "property",
+// A value with an associated setter function.
+	.deref = (void *)ml_property_deref,
+	.assign = (void *)ml_property_assign,
+	.call = (void *)ml_property_call,
+	.Constructor = (ml_value_t *)MLProperty
+);
 
 size_t ml_class_size(const ml_type_t *Value) {
 	return ((ml_class_t *)Value)->NumFields;

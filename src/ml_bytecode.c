@@ -379,9 +379,15 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
-			Result = ml_no_method_error(Method, COUNT, Args); \
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
-			ERROR(); \
+			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
+			Args2[0] = (ml_value_t *)Method; \
+			memcpy(Args2 + 1, Args, (COUNT) * sizeof(ml_value_t *)); \
+			ml_inst_t *Next = Inst + 4; \
+			ML_STORE_COUNTER(); \
+			Frame->Inst = Next; \
+			Frame->Line = Inst->Line; \
+			Frame->Top = Args; \
+			return ml_call(Frame, MLMethodDefault, COUNT + 1, Args2); \
 		} \
 		Inst[3].Data = Cached; \
 		ml_value_t *Function = Cached->Callback; \
@@ -398,9 +404,15 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
-			Result = ml_no_method_error(Method, COUNT, Args); \
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
-			ERROR(); \
+			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
+			Args2[0] = (ml_value_t *)Method; \
+			memcpy(Args2 + 1, Args, (COUNT) * sizeof(ml_value_t *)); \
+			ml_inst_t *Next = Inst + 4; \
+			ML_STORE_COUNTER(); \
+			Frame->Inst = Next; \
+			Frame->Line = Inst->Line; \
+			Frame->Top = Args; \
+			return ml_call(Frame, MLMethodDefault, COUNT + 1, Args2); \
 		} \
 		Inst[3].Data = Cached; \
 		ml_value_t *Function = Cached->Callback; \

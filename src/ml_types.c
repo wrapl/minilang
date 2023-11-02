@@ -264,7 +264,7 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	Type->call = Parent->call;
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
-	Type->Constructor = ml_method(NULL);
+	Type->Constructor = ml_method_anon(Name);
 	return Type;
 }
 
@@ -333,6 +333,7 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	Entry->Type = Type;
 	Entry->Fn = Function;
 	Entry->Next = inthash_insert(MLTypedFns, (uintptr_t)TypedFn, Entry);
+	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
 
 typedef struct {

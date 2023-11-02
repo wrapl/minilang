@@ -29,12 +29,16 @@ method
       * A type signature with the same number of types as arguments is considered a closer match than a matching variadic signature with fewer types.
 
 
+:mini:`meth method(Name: string): method`
+   Returns the method with name :mini:`Name`.
+
+
 :mini:`meth method(): method`
    Returns a new anonymous method.
 
 
-:mini:`meth method(Name: string): method`
-   Returns the method with name :mini:`Name`.
+:mini:`meth (Arg₁: method):MLMethodDefault(...)`
+   *TBD*
 
 
 :mini:`meth (Arg₁: method)[...]`
@@ -70,9 +74,5 @@ method
 
 :mini:`fun method::context(): method::context`
    Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
-
-
-:mini:`meth method::define(Type: type, Types: type, ..., ..?: any, Function: function): Function`
-   Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 

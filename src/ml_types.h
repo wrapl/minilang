@@ -815,6 +815,7 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 // Methods //
 
 extern ml_value_t *MLMethodDefine;
+extern ml_value_t *MLMethodDefault;
 
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_methods_t ml_methods_t;
