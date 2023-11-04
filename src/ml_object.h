@@ -16,7 +16,8 @@ typedef struct ml_field_info_t ml_field_info_t;
 struct ml_field_info_t {
 	ml_field_info_t *Next;
 	ml_value_t *Method;
-	int Index, Const;
+	ml_type_t *Type;
+	int Index;
 };
 
 struct ml_class_t {
@@ -43,11 +44,18 @@ ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) __attribute__ 
 
 extern ml_type_t MLClassT[];
 extern ml_type_t MLObjectT[];
+extern ml_type_t MLFieldT[];
+extern ml_type_t MLFieldMutableT[];
 
+ml_object_t *ml_field_owner(ml_field_t *Field);
 
 ml_type_t *ml_class(const char *Name);
 void ml_class_add_parent(ml_context_t *Context, ml_type_t *Class, ml_type_t *Parent);
-void ml_class_add_field(ml_context_t *Context, ml_type_t *Class, ml_value_t *Field);
+void ml_class_add_field(ml_context_t *Context, ml_type_t *Class, ml_value_t *Field, ml_type_t *Type);
+
+ml_value_t *ml_class_modify(ml_context_t *Context, ml_class_t *Class, ml_value_t *Modifier);
+
+ml_value_t *ml_modified_field(ml_value_t *Field, ml_type_t *Type);
 
 size_t ml_class_size(const ml_type_t *Value) __attribute__ ((pure));
 const char *ml_class_field_name(const ml_type_t *Value, int Index) __attribute__ ((pure));
@@ -55,6 +63,7 @@ const char *ml_class_field_name(const ml_type_t *Value, int Index) __attribute__
 ml_value_t *ml_object(ml_type_t *Class, ...) __attribute__ ((sentinel));
 size_t ml_object_size(const ml_value_t *Value) __attribute__ ((pure));
 ml_value_t *ml_object_field(const ml_value_t *Value, int Index) __attribute__ ((pure));
+void ml_object_foreach(const ml_value_t *Value, void *Data, int (*)(const char *, ml_value_t *, void *));
 
 extern ml_type_t MLEnumT[];
 extern ml_type_t MLEnumValueT[];
@@ -98,7 +107,7 @@ const char *ml_flags_value_name(ml_value_t *Value);
 #define ML_CLASS(TYPE, PARENTS, NAME) \
 	INIT_CODE TYPE = ml_class(NAME); \
 	INIT_CODE ML_CLASS_ADD_PARENTS(TYPE UNWRAP PARENTS)
-#define ML_FIELD(FIELD, TYPE) INIT_CODE ml_class_add_field(NULL, TYPE, _Generic(FIELD, char *: ml_method, default: ml_nop)(FIELD))
+#define ML_FIELD(FIELD, TYPE) INIT_CODE ml_class_add_field(NULL, TYPE, _Generic(FIELD, char *: ml_method, default: ml_nop)(FIELD), MLFieldMutableT)
 #define ML_ENUM(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum(NAME, VALUES, NULL)
 #define ML_ENUM_CYCLIC(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum_cyclic(NAME, VALUES, NULL)
 #define ML_FLAGS(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags(NAME, VALUES, NULL)

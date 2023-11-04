@@ -29,6 +29,10 @@ object
    *TBD*
 
 
+:mini:`meth (Arg₁: method):MLMethodDefault(Arg₂: field::modifier)`
+   *TBD*
+
+
 :mini:`type object`
    Parent type of all object classes.
 
