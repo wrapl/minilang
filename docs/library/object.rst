@@ -25,11 +25,19 @@ object
    *TBD*
 
 
+:mini:`def MLFieldWatcher: field::watcher`
+   *TBD*
+
+
 :mini:`type field::mutable < field`
    *TBD*
 
 
 :mini:`meth (Arg₁: method):MLMethodDefault(Arg₂: field::modifier)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: method):MLMethodDefault(Arg₂: field::watcher, Arg₃: function)`
    *TBD*
 
 

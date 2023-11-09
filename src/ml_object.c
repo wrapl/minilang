@@ -507,6 +507,44 @@ ML_METHOD(MLMethodDefault, MLMethodT, MLFieldModifierT) {
 	return ml_modified_field(Args[0], Modifier->FieldType);
 }
 
+typedef struct {
+	ml_type_t Base;
+	ml_value_t *Method, *Callback;
+} ml_watcher_type_t;
+
+static ml_value_t *ml_watched_field_deref(ml_field_t *Field) {
+	return Field->Value;
+}
+
+static void ml_watched_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_value_t *Value) {
+	Field->Value = Value;
+	ml_watcher_type_t *Watcher = (ml_watcher_type_t *)Field->Type;
+	ml_value_t **Args = ml_alloc_args(3);
+	Args[0] = Watcher->Method;
+	Args[1] = (ml_value_t *)ml_field_owner(Field);
+	Args[2] = Value;
+	return ml_call(Caller, Watcher->Callback, 3, Args);
+}
+
+ML_TYPE(MLFieldWatcherT, (), "field-watcher");
+//!internal
+
+ML_VALUE(MLFieldWatcher, MLFieldWatcherT);
+
+ML_METHOD(MLMethodDefault, MLMethodT, MLFieldWatcherT, MLFunctionT) {
+	ml_watcher_type_t *Watcher = new(ml_watcher_type_t);
+	Watcher->Base.Type = MLTypeT;
+	GC_asprintf((char **)&Watcher->Base.Name, "watcher:%lx", (uintptr_t)Watcher);
+	Watcher->Base.deref = (void *)ml_watched_field_deref;
+	Watcher->Base.assign = (void *)ml_watched_field_assign;
+	Watcher->Base.hash = ml_default_hash;
+	Watcher->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Watcher, MLFieldMutableT, NULL);
+	Watcher->Method = Args[0];
+	Watcher->Callback = Args[2];
+	return ml_modified_field(Args[0], (ml_type_t *)Watcher);
+}
+
 static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const char *Name) {
 	ml_value_t *NameField = stringmap_search(Object->Type->Base.Exports, "name");
 	if (!NameField) return;
@@ -1802,5 +1840,6 @@ void ml_object_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "enum", MLEnumT);
 		stringmap_insert(Globals, "flags", MLFlagsT);
 		stringmap_insert(Globals, "const", ml_field_modifier(MLFieldT));
+		stringmap_insert(Globals, "watched", MLFieldWatcher);
 	}
 }
