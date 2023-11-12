@@ -3112,6 +3112,31 @@ ML_FUNCTION(MLMemCollect) {
 	return MLNil;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_weak_ref_t;
+
+extern ml_type_t MLWeakRefT[];
+
+ML_FUNCTION(MLWeakRef) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_weak_ref_t *Ref = asnew(ml_weak_ref_t, 1);
+	Ref->Type = MLWeakRefT;
+	Ref->Value = Args[0];
+	GC_general_register_disappearing_link((void **)&Ref->Value, Args[0]);
+	return (ml_value_t *)Ref;
+}
+
+ML_TYPE(MLWeakRefT, (), "weak-ref",
+	.Constructor = (ml_value_t *)MLWeakRef
+);
+
+ML_METHOD("get", MLWeakRefT) {
+	ml_weak_ref_t *Ref = (ml_weak_ref_t *)Args[0];
+	return Ref->Value ?: MLNil;
+}
+
 void ml_init(stringmap_t *Globals) {
 #ifdef ML_JIT
 	GC_set_pages_executable(1);
@@ -3219,5 +3244,6 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);
+		stringmap_insert(Globals, "weakref", MLWeakRefT);
 	}
 }

@@ -228,6 +228,8 @@ void ml_default_queue_set(ml_scheduler_queue_t *Queue);
 extern ml_cfunctionx_t MLAtomic[];
 #endif
 
+extern ml_cfunctionx_t MLFinalize[];
+
 #define ML_STATE_FN2(NAME, FUNCTION) \
 static void FUNCTION(ml_state_t *State, ml_value_t *Value); \
 \

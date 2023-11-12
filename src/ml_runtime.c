@@ -1193,6 +1193,28 @@ ML_FUNCTIONX(MLAtomic) {
 
 #endif
 
+
+typedef struct {
+	ml_state_t *Caller;
+	ml_value_t *Fn;
+} ml_finalizer_t;
+
+static void ml_finalize(void *Value, ml_finalizer_t *Finalizer) {
+	ml_state_t *State = ml_state(Finalizer->Caller);
+	State->run = ml_end_state_run;
+	ml_call(State, Finalizer->Fn, 0, NULL);
+}
+
+ML_FUNCTIONX(MLFinalize) {
+	ML_CHECKX_ARG_COUNT(2);
+	ml_value_t *Value = Args[0];
+	ml_finalizer_t *Finalizer = new(ml_finalizer_t);
+	Finalizer->Caller = Caller;
+	Finalizer->Fn = Args[1];
+	GC_register_finalizer_no_order(Value, (GC_finalization_proc)ml_finalize, Finalizer, NULL, NULL);
+	ML_RETURN(Value);
+}
+
 // Semaphore //
 
 typedef struct {
