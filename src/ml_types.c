@@ -3120,6 +3120,10 @@ typedef struct {
 extern ml_type_t MLWeakRefT[];
 
 ML_FUNCTION(MLWeakRef) {
+//!type
+//@weakref
+//<Value:any
+//>weakref
 	ML_CHECK_ARG_COUNT(1);
 	ml_weak_ref_t *Ref = asnew(ml_weak_ref_t, 1);
 	Ref->Type = MLWeakRefT;
@@ -3129,10 +3133,15 @@ ML_FUNCTION(MLWeakRef) {
 }
 
 ML_TYPE(MLWeakRefT, (), "weak-ref",
+//!type
+//@weakref
 	.Constructor = (ml_value_t *)MLWeakRef
 );
 
 ML_METHOD("get", MLWeakRefT) {
+//!type
+//<Ref
+//>any|nil
 	ml_weak_ref_t *Ref = (ml_weak_ref_t *)Args[0];
 	return Ref->Value ?: MLNil;
 }

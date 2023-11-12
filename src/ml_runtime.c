@@ -1206,6 +1206,10 @@ static void ml_finalize(void *Value, ml_finalizer_t *Finalizer) {
 }
 
 ML_FUNCTIONX(MLFinalize) {
+//@finalize
+//<Value:any
+//<Fn:function
+// Registers :mini:`Fn` as the finalizer for :mini:`Value`.
 	ML_CHECKX_ARG_COUNT(2);
 	ml_value_t *Value = Args[0];
 	ml_finalizer_t *Finalizer = new(ml_finalizer_t);
