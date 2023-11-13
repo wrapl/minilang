@@ -1213,6 +1213,6 @@ void ml_set_init() {
 #endif
 #endif
 #ifdef ML_CBOR
-	ml_cbor_default_tag(258, ml_cbor_read_set);
+	ml_cbor_default_tag(ML_CBOR_TAG_FINITE_SET, ml_cbor_read_set);
 #endif
 }

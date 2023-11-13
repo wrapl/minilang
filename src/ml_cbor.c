@@ -359,8 +359,8 @@ void ml_cbor_read_tag_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 		if (Tag) Reader->FreeTag = Tag->Prev; else Tag = new(tag_t);
 		Tag->Prev = Reader->Tags;
 		Tag->Handler = Handler;
-		// TODO: Reimplement this without hard-coding tag 28
-		if (Value == 28) Tag->Index = ml_cbor_reader_next_index(Reader);
+		// TODO: Reimplement this without hard-coding tag ML_CBOR_TAG_MARK_REUSED
+		if (Value == ML_CBOR_TAG_MARK_REUSED) Tag->Index = ml_cbor_reader_next_index(Reader);
 		Reader->Tags = Tag;
 	}
 }
@@ -748,17 +748,17 @@ void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	if (Result.Present) {
 		if (Result.Value) {
 			int Index = (uintptr_t)Result.Value - 1;
-			minicbor_write_tag(Writer, 29);
+			minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
 			minicbor_write_integer(Writer, Index);
 			return;
 		}
 		int Index = ++Writer->Index;
 		inthash_insert(Writer->Reused, (uintptr_t)Value, (void *)(uintptr_t)Index);
-		minicbor_write_tag(Writer, 28);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_MARK_REUSED);
 	}
 	const char *Name = ml_externals_get_name(Writer->Externals, Value);
 	if (Name) {
-		minicbor_write_tag(Writer, 29);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
 		size_t Length = strlen(Name);
 		minicbor_write_string(Writer, Length);
 		Writer->WriteFn(Writer->Data, (const unsigned char *)Name, Length);
@@ -770,7 +770,7 @@ void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	if (ml_is_error(Serialized)) {
 		ML_CBOR_WRITER_ERROR(Writer, "CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
 	} else {
-		minicbor_write_tag(Writer, 27);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 		minicbor_write_array(Writer, ml_list_length(Serialized));
 		ML_LIST_FOREACH(Serialized, Iter) ml_cbor_write(Writer, Iter->Value);
 	}
@@ -1060,7 +1060,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		default: __builtin_unreachable();
 		}
 	}
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, ml_list_length(Values) + 2);
 	minicbor_write_string(Writer, 1);
 	Writer->WriteFn(Writer->Data, (unsigned char *)"!", 1);
@@ -1070,7 +1070,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_cbor_writer_t *Writer, ml_closure_t *Closure) {
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	ml_closure_info_t *Info = Closure->Info;
 	Info->Type = MLClosureInfoT;
 	minicbor_write_array(Writer, 2 + Info->NumUpValues);
@@ -1081,7 +1081,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_cbor_writer_t *Writer, ml_
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Global) {
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, 1);
 	minicbor_write_string(Writer, 4);
 	Writer->WriteFn(Writer->Data, (void *)"some", 4);
@@ -1116,13 +1116,13 @@ static void ML_TYPED_FN(ml_cbor_write, MLStringT, ml_cbor_writer_t *Writer, ml_v
 static void ML_TYPED_FN(ml_cbor_write, MLRegexT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	//printf("%s()\n", __func__);
 	const char *Pattern = ml_regex_pattern(Arg);
-	minicbor_write_tag(Writer, 35);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_REGEX);
 	minicbor_write_string(Writer, strlen(Pattern));
 	Writer->WriteFn(Writer->Data, (void *)Pattern, strlen(Pattern));
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLTupleT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	int Size = ml_tuple_size(Arg);
 	minicbor_write_array(Writer, 1 + Size);
 	minicbor_write_string(Writer, 5);
@@ -1157,13 +1157,13 @@ static void ML_TYPED_FN(ml_cbor_write, MLBooleanT, ml_cbor_writer_t *Writer, ml_
 
 static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	const char *Name = ml_method_name(Arg);
-	minicbor_write_tag(Writer, 39);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_IDENTIFIER);
 	minicbor_write_string(Writer, strlen(Name));
 	Writer->WriteFn(Writer->Data, (void *)Name, strlen(Name));
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	int Size = ml_object_size(Arg);
 	minicbor_write_array(Writer, 1 + Size);
 	const char *Name = ml_typeof(Arg)->Name;
@@ -1173,7 +1173,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_v
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_cbor_writer_t *Writer, ml_integer_range_t *Arg) {
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	if (Arg->Step != 1) {
 		minicbor_write_array(Writer, 4);
 		minicbor_write_string(Writer, 5);
@@ -1191,7 +1191,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_cbor_writer_t *Writer
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Writer, ml_real_range_t *Arg) {
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, 4);
 	minicbor_write_string(Writer, 5);
 	Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
@@ -1229,13 +1229,13 @@ ML_FUNCTION(DecodeComplex) {
 #endif
 
 static void ML_TYPED_FN(ml_cbor_write, MLExternalT, ml_cbor_writer_t *Writer, ml_external_t *Arg) {
-	minicbor_write_tag(Writer, 29);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
 	minicbor_write_string(Writer, Arg->Length);
 	Writer->WriteFn(Writer->Data, (unsigned const char *)Arg->Name, Arg->Length);
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
-	minicbor_write_tag(Writer, 27);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, 1);
 	minicbor_write_string(Writer, 4);
 	Writer->WriteFn(Writer->Data, (unsigned const char *)"some", 4);
@@ -1556,15 +1556,15 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_object("range", RangeMethod);
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", (ml_value_t *)DecodeComplex);
-	ml_cbor_default_tag(43000, ml_cbor_read_complex);
+	ml_cbor_default_tag(ML_CBOR_TAG_COMPLEX, ml_cbor_read_complex);
 #endif
 	ml_cbor_default_object("!", (ml_value_t *)DecodeClosureInfo);
 	ml_cbor_default_object("*", (ml_value_t *)DecodeClosure);
-	ml_cbor_default_tag(35, ml_cbor_read_regex);
-	ml_cbor_default_tag(39, ml_cbor_read_method);
-	ml_cbor_default_tag(27, ml_cbor_read_object);
-	ml_cbor_default_tag(28, ml_cbor_mark_reused);
-	ml_cbor_default_tag(29, ml_cbor_use_previous);
+	ml_cbor_default_tag(ML_CBOR_TAG_REGEX, ml_cbor_read_regex);
+	ml_cbor_default_tag(ML_CBOR_TAG_IDENTIFIER, ml_cbor_read_method);
+	ml_cbor_default_tag(ML_CBOR_TAG_OBJECT, ml_cbor_read_object);
+	ml_cbor_default_tag(ML_CBOR_TAG_MARK_REUSED, ml_cbor_mark_reused);
+	ml_cbor_default_tag(ML_CBOR_TAG_USE_PREVIOUS, ml_cbor_use_previous);
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
