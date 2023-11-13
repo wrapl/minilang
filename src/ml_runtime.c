@@ -1205,7 +1205,7 @@ static void ml_finalize(void *Value, ml_finalizer_t *Finalizer) {
 	ml_call(State, Finalizer->Fn, 0, NULL);
 }
 
-ML_FUNCTIONX(MLFinalize) {
+ML_FUNCTIONX(MLFinalizer) {
 //@finalize
 //<Value:any
 //<Fn:function

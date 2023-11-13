@@ -270,7 +270,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER_
 	stringmap_insert(Globals, "atomic", MLAtomic);
 #endif
-	stringmap_insert(Globals, "finalize", MLFinalize);
+	stringmap_insert(Globals, "finalize", MLFinalizer);
 	stringmap_insert(Globals, "context", MLContextKeyT);
 	stringmap_insert(Globals, "parser", MLParserT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);
