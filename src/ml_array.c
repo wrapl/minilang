@@ -7281,12 +7281,12 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer, ml_ar
 		}
 #ifdef ML_COMPLEX
 		if (Array->Format == ML_ARRAY_FORMAT_C32) {
-			ml_cbor_write_tag(Writer, 27);
+			ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 			ml_cbor_write_array(Writer, 2);
 			ml_cbor_write_string(Writer, 16);
 			ml_cbor_write_raw(Writer, (unsigned const char *)"array::complex32", 16);
 		} else if (Array->Format == ML_ARRAY_FORMAT_C64) {
-			ml_cbor_write_tag(Writer, 27);
+			ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 			ml_cbor_write_array(Writer, 2);
 			ml_cbor_write_string(Writer, 16);
 			ml_cbor_write_raw(Writer, (unsigned const char *)"array::complex64", 16);
@@ -7522,18 +7522,18 @@ void ml_array_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "matrix", MLMatrixT);
 	}
 #ifdef ML_CBOR
-	ml_cbor_default_tag(40, ml_cbor_read_multi_array_fn);
-	ml_cbor_default_tag(41, ml_cbor_read_any_array_fn);
-	ml_cbor_default_tag(64, ml_cbor_read_uint8_array_fn);
-	ml_cbor_default_tag(72, ml_cbor_read_int8_array_fn);
-	ml_cbor_default_tag(69, ml_cbor_read_uint16_array_fn);
-	ml_cbor_default_tag(77, ml_cbor_read_int16_array_fn);
-	ml_cbor_default_tag(70, ml_cbor_read_uint32_array_fn);
-	ml_cbor_default_tag(78, ml_cbor_read_int32_array_fn);
-	ml_cbor_default_tag(71, ml_cbor_read_uint64_array_fn);
-	ml_cbor_default_tag(79, ml_cbor_read_int64_array_fn);
-	ml_cbor_default_tag(85, ml_cbor_read_float32_array_fn);
-	ml_cbor_default_tag(86, ml_cbor_read_float64_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_MULTI_ARRAY, ml_cbor_read_multi_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_ANY, ml_cbor_read_any_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_UINT8, ml_cbor_read_uint8_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_INT8, ml_cbor_read_int8_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_UINT16_LE, ml_cbor_read_uint16_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_INT16_LE, ml_cbor_read_int16_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_UINT32_LE, ml_cbor_read_uint32_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_INT32_LE, ml_cbor_read_int32_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_UINT64_LE, ml_cbor_read_uint64_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_INT64_LE, ml_cbor_read_int64_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_FLOAT32_LE, ml_cbor_read_float32_array_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_FLOAT64_LE, ml_cbor_read_float64_array_fn);
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
 	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);

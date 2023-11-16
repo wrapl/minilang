@@ -230,9 +230,6 @@ ML_METHOD("i", MLComplexT) {
 	return ml_real(cimag(ml_complex_value(Args[0])));
 }
 
-#endif
-
-#ifdef ML_COMPLEX
 ML_TYPE(MLRealT, (MLComplexT), "real");
 #else
 ML_TYPE(MLRealT, (MLNumberT), "real");

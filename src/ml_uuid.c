@@ -139,7 +139,7 @@ void ml_uuid_init(stringmap_t *Globals) {
 	if (Globals) stringmap_insert(Globals, "uuid", MLUUIDT);
 	ml_string_fn_register("U", ml_uuid_parse);
 #ifdef ML_CBOR
-	ml_cbor_default_tag(37, ml_cbor_read_uuid_fn);
+	ml_cbor_default_tag(ML_CBOR_TAG_UUID, ml_cbor_read_uuid_fn);
 	ml_externals_default_add("uuid", MLUUIDT);
 #endif
 }

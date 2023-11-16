@@ -819,6 +819,16 @@ static ml_polynomial_t *ml_polynomial_reduce(ml_polynomial_t *A, ml_polynomial_t
 	return NULL;
 }
 
+static int variable_id(const char *Name) {
+	int *Slot = (int *)stringmap_slot(Variables, Name);
+	if (!Slot[0]) {
+		int Index = Slot[0] = Variables->Size;
+		Names = GC_realloc(Names, Index * sizeof(const char *));
+		Names[Index - 1] = Name;
+	}
+	return Slot[0];
+}
+
 ML_METHOD(MLPolynomialT, MLStringT) {
 //<Var
 //>polynomial
@@ -826,17 +836,10 @@ ML_METHOD(MLPolynomialT, MLStringT) {
 //$= let X := polynomial("x"), Y := polynomial("y")
 //$= let P := (X - Y) ^ 4
 //$= P(y is 3)
-	const char *Name = ml_string_value(Args[0]);
-	int *Slot = (int *)stringmap_slot(Variables, Name);
-	if (!Slot[0]) {
-		int Index = Slot[0] = Variables->Size;
-		Names = GC_realloc(Names, Index * sizeof(const char *));
-		Names[Index - 1] = Name;
-	}
 	ml_factors_t *Factors = xnew(ml_factors_t, 1, ml_factor_t);
 	Factors->Degree = 1;
 	Factors->Count = 1;
-	Factors->Factors->Variable = Slot[0];
+	Factors->Factors->Variable = variable_id(ml_string_value(Args[0]));
 	Factors->Factors->Degree = 1;
 	ml_polynomial_t *Poly = xnew(ml_polynomial_t, 1, ml_term_t);
 	Poly->Type = MLPolynomialT;
@@ -1924,6 +1927,111 @@ ML_FUNCTION(MLPolynomialRoots) {
 }
 
 #endif
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLPolynomialT, ml_polynomial_t *Polynomial) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("polynomial"));
+	inthash_t VarIds[1] = {INTHASH_INIT};
+	ml_value_t *VarNames = ml_list();
+	ml_list_put(Result, VarNames);
+	int NumVars = 0;
+	ml_term_t *Term = Polynomial->Terms;
+	for (int I = Polynomial->Count; --I >= 0; ++Term) {
+		const ml_factor_t *Factor = Term->Factors->Factors;
+		for (int J = Term->Factors->Count; --J >= 0; ++Factor) {
+			inthash_result_t Result = inthash_search2(VarIds, (uintptr_t)Factor->Variable);
+			if (!Result.Present) {
+				inthash_insert(VarIds, (uintptr_t)Factor->Variable, (void *)(uintptr_t)(NumVars++));
+				ml_list_put(VarNames, ml_string(Names[Factor->Variable - 1], -1));
+			}
+		}
+	}
+	ml_value_t *Coefficients = ml_list();
+	ml_list_put(Result, Coefficients);
+	ml_value_t *Degrees = ml_list();
+	ml_list_put(Result, Degrees);
+	Term = Polynomial->Terms;
+	int FactorDegrees[NumVars];
+	for (int I = Polynomial->Count; --I >= 0; ++Term) {
+#ifdef ML_COMPLEX
+		if (fabs(cimag(Term->Coeff)) <= DBL_EPSILON) {
+			ml_list_put(Coefficients, ml_real(creal(Term->Coeff)));
+		} else {
+			ml_list_put(Coefficients, ml_complex(Term->Coeff));
+		}
+#else
+		ml_list_put(Coefficients, ml_real(Term->Coeff));
+#endif
+		const ml_factor_t *Factor = Term->Factors->Factors;
+		for (int J = 0; J < NumVars; ++J) FactorDegrees[J] = 0;
+		for (int J = Term->Factors->Count; --J >= 0; ++Factor) {
+			int Var = (uintptr_t)inthash_search(VarIds, (uintptr_t)Factor->Variable);
+			FactorDegrees[Var] = Factor->Degree;
+		}
+		for (int J = 0; J < NumVars; ++J) ml_list_put(Degrees, ml_integer(FactorDegrees[J]));
+	}
+	return Result;
+}
+
+ML_DESERIALIZER("polynomial") {
+	ML_CHECK_ARG_COUNT(3);
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	ML_CHECK_ARG_TYPE(1, MLListT);
+	ML_CHECK_ARG_TYPE(2, MLListT);
+	int NumVars = ml_list_length(Args[0]);
+	int VarIds[NumVars];
+	int Index = 0;
+	ML_LIST_FOREACH(Args[0], Iter) {
+		if (!ml_is(Iter->Value, MLStringT)) return ml_error("SerializationError", "Invalid polynomial");
+		VarIds[Index++] = variable_id(ml_string_value(Iter->Value));
+	}
+	// List of coefficients
+	int NumTerms = ml_list_length(Args[1]);
+	ml_polynomial_t *Polynomial = xnew(ml_polynomial_t, NumTerms, ml_term_t);
+	Polynomial->Type = MLPolynomialT;
+	Polynomial->Count = NumTerms;
+	ml_term_t *Term = Polynomial->Terms;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLNumberT)) return ml_error("SerializationError", "Invalid polynomial");
+#ifdef ML_COMPLEX
+		Term->Coeff = ml_complex_value(Iter->Value);
+#else
+		Term->Coeff = ml_real_value(Iter->Value);
+#endif
+		++Term;
+	}
+	if (ml_list_length(Args[2]) != NumTerms * NumVars) return ml_error("SerializationError", "Invalid polynomial");
+	// List of variable degrees
+	int Degrees[NumVars];
+	Index = 0;
+	Term = Polynomial->Terms;
+	int NumFactors = 0;
+	ML_LIST_FOREACH(Args[2], Iter) {
+		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("SerializationError", "Invalid polynomial");
+		int Degree = Degrees[Index++] = ml_integer_value(Iter->Value);
+		if (Degree) ++NumFactors;
+		if (Index == NumVars) {
+			if (NumFactors) {
+				ml_factors_t *Factors = xnew(ml_factors_t, NumFactors, ml_factor_t);
+				Factors->Count = NumFactors;
+				ml_factor_t *Factor = Factors->Factors;
+				for (int I = 0; I < NumVars; ++I)  {
+					if (Degrees[I]) {
+						Factor->Variable = VarIds[I];
+						Factors->Degree += (Factor->Degree = Degrees[I]);
+						++Factor;
+					}
+				}
+				(Term++)->Factors = Factors;
+			} else {
+				(Term++)->Factors = Constant;
+			}
+			NumFactors = 0;
+			Index = 0;
+		}
+	}
+	return (ml_value_t *)Polynomial;
+}
 
 void ml_polynomial_init(stringmap_t *Globals) {
 #include "ml_polynomial_init.c"

@@ -91,6 +91,21 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLDoubleT, ml_minijs_encoder_t 
 	return Value;
 }
 
+#ifdef ML_COMPLEX
+#include <complex.h>
+#undef I
+
+static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLComplexT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	ml_value_t *Json = ml_list();
+	ml_list_put(Json, ml_cstring("c"));
+	complex_double Complex = ml_complex_value(Value);
+	ml_list_put(Json, ml_real(creal(Complex)));
+	ml_list_put(Json, ml_real(cimag(Complex)));
+	return Json;
+}
+
+#endif
+
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLStringT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	return Value;
 }
@@ -678,22 +693,37 @@ static ml_value_t *ml_minijs_decode_map(ml_minijs_decoder_t *Decoder, ml_list_no
 	return Map;
 }
 
+#ifdef ML_COMPLEX
+
+static ml_value_t *ml_minijs_decode_complex(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
+	if (!Node) return ml_error("TypeError", "Complex requires real + imaginary parts");
+	if (!ml_is(Node->Value, MLRealT)) return ml_error("TypeError", "Complex requires reals");
+	double Real = ml_real_value(Node->Value);
+	Node = Node->Next;
+	if (!Node) return ml_error("TypeError", "Complex requires real + imaginary parts");
+	if (!ml_is(Node->Value, MLRealT)) return ml_error("TypeError", "Complex requires reals");
+	double Imag = ml_real_value(Node->Value);
+	return ml_complex(Real + Imag * _Complex_I);
+}
+
+#endif
+
 static ml_value_t *ml_minijs_decode_regex(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
-	if (!Node) return ml_error("TypeError", "Global requires string name");
+	if (!Node) return ml_error("TypeError", "Regex requires string name");
 	ml_value_t *Value = Node->Value;
 	if (!ml_is(Value, MLStringT)) return ml_error("TypeError", "Regex requires strings");
 	return ml_regex(ml_string_value(Value), ml_string_length(Value));
 }
 
 static ml_value_t *ml_minijs_decode_method(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
-	if (!Node) return ml_error("TypeError", "Global requires string name");
+	if (!Node) return ml_error("TypeError", "Method requires string name");
 	ml_value_t *Value = Node->Value;
 	if (!ml_is(Value, MLStringT)) return ml_error("TypeError", "Method requires strings");
 	return ml_method(ml_string_value(Value));
 }
 
 static ml_value_t *ml_minijs_decode_type(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
-	if (!Node) return ml_error("TypeError", "Global requires string name");
+	if (!Node) return ml_error("TypeError", "Type requires string name");
 	ml_value_t *Value = Node->Value;
 	if (!ml_is(Value, MLStringT)) return ml_error("TypeError", "Type requires strings");
 	return MLNil;
@@ -1041,6 +1071,10 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "m", ml_minijs_decode_map);
 	stringmap_insert(Decoders, "type", ml_minijs_decode_type);
 	stringmap_insert(Decoders, "t", ml_minijs_decode_type);
+#ifdef ML_COMPLEX
+	stringmap_insert(Decoders, "complex", ml_minijs_decode_complex);
+	stringmap_insert(Decoders, "c", ml_minijs_decode_complex);
+#endif
 	stringmap_insert(Decoders, "regex", ml_minijs_decode_regex);
 	stringmap_insert(Decoders, "r", ml_minijs_decode_regex);
 	stringmap_insert(Decoders, "method", ml_minijs_decode_method);

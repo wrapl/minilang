@@ -882,6 +882,6 @@ void ml_json_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "json", MLJsonT);
 	}
 #ifdef ML_CBOR
-	ml_cbor_default_tag(262, ml_cbor_read_json);
+	ml_cbor_default_tag(ML_CBOR_TAG_EMBEDDED_JSON, ml_cbor_read_json);
 #endif
 }
