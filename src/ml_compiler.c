@@ -3561,6 +3561,7 @@ const char *MLTokens[] = {
 	"or", // MLT_OR,
 	"ref", // MLT_REF,
 	"ret", // MLT_RET,
+	"seq", // MLT_SEQ,
 	"susp", // MLT_SUSP,
 	"switch", // MLT_SWITCH,
 	"then", // MLT_THEN,
@@ -5093,6 +5094,7 @@ static void ml_accept_for_decls(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 
 static ML_METHOD_DECL(MLInMethod, "in");
 static ML_METHOD_DECL(MLIsMethod, "=");
+extern ml_type_t MLFunctionSequenceT[];
 
 ML_FUNCTION(MLNot) {
 //@not
@@ -5349,6 +5351,16 @@ with_name:
 	case MLT_METH: {
 		ml_next(Parser);
 		return ml_accept_meth_expr(Parser);
+	}
+	case MLT_SEQ: {
+		ml_next(Parser);
+		ML_EXPR(FunExpr, fun, fun);
+		FunExpr->Source = Parser->Source.Name;
+		FunExpr->Body = ml_accept_expression(Parser, EXPR_DEFAULT);
+		ML_EXPR(SequenceExpr, parent_value, const_call);
+		SequenceExpr->Value = (ml_value_t *)MLFunctionSequenceT;
+		SequenceExpr->Child = ML_EXPR_END(FunExpr);
+		return ML_EXPR_END(SequenceExpr);
 	}
 	case MLT_SUSP: {
 		ml_next(Parser);

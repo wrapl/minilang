@@ -36,6 +36,7 @@ typedef enum {
 	MLT_OR,
 	MLT_REF,
 	MLT_RET,
+	MLT_SEQ,
 	MLT_SUSP,
 	MLT_SWITCH,
 	MLT_THEN,

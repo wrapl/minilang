@@ -129,3 +129,7 @@ div.highlight {
 section {
 	max-width: unset !important;
 }
+
+pre {
+	font-size: 1em !important;
+}

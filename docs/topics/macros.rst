@@ -13,6 +13,7 @@ This method of implementing macros is different to most other languages that sup
 :mini:`macro` is a normal *Minilang* type and macros can be defined using a constant declaration (either :mini:`def name := macro(Callback)` or the compact alternative :mini:`macro: name(Callback)`). For example:
 
 .. code-block:: mini
+   :linenos:
 
    macro: log(; Expr) do
       :{print('[{:$Source}:{:$Line}] {:$Expr}\n'), Expr is Expr, Source is macro::value(Expr:source), Line is macro::value(Expr:start)}

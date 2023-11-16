@@ -14,6 +14,7 @@ If no suitable method is found for a specific combination of arguments, an error
    )? ')' ':='? expression
 
 .. code-block:: mini
+   :linenos:
 
    print('5 * \"word\" = {5 * "word"}\n')
 
@@ -23,6 +24,7 @@ If no suitable method is found for a specific combination of arguments, an error
       <console>:1
 
 .. code-block:: mini
+   :linenos:
 
    meth *(Count: integer, String: string) sum(1 .. Count;) String
 

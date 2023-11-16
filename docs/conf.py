@@ -75,7 +75,7 @@ extensions = [
 	'sphinx.ext.graphviz',
 	'sphinx.ext.viewcode',
 	'sphinx_toolbox.collapse',
-	"sphinxawesome_theme"
+	#"sphinxawesome_theme"
 	#'sphinx_design'
 ]
 
@@ -92,9 +92,18 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # -- Options for HTML output -------------------------------------------------
 
-html_theme = 'sphinxawesome_theme'
+html_theme = 'insipid'
+
+html_context = {
+    'display_github': True,
+    'github_user': 'wrapl',
+    'github_repo': 'minilang',
+}
 
 html_theme_options = {
+	"body_max_width": None,
+	"globaltoc_collapse": True,
+	"globaltoc_includehidden": True,
 	"extra_header_links": {
 		"gitHub": {
 			"link": github_url,
@@ -113,7 +122,7 @@ html_theme_options = {
 	}
 }
 
-html_awesome_code_headers = False
+html_copy_source = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.

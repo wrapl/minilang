@@ -9,6 +9,7 @@ The following is an example of *Minilang* code showing an
 implementation of the Fibonacci numbers.
 
 .. code-block:: mini
+   :linenos:
 
    fun fibonacci(N) do
       if N <= 0 then
@@ -58,6 +59,7 @@ Line comments start with ``:>`` and run until the end of the line.
 Block comments start with ``:<`` and end with ``>:`` and can be nested.
 
 .. code-block:: mini
+   :linenos:
 
    :> This is a line comment.
 
@@ -73,6 +75,7 @@ Identifiers and Keywords
 Identifiers start with a letter or underscore and can contain letters, digits and underscores. *Minilang* is case sensitive.
 
 .. code-block:: mini
+   :linenos:
 
    A
    factorial
@@ -83,6 +86,7 @@ Identifiers start with a letter or underscore and can contain letters, digits an
 The following identifiers are reserved as keywords.
 
 .. code-block:: mini
+   :linenos:
 
    _ and case debug def do each else elseif end exit for fun
    if in is it let loop meth must next nil not old on or ref
@@ -96,6 +100,7 @@ Whitespace and Line Breaks
 For example the following are equivalent as the semicolons are replaced by line breaks:
 
 .. code-block:: mini
+   :linenos:
 
    do print("Hello "); print("world"); end
 
@@ -107,6 +112,7 @@ For example the following are equivalent as the semicolons are replaced by line 
 The following are also equivalent as the line break occurs after an infix operator where at least one more token is required to complete the expression:
 
 .. code-block:: mini
+   :linenos:
 
    let X := "Hello " + "world"
 
@@ -116,6 +122,7 @@ The following are also equivalent as the line break occurs after an infix operat
 However the following code is not equivalent to the code above as the line break occurs before the infix operator and hence no token is required to complete the expression:
 
 .. code-block:: mini
+   :linenos:
 
    let X := "Hello "
       + "world"
@@ -123,6 +130,7 @@ However the following code is not equivalent to the code above as the line break
 Instead the above code is equivalent to following where semicolons have been added to show the separate declaration and expression (with a prefix operation):
 
 .. code-block:: mini
+   :linenos:
 
    let X := "Hello ";
 
@@ -137,6 +145,7 @@ A block in is a group of expressions and declarations. A block returns the resul
 When any code is loaded in *Minilang*, it is implicitly treated as a block.
 
 .. code-block:: mini
+   :linenos:
 
    var X := do
       let Y := 7
@@ -184,6 +193,7 @@ There are 3 types of declaration:
 Declarations are visible in nested blocks (including nested functions), unless they are shadowed by another declaration.
 
 .. code-block:: mini
+   :linenos:
 
    print('Y = {Y}\n') :> Y is nil here
 
@@ -222,6 +232,7 @@ Function Declarations
 Functions are first class values in *Minilang*, they can be assigned to variables or used to initialize identifiers. For convenience, instead of writing :mini:`let Name := fun(Args...) Body`, we can write :mini:`fun Name(Args...) Body`. For example:
 
 .. code-block:: mini
+   :linenos:
 
    fun fact(N) do
       if N < 2 then
@@ -244,6 +255,7 @@ Imports, Classes, etc.
 A declaration of the form :mini:`Expression: Name(Args...)` is equivalent to :mini:`def Name := Expression(Args...)`. This type of declaration is useful for declaring imported modules, classes, etc. For example:
 
 .. code-block:: mini
+   :linenos:
 
    import: utils("lib/utils.mini")
 
@@ -257,6 +269,7 @@ Exports, etc.
 A declaration of the form :mini:`Expression: Declaration` is equivalent to :mini:`Declaration; Expression("Name", Name)` where *Name* is the identifier in the *Declaration*. Any type of declaration (:mini:`var`, :mini:`let`, :mini:`def`, :mini:`fun` or another compound declaration) is allowed. This form is useful for declaring exports. For example:
 
 .. code-block:: mini
+   :linenos:
 
    export: fun add(X, Y) X + Y
 
@@ -265,6 +278,7 @@ A declaration of the form :mini:`Expression: Declaration` is equivalent to :mini
 Compound declarations can be combined. For example, the following code creates and exports a class.
 
 .. code-block:: mini
+   :linenos:
 
    export: class: point(:X, :Y)
 
@@ -276,6 +290,7 @@ Multiple identifiers can be declared and initialized with contents of a single a
 #. :mini:`let (Name₁, Name₂, ...) := Expression`. Effectively equivalent to the following:
 
    .. code-block:: mini
+      :linenos:
 
       let Temp := Expression
       let Name₁ := Temp[1]
@@ -284,6 +299,7 @@ Multiple identifiers can be declared and initialized with contents of a single a
 #. :mini:`let (Name₁, Name₂, ...) in Expression`. Effectively equivalent to the following:
 
    .. code-block:: mini
+      :linenos:
 
       let Temp := Expression
       let Name₁ := Temp["Name₁"]
@@ -361,6 +377,7 @@ If Expressions
 The :mini:`if`-expression, :mini:`if ... then ... else ... end` evaluates each condition until one has a value other than :mini:`nil` and returns the value of the selected branch. For example:
 
 .. code-block:: mini
+   :linenos:
 
    var X := 1
    print(if X % 2 = 0 then "even" else "odd" end, "\n")
@@ -370,6 +387,7 @@ will print ``odd``.
 Multiple conditions can be included using :mini:`elseif`.
 
 .. code-block:: mini
+   :linenos:
 
    for I in 1 .. 100 do
       if I % 3 = 0 and I % 5 = 0 then
@@ -391,6 +409,7 @@ Switch Expressions
 There are two types of :mini:`switch`-expression in *Minilang*. The basic :mini:`switch`-expression chooses a branch based on an integer value, with cases corresponding to ``0, 1, 2, ...``, etc.
 
 .. code-block:: mini
+   :linenos:
 
    switch Expression
    case
@@ -406,6 +425,7 @@ When evaluated, :mini:`Expression` must evaluate to a non-negative integer, ``n`
 The general :mini:`switch`-expression selects a branch corresponding to a value based on a specific *switch provider*.
 
 .. code-block:: mini
+   :linenos:
 
    switch Expression: Provider
    case Expressions do
@@ -424,6 +444,7 @@ Loop Expressions
 A :mini:`loop`-expression, :mini:`loop ... end` evaluates its code repeatedly until an :mini:`exit`-expression is evaluated: :mini:`exit Value` exits a loop and returns the given value as the value of the loop. The value can be omitted, in which case the loop evaluates to :mini:`nil`.
 
 .. code-block:: mini
+   :linenos:
 
    var I := 1
    print('Found fizzbuzz at I = {loop
@@ -446,6 +467,7 @@ For Expressions
 The for expression, :mini:`for Value in Collection do ... end` is used to iterate through a collection of values.
 
 .. code-block:: mini
+   :linenos:
 
    for X in [1, 2, 3, 4, 5] do
       print('X = {X}\n')
@@ -454,6 +476,7 @@ The for expression, :mini:`for Value in Collection do ... end` is used to iterat
 If the collection has a key associated with each value, then a second variable can be added, :mini:`for Key, Value in Collection do ... end`. When iterating through a list, the index of each value is used as the key.
 
 .. code-block:: mini
+   :linenos:
 
    for Key, Value in {"a" is 1, "b" is 2, "c" is 3} do
       print('{Key} -> {Value}\n')
@@ -462,6 +485,7 @@ If the collection has a key associated with each value, then a second variable c
 For loops can also use destructing assignments to simplify iterating over collections of tuples, lists, etc.
 
 .. code-block:: mini
+   :linenos:
 
    for Key, (First, Second) in {"a" is (1, 10), "b" is (2, 20), "c" is (3, 30)} do
       print('{Key} -> {First}, {Second}\n')
@@ -470,6 +494,7 @@ For loops can also use destructing assignments to simplify iterating over collec
 A for loop is also an expression (like most things in *Minilang*), and can return a value using :mini:`exit`, :mini:`while` or :mini:`until`. Unlike a basic loop expression, a for loop can also end when it runs out of values. In this case, the value of the for loop is :mini:`nil`. An optional :mini:`else` clause can be added to the for loop to give a different value in this case.
 
 .. code-block:: mini
+   :linenos:
 
    var L := [1, 2, 3, 4, 5]
 
@@ -491,6 +516,7 @@ For loops are not restricted to using lists and maps. Any value can be used in a
 In order to loop over a range of numbers, *Minilang* has a range type, created using the :mini:`..` operator.
 
 .. code-block:: mini
+   :linenos:
 
    for X in 1 .. 5 do
       print('X = {X}\n')
@@ -507,6 +533,7 @@ In order to loop over a range of numbers, *Minilang* has a range type, created u
 The default step size is :mini:`1` but can be changed using the :mini:`:by` method.
 
 .. code-block:: mini
+   :linenos:
 
    for X in 1 .. 10 by 2 do
       print('X = {X}\n')
@@ -532,6 +559,7 @@ Functions in *Minilang* are first class values. That means they can be passed to
    The general syntax of a function is :mini:`fun(Name₁, Name₂, ...) Expression`. Calling a function is achieved by the traditional syntax :mini:`Function(Expression, Expression, ...)`.
 
 .. code-block:: mini
+   :linenos:
 
    let add := fun(A, B) A + B
    let sub := fun(A, B) A - B
@@ -546,6 +574,7 @@ Note that :mini:`Function` can be a variable containing a function, or any
 expression which returns a function.
 
 .. code-block:: mini
+   :linenos:
 
    var X := (if nil then add else sub end)(10, 3) :> 7
 
@@ -557,12 +586,14 @@ As a shorthand, the code :mini:`var Name := fun(Name₁, Name₂, ...) Expressio
 as :mini:`fun Name(Name₁, Name₂, ...) Expression`. Internally, the two forms are identical.
 
 .. code-block:: mini
+   :linenos:
 
    fun add(A, B) A + B
 
 Although a function contains a single expression, this expression can be a block expression, :mini:`do ... end`. A block can contain any number of declarations and expressions, which are evaluated in sequence. The last value evaluated is returned as the value of the block. A return expression, :mini:`ret Expression`, returns the value of :mini:`Expression` from the enclosing function. If :mini:`Expression` is omitted, then :mini:`nil` is returned.
 
 .. code-block:: mini
+   :linenos:
 
    fun fact(N) do
       var F := 1
@@ -576,6 +607,7 @@ When calling a function which expects another function as its last parameter,
 the following shorthand can be used:
 
 .. code-block:: mini
+   :linenos:
 
    f(1, 2, fun(A, B) do
       ret A + B
@@ -584,6 +616,7 @@ the following shorthand can be used:
 can be written as
 
 .. code-block:: mini
+   :linenos:
 
    f(1, 2; A, B) do
       ret A + B
@@ -595,6 +628,7 @@ Generators
 *Minilang* functions can be used as generators using suspend expressions, :mini:`susp Key, Value`. If :mini:`Key` is omitted, :mini:`nil` is used as the key. The function must return :mini:`nil` when it has no more values to produce.
 
 .. code-block:: mini
+   :linenos:
 
    fun squares(N) do
       for I in 1 .. N do
@@ -626,6 +660,7 @@ Types
 Every value in *Minilang* has an associated type. The type of a value can be obtained by calling :mini:`type(Value)`.
 
 .. code-block:: mini
+   :linenos:
 
    print(type(10), "\n")
    print(type("Hello"), "\n")
@@ -681,6 +716,7 @@ Methods consisting of only the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^
 Methods behave as *atoms*, that is two methods with the same characters internally point to the same object, and are thus identically equal.
 
 .. code-block:: mini
+   :linenos:
 
    :put
    :write
@@ -692,6 +728,7 @@ Methods behave as *atoms*, that is two methods with the same characters internal
 Methods provide type-dependant function calls. Each method is effectively a mapping from lists of types to functions. When called with arguments, a method looks through its entries for the best match based on the types of *all* of the arguments and calls the corresponding function. More information on how methods work can be found in :doc:`/topics/methods`.
 
 .. code-block:: mini
+   :linenos:
 
    var L := []
    :put(L, 1, 2, 3)
@@ -706,6 +743,7 @@ be written with their first argument before the method. Thus the code above is
 equivalent to the following:
 
 .. code-block:: mini
+   :linenos:
 
    var L := []
    L:put(1, 2, 3)
@@ -714,6 +752,7 @@ equivalent to the following:
 Methods with only symbol characters or that are valid identifiers can be invoked using infix notation. The following are equivalent:
 
 .. code-block:: mini
+   :linenos:
 
    +(A, B)
    A + B
@@ -740,6 +779,7 @@ Expression values can be constructed using the syntax :mini:`:{Expr, Name₁ is 
 Macros can be created using the :mini:`macro` constructor, the example below uses the compound declaration form described above. Note that :mini:`macro` expects a function, hence the :mini:`;` in the definition of :mini:`test`.
 
 .. code-block:: mini
+   :linenos:
 
    macro: test(; Expr) :{do
       let X := 10
@@ -772,6 +812,7 @@ The special built in value :mini:`nil` denotes the absence of any other value. V
    Although *Minilang* has boolean values, conditional and looping statements treat only :mini:`nil` as false and **any** other value as true.
 
 .. code-block:: mini
+   :linenos:
 
    :> Nil
    nil
@@ -789,6 +830,7 @@ The special built in value :mini:`nil` denotes the absence of any other value. V
 Comparison operators such as :mini:`=`, :mini:`>=`, etc, return the second argument if the comparison is true, and :mini:`nil` if it isn't. Comparisons also return :mini:`nil` if either argument is :mini:`nil`, allowing comparisons to be chained.
 
 .. code-block:: mini
+   :linenos:
 
    1 < 2 :> returns 2
    1 > 2 :> returns nil
@@ -807,6 +849,7 @@ Integers can be written in standard decimal notation. Reals can be written in st
 They support the standard arithmetic operations, comparison operations and conversion to or from strings.
 
 .. code-block:: mini
+   :linenos:
 
    :> Integers
    10
@@ -819,6 +862,7 @@ They support the standard arithmetic operations, comparison operations and conve
    0.78e-12
 
 .. code-block:: mini
+   :linenos:
 
    :> Arithmetic
    1 + 1 :> 2
@@ -851,6 +895,7 @@ Ranges
 *Minilang* provides integer and real ranges. The :mini:`Min .. Max` operator returns an inclusive range from :mini:`Min` to :mini:`Max`.
 
 .. code-block:: mini
+   :linenos:
 
    :> Construction
    1 .. 10
@@ -870,6 +915,7 @@ Regular strings are written between double quotes ``"``, and contain regular cha
 Complex strings are written between single quotes ``'`` and can contain the same characters and escape sequences as regular strings. In addition, they can contain embedded expressions between braces ``{`` and ``}``. At runtime, the expressions in braces are evaluated and converted to strings. To include a left brace ``{`` in a complex string, escape it  ``\{``.
 
 .. code-block:: mini
+   :linenos:
 
    :> Regular strings
    "Hello world!"
@@ -898,6 +944,7 @@ Regular Expressions
 Regular expressions can be written as ``r"expression"``, where *expression* is a POSIX compatible regular expression.
 
 .. code-block:: mini
+   :linenos:
 
    :> Regular expressions
    r"[0-9]+/[0-9]+/[0-9]+"
@@ -913,6 +960,7 @@ Lists
 Lists are extendable ordered collections of values, and are created using square brackets, ``[`` and ``]``. A list can contain any value, including other lists, maps, etc.
 
 .. code-block:: mini
+   :linenos:
 
    :> Construction
    let L1 := [1, 2, 3, 4]

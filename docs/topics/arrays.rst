@@ -117,6 +117,7 @@ Constructing Arrays
 Arrays can be created by calling the corresponding type with a list of dimension sizes. All the entries of new array will be initialized to 0 and can be assigned later.
 
 .. code-block:: mini
+   :linenos:
 
    let A := array::int32([2, 2])
    print('A = {A}')
@@ -134,6 +135,7 @@ Arrays can be created by calling the corresponding type with a list of dimension
 Instead of assigning each value later, a function can be passed to the array constructor to populate the values. The function will be called with the indices of each entry and the returned value will be assigned to the entry in the new array.
 
 .. code-block:: mini
+   :linenos:
 
    let A := array::int32([2, 2], fun(I, J) I * 10 + J)
    :> or
@@ -146,6 +148,7 @@ Instead of assigning each value later, a function can be passed to the array con
 Arrays can also be constructed directly from nested lists using :mini:`array`. In this case, the array type and shape is inferred from the list values and structure.
 
 .. code-block:: mini
+   :linenos:
 
    let A := array([[1, 2], [3, 4]])
    print('A: {type(A)}{A:shape}\n')
@@ -163,6 +166,7 @@ Arrays can also be constructed directly from nested lists using :mini:`array`. I
 For convenience, the prefix operators :mini:`$` and :mini:`^` can be used with lists to construct arrays more easily. :mini:`$List` is equivalent to :mini:`array(List)`. :mini:`^List` adds an extra dimension of size 1 and then transposes the resulting array. It is mainly used for constructing column vectors without requiring each value being wrapped in its own list.
 
 .. code-block:: mini
+   :linenos:
 
    let A := $[[1, 2], [3, 4]]
    print('A: {type(A)}{A:shape}\n')

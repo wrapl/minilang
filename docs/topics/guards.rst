@@ -7,6 +7,7 @@ Simple Guards
 :mini:`nil` is used throughout *Minilang* to denote the absence of any other value. This includes the initial values of variables or object fields before assignment, indexing a :mini:`map` or :mini:`list` with a missing key or index and the result of binary comparisons which are logically false.
 
 .. code-block:: mini
+   :linenos:
 
    var X
    X :> nil
@@ -19,6 +20,7 @@ Simple Guards
 As a result, it is often required to check the result of an expression for :mini:`nil` before using the result in a function call.
 
 .. code-block:: mini
+   :linenos:
 
    let M := {"A" is [1, 2], "B" is [3, 4]}
    M["A"][1] :> 1
@@ -34,6 +36,7 @@ As a result, it is often required to check the result of an expression for :mini
 If the expression in a simple guarded argument evaluates to :mini:`nil` then the **innermost** function call containing the guarded argument evaluates immediately to :mini:`nil` without invoking the called function.
 
 .. code-block:: mini
+   :linenos:
 
    let M := {"A" is [1, 2], "B" is [3, 4]}
    M["A"]{}[1] :> 1
@@ -47,6 +50,7 @@ Other than simply checking for :mini:`nil`, guarded arguments can also check the
 .. parser-rule-diagram:: expression '{' expression '}'
 
 .. code-block:: mini
+   :linenos:
 
    for I in 1 .. 10 do
       print("I = ", I{2 | it}, "\n")

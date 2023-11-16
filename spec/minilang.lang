@@ -115,100 +115,101 @@
       </include>
     </context>
     <context id="keywords" style-ref="keyword">
-      <keyword>if</keyword>
-      <keyword>then</keyword>
-      <keyword>elseif</keyword>
-      <keyword>else</keyword>
-      <keyword>end</keyword>
-      <keyword>loop</keyword>
-      <keyword>not</keyword>
-      <keyword>while</keyword>
-      <keyword>until</keyword>
-      <keyword>exit</keyword>
-      <keyword>next</keyword>
-      <keyword>for</keyword>
+      <keyword>and</keyword>
+      <keyword>case</keyword>
+      <keyword>debug</keyword>
+      <keyword>def</keyword>
+      <keyword>do</keyword>
       <keyword>each</keyword>
-      <keyword>to</keyword>
+      <keyword>else</keyword>
+      <keyword>elseif</keyword>
+      <keyword>end</keyword>
+      <keyword>exit</keyword>
+      <keyword>for</keyword>
+      <keyword>fun</keyword>
+      <keyword>if</keyword>
+      <keyword>imp</keyword>
       <keyword>in</keyword>
       <keyword>is</keyword>
-      <keyword>fun</keyword>
-      <keyword>ret</keyword>
-      <keyword>susp</keyword>
+      <keyword>it</keyword>
+      <keyword>let</keyword>
+      <keyword>loop</keyword>
       <keyword>meth</keyword>
-      <keyword>with</keyword>
-      <keyword>do</keyword>
+      <keyword>must</keyword>
+      <keyword>next</keyword>
       <keyword>nil</keyword>
-      <keyword>and</keyword>
-      <keyword>or</keyword>
+      <keyword>not</keyword>
       <keyword>not</keyword>
       <keyword>old</keyword>
-      <keyword>it</keyword>
-      <keyword>imp</keyword>
-      <keyword>def</keyword>
-      <keyword>let</keyword>
-      <keyword>ref</keyword>
-      <keyword>var</keyword>
       <keyword>on</keyword>
-      <keyword>when</keyword>
-      <keyword>debug</keyword>
+      <keyword>or</keyword>
+      <keyword>ref</keyword>
+      <keyword>ret</keyword>
+      <keyword>seq</keyword>
+      <keyword>susp</keyword>
       <keyword>switch</keyword>
-      <keyword>case</keyword>
-      <keyword>must</keyword>
+      <keyword>then</keyword>
+      <keyword>to</keyword>
+      <keyword>until</keyword>
+      <keyword>var</keyword>
+      <keyword>when</keyword>
+      <keyword>while</keyword>
+      <keyword>with</keyword>
     </context>
     <context id="functions" style-ref="function">
-      <keyword>print</keyword>
-      <keyword>raise</keyword>
-      <keyword>halt</keyword>
-      <keyword>callcc</keyword>
-      <keyword>markcc</keyword>
-      <keyword>swapcc</keyword>
-      <keyword>context</keyword>
-      <keyword>filter</keyword>
-      <keyword>first</keyword>
-      <keyword>first2</keyword>
-      <keyword>last</keyword>
-      <keyword>last2</keyword>
-      <keyword>all</keyword>
       <keyword>all2</keyword>
-      <keyword>unique</keyword>
-      <keyword>count</keyword>
-      <keyword>count2</keyword>
-      <keyword>reduce</keyword>
-      <keyword>reduce2</keyword>
-      <keyword>extremum</keyword>
-      <keyword>min</keyword>
-      <keyword>min2</keyword>
-      <keyword>max</keyword>
-      <keyword>max2</keyword>
-      <keyword>sum</keyword>
-      <keyword>prod</keyword>
-      <keyword>repeat</keyword>
-      <keyword>zip</keyword>
-      <keyword>grid</keyword>
-      <keyword>pair</keyword>
-      <keyword>weave</keyword>
-      <keyword>unpack</keyword>
-      <keyword>fold</keyword>
-      <keyword>unfold</keyword>
-      <keyword>swap</keyword>
-      <keyword>key</keyword>
+      <keyword>all</keyword>
       <keyword>batch</keyword>
-      <keyword>tasks</keyword>
-      <keyword>parallel</keyword>
       <keyword>buffered</keyword>
-      <keyword>property</keyword>
-      <keyword>true</keyword>
-      <keyword>false</keyword>
-      <keyword>import</keyword>
-      <keyword>export</keyword>
-      <keyword>exchange</keyword>
-      <keyword>replace</keyword>
-      <keyword>copy</keyword>
-      <keyword>skip</keyword>
-      <keyword>limit</keyword>
-      <keyword>some</keyword>
+      <keyword>callcc</keyword>
       <keyword>const</keyword>
+      <keyword>context</keyword>
+      <keyword>copy</keyword>
+      <keyword>count2</keyword>
+      <keyword>count</keyword>
+      <keyword>exchange</keyword>
+      <keyword>export</keyword>
+      <keyword>extremum</keyword>
+      <keyword>false</keyword>
+      <keyword>filter</keyword>
+      <keyword>first2</keyword>
+      <keyword>first</keyword>
+      <keyword>fold</keyword>
+      <keyword>grid</keyword>
+      <keyword>halt</keyword>
+      <keyword>import</keyword>
+      <keyword>key</keyword>
+      <keyword>last2</keyword>
+      <keyword>last</keyword>
+      <keyword>limit</keyword>
+      <keyword>markcc</keyword>
+      <keyword>max2</keyword>
+      <keyword>max</keyword>
+      <keyword>min2</keyword>
+      <keyword>min</keyword>
+      <keyword>pair</keyword>
+      <keyword>parallel</keyword>
+      <keyword>print</keyword>
+      <keyword>prod</keyword>
+      <keyword>property</keyword>
+      <keyword>raise</keyword>
+      <keyword>reduce2</keyword>
+      <keyword>reduce</keyword>
+      <keyword>repeat</keyword>
+      <keyword>replace</keyword>
+      <keyword>skip</keyword>
+      <keyword>some</keyword>
+      <keyword>sum</keyword>
+      <keyword>swap</keyword>
+      <keyword>swapcc</keyword>
+      <keyword>tasks</keyword>
+      <keyword>true</keyword>
+      <keyword>unfold</keyword>
+      <keyword>unique</keyword>
+      <keyword>unpack</keyword>
       <keyword>watched</keyword>
+      <keyword>weave</keyword>
+      <keyword>zip</keyword>
     </context>
     <context id="types" style-ref="type">
       <keyword>class</keyword>

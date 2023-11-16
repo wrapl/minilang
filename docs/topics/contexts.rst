@@ -9,6 +9,7 @@ Context variables
 New context variables can be created using the :mini:`context()` function. Context variables are callable as functions, and either return the current value of the corresponding variable in the current context, or execute a function in a new context where the corresponding variable is bound to a specific value.
 
 .. code-block:: mini
+   :linenos:
 
    let Var := context()
    

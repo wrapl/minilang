@@ -8,6 +8,7 @@ The :mini:`switch`-expression in *Minilang* provides an alternative to an :mini:
 For example:
 
 .. code-block:: mini
+   :linenos:
 
    fun test(X) do
       if X = 1 then

@@ -1835,8 +1835,21 @@ typedef struct {
 	ml_value_t *Function;
 } ml_function_sequence_t;
 
-ML_TYPE(MLFunctionSequenceT, (MLSequenceT), "function-sequence");
+extern ml_type_t MLFunctionSequenceT[];
+
+ML_FUNCTION(MLFunctionSequence) {
 //!internal
+	ML_CHECK_ARG_COUNT(1);
+	ml_function_sequence_t *Sequence = new(ml_function_sequence_t);
+	Sequence->Type = MLFunctionSequenceT;
+	Sequence->Function = Args[0];
+	return (ml_value_t *)Sequence;
+}
+
+ML_TYPE(MLFunctionSequenceT, (MLSequenceT), "function-sequence",
+//!internal
+	.Constructor = (ml_value_t *)MLFunctionSequence
+);
 
 typedef struct {
 	ml_state_t Base;
