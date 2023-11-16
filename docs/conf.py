@@ -75,7 +75,8 @@ extensions = [
 	'sphinx.ext.graphviz',
 	'sphinx.ext.viewcode',
 	'sphinx_toolbox.collapse',
-	"sphinxawesome_theme"
+	"sphinxawesome_theme",
+	"sphinxawesome_theme.docsearch"
 	#'sphinx_design'
 ]
 
