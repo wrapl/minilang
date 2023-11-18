@@ -30,7 +30,7 @@ struct ml_pqueue_t {
 
 	ml_pqueue_entry_t *Entry, *Test, *Parent;
 	ml_value_t *Args[2];
-	ml_value_t *Result;
+	ml_value_t *Value;
 
 	int Count, Size;
 };
@@ -64,9 +64,9 @@ ML_METHOD(MLPQueueT, MLFunctionT) {
 
 static void ml_pqueue_finish(ml_pqueue_t *Queue) {
 	ml_state_t *Caller = Queue->Base.Caller;
-	ml_value_t *Result = Queue->Result;
+	ml_value_t *Result = Queue->Value;
 	Queue->Base.Caller = NULL;
-	Queue->Result = NULL;
+	Queue->Value = NULL;
 	ML_RETURN(Result);
 }
 
@@ -167,7 +167,6 @@ static void ml_pqueue_insert(ml_state_t *Caller, ml_pqueue_t *Queue, ml_pqueue_e
 	Queue->Entries[Entry->Index] = Entry;
 	Queue->Base.Caller = Caller;
 	Queue->Base.Context = Caller->Context;
-	Queue->Result = (ml_value_t *)Entry;
 	Queue->Base.run = (ml_state_fn)ml_pqueue_up_run;
 	return ml_pqueue_up2(Queue, Entry);
 }
@@ -184,6 +183,7 @@ ML_METHODX("insert", MLPQueueT, MLAnyT, MLAnyT) {
 	Entry->Queue = Queue;
 	Entry->Value = Args[1];
 	Entry->Priority = Args[2];
+	Queue->Value = (ml_value_t *)Entry;
 	return ml_pqueue_insert(Caller, Queue, Entry);
 }
 
@@ -211,8 +211,54 @@ ML_METHODX("next", MLPQueueT) {
 	Entry->Index = 0;
 	Queue->Base.Caller = Caller;
 	Queue->Base.Context = Caller->Context;
-	Queue->Result = (ml_value_t *)Next;
+	Queue->Value = (ml_value_t *)Next;
 	return ml_pqueue_down1(Queue, Entry);
+}
+
+static void ml_pqueue_keep_run(ml_pqueue_t *Queue, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Queue->Base.Caller, Value);
+	ml_pqueue_entry_t *Entry = (ml_pqueue_entry_t *)Queue->Value;
+	if (Value != MLNil) {
+		Entry->Index = INT_MAX;
+		ML_CONTINUE(Queue->Base.Caller, Queue->Value);
+	}
+	ml_pqueue_entry_t *Next = Queue->Entries[0];
+	Next->Index = INT_MAX;
+	Entry->Index = 0;
+	Queue->Entries[0] = Entry;
+	Queue->Value = (ml_value_t *)Next;
+	Queue->Base.run = (ml_state_fn)ml_pqueue_up_run;
+	return ml_pqueue_down1(Queue, Entry);
+}
+
+ML_METHODX("keep", MLPQueueT, MLIntegerT, MLAnyT, MLAnyT) {
+//<Queue
+//<Target
+//<Value
+//<Priority
+// Creates and returns a new entry in :mini:`Queue` with value :mini:`Value` and priority :mini:`Priority` if either :mini:`Queue`
+// has fewer than :mini:`Target` entries or :mini:`Priority` is lower than the current highest priority entry in :mini:`Queue`
+// (removing the current highest priority entry in this case).
+//
+// Returns the entry removed from :mini:`Queue` or :mini:`nil` if no entry was removed.
+	ml_pqueue_t *Queue = (ml_pqueue_t *)Args[0];
+	int Target = ml_integer_value(Args[1]);
+	ml_pqueue_entry_t *Entry = new(ml_pqueue_entry_t);
+	Entry->Type = MLPQueueEntryT;
+	Entry->Queue = Queue;
+	Entry->Value = Args[2];
+	Entry->Priority = Args[3];
+	if (Queue->Count < Target) {
+		Queue->Value = MLNil;
+		return ml_pqueue_insert(Caller, Queue, Entry);
+	}
+	Queue->Base.Caller = Caller;
+	Queue->Base.Context = Caller->Context;
+	Queue->Base.run = (ml_state_fn)ml_pqueue_keep_run;
+	Queue->Value = (ml_value_t *)Entry;
+	Queue->Args[0] = Entry->Priority;
+	Queue->Args[1] = Queue->Entries[0]->Priority;
+	return ml_call(Queue, Queue->Compare, 2, Queue->Args);
 }
 
 ML_METHOD("count", MLPQueueT) {
@@ -229,6 +275,7 @@ ML_METHODX("requeue", MLPQueueEntryT) {
 // Adds :mini:`Entry` back into its priority queue if it is not currently in the queue.
 	ml_pqueue_entry_t *Entry = (ml_pqueue_entry_t *)Args[0];
 	ml_pqueue_t *Queue = Entry->Queue;
+	Queue->Value = (ml_value_t *)Entry;
 	if (Entry->Index == INT_MAX) return ml_pqueue_insert(Caller, Queue, Entry);
 	ML_RETURN(Entry);
 }
@@ -255,7 +302,7 @@ ML_METHODX("adjust", MLPQueueEntryT, MLAnyT) {
 	Queue->Base.Context = Caller->Context;
 	Queue->Base.run = (ml_state_fn)ml_pqueue_adjust_run;
 	Queue->Entry = Entry;
-	Queue->Result = (ml_value_t *)Queue->Entry;
+	Queue->Value = (ml_value_t *)Queue->Entry;
 	Queue->Args[0] = Priority;
 	Queue->Args[1] = Entry->Priority;
 	return ml_call(Queue, Queue->Compare, 2, Queue->Args);
@@ -263,8 +310,8 @@ ML_METHODX("adjust", MLPQueueEntryT, MLAnyT) {
 
 static void ml_pqueue_raise_run(ml_pqueue_t *Queue, ml_value_t *Result) {
 	if (ml_is_error(Result)) return ml_pqueue_finish(Queue);
-	ml_value_t *Priority = Queue->Result;
-	Queue->Result = (ml_value_t *)Queue->Entry;
+	ml_value_t *Priority = Queue->Value;
+	Queue->Value = (ml_value_t *)Queue->Entry;
 	if (Result != MLNil) {
 		ml_pqueue_entry_t *Entry = Queue->Entry;
 		Entry->Priority = Priority;
@@ -288,7 +335,7 @@ ML_METHODX("raise", MLPQueueEntryT, MLAnyT) {
 	Queue->Base.Context = Caller->Context;
 	Queue->Base.run = (ml_state_fn)ml_pqueue_raise_run;
 	Queue->Entry = Entry;
-	Queue->Result = Priority;
+	Queue->Value = Priority;
 	Queue->Args[0] = Priority;
 	Queue->Args[1] = Entry->Priority;
 	return ml_call(Queue, Queue->Compare, 2, Queue->Args);
@@ -296,8 +343,8 @@ ML_METHODX("raise", MLPQueueEntryT, MLAnyT) {
 
 static void ml_pqueue_lower_run(ml_pqueue_t *Queue, ml_value_t *Result) {
 	if (ml_is_error(Result)) return ml_pqueue_finish(Queue);
-	ml_value_t *Priority = Queue->Result;
-	Queue->Result = (ml_value_t *)Queue->Entry;
+	ml_value_t *Priority = Queue->Value;
+	Queue->Value = (ml_value_t *)Queue->Entry;
 	if (Result != MLNil) {
 		ml_pqueue_entry_t *Entry = Queue->Entry;
 		Entry->Priority = Priority;
@@ -321,7 +368,7 @@ ML_METHODX("lower", MLPQueueEntryT, MLAnyT) {
 	Queue->Base.Context = Caller->Context;
 	Queue->Base.run = (ml_state_fn)ml_pqueue_lower_run;
 	Queue->Entry = Entry;
-	Queue->Result = Priority;
+	Queue->Value = Priority;
 	Queue->Args[0] = Entry->Priority;
 	Queue->Args[1] = Priority;
 	return ml_call(Queue, Queue->Compare, 2, Queue->Args);
@@ -343,7 +390,7 @@ ML_METHODX("remove", MLPQueueEntryT) {
 	Queue->Base.Context = Caller->Context;
 	Queue->Base.run = (ml_state_fn)ml_pqueue_adjust_run;
 	Queue->Entry = Next;
-	Queue->Result = (ml_value_t *)Entry;
+	Queue->Value = (ml_value_t *)Entry;
 	Queue->Args[0] = Next->Priority;
 	Queue->Args[1] = Entry->Priority;
 	return ml_call(Queue, Queue->Compare, 2, Queue->Args);
