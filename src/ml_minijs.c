@@ -841,7 +841,7 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 		case MLIT_CLOSURE: {
 			ml_value_t *UpValues = ml_list_get(Instructions, Index + 3);
 			if (!ml_is(UpValues, MLListT)) return NULL;
-			int NumUpValues = ml_integer_value(ml_list_get(UpValues, 6));
+			int NumUpValues = ml_integer_value(ml_list_get(UpValues, 7));
 			Index += 3 + NumUpValues; Offset += 2 + NumUpValues;
 			break;
 		}
