@@ -1029,6 +1029,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 				stringmap_insert(Struct->Base.Exports, MethodName, function_info_compile(MethodInfo));
 			}
+			g_base_info_unref((GIBaseInfo *)MethodInfo);
 		}
 	}
 	return Slot[0];
@@ -3505,7 +3506,6 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 				switch (g_type_info_get_tag(Args[I].Type)) {
 				case GI_TYPE_TAG_ARRAY: {
 					int Length = g_type_info_get_array_length(Args[I].Type);
-					GITypeInfo *ElementInfo = g_type_info_get_param_type(Args[I].Type, 0);
 					if (Length >= 0) {
 						(InstIn++)->Opcode = GIB_OUTPUT_ARRAY_LENGTH;
 						(InstIn++)->Aux = Args[Length].In;
