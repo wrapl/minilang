@@ -29,6 +29,10 @@ stream
    Flushes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
+:mini:`meth (Arg₁: stream):parse(Arg₂: function)`
+   *TBD*
+
+
 :mini:`meth (Stream: stream):read: string | nil`
    Equivalent to :mini:`Stream:readi(SIZE_MAX,  '\n')`.
 
@@ -99,6 +103,10 @@ stream
 
 :mini:`meth (Stream: stream::fd):write(Source: address): integer`
    Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
+
+
+:mini:`type stream::parser < function, sequence`
+   *TBD*
 
 
 :mini:`type stream::seek < enum`

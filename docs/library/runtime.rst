@@ -29,6 +29,10 @@ runtime
    Calls :mini:`Fn(Args)` in a new context without a scheduler and returns the result.
 
 
+:mini:`fun finalize(Value: any, Fn: function)`
+   Registers :mini:`Fn` as the finalizer for :mini:`Value`.
+
+
 :mini:`fun markcc(Arg₁: any)`
    *TBD*
 

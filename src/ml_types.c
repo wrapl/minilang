@@ -94,11 +94,11 @@ ML_FUNCTION(MLType) {
 	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
-static long ml_type_hash(ml_type_t *Type) {
+long ml_type_hash(ml_type_t *Type) {
 	return (intptr_t)Type;
 }
 
-static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
+void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
 	return ml_call(Caller, Type->Constructor, Count, Args);
 }
 
@@ -264,7 +264,7 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	Type->call = Parent->call;
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
-	Type->Constructor = ml_method(NULL);
+	Type->Constructor = ml_method_anon(Name);
 	return Type;
 }
 
@@ -311,8 +311,10 @@ static inthash_t MLTypedFns[1] = {INTHASH_INIT};
 void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 	ML_TYPED_FN_LOCK();
 	inthash_result_t Result = inthash_search2_inline(Type->TypedFns, (uintptr_t)TypedFn);
-	ML_TYPED_FN_UNLOCK();
-	if (Result.Present) return Result.Value;
+	if (Result.Present) {
+		ML_TYPED_FN_UNLOCK();
+		return Result.Value;
+	}
 	int BestRank = -1;
 	void *BestFn = NULL;
 	for (ml_typed_fn_entry_t *Entry = inthash_search(MLTypedFns, (uintptr_t)TypedFn); Entry; Entry = Entry->Next) {
@@ -321,7 +323,6 @@ void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 			BestFn = Entry->Fn;
 		}
 	}
-	ML_TYPED_FN_LOCK();
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, BestFn);
 	ML_TYPED_FN_UNLOCK();
 	return BestFn;
@@ -332,6 +333,7 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	Entry->Type = Type;
 	Entry->Fn = Function;
 	Entry->Next = inthash_insert(MLTypedFns, (uintptr_t)TypedFn, Entry);
+	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
 
 typedef struct {
@@ -3110,6 +3112,40 @@ ML_FUNCTION(MLMemCollect) {
 	return MLNil;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_weak_ref_t;
+
+extern ml_type_t MLWeakRefT[];
+
+ML_FUNCTION(MLWeakRef) {
+//!type
+//@weakref
+//<Value:any
+//>weakref
+	ML_CHECK_ARG_COUNT(1);
+	ml_weak_ref_t *Ref = asnew(ml_weak_ref_t, 1);
+	Ref->Type = MLWeakRefT;
+	Ref->Value = Args[0];
+	GC_general_register_disappearing_link((void **)&Ref->Value, Args[0]);
+	return (ml_value_t *)Ref;
+}
+
+ML_TYPE(MLWeakRefT, (), "weak-ref",
+//!type
+//@weakref
+	.Constructor = (ml_value_t *)MLWeakRef
+);
+
+ML_METHOD("get", MLWeakRefT) {
+//!type
+//<Ref
+//>any|nil
+	ml_weak_ref_t *Ref = (ml_weak_ref_t *)Args[0];
+	return Ref->Value ?: MLNil;
+}
+
 void ml_init(stringmap_t *Globals) {
 #ifdef ML_JIT
 	GC_set_pages_executable(1);
@@ -3177,6 +3213,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_externals_default_add("map", MLMapT);
 	ml_externals_default_add("set", MLSetT);
 	ml_externals_default_add("error", MLErrorT);
+	ml_externals_default_add("copy", MLCopy);
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "some", MLSome);
@@ -3216,5 +3253,6 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);
+		stringmap_insert(Globals, "weakref", MLWeakRefT);
 	}
 }

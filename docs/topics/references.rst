@@ -25,6 +25,7 @@ Using the old value
 *Minilang* does not provide augmented assignments such as :mini:`X += Y`, etc. Instead the keyword :mini:`old` can be used in the right hand expression of an assignment to refer to the current value of the target reference. Note that even if the target of an assignment is a complex expression, it is only evaluated once.
 
 .. code-block:: mini
+   :linenos:
 
    var X := 10
    print('X = {X}\n')
@@ -39,6 +40,7 @@ Using the old value
 :mini:`old` can be used multiple times, and in any position, allowing for more flexible updates to values.
 
 .. code-block:: mini
+   :linenos:
 
    var L := [1, 2, 3]
    print('L = {L}\n')
@@ -56,6 +58,7 @@ References in closures and loops
 *Minilang* captures references in closures without dereferencing. This means that variables visible in a closure can be assigned within the closure. When used within a loop, variables are allocated new instances for each iteration. Closures created in the loop will likewise capture the current instance of each variable.
 
 .. code-block:: mini
+   :linenos:
 
    let L := [], M := []
    var Sum := 0
@@ -78,6 +81,7 @@ Passing arguments by reference
 By default, arguments to function calls are derefenced before the function code is executed, and bound to immutable parameters (equivalent to a :mini:`let` declaration). If the original reference is required, the parameter can be declared using :mini:`ref` which will bind the argument without derefencing.
 
 .. code-block:: mini
+   :linenos:
 
    fun incr(ref X) do
       X := old + 1
@@ -99,6 +103,7 @@ Creating references
 Since references are typically derefenced during function calls, they are **not** derefenced when returned from a function. This allows functions (and methods) to return assignable references when required. For example, the implementations of :mini:`:"[]"` for lists and maps return assignable references to the corresponding element.
 
 .. code-block:: mini
+   :linenos:
 
    var Z := "original"
    fun test() Z

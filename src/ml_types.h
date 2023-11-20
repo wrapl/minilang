@@ -83,6 +83,9 @@ void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t
 
 void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value);
 
+long ml_type_hash(ml_type_t *Type);
+void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args);
+
 #define ML_TYPE_INIT(CONSTRUCTOR, PARENTS, NAME, ...) { \
 	.Type = MLTypeT, \
 	.Name = NAME, \
@@ -812,6 +815,7 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 // Methods //
 
 extern ml_value_t *MLMethodDefine;
+extern ml_value_t *MLMethodDefault;
 
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_methods_t ml_methods_t;
@@ -820,8 +824,6 @@ struct ml_method_t {
 	ml_type_t *Type;
 	const char *Name;
 };
-
-#define ML_METHODS_INDEX 0
 
 extern ml_type_t MLMethodT[];
 
@@ -842,7 +844,7 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 
 ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
 
-int ml_method_is_safe(ml_value_t *Method);
+ml_value_t *ml_method_wrap(ml_value_t *Function, int Count, ml_type_t **Types);
 
 typedef struct ml_method_cached_t ml_method_cached_t;
 

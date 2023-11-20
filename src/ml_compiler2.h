@@ -36,6 +36,7 @@ typedef enum {
 	MLT_OR,
 	MLT_REF,
 	MLT_RET,
+	MLT_SEQ,
 	MLT_SUSP,
 	MLT_SWITCH,
 	MLT_THEN,
@@ -102,7 +103,7 @@ struct mlc_function_t {
 	mlc_upvalue_t *UpValues;
 	ml_inst_t *Next, *Returns;
 	int Top, Size, Old, It, Space;
-	int Mode;
+	int Eval;
 };
 
 struct mlc_define_t {

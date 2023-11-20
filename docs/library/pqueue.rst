@@ -29,6 +29,14 @@ pqueue
    Creates and returns a new entry in :mini:`Queue` with value :mini:`Value` and priority :mini:`Priority`.
 
 
+:mini:`meth (Queue: pqueue):keep(Target: integer, Value: any, Priority: any): pqueue::entry | nil`
+   Creates and returns a new entry in :mini:`Queue` with value :mini:`Value` and priority :mini:`Priority` if either :mini:`Queue`
+   has fewer than :mini:`Target` entries or :mini:`Priority` is lower than the current highest priority entry in :mini:`Queue`
+   (removing the current highest priority entry in this case).
+   
+   Returns the entry removed from :mini:`Queue` or :mini:`nil` if no entry was removed.
+
+
 :mini:`meth (Queue: pqueue):next: pqueue::entry | nil`
    Removes and returns the highest priority entry in :mini:`Queue`,  or :mini:`nil` if :mini:`Queue` is empty.
 

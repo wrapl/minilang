@@ -6,6 +6,7 @@ When an error occurs in *Minilang*, an error value is created and returned. If a
 .. parser-rule-diagram:: 'on' block
 
 .. code-block:: mini
+   :linenos:
 
    for I in -5 .. 5 do
       print('1 / {I} = {1 / I}\n')
@@ -37,6 +38,7 @@ Generating Errors
 The function :mini:`error(Type, Message)` returns a new error, triggering the error handler in the calling function.
 
 .. code-block:: mini
+   :linenos:
 
    fun fact(N: integer) do
       N >= 0 or error("RangeError", "Factorial requires non-negative integer")

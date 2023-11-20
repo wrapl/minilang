@@ -47,16 +47,6 @@ sequence
    *TBD*
 
 
-:mini:`meth (Base: function) -> (Function: function): chained`
-   Returns a chained function equivalent to :mini:`Function(Base(...))`.
-
-   .. code-block:: mini
-
-      let F := :upper -> (3 * _)
-      F("hello") :> "HELLOHELLOHELLO"
-      F("cake") :> "CAKECAKECAKE"
-
-
 :mini:`meth ^(Function: function): sequence`
    Returns a sequence that generates the result of calling :mini:`Function()` at each iteration until :mini:`nil` is returned.
 
@@ -572,7 +562,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "k"
       random([]) :> nil
 
 

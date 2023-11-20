@@ -39,8 +39,9 @@ union ml_inst_t {
 
 #define ML_CLOSURE_EXTRA_ARGS 1
 #define ML_CLOSURE_NAMED_ARGS 2
-#define ML_CLOSURE_LABELLED 4
-#define ML_CLOSURE_HASHED 8
+#define ML_CLOSURE_RELAX_NAMES 4
+#define ML_CLOSURE_LABELLED 8
+#define ML_CLOSURE_HASHED 16
 
 struct ml_closure_info_t {
 	ml_type_t *Type;
@@ -67,6 +68,8 @@ struct ml_param_type_t {
 
 ml_value_t *ml_closure(ml_closure_info_t *Info);
 
+void ml_closure_relax_names(ml_value_t *Closure);
+
 struct ml_closure_t {
 	const ml_type_t *Type;
 	const char *Name;
@@ -82,6 +85,7 @@ static inline stringmap_t *ml_closure_params(ml_value_t *Closure) {
 typedef struct ml_frame_t ml_frame_t;
 
 ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type);
+ml_value_t *ml_variable_set(ml_value_t *Variable, ml_value_t *Value);
 
 extern ml_type_t MLVariableT[];
 
@@ -91,6 +95,7 @@ void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE
 void ml_closure_info_labels(ml_closure_info_t *Info);
 
 void ml_closure_list(ml_value_t *Closure);
+
 
 #ifdef ML_CBOR_BYTECODE
 

@@ -52,12 +52,14 @@ Functions are called in *Minilang* using traditional postfix notation. Named arg
 .. parser-rule-diagram:: term '(' ( expression ( ',' expression )* )? ( ',' ( identifier | string ) 'is' expression )* ')'
 
 .. code-block:: mini
+   :linenos:
 
    test("Hello world\n", option is true)
 
 If the last argument is an anonymous function, :mini:`;` can be used to denote the end of the arguments and the start of the parameters of the anonymous function, with the body of the anonymous function then placed after call.
 
 .. code-block:: mini
+   :linenos:
 
    array::int32([4, 3]; I, J) I * 10 + J
 
@@ -67,6 +69,7 @@ Partial Functions
 Simple functions can be written in *Minilang* using blank expressions, written as a single underscore :mini:`_`. Specifying :mini:`_` as one or more arguments in a function call results in a partial function instead.
 
 .. code-block:: mini
+   :linenos:
 
    let print_line := print("<", _, ">\n")
    
@@ -79,6 +82,7 @@ Simple functions can be written in *Minilang* using blank expressions, written a
 Since infix and indexing operations are also function calls, they can also be used with :mini:`_` to create partial functions.
 
 .. code-block:: mini
+   :linenos:
 
    _ + 1
    _[1]

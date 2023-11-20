@@ -249,6 +249,7 @@ MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
+MINILANG_STRUCTS := old or defined("STRUCTS") 
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -399,6 +400,11 @@ if MINILANG_XE then
 	CFLAGS := old + ['-DML_XE']
 	Objects:put(file("ml_xe.o"))
 	InstallHeaders:put("ml_xe.h")
+end
+
+if MINILANG_STRUCTS then
+	CFLAGS := old + ["-DML_STRUCT"]
+	Objects:put(file("ml_struct.o"))
 end
 
 if MINILANG_BACKTRACE then

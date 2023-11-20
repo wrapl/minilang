@@ -35,6 +35,7 @@ Sample
 ------
 
 .. code-block:: mini
+   :linenos:
 
    print("Hello world!\n")
 
@@ -48,12 +49,13 @@ Details
 =======
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
+   :maxdepth: 2
 
    /start
    /language
-   /library
    /topics
+   /library
    /embedding
    /extending
    /api

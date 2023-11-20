@@ -24,12 +24,26 @@ tasks
    *TBD*
 
 
+:mini:`meth tasks(Main: function): nil | error`
+   Creates a new :mini:`tasks` set with no limits,  and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
+
+
 :mini:`meth (Fn: function):then(Then: function): task`
    Equivalent to :mini:`task(Fn,  call -> Then)`.
 
 
 :mini:`meth (Fn: function):then(Then: function, Else: function): task`
    *TBD*
+
+
+:mini:`meth tasks(MaxRunning: integer, Main: function): nil | error`
+   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel,  and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
+
+
+:mini:`meth tasks(MaxRunning: integer, MaxPending: integer, Main: function): nil | error`
+   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel,  and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
+   
+   At most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
 
 
 :mini:`fun buffered(Sequence: sequence, Size: integer, Fn: function): sequence`
@@ -67,19 +81,8 @@ tasks
 
 :mini:`type tasks < function`
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
-
-
-:mini:`meth tasks(Main: function): tasks`
-   Creates a new :mini:`tasks` set with no limits.
-
-
-:mini:`meth tasks(MaxRunning: integer, Main: function): tasks`
-   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel.
-
-
-:mini:`meth tasks(MaxRunning: integer, MaxPending: integer, Main: function): tasks`
-   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel.
    
-   At most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
+   :mini:`fun (Tasks: tasks)(Arg₁,  ...,  Argₙ,  Fn): task`
+      Creates a new :mini:`task` that runs :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 

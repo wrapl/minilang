@@ -1380,25 +1380,25 @@ typedef struct {
 	xml_stack_t *Stack;
 	ml_stringbuffer_t Buffer[1];
 	xml_stack_t Stack0;
-} xml_decoder_t;
+} xml_parser_t;
 
-static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, const XML_Char **Attrs) {
-	if (Decoder->Buffer->Length) {
+static void xml_start_element(xml_parser_t *Parser, const XML_Char *Name, const XML_Char **Attrs) {
+	if (Parser->Buffer->Length) {
 		ml_xml_node_t *Text = new(ml_xml_node_t);
 		Text->Base.Type = MLXmlTextT;
-		Text->Base.Length = Decoder->Buffer->Length;
-		Text->Base.Value = ml_stringbuffer_get_string(Decoder->Buffer);
-		if (Decoder->Element) ml_xml_element_put(Decoder->Element, Text);
+		Text->Base.Length = Parser->Buffer->Length;
+		Text->Base.Value = ml_stringbuffer_get_string(Parser->Buffer);
+		if (Parser->Element) ml_xml_element_put(Parser->Element, Text);
 	}
-	xml_stack_t *Stack = Decoder->Stack;
+	xml_stack_t *Stack = Parser->Stack;
 	if (Stack->Index == ML_XML_STACK_SIZE) {
 		xml_stack_t *NewStack = new(xml_stack_t);
 		NewStack->Prev = Stack;
-		Stack = Decoder->Stack = NewStack;
+		Stack = Parser->Stack = NewStack;
 	}
-	Stack->Nodes[Stack->Index] = Decoder->Element;
+	Stack->Nodes[Stack->Index] = Parser->Element;
 	++Stack->Index;
-	ml_xml_element_t *Element = Decoder->Element = new(ml_xml_element_t);
+	ml_xml_element_t *Element = Parser->Element = new(ml_xml_element_t);
 	Element->Base.Base.Type = MLXmlElementT;
 	ml_value_t *Tag = (ml_value_t *)stringmap_search(MLXmlTags, Name);
 	if (!Tag) {
@@ -1411,42 +1411,42 @@ static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, cons
 	for (const XML_Char **Attr = Attrs; Attr[0]; Attr += 2) {
 		ml_map_insert(Element->Attributes, ml_string(GC_strdup(Attr[0]), -1), ml_string(GC_strdup(Attr[1]), -1));
 	}
-	Decoder->Element = Element;
+	Parser->Element = Element;
 }
 
-static void xml_end_element(xml_decoder_t *Decoder, const XML_Char *Name) {
-	if (Decoder->Buffer->Length) {
+static void xml_end_element(xml_parser_t *Parser, const XML_Char *Name) {
+	if (Parser->Buffer->Length) {
 		ml_xml_node_t *Text = new(ml_xml_node_t);
 		Text->Base.Type = MLXmlTextT;
-		Text->Base.Length = Decoder->Buffer->Length;
-		Text->Base.Value = ml_stringbuffer_get_string(Decoder->Buffer);
-		ml_xml_element_put(Decoder->Element, Text);
+		Text->Base.Length = Parser->Buffer->Length;
+		Text->Base.Value = ml_stringbuffer_get_string(Parser->Buffer);
+		ml_xml_element_put(Parser->Element, Text);
 	}
-	xml_stack_t *Stack = Decoder->Stack;
+	xml_stack_t *Stack = Parser->Stack;
 	if (Stack->Index == 0) {
-		Stack = Decoder->Stack = Stack->Prev;
+		Stack = Parser->Stack = Stack->Prev;
 	}
-	ml_xml_node_t *Element = (ml_xml_node_t *)Decoder->Element;
+	ml_xml_node_t *Element = (ml_xml_node_t *)Parser->Element;
 	--Stack->Index;
-	ml_xml_element_t *Parent = Decoder->Element = Stack->Nodes[Stack->Index];
+	ml_xml_element_t *Parent = Parser->Element = Stack->Nodes[Stack->Index];
 	Stack->Nodes[Stack->Index] = NULL;
 	if (Parent) {
 		ml_xml_element_put(Parent, Element);
 	} else {
-		Decoder->Callback(Decoder->Data, (ml_value_t *)Element);
+		Parser->Callback(Parser->Data, (ml_value_t *)Element);
 	}
 }
 
-static void xml_character_data(xml_decoder_t *Decoder, const XML_Char *String, int Length) {
-	ml_stringbuffer_write(Decoder->Buffer, String, Length);
+static void xml_character_data(xml_parser_t *Parser, const XML_Char *String, int Length) {
+	ml_stringbuffer_write(Parser->Buffer, String, Length);
 }
 
-static void xml_skipped_entity(xml_decoder_t *Decoder, const XML_Char *EntityName, int IsParameterEntity) {
-	ml_stringbuffer_write(Decoder->Buffer, EntityName, strlen(EntityName));
+static void xml_skipped_entity(xml_parser_t *Parser, const XML_Char *EntityName, int IsParameterEntity) {
+	ml_stringbuffer_write(Parser->Buffer, EntityName, strlen(EntityName));
 }
 
-static void xml_default(xml_decoder_t *Decoder, const XML_Char *String, int Length) {
-	ml_stringbuffer_write(Decoder->Buffer, String, Length);
+static void xml_default(xml_parser_t *Parser, const XML_Char *String, int Length) {
+	ml_stringbuffer_write(Parser->Buffer, String, Length);
 }
 
 static void ml_free(void *Ptr) {
@@ -1461,13 +1461,13 @@ ML_METHOD(MLXmlT, MLStringT) {
 //>xml
 // Returns :mini:`String` parsed into an XML node.
 	ml_value_t *Result = NULL;
-	xml_decoder_t Decoder = {0,};
-	Decoder.Callback = (void *)xml_decode_callback;
-	Decoder.Data = &Result;
-	Decoder.Stack = &Decoder.Stack0;
+	xml_parser_t Parser = {0,};
+	Parser.Callback = (void *)xml_decode_callback;
+	Parser.Data = &Result;
+	Parser.Stack = &Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
-	XML_SetUserData(Handle, &Decoder);
+	XML_SetUserData(Handle, &Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
@@ -1487,7 +1487,7 @@ typedef struct {
 	typeof(ml_stream_read) *read;
 	XML_Parser Handle;
 	ml_value_t *Result;
-	xml_decoder_t Decoder;
+	xml_parser_t Parser;
 	char Text[ML_STRINGBUFFER_NODE_SIZE];
 } ml_xml_stream_state_t;
 
@@ -1508,12 +1508,12 @@ ML_METHODX(MLXmlT, MLStreamT) {
 //>xml
 // Returns the contents of :mini:`Stream` parsed into an XML node.
 	ml_xml_stream_state_t *State = new(ml_xml_stream_state_t);
-	State->Decoder.Callback = (void *)xml_decode_callback;
-	State->Decoder.Data = &State->Result;
-	State->Decoder.Stack = &State->Decoder.Stack0;
+	State->Parser.Callback = (void *)xml_decode_callback;
+	State->Parser.Data = &State->Result;
+	State->Parser.Stack = &State->Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
-	XML_SetUserData(Handle, &State->Decoder);
+	XML_SetUserData(Handle, &State->Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
@@ -1571,13 +1571,13 @@ ML_METHOD(MLXmlParse, MLStringT) {
 //>xml
 // Returns :mini:`String` parsed into an XML node.
 	ml_value_t *Result = NULL;
-	xml_decoder_t Decoder = {0,};
-	Decoder.Callback = (void *)xml_decode_callback;
-	Decoder.Data = &Result;
-	Decoder.Stack = &Decoder.Stack0;
+	xml_parser_t Parser = {0,};
+	Parser.Callback = (void *)xml_decode_callback;
+	Parser.Data = &Result;
+	Parser.Stack = &Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
-	XML_SetUserData(Handle, &Decoder);
+	XML_SetUserData(Handle, &Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
@@ -1597,12 +1597,12 @@ ML_METHODX(MLXmlParse, MLStreamT) {
 //>xml
 // Returns the contents of :mini:`Stream` parsed into an XML node.
 	ml_xml_stream_state_t *State = new(ml_xml_stream_state_t);
-	State->Decoder.Callback = (void *)xml_decode_callback;
-	State->Decoder.Data = &State->Result;
-	State->Decoder.Stack = &State->Decoder.Stack0;
+	State->Parser.Callback = (void *)xml_decode_callback;
+	State->Parser.Data = &State->Result;
+	State->Parser.Stack = &State->Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
-	XML_SetUserData(Handle, &State->Decoder);
+	XML_SetUserData(Handle, &State->Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
@@ -1620,63 +1620,63 @@ typedef struct {
 	ml_value_t *Callback;
 	ml_value_t *Args[1];
 	XML_Parser Handle;
-	xml_decoder_t Decoder[1];
-} ml_xml_decoder_t;
+	xml_parser_t Parser[1];
+} ml_xml_parser_t;
 
-extern ml_type_t MLXmlDecoderT[];
+extern ml_type_t MLXmlParserT[];
 
-static void ml_xml_decode_callback(ml_xml_decoder_t *Decoder, ml_value_t *Value) {
-	Decoder->Args[0] = Value;
-	ml_call((ml_state_t *)Decoder, Decoder->Callback, 1, Decoder->Args);
+static void ml_xml_decode_callback(ml_xml_parser_t *Parser, ml_value_t *Value) {
+	Parser->Args[0] = Value;
+	ml_call((ml_state_t *)Parser, Parser->Callback, 1, Parser->Args);
 }
 
-static void ml_xml_decoder_run(ml_state_t *State, ml_value_t *Value) {
+static void ml_xml_parser_run(ml_state_t *State, ml_value_t *Value) {
 }
 
-ML_FUNCTIONX(XmlDecoder) {
-//@xml::decoder
+ML_FUNCTIONX(XmlParser) {
+//@xml::parser
 //<Callback
-//>xml::decoder
-// Returns a new decoder that calls :mini:`Callback(Xml)` each time a complete XML document is parsed.
+//>xml::parser
+// Returns a new parser that calls :mini:`Callback(Xml)` each time a complete XML document is parsed.
 	ML_CHECKX_ARG_COUNT(1);
-	ml_xml_decoder_t *Decoder = new(ml_xml_decoder_t);
-	Decoder->Base.Type = MLXmlDecoderT;
-	Decoder->Base.Context = Caller->Context;
-	Decoder->Base.run = ml_xml_decoder_run;
-	Decoder->Callback = Args[0];
-	Decoder->Decoder->Callback = (void *)ml_xml_decode_callback;
-	Decoder->Decoder->Data = Decoder;
-	Decoder->Decoder->Stack = &Decoder->Decoder->Stack0;
+	ml_xml_parser_t *Parser = new(ml_xml_parser_t);
+	Parser->Base.Type = MLXmlParserT;
+	Parser->Base.Context = Caller->Context;
+	Parser->Base.run = ml_xml_parser_run;
+	Parser->Callback = Args[0];
+	Parser->Parser->Callback = (void *)ml_xml_decode_callback;
+	Parser->Parser->Data = Parser;
+	Parser->Parser->Stack = &Parser->Parser->Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
-	Decoder->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
-	XML_SetUserData(Decoder->Handle, Decoder->Decoder);
-	XML_SetElementHandler(Decoder->Handle, (void *)xml_start_element, (void *)xml_end_element);
-	XML_SetCharacterDataHandler(Decoder->Handle, (void *)xml_character_data);
-	XML_SetSkippedEntityHandler(Decoder->Handle, (void *)xml_skipped_entity);
-	XML_SetDefaultHandler(Decoder->Handle, (void *)xml_default);
-	ML_RETURN(Decoder);
+	Parser->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetUserData(Parser->Handle, Parser->Parser);
+	XML_SetElementHandler(Parser->Handle, (void *)xml_start_element, (void *)xml_end_element);
+	XML_SetCharacterDataHandler(Parser->Handle, (void *)xml_character_data);
+	XML_SetSkippedEntityHandler(Parser->Handle, (void *)xml_skipped_entity);
+	XML_SetDefaultHandler(Parser->Handle, (void *)xml_default);
+	ML_RETURN(Parser);
 }
 
-ML_TYPE(MLXmlDecoderT, (MLStreamT), "xml::decoder",
-//@xml::decoder
-// A callback based streaming XML decoder.
-	.Constructor = (ml_value_t *)XmlDecoder
+ML_TYPE(MLXmlParserT, (MLStreamT), "xml::parser",
+//@xml::parser
+// A callback based streaming XML parser.
+	.Constructor = (ml_value_t *)XmlParser
 );
 
-static void ML_TYPED_FN(ml_stream_write, MLXmlDecoderT, ml_state_t *Caller, ml_xml_decoder_t *Decoder, const void *Address, int Count) {
-	if (XML_Parse(Decoder->Handle, Address, Count, 0) == XML_STATUS_ERROR) {
-		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
+static void ML_TYPED_FN(ml_stream_write, MLXmlParserT, ml_state_t *Caller, ml_xml_parser_t *Parser, const void *Address, int Count) {
+	if (XML_Parse(Parser->Handle, Address, Count, 0) == XML_STATUS_ERROR) {
+		enum XML_Error Error = XML_GetErrorCode(Parser->Handle);
 		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
 	ML_RETURN(ml_integer(Count));
 }
 
-static void ML_TYPED_FN(ml_stream_flush, MLXmlDecoderT, ml_state_t *Caller, ml_xml_decoder_t *Decoder) {
-	if (XML_Parse(Decoder->Handle, "", 0, 0) == XML_STATUS_ERROR) {
-		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
+static void ML_TYPED_FN(ml_stream_flush, MLXmlParserT, ml_state_t *Caller, ml_xml_parser_t *Parser) {
+	if (XML_Parse(Parser->Handle, "", 0, 0) == XML_STATUS_ERROR) {
+		enum XML_Error Error = XML_GetErrorCode(Parser->Handle);
 		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
-	ML_RETURN(Decoder);
+	ML_RETURN(Parser);
 }
 
 void ml_xml_init(stringmap_t *Globals) {
@@ -1685,7 +1685,7 @@ void ml_xml_init(stringmap_t *Globals) {
 	stringmap_insert(MLXmlT->Exports, "escape", MLXmlEscape);
 	stringmap_insert(MLXmlT->Exports, "text", MLXmlTextT);
 	stringmap_insert(MLXmlT->Exports, "element", MLXmlElementT);
-	stringmap_insert(MLXmlT->Exports, "decoder", MLXmlDecoderT);
+	stringmap_insert(MLXmlT->Exports, "parser", MLXmlParserT);
 #ifdef ML_GENERICS
 	stringmap_insert(MLXmlT->Exports, "sequence", MLXmlSequenceT);
 #endif

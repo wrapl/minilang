@@ -1,0 +1,21 @@
+Colours = [Red, Orange, Yellow, Green, Blue, Violet]
+Yellow .. Violet = [Yellow, Green, Blue, Violet]
+Violet .. Yellow = []
+Red + Blue = 6
+Red -> reddish
+Orange -> reddish
+Yellow -> greenish
+Green -> greenish
+Blue -> blueish
+Violet -> reddish
+Turquoise -> Error = Invalid enum name
+Days = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+Mon .. Fri = [Mon, Tue, Wed, Thu, Fri]
+Fri .. Mon = [Fri, Sat, Sun, Mon]
+Mon -> play
+Tue -> work
+Wed -> sleep
+Thu -> work
+Fri -> play
+Sat -> play
+Sun -> play

@@ -283,6 +283,7 @@ ML_METHODX("precount", MLChainedT) {
 }
 
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
+//!function
 //<Base
 //<Function
 //>chained
@@ -384,6 +385,24 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+ML_METHOD("->!", MLFunctionT, MLFunctionT) {
+//!function
+//<Base
+//<F
+//>function
+// Returns a chained function equivalent to :mini:`F ! Base(...)`.
+//$= let F := list ->! 3
+//$= F("cat")
+	ml_value_t *Partial = ml_partial_function(ApplyMethod, 1);
+	ml_partial_function_set(Partial, 0, Args[1]);
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
+	Chained->Type = MLChainedT;
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = Partial;
+	//Chained->Entries[2] = NULL;
+	return (ml_value_t *)Chained;
+}
+
 ML_METHOD("->!", MLSequenceT, MLFunctionT) {
 //<Base
 //<F
@@ -422,6 +441,23 @@ static inline ml_type_t *ml_generic_sequence(ml_type_t *Base, ml_value_t *Sequen
 	}
 #endif
 	return Base;
+}
+
+ML_METHOD("->?", MLFunctionT, MLFunctionT) {
+//!function
+//<Base
+//<F
+//>function
+// Returns a chained function equivalent to :mini:`Base(...){F(it)}`.
+//$= let F := 1 ->? (2 | _) -> (_ / 2)
+//$= list(1 .. 10 -> F)
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = FilterSoloMethod;
+	Chained->Entries[2] = Args[1];
+	//Chained->Entries[3] = NULL;
+	return (ml_value_t *)Chained;
 }
 
 ML_METHOD("->?", MLSequenceT, MLFunctionT) {
@@ -1799,8 +1835,21 @@ typedef struct {
 	ml_value_t *Function;
 } ml_function_sequence_t;
 
-ML_TYPE(MLFunctionSequenceT, (MLSequenceT), "function-sequence");
+extern ml_type_t MLFunctionSequenceT[];
+
+ML_FUNCTION(MLFunctionSequence) {
 //!internal
+	ML_CHECK_ARG_COUNT(1);
+	ml_function_sequence_t *Sequence = new(ml_function_sequence_t);
+	Sequence->Type = MLFunctionSequenceT;
+	Sequence->Function = Args[0];
+	return (ml_value_t *)Sequence;
+}
+
+ML_TYPE(MLFunctionSequenceT, (MLSequenceT), "function-sequence",
+//!internal
+	.Constructor = (ml_value_t *)MLFunctionSequence
+);
 
 typedef struct {
 	ml_state_t Base;
@@ -3654,6 +3703,8 @@ void ml_sequence_init(stringmap_t *Globals) {
 	ml_type_add_rule(MLUniqueT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLPairedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
+	ml_externals_default_add("min", Min);
+	ml_externals_default_add("max", Max);
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);
 		stringmap_insert(Globals, "first", ml_method("first"));

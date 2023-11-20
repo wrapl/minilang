@@ -112,6 +112,7 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 #define ML_CBOR_TAG_ARRAY_FLOAT32_LE 85
 #define ML_CBOR_TAG_ARRAY_FLOAT64_LE 86
 #define ML_CBOR_TAG_FINITE_SET 258
+#define ML_CBOR_TAG_EMBEDDED_JSON 262
 #define ML_CBOR_TAG_COMPLEX 43000
 #define ML_CBOR_TAG_COMPLEX_ARRAY 43001
 

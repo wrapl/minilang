@@ -442,10 +442,10 @@ ML_DESERIALIZER("table") {
 	ML_CHECK_ARG_TYPE(0, MLMapT);
 	ml_value_t *Table = ml_table();
 	ML_MAP_FOREACH(Args[0], Iter) {
-		if (!ml_is(Iter->Key, MLStringT)) return ml_error("CborError", "Invalid table");
-		if (!ml_is(Iter->Value, MLArrayT)) return ml_error("CborError", "Invalid table");
+		if (!ml_is(Iter->Key, MLStringT)) return ml_error("SerializationError", "Invalid table");
+		if (!ml_is(Iter->Value, MLArrayT)) return ml_error("SerializationError", "Invalid table");
 		ml_value_t *Result = ml_table_insert(Table, Iter->Key, Iter->Value);
-		if (ml_is_error(Result)) return ml_error("CborError", "Invalid table");
+		if (ml_is_error(Result)) return ml_error("SerializationError", "Invalid table");
 	}
 	return Table;
 }

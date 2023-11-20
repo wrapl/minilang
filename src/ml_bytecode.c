@@ -57,6 +57,14 @@ ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {
 	return (ml_value_t *)Variable;
 }
 
+ml_value_t *ml_variable_set(ml_value_t *_Variable, ml_value_t *Value) {
+	ml_variable_t *Variable = (ml_variable_t *)_Variable;
+	if (Variable->VarType && !ml_is(Value, Variable->VarType)) {
+		return ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
+	}
+	return Variable->Value = Value;
+}
+
 ML_METHOD(MLVariableT) {
 //>variable
 // Return a new untyped variable with current value :mini:`nil`.
@@ -117,7 +125,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
-	ml_schedule_t *Schedule;
+	uint64_t *Counter;
 #endif
 	unsigned int Line;
 	unsigned int Reentry:1;
@@ -136,6 +144,10 @@ struct DEBUG_STRUCT(frame) {
 
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
+	Frame->Base.Context = Caller->Context;
+#ifdef ML_SCHEDULER
+	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+#endif
 	Frame->Reuse = 0;
 	ml_state_schedule((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 	ML_RETURN(MLNil);
@@ -310,7 +322,7 @@ size_t ml_count_cached_frames() {
 extern ml_value_t *SymbolMethod;
 
 #ifdef ML_SCHEDULER
-#define ML_STORE_COUNTER() Frame->Schedule->Counter = Counter
+#define ML_STORE_COUNTER() Frame->Counter[0] = Counter
 #else
 #define ML_STORE_COUNTER() {}
 
@@ -367,9 +379,15 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
-			Result = ml_no_method_error(Method, COUNT, Args); \
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
-			ERROR(); \
+			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
+			Args2[0] = (ml_value_t *)Method; \
+			memcpy(Args2 + 1, Args, (COUNT) * sizeof(ml_value_t *)); \
+			ml_inst_t *Next = Inst + 4; \
+			ML_STORE_COUNTER(); \
+			Frame->Inst = Next; \
+			Frame->Line = Inst->Line; \
+			Frame->Top = Args; \
+			return ml_call(Frame, MLMethodDefault, COUNT + 1, Args2); \
 		} \
 		Inst[3].Data = Cached; \
 		ml_value_t *Function = Cached->Callback; \
@@ -386,9 +404,15 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
-			Result = ml_no_method_error(Method, COUNT, Args); \
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
-			ERROR(); \
+			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
+			Args2[0] = (ml_value_t *)Method; \
+			memcpy(Args2 + 1, Args, (COUNT) * sizeof(ml_value_t *)); \
+			ml_inst_t *Next = Inst + 4; \
+			ML_STORE_COUNTER(); \
+			Frame->Inst = Next; \
+			Frame->Line = Inst->Line; \
+			Frame->Top = Args; \
+			return ml_call(Frame, MLMethodDefault, COUNT + 1, Args2); \
 		} \
 		Inst[3].Data = Cached; \
 		ml_value_t *Function = Cached->Callback; \
@@ -494,7 +518,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	CALL_LABELS(CALL_METHOD);
 	CALL_LABELS(TAIL_CALL_METHOD);
 #ifdef ML_SCHEDULER
-	uint64_t Counter = Frame->Schedule->Counter;
+	uint64_t Counter = Frame->Counter[0];
 #endif
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -946,7 +970,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_GENERICS
 		// closure <info> <upvalue_1> ...
 		if (!ml_is(Result, MLTypeT)) {
-			Result = ml_error("InternalError", "expected type, not %s", ml_typeof(Result)->Name);
+			Result = ml_error("TypeError", "expected type, not %s", ml_typeof(Result)->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
@@ -1115,7 +1139,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
-		return Frame->Schedule->add((ml_state_t *)Frame, Result);
+		ml_state_schedule((ml_state_t *)Frame, Result);
 	}
 #endif
 }
@@ -1203,6 +1227,28 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		}
 		Frame->Stack[NumParams] = Options;
 		++NumParams;
+	} else if (Flags & ML_CLOSURE_RELAX_NAMES) {
+		for (; I < Count; ++I) {
+			ml_value_t *Arg = ml_deref(Args[I]);
+			if (ml_is_error(Arg)) ML_RETURN(Arg);
+#ifdef ML_NANBOXING
+			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
+#else
+			if (Arg->Type == MLNamesT) {
+#endif
+				ML_NAMES_CHECKX_ARG_COUNT(I);
+				ML_NAMES_FOREACH(Arg, Node) {
+					const char *Name = ml_string_value(Node->Value);
+					int Index = (intptr_t)stringmap_search(Info->Params, Name);
+					if (Index) {
+						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
+					} else {
+						++I;
+					}
+				}
+				break;
+			}
+		}
 	} else {
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = ml_deref(Args[I]);
@@ -1219,11 +1265,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
-#ifdef ML_RELAX_NAMES
-						++I;
-#else
 						ML_ERROR("NameError", "Unknown named parameters %s", Name);
-#endif
 					}
 				}
 				break;
@@ -1243,7 +1285,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Inst = Info->Entry;
 	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
-	Frame->Schedule = (ml_schedule_t *)Caller->Context->Values[ML_SCHEDULER_INDEX];
+	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
 #endif
 #ifdef DEBUG_VERSION
 	Frame->Debugger = Debugger;
@@ -1462,8 +1504,8 @@ static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) 
 	return 1;
 }
 
-static int ML_TYPED_FN(ml_method_is_safe, MLClosureT, ml_closure_t *Closure) {
-	return 1;
+static ml_value_t * ML_TYPED_FN(ml_method_wrap, MLClosureT, ml_value_t *Closure, int Count, ml_type_t **Types) {
+	return Closure;
 }
 
 ML_TYPE(MLClosureInfoT, (), "closure::info");
@@ -1539,6 +1581,13 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	return (ml_value_t *)Closure;
 }
 
+void ml_closure_relax_names(ml_value_t *Value) {
+	if (ml_is(Value, MLClosureT)) {
+		ml_closure_t *Closure = (ml_closure_t *)Value;
+		Closure->Info->Flags |= ML_CLOSURE_RELAX_NAMES;
+	}
+}
+
 static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {
 	Closure->Name = Name;
 }
@@ -1554,8 +1603,8 @@ ML_METHOD("append", MLStringBufferT, MLClosureT) {
 	return MLSome;
 }
 
-static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {
-	ml_list_set(Parameters, (intptr_t)Value, ml_string(Name, -1));
+static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters[]) {
+	Parameters[(intptr_t)Value * 2 - 2] = ml_string(Name, -1);
 	return 0;
 }
 
@@ -1564,10 +1613,19 @@ ML_METHOD("parameters", MLClosureT) {
 //>list
 // Returns the list of parameter names of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	ml_value_t *Parameters = ml_list();
-	ml_list_grow(Parameters, Closure->Info->Params->Size);
+	ml_value_t *Parameters[Closure->Info->Params->Size * 2];
+	for (int I = 0; I < Closure->Info->Params->Size; ++I) {
+		Parameters[I * 2 + 1] = MLNil;
+	}
 	stringmap_foreach(Closure->Info->Params, Parameters, (void *)ml_closure_parameter_fn);
-	return Parameters;
+	for (ml_param_type_t *Param = Closure->ParamTypes; Param; Param = Param->Next) {
+		Parameters[Param->Index * 2 + 1] = (ml_value_t *)Param->Type;
+	}
+	ml_value_t *Map = ml_map();
+	for (int I = 0; I < Closure->Info->Params->Size; ++I) {
+		ml_map_insert(Map, Parameters[I * 2], Parameters[I * 2 + 1]);
+	}
+	return Map;
 }
 
 ML_METHOD("sha256", MLClosureT) {

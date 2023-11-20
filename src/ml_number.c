@@ -230,9 +230,6 @@ ML_METHOD("i", MLComplexT) {
 	return ml_real(cimag(ml_complex_value(Args[0])));
 }
 
-#endif
-
-#ifdef ML_COMPLEX
 ML_TYPE(MLRealT, (MLComplexT), "real");
 #else
 ML_TYPE(MLRealT, (MLNumberT), "real");
@@ -299,10 +296,8 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
-	if (Tag == 0) {
-		if (Value->Type == MLInt64T) {
-			return ((ml_integer_t *)Value)->Value;
-		}
+	if ((Tag == 0) && ml_is_subtype(Value->Type, MLInt64T)) {
+		return ((ml_integer_t *)Value)->Value;
 	}
 	return 0;
 }
@@ -1040,8 +1035,8 @@ ML_FUNCTION(RandomInteger) {
 //<Min?:number
 //<Max?:number
 //>integer
-// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
-// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
+// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max` :math:`\leq 2^{32} - 1`).
+// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :math:`2^{32} - 1`.
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
 		ML_CHECK_ARG_TYPE(1, MLRealT);

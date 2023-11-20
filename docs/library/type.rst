@@ -80,3 +80,15 @@ type
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
+:mini:`meth (Ref: weak::ref):get: any | nil`
+   *TBD*
+
+
+:mini:`type weakref`
+   *TBD*
+
+
+:mini:`fun weakref(Value: any): weakref`
+   *TBD*
+
+

@@ -69,14 +69,14 @@ static char *stpcpy(char *Dest, const char *Source) {
 #define lstat stat
 #endif
 
-static ml_value_t *console_global_get(gtk_console_t *Console, const char *Name, const char *Source, int Line, int Mode) {
+static ml_value_t *console_global_get(gtk_console_t *Console, const char *Name, const char *Source, int Line, int Eval) {
 	if (Console->Debugger) {
 		ml_value_t *Value = interactive_debugger_get(Console->Debugger, Name);
 		if (Value) return Value;
 	}
 	ml_value_t *Value = stringmap_search(Console->Globals, Name);
 	if (Value) return Value;
-	return (Console->ParentGetter)(Console->ParentGlobals, Name, Source, Line, Mode);
+	return (Console->ParentGetter)(Console->ParentGlobals, Name, Source, Line, Eval);
 }
 
 void gtk_console_log(gtk_console_t *Console, ml_value_t *Value) {
@@ -366,14 +366,22 @@ static void ML_TYPED_FN(console_show_value, MLMapT, GtkTreeStore *Store, GtkTree
 	}
 }
 
+typedef struct {
+	GtkTreeStore *Store;
+	GtkTreeIter *Child;
+} console_show_field_t;
+
+static int console_show_field(const char *Name, ml_value_t *Value, console_show_field_t *Show) {
+	console_show_value(Show->Store, Show->Child, Name, Value);
+	return 0;
+}
+
 static void ML_TYPED_FN(console_show_value, MLObjectT, GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
 	ml_type_t *Class = ml_typeof(Value);
 	GtkTreeIter Child[1];
 	gtk_tree_store_insert_with_values(Store, Child, Iter, -1, 0, Name, 1, ml_type_name(Class), -1);
-	int Count = ml_class_size(Class);
-	for (int I = 0; I < Count; ++I) {
-		console_show_value(Store, Child, ml_class_field_name(Class, I), ml_object_field(Value, I));
-	}
+	console_show_field_t Show[1] = {{Store, Child}};
+	ml_object_foreach(Value, Show, (void *)console_show_field);
 }
 
 static void console_show_thread(gtk_console_t *Console, const char *SourceName, int Line) {

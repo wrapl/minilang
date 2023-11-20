@@ -1,7 +1,7 @@
-sphinx<7
+sphinx
 sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
 sphinx_toolbox
 sphinx-a4doc
-sphinxawesome-theme
+insipid-sphinx-theme
 graphviz

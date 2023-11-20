@@ -25,6 +25,7 @@ Normally, :mini:`exit`-expressions are used within conditional expressions such 
 If the first expression after :mini:`while` evaluates to :mini:`nil` then the loop exits with the value of the second expression, or :mini:`nil` is the second expression is omitted. Otherwise, the :mini:`while`-expression evaluates to the result of the first expression.
 
 .. code-block:: mini
+   :linenos:
 
    while X, Y
    :> behaves like
@@ -39,6 +40,7 @@ If the first expression after :mini:`while` evaluates to :mini:`nil` then the lo
 If the first expression after :mini:`until` evaluates to anything other than :mini:`nil` then the loop exits with the value of the second expression, or the value of the first expression if the second expression is omitted. Otherwise, the :mini:`until`-expression evaluates to :mini:`nil`.
 
 .. code-block:: mini
+   :linenos:
 
    until X, Y
    :> behaves like
@@ -55,6 +57,7 @@ Exiting nested loops
 The optional expression passed to :mini:`exit` is evaluated in the context of the surrounding loop. For example, to exit 2 loops at once, :mini:`exit exit Value` can be used. Likewise, to skip to the start of the surrounding loop, :mini:`exit next` can be used.
 
 .. code-block:: mini
+   :linenos:
 
    let (I, J, K) := for I in 1 .. 10 do
       for J in 1 .. 10 do
@@ -77,6 +80,7 @@ Named loops
 If it is required to exit or restart deeply nested loops, using multiple :mini:`exit`'s can be inconvenient and error prone. *Minilang* allows loops (both :mini:`loop` and :mini:`for`) to be named and then referred to in a :mini:`exit` or :mini:`next` expression.
 
 .. code-block:: mini
+   :linenos:
 
    main :- for I in 1 .. 10 do
       for J in 1 .. 10 do
@@ -105,6 +109,7 @@ If a :mini:`for`-expression exhausts its sequence without exiting, the :mini:`el
 A :mini:`next`-expression can also be used in a :mini:`for`-expression which will advance to the next iteration of the sequence.
 
 .. code-block:: mini
+   :linenos:
 
    for I in 1 .. 10 do
       I = 3 and next
@@ -131,6 +136,7 @@ Each expressions
 An :mini:`each`-expression simply loops over a sequence.
 
 .. code-block:: mini
+   :linenos:
 
    each X
    :> behaves like

@@ -8,7 +8,6 @@ typedef struct {
 		ml_value_t **Args;
 		ml_value_t *Result;
 	};
-	ml_schedule_t Schedule;
 	pthread_t Handle;
 	int Count;
 } ml_thread_t;
@@ -156,10 +155,7 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLUUIDT, ml_value_t *Value) {
 static void *ml_thread_fn(ml_thread_t *Thread) {
 	ml_context_t *Context = Thread->Base.Context;
 #ifdef ML_SCHEDULER
-	ml_default_queue_init(8);
-	Thread->Schedule.Counter = 256;
-	Thread->Schedule.add = (void *)ml_default_queue_add_signal;
-	ml_context_set(Context, ML_SCHEDULER_INDEX, &Thread->Schedule);
+	ml_default_queue_init(Context, 256);
 #endif
 	ml_context_set(Context, ML_THREAD_INDEX, Thread);
 	ml_value_t **Args = Thread->Args;
@@ -168,9 +164,8 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 	Thread->Count = 0;
 	ml_call((ml_state_t *)Thread, Args[Count - 1], Count - 1, Args);
 	while (!Thread->Result) {
-		ml_queued_state_t QueuedState = ml_default_queue_next_wait();
-		Thread->Schedule.Counter = 256;
-		QueuedState.State->run(QueuedState.State, QueuedState.Value);
+		ml_queued_state_t Queued = ml_default_queue_next_wait();
+		Queued.State->run(Queued.State, Queued.Value);
 	}
 	return Thread->Result;
 }

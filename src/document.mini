@@ -734,7 +734,11 @@ fun process(FileName) do
 				let K := Line:find(",", J + 1)
 				var Name := Line[I + 1, J]:trim(", ")
 				var Category := DefaultCategory
-				let Parent := if Line % r"^ML_ENUM" then "MLEnumT" else "MLFlagsT" end
+				let Parent := switch Line: string
+					case r"^ML_ENUM_CYCLIC" do "MLEnumCyclicT"
+					case r"^ML_ENUM" do "MLEnumT"
+					else "MLFlagsT"
+				end
 				let Title := Line[J + 1, K]:trim(", ){")
 				let Description := []
 				let Examples := []

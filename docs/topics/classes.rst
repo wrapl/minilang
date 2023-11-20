@@ -20,6 +20,7 @@ Certain shared values have special meaning. If :mini:`c` is a class, then:
 * The name :mini:`c::new` is always set to a function equivalent to the following:
 
   .. code-block:: mini
+   :linenos:
 
    fun(Arg₁, Arg₂, ...) do
       let Instance := new instance of c
@@ -46,6 +47,7 @@ Examples
 --------
 
 .. code-block:: mini
+   :linenos:
 
    class: account(:Balance,
       init is fun(Account, Balance) do

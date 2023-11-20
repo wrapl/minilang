@@ -85,6 +85,10 @@
 #include "ml_base64.h"
 #endif
 
+#ifdef ML_STRUCT
+#include "ml_struct.h"
+#endif
+
 #undef ML_CATEGORY
 #define ML_CATEGORY "minilang"
 
@@ -155,22 +159,6 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 	return Result;
 }
 
-#ifdef ML_SCHEDULER
-
-static unsigned int SliceSize = 256;
-static ml_value_t *MainResult = NULL;
-static ml_schedule_t MainSchedule[1] = {{256, (void *)ml_default_queue_add_signal}};
-
-static void simple_queue_run() {
-	while (!MainResult) {
-		ml_queued_state_t QueuedState = ml_default_queue_next_wait();
-		MainSchedule->Counter = SliceSize;
-		QueuedState.State->run(QueuedState.State, QueuedState.Value);
-	}
-}
-
-#endif
-
 #ifdef ML_BACKTRACE
 #include <backtrace.h>
 
@@ -217,6 +205,8 @@ ML_FUNCTION(MLBacktrace) {
 
 #endif
 
+static ml_value_t *MainResult = NULL;
+
 static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
@@ -245,6 +235,10 @@ int main(int Argc, const char *Argv[]) {
 	ml_init(Globals);
 	ml_sequence_init(Globals);
 	ml_object_init(Globals);
+#ifdef ML_STRUCT
+	ml_struct_init(Globals);
+#endif
+
 #ifdef ML_SCHEDULER
 	ml_tasks_init(Globals);
 #endif
@@ -276,6 +270,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER_
 	stringmap_insert(Globals, "atomic", MLAtomic);
 #endif
+	stringmap_insert(Globals, "finalize", MLFinalizer);
 	stringmap_insert(Globals, "context", MLContextKeyT);
 	stringmap_insert(Globals, "parser", MLParserT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);
@@ -296,17 +291,21 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "io", IO);
 	ml_module_t *Util = ml_library_internal("util");
 	stringmap_insert(Globals, "util", Util);
+	ml_module_t *Enc = ml_library_internal("enc");
+	stringmap_insert(Globals, "enc", Enc);
 #define SYS_EXPORTS Sys->Exports
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports
 #define IO_EXPORTS IO->Exports
 #define UTIL_EXPORTS Util->Exports
+#define ENC_EXPORTS Enc->Exports
 #else
 #define SYS_EXPORTS Globals
 #define STD_EXPORTS Globals
 #define FMT_EXPORTS Globals
 #define IO_EXPORTS Globals
 #define UTIL_EXPORTS Globals
+#define ENC_EXPORTS Globals
 #endif
 
 	ml_stream_init(IO_EXPORTS);
@@ -355,8 +354,8 @@ int main(int Argc, const char *Argv[]) {
 	ml_minijs_init(FMT_EXPORTS);
 #endif
 #ifdef ML_ENCODINGS
-	ml_base16_init(Globals);
-	ml_base64_init(Globals);
+	ml_base16_init(ENC_EXPORTS);
+	ml_base64_init(ENC_EXPORTS);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);
@@ -367,6 +366,9 @@ int main(int Argc, const char *Argv[]) {
 	int LoadModule = 0;
 #endif
 	int BreakOnExit = 0;
+#ifdef ML_SCHEDULER
+	int SliceSize = 256;
+#endif
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
@@ -451,16 +453,9 @@ int main(int Argc, const char *Argv[]) {
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		MainSchedule->Counter = SliceSize;
-		ml_default_queue_init(8);
+		ml_default_queue_init(Main->Context, SliceSize);
 #ifdef ML_GIR
-		if (UseGirLoop) {
-			ml_gir_loop_init(Main->Context);
-		} else {
-#endif
-			ml_context_set(Main->Context, ML_SCHEDULER_INDEX, MainSchedule);
-#ifdef ML_GIR
-		}
+		if (UseGirLoop) ml_gir_loop_init(Main->Context);
 #endif
 	}
 #endif
@@ -495,7 +490,12 @@ int main(int Argc, const char *Argv[]) {
 			ml_gir_loop_run();
 		} else {
 #endif
-		if (SliceSize) simple_queue_run();
+		if (SliceSize) {
+			while (!MainResult) {
+				ml_queued_state_t Queued = ml_default_queue_next_wait();
+				Queued.State->run(Queued.State, Queued.Value);
+			}
+		}
 #ifdef ML_GIR
 		}
 		if (BreakOnExit) {
@@ -510,6 +510,14 @@ int main(int Argc, const char *Argv[]) {
 		ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
 		ml_parser_input(Parser, Command);
 		ml_command_evaluate(Main, Parser, Compiler);
+#ifdef ML_SCHEDULER
+		if (SliceSize) {
+			while (!MainResult) {
+				ml_queued_state_t Queued = ml_default_queue_next_wait();
+				Queued.State->run(Queued.State, Queued.Value);
+			}
+		}
+#endif
 	} else {
 		ml_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
 	}

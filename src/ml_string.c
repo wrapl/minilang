@@ -623,7 +623,8 @@ ML_FUNCTIONX(MLString) {
 ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
 // A string of characters in UTF-8 encoding.
 	.hash = (void *)ml_string_hash,
-	.Constructor = (ml_value_t *)MLString
+	.Constructor = (ml_value_t *)MLString,
+	.NoInherit = 1
 );
 
 ML_METHOD("append", MLStringBufferT, MLAddressT) {
