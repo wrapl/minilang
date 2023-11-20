@@ -1035,8 +1035,8 @@ ML_FUNCTION(RandomInteger) {
 //<Min?:number
 //<Max?:number
 //>integer
-// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
-// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
+// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max` :math:`\leq 2^{32} - 1`).
+// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :math:`2^{32} - 1`.
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
 		ML_CHECK_ARG_TYPE(1, MLRealT);

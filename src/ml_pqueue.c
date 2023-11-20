@@ -30,7 +30,7 @@ struct ml_pqueue_t {
 
 	ml_pqueue_entry_t *Entry, *Test, *Parent;
 	ml_value_t *Args[2];
-	ml_value_t *Value;
+	ml_value_t *Priority, *Value;
 
 	int Count, Size;
 };
@@ -217,11 +217,12 @@ ML_METHODX("next", MLPQueueT) {
 
 static void ml_pqueue_keep_run(ml_pqueue_t *Queue, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(Queue->Base.Caller, Value);
-	ml_pqueue_entry_t *Entry = (ml_pqueue_entry_t *)Queue->Value;
-	if (Value != MLNil) {
-		Entry->Index = INT_MAX;
-		ML_CONTINUE(Queue->Base.Caller, Queue->Value);
-	}
+	if (Value != MLNil) ML_CONTINUE(Queue->Base.Caller, MLNil);
+	ml_pqueue_entry_t *Entry = new(ml_pqueue_entry_t);
+	Entry->Type = MLPQueueEntryT;
+	Entry->Queue = Queue;
+	Entry->Value = Queue->Value;
+	Entry->Priority = Queue->Priority;
 	ml_pqueue_entry_t *Next = Queue->Entries[0];
 	Next->Index = INT_MAX;
 	Entry->Index = 0;
@@ -236,6 +237,7 @@ ML_METHODX("keep", MLPQueueT, MLIntegerT, MLAnyT, MLAnyT) {
 //<Target
 //<Value
 //<Priority
+//>pqueue::entry|nil
 // Creates and returns a new entry in :mini:`Queue` with value :mini:`Value` and priority :mini:`Priority` if either :mini:`Queue`
 // has fewer than :mini:`Target` entries or :mini:`Priority` is lower than the current highest priority entry in :mini:`Queue`
 // (removing the current highest priority entry in this case).
@@ -243,20 +245,20 @@ ML_METHODX("keep", MLPQueueT, MLIntegerT, MLAnyT, MLAnyT) {
 // Returns the entry removed from :mini:`Queue` or :mini:`nil` if no entry was removed.
 	ml_pqueue_t *Queue = (ml_pqueue_t *)Args[0];
 	int Target = ml_integer_value(Args[1]);
-	ml_pqueue_entry_t *Entry = new(ml_pqueue_entry_t);
-	Entry->Type = MLPQueueEntryT;
-	Entry->Queue = Queue;
-	Entry->Value = Args[2];
-	Entry->Priority = Args[3];
 	if (Queue->Count < Target) {
+		ml_pqueue_entry_t *Entry = new(ml_pqueue_entry_t);
+		Entry->Type = MLPQueueEntryT;
+		Entry->Queue = Queue;
+		Entry->Value = Args[2];
+		Entry->Priority = Args[3];
 		Queue->Value = MLNil;
 		return ml_pqueue_insert(Caller, Queue, Entry);
 	}
 	Queue->Base.Caller = Caller;
 	Queue->Base.Context = Caller->Context;
 	Queue->Base.run = (ml_state_fn)ml_pqueue_keep_run;
-	Queue->Value = (ml_value_t *)Entry;
-	Queue->Args[0] = Entry->Priority;
+	Queue->Value = Args[2];
+	Queue->Args[0] = Queue->Priority = Args[3];
 	Queue->Args[1] = Queue->Entries[0]->Priority;
 	return ml_call(Queue, Queue->Compare, 2, Queue->Args);
 }
