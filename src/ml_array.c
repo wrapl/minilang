@@ -1445,44 +1445,60 @@ typedef struct {
 	int Size, Stride, Index;
 } ml_array_iter_dim_t;
 
-typedef ml_value_t *(*ml_array_iter_val_t)(char *);
+typedef ml_value_t *(*ml_array_iter_deref_t)(char *);
+typedef void (*ml_array_iter_assign_t)(char *, ml_value_t *);
 
-#define ML_ARRAY_ITER_FN(CTYPE, TO_VAL) \
+#define ML_ARRAY_ITER_FN(CTYPE, TO_VAL, FROM_VAL) \
 \
-static ml_value_t *ml_array_iter_val_ ## CTYPE(char *Address) { \
+static ml_value_t *ml_array_iter_deref_ ## CTYPE(char *Address) { \
 	return TO_VAL(*(CTYPE *)Address); \
+} \
+\
+static void ml_array_iter_assign_ ## CTYPE(char *Address, ml_value_t *Value) { \
+	*(CTYPE *)Address = FROM_VAL(Value); \
 }
 
-ML_ARRAY_ITER_FN(uint8_t, ml_integer);
-ML_ARRAY_ITER_FN(int8_t, ml_integer);
-ML_ARRAY_ITER_FN(uint16_t, ml_integer);
-ML_ARRAY_ITER_FN(int16_t, ml_integer);
-ML_ARRAY_ITER_FN(uint32_t, ml_integer);
-ML_ARRAY_ITER_FN(int32_t, ml_integer);
-ML_ARRAY_ITER_FN(uint64_t, ml_integer);
-ML_ARRAY_ITER_FN(int64_t, ml_integer);
-ML_ARRAY_ITER_FN(float, ml_real);
-ML_ARRAY_ITER_FN(double, ml_real);
+ML_ARRAY_ITER_FN(uint8_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(int8_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(uint16_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(int16_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(uint32_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(int32_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(uint64_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(int64_t, ml_integer, ml_integer_value);
+ML_ARRAY_ITER_FN(float, ml_real, ml_real_value);
+ML_ARRAY_ITER_FN(double, ml_real, ml_real_value);
 
 #ifdef ML_COMPLEX
-ML_ARRAY_ITER_FN(complex_float, ml_complex);
-ML_ARRAY_ITER_FN(complex_double, ml_complex);
+ML_ARRAY_ITER_FN(complex_float, ml_complex, ml_complex_value);
+ML_ARRAY_ITER_FN(complex_double, ml_complex, ml_complex_value);
 #endif
 
-static ml_value_t *ml_array_iter_val_any(char *Address) {
-	return *(ml_value_t **)Address;
-}
+ML_ARRAY_ITER_FN(any, , );
 
 typedef struct {
 	ml_type_t *Type;
 	char *Address;
-	ml_array_iter_val_t ToVal;
+	ml_array_iter_deref_t Deref;
+	ml_array_iter_assign_t Assign;
 	int Degree;
 	ml_array_iter_dim_t Dimensions[];
 } ml_array_iterator_t;
 
-ML_TYPE(MLArrayIteratorT, (), "array-iterator");
+static ml_value_t *ml_array_iter_deref(ml_array_iterator_t *Iter) {
+	return Iter->Deref(Iter->Address);
+}
+
+static void ml_array_iter_assign(ml_state_t *Caller, ml_array_iterator_t *Iter, ml_value_t *Value) {
+	Iter->Assign(Iter->Address, Value);
+	ML_RETURN(Value);
+}
+
+ML_TYPE(MLArrayIteratorT, (), "array-iterator",
 //!internal
+	.deref = (void *)ml_array_iter_deref,
+	.assign = (void *)ml_array_iter_assign
+);
 
 static void ML_TYPED_FN(ml_iter_next, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
 	int I = Iterator->Degree;
@@ -1507,7 +1523,7 @@ static void ML_TYPED_FN(ml_iter_next, MLArrayIteratorT, ml_state_t *Caller, ml_a
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
-	ML_RETURN(Iterator->ToVal(Iterator->Address));
+	ML_RETURN(Iterator);
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
@@ -1526,45 +1542,58 @@ static void ML_TYPED_FN(ml_iterate, MLArrayT, ml_state_t *Caller, ml_array_t *Ar
 	Iterator->Degree = Array->Degree;
 	switch (Array->Format) {
 	case ML_ARRAY_FORMAT_U8:
-		Iterator->ToVal = ml_array_iter_val_uint8_t;
+		Iterator->Deref = ml_array_iter_deref_uint8_t;
+		Iterator->Assign = ml_array_iter_assign_uint8_t;
 		break;
 	case ML_ARRAY_FORMAT_I8:
-		Iterator->ToVal = ml_array_iter_val_int8_t;
+		Iterator->Deref = ml_array_iter_deref_int8_t;
+		Iterator->Assign = ml_array_iter_assign_int8_t;
 		break;
 	case ML_ARRAY_FORMAT_U16:
-		Iterator->ToVal = ml_array_iter_val_uint16_t;
+		Iterator->Deref = ml_array_iter_deref_uint16_t;
+		Iterator->Assign = ml_array_iter_assign_uint16_t;
 		break;
 	case ML_ARRAY_FORMAT_I16:
-		Iterator->ToVal = ml_array_iter_val_int16_t;
+		Iterator->Deref = ml_array_iter_deref_int16_t;
+		Iterator->Assign = ml_array_iter_assign_int16_t;
 		break;
 	case ML_ARRAY_FORMAT_U32:
-		Iterator->ToVal = ml_array_iter_val_uint32_t;
+		Iterator->Deref = ml_array_iter_deref_uint32_t;
+		Iterator->Assign = ml_array_iter_assign_uint32_t;
 		break;
 	case ML_ARRAY_FORMAT_I32:
-		Iterator->ToVal = ml_array_iter_val_int32_t;
+		Iterator->Deref = ml_array_iter_deref_int32_t;
+		Iterator->Assign = ml_array_iter_assign_int32_t;
 		break;
 	case ML_ARRAY_FORMAT_U64:
-		Iterator->ToVal = ml_array_iter_val_uint64_t;
+		Iterator->Deref = ml_array_iter_deref_uint64_t;
+		Iterator->Assign = ml_array_iter_assign_uint64_t;
 		break;
 	case ML_ARRAY_FORMAT_I64:
-		Iterator->ToVal = ml_array_iter_val_int64_t;
+		Iterator->Deref = ml_array_iter_deref_int64_t;
+		Iterator->Assign = ml_array_iter_assign_int64_t;
 		break;
 	case ML_ARRAY_FORMAT_F32:
-		Iterator->ToVal = ml_array_iter_val_float;
+		Iterator->Deref = ml_array_iter_deref_float;
+		Iterator->Assign = ml_array_iter_assign_float;
 		break;
 	case ML_ARRAY_FORMAT_F64:
-		Iterator->ToVal = ml_array_iter_val_double;
+		Iterator->Deref = ml_array_iter_deref_double;
+		Iterator->Assign = ml_array_iter_assign_double;
 		break;
 #ifdef ML_COMPLEX
 	case ML_ARRAY_FORMAT_C32:
-		Iterator->ToVal = ml_array_iter_val_complex_float;
+		Iterator->Deref = ml_array_iter_deref_complex_float;
+		Iterator->Assign = ml_array_iter_assign_complex_float;
 		break;
 	case ML_ARRAY_FORMAT_C64:
-		Iterator->ToVal = ml_array_iter_val_complex_double;
+		Iterator->Deref = ml_array_iter_deref_complex_double;
+		Iterator->Assign = ml_array_iter_assign_complex_double;
 		break;
 #endif
 	case ML_ARRAY_FORMAT_ANY:
-		Iterator->ToVal = ml_array_iter_val_any;
+		Iterator->Deref = ml_array_iter_deref_any;
+		Iterator->Assign = ml_array_iter_assign_any;
 		break;
 	default:
 		ML_ERROR("TypeError", "Invalid array type for iteration");
