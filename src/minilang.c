@@ -226,6 +226,8 @@ extern ml_cfunction_t MLMemTrace[];
 extern ml_cfunction_t MLMemSize[];
 extern ml_cfunction_t MLMemCollect[];
 
+extern void weakmap_init(stringmap_t *Globals);
+
 int main(int Argc, const char *Argv[]) {
 #ifdef ML_BACKTRACE
 	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
@@ -278,6 +280,8 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "variable", MLVariableT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
+
+	weakmap_init(Globals);
 
 #ifdef ML_LIBRARY
 	ml_library_init(Globals);

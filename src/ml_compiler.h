@@ -5,6 +5,7 @@
 
 #include "ml_runtime.h"
 #include "stringmap.h"
+#include "weakmap.h"
 
 #ifdef __cplusplus
 extern "C" {
