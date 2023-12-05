@@ -76,7 +76,6 @@ elseif CC_TYPE = "CLANG" then
 	CFLAGS := old + [
 		:>"-Werror=bad-function-cast",
 		"-Wno-initializer-overrides"
-		
 	]
 end
 
@@ -249,7 +248,7 @@ MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
-MINILANG_STRUCTS := old or defined("STRUCTS") 
+MINILANG_STRUCTS := old or defined("STRUCTS")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")

@@ -8,7 +8,7 @@ from sphinx import version_info
 
 class FoldersDirective(Directive):
 	has_content = True
-
+	
 	def run(self):
 		env = self.state.document.settings.env
 		block_quote = nodes.line_block()
@@ -24,8 +24,7 @@ class FoldersDirective(Directive):
 			indent = match.start()
 			node = nodes.list_item()
 			text = line[match.end():]
-			print(line[match.end():])
-			if indent <= indents[-1]:
+			while indent <= indents[-1]:
 				stack.pop()
 				indents.pop()
 			stack[-1].append(node)
@@ -75,6 +74,7 @@ extensions = [
 	'sphinx.ext.graphviz',
 	'sphinx.ext.viewcode',
 	'sphinx_toolbox.collapse',
+	'sphinxcontrib.ansi',
 	#"sphinxawesome_theme"
 	#'sphinx_design'
 ]

@@ -102,6 +102,7 @@ class MiniStyle(Style):
 		Name.Attribute: '#5caf8f',
 		Name.Function: '#df631c',
 		Name.Class: '#ad00bc',
+		Name.Builtin: '#0da400',
 		Comment: '#a0a1a7',
 		String: '#c5a332',
 		String.Escape: '#823ff1',
