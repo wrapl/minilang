@@ -1747,6 +1747,17 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			ml_stringbuffer_printf(Buffer, ", %d", Inst[2 + N].Count);
 		}
+		ml_closure_info_labels(Info);
+		ml_stringbuffer_put(Buffer, '\n');
+		for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+			if (Inst->Opcode == MLI_LINK) {
+				Inst = Inst[1].Inst;
+			} else {
+				Inst += ml_closure_inst_list(Inst, Buffer);
+			}
+			ml_stringbuffer_put(Buffer, '\n');
+		}
+		ml_stringbuffer_write(Buffer, "\t----------", strlen("\t----------"));
 		return 2 + Info->NumUpValues;
 	}
 	case MLIT_SWITCH: {
