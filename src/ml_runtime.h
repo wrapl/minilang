@@ -167,7 +167,7 @@ struct ml_decl_t {
 	const char *Ident;
 	ml_value_t *Value;
 	ml_source_t Source;
-	long Hash;
+	//long Hash;
 	int Index, Flags;
 };
 

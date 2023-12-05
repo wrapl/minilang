@@ -102,7 +102,6 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 		Offset++;
 	}
 	if (Map->Space <= MIN_SPACE) {
-		GC_gcollect();
 		size_t Size = Mask + 1;
 		//weakmap_grow(Map, Map->Deleted > MIN_SPACE ? Size : (Size * 2));
 		weakmap_grow(Map, Size * 2);

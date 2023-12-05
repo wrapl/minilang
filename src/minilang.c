@@ -373,6 +373,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 	int SliceSize = 256;
 #endif
+	size_t MemLimit = 0;
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
@@ -428,6 +429,28 @@ int main(int Argc, const char *Argv[]) {
 				break;
 #endif
 			case 'z': GC_disable(); break;
+			case 'M': {
+				char *End;
+				if (Argv[I][2]) {
+					MemLimit = strtol(Argv[I] + 2, &End, 10);
+
+				} else if (++I < Argc) {
+					MemLimit = strtol(Argv[I] + 2, &End, 10);
+				} else {
+					fprintf(stderr, "Error: memory limit required\n");
+					exit(-1);
+				}
+				switch (End[0]) {
+				case 0: break;
+				case 'k': MemLimit <<= 10; break;
+				case 'M': MemLimit <<= 20; break;
+				case 'G': MemLimit <<= 30; break;
+				default:
+					fprintf(stderr, "Error: memory unit required\n");
+					exit(-1);
+				}
+				break;
+			}
 #ifdef ML_GIR
 			case 'g':
 				UseGirLoop = 1;
@@ -453,6 +476,7 @@ int main(int Argc, const char *Argv[]) {
 			FileName = Argv[I];
 		}
 	}
+	if (MemLimit) GC_set_max_heap_size(MemLimit);
 	ml_state_t *Main = ml_state(NULL);
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER

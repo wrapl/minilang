@@ -1,6 +1,7 @@
 sphinx
 sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
+sphinxcontrib-ansi
 sphinx_toolbox
 sphinx-a4doc
 insipid-sphinx-theme
