@@ -114,7 +114,7 @@ static void ml_console_debug_exit(void *Data, interactive_debugger_t *Debugger, 
 }
 
 void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt) {
-	ml_console_t Console[1];
+	ml_console_t *Console = new(ml_console_t);
 	Console->Base.run = (void *)ml_console_repl_run;
 	Console->Base.Context = Context;
 	Console->Prompt = Console->DefaultPrompt = DefaultPrompt;

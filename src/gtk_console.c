@@ -386,7 +386,7 @@ static void ML_TYPED_FN(console_show_value, MLObjectT, GtkTreeStore *Store, GtkT
 
 static void console_show_thread(gtk_console_t *Console, const char *SourceName, int Line) {
 	GtkWidget *SourceView;
-	if (SourceName == Console->Name) {
+	if (!strcmp(SourceName, Console->Name)) {
 		SourceView = Console->SourceView;
 	} else {
 		SourceView = console_open_source(Console, SourceName);
@@ -876,7 +876,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	gtk_paned_set_position(GTK_PANED(OutputPane), 200);
 
 	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
-	
+
 	GtkWidget *InputPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
 	GtkWidget *DebugButtons = Console->DebugButtons = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
 	GtkWidget *StepInButton = gtk_button_new();
@@ -931,11 +931,11 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	g_signal_connect(G_OBJECT(ClearButton), "clicked", G_CALLBACK(console_clear), Console);
 	Console->Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_icon_name(GTK_WINDOW(Console->Window), "face-smile");
-	
+
 	GtkWidget *ReplBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	gtk_box_pack_start(GTK_BOX(ReplBox), Console->LogScrolled, TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(ReplBox), InputFrame, FALSE, TRUE, 2);
-	
+
 	gtk_paned_add1(GTK_PANED(Console->Paned), ReplBox);
 	gtk_paned_add2(GTK_PANED(Console->Paned), OutputPane);
 	gtk_paned_set_position(GTK_PANED(Console->Paned), 600);

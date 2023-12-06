@@ -464,7 +464,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals);
+		gtk_console_t *Console = gtk_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
 		if (FileName) gtk_console_load_file(Console, FileName, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
@@ -519,7 +519,28 @@ int main(int Argc, const char *Argv[]) {
 		}
 #endif
 	} else {
-		ml_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
+		ml_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
+#ifdef ML_SCHEDULER
+#ifdef ML_GIR
+		if (UseGirLoop) {
+			ml_gir_loop_run();
+		} else {
+#endif
+		if (SliceSize) {
+			while (!MainResult) {
+				ml_queued_state_t Queued = ml_default_queue_next_wait();
+				Queued.State->run(Queued.State, Queued.Value);
+			}
+		}
+#ifdef ML_GIR
+		}
+		if (BreakOnExit) {
+#ifdef GC_DEBUG
+			GC_generate_random_backtrace();
+#endif
+		}
+#endif
+#endif
 	}
 	return 0;
 }
