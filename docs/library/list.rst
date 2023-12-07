@@ -37,8 +37,80 @@ list
       list((1, 2, 3)) :> [1, 2, 3]
 
 
+:mini:`meth (A: list) != (B: list): B | nil`
+   Returns :mini:`B` if :mini:`A:size != B:size` or :mini:`Aᵢ != Bᵢ` for some :mini:`i`.
+
+   .. code-block:: mini
+
+      !=([1, 2, 3], [1, 2, 3]) :> nil
+      !=([1, 2, 3], [1, 2]) :> [1, 2]
+      !=([1, 2], [1, 2, 3]) :> [1, 2, 3]
+      !=([1, 2, 3], [1, 2, 4]) :> [1, 2, 4]
+      !=([1, 3, 2], [1, 2, 3]) :> [1, 2, 3]
+
+
 :mini:`meth (List₁: list) + (List₂: list): list`
    Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
+
+
+:mini:`meth (A: list) < (B: list): B | nil`
+   Returns :mini:`B` if :mini:`Aᵢ = Bᵢ` for each :mini:`i = 1 .. j-1` and :mini:`Aⱼ < Bⱼ`.
+
+   .. code-block:: mini
+
+      <([1, 2, 3], [1, 2, 3]) :> nil
+      <([1, 2, 3], [1, 2]) :> nil
+      <([1, 2], [1, 2, 3]) :> [1, 2, 3]
+      <([1, 2, 3], [1, 2, 4]) :> [1, 2, 4]
+      <([1, 3, 2], [1, 2, 3]) :> nil
+
+
+:mini:`meth (A: list) <= (B: list): B | nil`
+   Returns :mini:`B` if :mini:`Aᵢ = Bᵢ` for each :mini:`i = 1 .. j-1` and :mini:`Aⱼ <= Bⱼ`.
+
+   .. code-block:: mini
+
+      <=([1, 2, 3], [1, 2, 3]) :> [1, 2, 3]
+      <=([1, 2, 3], [1, 2]) :> nil
+      <=([1, 2], [1, 2, 3]) :> [1, 2, 3]
+      <=([1, 2, 3], [1, 2, 4]) :> [1, 2, 4]
+      <=([1, 3, 2], [1, 2, 3]) :> nil
+
+
+:mini:`meth (A: list) = (B: list): B | nil`
+   Returns :mini:`B` if :mini:`A:size = B:size` and :mini:`Aᵢ = Bᵢ` for each :mini:`i`.
+
+   .. code-block:: mini
+
+      =([1, 2, 3], [1, 2, 3]) :> [1, 2, 3]
+      =([1, 2, 3], [1, 2]) :> nil
+      =([1, 2], [1, 2, 3]) :> nil
+      =([1, 2, 3], [1, 2, 4]) :> nil
+      =([1, 3, 2], [1, 2, 3]) :> nil
+
+
+:mini:`meth (A: list) > (B: list): B | nil`
+   Returns :mini:`B` if :mini:`Aᵢ = Bᵢ` for each :mini:`i = 1 .. j-1` and :mini:`Aⱼ > Bⱼ`.
+
+   .. code-block:: mini
+
+      >([1, 2, 3], [1, 2, 3]) :> nil
+      >([1, 2, 3], [1, 2]) :> [1, 2]
+      >([1, 2], [1, 2, 3]) :> nil
+      >([1, 2, 3], [1, 2, 4]) :> nil
+      >([1, 3, 2], [1, 2, 3]) :> [1, 2, 3]
+
+
+:mini:`meth (A: list) >= (B: list): B | nil`
+   Returns :mini:`B` if :mini:`Aᵢ = Bᵢ` for each :mini:`i = 1 .. j-1` and :mini:`Aⱼ >= Bⱼ`.
+
+   .. code-block:: mini
+
+      >=([1, 2, 3], [1, 2, 3]) :> [1, 2, 3]
+      >=([1, 2, 3], [1, 2]) :> [1, 2]
+      >=([1, 2], [1, 2, 3]) :> nil
+      >=([1, 2, 3], [1, 2, 4]) :> nil
+      >=([1, 3, 2], [1, 2, 3]) :> [1, 2, 3]
 
 
 :mini:`meth (List: list)[Index: integer]: list::node | nil`
@@ -53,7 +125,7 @@ list
       L[8] :> nil
 
 
-:mini:`meth (List: list)[Indices: list::mutable]: list`
+:mini:`meth (List: list)[Indices: list]: list`
    Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
@@ -99,8 +171,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
-      L:random :> "k"
+      L:random :> "e"
+      L:random :> "e"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

@@ -50,12 +50,6 @@ hierarchy
       "function":e -> "tasks":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
-      "any":e -> "instance::field":w;
-      "any":e -> "instance":w;
-      "function":e -> "struct::getter":w;
-      "function":e -> "struct::getter::fast":w;
-      "type":e -> "struct":w;
-      "any":e -> "ref":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
       "address":e -> "string":w;
@@ -125,7 +119,6 @@ hierarchy
       "any":e -> "map::node":w;
       "map::node":e -> "map::node::mutable":w;
       "any":e -> "map::node::mutable":w;
-      "sequence":e -> "list2":w;
       "sequence":e -> "list":w;
       "list":e -> "list::mutable":w;
       "any":e -> "list::node":w;
