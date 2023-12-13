@@ -1865,7 +1865,7 @@ ml_value_t *ml_names() {
 void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 	ml_list_t *List = (ml_list_t *)Names;
 	ml_list_node_t *Node = new(ml_list_node_t);
-	Node->Type = MLListNodeMutableT;
+	Node->Type = MLListNodeT;
 	Node->Value = Value;
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;

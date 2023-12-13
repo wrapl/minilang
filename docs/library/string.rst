@@ -836,6 +836,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       "yell" ~ "hello" :> 2
       "say" ~ "goodbye" :> 6
       "goodbye" ~ "say" :> 6
+      "λ:😀 → Y" ~ "λ:X → 😺" :> 2
 
 
 :mini:`meth (A: string) ~> (B: string): integer`
@@ -847,6 +848,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       "yell" ~> "hello" :> 2
       "say" ~> "goodbye" :> 6
       "goodbye" ~> "say" :> 3
+      "λ:😀 → Y" ~> "λ:X → 😺" :> 4
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: string)`

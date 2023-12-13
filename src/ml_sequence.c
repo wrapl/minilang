@@ -1258,7 +1258,7 @@ static void reduce_call(ml_iter_state_t *State, ml_value_t *Value) {
 static void reduce_next_value(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	ml_value_t *Function = State->Values[0];
-	State->Values[2] = Value;
+	State->Values[2] = ml_deref(Value);
 	State->Base.run = (void *)reduce_call;
 	return ml_call(State, Function, 2, State->Values + 1);
 }
@@ -1272,7 +1272,7 @@ static void reduce_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
 
 static void reduce_first_value(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Values[1] = Value;
+	State->Values[1] = ml_deref(Value);
 	State->Base.run = (void *)reduce_iter_next;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
