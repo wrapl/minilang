@@ -24,8 +24,8 @@ fun describe(Buffer, Indent, Expr) do
 		Buffer:write('{type(Expr)} [{Expr:startline} .. {Expr:endline}] \{')
 		for Field in type(Expr):fields do
 			if not Field in :({:startline, :endline, :source}) then
-				Buffer:write('\n{Indent}  <{Field:name}> ')
-				describe(Buffer, Indent + "  ", Field(Expr))
+				Buffer:write('\n{Indent}| <{Field:name}> ')
+				describe(Buffer, Indent + "| ", Field(Expr))
 			end
 		end
 		Buffer:write('\n{Indent}}')
@@ -33,7 +33,7 @@ fun describe(Buffer, Indent, Expr) do
 		Buffer:write('{type(Expr)} \{')
 		for Field in type(Expr):fields do
 			Buffer:write('\n{Indent}  <{Field:name}> ')
-			describe(Buffer, Indent + "  ", Field(Expr))
+			describe(Buffer, Indent + "| ", Field(Expr))
 		end
 		Buffer:write('\n{Indent}}')
 	else

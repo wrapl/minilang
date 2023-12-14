@@ -1796,6 +1796,17 @@ ML_METHOD("info", MLClosureT) {
 	return Result;
 }
 
+ML_METHOD("values", MLClosureT) {
+//<Closure
+//>map
+// Returns some information about :mini:`Closure`.
+	ml_closure_t *Closure = (ml_closure_t *)Args[0];
+	ml_closure_info_t *Info = Closure->Info;
+	ml_value_t *Result = ml_list();
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_list_put(Result, Closure->UpValues[I]);
+	return Result;
+}
+
 ML_METHOD("list", MLClosureT) {
 //<Closure
 //>string

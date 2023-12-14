@@ -1109,6 +1109,20 @@ static size_t utf8_strlen(ml_value_t *S) {
 	return utf8_position(P, P + ml_string_length(S));
 }
 
+static void utf8_expand(const char *S, uint32_t *P) {
+	while (S[0]) {
+		int K = __builtin_clz(~(S[0] << 24));
+		uint32_t Mask = (1 << (8 - K)) - 1;
+		uint32_t Value = S[0] & Mask;
+		for (++S, --K; K > 0 && S[0]; ++S, --K) {
+			Value <<= 6;
+			Value += S[0] & 0x3F;
+		}
+		*P++ = Value;
+	}
+	*P++ = 0;
+}
+
 static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
 	const char *Start = Iter->End;
 	if (!*Start) ML_RETURN(MLNil);
@@ -1826,24 +1840,28 @@ ML_METHOD("~", MLStringT, MLStringT) {
 //$= "yell" ~ "hello"
 //$= "say" ~ "goodbye"
 //$= "goodbye" ~ "say"
-	// TODO: use UTF-8 characters
-	const char *CharsA, *CharsB;
-	int LenA = ml_string_length(Args[0]);
-	int LenB = ml_string_length(Args[1]);
+//$= "λ:😀 → Y" ~ "λ:X → 😺"
+	uint32_t *CharsA, *CharsB;
+	int LenA = utf8_strlen(Args[0]);
+	int LenB = utf8_strlen(Args[1]);
 	if (LenA < LenB) {
 		SWAP(LenA, LenB);
-		CharsA = ml_string_value(Args[1]);
-		CharsB = ml_string_value(Args[0]);
+		CharsA = alloca((LenA + 1) * sizeof(uint32_t));
+		utf8_expand(ml_string_value(Args[1]), CharsA);
+		CharsB = alloca((LenB + 1) * sizeof(uint32_t));
+		utf8_expand(ml_string_value(Args[0]), CharsB);
 	} else {
-		CharsA = ml_string_value(Args[0]);
-		CharsB = ml_string_value(Args[1]);
+		CharsA = alloca((LenA + 1) * sizeof(uint32_t));
+		utf8_expand(ml_string_value(Args[0]), CharsA);
+		CharsB = alloca((LenB + 1) * sizeof(uint32_t));
+		utf8_expand(ml_string_value(Args[1]), CharsB);
 	}
 	int *Row0 = alloca((LenB + 1) * sizeof(int));
 	int *Row1 = alloca((LenB + 1) * sizeof(int));
 	int *Row2 = alloca((LenB + 1) * sizeof(int));
 	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
-	char PrevA = 0, PrevB = 0;
+	uint32_t PrevA = 0, PrevB = 0;
 	for (int I = 0; I < LenA; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		for (int J = 0; J < LenB; ++J) {
@@ -1874,18 +1892,20 @@ ML_METHOD("~>", MLStringT, MLStringT) {
 //$= "yell" ~> "hello"
 //$= "say" ~> "goodbye"
 //$= "goodbye" ~> "say"
-	// TODO: use UTF-8 characters
-	int LenA = ml_string_length(Args[0]);
-	int LenB = ml_string_length(Args[1]);
-	const char *CharsA = ml_string_value(Args[0]);
-	const char *CharsB = ml_string_value(Args[1]);
+//$= "λ:😀 → Y" ~> "λ:X → 😺"
+	int LenA = utf8_strlen(Args[0]);
+	int LenB = utf8_strlen(Args[1]);
+	uint32_t *CharsA = alloca((LenA + 1) * sizeof(uint32_t));
+	utf8_expand(ml_string_value(Args[0]), CharsA);
+	uint32_t *CharsB = alloca((LenB + 1) * sizeof(uint32_t));
+	utf8_expand(ml_string_value(Args[1]), CharsB);
 	int *Row0 = alloca((LenB + 1) * sizeof(int));
 	int *Row1 = alloca((LenB + 1) * sizeof(int));
 	int *Row2 = alloca((LenB + 1) * sizeof(int));
 	int Best = LenB;
 	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
-	char PrevA = 0, PrevB = 0;
+	uint32_t PrevA = 0, PrevB = 0;
 	for (int I = 0; I < 2 * LenB; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		char CharA = I < LenA ? CharsA[I] : 0;

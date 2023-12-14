@@ -844,7 +844,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 976905580>>
+      A:minidx(2) :> <<2 1> <1 1129597271>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -921,6 +921,10 @@ array
    .. note::
    
       This method always makes a copy of the data so that changes to the returned array do not affect the original.
+
+
+:mini:`meth (Array: array):reverse(Index: integer): array`
+   Returns an array sharing the underlying data with :mini:`Array` with dimension :mini:`Index` reversed.
 
 
 :mini:`meth (Array: array):shape: list`
@@ -1147,6 +1151,10 @@ array
       A / 2 :> <<0.5 1> <1.5 2>>
 
 
+:mini:`type array::iterator`
+   *TBD*
+
+
 :mini:`type array::mutable < array, buffer`
    *TBD*
 
@@ -1246,6 +1254,10 @@ array
 
 :mini:`type array::mutable::integer < array::integer, array::mutable::real`
    Base type for arrays of integers.
+
+
+:mini:`type array::mutable::iterator < array::iterator`
+   *TBD*
 
 
 :mini:`type array::mutable::real < array::real, array::mutable::complex`
@@ -1785,6 +1797,58 @@ array
       2.5 min A :> <<1 2> <2 2>>
 
 
+:mini:`type ref::any`
+   *TBD*
+
+
+:mini:`type ref::complex32`
+   *TBD*
+
+
+:mini:`type ref::complex64`
+   *TBD*
+
+
+:mini:`type ref::float32`
+   *TBD*
+
+
+:mini:`type ref::float64`
+   *TBD*
+
+
+:mini:`type ref::int16`
+   *TBD*
+
+
+:mini:`type ref::int32`
+   *TBD*
+
+
+:mini:`type ref::int64`
+   *TBD*
+
+
+:mini:`type ref::int8`
+   *TBD*
+
+
+:mini:`type ref::uint16`
+   *TBD*
+
+
+:mini:`type ref::uint32`
+   *TBD*
+
+
+:mini:`type ref::uint64`
+   *TBD*
+
+
+:mini:`type ref::uint8`
+   *TBD*
+
+
 :mini:`fun array::new(Arg₁: type, Arg₂: list)`
    *TBD*
 
@@ -1795,9 +1859,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:006AB658E27F00000000000000000000>
+      :> <16:20834B680B7F00005F7461675F666E20>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<27136 22710> <32738 0>> <<0 0> <0 0>>>
+      :> <<<33568 26699> <32523 0>> <<29791 26465> <26207 8302>>>
 
 
 :mini:`type vector < array`
