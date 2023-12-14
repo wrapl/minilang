@@ -717,6 +717,31 @@ ML_METHOD("swap", MLArrayT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
+ML_METHOD("reverse", MLArrayT, MLIntegerT) {
+//<Array
+//<Index
+//>array
+// Returns an array sharing the underlying data with :mini:`Array` with dimension :mini:`Index` reversed.
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	int Index = ml_integer_value(Args[1]);
+	if (Index <= 0) Index += (Degree + 1);
+	if (Index < 1 || Index > Degree) return ml_error("ArrayError", "Invalid index");
+	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
+	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = Source->Dimensions[I];
+	ml_array_dimension_t *Dimension = &Target->Dimensions[Index - 1];
+	Target->Base = Source->Base;
+	if (Dimension->Indices) {
+		int *Indices = (int *)snew(Dimension->Size * sizeof(int));
+		for (int I = 0, J = Dimension->Size; --J >= 0; ++I) Indices[I] = Dimension->Indices[J];
+		Dimension->Indices = Indices;
+	} else {
+		Target->Base.Value += Dimension->Stride * (Dimension->Size - 1);
+		Dimension->Stride = -Dimension->Stride;
+	}
+	return (ml_value_t *)Target;
+}
+
 ML_METHOD("expand", MLArrayT, MLListT) {
 //<Array
 //<Indices
