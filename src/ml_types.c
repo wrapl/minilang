@@ -839,9 +839,10 @@ ML_FUNCTIONX(MLVisit) {
 	Visitor->Fn = Args[1];
 	Visitor->Error = ml_error("CallError", "Recursive visit detected");
 	Visitor->Args[0] = (ml_value_t *)Visitor;
+	ml_value_t *Value = Args[0];
 	ml_value_t **Args2 = ml_alloc_args(2);
 	Args2[0] = (ml_value_t *)Visitor;
-	Args2[1] = Args[0];
+	Args2[1] = Value;
 	return ml_call(Caller, Visitor->Fn, 2, Args2);
 }
 
@@ -900,9 +901,10 @@ ML_FUNCTIONX(MLCopy) {
 	Visitor->Fn = Count > 1 ? Args[1] : CopyMethod;
 	Visitor->Error = ml_error("CallError", "Recursive visit detected");
 	Visitor->Args[0] = (ml_value_t *)Visitor;
+	ml_value_t *Value = Args[0];
 	ml_value_t **Args2 = ml_alloc_args(2);
 	Args2[0] = (ml_value_t *)Visitor;
-	Args2[1] = Args[0];
+	Args2[1] = Value;
 	return ml_call(Caller, Visitor->Fn, 2, Args2);
 }
 
