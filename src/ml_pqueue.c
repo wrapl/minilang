@@ -319,7 +319,9 @@ static void ml_pqueue_raise_run(ml_pqueue_t *Queue, ml_value_t *Result) {
 		Entry->Priority = Priority;
 		if (Entry->Index != INT_MAX) {
 			Queue->Base.run = (ml_state_fn)ml_pqueue_up_run;
-			return ml_pqueue_up2(Queue, Queue->Entry);
+			return ml_pqueue_up2(Queue, Entry);
+		} else {
+			return ml_pqueue_insert(Queue->Base.Caller, Queue, Entry);
 		}
 	}
 	return ml_pqueue_finish(Queue);
@@ -352,7 +354,9 @@ static void ml_pqueue_lower_run(ml_pqueue_t *Queue, ml_value_t *Result) {
 		Entry->Priority = Priority;
 		if (Entry->Index != INT_MAX) {
 			Queue->Base.run = (ml_state_fn)ml_pqueue_up_run;
-			return ml_pqueue_up2(Queue, Queue->Entry);
+			return ml_pqueue_up2(Queue, Entry);
+		} else {
+			return ml_pqueue_insert(Queue->Base.Caller, Queue, Entry);
 		}
 	}
 	return ml_pqueue_finish(Queue);
