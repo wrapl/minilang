@@ -8,6 +8,7 @@ typedef struct {
 		ml_value_t **Args;
 		ml_value_t *Result;
 	};
+	stringmap_t Handlers[1];
 	pthread_t Handle;
 	int Count;
 } ml_thread_t;
@@ -157,7 +158,6 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 #ifdef ML_SCHEDULER
 	ml_default_queue_init(Context, 256);
 #endif
-	ml_context_set(Context, ML_THREAD_INDEX, Thread);
 	ml_value_t **Args = Thread->Args;
 	int Count = Thread->Count;
 	Thread->Args = NULL;
@@ -174,7 +174,27 @@ static void ml_thread_run(ml_thread_t *Thread, ml_value_t *Result) {
 	Thread->Result = Result;
 }
 
-ML_FUNCTIONX(MLThread) {
+ML_TYPE(MLThreadT, (), "thread",
+// A thread.
+);
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadT, ml_value_t *Value) {
+	return NULL;
+}
+
+void ml_default_thread_init(ml_context_t *Context) {
+	ml_thread_t *Thread = new(ml_thread_t);
+	Thread->Base.Type = MLThreadT;
+	Thread->Base.Context = Context;
+	ml_context_set(Context, ML_THREAD_INDEX, Thread);
+	Thread->Base.run = (ml_state_fn)ml_thread_run;
+}
+
+ML_METHODX(MLThreadT) {
+	ML_RETURN(ml_context_get(Caller->Context, ML_THREAD_INDEX) ?: MLNil);
+}
+
+ML_METHODVX(MLThreadT, MLAnyT) {
 //@thread
 //<Args...:any
 //<Fn:function
@@ -190,17 +210,13 @@ ML_FUNCTIONX(MLThread) {
 	ml_thread_t *Thread = new(ml_thread_t);
 	Thread->Base.Type = MLThreadT;
 	Thread->Base.Context = ml_context(Caller->Context);
+	ml_context_set(Thread->Base.Context, ML_THREAD_INDEX, Thread);
 	Thread->Base.run = (ml_state_fn)ml_thread_run;
 	Thread->Count = Count;
 	Thread->Args = Args2;
 	pthread_create(&Thread->Handle, NULL, (void *)ml_thread_fn, Thread);
 	ML_RETURN(Thread);
 }
-
-ML_TYPE(MLThreadT, (), "thread",
-// A thread.
-	.Constructor = (ml_value_t *)MLThread
-);
 
 ML_METHOD("join", MLThreadT) {
 //<Thread
@@ -211,6 +227,56 @@ ML_METHOD("join", MLThreadT) {
 	pthread_join(Thread->Handle, (void **)&Result);
 	return Result ?: MLNil;
 }
+
+#ifdef ML_SCHEDULER
+
+ML_FUNCTIONX(MLThreadAccept) {
+//@thread::accept
+//<Event
+//<Handler
+//>nil
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ml_thread_t *Thread = (ml_thread_t *)ml_context_get(Caller->Context, ML_THREAD_INDEX);
+	if (!Thread) ML_ERROR("ThreadError", "No thread information found");
+	stringmap_insert(Thread->Handlers, ml_string_value(Args[0]), Args[1]);
+	ML_RETURN(MLNil);
+}
+
+typedef struct {
+	ml_state_t Base;
+	int Count;
+	ml_value_t *Args[];
+} ml_thread_send_t;
+
+static void ml_thread_send_done(ml_thread_send_t *Send, ml_value_t *Value) {
+}
+
+static void ml_thread_send_run(ml_thread_send_t *Send, ml_value_t *Fn) {
+	Send->Base.run = (ml_state_fn)ml_thread_send_done;
+	ml_call(Send, Fn, Send->Count, Send->Args);
+}
+
+ML_METHODV("send", MLThreadT, MLStringT, MLAnyT) {
+	ml_thread_t *Thread = (ml_thread_t *)Args[0];
+	ml_value_t *Fn = stringmap_search(Thread->Handlers, ml_string_value(Args[1]));
+	if (Fn) {
+		for (int I = 2; I < Count; ++I) {
+			ml_value_t *Error = ml_is_threadsafe(Args[I]);
+			if (Error) return Error;
+		}
+		ml_thread_send_t *Send = xnew(ml_thread_send_t, Count - 2, ml_value_t *);
+		Send->Base.Context = Thread->Base.Context;
+		Send->Base.run = (ml_state_fn)ml_thread_send_run;
+		Send->Count = Count - 2;
+		for (int I = 2; I < Count; ++I) Send->Args[I - 2] = Args[I];
+		ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get(Thread->Base.Context, ML_SCHEDULER_INDEX);
+		Scheduler->add(Scheduler, (ml_state_t *)Send, Fn);
+	}
+	return MLNil;
+}
+
+#endif
 
 ML_FUNCTION(MLThreadSleep) {
 //@thread::sleep
@@ -475,6 +541,9 @@ void ml_thread_init(stringmap_t *Globals) {
 	stringmap_insert(MLThreadT->Exports, "channel", MLThreadChannelT);
 	stringmap_insert(MLThreadT->Exports, "mutex", MLThreadMutexT);
 	stringmap_insert(MLThreadT->Exports, "condition", MLThreadConditionT);
+#ifdef ML_SCHEDULER
+	stringmap_insert(MLThreadT->Exports, "accept", MLThreadAccept);
+#endif
 	if (Globals) {
 		stringmap_insert(Globals, "thread", MLThreadT);
 	}

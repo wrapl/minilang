@@ -13,5 +13,7 @@ extern ml_type_t MLSocketT[];
 void ml_socket_init(stringmap_t *Globals);
 
 #ifdef __cplusplus
+}
+#endif
 
 #endif

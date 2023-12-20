@@ -222,8 +222,7 @@ static void console_submit(GtkWidget *Button, gtk_console_t *Console) {
 	gtk_text_buffer_get_end_iter(SourceBuffer, End);
 	gtk_text_buffer_insert(SourceBuffer, End, Text, -1);
 	gtk_text_buffer_insert(SourceBuffer, End, "\n", -1);
-gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
-
+	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
 
 	//GtkTextIter End[1];
 	//GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
