@@ -708,8 +708,8 @@ ML_FUNCTIONX(MLBreak) {
 }
 
 typedef struct {
-	ml_type_t *Type;
-	ml_debugger_t Base;
+	ml_state_t Base;
+	ml_debugger_t Debug;
 	ml_value_t *Run;
 	stringmap_t Modules[1];
 } ml_mini_debugger_t;
@@ -725,14 +725,13 @@ ML_TYPE(MLDebuggerT, (), "mini-debugger",
 	.call = (void *)ml_mini_debugger_call
 );
 
-static void mini_debugger_run(ml_debugger_t *Base, ml_state_t *State, ml_value_t *Value) {
-	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Base - offsetof(ml_mini_debugger_t, Base));
+static void mini_debugger_debug(ml_debugger_t *Debug, ml_state_t *State, ml_value_t *Value) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Debug - offsetof(ml_mini_debugger_t, Debug));
 	ml_value_t **Args = ml_alloc_args(2);
 	if (State->Type == NULL) State->Type = MLStateT;
 	Args[0] = (ml_value_t *)State;
 	Args[1] = Value;
-	static ml_result_state_t Caller = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
-	return ml_call(&Caller, Debugger->Run, 2, Args);
+	return ml_call(Debugger, Debugger->Run, 2, Args);
 }
 
 typedef struct {
@@ -760,21 +759,25 @@ static size_t *mini_debugger_breakpoints(ml_debugger_t *Base, const char *Source
 	return Slot[0]->Bits;
 }
 
-ML_FUNCTION(MLDebugger) {
+static void mini_debugger_run(ml_state_t *State, ml_value_t *Value) {
+}
+
+ML_FUNCTIONX(MLDebugger) {
 //!debugger
 //@debugger
 //<Function
 //>debugger
 // Returns a new debugger for :mini:`Function()`.
-	ML_CHECK_ARG_COUNT(1);
+	ML_CHECKX_ARG_COUNT(1);
 	ml_mini_debugger_t *Debugger = new(ml_mini_debugger_t);
-	Debugger->Type = MLDebuggerT;
+	Debugger->Base.Type = MLDebuggerT;
 	Debugger->Base.run = mini_debugger_run;
-	Debugger->Base.breakpoints = mini_debugger_breakpoints;
-	Debugger->Base.StepIn = 1;
-	Debugger->Base.BreakOnError = 1;
+	Debugger->Debug.run = mini_debugger_debug;
+	Debugger->Debug.breakpoints = mini_debugger_breakpoints;
+	Debugger->Debug.StepIn = 1;
+	Debugger->Debug.BreakOnError = 1;
 	Debugger->Run = Args[0];
-	return (ml_value_t *)Debugger;
+	ML_RETURN(Debugger);
 }
 
 ML_METHOD("breakpoint_set", MLDebuggerT, MLStringT, MLIntegerT) {
