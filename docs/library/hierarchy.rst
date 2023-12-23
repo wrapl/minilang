@@ -42,6 +42,7 @@ hierarchy
       "enum::cyclic":e -> "time::month":w;
       "any":e -> "time::zone":w;
       "any":e -> "thread":w;
+      "function":e -> "thread::port":w;
       "any":e -> "thread::channel":w;
       "any":e -> "thread::mutex":w;
       "any":e -> "thread::protected":w;
@@ -64,7 +65,10 @@ hierarchy
       "sequence":e -> "stream::parser":w;
       "stream":e -> "stream::buffered":w;
       "stream":e -> "stream::fd":w;
+      "enum":e -> "socket::type":w;
       "stream::fd":e -> "socket":w;
+      "socket":e -> "socket::local":w;
+      "socket":e -> "socket::inet":w;
       "sequence":e -> "set":w;
       "set":e -> "set::mutable":w;
       "enum":e -> "set::order":w;

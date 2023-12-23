@@ -373,7 +373,7 @@ number
       type(R) :> <<double>>
 
 
-:mini:`meth (A: integer) /\ (B: integer): integer`
+:mini:`meth (A: integer) /\\ (B: integer): integer`
    Returns the bitwise and of :mini:`A` and :mini:`B`.
 
 
@@ -437,7 +437,7 @@ number
    Returns :mini:`A >> B`.
 
 
-:mini:`meth (A: integer) \/ (B: integer): integer`
+:mini:`meth (A: integer) \\/ (B: integer): integer`
    Returns the bitwise or of :mini:`A` and :mini:`B`.
 
 

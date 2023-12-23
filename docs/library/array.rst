@@ -335,7 +335,7 @@ array
       C:shape :> [3, 2, 2]
 
 
-:mini:`meth (A: array) /\ (B: array): array`
+:mini:`meth (A: array) /\\ (B: array): array`
    Returns :mini:`A /\ B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
    * :mini:`A:shape = B:shape` or
@@ -359,7 +359,7 @@ array
       C /\ B :> <<5 8 9> <0 10 12>>
 
 
-:mini:`meth (A: array) /\ (B: integer): array`
+:mini:`meth (A: array) /\\ (B: integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ bitwise and B`.
 
    .. code-block:: mini
@@ -627,7 +627,7 @@ array
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present,  and :mini:`nil` otherwise.
 
 
-:mini:`meth (A: array) \/ (B: array): array`
+:mini:`meth (A: array) \\/ (B: array): array`
    Returns :mini:`A \/ B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
    * :mini:`A:shape = B:shape` or
@@ -651,7 +651,7 @@ array
       C \/ B :> <<7 10 15> <15 11 15>>
 
 
-:mini:`meth (A: array) \/ (B: integer): array`
+:mini:`meth (A: array) \\/ (B: integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ bitwise or B`.
 
    .. code-block:: mini
@@ -844,7 +844,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 980710241>>
+      A:minidx(2) :> <<2 1> <1 1701013860>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1490,7 +1490,7 @@ array
       2 / A :> <<2 1> <0.666667 0.5>>
 
 
-:mini:`meth (A: integer) /\ (B: array): array`
+:mini:`meth (A: integer) /\\ (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A bitwise and Bᵥ`.
 
    .. code-block:: mini
@@ -1528,7 +1528,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: integer) \/ (B: array): array`
+:mini:`meth (A: integer) \\/ (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A bitwise or Bᵥ`.
 
    .. code-block:: mini
@@ -1571,11 +1571,11 @@ array
    Returns :mini:`X` transformed by :mini:`T`. :mini:`T` must be a :mini:`N` |times| :mini:`N` matrix and :mini:`X` a vector of size :mini:`N - 1`.
 
 
-:mini:`meth \(A: matrix): matrix`
+:mini:`meth \\(A: matrix): matrix`
    Returns the inverse of :mini:`A`.
 
 
-:mini:`meth (A: matrix) \ (B: vector): vector`
+:mini:`meth (A: matrix) \\ (B: vector): vector`
    Returns the solution :mini:`X` of :mini:`A . X = B`.
 
 
@@ -1859,9 +1859,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:20CB1B88A87F00003E5772697465466E>
+      :> <16:608191C3377F00005F74202A56617254>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<52000 34843> <32680 0>> <<22334 26994> <25972 28230>>>
+      :> <<<33120 50065> <32567 0>> <<29791 10784> <24918 21618>>>
 
 
 :mini:`type vector < array`
