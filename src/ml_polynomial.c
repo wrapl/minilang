@@ -566,6 +566,21 @@ static ml_polynomial_t *ml_polynomial_sub(const ml_polynomial_t *A, const ml_pol
 	return C;
 }
 
+static int ml_polynomial_cmp(const ml_polynomial_t *A, const ml_polynomial_t *B) {
+	const ml_term_t *TA = A->Terms, *TB = B->Terms;
+	int CA = A->Count, CB = B->Count;
+	while (CA && CB) {
+		int Cmp = ml_factors_cmp(TA->Factors, TB->Factors);
+		if (Cmp) return 1;
+		ml_coeff_t Coeff = TA->Coeff - TB->Coeff;
+		if (abs(Coeff) >= DBL_EPSILON) return 1;
+		++TA; ++TB;
+		--CA; --CB;
+	}
+	if (CA || CB) return 1;
+	return 0;
+}
+
 static void ml_terms_sort(ml_term_t *Lo, ml_term_t *Hi) {
 	ml_term_t *A = Lo, *B = Hi;
 	ml_term_t P = *A, T = *B;
@@ -1540,6 +1555,28 @@ ML_METHOD("/", MLPolynomialT, MLPolynomialT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
 	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
 	return ml_polynomial_div(A, B);
+}
+
+ML_METHOD("=", MLPolynomialT, MLPolynomialT) {
+//<A
+//<B
+//>polynomial
+// Returns :mini:`B` if :mini:`A = B` and :mini:`nil` otherwise.
+	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
+	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
+	if (ml_polynomial_cmp(A, B)) return MLNil;
+	return (ml_value_t *)B;
+}
+
+ML_METHOD("!=", MLPolynomialT, MLPolynomialT) {
+//<A
+//<B
+//>polynomial
+// Returns :mini:`B` if :mini:`A != B` and :mini:`nil` otherwise.
+	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
+	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
+	if (!ml_polynomial_cmp(A, B)) return MLNil;
+	return (ml_value_t *)B;
 }
 
 ML_METHOD("spol", MLPolynomialT, MLPolynomialT) {

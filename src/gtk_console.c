@@ -869,7 +869,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 
 	gtk_paned_set_position(GTK_PANED(Debugging), 100);
 
-	GtkWidget *OutputPane = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+	GtkWidget *OutputPane = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_pack1(GTK_PANED(OutputPane), GTK_WIDGET(Console->Notebook), TRUE, TRUE);
 	gtk_paned_pack2(GTK_PANED(OutputPane), Debugging, TRUE, TRUE);
 	gtk_paned_set_position(GTK_PANED(OutputPane), 200);

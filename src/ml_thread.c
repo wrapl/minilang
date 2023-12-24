@@ -1,6 +1,7 @@
 #include "ml_thread.h"
 #include "ml_macros.h"
 #include "ml_compiler2.h"
+#include "ml_stream.h"
 
 typedef struct {
 	ml_state_t Base;
@@ -46,7 +47,24 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLMethodT, ml_value_t *Value) {
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLFunctionT, ml_value_t *Value) {
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLTypeT, ml_value_t *Value) {
+	return NULL;
+}
+
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLCFunctionT, ml_value_t *Value) {
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLCFunctionXT, ml_value_t *Value) {
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLCFunctionZT, ml_value_t *Value) {
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLStreamFdT, ml_value_t *Value) {
 	return NULL;
 }
 
@@ -235,19 +253,22 @@ typedef struct {
 	ml_value_t *Args[];
 } ml_thread_message_t;
 
-static void ml_thread_message_done(ml_thread_message_t *Send, ml_value_t *Value) {
+static void ml_thread_message_done(ml_thread_message_t *Message, ml_value_t *Value) {
+	ml_value_t *Error = ml_is_threadsafe(Value);
+	ml_state_t *Caller = Message->Base.Caller;
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	Scheduler->add(Scheduler, Caller, Error ?: Value);
 }
 
-static void ml_thread_message_send(ml_thread_message_t *Send, ml_value_t *Fn) {
-	Send->Base.run = (ml_state_fn)ml_thread_message_done;
-	ml_call(Send, Fn, Send->Count, Send->Args);
+static void ml_thread_message_send(ml_thread_message_t *Message, ml_value_t *Fn) {
+	Message->Base.run = (ml_state_fn)ml_thread_message_done;
+	ml_call(Message, Fn, Message->Count, Message->Args);
 }
 
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Fn;
 	ml_context_t *Context;
-	ml_scheduler_t *Scheduler;
 } ml_thread_port_t;
 
 static void ml_thread_port_call(ml_state_t *Caller, ml_thread_port_t *Port, int Count, ml_value_t **Args) {
@@ -257,25 +278,23 @@ static void ml_thread_port_call(ml_state_t *Caller, ml_thread_port_t *Port, int 
 		if (Error) ML_RETURN(Error);
 	}
 	ml_thread_message_t *Message = xnew(ml_thread_message_t, Count, ml_value_t *);
+	Message->Base.Caller = Caller;
 	Message->Base.Context = Port->Context;
 	Message->Base.run = (ml_state_fn)ml_thread_message_send;
 	Message->Count = Count;
 	for (int I = 0; I < Count; ++I) Message->Args[I] = Args[I];
-	Port->Scheduler->add(Port->Scheduler, (ml_state_t *)Message, Port->Fn);
-	ML_RETURN(MLNil);
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get(Port->Context, ML_SCHEDULER_INDEX);
+	Scheduler->add(Scheduler, (ml_state_t *)Message, Port->Fn);
 }
 
 extern ml_type_t MLThreadPortT[];
 
 ML_FUNCTIONX(MLThreadPort) {
 	ML_CHECKX_ARG_COUNT(1);
-	ml_thread_t *Thread = (ml_thread_t *)ml_context_get(Caller->Context, ML_THREAD_INDEX);
-	if (!Thread) ML_ERROR("ThreadError", "No thread information found");
 	ml_thread_port_t *Port = new(ml_thread_port_t);
 	Port->Type = MLThreadPortT;
 	Port->Fn = Args[0];
-	Port->Context = Thread->Base.Context;
-	Port->Scheduler = (ml_scheduler_t *)ml_context_get(Thread->Base.Context, ML_SCHEDULER_INDEX);
+	Port->Context = Caller->Context;
 	ML_RETURN(Port);
 }
 
@@ -283,6 +302,10 @@ ML_TYPE(MLThreadPortT, (MLFunctionT), "thread::port",
 	.call = (void *)ml_thread_port_call,
 	.Constructor = (ml_value_t *)MLThreadPort
 );
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadPortT, ml_value_t *Value) {
+	return NULL;
+}
 
 #endif
 
