@@ -393,12 +393,12 @@ static void ml_list_filter_state_run(ml_list_filter_state_t *State, ml_value_t *
 		return ml_call((ml_state_t *)State, State->Filter, 1, &State->Node->Value);
 	resume:
 		if (Result == MLNil) {
-			State->Node->Prev = State->DropSlot[0];
+			State->Node->Prev = State->DropTail;
 			State->DropSlot[0] = State->Node;
 			State->DropSlot = &State->Node->Next;
 			State->DropTail = State->Node;
 		} else {
-			State->Node->Prev = State->KeepSlot[0];
+			State->Node->Prev = State->KeepTail;
 			State->KeepSlot[0] = State->Node;
 			State->KeepSlot = &State->Node->Next;
 			++State->Length;
