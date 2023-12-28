@@ -115,6 +115,15 @@ static int ML_TYPED_FN(ml_value_is_constant, MLTypeT, ml_value_t *Value) {
 	return 1;
 }
 
+ML_METHOD("name", MLTypeT) {
+//!type
+//<Type
+//>string
+// Returns the name of :mini:`Type`.
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	return ml_string(Type->Name, -1);
+}
+
 ML_METHOD("rank", MLTypeT) {
 //!type
 //<Type

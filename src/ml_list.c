@@ -923,6 +923,30 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 	}
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_list_t *List;
+	int Count;
+} ml_list_skip_t;
+
+ML_TYPE(MLListSkipT, (MLSequenceT), "list::skip");
+
+static void ML_TYPED_FN(ml_iterate, MLListSkipT, ml_state_t *Caller, ml_list_skip_t *Skip) {
+	if (Skip->Count < 0) ML_RETURN(MLNil);
+	if (Skip->Count >= Skip->List->Length) ML_RETURN(MLNil);
+	ml_list_node_t *Node = ml_list_index(Skip->List, Skip->Count + 1);
+	ML_RETURN(Node);
+}
+
+ML_METHOD("skip", MLListT, MLIntegerT) {
+//!internal
+	ml_list_skip_t *Skip = new(ml_list_skip_t);
+	Skip->Type = MLListSkipT;
+	Skip->List = (ml_list_t *)Args[0];
+	Skip->Count = ml_integer_value(Args[1]);
+	return (ml_value_t *)Skip;
+}
+
 ML_METHODV("push", MLListMutableT) {
 //<List
 //<Values...: any
