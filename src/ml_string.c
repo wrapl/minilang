@@ -903,6 +903,7 @@ ML_METHOD(MLIntegerT, MLStringT) {
 //$= integer("123")
 //$= integer("ABC")
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	long Value = strtol(Start, &End, 10);
 	if (End - Start == ml_string_length(Args[0])) {
@@ -919,6 +920,7 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 //>integer|error
 // Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	long Value = strtol(Start, &End, ml_integer_value_fast(Args[1]));
 	if (End - Start == ml_string_length(Args[0])) {
@@ -931,6 +933,7 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 ML_METHOD(MLDoubleT, MLStringT) {
 //!internal
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	double Value = strtod(Start, &End);
 	if (End - Start == ml_string_length(Args[0])) {
@@ -946,6 +949,7 @@ ML_METHOD(MLRealT, MLStringT) {
 //>real|error
 // Returns the real number in :mini:`String` or an error if :mini:`String` does not contain a valid real number.
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	double Value = strtod(Start, &End);
 	if (End - Start == ml_string_length(Args[0])) {
@@ -964,6 +968,7 @@ ML_METHOD(MLComplexT, MLStringT) {
 // Returns the complex number in :mini:`String` or an error if :mini:`String` does not contain a valid complex number.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
+	if (!Length) return ml_error("ValueError", "Error parsing number");
 	char *End = (char *)Start;
 #ifdef ML_COMPLEX
 	if (End[0] == 'i') {
