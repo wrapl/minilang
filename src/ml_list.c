@@ -1456,6 +1456,7 @@ static void ml_list_delete(ml_list_t *List, ml_list_node_t *Node) {
 	List->CachedNode = List->Head;
 	List->CachedIndex = 1;
 	--List->Length;
+	--Node->Index;
 }
 
 ML_METHOD("delete", MLListMutableT, MLIntegerT) {
