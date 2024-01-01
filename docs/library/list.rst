@@ -171,8 +171,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
       L:random :> "c"
+      L:random :> "a"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -295,6 +295,16 @@ list
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
 
 
+:mini:`meth (List: list::mutable):remove(Filter: function): list`
+   Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns non-:mini:`nil` and returns those values in a new list.
+
+   .. code-block:: mini
+
+      let L := [1, 2, 3, 4, 5, 6]
+      L:remove(2 | _) :> [2, 4, 6]
+      L :> [1, 3, 5]
+
+
 :mini:`meth (List: list::mutable):reverse: list`
    Reverses :mini:`List` in-place and returns it.
 
@@ -342,6 +352,10 @@ list
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+
+
+:mini:`type list::skip < sequence`
+   *TBD*
 
 
 :mini:`type list::slice`

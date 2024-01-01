@@ -64,6 +64,10 @@ type
    Returns a map of all the exports from :mini:`Type`.
 
 
+:mini:`meth (Type: type):name: string`
+   Returns the name of :mini:`Type`.
+
+
 :mini:`meth (Type: type):parents: list`
    Returns a list of the parent types of :mini:`Type`.
 
