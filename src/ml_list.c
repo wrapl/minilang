@@ -935,6 +935,7 @@ static void ML_TYPED_FN(ml_iterate, MLListSkipT, ml_state_t *Caller, ml_list_ski
 	if (Skip->Count < 0) ML_RETURN(MLNil);
 	if (Skip->Count >= Skip->List->Length) ML_RETURN(MLNil);
 	ml_list_node_t *Node = ml_list_index(Skip->List, Skip->Count + 1);
+	Node->Index = Skip->Count + 1;
 	ML_RETURN(Node);
 }
 
