@@ -1365,11 +1365,6 @@ enum {
 
 ML_ENUM2(MLStringNormT, "string::norm",
 //@string::norm
-//
-// * :mini:`string::norm::NFC`
-// * :mini:`string::norm::NFD`
-// * :mini:`string::norm::NFKC`
-// * :mini:`string::norm::NFKD`
 	"NFC", ML_UNORM_NFC,
 	"NFD", ML_UNORM_NFD,
 	"NFKC", ML_UNORM_NFKC,
@@ -1417,67 +1412,36 @@ ML_METHOD("normalize", MLStringT, MLStringNormT) {
 
 ML_ENUM2(MLStringCTypeT, "string::ctype",
 //@string::ctype
-//
-// * :mini:`string::ctype::Cn`: General Other Types
-// * :mini:`string::ctype::Lu`: Uppercase Letter
-// * :mini:`string::ctype::Ll`: Lowercase Letter
-// * :mini:`string::ctype::Lt`: Titlecase Letter
-// * :mini:`string::ctype::Lm`: Modifier Letter
-// * :mini:`string::ctype::Lo`: Other Letter
-// * :mini:`string::ctype::Mn`: Non Spacing Mark
-// * :mini:`string::ctype::Me`: Enclosing Mark
-// * :mini:`string::ctype::Mc`: Combining Spacing Mark
-// * :mini:`string::ctype::Nd`: Decimal Digit Number
-// * :mini:`string::ctype::Nl`: Letter Number
-// * :mini:`string::ctype::No`: Other Number
-// * :mini:`string::ctype::Zs`: Space Separator
-// * :mini:`string::ctype::Zl`: Line Separator
-// * :mini:`string::ctype::Zp`: Paragraph Separator
-// * :mini:`string::ctype::Cc`: Control Char
-// * :mini:`string::ctype::Cf`: Format Char
-// * :mini:`string::ctype::Co`: Private Use Char
-// * :mini:`string::ctype::Cs`: Surrogate
-// * :mini:`string::ctype::Pd`: Dash Punctuation
-// * :mini:`string::ctype::Ps`: Start Punctuation
-// * :mini:`string::ctype::Pe`: End Punctuation
-// * :mini:`string::ctype::Pc`: Connector Punctuation
-// * :mini:`string::ctype::Po`: Other Punctuation
-// * :mini:`string::ctype::Sm`: Math Symbol
-// * :mini:`string::ctype::Sc`: Currency Symbol
-// * :mini:`string::ctype::Sk`: Modifier Symbol
-// * :mini:`string::ctype::So`: Other Symbol
-// * :mini:`string::ctype::Pi`: Initial Punctuation
-// * :mini:`string::ctype::Pf`: Final Punctuation
-	"Cn", U_GENERAL_OTHER_TYPES,
-	"Lu", U_UPPERCASE_LETTER,
-	"Ll", U_LOWERCASE_LETTER,
-	"Lt", U_TITLECASE_LETTER,
-	"Lm", U_MODIFIER_LETTER,
-	"Lo", U_OTHER_LETTER,
-	"Mn", U_NON_SPACING_MARK,
-	"Me", U_ENCLOSING_MARK,
-	"Mc", U_COMBINING_SPACING_MARK,
-	"Nd", U_DECIMAL_DIGIT_NUMBER,
-	"Nl", U_LETTER_NUMBER,
-	"No", U_OTHER_NUMBER,
-	"Zs", U_SPACE_SEPARATOR,
-	"Zl", U_LINE_SEPARATOR,
-	"Zp", U_PARAGRAPH_SEPARATOR,
-	"Cc", U_CONTROL_CHAR,
-	"Cf", U_FORMAT_CHAR,
-	"Co", U_PRIVATE_USE_CHAR,
-	"Cs", U_SURROGATE,
-	"Pd", U_DASH_PUNCTUATION,
-	"Ps", U_START_PUNCTUATION,
-	"Pe", U_END_PUNCTUATION,
-	"Pc", U_CONNECTOR_PUNCTUATION,
-	"Po", U_OTHER_PUNCTUATION,
-	"Sm", U_MATH_SYMBOL,
-	"Sc", U_CURRENCY_SYMBOL,
-	"Sk", U_MODIFIER_SYMBOL,
-	"So", U_OTHER_SYMBOL,
-	"Pi", U_INITIAL_PUNCTUATION,
-	"Pf", U_FINAL_PUNCTUATION
+	"Cn", U_GENERAL_OTHER_TYPES, // General Other Types
+	"Lu", U_UPPERCASE_LETTER, // Uppercase Letter
+	"Ll", U_LOWERCASE_LETTER, // Lowercase Letter
+	"Lt", U_TITLECASE_LETTER, // Titlecase Letter
+	"Lm", U_MODIFIER_LETTER, // Modifier Letter
+	"Lo", U_OTHER_LETTER, // Other Letter
+	"Mn", U_NON_SPACING_MARK, // Non Spacing Mark
+	"Me", U_ENCLOSING_MARK, // Enclosing Mark
+	"Mc", U_COMBINING_SPACING_MARK, // Combining Spacing Mark
+	"Nd", U_DECIMAL_DIGIT_NUMBER, // Decimal Digit Number
+	"Nl", U_LETTER_NUMBER, // Letter Number
+	"No", U_OTHER_NUMBER, // Other Number
+	"Zs", U_SPACE_SEPARATOR, // Space Separator
+	"Zl", U_LINE_SEPARATOR, // Line Separator
+	"Zp", U_PARAGRAPH_SEPARATOR, // Paragraph Separator
+	"Cc", U_CONTROL_CHAR, // Control Char
+	"Cf", U_FORMAT_CHAR, // Format Char
+	"Co", U_PRIVATE_USE_CHAR, // Private Use Char
+	"Cs", U_SURROGATE, // Surrogate
+	"Pd", U_DASH_PUNCTUATION, // Dash Punctuation
+	"Ps", U_START_PUNCTUATION, // Start Punctuation
+	"Pe", U_END_PUNCTUATION, // End Punctuation
+	"Pc", U_CONNECTOR_PUNCTUATION, // Connector Punctuation
+	"Po", U_OTHER_PUNCTUATION, // Other Punctuation
+	"Sm", U_MATH_SYMBOL, // Math Symbol
+	"Sc", U_CURRENCY_SYMBOL, // Currency Symbol
+	"Sk", U_MODIFIER_SYMBOL, // Modifier Symbol
+	"So", U_OTHER_SYMBOL, // Other Symbol
+	"Pi", U_INITIAL_PUNCTUATION, // Initial Punctuation
+	"Pf", U_FINAL_PUNCTUATION // Final Punctuation
 );
 
 ML_METHOD("ctype", MLStringT) {
