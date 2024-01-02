@@ -110,6 +110,8 @@ stream
 
 
 :mini:`type stream::seek < enum`
-   *TBD*
+   * :mini:`::Set`
+   * :mini:`::Cur`
+   * :mini:`::End`
 
 

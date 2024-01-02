@@ -54,7 +54,9 @@ socket
 
 
 :mini:`type socket::type < enum`
-   *TBD*
+   * :mini:`::Stream`
+   * :mini:`::DGram`
+   * :mini:`::Raw`
 
 
 :mini:`fun mlsocketinet(Arg₁: socket::type)`

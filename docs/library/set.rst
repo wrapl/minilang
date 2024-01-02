@@ -222,8 +222,8 @@ set
    .. code-block:: mini
 
       let S := set("cake") :> {c, a, k, e}
+      S:random :> "c"
       S:random :> "e"
-      S:random :> "a"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -403,11 +403,11 @@ set
 
 
 :mini:`type set::order < enum`
-   * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end,  no reordering on access.
-   * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order,  no reordering on access.
-   * :mini:`set::order::Descending` |harr| inserted values are kept in descending order,  no reordering on access.
-   * :mini:`set::order::MRU` |harr| inserted values are put at start,  accessed values are moved to start.
-   * :mini:`set::order::LRU` |harr| inserted values are put at end,  accessed values are moved to end.
+   * :mini:`::Insert` - default ordering; inserted values are put at end, no reordering on access.
+   * :mini:`::LRU` - inserted values are kept in ascending order, no reordering on access.
+   * :mini:`::MRU` - inserted values are kept in descending order, no reordering on access.
+   * :mini:`::Ascending` - inserted values are put at start, accessed values are moved to start.
+   * :mini:`::Descending` - inserted values are put at end, accessed values are moved to end.
 
 
 :mini:`meth (Visitor: visitor):const(Set: set): set`

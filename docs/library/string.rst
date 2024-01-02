@@ -388,6 +388,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       "2022/03/08":before("/", 2) :> "2022/03"
 
 
+:mini:`meth (Arg₁: string):cname`
+   *TBD*
+
+
 :mini:`meth (String: string):code: integer`
    Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
 
@@ -827,6 +831,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello World":upper :> "HELLO WORLD"
 
 
+:mini:`meth (Arg₁: string):utf8`
+   *TBD*
+
+
 :mini:`meth (A: string) ~ (B: string): integer`
    Returns the edit distance between :mini:`A` and :mini:`B`.
 
@@ -914,6 +922,7 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 :mini:`type string::ctype < enum`
    
+   
    * :mini:`string::ctype::Cn`: General Other Types
    * :mini:`string::ctype::Lu`: Uppercase Letter
    * :mini:`string::ctype::Ll`: Lowercase Letter
@@ -944,14 +953,49 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`string::ctype::So`: Other Symbol
    * :mini:`string::ctype::Pi`: Initial Punctuation
    * :mini:`string::ctype::Pf`: Final Punctuation
+   * :mini:`::Cn`
+   * :mini:`::Lu`
+   * :mini:`::Ll`
+   * :mini:`::Lt`
+   * :mini:`::Lm`
+   * :mini:`::Lo`
+   * :mini:`::Mn`
+   * :mini:`::Me`
+   * :mini:`::Mc`
+   * :mini:`::Nd`
+   * :mini:`::Nl`
+   * :mini:`::No`
+   * :mini:`::Zs`
+   * :mini:`::Zl`
+   * :mini:`::Zp`
+   * :mini:`::Cc`
+   * :mini:`::Cf`
+   * :mini:`::Co`
+   * :mini:`::Cs`
+   * :mini:`::Pd`
+   * :mini:`::Ps`
+   * :mini:`::Pe`
+   * :mini:`::Pc`
+   * :mini:`::Po`
+   * :mini:`::Sm`
+   * :mini:`::Sc`
+   * :mini:`::Sk`
+   * :mini:`::So`
+   * :mini:`::Pi`
+   * :mini:`::Pf`
 
 
 :mini:`type string::norm < enum`
+   
    
    * :mini:`string::norm::NFC`
    * :mini:`string::norm::NFD`
    * :mini:`string::norm::NFKC`
    * :mini:`string::norm::NFKD`
+   * :mini:`::NFC`
+   * :mini:`::NFD`
+   * :mini:`::NFKC`
+   * :mini:`::NFKD`
 
 
 :mini:`fun string::switch(Cases: string|regex, ...)`

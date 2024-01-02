@@ -46,7 +46,13 @@ file
 
 
 :mini:`type file::mode < enum`
-   *TBD*
+   * :mini:`::DIR`
+   * :mini:`::CHR`
+   * :mini:`::BLK`
+   * :mini:`::REG`
+   * :mini:`::LNK`
+   * :mini:`::SOCK`
+   * :mini:`::FIFO`
 
 
 :mini:`type file::stat`

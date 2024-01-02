@@ -872,9 +872,9 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	GtkWidget *OutputPane = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_pack1(GTK_PANED(OutputPane), GTK_WIDGET(Console->Notebook), TRUE, TRUE);
 	gtk_paned_pack2(GTK_PANED(OutputPane), Debugging, TRUE, TRUE);
-	gtk_paned_set_position(GTK_PANED(OutputPane), 200);
+	//gtk_paned_set_position(GTK_PANED(OutputPane), 200);
 
-	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+	Console->Paned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
 
 	GtkWidget *InputPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
 	GtkWidget *DebugButtons = Console->DebugButtons = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
@@ -935,8 +935,8 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	gtk_box_pack_start(GTK_BOX(ReplBox), Console->LogScrolled, TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(ReplBox), InputFrame, FALSE, TRUE, 2);
 
-	gtk_paned_add1(GTK_PANED(Console->Paned), ReplBox);
-	gtk_paned_add2(GTK_PANED(Console->Paned), OutputPane);
+	gtk_paned_add1(GTK_PANED(Console->Paned), OutputPane);
+	gtk_paned_add2(GTK_PANED(Console->Paned), ReplBox);
 	gtk_paned_set_position(GTK_PANED(Console->Paned), 600);
 
 

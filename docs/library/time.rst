@@ -66,7 +66,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2024-01-01T08:38:35.896479
+      time() :> 2024-01-02T08:15:37.683452
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
@@ -251,11 +251,26 @@ Provides time and date operations.
 
 
 :mini:`type time::day < enum::cyclic`
-   *TBD*
+   * :mini:`::Monday`
+   * :mini:`::Tuesday`
+   * :mini:`::Wednesday`
+   * :mini:`::Thursday`
+   * :mini:`::Friday`
+   * :mini:`::Saturday`
 
 
 :mini:`type time::month < enum::cyclic`
-   *TBD*
+   * :mini:`::January`
+   * :mini:`::February`
+   * :mini:`::March`
+   * :mini:`::April`
+   * :mini:`::May`
+   * :mini:`::June`
+   * :mini:`::July`
+   * :mini:`::August`
+   * :mini:`::September`
+   * :mini:`::October`
+   * :mini:`::November`
 
 
 :mini:`type time::zone`

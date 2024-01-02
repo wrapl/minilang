@@ -1272,6 +1272,47 @@ ML_METHOD("utf8", MLIntegerT) {
 	return ml_string(S, I);
 }
 
+#ifdef ML_ICU
+
+ML_METHOD("cname", MLStringT) {
+	const char *S = ml_string_value(Args[0]);
+	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	uint32_t Mask = (1 << (8 - K)) - 1;
+	uint32_t Value = S[0] & Mask;
+	for (++S, --K; K > 0 && S[0]; ++S, --K) {
+		Value <<= 6;
+		Value += S[0] & 0x3F;
+	}
+	UErrorCode Error = U_ZERO_ERROR;
+	int Length = u_charName(Value, U_UNICODE_CHAR_NAME, NULL, 0, &Error);
+	char *Name = snew(Length + 1);
+	Error = U_ZERO_ERROR;
+	u_charName(Value, U_UNICODE_CHAR_NAME, Name, Length + 1, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error getting character name");
+	return ml_string(Name, Length);
+}
+
+ML_METHOD("utf8", MLStringT) {
+	UErrorCode Error = U_ZERO_ERROR;
+	uint32_t Code = u_charFromName(U_UNICODE_CHAR_NAME, ml_string_value(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error getting character from name");
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	char *S = snew(I + 1), *P = S;
+	while (I--) *P++ = Val[I];
+	*P = 0;
+	return ml_string(S, I);
+}
+
+#endif
+
 ML_METHOD("lower", MLStringT) {
 //<String
 //>string

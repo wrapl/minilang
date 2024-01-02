@@ -42,16 +42,11 @@ static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
 #endif
 
 ML_ENUM2(MLSetOrderT, "set::order",
-// * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.
-// * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order, no reordering on access.
-// * :mini:`set::order::Descending` |harr| inserted values are kept in descending order, no reordering on access.
-// * :mini:`set::order::MRU` |harr| inserted values are put at start, accessed values are moved to start.
-// * :mini:`set::order::LRU` |harr| inserted values are put at end, accessed values are moved to end.
-	"Insert", SET_ORDER_INSERT,
-	"LRU", SET_ORDER_LRU,
-	"MRU", SET_ORDER_MRU,
-	"Ascending", SET_ORDER_ASC,
-	"Descending", SET_ORDER_DESC
+	"Insert", SET_ORDER_INSERT, // default ordering; inserted values are put at end, no reordering on access.
+	"LRU", SET_ORDER_LRU, // inserted values are kept in ascending order, no reordering on access.
+	"MRU", SET_ORDER_MRU, // inserted values are kept in descending order, no reordering on access.
+	"Ascending", SET_ORDER_ASC, // inserted values are put at start, accessed values are moved to start.
+	"Descending", SET_ORDER_DESC // inserted values are put at end, accessed values are moved to end.
 );
 
 static void ML_TYPED_FN(ml_value_find_all, MLSetT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
