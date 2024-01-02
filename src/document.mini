@@ -769,7 +769,7 @@ fun process(FileName) do
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
-					elseif let Match := Line % r"\s*\"([A-Za-z0-9_]+)\"," or Line % r"\s*[A-Za-z0-9_]+\(([A-Za-z0-9_]+)\)" then
+					elseif let Match := Line % r"\s*\"([A-Za-z0-9_]+)\"" or Line % r"\s*[A-Za-z0-9_]+\(([A-Za-z0-9_]+)\)" then
 						if let Comment := Line:after("//") then
 							Description:put('* :mini:`::{Match[2]}` - {Comment:trim}\n')
 						else
