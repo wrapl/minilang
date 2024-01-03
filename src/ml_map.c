@@ -45,16 +45,11 @@ static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Va
 #endif
 
 ML_ENUM2(MLMapOrderT, "map::order",
-// * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end, no reordering on access.
-// * :mini:`map::order::Ascending` |harr| inserted pairs are kept in ascending key order, no reordering on access.
-// * :mini:`map::order::Descending` |harr| inserted pairs are kept in descending key order, no reordering on access.
-// * :mini:`map::order::MRU` |harr| inserted pairs are put at start, accessed pairs are moved to start.
-// * :mini:`map::order::LRU` |harr| inserted pairs are put at end, accessed pairs are moved to end.
-	"Insert", MAP_ORDER_INSERT,
-	"LRU", MAP_ORDER_LRU,
-	"MRU", MAP_ORDER_MRU,
-	"Ascending", MAP_ORDER_ASC,
-	"Descending", MAP_ORDER_DESC
+	"Insert", MAP_ORDER_INSERT, // default ordering; inserted pairs are put at end, no reordering on access.
+	"LRU", MAP_ORDER_LRU, // inserted pairs are kept in ascending key order, no reordering on access.
+	"MRU", MAP_ORDER_MRU, // inserted pairs are kept in descending key order, no reordering on access.
+	"Ascending", MAP_ORDER_ASC, // inserted pairs are put at start, accessed pairs are moved to start.
+	"Descending", MAP_ORDER_DESC // inserted pairs are put at end, accessed pairs are moved to end.
 );
 
 static void ML_TYPED_FN(ml_value_find_all, MLMapT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {

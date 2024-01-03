@@ -189,12 +189,13 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 		Buffer:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
 		Terminator := "]"
 	elseif is_symbol(Method) then
+		let Escaped := Method:replace("\\", "\\\\")
 		if Params:length = 0 then
-			Buffer:write('{Method}()')
+			Buffer:write('{Escaped}()')
 		elseif Params:length = 1 and not Variadic then
-			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
+			Buffer:write('{Escaped}({Params[1][1]}: {type_name(Params[1][2])})')
 		else
-			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}) {Method} (')
+			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}) {Escaped} (')
 			Terminator := ")"
 		end
 	elseif Method[1] != ":" then
@@ -372,7 +373,14 @@ fun write_type(Category, Name, Parents, Description, Examples, Location) do
 		end
 	end
 	Buffer:write("`\n")
+	var List := 1
 	for Line in Description do
+		if Line:starts("*") then
+			List or Buffer:write("   \n")
+			List := 1
+		else
+			List := nil
+		end
 		Buffer:write("   ", Line)
 	end
 	Description[1] or Buffer:write("   *TBD*\n")
@@ -761,6 +769,12 @@ fun process(FileName) do
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
+					elseif let Match := Line % r"\s*\"([A-Za-z0-9_]+)\"" or Line % r"\s*[A-Za-z0-9_]+\(([A-Za-z0-9_]+)\)" then
+						if let Comment := Line:after("//") then
+							Description:put('* :mini:`::{Match[2]}` - {Comment:trim}\n')
+						else
+							Description:put('* :mini:`::{Match[2]}`\n')
+						end
 					else
 						exit
 					end

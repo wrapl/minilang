@@ -4,6 +4,7 @@
 #include "ml_bytecode.h"
 #include "ml_macros.h"
 #include "ml_file.h"
+#include "ml_socket.h"
 #include "ml_object.h"
 #include "stringmap.h"
 #include <stdio.h>
@@ -310,6 +311,7 @@ int main(int Argc, const char *Argv[]) {
 
 	ml_stream_init(IO_EXPORTS);
 	ml_file_init(Globals);
+	ml_socket_init(Globals);
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
 #endif
@@ -458,6 +460,9 @@ int main(int Argc, const char *Argv[]) {
 		if (UseGirLoop) ml_gir_loop_init(Main->Context);
 #endif
 	}
+#endif
+#ifdef ML_THREADS
+	ml_default_thread_init(Main->Context);
 #endif
 #ifdef ML_LIBRARY
 	stringmap_insert(Sys->Exports, "Args", Args);

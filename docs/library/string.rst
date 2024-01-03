@@ -388,6 +388,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       "2022/03/08":before("/", 2) :> "2022/03"
 
 
+:mini:`meth (Arg₁: string):cname`
+   *TBD*
+
+
 :mini:`meth (String: string):code: integer`
    Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
 
@@ -827,6 +831,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello World":upper :> "HELLO WORLD"
 
 
+:mini:`meth (Arg₁: string):utf8`
+   *TBD*
+
+
 :mini:`meth (A: string) ~ (B: string): integer`
    Returns the edit distance between :mini:`A` and :mini:`B`.
 
@@ -913,45 +921,43 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 
 :mini:`type string::ctype < enum`
-   
-   * :mini:`string::ctype::Cn`: General Other Types
-   * :mini:`string::ctype::Lu`: Uppercase Letter
-   * :mini:`string::ctype::Ll`: Lowercase Letter
-   * :mini:`string::ctype::Lt`: Titlecase Letter
-   * :mini:`string::ctype::Lm`: Modifier Letter
-   * :mini:`string::ctype::Lo`: Other Letter
-   * :mini:`string::ctype::Mn`: Non Spacing Mark
-   * :mini:`string::ctype::Me`: Enclosing Mark
-   * :mini:`string::ctype::Mc`: Combining Spacing Mark
-   * :mini:`string::ctype::Nd`: Decimal Digit Number
-   * :mini:`string::ctype::Nl`: Letter Number
-   * :mini:`string::ctype::No`: Other Number
-   * :mini:`string::ctype::Zs`: Space Separator
-   * :mini:`string::ctype::Zl`: Line Separator
-   * :mini:`string::ctype::Zp`: Paragraph Separator
-   * :mini:`string::ctype::Cc`: Control Char
-   * :mini:`string::ctype::Cf`: Format Char
-   * :mini:`string::ctype::Co`: Private Use Char
-   * :mini:`string::ctype::Cs`: Surrogate
-   * :mini:`string::ctype::Pd`: Dash Punctuation
-   * :mini:`string::ctype::Ps`: Start Punctuation
-   * :mini:`string::ctype::Pe`: End Punctuation
-   * :mini:`string::ctype::Pc`: Connector Punctuation
-   * :mini:`string::ctype::Po`: Other Punctuation
-   * :mini:`string::ctype::Sm`: Math Symbol
-   * :mini:`string::ctype::Sc`: Currency Symbol
-   * :mini:`string::ctype::Sk`: Modifier Symbol
-   * :mini:`string::ctype::So`: Other Symbol
-   * :mini:`string::ctype::Pi`: Initial Punctuation
-   * :mini:`string::ctype::Pf`: Final Punctuation
+   * :mini:`::Cn` - General Other Types
+   * :mini:`::Lu` - Uppercase Letter
+   * :mini:`::Ll` - Lowercase Letter
+   * :mini:`::Lt` - Titlecase Letter
+   * :mini:`::Lm` - Modifier Letter
+   * :mini:`::Lo` - Other Letter
+   * :mini:`::Mn` - Non Spacing Mark
+   * :mini:`::Me` - Enclosing Mark
+   * :mini:`::Mc` - Combining Spacing Mark
+   * :mini:`::Nd` - Decimal Digit Number
+   * :mini:`::Nl` - Letter Number
+   * :mini:`::No` - Other Number
+   * :mini:`::Zs` - Space Separator
+   * :mini:`::Zl` - Line Separator
+   * :mini:`::Zp` - Paragraph Separator
+   * :mini:`::Cc` - Control Char
+   * :mini:`::Cf` - Format Char
+   * :mini:`::Co` - Private Use Char
+   * :mini:`::Cs` - Surrogate
+   * :mini:`::Pd` - Dash Punctuation
+   * :mini:`::Ps` - Start Punctuation
+   * :mini:`::Pe` - End Punctuation
+   * :mini:`::Pc` - Connector Punctuation
+   * :mini:`::Po` - Other Punctuation
+   * :mini:`::Sm` - Math Symbol
+   * :mini:`::Sc` - Currency Symbol
+   * :mini:`::Sk` - Modifier Symbol
+   * :mini:`::So` - Other Symbol
+   * :mini:`::Pi` - Initial Punctuation
+   * :mini:`::Pf` - Final Punctuation
 
 
 :mini:`type string::norm < enum`
-   
-   * :mini:`string::norm::NFC`
-   * :mini:`string::norm::NFD`
-   * :mini:`string::norm::NFKC`
-   * :mini:`string::norm::NFKD`
+   * :mini:`::NFC`
+   * :mini:`::NFD`
+   * :mini:`::NFKC`
+   * :mini:`::NFKD`
 
 
 :mini:`fun string::switch(Cases: string|regex, ...)`

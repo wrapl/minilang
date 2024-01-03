@@ -903,6 +903,7 @@ ML_METHOD(MLIntegerT, MLStringT) {
 //$= integer("123")
 //$= integer("ABC")
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	long Value = strtol(Start, &End, 10);
 	if (End - Start == ml_string_length(Args[0])) {
@@ -919,6 +920,7 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 //>integer|error
 // Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	long Value = strtol(Start, &End, ml_integer_value_fast(Args[1]));
 	if (End - Start == ml_string_length(Args[0])) {
@@ -931,6 +933,7 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 ML_METHOD(MLDoubleT, MLStringT) {
 //!internal
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	double Value = strtod(Start, &End);
 	if (End - Start == ml_string_length(Args[0])) {
@@ -946,6 +949,7 @@ ML_METHOD(MLRealT, MLStringT) {
 //>real|error
 // Returns the real number in :mini:`String` or an error if :mini:`String` does not contain a valid real number.
 	const char *Start = ml_string_value(Args[0]);
+	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
 	double Value = strtod(Start, &End);
 	if (End - Start == ml_string_length(Args[0])) {
@@ -964,6 +968,7 @@ ML_METHOD(MLComplexT, MLStringT) {
 // Returns the complex number in :mini:`String` or an error if :mini:`String` does not contain a valid complex number.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
+	if (!Length) return ml_error("ValueError", "Error parsing number");
 	char *End = (char *)Start;
 #ifdef ML_COMPLEX
 	if (End[0] == 'i') {
@@ -1267,6 +1272,47 @@ ML_METHOD("utf8", MLIntegerT) {
 	return ml_string(S, I);
 }
 
+#ifdef ML_ICU
+
+ML_METHOD("cname", MLStringT) {
+	const char *S = ml_string_value(Args[0]);
+	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	uint32_t Mask = (1 << (8 - K)) - 1;
+	uint32_t Value = S[0] & Mask;
+	for (++S, --K; K > 0 && S[0]; ++S, --K) {
+		Value <<= 6;
+		Value += S[0] & 0x3F;
+	}
+	UErrorCode Error = U_ZERO_ERROR;
+	int Length = u_charName(Value, U_UNICODE_CHAR_NAME, NULL, 0, &Error);
+	char *Name = snew(Length + 1);
+	Error = U_ZERO_ERROR;
+	u_charName(Value, U_UNICODE_CHAR_NAME, Name, Length + 1, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error getting character name");
+	return ml_string(Name, Length);
+}
+
+ML_METHOD("utf8", MLStringT) {
+	UErrorCode Error = U_ZERO_ERROR;
+	uint32_t Code = u_charFromName(U_UNICODE_CHAR_NAME, ml_string_value(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error getting character from name");
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	char *S = snew(I + 1), *P = S;
+	while (I--) *P++ = Val[I];
+	*P = 0;
+	return ml_string(S, I);
+}
+
+#endif
+
 ML_METHOD("lower", MLStringT) {
 //<String
 //>string
@@ -1319,11 +1365,6 @@ enum {
 
 ML_ENUM2(MLStringNormT, "string::norm",
 //@string::norm
-//
-// * :mini:`string::norm::NFC`
-// * :mini:`string::norm::NFD`
-// * :mini:`string::norm::NFKC`
-// * :mini:`string::norm::NFKD`
 	"NFC", ML_UNORM_NFC,
 	"NFD", ML_UNORM_NFD,
 	"NFKC", ML_UNORM_NFKC,
@@ -1371,67 +1412,36 @@ ML_METHOD("normalize", MLStringT, MLStringNormT) {
 
 ML_ENUM2(MLStringCTypeT, "string::ctype",
 //@string::ctype
-//
-// * :mini:`string::ctype::Cn`: General Other Types
-// * :mini:`string::ctype::Lu`: Uppercase Letter
-// * :mini:`string::ctype::Ll`: Lowercase Letter
-// * :mini:`string::ctype::Lt`: Titlecase Letter
-// * :mini:`string::ctype::Lm`: Modifier Letter
-// * :mini:`string::ctype::Lo`: Other Letter
-// * :mini:`string::ctype::Mn`: Non Spacing Mark
-// * :mini:`string::ctype::Me`: Enclosing Mark
-// * :mini:`string::ctype::Mc`: Combining Spacing Mark
-// * :mini:`string::ctype::Nd`: Decimal Digit Number
-// * :mini:`string::ctype::Nl`: Letter Number
-// * :mini:`string::ctype::No`: Other Number
-// * :mini:`string::ctype::Zs`: Space Separator
-// * :mini:`string::ctype::Zl`: Line Separator
-// * :mini:`string::ctype::Zp`: Paragraph Separator
-// * :mini:`string::ctype::Cc`: Control Char
-// * :mini:`string::ctype::Cf`: Format Char
-// * :mini:`string::ctype::Co`: Private Use Char
-// * :mini:`string::ctype::Cs`: Surrogate
-// * :mini:`string::ctype::Pd`: Dash Punctuation
-// * :mini:`string::ctype::Ps`: Start Punctuation
-// * :mini:`string::ctype::Pe`: End Punctuation
-// * :mini:`string::ctype::Pc`: Connector Punctuation
-// * :mini:`string::ctype::Po`: Other Punctuation
-// * :mini:`string::ctype::Sm`: Math Symbol
-// * :mini:`string::ctype::Sc`: Currency Symbol
-// * :mini:`string::ctype::Sk`: Modifier Symbol
-// * :mini:`string::ctype::So`: Other Symbol
-// * :mini:`string::ctype::Pi`: Initial Punctuation
-// * :mini:`string::ctype::Pf`: Final Punctuation
-	"Cn", U_GENERAL_OTHER_TYPES,
-	"Lu", U_UPPERCASE_LETTER,
-	"Ll", U_LOWERCASE_LETTER,
-	"Lt", U_TITLECASE_LETTER,
-	"Lm", U_MODIFIER_LETTER,
-	"Lo", U_OTHER_LETTER,
-	"Mn", U_NON_SPACING_MARK,
-	"Me", U_ENCLOSING_MARK,
-	"Mc", U_COMBINING_SPACING_MARK,
-	"Nd", U_DECIMAL_DIGIT_NUMBER,
-	"Nl", U_LETTER_NUMBER,
-	"No", U_OTHER_NUMBER,
-	"Zs", U_SPACE_SEPARATOR,
-	"Zl", U_LINE_SEPARATOR,
-	"Zp", U_PARAGRAPH_SEPARATOR,
-	"Cc", U_CONTROL_CHAR,
-	"Cf", U_FORMAT_CHAR,
-	"Co", U_PRIVATE_USE_CHAR,
-	"Cs", U_SURROGATE,
-	"Pd", U_DASH_PUNCTUATION,
-	"Ps", U_START_PUNCTUATION,
-	"Pe", U_END_PUNCTUATION,
-	"Pc", U_CONNECTOR_PUNCTUATION,
-	"Po", U_OTHER_PUNCTUATION,
-	"Sm", U_MATH_SYMBOL,
-	"Sc", U_CURRENCY_SYMBOL,
-	"Sk", U_MODIFIER_SYMBOL,
-	"So", U_OTHER_SYMBOL,
-	"Pi", U_INITIAL_PUNCTUATION,
-	"Pf", U_FINAL_PUNCTUATION
+	"Cn", U_GENERAL_OTHER_TYPES, // General Other Types
+	"Lu", U_UPPERCASE_LETTER, // Uppercase Letter
+	"Ll", U_LOWERCASE_LETTER, // Lowercase Letter
+	"Lt", U_TITLECASE_LETTER, // Titlecase Letter
+	"Lm", U_MODIFIER_LETTER, // Modifier Letter
+	"Lo", U_OTHER_LETTER, // Other Letter
+	"Mn", U_NON_SPACING_MARK, // Non Spacing Mark
+	"Me", U_ENCLOSING_MARK, // Enclosing Mark
+	"Mc", U_COMBINING_SPACING_MARK, // Combining Spacing Mark
+	"Nd", U_DECIMAL_DIGIT_NUMBER, // Decimal Digit Number
+	"Nl", U_LETTER_NUMBER, // Letter Number
+	"No", U_OTHER_NUMBER, // Other Number
+	"Zs", U_SPACE_SEPARATOR, // Space Separator
+	"Zl", U_LINE_SEPARATOR, // Line Separator
+	"Zp", U_PARAGRAPH_SEPARATOR, // Paragraph Separator
+	"Cc", U_CONTROL_CHAR, // Control Char
+	"Cf", U_FORMAT_CHAR, // Format Char
+	"Co", U_PRIVATE_USE_CHAR, // Private Use Char
+	"Cs", U_SURROGATE, // Surrogate
+	"Pd", U_DASH_PUNCTUATION, // Dash Punctuation
+	"Ps", U_START_PUNCTUATION, // Start Punctuation
+	"Pe", U_END_PUNCTUATION, // End Punctuation
+	"Pc", U_CONNECTOR_PUNCTUATION, // Connector Punctuation
+	"Po", U_OTHER_PUNCTUATION, // Other Punctuation
+	"Sm", U_MATH_SYMBOL, // Math Symbol
+	"Sc", U_CURRENCY_SYMBOL, // Currency Symbol
+	"Sk", U_MODIFIER_SYMBOL, // Modifier Symbol
+	"So", U_OTHER_SYMBOL, // Other Symbol
+	"Pi", U_INITIAL_PUNCTUATION, // Initial Punctuation
+	"Pf", U_FINAL_PUNCTUATION // Final Punctuation
 );
 
 ML_METHOD("ctype", MLStringT) {

@@ -54,7 +54,7 @@ pqueue
 
 
 :mini:`meth (Entry: pqueue::entry):lower(Priority: any): pqueue::entry`
-   Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is greater than :mini:`Priority`.
+   Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is greater than :mini:`Priority`. :mini:`Entry` is added back into its queue if the priority changes.
 
 
 :mini:`meth (Entry: pqueue::entry):priority: any`
@@ -66,7 +66,7 @@ pqueue
 
 
 :mini:`meth (Entry: pqueue::entry):raise(Priority: any): pqueue::entry`
-   Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is less than :mini:`Priority`.
+   Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is less than :mini:`Priority`. :mini:`Entry` is added back into its queue if the priority changes.
 
 
 :mini:`meth (Entry: pqueue::entry):remove: pqueue::entry`

@@ -38,7 +38,7 @@ boolean
    Returns the logical inverse of :mini:`Bool`
 
 
-:mini:`meth (Bool₁: boolean) /\ (Bool₂: boolean, ...): boolean`
+:mini:`meth (Bool₁: boolean) /\\ (Bool₂: boolean, ...): boolean`
    Returns the logical and of :mini:`Bool₁` and :mini:`Bool₂`.
 
    .. code-block:: mini
@@ -119,7 +119,7 @@ boolean
       false >= false :> false
 
 
-:mini:`meth (Bool₁: boolean) \/ (Bool₂: boolean, ...): boolean`
+:mini:`meth (Bool₁: boolean) \\/ (Bool₂: boolean, ...): boolean`
    Returns the logical or of :mini:`Bool₁` and :mini:`Bool₂`.
 
    .. code-block:: mini

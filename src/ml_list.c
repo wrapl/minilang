@@ -393,12 +393,12 @@ static void ml_list_filter_state_run(ml_list_filter_state_t *State, ml_value_t *
 		return ml_call((ml_state_t *)State, State->Filter, 1, &State->Node->Value);
 	resume:
 		if (Result == MLNil) {
-			State->Node->Prev = State->DropSlot[0];
+			State->Node->Prev = State->DropTail;
 			State->DropSlot[0] = State->Node;
 			State->DropSlot = &State->Node->Next;
 			State->DropTail = State->Node;
 		} else {
-			State->Node->Prev = State->KeepSlot[0];
+			State->Node->Prev = State->KeepTail;
 			State->KeepSlot[0] = State->Node;
 			State->KeepSlot = &State->Node->Next;
 			++State->Length;
@@ -444,6 +444,72 @@ ML_METHODX("filter", MLListMutableT, MLFunctionT) {
 	List->Head = NULL;
 	State->Length = 0;
 	return ml_list_filter_state_run(State, NULL);
+}
+
+static void ml_list_remove_state_run(ml_list_filter_state_t *State, ml_value_t *Result) {
+	if (Result) {
+		if (ml_is_error(Result)) {
+			State->List->Head = State->List->Tail = NULL;
+			State->List->Length = 0;
+			ML_CONTINUE(State->Base.Caller, Result);
+		}
+		goto resume;
+	}
+	while (State->Node) {
+		return ml_call((ml_state_t *)State, State->Filter, 1, &State->Node->Value);
+	resume:
+		if (Result != MLNil) {
+			State->Node->Prev = State->DropTail;
+			State->DropSlot[0] = State->Node;
+			State->DropSlot = &State->Node->Next;
+			State->DropTail = State->Node;
+		} else {
+			State->Node->Prev = State->KeepTail;
+			State->KeepSlot[0] = State->Node;
+			State->KeepSlot = &State->Node->Next;
+			++State->Length;
+			State->KeepTail = State->Node;
+		}
+		State->Node = State->Node->Next;
+	}
+	State->Drop->Tail = State->DropTail;
+	if (State->DropTail) State->DropTail->Next = NULL;
+	State->Drop->Length = State->List->Length - State->Length;
+	State->Drop->CachedIndex = State->Drop->Length;
+	State->Drop->CachedNode = State->DropTail;
+	State->List->Tail = State->KeepTail;
+	if (State->KeepTail) State->KeepTail->Next = NULL;
+	State->List->Length = State->Length;
+	State->List->CachedIndex = State->Length;
+	State->List->CachedNode = State->KeepTail;
+	ML_CONTINUE(State->Base.Caller, State->Drop);
+}
+
+ML_METHODX("remove", MLListMutableT, MLFunctionT) {
+//<List
+//<Filter
+//>list
+// Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns non-:mini:`nil` and returns those values in a new list.
+//$- let L := [1, 2, 3, 4, 5, 6]
+//$= L:remove(2 | _)
+//$= L
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_list_filter_state_t *State = new(ml_list_filter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_remove_state_run;
+	State->List = List;
+	ml_list_t *Drop = State->Drop = new(ml_list_t);
+	Drop->Type = MLListMutableT;
+	State->Filter = Args[1];
+	State->Node = List->Head;
+	State->KeepSlot = &List->Head;
+	State->KeepTail = NULL;
+	State->DropSlot = &Drop->Head;
+	State->DropTail = NULL;
+	List->Head = NULL;
+	State->Length = 0;
+	return ml_list_remove_state_run(State, NULL);
 }
 
 ML_METHOD("[]", MLListT, MLIntegerT) {
@@ -921,6 +987,31 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 	} else {
 		ML_RETURN(MLNil);
 	}
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_list_t *List;
+	int Count;
+} ml_list_skip_t;
+
+ML_TYPE(MLListSkipT, (MLSequenceT), "list::skip");
+
+static void ML_TYPED_FN(ml_iterate, MLListSkipT, ml_state_t *Caller, ml_list_skip_t *Skip) {
+	if (Skip->Count < 0) ML_RETURN(MLNil);
+	if (Skip->Count >= Skip->List->Length) ML_RETURN(MLNil);
+	ml_list_node_t *Node = ml_list_index(Skip->List, Skip->Count + 1);
+	Node->Index = Skip->Count + 1;
+	ML_RETURN(Node);
+}
+
+ML_METHOD("skip", MLListT, MLIntegerT) {
+//!internal
+	ml_list_skip_t *Skip = new(ml_list_skip_t);
+	Skip->Type = MLListSkipT;
+	Skip->List = (ml_list_t *)Args[0];
+	Skip->Count = ml_integer_value(Args[1]);
+	return (ml_value_t *)Skip;
 }
 
 ML_METHODV("push", MLListMutableT) {
@@ -1432,6 +1523,7 @@ static void ml_list_delete(ml_list_t *List, ml_list_node_t *Node) {
 	List->CachedNode = List->Head;
 	List->CachedIndex = 1;
 	--List->Length;
+	--Node->Index;
 }
 
 ML_METHOD("delete", MLListMutableT, MLIntegerT) {

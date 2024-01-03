@@ -42,16 +42,11 @@ static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
 #endif
 
 ML_ENUM2(MLSetOrderT, "set::order",
-// * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.
-// * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order, no reordering on access.
-// * :mini:`set::order::Descending` |harr| inserted values are kept in descending order, no reordering on access.
-// * :mini:`set::order::MRU` |harr| inserted values are put at start, accessed values are moved to start.
-// * :mini:`set::order::LRU` |harr| inserted values are put at end, accessed values are moved to end.
-	"Insert", SET_ORDER_INSERT,
-	"LRU", SET_ORDER_LRU,
-	"MRU", SET_ORDER_MRU,
-	"Ascending", SET_ORDER_ASC,
-	"Descending", SET_ORDER_DESC
+	"Insert", SET_ORDER_INSERT, // default ordering; inserted values are put at end, no reordering on access.
+	"LRU", SET_ORDER_LRU, // inserted values are kept in ascending order, no reordering on access.
+	"MRU", SET_ORDER_MRU, // inserted values are kept in descending order, no reordering on access.
+	"Ascending", SET_ORDER_ASC, // inserted values are put at start, accessed values are moved to start.
+	"Descending", SET_ORDER_DESC // inserted values are put at end, accessed values are moved to end.
 );
 
 static void ML_TYPED_FN(ml_value_find_all, MLSetT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
@@ -884,6 +879,78 @@ ML_METHOD("<=>", MLSetT, MLSetT) {
 		if (!ml_set_search0(Args[0], Node->Key)) ml_set_insert(Set3, Node->Key);
 	}
 	return ml_tuplev(3, Set1, Set2, Set3);
+}
+
+ML_METHOD("<", MLSetT, MLSetT) {
+//<Set/1
+//<Set/2
+//>set
+// Returns a :mini:`Set/2` if :mini:`Set/1` is a strict subset of :mini:`Set/2`, otherwise returns :mini:`nil`.
+//$= let A := set("bandana")
+//$= let B := set("ban")
+//$= let C := set("bread")
+//$= let D := set("bandana")
+//$= B < A
+//$= C < A
+//$= D < A
+	ML_SET_FOREACH(Args[0], Node) {
+		if (!ml_set_search0(Args[1], Node->Key)) return MLNil;
+	}
+	return ml_set_size(Args[1]) > ml_set_size(Args[0]) ? Args[1] : MLNil;
+}
+
+ML_METHOD("<=", MLSetT, MLSetT) {
+//<Set/1
+//<Set/2
+//>set
+// Returns a :mini:`Set/2` if :mini:`Set/1` is a subset of :mini:`Set/2`, otherwise returns :mini:`nil`.
+//$= let A := set("bandana")
+//$= let B := set("ban")
+//$= let C := set("bread")
+//$= let D := set("bandana")
+//$= B <= A
+//$= C <= A
+//$= D <= A
+	ML_SET_FOREACH(Args[0], Node) {
+		if (!ml_set_search0(Args[1], Node->Key)) return MLNil;
+	}
+	return Args[1];
+}
+
+ML_METHOD(">", MLSetT, MLSetT) {
+//<Set/1
+//<Set/2
+//>set
+// Returns a :mini:`Set/2` if :mini:`Set/1` is a strict superset of :mini:`Set/2`, otherwise returns :mini:`nil`.
+//$= let A := set("bandana")
+//$= let B := set("ban")
+//$= let C := set("bread")
+//$= let D := set("bandana")
+//$= A > B
+//$= A > C
+//$= A > D
+	ML_SET_FOREACH(Args[1], Node) {
+		if (!ml_set_search0(Args[0], Node->Key)) return MLNil;
+	}
+	return ml_set_size(Args[0]) > ml_set_size(Args[1]) ? Args[1] : MLNil;
+}
+
+ML_METHOD(">=", MLSetT, MLSetT) {
+//<Set/1
+//<Set/2
+//>set
+// Returns a :mini:`Set/2` if :mini:`Set/1` is a superset of :mini:`Set/2`, otherwise returns :mini:`nil`.
+//$= let A := set("bandana")
+//$= let B := set("ban")
+//$= let C := set("bread")
+//$= let D := set("bandana")
+//$= A >= B
+//$= A >= C
+//$= A >= D
+	ML_SET_FOREACH(Args[1], Node) {
+		if (!ml_set_search0(Args[0], Node->Key)) return MLNil;
+	}
+	return Args[1];
 }
 
 typedef struct {

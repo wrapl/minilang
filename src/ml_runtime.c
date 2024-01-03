@@ -708,15 +708,15 @@ ML_FUNCTIONX(MLBreak) {
 }
 
 typedef struct {
-	ml_type_t *Type;
-	ml_debugger_t Base;
+	ml_state_t Base;
+	ml_debugger_t Debug;
 	ml_value_t *Run;
 	stringmap_t Modules[1];
 } ml_mini_debugger_t;
 
 static void ml_mini_debugger_call(ml_state_t *Caller, ml_mini_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ml_state_t *State = ml_state(Caller);
-	ml_context_set(State->Context, ML_DEBUGGER_INDEX, &Debugger->Base);
+	ml_context_set(State->Context, ML_DEBUGGER_INDEX, &Debugger->Debug);
 	ml_value_t *Function = Args[0];
 	return ml_call(State, Function, Count - 1, Args + 1);
 }
@@ -725,14 +725,13 @@ ML_TYPE(MLDebuggerT, (), "mini-debugger",
 	.call = (void *)ml_mini_debugger_call
 );
 
-static void mini_debugger_run(ml_debugger_t *Base, ml_state_t *State, ml_value_t *Value) {
-	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Base - offsetof(ml_mini_debugger_t, Base));
+static void mini_debugger_debug(ml_debugger_t *Debug, ml_state_t *State, ml_value_t *Value) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Debug - offsetof(ml_mini_debugger_t, Debug));
 	ml_value_t **Args = ml_alloc_args(2);
 	if (State->Type == NULL) State->Type = MLStateT;
 	Args[0] = (ml_value_t *)State;
 	Args[1] = Value;
-	static ml_result_state_t Caller = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
-	return ml_call(&Caller, Debugger->Run, 2, Args);
+	return ml_call(Debugger, Debugger->Run, 2, Args);
 }
 
 typedef struct {
@@ -740,8 +739,8 @@ typedef struct {
 	size_t Bits[];
 } breakpoints_t;
 
-static size_t *mini_debugger_breakpoints(ml_debugger_t *Base, const char *Source, int Max) {
-	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Base - offsetof(ml_mini_debugger_t, Base));
+static size_t *mini_debugger_breakpoints(ml_debugger_t *Debug, const char *Source, int Max) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Debug - offsetof(ml_mini_debugger_t, Debug));
 	breakpoints_t **Slot = (breakpoints_t **)stringmap_slot(Debugger->Modules, Source);
 	size_t Count = (Max + SIZE_BITS) / SIZE_BITS;
 	if (!Slot[0]) {
@@ -760,21 +759,27 @@ static size_t *mini_debugger_breakpoints(ml_debugger_t *Base, const char *Source
 	return Slot[0]->Bits;
 }
 
-ML_FUNCTION(MLDebugger) {
+static void mini_debugger_run(ml_state_t *State, ml_value_t *Value) {
+}
+
+ML_FUNCTIONX(MLDebugger) {
 //!debugger
 //@debugger
 //<Function
 //>debugger
 // Returns a new debugger for :mini:`Function()`.
-	ML_CHECK_ARG_COUNT(1);
+	ML_CHECKX_ARG_COUNT(1);
 	ml_mini_debugger_t *Debugger = new(ml_mini_debugger_t);
-	Debugger->Type = MLDebuggerT;
+	Debugger->Base.Type = MLDebuggerT;
+	Debugger->Base.Caller = Caller;
+	Debugger->Base.Context = Caller->Context;
 	Debugger->Base.run = mini_debugger_run;
-	Debugger->Base.breakpoints = mini_debugger_breakpoints;
-	Debugger->Base.StepIn = 1;
-	Debugger->Base.BreakOnError = 1;
+	Debugger->Debug.run = mini_debugger_debug;
+	Debugger->Debug.breakpoints = mini_debugger_breakpoints;
+	Debugger->Debug.StepIn = 1;
+	Debugger->Debug.BreakOnError = 1;
 	Debugger->Run = Args[0];
-	return (ml_value_t *)Debugger;
+	ML_RETURN(Debugger);
 }
 
 ML_METHOD("breakpoint_set", MLDebuggerT, MLStringT, MLIntegerT) {
@@ -786,9 +791,9 @@ ML_METHOD("breakpoint_set", MLDebuggerT, MLStringT, MLIntegerT) {
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	const char *Source = ml_string_value(Args[1]);
 	int LineNo = ml_integer_value(Args[2]);
-	size_t *Breakpoints = mini_debugger_breakpoints(&Debugger->Base, Source, LineNo);
+	size_t *Breakpoints = mini_debugger_breakpoints(&Debugger->Debug, Source, LineNo);
 	Breakpoints[LineNo / SIZE_BITS] |= 1L << (LineNo % SIZE_BITS);
-	++Debugger->Base.Revision;
+	++Debugger->Debug.Revision;
 	return Args[0];
 }
 
@@ -801,9 +806,9 @@ ML_METHOD("breakpoint_clear", MLDebuggerT, MLStringT, MLIntegerT) {
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	const char *Source = ml_string_value(Args[1]);
 	int LineNo = ml_integer_value(Args[2]);
-	size_t *Breakpoints = mini_debugger_breakpoints(&Debugger->Base, Source, LineNo);
+	size_t *Breakpoints = mini_debugger_breakpoints(&Debugger->Debug, Source, LineNo);
 	Breakpoints[LineNo / SIZE_BITS] &= ~(1L << (LineNo % SIZE_BITS));
-	++Debugger->Base.Revision;
+	++Debugger->Debug.Revision;
 	return Args[0];
 }
 
@@ -813,7 +818,7 @@ ML_METHOD("error_mode", MLDebuggerT, MLAnyT) {
 //<Set
 // If :mini:`Set` is not :mini:`nil` then :mini:`Debugger` will stop on errors.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
-	Debugger->Base.BreakOnError = Args[1] != MLNil;
+	Debugger->Debug.BreakOnError = Args[1] != MLNil;
 	return Args[0];
 }
 
@@ -823,7 +828,7 @@ ML_METHOD("step_mode", MLDebuggerT, MLAnyT) {
 //<Set
 // If :mini:`Set` is not :mini:`nil` then :mini:`Debugger` will stop on after each line.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
-	Debugger->Base.StepIn = Args[1] != MLNil;
+	Debugger->Debug.StepIn = Args[1] != MLNil;
 	return Args[0];
 }
 
@@ -835,7 +840,7 @@ ML_METHODX("step_in", MLDebuggerT, MLStateT, MLAnyT) {
 // Resume :mini:`State` with :mini:`Value` in the debugger, stopping after the next line.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
-	Debugger->Base.StepIn = 1;
+	Debugger->Debug.StepIn = 1;
 	ml_debugger_step_mode(State, 0, 0);
 	return State->run(State, Args[2]);
 }
@@ -848,7 +853,7 @@ ML_METHODX("step_over", MLDebuggerT, MLStateT, MLAnyT) {
 // Resume :mini:`State` with :mini:`Value` in the debugger, stopping after the next line in the same function (i.e. stepping over function calls).
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
-	Debugger->Base.StepIn = 0;
+	Debugger->Debug.StepIn = 0;
 	ml_debugger_step_mode(State, 1, 0);
 	return State->run(State, Args[2]);
 }
@@ -861,7 +866,7 @@ ML_METHODX("step_out", MLDebuggerT, MLStateT, MLAnyT) {
 // Resume :mini:`State` with :mini:`Value` in the debugger, stopping at the end of the current function.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
-	Debugger->Base.StepIn = 0;
+	Debugger->Debug.StepIn = 0;
 	ml_debugger_step_mode(State, 0, 1);
 	return State->run(State, Args[2]);
 }
@@ -874,7 +879,7 @@ ML_METHODX("continue", MLDebuggerT, MLStateT, MLAnyT) {
 // Resume :mini:`State` with :mini:`Value` in the debugger.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
-	Debugger->Base.StepIn = 0;
+	Debugger->Debug.StepIn = 0;
 	ml_debugger_step_mode(State, 0, 0);
 	return State->run(State, Args[2]);
 }

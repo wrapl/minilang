@@ -319,7 +319,9 @@ static void ml_pqueue_raise_run(ml_pqueue_t *Queue, ml_value_t *Result) {
 		Entry->Priority = Priority;
 		if (Entry->Index != INT_MAX) {
 			Queue->Base.run = (ml_state_fn)ml_pqueue_up_run;
-			return ml_pqueue_up2(Queue, Queue->Entry);
+			return ml_pqueue_up2(Queue, Entry);
+		} else {
+			return ml_pqueue_insert(Queue->Base.Caller, Queue, Entry);
 		}
 	}
 	return ml_pqueue_finish(Queue);
@@ -329,7 +331,7 @@ ML_METHODX("raise", MLPQueueEntryT, MLAnyT) {
 //<Entry
 //<Priority
 //>pqueue::entry
-// Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is less than :mini:`Priority`.
+// Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is less than :mini:`Priority`. :mini:`Entry` is added back into its queue if the priority changes.
 	ml_pqueue_entry_t *Entry = (ml_pqueue_entry_t *)Args[0];
 	ml_value_t *Priority = Args[1];
 	ml_pqueue_t *Queue = Entry->Queue;
@@ -352,7 +354,9 @@ static void ml_pqueue_lower_run(ml_pqueue_t *Queue, ml_value_t *Result) {
 		Entry->Priority = Priority;
 		if (Entry->Index != INT_MAX) {
 			Queue->Base.run = (ml_state_fn)ml_pqueue_up_run;
-			return ml_pqueue_up2(Queue, Queue->Entry);
+			return ml_pqueue_up2(Queue, Entry);
+		} else {
+			return ml_pqueue_insert(Queue->Base.Caller, Queue, Entry);
 		}
 	}
 	return ml_pqueue_finish(Queue);
@@ -362,7 +366,7 @@ ML_METHODX("lower", MLPQueueEntryT, MLAnyT) {
 //<Entry
 //<Priority
 //>pqueue::entry
-// Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is greater than :mini:`Priority`.
+// Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is greater than :mini:`Priority`. :mini:`Entry` is added back into its queue if the priority changes.
 	ml_pqueue_entry_t *Entry = (ml_pqueue_entry_t *)Args[0];
 	ml_value_t *Priority = Args[1];
 	ml_pqueue_t *Queue = Entry->Queue;

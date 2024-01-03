@@ -11,6 +11,7 @@ extern "C" {
 extern ml_type_t MLThreadT[];
 
 void ml_thread_init(stringmap_t *Globals);
+void ml_default_thread_init(ml_context_t *Context);
 ml_value_t *ml_is_threadsafe(ml_value_t *Value);
 
 #ifdef __cplusplus

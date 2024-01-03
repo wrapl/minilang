@@ -64,6 +64,10 @@ polynomial
       P(y is 3) :> x⁴ - 12x³ + 54x² - 108x + 81
 
 
+:mini:`meth (A: polynomial) != (B: polynomial): polynomial`
+   Returns :mini:`B` if :mini:`A != B` and :mini:`nil` otherwise.
+
+
 :mini:`meth (A: polynomial) * (B: number): polynomial`
    Returns :mini:`A * B`.
 
@@ -110,6 +114,10 @@ polynomial
 
 :mini:`meth (A: polynomial) / (B: polynomial): polynomial::rational`
    Returns :mini:`A / B`.
+
+
+:mini:`meth (A: polynomial) = (B: polynomial): polynomial`
+   Returns :mini:`B` if :mini:`A = B` and :mini:`nil` otherwise.
 
 
 :mini:`meth (A: polynomial) ^ (B: integer): polynomial`

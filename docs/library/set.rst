@@ -71,7 +71,7 @@ set
       A / B :> {n}
 
 
-:mini:`meth (Set₁: set) /\ (Set₂: set): set`
+:mini:`meth (Set₁: set) /\\ (Set₂: set): set`
    Returns a new set containing the values of :mini:`Set₁` which are also in :mini:`Set₂`.
 
    .. code-block:: mini
@@ -79,6 +79,34 @@ set
       let A := set("banana") :> {b, a, n}
       let B := set("bread") :> {b, r, e, a, d}
       A /\ B :> {b, a}
+
+
+:mini:`meth (Set₁: set) < (Set₂: set): set`
+   Returns a :mini:`Set₂` if :mini:`Set₁` is a strict subset of :mini:`Set₂`,  otherwise returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let A := set("bandana") :> {b, a, n, d}
+      let B := set("ban") :> {b, a, n}
+      let C := set("bread") :> {b, r, e, a, d}
+      let D := set("bandana") :> {b, a, n, d}
+      B < A :> {b, a, n, d}
+      C < A :> nil
+      D < A :> nil
+
+
+:mini:`meth (Set₁: set) <= (Set₂: set): set`
+   Returns a :mini:`Set₂` if :mini:`Set₁` is a subset of :mini:`Set₂`,  otherwise returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let A := set("bandana") :> {b, a, n, d}
+      let B := set("ban") :> {b, a, n}
+      let C := set("bread") :> {b, r, e, a, d}
+      let D := set("bandana") :> {b, a, n, d}
+      B <= A :> {b, a, n, d}
+      C <= A :> nil
+      D <= A :> {b, a, n, d}
 
 
 :mini:`meth (Set₁: set) <=> (Set₂: set): set`
@@ -91,6 +119,20 @@ set
       A <=> B :> ({n}, {b, a}, {r, e, d})
 
 
+:mini:`meth (Set₁: set) > (Set₂: set): set`
+   Returns a :mini:`Set₂` if :mini:`Set₁` is a strict superset of :mini:`Set₂`,  otherwise returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let A := set("bandana") :> {b, a, n, d}
+      let B := set("ban") :> {b, a, n}
+      let C := set("bread") :> {b, r, e, a, d}
+      let D := set("bandana") :> {b, a, n, d}
+      A > B :> {b, a, n}
+      A > C :> nil
+      A > D :> nil
+
+
 :mini:`meth (Set₁: set) >< (Set₂: set): set`
    Returns a new set containing the values of :mini:`Set₁` and :mini:`Set₂` that are not in both.
 
@@ -99,6 +141,20 @@ set
       let A := set("banana") :> {b, a, n}
       let B := set("bread") :> {b, r, e, a, d}
       A >< B :> {n, r, e, d}
+
+
+:mini:`meth (Set₁: set) >= (Set₂: set): set`
+   Returns a :mini:`Set₂` if :mini:`Set₁` is a superset of :mini:`Set₂`,  otherwise returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let A := set("bandana") :> {b, a, n, d}
+      let B := set("ban") :> {b, a, n}
+      let C := set("bread") :> {b, r, e, a, d}
+      let D := set("bandana") :> {b, a, n, d}
+      A >= B :> {b, a, n}
+      A >= C :> nil
+      A >= D :> {b, a, n, d}
 
 
 :mini:`meth (Set: set)[Value: any]: some | nil`
@@ -112,7 +168,7 @@ set
       S :> {A, B, C}
 
 
-:mini:`meth (Set₁: set) \/ (Set₂: set): set`
+:mini:`meth (Set₁: set) \\/ (Set₂: set): set`
    Returns a new set combining the values of :mini:`Set₁` and :mini:`Set₂`.
 
    .. code-block:: mini
@@ -166,7 +222,7 @@ set
    .. code-block:: mini
 
       let S := set("cake") :> {c, a, k, e}
-      S:random :> "k"
+      S:random :> "e"
       S:random :> "k"
 
 
@@ -347,11 +403,11 @@ set
 
 
 :mini:`type set::order < enum`
-   * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end,  no reordering on access.
-   * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order,  no reordering on access.
-   * :mini:`set::order::Descending` |harr| inserted values are kept in descending order,  no reordering on access.
-   * :mini:`set::order::MRU` |harr| inserted values are put at start,  accessed values are moved to start.
-   * :mini:`set::order::LRU` |harr| inserted values are put at end,  accessed values are moved to end.
+   * :mini:`::Insert` - default ordering; inserted values are put at end, no reordering on access.
+   * :mini:`::LRU` - inserted values are kept in ascending order, no reordering on access.
+   * :mini:`::MRU` - inserted values are kept in descending order, no reordering on access.
+   * :mini:`::Ascending` - inserted values are put at start, accessed values are moved to start.
+   * :mini:`::Descending` - inserted values are put at end, accessed values are moved to end.
 
 
 :mini:`meth (Visitor: visitor):const(Set: set): set`

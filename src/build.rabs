@@ -133,6 +133,7 @@ let Objects := [
 	file("ml_runtime.o"),
 	file("ml_sequence.o"),
 	file("ml_set.o"),
+	file("ml_socket.o"),
 	file("ml_stream.o"),
 	file("ml_string.o"),
 	file("ml_types.o"),

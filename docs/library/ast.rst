@@ -12,6 +12,7 @@ ast
 :mini:`type ast::expr`
    An expression
    
+   
    * :mini:`:source(Value: ast::expr): string`
    * :mini:`:startline(Value: ast::expr): integer`
    * :mini:`:endline(Value: ast::expr): integer`
@@ -34,6 +35,7 @@ ast
 
 :mini:`type ast::expr::block < ast::expr`
    A :mini:`block` expression
+   
    
    * :mini:`:vars(Value: ast::expr::block): list[ast::local]`
    * :mini:`:lets(Value: ast::expr::block): list[ast::local]`
@@ -69,6 +71,7 @@ ast
 
 :mini:`type ast::expr::default < ast::expr`
    A :mini:`default` expression
+   
    
    * :mini:`:child(Value: ast::expr::default): list[ast::expr]`
    * :mini:`:index(Value: ast::expr::default): integer`
@@ -108,6 +111,7 @@ ast
 :mini:`type ast::expr::for < ast::expr`
    A :mini:`for` expression
    
+   
    * :mini:`:key(Value: ast::expr::for): string`
    * :mini:`:local(Value: ast::expr::for): list[ast::local]`
    * :mini:`:sequence(Value: ast::expr::for): list[ast::expr]`
@@ -118,6 +122,7 @@ ast
 
 :mini:`type ast::expr::fun < ast::expr`
    A :mini:`fun` expression
+   
    
    * :mini:`:name(Value: ast::expr::fun): string`
    * :mini:`:params(Value: ast::expr::fun): list[ast::param]`
@@ -133,11 +138,13 @@ ast
 :mini:`type ast::expr::ident < ast::expr`
    An :mini:`ident` expression
    
+   
    * :mini:`:ident(Value: ast::expr::ident): string`
 
 
 :mini:`type ast::expr::if < ast::expr`
    An :mini:`if` expression
+   
    
    * :mini:`:cases(Value: ast::expr::if): list[ast::ifcase]`
    * :mini:`:else(Value: ast::expr::if): list[ast::expr]`
@@ -175,6 +182,7 @@ ast
 
 :mini:`type ast::expr::local < ast::expr`
    A :mini:`local` expression
+   
    
    * :mini:`:local(Value: ast::expr::local): list[ast::local]`
    * :mini:`:child(Value: ast::expr::local): list[ast::expr]`
@@ -219,12 +227,14 @@ ast
 :mini:`type ast::expr::parent < ast::expr`
    A :mini:`parent` expression
    
+   
    * :mini:`:child(Value: ast::expr::parent): list[ast::expr]`
    * :mini:`:name(Value: ast::expr::parent): string`
 
 
 :mini:`type ast::expr::parentvalue < ast::expr`
    A :mini:`parent` :mini:`value` expression
+   
    
    * :mini:`:child(Value: ast::expr::parentvalue): list[ast::expr]`
    * :mini:`:value(Value: ast::expr::parentvalue): any`
@@ -268,6 +278,7 @@ ast
 :mini:`type ast::expr::string < ast::expr`
    A :mini:`string` expression
    
+   
    * :mini:`:parts(Value: ast::expr::string): list[ast::stringpart]`
 
 
@@ -298,6 +309,7 @@ ast
 
 :mini:`type ast::expr::value < ast::expr`
    A :mini:`value` expression
+   
    
    * :mini:`:value(Value: ast::expr::value): any`
 
@@ -330,6 +342,7 @@ ast
 :mini:`type ast::ifcase`
    An if case
    
+   
    * :mini:`:condition(Value: ast::ifcase): list[ast::expr]`
    * :mini:`:body(Value: ast::ifcase): list[ast::expr]`
    * :mini:`:local(Value: ast::ifcase): list[ast::local]`
@@ -338,6 +351,7 @@ ast
 
 :mini:`type ast::local`
    A local
+   
    
    * :mini:`:ident(Value: ast::local): string`
    * :mini:`:line(Value: ast::local): integer`
@@ -351,6 +365,7 @@ ast
 :mini:`type ast::param`
    A param
    
+   
    * :mini:`:ident(Value: ast::param): string`
    * :mini:`:type(Value: ast::param): list[ast::expr]`
    * :mini:`:line(Value: ast::param): integer`
@@ -359,6 +374,7 @@ ast
 
 :mini:`type ast::stringpart`
    A string part
+   
    
    * :mini:`:child(Value: ast::stringpart): list[ast::expr]`
    * :mini:`:chars(Value: ast::stringpart): string`
@@ -371,6 +387,10 @@ ast
 
 
 :mini:`type paramkind < enum`
-   *TBD*
+   * :mini:`::Default`
+   * :mini:`::Extra`
+   * :mini:`::Named`
+   * :mini:`::ByRef`
+   * :mini:`::AsVar`
 
 

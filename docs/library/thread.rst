@@ -9,6 +9,15 @@ thread
 
 .. rst-class:: mini-api
 
+:mini:`fun mlthreadport(Arg₁: any)`
+   *TBD*
+
+
+:mini:`meth (Args...: any):thread(Fn: function, Arg₃: any): thread`
+   Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
+   All arguments must be thread-safe.
+
+
 :mini:`fun thread::sleep(Duration: number): nil`
    Causes the current thread to sleep for :mini:`Duration` microseconds.
 
@@ -17,9 +26,8 @@ thread
    A thread.
 
 
-:mini:`fun thread(Args: any, ..., Fn: function): thread`
-   Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
-   All arguments must be thread-safe.
+:mini:`meth thread()`
+   *TBD*
 
 
 :mini:`meth (Thread: thread):join: any`
@@ -81,6 +89,10 @@ thread
 
 :mini:`meth (Mutex: thread::mutex):unlock: thread::mutex`
    Unlocks :mini:`Mutex`.
+
+
+:mini:`type thread::port < function`
+   *TBD*
 
 
 :mini:`type thread::protected`
