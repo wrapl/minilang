@@ -688,6 +688,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length);
 ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char);
+char ml_stringbuffer_last(ml_stringbuffer_t *Buffer);
 void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code);
 void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
 

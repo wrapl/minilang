@@ -4044,6 +4044,18 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 	Buffer->Tail = Node;
 }
 
+char ml_stringbuffer_last(ml_stringbuffer_t *Buffer) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail;
+	if (!Node) return 0;
+	if (Buffer->Space == ML_STRINGBUFFER_NODE_SIZE) {
+		ml_stringbuffer_node_t *Prev = Buffer->Head;
+		if (Prev == Node) return 0;
+		while (Prev->Next != Node) Prev = Prev->Next;
+		return Prev->Chars[ML_STRINGBUFFER_NODE_SIZE - 1];
+	}
+	return Node->Chars[ML_STRINGBUFFER_NODE_SIZE - (Buffer->Space + 1)];
+}
+
 void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
