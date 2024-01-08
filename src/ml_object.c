@@ -120,6 +120,15 @@ static void ML_TYPED_FN(ml_value_find_all, MLObjectT, ml_object_t *Value, void *
 	for (int I = 0; I < NumFields; ++I) ml_value_find_all(Value->Fields[I].Value, Data, RefFn);
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLObjectT, ml_object_t *Value) {
+	int NumFields = ((ml_object_t *)Value)->Type->NumFields;
+	for (int I = 0; I < NumFields; ++I) {
+		if (Value->Fields[I].Type != MLFieldT) return 0;
+		if (!ml_value_is_constant(Value->Fields[I].Value)) return 0;
+	}
+	return 1;
+}
+
 ML_METHOD("::", MLObjectT, MLStringT) {
 //<Object
 //<Field
