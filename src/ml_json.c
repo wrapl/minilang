@@ -708,7 +708,7 @@ static void ML_TYPED_FN(ml_stream_flush, MLJsonDecoderT, ml_state_t *Caller, ml_
 }
 
 static void ml_json_encode_string(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_write(Buffer, "\"", 1);
+	ml_stringbuffer_put(Buffer, '\"');
 	const unsigned char *String = (const unsigned char *)ml_string_value(Value);
 	const unsigned char *End = String + ml_string_length(Value);
 	while (String < End) {
@@ -730,7 +730,7 @@ static void ml_json_encode_string(ml_stringbuffer_t *Buffer, ml_value_t *Value) 
 			break;
 		}
 	}
-	ml_stringbuffer_write(Buffer, "\"", 1);
+	ml_stringbuffer_put(Buffer, '\"');
 }
 
 static ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {

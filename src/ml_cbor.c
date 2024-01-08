@@ -965,7 +965,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		}
 	}
 	vlq64_encode(Buffer, Decls->Size - Decls->Space);
-	ml_stringbuffer_foreach(DeclBuffer, Buffer, (void *)ml_stringbuffer_copy);
+	ml_stringbuffer_drain(DeclBuffer, Buffer, (void *)ml_stringbuffer_copy);
 	vlq64_encode(Buffer, DeclsIndex);
 	vlq64_encode(Buffer, (Info->Halt - Base) + BaseOffset);
 	vlq64_encode(Buffer, Return);
@@ -1065,7 +1065,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 	minicbor_write_string(Writer, 1);
 	Writer->WriteFn(Writer->Data, (unsigned char *)"!", 1);
 	minicbor_write_bytes(Writer, Buffer->Length);
-	ml_stringbuffer_foreach(Buffer, Writer, (void *)ml_stringbuffer_to_cbor);
+	ml_stringbuffer_drain(Buffer, Writer, (void *)ml_stringbuffer_to_cbor);
 	ML_LIST_FOREACH(Values, Iter) ml_cbor_write(Writer, Iter->Value);
 }
 

@@ -704,7 +704,7 @@ ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) __attribute__ (
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length);
 
-int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
+int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 
 // Defines for old function names
 

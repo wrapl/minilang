@@ -126,7 +126,7 @@ ML_FUNCTION(MLPrint) {
 		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
-	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
+	ml_stringbuffer_drain(Buffer, stdout, (void *)ml_stringbuffer_print);
 	fflush(stdout);
 	return MLNil;
 }

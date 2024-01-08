@@ -912,6 +912,14 @@ int ml_fd_stream_fd(ml_value_t *Stream) {
 	return ((ml_fd_stream_t *)Stream)->Fd;
 }
 
+#ifdef ML_THREADS
+#include "ml_thread.h"
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLStreamFdT, ml_value_t *Value) {
+	return NULL;
+}
+#endif
+
 static void ML_TYPED_FN(ml_stream_read, MLStreamFdT, ml_state_t *Caller, ml_fd_stream_t *Stream, void *Address, int Count) {
 	ssize_t Actual = read(Stream->Fd, Address, Count);
 	ml_value_t *Result;

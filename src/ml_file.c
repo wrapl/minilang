@@ -59,6 +59,14 @@ FILE *ml_file_handle(ml_value_t *Value) {
 	return ((ml_file_t *)Value)->Handle;
 }
 
+#ifdef ML_THREADS
+#include "ml_thread.h"
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLFileT, ml_value_t *Value) {
+	return NULL;
+}
+#endif
+
 #ifdef __MINGW32__
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 	char Buffer[129];

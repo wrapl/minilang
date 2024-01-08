@@ -662,7 +662,7 @@ ml_value_t *gtk_console_print(gtk_console_t *Console, int Count, ml_value_t **Ar
 		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
-	ml_stringbuffer_foreach(Buffer, Console, (void *)gtk_console_append);
+	ml_stringbuffer_drain(Buffer, Console, (void *)gtk_console_append);
 	while (gtk_events_pending()) gtk_main_iteration();
 	return MLNil;
 }

@@ -3945,6 +3945,18 @@ static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 	return Next;
 }
 
+static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+	do {
+		Node->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
+#else
+	Node->Next = StringBufferNodeCache;
+	StringBufferNodeCache = Node;
+#endif
+}
+
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	Buffer->Length -= Length;
@@ -3954,15 +3966,7 @@ size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 		if (Node == Buffer->Tail) Limit -= Buffer->Space;
 		if (Buffer->Start < Limit) return Limit - Buffer->Start;
 		ml_stringbuffer_node_t *Next = Node->Next;
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
-		do {
-			Node->Next = CacheNext;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
-#else
-		Node->Next = StringBufferNodeCache;
-		StringBufferNodeCache = Node;
-#endif
+		ml_stringbuffer_node_free(Node);
 		Buffer->Start = 0;
 		if (Next) {
 			Node = Buffer->Head = Next;
@@ -4181,20 +4185,38 @@ ML_METHOD("length", MLStringBufferT) {
 	return ml_integer(Buffer->Length);
 }
 
-int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
+int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	if (!Node) return 0;
+	int Result = 0;
 	int Start = Buffer->Start;
 	if (!Node->Next) {
-		return callback(Data, Node->Chars + Start, (ML_STRINGBUFFER_NODE_SIZE - Buffer->Space) - Start);
+		Result = callback(Data, Node->Chars + Start, (ML_STRINGBUFFER_NODE_SIZE - Buffer->Space) - Start);
+		goto done;
 	}
-	if (callback(Data, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - Start)) return 1;
+	Result = callback(Data, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - Start);
+	if (Result) goto done;
 	Node = Node->Next;
 	while (Node->Next) {
-		if (callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE)) return 1;
+		Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
+		if (Result) goto done;
 		Node = Node->Next;
 	}
-	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+	Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+done:
+	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+	do {
+		Tail->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Head));
+#else
+	Tail->Next = StringBufferNodeCache;
+	StringBufferNodeCache = Head;
+#endif
+	Buffer->Head = Buffer->Tail = NULL;
+	Buffer->Length = Buffer->Space = Buffer->Start = 0;
+	return Result;
 }
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
