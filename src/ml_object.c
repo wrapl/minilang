@@ -117,12 +117,12 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 static void ML_TYPED_FN(ml_value_find_all, MLObjectT, ml_object_t *Value, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Value, 1)) return;
 	int NumFields = ((ml_object_t *)Value)->Type->NumFields;
-	for (int I = 0; I < NumFields; ++I) ml_value_find_all(Value->Fields[I].Value, Data, RefFn);
+	for (int I = 1; I <= NumFields; ++I) ml_value_find_all(Value->Fields[I].Value, Data, RefFn);
 }
 
 static int ML_TYPED_FN(ml_value_is_constant, MLObjectT, ml_object_t *Value) {
 	int NumFields = ((ml_object_t *)Value)->Type->NumFields;
-	for (int I = 0; I < NumFields; ++I) {
+	for (int I = 1; I <= NumFields; ++I) {
 		if (Value->Fields[I].Type != MLFieldT) return 0;
 		if (!ml_value_is_constant(Value->Fields[I].Value)) return 0;
 	}
