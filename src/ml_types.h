@@ -126,6 +126,21 @@ static inline const char *ml_type_name(const ml_type_t *Value) {
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
 
+extern ml_type_t MLTypeUnionT[];
+
+ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]);
+
+#ifndef GENERATE_INIT
+
+#define ML_UNION_TYPE(TYPE, ...) ml_value_t *TYPE
+
+#else
+
+#define ML_UNION_TYPE(TYPE, ...) \
+INIT_CODE TYPE = (ml_value_t *)ml_union_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
+
+#endif
+
 #ifdef ML_GENERICS
 
 typedef struct ml_generic_type_t ml_generic_type_t;

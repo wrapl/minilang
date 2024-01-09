@@ -351,8 +351,31 @@ typedef struct {
 	ml_type_t *Types[];
 } ml_union_type_t;
 
-ML_TYPE(MLTypeUnionT, (MLTypeT), "union-type");
+ML_TYPE(MLTypeUnionT, (MLTypeT), "type::union");
 //!internal
+
+ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]) {
+	ml_union_type_t *Type = xnew(ml_union_type_t, NumTypes, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	size_t Length = strlen(Types[0]->Name) + NumTypes;
+	for (int I = 1; I < NumTypes; ++I) Length += strlen(Types[I]->Name);
+	char *Name = snew(Length);
+	Type->Base.Name = Name;
+	Name = stpcpy(Name, Types[0]->Name);
+	for (int I = 1; I < NumTypes; ++I) {
+		*Name++ = '|';
+		Name = stpcpy(Name, Types[I]->Name);
+	}
+	*Name = 0;
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = NumTypes;
+	for (int I = 0; I < NumTypes; ++I) Type->Types[I] = Types[I];
+	return (ml_type_t *)Type;
+}
 
 ML_METHOD("|", MLTypeT, MLTypeT) {
 //<Type/1
@@ -363,19 +386,57 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	GC_asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Name, Type2->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
-	if (Type1->Rank > Type2->Rank) {
-		Type->Base.Rank = Type1->Rank + 1;
-	} else {
-		Type->Base.Rank = Type2->Rank + 1;
-	}
+	Type->Base.Rank = 1;
 	Type->NumTypes = 2;
 	Type->Types[0] = Type1;
 	Type->Types[1] = Type2;
+	return (ml_value_t *)Type;
+}
+
+ML_METHOD("|", MLTypeUnionT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_union_type_t *Type1 = (ml_union_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	ml_union_type_t *Type = xnew(ml_union_type_t, Type1->NumTypes + 1, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Base.Name, Type2->Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = Type1->NumTypes + 1;
+	for (int I = 0; I < Type1->NumTypes; ++I) Type->Types[I] = Type1->Types[I];
+	Type->Types[Type1->NumTypes] = Type2;
+	return (ml_value_t *)Type;
+}
+
+ML_METHOD("|", MLTypeT, MLTypeUnionT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_union_type_t *Type2 = (ml_union_type_t *)Args[1];
+	ml_union_type_t *Type = xnew(ml_union_type_t, Type2->NumTypes + 1, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Name, Type2->Base.Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = Type2->NumTypes + 1;
+	Type->Types[0] = Type1;
+	for (int I = 0; I < Type2->NumTypes; ++I) Type->Types[I + 1] = Type2->Types[I];
 	return (ml_value_t *)Type;
 }
 
@@ -386,15 +447,34 @@ ML_METHOD("?", MLTypeT) {
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	GC_asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s|nil", Type1->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
-	Type->Base.Rank = Type1->Rank + 1;
+	Type->Base.Rank = 1;
 	Type->NumTypes = 2;
 	Type->Types[0] = Type1;
 	Type->Types[1] = MLNilT;
+	return (ml_value_t *)Type;
+}
+
+ML_METHOD("?", MLTypeUnionT) {
+//<Type
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_union_type_t *Type1 = (ml_union_type_t *)Args[0];
+	ml_union_type_t *Type = xnew(ml_union_type_t, Type1->NumTypes + 1, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	GC_asprintf((char **)&Type->Base.Name, "%s|nil", Type1->Base.Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = Type1->NumTypes + 1;
+	for (int I = 0; I < Type1->NumTypes; ++I) Type->Types[I] = Type1->Types[I];
+	Type->Types[Type1->NumTypes] = MLNilT;
 	return (ml_value_t *)Type;
 }
 
