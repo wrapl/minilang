@@ -575,7 +575,8 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	long Hash = String->Hash;
 	if (!Hash) {
 		Hash = 5381;
-		for (int I = 0; I < String->Length; ++I) Hash = ((Hash << 5) + Hash) + String->Value[I];
+		int Length = String->Length;
+		for (const unsigned char *P = (const unsigned char *)String->Value; --Length >= 0; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 		String->Hash = Hash;
 	}
 	return Hash;
