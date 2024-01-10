@@ -137,6 +137,7 @@ let Objects := [
 	file("ml_stream.o"),
 	file("ml_string.o"),
 	file("ml_types.o"),
+	file("ml_unique.o"),
 	file("sha256.o"),
 	file("stringmap.o")
 ]

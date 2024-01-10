@@ -618,6 +618,8 @@ size_t ml_real_range_count(ml_real_range_t *Range);
 int GC_vasprintf(char **Ptr, const char *Format, va_list Args);
 int GC_asprintf(char **Ptr, const char *Format, ...);
 
+const char *ml_unique(const char *Key, int Length);
+
 typedef struct ml_address_t ml_address_t;
 typedef struct ml_string_t ml_string_t;
 

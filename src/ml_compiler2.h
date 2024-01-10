@@ -110,7 +110,6 @@ struct mlc_define_t {
 	mlc_define_t *Next;
 	const char *Ident;
 	mlc_expr_t *Expr;
-	long Hash;
 };
 
 #include "ml_expr_types.h"
