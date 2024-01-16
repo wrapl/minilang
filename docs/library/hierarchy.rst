@@ -27,6 +27,8 @@ hierarchy
       "function":e -> "symbol":w;
       "any":e -> "symbol::range":w;
       "any":e -> "weakref":w;
+      "any":e -> "weakmaptoken":w;
+      "any":e -> "weakmap":w;
       "any":e -> "xml":w;
       "xml":e -> "xml::text":w;
       "string":e -> "xml::text":w;
@@ -48,7 +50,7 @@ hierarchy
       "any":e -> "thread::protected":w;
       "any":e -> "thread::condition":w;
       "function":e -> "task":w;
-      "function":e -> "tasks":w;
+      "function":e -> "task::queue":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
       "any":e -> "instance::field":w;
