@@ -298,7 +298,7 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 
 #else
 
-#define ML_TYPED_FN(FUNCTION, TYPE, ARGS ...) INIT_CODE ml_typed_fn_set(TYPE, FUNCTION, (void *)(typeof(FUNCTION)*)CONCAT3(FUNCTION ## _, __LINE__, __COUNTER__));
+#define ML_TYPED_FN(FUNCTION, TYPE, ARGS ...) INIT_CODE ml_typed_fn_set(TYPE, (void *)FUNCTION, (void *)(typeof(FUNCTION)*)CONCAT3(FUNCTION ## _, __LINE__, __COUNTER__));
 
 #endif
 
