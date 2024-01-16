@@ -32,31 +32,40 @@ static ml_value_t *ml_preprocessor_global_get(ml_preprocessor_t *Preprocessor, c
 	return stringmap_search(Globals, Name) ?: ml_error("ParseError", "Undefined symbol %s at %s:%d", Name, Source, Line);
 }
 
+static const char *ml_preprocessor_read(ml_preprocessor_t *Preprocessor) {
+	ml_value_t *LineValue = ml_simple_call(Preprocessor->Input->Reader, 0, 0);
+	if (LineValue == MLNil) {
+		Preprocessor->Input = Preprocessor->Input->Prev;
+		return NULL;
+	} else if (ml_is(LineValue, MLErrorT)) {
+		printf("Error: %s\n", ml_error_message(LineValue));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(LineValue, Level++, &Source)) {
+			printf("\t%s:%d\n", Source.Name, Source.Line);
+		}
+		exit(0);
+	} else if (ml_is(LineValue, MLStringT)) {
+		return ml_string_value(LineValue);
+	} else {
+		printf("Error: line read function did not return string\n");
+		exit(0);
+	}
+}
+
 static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
 	ml_preprocessor_input_t *Input = Preprocessor->Input;
 	for (;;) {
-		if (Input->Line) {
-			const char *Line = Input->Line;
-			Input->Line = 0;
-			return Line;
-		}
-		ml_value_t *LineValue = ml_simple_call(Input->Reader, 0, 0);
-		if (LineValue == MLNil) {
-			Preprocessor->Input = Input = Input->Prev;
-		} else if (ml_is(LineValue, MLStringT)) {
-			return ml_string_value(LineValue);
-		} else if (ml_is(LineValue, MLErrorT)) {
-			printf("Error: %s\n", ml_error_message(LineValue));
-			ml_source_t Source;
-			int Level = 0;
-			while (ml_error_source(LineValue, Level++, &Source)) {
-				printf("\t%s:%d\n", Source.Name, Source.Line);
+		const char *Line = NULL;
+		while (!Line) {
+			if (Input->Line) {
+				Line = Input->Line;
+				Input->Line = NULL;
+			} else {
+				Line = ml_preprocessor_read(Preprocessor);
 			}
-			exit(0);
-		} else {
-			printf("Error: line read function did not return string\n");
-			exit(0);
 		}
+		return Line;
 	}
 	return NULL;
 }
@@ -83,12 +92,12 @@ static ml_value_t *ml_preprocessor_input(ml_preprocessor_t *Preprocessor, int Co
 	ml_preprocessor_input_t *Input = new(ml_preprocessor_input_t);
 	Input->Prev = Preprocessor->Input;
 	Input->Reader = Args[0];
-	Input->Line = 0;
+	Input->Line = NULL;
 	Preprocessor->Input = Input;
 	return MLNil;
 }
 
-static ml_value_t *ml_preprocessor_read(FILE *File, int Count, ml_value_t **Args) {
+static ml_value_t *ml_preprocessor_file_read(FILE *File, int Count, ml_value_t **Args) {
 	char *Line = NULL;
 	size_t Length = 0;
 	if (getline(&Line, &Length, File) < 0) {
@@ -118,26 +127,16 @@ static ml_value_t *ml_preprocessor_include(ml_preprocessor_t *Preprocessor, int 
 	if (!File) return ml_error("FileError", "error opening %s", ml_string_value(Args[0]));
 	ml_preprocessor_input_t *Input = new(ml_preprocessor_input_t);
 	Input->Prev = Preprocessor->Input;
-	Input->Reader = ml_cfunction(File, (void *)ml_preprocessor_read);
+	Input->Reader = ml_cfunction(File, (void *)ml_preprocessor_file_read);
 	Input->Line = 0;
 	Preprocessor->Input = Input;
 	return MLNil;
 }
 
 static void ml_result_run(ml_state_t *State, ml_value_t *Result) {
-	if (ml_is(Result, MLErrorT)) {
-		printf("Error: %s\n", ml_error_message(Result));
-		ml_source_t Source;
-		int Level = 0;
-		while (ml_error_source(Result, Level++, &Source)) {
-			printf("\t%s:%d\n", Source.Name, Source.Line);
-		}
-	}
-}
 
-static ml_state_t MLResultState[1] = {{
-	MLStateT, NULL, ml_result_run, &MLRootContext
-}};
+
+}
 
 void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer) {
 	ml_preprocessor_input_t Input0[1] = {{0, Reader}};
@@ -152,14 +151,14 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	ml_parser_t *Parser = ml_parser((void *)ml_preprocessor_line_read, Preprocessor);
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_preprocessor_global_get, Preprocessor);
 	ml_parser_source(Parser, (ml_source_t){InputName, 1});
-	ml_value_t *Semicolon = ml_cstring(";");
+	ml_value_t *BackSlash = ml_cstring("\\");
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
-		const char *Line = 0;
+		const char *Line = NULL;
 		while (!Line) {
 			if (Input->Line) {
 				Line = Input->Line;
-				Input->Line = 0;
+				Input->Line = NULL;
 			} else {
 				ml_value_t *LineValue = ml_simple_call(Preprocessor->Input->Reader, 0, 0);
 				if (LineValue == MLNil) {
@@ -186,10 +185,26 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 			if (Line < Escape) ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string(Line, Escape - Line));
 			if (Escape[1] == ';') {
 				Input->Line = Escape + 2;
-				ml_simple_inline(Preprocessor->Output->Writer, 1, Semicolon);
+				ml_simple_inline(Preprocessor->Output->Writer, 1, BackSlash);
 			} else {
 				Input->Line = Escape + 1;
-				ml_command_evaluate(MLResultState, Parser, Compiler);
+				ml_result_state_t *State = ml_result_state(&MLRootContext);
+				ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
+#ifdef ML_SCHEDULER
+				while (!State->Value) {
+					ml_queued_state_t Queued = ml_default_queue_next_wait();
+					Queued.State->run(Queued.State, Queued.Value);
+				}
+#endif
+				if (ml_is(State->Value, MLErrorT)) {
+					printf("Error: %s\n", ml_error_message(State->Value));
+					ml_source_t Source;
+					int Level = 0;
+					while (ml_error_source(State->Value, Level++, &Source)) {
+						printf("\t%s:%d\n", Source.Name, Source.Line);
+					}
+					exit(0);
+				}
 				Input->Line = ml_parser_clear(Parser);
 			}
 		} else {
@@ -231,5 +246,5 @@ int main(int Argc, const char **Argv) {
 			Input = fopen(InputName = Argv[I], "r");
 		}
 	}
-	ml_preprocess(InputName, ml_cfunction(Input, (void *)ml_preprocessor_read), ml_cfunction(Output, (void *)ml_preprocessor_write));
+	ml_preprocess(InputName, ml_cfunction(Input, (void *)ml_preprocessor_file_read), ml_cfunction(Output, (void *)ml_preprocessor_write));
 }
