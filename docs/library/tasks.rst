@@ -53,6 +53,14 @@ tasks
    Returns a task which calls :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
+:mini:`meth (Task₁: task) * (Task₂: task): task::set`
+   Returns a :mini:`task::set` that completes when all of its sub tasks complete,  or any raises an error.
+
+
+:mini:`meth (Task₁: task) + (Task₂: task): task::set`
+   Returns a :mini:`task::set` that completes when any of its sub tasks complete,  or any raises an error.
+
+
 :mini:`meth (Task: task):done(Result: any): any | error`
    Completes :mini:`Task` with :mini:`Result`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
 
@@ -82,5 +90,9 @@ tasks
 
 :mini:`meth (Arg₁: task::queue):cancel`
    *TBD*
+
+
+:mini:`type task::set < task`
+   A task combining a set of sub tasks.
 
 

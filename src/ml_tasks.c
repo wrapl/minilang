@@ -90,13 +90,13 @@ ML_GENERIC_TYPE(MLTaskListT, MLListT, MLTaskT);
 
 typedef struct {
 	ml_state_t Base;
-	int Remaining, Error;
+	int Remaining;
 } ml_task_list_t;
 
 static void ml_task_list_run(ml_task_list_t *TaskList, ml_value_t *Value) {
-	if (TaskList->Error) return;
+	if (!TaskList->Remaining) return;
 	if (ml_is_error(Value)) {
-		TaskList->Error = 1;
+		TaskList->Remaining = 0;
 		ML_CONTINUE(TaskList->Base.Caller, Value);
 	} else if (--TaskList->Remaining == 0) {
 		ML_CONTINUE(TaskList->Base.Caller, Value);
@@ -119,6 +119,69 @@ ML_METHODX("wait", MLTaskListT) {
 }
 
 #endif
+
+typedef struct {
+	ml_task_t Base;
+	int Remaining, Count;
+	ml_task_t *Tasks[];
+} ml_task_set_t;
+
+static void ml_task_all_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
+	if (!TaskSet->Remaining) return;
+	if (ml_is_error(Value)) {
+		TaskSet->Remaining = 0;
+		ml_task_set((ml_task_t *)TaskSet, Value);
+	} else if (--TaskSet->Remaining) {
+		ml_task_set((ml_task_t *)TaskSet, Value);
+	}
+}
+
+ML_TYPE(MLTaskSetT, (MLTaskT), "task::set");
+// A task combining a set of sub tasks.
+
+ML_METHOD("*", MLTaskT, MLTaskT) {
+//<Task/1
+//<Task/2
+//>task::set
+// Returns a :mini:`task::set` that completes when all of its sub tasks complete, or any raises an error.
+	ML_CHECK_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
+	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.run = (ml_state_fn)ml_task_all_run;
+	TaskSet->Remaining = TaskSet->Count = Count;
+	for (int I = 0; I < Count; ++I) {
+		ml_task_t *Task = (ml_task_t *)Args[I];
+		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
+		TaskSet->Tasks[I] = Task;
+	}
+	return (ml_value_t *)TaskSet;
+}
+
+static void ml_task_any_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
+	if (!TaskSet->Remaining) return;
+	TaskSet->Remaining = 0;
+	ml_task_set((ml_task_t *)TaskSet, Value);
+}
+
+ML_METHOD("+", MLTaskT, MLTaskT) {
+//<Task/1
+//<Task/2
+//>task::set
+// Returns a :mini:`task::set` that completes when any of its sub tasks complete, or any raises an error.
+	ML_CHECK_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
+	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.run = (ml_state_fn)ml_task_any_run;
+	TaskSet->Remaining = TaskSet->Count = Count;
+	for (int I = 0; I < Count; ++I) {
+		ml_task_t *Task = (ml_task_t *)Args[I];
+		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
+		TaskSet->Tasks[I] = Task;
+	}
+	return (ml_value_t *)TaskSet;
+}
 
 ML_METHOD("done", MLTaskT, MLAnyT) {
 //<Task
