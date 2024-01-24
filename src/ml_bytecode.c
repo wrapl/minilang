@@ -1185,7 +1185,8 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		Frame->Stack[I] = Arg;
 	}
 	for (int J = I; J < NumParams; ++J) {
-		Frame->Stack[J] = MLNil;
+		Frame->Stack[J] = Decl->Flags & MLC_DECL_ASVAR ? ml_variable(MLNil, NULL) : MLNil;
+		Decl = Decl->Next;
 	}
 	if (Flags & ML_CLOSURE_EXTRA_ARGS) {
 		ml_value_t *Rest = ml_list();
