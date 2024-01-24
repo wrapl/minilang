@@ -51,8 +51,9 @@ struct mlc_expected_delimiter_t {
 struct ml_parser_t {
 	ml_type_t *Type;
 	const char *Next;
-	void *ReadData, *SpecialData;
+	void *ReadData, *SpecialData, *EscapeData;
 	const char *(*Read)(void *);
+	ml_value_t *(*Escape)(void *);
 	ml_value_t *(*Special)(void *);
 	union {
 		ml_value_t *Value;
@@ -3584,7 +3585,7 @@ const char *MLTokens[] = {
 	",", // MLT_COMMA,
 	":=", // MLT_ASSIGN,
 	":-", // MLT_NAMED,
-	":?", // MLT_NIL_CHECK,
+	"<escape>", // MLT_ESCAPE,
 	"<import>", // MLT_IMPORT,
 	"<value>", // MLT_VALUE,
 	"<expr>", // MLT_EXPR,
@@ -3678,6 +3679,10 @@ ML_TYPE(MLParserT, (), "parser",
 	.Constructor = (ml_value_t *)MLParser
 );
 
+static ml_value_t *ml_parser_default_escape(void *Data) {
+	return ml_error("ParseError", "Parser does support escaping");
+}
+
 static ml_value_t *ml_parser_default_special(void *Data) {
 	return ml_error("ParseError", "Parser does support special values");
 }
@@ -3692,6 +3697,7 @@ ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	Parser->Line = 0;
 	Parser->ReadData = Data;
 	Parser->Read = Read ?: ml_parser_no_input;
+	Parser->Escape = ml_parser_default_escape;
 	Parser->Special = ml_parser_default_special;
 	return Parser;
 }
@@ -3768,6 +3774,11 @@ void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, .
 		ml_integer(Parser->Line),
 		ml_string(Message, Length)
 	));
+}
+
+void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data) {
+	Parser->Escape = Escape;
+	Parser->EscapeData = Data;
 }
 
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data) {
@@ -4305,8 +4316,8 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				Parser->Token = MLT_NAMED;
 				Parser->Next = Next + 1;
 				return Parser->Token;
-			} else if (Char == '?') {
-				Parser->Token = MLT_NIL_CHECK;
+			} else if (Char == '\\') {
+				Parser->Token = MLT_ESCAPE;
 				Parser->Next = Next + 1;
 				return Parser->Token;
 			} else if (Char == '>') {
@@ -5402,6 +5413,21 @@ with_name:
 		ml_next(Parser);
 		return Parser->Expr;
 	}
+	case MLT_ESCAPE: {
+		ml_next(Parser);
+		ml_value_t *Value = Parser->Escape(Parser->EscapeData);
+		if (ml_is(Value, MLExprT)) return ((ml_expr_value_t *)Value)->Expr;
+		if (ml_is_error(Value)) {
+			ml_parse_warn(Parser, ml_error_type(Value), "%s", ml_error_message(Value));
+		} else {
+			ml_parse_warn(Parser, "ParseError", "Expected expression not %s", ml_typeof(Value)->Name);
+		}
+		mlc_expr_t *Expr = new(mlc_expr_t);
+		Expr->Source = Parser->Source.Name;
+		Expr->StartLine = Expr->EndLine = Parser->Source.Line;
+		Expr->compile = ml_unknown_expr_compile;
+		return Expr;
+	}
 	case MLT_INLINE: {
 		ml_next(Parser);
 		ML_EXPR(InlineExpr, parent, inline);
@@ -5411,6 +5437,16 @@ with_name:
 	}
 	case MLT_EXPAND: {
 		ml_next(Parser);
+		if (ml_parse(Parser, MLT_VALUE)) {
+			ml_value_t *Value = Parser->Value;
+			if (ml_is(Value, MLExprT)) return ((ml_expr_value_t *)Value)->Expr;
+			ml_parse_warn(Parser, "ParseError", "Expected expression not %s", ml_typeof(Value)->Name);
+			mlc_expr_t *Expr = new(mlc_expr_t);
+			Expr->Source = Parser->Source.Name;
+			Expr->StartLine = Expr->EndLine = Parser->Source.Line;
+			Expr->compile = ml_unknown_expr_compile;
+			return Expr;
+		}
 		ml_accept(Parser, MLT_IDENT);
 		ML_EXPR(DefineExpr, ident, define);
 		DefineExpr->Ident = Parser->Ident;
@@ -6229,19 +6265,8 @@ ML_METHOD("parse", MLParserT) {
 //<Parser
 //>expr
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
-	mlc_expr_t *Expr = ml_accept_file(Parser);
-	if (!Expr) return Parser->Value;
-	return ml_expr_value(Expr, NULL);
-}
-
-ML_METHOD("parse", MLParserT, MLStringT) {
-//<Parser
-//>expr
-	ml_parser_t *Parser = (ml_parser_t *)Args[0];
-	ml_parser_input(Parser, ml_string_value(Args[1]));
-	mlc_expr_t *Expr = ml_accept_file(Parser);
-	if (!Expr) return Parser->Value;
-	return ml_expr_value(Expr, NULL);
+	if (setjmp(Parser->OnError)) return Parser->Value;
+	return ml_expr_value(ml_accept_expression(Parser, EXPR_DEFAULT), NULL);
 }
 
 ML_METHODX("compile", MLParserT, MLCompilerT) {
@@ -6301,6 +6326,19 @@ ML_METHOD("input", MLParserT, MLStringT) {
 	return Args[0];
 }
 
+static ml_value_t *ml_parser_escape_fn(ml_value_t *Callback) {
+	return ml_simple_call(Callback, 0, NULL);
+}
+
+ML_METHOD("escape", MLParserT, MLFunctionT) {
+//<Parser
+//<Callback
+//>parser
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	ml_parser_escape(Parser, (void *)ml_parser_escape_fn, Args[1]);
+	return Args[0];
+}
+
 static ml_value_t *ml_parser_special_fn(ml_value_t *Callback) {
 	return ml_simple_call(Callback, 0, NULL);
 }
@@ -6311,6 +6349,15 @@ ML_METHOD("special", MLParserT, MLFunctionT) {
 //>parser
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
 	ml_parser_special(Parser, (void *)ml_parser_special_fn, Args[1]);
+	return Args[0];
+}
+
+ML_METHOD("special", MLParserT, MLListT) {
+//<Parser
+//<Callback
+//>parser
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	ml_parser_special(Parser, (void *)ml_list_pop, Args[1]);
 	return Args[0];
 }
 
@@ -6342,6 +6389,7 @@ static void ml_evaluate_state_run(ml_evaluate_state_t *State, ml_value_t *Value)
 }
 
 ML_METHODX("run", MLParserT, MLCompilerT) {
+//<Parser
 //<Compiler
 //>any
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
@@ -6353,6 +6401,30 @@ ML_METHODX("run", MLParserT, MLCompilerT) {
 	State->Parser = Parser;
 	State->Compiler = Compiler;
 	return ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
+}
+
+ML_METHODX("compile", MLExprT, MLCompilerT) {
+//<Expr
+//<Compiler
+//>any
+	ml_expr_value_t *Expr = (ml_expr_value_t *)Args[0];
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[1];
+	return ml_function_compile(Caller, Expr->Expr, Compiler, NULL);
+}
+
+ML_METHODX("compile", MLExprT, MLCompilerT, MLListT) {
+//<Expr
+//<Compiler
+//>any
+	ml_expr_value_t *Expr = (ml_expr_value_t *)Args[0];
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[1];
+	const char **Parameters = anew(const char *, ml_list_length(Args[2]) + 1);
+	int I = 0;
+	ML_LIST_FOREACH(Args[2], Iter) {
+		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Parameter name must be a string");
+		Parameters[I++] = ml_string_value(Iter->Value);
+	}
+	return ml_function_compile(Caller, Expr->Expr, Compiler, Parameters);
 }
 
 ML_METHOD("[]", MLCompilerT, MLStringT) {

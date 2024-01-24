@@ -73,6 +73,14 @@ compiler
    *TBD*
 
 
+:mini:`meth (Expr: expr):compile(Compiler: compiler): any`
+   *TBD*
+
+
+:mini:`meth (Expr: expr):compile(Compiler: compiler, Arg₃: list): any`
+   *TBD*
+
+
 :mini:`meth (Arg₁: expr):end`
    *TBD*
 
@@ -117,6 +125,10 @@ compiler
    *TBD*
 
 
+:mini:`meth (Parser: parser):escape(Callback: function): parser`
+   *TBD*
+
+
 :mini:`meth (Parser: parser):evaluate(Compiler: compiler): any`
    *TBD*
 
@@ -129,10 +141,6 @@ compiler
    *TBD*
 
 
-:mini:`meth (Parser: parser):parse(Arg₂: string): expr`
-   *TBD*
-
-
 :mini:`meth (Parser: parser):permissive(Permissive: boolean): parser`
    *TBD*
 
@@ -141,7 +149,7 @@ compiler
    *TBD*
 
 
-:mini:`meth (Compiler: parser):run(Arg₂: compiler): any`
+:mini:`meth (Parser: parser):run(Compiler: compiler): any`
    *TBD*
 
 
@@ -150,6 +158,10 @@ compiler
 
 
 :mini:`meth (Parser: parser):special(Callback: function): parser`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):special(Callback: list): parser`
    *TBD*
 
 
