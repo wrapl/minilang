@@ -4,6 +4,7 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {
 	if (Expr->compile == (void *)ml_blank_expr_compile) return ML_EXPR_BLANK;
 	if (Expr->compile == (void *)ml_block_expr_compile) return ML_EXPR_BLOCK;
 	if (Expr->compile == (void *)ml_call_expr_compile) return ML_EXPR_CALL;
+	if (Expr->compile == (void *)ml_condition_expr_compile) return ML_EXPR_CONDITION;
 	if (Expr->compile == (void *)ml_const_call_expr_compile) return ML_EXPR_CONST_CALL;
 	if (Expr->compile == (void *)ml_debug_expr_compile) return ML_EXPR_DEBUG;
 	if (Expr->compile == (void *)ml_def_expr_compile) return ML_EXPR_DEF;

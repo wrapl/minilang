@@ -179,6 +179,20 @@ ML_FIELD("index", AstDefaultExprT);
 
 ML_FIELD("flags", AstDefaultExprT);
 
+ML_CLASS(AstConditionExprT, (AstExprT), "ast::expr::condition");
+//@ast::expr::condition
+// A :mini:`condition` expression
+//
+// * :mini:`:child(Value: ast::expr::condition): list[ast::expr]`
+// * :mini:`:index(Value: ast::expr::condition): integer`
+// * :mini:`:level(Value: ast::expr::condition): integer`
+
+ML_FIELD("child", AstConditionExprT);
+
+ML_FIELD("index", AstConditionExprT);
+
+ML_FIELD("level", AstConditionExprT);
+
 ML_CLASS(AstParentValueExprT, (AstExprT), "ast::expr::parentvalue");
 //@ast::expr::parentvalue
 // A :mini:`parent` :mini:`value` expression
@@ -480,6 +494,7 @@ static void ml_ast_types_init() {
 	stringmap_insert(AstExprT->Exports, "scoped", AstScopedExprT);
 	stringmap_insert(AstExprT->Exports, "parent", AstParentExprT);
 	stringmap_insert(AstExprT->Exports, "default", AstDefaultExprT);
+	stringmap_insert(AstExprT->Exports, "condition", AstConditionExprT);
 	stringmap_insert(AstExprT->Exports, "parentvalue", AstParentValueExprT);
 	stringmap_insert(AstExprT->Exports, "and", AstAndExprT);
 	stringmap_insert(AstExprT->Exports, "assign", AstAssignExprT);
@@ -730,6 +745,18 @@ static ml_value_t *a_mlc_local_expr_t(ml_type_t *Class, mlc_local_expr_t *Struct
 	NULL);
 }
 
+static ml_value_t *a_mlc_condition_expr_t(ml_type_t *Class, mlc_condition_expr_t *Struct) {
+	if (!Struct) return MLNil;
+	return ml_object(Class,
+		"source", ml_string(Struct->Source, -1),
+		"startline", ml_integer(Struct->StartLine),
+		"endline", ml_integer(Struct->EndLine),
+		"child", l_mlc_expr_t(Struct->Child),
+		"index", ml_integer(Struct->Index),
+		"level", ml_integer(Struct->Level),
+	NULL);
+}
+
 static ml_value_t *a_mlc_parent_expr_t(ml_type_t *Class, mlc_parent_expr_t *Struct) {
 	if (!Struct) return MLNil;
 	return ml_object(Class,
@@ -770,6 +797,7 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		case ML_EXPR_BLANK: return a_mlc_expr_t(AstBlankExprT, (mlc_expr_t *)Expr);
 		case ML_EXPR_BLOCK: return a_mlc_block_expr_t(AstBlockExprT, (mlc_block_expr_t *)Expr);
 		case ML_EXPR_CALL: return a_mlc_parent_expr_t(AstCallExprT, (mlc_parent_expr_t *)Expr);
+		case ML_EXPR_CONDITION: return a_mlc_condition_expr_t(AstConditionExprT, (mlc_condition_expr_t *)Expr);
 		case ML_EXPR_CONST_CALL: return a_mlc_parent_value_expr_t(AstConstCallExprT, (mlc_parent_value_expr_t *)Expr);
 		case ML_EXPR_DEBUG: return a_mlc_parent_expr_t(AstDebugExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_DEF: return a_mlc_local_expr_t(AstDefExprT, (mlc_local_expr_t *)Expr);

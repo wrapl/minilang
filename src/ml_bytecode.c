@@ -1082,9 +1082,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_IF_DEBUG: {
 #ifdef DEBUG_VERSION
-		ADVANCE(Inst[1].Inst);
-#else
 		ADVANCE(Inst + 2);
+#else
+		ADVANCE(Inst[1].Inst);
 #endif
 	}
 	DO_CALL_COUNT(0);
