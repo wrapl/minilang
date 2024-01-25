@@ -667,14 +667,14 @@ extern ml_value_t *LessEqualMethod;
 extern ml_value_t *GreaterEqualMethod;
 
 typedef struct {
-	ml_state_t Base;
+	ml_comparison_state_t Base;
 	ml_value_t *Result, *Order, *Default;
 	ml_list_node_t *A, *B;
 	ml_value_t *Args[2];
 } ml_list_compare_state_t;
 
 static void ml_list_compare_equal_run(ml_list_compare_state_t *State, ml_value_t *Result) {
-	ml_state_t *Caller = State->Base.Caller;
+	ml_state_t *Caller = State->Base.Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (Result == MLNil) ML_RETURN(State->Result);
 	ml_list_node_t *A = State->A = State->A->Next;
@@ -697,12 +697,19 @@ ML_METHODX("=", MLListT, MLListT) {
 //$= =([1, 3, 2], [1, 2, 3])
 	ml_list_t *A = (ml_list_t *)Args[0];
 	ml_list_t *B = (ml_list_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
 	if (A->Length != B->Length) ML_RETURN(MLNil);
 	if (!A->Length) ML_RETURN(B);
 	ml_list_compare_state_t *State = new(ml_list_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_compare_equal_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_equal_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = MLNil;
 	State->Default = (ml_value_t *)B;
 	State->A = A->Head;
@@ -724,12 +731,19 @@ ML_METHODX("!=", MLListT, MLListT) {
 //$= !=([1, 3, 2], [1, 2, 3])
 	ml_list_t *A = (ml_list_t *)Args[0];
 	ml_list_t *B = (ml_list_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
 	if (A->Length != B->Length) ML_RETURN(B);
 	if (!A->Length) ML_RETURN(MLNil);
 	ml_list_compare_state_t *State = new(ml_list_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_compare_equal_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_equal_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Default = MLNil;
 	State->A = A->Head;
@@ -742,7 +756,7 @@ ML_METHODX("!=", MLListT, MLListT) {
 static void ml_list_compare_order_run(ml_list_compare_state_t *State, ml_value_t *Result);
 
 static void ml_list_compare_order2_run(ml_list_compare_state_t *State, ml_value_t *Result) {
-	ml_state_t *Caller = State->Base.Caller;
+	ml_state_t *Caller = State->Base.Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (Result == MLNil) ML_RETURN(MLNil);
 	ml_list_node_t *A = State->A = State->A->Next;
@@ -750,17 +764,17 @@ static void ml_list_compare_order2_run(ml_list_compare_state_t *State, ml_value_
 	if (!A || !B) ML_RETURN(State->Default);
 	State->Args[0] = A->Value;
 	State->Args[1] = B->Value;
-	State->Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_order_run;
 	return ml_call(State, State->Order, 2, State->Args);
 }
 
 static void ml_list_compare_order_run(ml_list_compare_state_t *State, ml_value_t *Result) {
-	ml_state_t *Caller = State->Base.Caller;
+	ml_state_t *Caller = State->Base.Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (Result != MLNil) ML_RETURN(State->Result);
 	State->Args[0] = State->A->Value;
 	State->Args[1] = State->B->Value;
-	State->Base.run = (ml_state_fn)ml_list_compare_order2_run;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_order2_run;
 	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
@@ -776,15 +790,22 @@ ML_METHODX("<", MLListT, MLListT) {
 //$= <([1, 3, 2], [1, 2, 3])
 	ml_list_t *A = (ml_list_t *)Args[0];
 	ml_list_t *B = (ml_list_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
 	if (!A->Length) {
 		if (!B->Length) ML_RETURN(MLNil);
 		ML_RETURN(B);
 	}
 	if (!B->Length) ML_RETURN(MLNil);
 	ml_list_compare_state_t *State = new(ml_list_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = LessMethod;
 	if (A->Length >= B->Length) {
@@ -811,15 +832,22 @@ ML_METHODX("<=", MLListT, MLListT) {
 //$= <=([1, 3, 2], [1, 2, 3])
 	ml_list_t *A = (ml_list_t *)Args[0];
 	ml_list_t *B = (ml_list_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
 	if (!A->Length) {
 		if (!B->Length) ML_RETURN(B);
 		ML_RETURN(B);
 	}
 	if (!B->Length) ML_RETURN(MLNil);
 	ml_list_compare_state_t *State = new(ml_list_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = LessMethod;
 	if (A->Length > B->Length) {
@@ -846,15 +874,22 @@ ML_METHODX(">", MLListT, MLListT) {
 //$= >([1, 3, 2], [1, 2, 3])
 	ml_list_t *A = (ml_list_t *)Args[0];
 	ml_list_t *B = (ml_list_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
 	if (!A->Length) {
 		if (!B->Length) ML_RETURN(MLNil);
 		ML_RETURN(MLNil);
 	}
 	if (!B->Length) ML_RETURN(A);
 	ml_list_compare_state_t *State = new(ml_list_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = GreaterMethod;
 	if (A->Length <= B->Length) {
@@ -881,15 +916,22 @@ ML_METHODX(">=", MLListT, MLListT) {
 //$= >=([1, 3, 2], [1, 2, 3])
 	ml_list_t *A = (ml_list_t *)Args[0];
 	ml_list_t *B = (ml_list_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
 	if (!A->Length) {
 		if (!B->Length) ML_RETURN(B);
 		ML_RETURN(MLNil);
 	}
 	if (!B->Length) ML_RETURN(B);
 	ml_list_compare_state_t *State = new(ml_list_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_list_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = GreaterMethod;
 	if (A->Length < B->Length) {

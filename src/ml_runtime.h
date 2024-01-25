@@ -97,6 +97,15 @@ typedef struct {
 	ml_value_t *Values[];
 } ml_iter_state_t;
 
+// Nested Comparisons //
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *A, *B;
+} ml_comparison_state_t;
+
+extern ml_type_t MLComparisonStateT[];
+
 // References //
 
 extern ml_type_t MLReferenceT[];
