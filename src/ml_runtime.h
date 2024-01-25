@@ -37,6 +37,7 @@ enum {
 	ML_SCHEDULER_INDEX,
 	ML_COUNTER_INDEX,
 	ML_THREAD_INDEX,
+	ML_LOGGER_INDEX,
 	ML_CONTEXT_SIZE
 };
 
@@ -96,6 +97,15 @@ typedef struct {
 	ml_value_t *Iter;
 	ml_value_t *Values[];
 } ml_iter_state_t;
+
+// Nested Comparisons //
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *A, *B;
+} ml_comparison_state_t;
+
+extern ml_type_t MLComparisonStateT[];
 
 // References //
 

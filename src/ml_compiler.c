@@ -498,18 +498,18 @@ static void ml_debug_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *E
 	MLC_FRAME(mlc_link_expr_frame_t, ml_debug_expr_compile2);
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
-	Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_IF_DEBUG, 1);
+	Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_IF_CONFIG, 1);
 	return mlc_compile(Function, Expr->Child, 0);
 }
 
 typedef struct {
-	mlc_condition_expr_t *Expr;
+	mlc_config_expr_t *Expr;
 	mlc_expr_t *Child;
 	ml_inst_t *Exits;
 	int Flags;
-} mlc_condition_expr_frame_t;
+} mlc_config_expr_frame_t;
 
-static void ml_condition_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_condition_expr_frame_t *Frame) {
+static void ml_config_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_config_expr_frame_t *Frame) {
 	Frame->Exits[1].Inst = Function->Next;
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Frame->Expr->EndLine, MLI_NIL_PUSH, 0);
@@ -519,13 +519,12 @@ static void ml_condition_expr_compile2(mlc_function_t *Function, ml_value_t *Val
 	MLC_RETURN(NULL);
 }
 
-static void ml_condition_expr_compile(mlc_function_t *Function, mlc_condition_expr_t *Expr, int Flags) {
-	MLC_FRAME(mlc_condition_expr_frame_t, ml_condition_expr_compile2);
+static void ml_config_expr_compile(mlc_function_t *Function, mlc_config_expr_t *Expr, int Flags) {
+	MLC_FRAME(mlc_config_expr_frame_t, ml_config_expr_compile2);
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
-	ml_inst_t *ConditionInst = MLC_EMIT(Expr->StartLine, MLI_CONDITION, 2);
-	ConditionInst[1].Count = Expr->Index;
-	ConditionInst[2].Count = Expr->Level;
+	ml_inst_t *ConfigInst = Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_IF_CONFIG, 2);
+	//ConfigInst[2].Data = Expr->Index;
 	Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_AND, 1);
 	return mlc_compile(Function, Expr->Child, 0);
 }

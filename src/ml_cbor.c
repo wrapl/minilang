@@ -921,6 +921,12 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		case MLIT_INST:
 			Inst += 2;
 			break;
+		case MLIT_INST_CONFIG:
+			Inst += 3;
+			break;
+		case MLIT_INST_COUNT:
+			Inst += 3;
+			break;
 		case MLIT_INST_COUNT_DECL:
 			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
@@ -990,6 +996,16 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		case MLIT_INST:
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			Inst += 2;
+			break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			Inst += 2;
+			break;
+		case MLIT_INST_COUNT:
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			vlq64_encode(Buffer, Inst[2].Count);
+			Inst += 3;
 			break;
 		case MLIT_INST_COUNT_DECL:
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
@@ -1465,6 +1481,11 @@ ML_FUNCTION(DecodeClosureInfo) {
 		case MLIT_INST:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst += 2; break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			Inst[1].Inst = Code + VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 3; break;
 		case MLIT_INST_COUNT:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst[2].Count = VLQ64_NEXT();

@@ -164,13 +164,12 @@ struct mlc_parent_expr_t {
 	const char *Name;
 };
 
-typedef struct mlc_condition_expr_t mlc_condition_expr_t;
+typedef struct mlc_config_expr_t mlc_config_expr_t;
 
-struct mlc_condition_expr_t {
-	MLC_EXPR_FIELDS(condition);
+struct mlc_config_expr_t {
+	MLC_EXPR_FIELDS(config);
 	mlc_expr_t *Child;
-	int Index;
-	int Level;
+	const char *Config;
 };
 
 typedef struct mlc_local_expr_t mlc_local_expr_t;
