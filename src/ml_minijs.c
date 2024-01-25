@@ -381,6 +381,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: *Offset += 2; return 1;
 	case MLIT_INST: *Offset += 3; return 2;
+	case MLIT_INST_CONFIG: *Offset += 4; return 3;
 	case MLIT_INST_COUNT: *Offset += 4; return 3;
 	case MLIT_INST_COUNT_DECL: *Offset += 5; return 4;
 	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
@@ -409,6 +410,11 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_minijs_encoder_t *Encoder,
 	case MLIT_INST:
 		ml_list_put(Json, ml_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
 		return 2;
+	case MLIT_INST_CONFIG:
+		// TODO: Implement this!
+		ml_list_put(Json, ml_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
+		ml_list_put(Json, ml_integer(Inst[2].Count));
+		return 3;
 	case MLIT_INST_COUNT:
 		ml_list_put(Json, ml_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
 		ml_list_put(Json, ml_integer(Inst[2].Count));
@@ -823,6 +829,7 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 		case MLIT_COUNT:
 		case MLIT_VALUE:
 			Index += 3; Offset += 2; break;
+		case MLIT_INST_CONFIG:
 		case MLIT_INST_COUNT:
 		case MLIT_COUNT_COUNT:
 		case MLIT_VALUE_COUNT:
@@ -885,6 +892,13 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 			Inst[1].Inst = Code + Offsets[ml_integer_value(Iter->Value)];
 			ml_list_iter_next(Iter);
 			Inst += 2; break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			Inst[1].Inst = Code + Offsets[ml_integer_value(Iter->Value)];
+			ml_list_iter_next(Iter);
+			Inst[2].Count = ml_integer_value(Iter->Value);
+			ml_list_iter_next(Iter);
+			Inst += 3; break;
 		case MLIT_INST_COUNT:
 			Inst[1].Inst = Code + Offsets[ml_integer_value(Iter->Value)];
 			ml_list_iter_next(Iter);

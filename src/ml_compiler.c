@@ -498,7 +498,7 @@ static void ml_debug_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *E
 	MLC_FRAME(mlc_link_expr_frame_t, ml_debug_expr_compile2);
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
-	Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_IF_DEBUG, 1);
+	Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_IF_CONFIG, 1);
 	return mlc_compile(Function, Expr->Child, 0);
 }
 

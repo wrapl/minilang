@@ -455,7 +455,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_EXIT] = &&DO_EXIT,
 		[MLI_FOR] = &&DO_FOR,
 		[MLI_GOTO] = &&DO_GOTO,
-		[MLI_IF_DEBUG] = &&DO_IF_DEBUG,
+		[MLI_IF_CONFIG] = &&DO_IF_CONFIG,
 		[MLI_ITER] = &&DO_ITER,
 		[MLI_KEY] = &&DO_KEY,
 		[MLI_LET] = &&DO_LET,
@@ -1080,11 +1080,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (Index < 0 || Index >= Count) Index = Count - 1;
 		ADVANCE(Inst[2].Insts[Index]);
 	}
-	DO_IF_DEBUG: {
+	DO_IF_CONFIG: {
 #ifdef DEBUG_VERSION
-		ADVANCE(Inst[1].Inst);
-#else
 		ADVANCE(Inst + 2);
+#else
+		ADVANCE(Inst[1].Inst);
 #endif
 	}
 	DO_CALL_COUNT(0);
@@ -1318,6 +1318,8 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_INST:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 2;
+	case MLIT_INST_CONFIG:
+		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 	case MLIT_INST_COUNT:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 3;
@@ -1368,6 +1370,10 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	case MLIT_INST:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		return 2;
+	case MLIT_INST_CONFIG:
+		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
+		*(int *)(Info->Hash + J) ^= Inst[2].Count;
+		return 3;
 	case MLIT_INST_COUNT:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		*(int *)(Info->Hash + J) ^= Inst[2].Count;
@@ -1676,6 +1682,11 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	case MLIT_INST:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
+	case MLIT_INST_CONFIG:
+		// TODO: Implement this!
+		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
+		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
+		return 3;
 	case MLIT_INST_COUNT:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
