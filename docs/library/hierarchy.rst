@@ -122,6 +122,9 @@ hierarchy
       "real":e -> "double":w;
       "sequence":e -> "integer::range":w;
       "sequence":e -> "real::range":w;
+      "address":e -> "mmap":w;
+      "mmap":e -> "mmap::buffer":w;
+      "buffer":e -> "mmap::buffer":w;
       "any":e -> "minijs":w;
       "any":e -> "method::context":w;
       "function":e -> "method":w;
@@ -132,7 +135,6 @@ hierarchy
       "any":e -> "map::node":w;
       "map::node":e -> "map::node::mutable":w;
       "any":e -> "map::node::mutable":w;
-      "sequence":e -> "list2":w;
       "sequence":e -> "list":w;
       "list":e -> "list::mutable":w;
       "any":e -> "list::node":w;
@@ -208,6 +210,7 @@ hierarchy
       "ast::expr":e -> "ast::expr::scoped":w;
       "ast::expr":e -> "ast::expr::parent":w;
       "ast::expr":e -> "ast::expr::default":w;
+      "ast::expr":e -> "ast::expr::ifconfig":w;
       "ast::expr":e -> "ast::expr::parentvalue":w;
       "ast::expr::parent":e -> "ast::expr::and":w;
       "ast::expr::parent":e -> "ast::expr::assign":w;

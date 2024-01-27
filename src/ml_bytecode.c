@@ -1081,11 +1081,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst[2].Insts[Index]);
 	}
 	DO_IF_CONFIG: {
-#ifdef DEBUG_VERSION
-		ADVANCE(Inst + 2);
-#else
-		ADVANCE(Inst[1].Inst);
-#endif
+		if (((ml_config_fn)Inst[1].Data)(Frame->Base.Context)) {
+			ADVANCE(Inst + 2);
+		} else {
+			ADVANCE(Inst[1].Inst);
+		}
 	}
 	DO_CALL_COUNT(0);
 	DO_CALL_COUNT(1);

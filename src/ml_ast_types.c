@@ -154,17 +154,6 @@ ML_CLASS(AstScopedExprT, (AstExprT), "ast::expr::scoped");
 // A :mini:`scoped` expression
 //
 
-ML_CLASS(AstConfigExprT, (AstExprT), "ast::expr::config");
-//@ast::expr::config
-// A :mini:`config` expression
-//
-// * :mini:`:child(Value: ast::expr::config): list[ast::expr]`
-// * :mini:`:config(Value: ast::expr::config): string`
-
-ML_FIELD("child", AstConfigExprT);
-
-ML_FIELD("config", AstConfigExprT);
-
 ML_CLASS(AstParentExprT, (AstExprT), "ast::expr::parent");
 //@ast::expr::parent
 // A :mini:`parent` expression
@@ -189,6 +178,17 @@ ML_FIELD("child", AstDefaultExprT);
 ML_FIELD("index", AstDefaultExprT);
 
 ML_FIELD("flags", AstDefaultExprT);
+
+ML_CLASS(AstIfConfigExprT, (AstExprT), "ast::expr::ifconfig");
+//@ast::expr::ifconfig
+// An :mini:`if` :mini:`config` expression
+//
+// * :mini:`:child(Value: ast::expr::ifconfig): list[ast::expr]`
+// * :mini:`:config(Value: ast::expr::ifconfig): string`
+
+ML_FIELD("child", AstIfConfigExprT);
+
+ML_FIELD("config", AstIfConfigExprT);
 
 ML_CLASS(AstParentValueExprT, (AstExprT), "ast::expr::parentvalue");
 //@ast::expr::parentvalue
@@ -489,9 +489,9 @@ static void ml_ast_types_init() {
 	stringmap_insert(AstExprT->Exports, "block", AstBlockExprT);
 	stringmap_insert(AstExprT->Exports, "string", AstStringExprT);
 	stringmap_insert(AstExprT->Exports, "scoped", AstScopedExprT);
-	stringmap_insert(AstExprT->Exports, "config", AstConfigExprT);
 	stringmap_insert(AstExprT->Exports, "parent", AstParentExprT);
 	stringmap_insert(AstExprT->Exports, "default", AstDefaultExprT);
+	stringmap_insert(AstExprT->Exports, "ifconfig", AstIfConfigExprT);
 	stringmap_insert(AstExprT->Exports, "parentvalue", AstParentValueExprT);
 	stringmap_insert(AstExprT->Exports, "and", AstAndExprT);
 	stringmap_insert(AstExprT->Exports, "assign", AstAssignExprT);
@@ -742,7 +742,7 @@ static ml_value_t *a_mlc_local_expr_t(ml_type_t *Class, mlc_local_expr_t *Struct
 	NULL);
 }
 
-static ml_value_t *a_mlc_config_expr_t(ml_type_t *Class, mlc_config_expr_t *Struct) {
+static ml_value_t *a_mlc_if_config_expr_t(ml_type_t *Class, mlc_if_config_expr_t *Struct) {
 	if (!Struct) return MLNil;
 	return ml_object(Class,
 		"source", ml_string(Struct->Source, -1),
@@ -793,7 +793,6 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		case ML_EXPR_BLANK: return a_mlc_expr_t(AstBlankExprT, (mlc_expr_t *)Expr);
 		case ML_EXPR_BLOCK: return a_mlc_block_expr_t(AstBlockExprT, (mlc_block_expr_t *)Expr);
 		case ML_EXPR_CALL: return a_mlc_parent_expr_t(AstCallExprT, (mlc_parent_expr_t *)Expr);
-		case ML_EXPR_CONFIG: return a_mlc_config_expr_t(AstConfigExprT, (mlc_config_expr_t *)Expr);
 		case ML_EXPR_CONST_CALL: return a_mlc_parent_value_expr_t(AstConstCallExprT, (mlc_parent_value_expr_t *)Expr);
 		case ML_EXPR_DEBUG: return a_mlc_parent_expr_t(AstDebugExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_DEF: return a_mlc_local_expr_t(AstDefExprT, (mlc_local_expr_t *)Expr);
@@ -808,6 +807,7 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		case ML_EXPR_FUN: return a_mlc_fun_expr_t(AstFunExprT, (mlc_fun_expr_t *)Expr);
 		case ML_EXPR_GUARD: return a_mlc_parent_expr_t(AstGuardExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_IDENT: return a_mlc_ident_expr_t(AstIdentExprT, (mlc_ident_expr_t *)Expr);
+		case ML_EXPR_IF_CONFIG: return a_mlc_if_config_expr_t(AstIfConfigExprT, (mlc_if_config_expr_t *)Expr);
 		case ML_EXPR_IF: return a_mlc_if_expr_t(AstIfExprT, (mlc_if_expr_t *)Expr);
 		case ML_EXPR_INLINE: return a_mlc_parent_expr_t(AstInlineExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_IT: return a_mlc_expr_t(AstItExprT, (mlc_expr_t *)Expr);

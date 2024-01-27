@@ -51,6 +51,11 @@ int ml_context_index();
 
 void ml_context_set(ml_context_t *Context, int Index, void *Value);
 
+typedef int (*ml_config_fn)(ml_context_t *Context);
+
+void ml_config_register(const char *Name, ml_config_fn Fn);
+ml_config_fn ml_config_lookup(const char *Name);
+
 typedef void (*ml_state_fn)(ml_state_t *State, ml_value_t *Result);
 
 struct ml_state_t {

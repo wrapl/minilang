@@ -1,9 +1,9 @@
 struct keyword_t {const char *Name; int Token;};
 %%
 _, MLT_BLANK
+__if_config__, MLT_IF_CONFIG
 and, MLT_AND
 case, MLT_CASE
-debug, MLT_DEBUG
 def, MLT_DEF
 do, MLT_DO
 each, MLT_EACH

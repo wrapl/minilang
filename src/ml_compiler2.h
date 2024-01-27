@@ -8,9 +8,9 @@ typedef enum {
 	MLT_NONE,
 	MLT_EOL,
 	MLT_EOI,
+	MLT_IF_CONFIG,
 	MLT_AND,
 	MLT_CASE,
-	MLT_DEBUG,
 	MLT_DEF,
 	MLT_DO,
 	MLT_EACH,
@@ -164,10 +164,10 @@ struct mlc_parent_expr_t {
 	const char *Name;
 };
 
-typedef struct mlc_config_expr_t mlc_config_expr_t;
+typedef struct mlc_if_config_expr_t mlc_if_config_expr_t;
 
-struct mlc_config_expr_t {
-	MLC_EXPR_FIELDS(config);
+struct mlc_if_config_expr_t {
+	MLC_EXPR_FIELDS(if_config);
 	mlc_expr_t *Child;
 	const char *Config;
 };

@@ -503,13 +503,13 @@ static void ml_debug_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *E
 }
 
 typedef struct {
-	mlc_config_expr_t *Expr;
+	mlc_if_config_expr_t *Expr;
 	mlc_expr_t *Child;
 	ml_inst_t *Exits;
 	int Flags;
 } mlc_config_expr_frame_t;
 
-static void ml_config_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_config_expr_frame_t *Frame) {
+static void ml_if_config_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_config_expr_frame_t *Frame) {
 	Frame->Exits[1].Inst = Function->Next;
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Frame->Expr->EndLine, MLI_NIL_PUSH, 0);
@@ -519,13 +519,14 @@ static void ml_config_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 	MLC_RETURN(NULL);
 }
 
-static void ml_config_expr_compile(mlc_function_t *Function, mlc_config_expr_t *Expr, int Flags) {
-	MLC_FRAME(mlc_config_expr_frame_t, ml_config_expr_compile2);
+static void ml_if_config_expr_compile(mlc_function_t *Function, mlc_if_config_expr_t *Expr, int Flags) {
+	MLC_FRAME(mlc_config_expr_frame_t, ml_if_config_expr_compile2);
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	ml_inst_t *ConfigInst = Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_IF_CONFIG, 2);
-	//ConfigInst[2].Data = Expr->Index;
-	Frame->Exits = MLC_EMIT(Expr->StartLine, MLI_AND, 1);
+	ml_config_fn Fn = ml_config_lookup(Expr->Config);
+	if (!Fn) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Unknown config name %s", Expr->Config));
+	ConfigInst[2].Data = Fn;
 	return mlc_compile(Function, Expr->Child, 0);
 }
 
@@ -3559,9 +3560,9 @@ const char *MLTokens[] = {
 	"", // MLT_NONE,
 	"<end of line>", // MLT_EOL,
 	"<end of input>", // MLT_EOI,
+	"__if_config__", // MLT_IF_CONFIG
 	"and", // MLT_AND,
 	"case", // MLT_CASE,
-	"debug", // MLT_DEBUG,
 	"def", // MLT_DEF,
 	"do", // MLT_DO,
 	"each", // MLT_EACH,
@@ -5151,8 +5152,7 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		[MLT_NIL] = ml_nil_expr_compile,
 		[MLT_BLANK] = ml_blank_expr_compile,
 		[MLT_OLD] = ml_old_expr_compile,
-		[MLT_IT] = ml_it_expr_compile,
-		[MLT_DEBUG] = ml_debug_expr_compile
+		[MLT_IT] = ml_it_expr_compile
 	};
 	const char *ExprName = NULL;
 with_name:
@@ -5171,7 +5171,6 @@ with_name:
 		}
 	}
 	case MLT_EACH:
-	case MLT_DEBUG:
 	{
 		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);
 		ParentExpr->compile = CompileFns[Parser->Token];
@@ -5410,6 +5409,20 @@ with_name:
 	case MLT_WITH: {
 		ml_next(Parser);
 		return ml_accept_with_expr(Parser, NULL);
+	}
+	case MLT_IF_CONFIG: {
+		ml_next(Parser);
+		ml_accept(Parser, MLT_VALUE);
+		const char *Config = "";
+		if (ml_is(Parser->Value, MLStringT)) {
+			Config = ml_string_value(Parser->Value);
+		} else {
+			ml_parse_warn(Parser, "ParserError", "Expected string not %s", MLTokens[Parser->Token]);
+		}
+		ML_EXPR(IfConfigExpr, if_config, if_config);
+		IfConfigExpr->Config = Config;
+		IfConfigExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+		return ML_EXPR_END(IfConfigExpr);
 	}
 	case MLT_IDENT: {
 		ml_next(Parser);

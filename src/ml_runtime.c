@@ -58,6 +58,16 @@ void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 #pragma GCC diagnostic pop
 }
 
+static stringmap_t MLConfigs[1] = {STRINGMAP_INIT};
+
+void ml_config_register(const char *Name, ml_config_fn Fn) {
+	stringmap_insert(MLConfigs, Name, Fn);
+}
+
+ml_config_fn ml_config_lookup(const char *Name) {
+	return (ml_config_fn)stringmap_search(MLConfigs, Name);
+}
+
 typedef struct  {
 	ml_type_t *Type;
 } ml_context_key_t;

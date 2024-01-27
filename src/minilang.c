@@ -90,6 +90,10 @@
 #include "ml_struct.h"
 #endif
 
+#ifdef ML_MMAP
+#include "ml_mmap.h"
+#endif
+
 #undef ML_CATEGORY
 #define ML_CATEGORY "minilang"
 
@@ -312,6 +316,9 @@ int main(int Argc, const char *Argv[]) {
 	ml_stream_init(IO_EXPORTS);
 	ml_file_init(Globals);
 	ml_socket_init(Globals);
+#ifdef ML_MMAP
+	ml_mmap_init(Globals);
+#endif
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
 #endif

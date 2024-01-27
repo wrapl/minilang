@@ -58,6 +58,7 @@ struct gtk_console_t {
 	gint WindowSize[2];
 	char Chars[32];
 	int NumChars;
+	int DisplayOutput;
 };
 
 #ifdef MINGW
@@ -141,7 +142,7 @@ static void ml_console_repl_run(gtk_console_t *Console, ml_value_t *Result) {
 		gtk_widget_grab_focus(Console->InputView);
 		return;
 	}
-	gtk_console_log(Console, Result);
+	if (Console->DisplayOutput || ml_is_error(Result)) gtk_console_log(Console, Result);
 	console_new_line(Console);
 	if (ml_is_error(Result)) {
 		gtk_widget_grab_focus(Console->InputView);
@@ -667,6 +668,13 @@ ml_value_t *gtk_console_print(gtk_console_t *Console, int Count, ml_value_t **Ar
 	return MLNil;
 }
 
+ml_value_t *gtk_console_display(gtk_console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLBooleanT);
+	Console->DisplayOutput = Args[0] == (ml_value_t *)MLTrue;
+	return Args[0];
+}
+
 void gtk_console_printf(gtk_console_t *Console, const char *Format, ...) {
 	char *Buffer;
 	va_list Args;
@@ -1042,6 +1050,8 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	g_irepository_require(NULL, "Gtk", "3.0", 0, &Error);
 	g_irepository_require(NULL, "GtkSource", "4", 0, &Error);
 	stringmap_insert(Console->Globals, "print", ml_cfunction2(Console, (void *)gtk_console_print, ML_CATEGORY, __LINE__));
+	Console->DisplayOutput = 1;
+	stringmap_insert(Console->Globals, "display", ml_cfunction2(Console, (void *)gtk_console_display, ML_CATEGORY, __LINE__));
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window, NULL));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView, NULL));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView, NULL));

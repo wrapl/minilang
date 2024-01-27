@@ -214,6 +214,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_ENCODINGS := 1
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
+		MINILANG_MMAP := 1
 	end
 end
 
@@ -250,6 +251,7 @@ MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
 MINILANG_STRUCTS := old or defined("STRUCTS")
+MINILANG_MMAP := old or defined("MMAP")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -400,6 +402,12 @@ if MINILANG_XE then
 	CFLAGS := old + ['-DML_XE']
 	Objects:put(file("ml_xe.o"))
 	InstallHeaders:put("ml_xe.h")
+end
+
+if MINILANG_MMAP then
+	CFLAGS := old + ['-DML_MMAP']
+	Objects:put(file("ml_mmap.o"))
+	InstallHeaders:put("ml_mmap.h")
 end
 
 if MINILANG_STRUCTS then
