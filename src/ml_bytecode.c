@@ -1081,8 +1081,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst[2].Insts[Index]);
 	}
 	DO_IF_CONFIG: {
-		if (((ml_config_fn)Inst[1].Data)(Frame->Base.Context)) {
-			ADVANCE(Inst + 2);
+		if (((ml_config_fn)Inst[2].Data)(Frame->Base.Context)) {
+			ADVANCE(Inst + 3);
 		} else {
 			ADVANCE(Inst[1].Inst);
 		}

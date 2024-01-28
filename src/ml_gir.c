@@ -1532,14 +1532,12 @@ ML_FUNCTIONX(MLSleep) {
 	g_timeout_add(Interval, sleep_run, Caller);
 }
 
-ML_FUNCTIONX(GirRun) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_state_t *State = ml_state(Caller);
+ML_FUNCTIONX(GirInstall) {
 	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
 	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
 	Scheduler->Parent = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
-	ml_context_set(State->Context, ML_SCHEDULER_INDEX, Scheduler);
-	return ml_call(State, Args[0], 0, NULL);
+	ml_context_set(Caller->Context, ML_SCHEDULER_INDEX, Scheduler);
+	ML_RETURN(MLNil);
 }
 
 #endif
@@ -3897,7 +3895,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_type_add_parent((ml_type_t *)GOutputStreamT, MLStreamT);
 #ifdef ML_SCHEDULER
 	stringmap_insert(Globals, "sleep", MLSleep);
-	stringmap_insert(GirTypelibT->Exports, "run", GirRun);
+	stringmap_insert(GirTypelibT->Exports, "install", GirInstall);
 #endif
 	stringmap_insert(Globals, "gir", GirTypelibT);
 #ifdef ML_LIBRARY

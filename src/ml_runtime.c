@@ -946,6 +946,24 @@ ML_FUNCTIONX(MLTrace) {
 	ML_RETURN(Trace);
 }
 
+static int ml_config_debugger(ml_context_t *Context) {
+	return !!Context->Values[ML_DEBUGGER_INDEX];
+}
+
+// Logging //
+
+#define ML_LOG_LEVEL(NAME, LEVEL) \
+\
+static int ml_config_log_ ## NAME(ml_context_t *Context) { \
+	ml_logger_t *Logger = (ml_logger_t *)Context->Values[ML_LOGGER_INDEX]; \
+	return Logger ? Logger->Level >= LOG_LEVEL_ ## LEVEL : 0; \
+}
+
+ML_LOG_LEVEL(error, ERROR);
+ML_LOG_LEVEL(warn, WARN);
+ML_LOG_LEVEL(info, INFO);
+ML_LOG_LEVEL(debug, DEBUG);
+
 // Schedulers //
 
 #ifdef ML_SCHEDULER
@@ -1686,5 +1704,10 @@ void ml_runtime_init() {
 	GC_add_roots(&DefaultQueue, &DefaultQueue + 1);
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 #endif
+	ml_config_register("DEBUGGER", ml_config_debugger);
+	ml_config_register("LOG>=ERROR", ml_config_log_error);
+	ml_config_register("LOG>=WARN", ml_config_log_warn);
+	ml_config_register("LOG>=INFO", ml_config_log_info);
+	ml_config_register("LOG>=DEBUG", ml_config_log_debug);
 #include "ml_runtime_init.c"
 }

@@ -370,7 +370,10 @@ int main(int Argc, const char *Argv[]) {
 	ml_thread_init(SYS_EXPORTS);
 #endif
 	ml_value_t *Args = ml_list();
-	const char *FileName = NULL;
+	const char *MainModule = NULL;
+	const char *SchedulerModule = NULL;
+	const char *LoggerModule = NULL;
+	const char *DebuggerModule = NULL;
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
@@ -380,7 +383,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
-		if (FileName) {
+		if (MainModule) {
 			ml_list_put(Args, ml_string(Argv[I], -1));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
@@ -397,10 +400,10 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MODULES
 			case 'm':
 				if (Argv[I][2]) {
-					FileName = Argv[I] + 2;
+					MainModule = Argv[I] + 2;
 					LoadModule = 1;
 				} else if (++I < Argc) {
-					FileName = Argv[I];
+					MainModule = Argv[I];
 					LoadModule = 1;
 				} else {
 					fprintf(stderr, "Error: module name required\n");
@@ -455,7 +458,7 @@ int main(int Argc, const char *Argv[]) {
 				break;
 			}
 		} else {
-			FileName = Argv[I];
+			MainModule = Argv[I];
 		}
 	}
 	ml_state_t *Main = ml_state(NULL);
@@ -478,21 +481,21 @@ int main(int Argc, const char *Argv[]) {
 	if (GtkConsole) {
 		gtk_console_t *Console = gtk_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
-		if (FileName) gtk_console_load_file(Console, FileName, Args);
+		if (MainModule) gtk_console_load_file(Console, MainModule, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
 		ml_gir_loop_run();
 		return 0;
 	}
 #endif
-	if (FileName) {
+	if (MainModule) {
 #ifdef ML_LIBRARY
 		if (LoadModule) {
-			ml_library_load(Main, NULL, FileName);
+			ml_library_load(Main, NULL, MainModule);
 		} else {
 #endif
 		ml_call_state_t *State = ml_call_state(Main, 1);
 		State->Args[0] = Args;
-		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, NULL);
+		ml_load_file((ml_state_t *)State, global_get, NULL, MainModule, NULL);
 #ifdef ML_LIBRARY
 		}
 #endif

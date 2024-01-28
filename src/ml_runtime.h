@@ -210,6 +210,23 @@ extern ml_cfunctionx_t MLBreak[];
 extern ml_cfunctionx_t MLDebugger[];
 extern ml_cfunctionx_t MLTrace[];
 
+// Logging //
+
+typedef struct ml_logger_t ml_logger_t;
+
+struct ml_logger_t {
+	ml_value_t *Log;
+	int Level;
+};
+
+typedef enum {
+	LOG_LEVEL_NONE = 0,
+	LOG_LEVEL_ERROR = 1,
+	LOG_LEVEL_WARN = 2,
+	LOG_LEVEL_INFO = 3,
+	LOG_LEVEL_DEBUG = 4
+} ml_log_level_t;
+
 // Preemption //
 
 typedef struct ml_scheduler_t ml_scheduler_t;
