@@ -952,11 +952,17 @@ static int ml_config_debugger(ml_context_t *Context) {
 
 // Logging //
 
+ML_FUNCTIONX(MLDefaultLog) {
+	ML_RETURN(MLNil);
+}
+
+ml_log_level_t MLLogLevel = ML_LOG_LEVEL_INFO;
+ml_value_t *MLLogger = (ml_value_t *)MLDefaultLog;
+
 #define ML_LOG_LEVEL(NAME, LEVEL) \
 \
 static int ml_config_log_ ## NAME(ml_context_t *Context) { \
-	ml_logger_t *Logger = (ml_logger_t *)Context->Values[ML_LOGGER_INDEX]; \
-	return Logger ? Logger->Level >= LOG_LEVEL_ ## LEVEL : 0; \
+	return MLLogLevel >= ML_LOG_LEVEL_ ## LEVEL; \
 }
 
 ML_LOG_LEVEL(error, ERROR);

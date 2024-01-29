@@ -37,7 +37,6 @@ enum {
 	ML_SCHEDULER_INDEX,
 	ML_COUNTER_INDEX,
 	ML_THREAD_INDEX,
-	ML_LOGGER_INDEX,
 	ML_CONTEXT_SIZE
 };
 
@@ -220,12 +219,14 @@ struct ml_logger_t {
 };
 
 typedef enum {
-	LOG_LEVEL_NONE = 0,
-	LOG_LEVEL_ERROR = 1,
-	LOG_LEVEL_WARN = 2,
-	LOG_LEVEL_INFO = 3,
-	LOG_LEVEL_DEBUG = 4
+	ML_LOG_LEVEL_NONE = 0,
+	ML_LOG_LEVEL_ERROR = 1,
+	ML_LOG_LEVEL_WARN = 2,
+	ML_LOG_LEVEL_INFO = 3,
+	ML_LOG_LEVEL_DEBUG = 4
 } ml_log_level_t;
+
+extern ml_log_level_t MLLogLevel;
 
 // Preemption //
 
