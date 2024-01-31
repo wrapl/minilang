@@ -1834,18 +1834,21 @@ ML_TYPE(MLExprT, (), "expr");
 //!macro
 // An expression value used by the compiler to implement macros.
 
-static ml_value_t *ml_expr_value(mlc_expr_t *Expr, mlc_function_t *Function) {
-	ml_expr_value_t *Value = new(ml_expr_value_t);
-	Value->Type = MLExprT;
-	Value->Expr = Expr;
-	Value->Function = Function;
-	return (ml_value_t *)Value;
+static ml_value_t *ml_expr_value(mlc_expr_t *Expr) {
+	Expr->Type = MLExprT;
+	return (ml_value_t *)Expr;
 }
 
-void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr) {
-	ml_expr_value_t *Value = (ml_expr_value_t *)Expr;
-	if (!Value->Function) ML_ERROR("MacroError", "Expression has no function for evaluation");
-	mlc_function_t *Parent= Value->Function;
+ML_METHODX("$", MLExprT) {
+	mlc_expr_t *Expr = (mlc_expr_t *)Args[0];
+	mlc_function_t *Parent = NULL;
+	for (ml_state_t *State = Caller; State; State = State->Caller) {
+		if (State->Type == MLCompilerFunctionT) {
+			Parent = (mlc_function_t *)State;
+			break;
+		}
+	}
+	if (!Parent) ML_ERROR("MacroError", "Expression has no function for evaluation");
 	mlc_function_t *Function = new(mlc_function_t);
 	Function->Base.Type = MLCompilerFunctionT;
 	Function->Base.Caller = Caller;
@@ -1862,14 +1865,10 @@ void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr) {
 	Function->Space = 126;
 	Function->Returns = NULL;
 	MLC_FRAME(mlc_compile_frame_t, mlc_expr_call2);
-	Frame->Expr = Value->Expr;
+	Frame->Expr = Expr;
 	Frame->Info = new(ml_closure_info_t);
 	Frame->Info->Entry = Function->Next;
-	return mlc_compile(Function, Value->Expr, 0);
-}
-
-ML_METHODX("$", MLExprT) {
-	return ml_expr_evaluate(Caller, Args[0]);
+	return mlc_compile(Function, Expr, 0);
 }
 
 static void ml_delegate_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
@@ -1877,7 +1876,7 @@ static void ml_delegate_expr_compile(mlc_function_t *Function, mlc_parent_expr_t
 }
 
 static mlc_expr_t *ml_delegate_expr(ml_value_t *Value) {
-	mlc_expr_t *Child = ((ml_expr_value_t *)Value)->Expr;
+	mlc_expr_t *Child = (mlc_expr_t *)Value;
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
 	Expr->compile = ml_delegate_expr_compile;
 	Expr->Source = Child->Source;
@@ -1887,251 +1886,18 @@ static mlc_expr_t *ml_delegate_expr(ml_value_t *Value) {
 	return (mlc_expr_t *)Expr;
 }
 
-typedef struct mlc_scoped_expr_t mlc_scoped_expr_t;
-
-typedef struct {
-	const char *Name;
-	ml_value_t *Value;
-} mlc_scoped_decl_t;
-
-struct mlc_scoped_expr_t {
-	MLC_EXPR_FIELDS(scoped);
-	mlc_expr_t *Child;
-	mlc_scoped_decl_t Decls[];
-};
-
-static void ml_scoped_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml_decl_t **Frame) {
-	Function->Decls = Frame[0];
-	MLC_POP();
-	MLC_RETURN(NULL);
-}
-
-static void ml_scoped_expr_compile(mlc_function_t *Function, mlc_scoped_expr_t *Expr, int Flags) {
-	MLC_FRAME(ml_decl_t *, ml_scoped_expr_compile2);
-	Frame[0] = Function->Decls;
-	for (mlc_scoped_decl_t *Scoped = Expr->Decls; Scoped->Name; ++Scoped) {
-		ml_decl_t *Decl = new(ml_decl_t);
-		Decl->Ident = Scoped->Name;
-		Decl->Hash = ml_ident_hash(Scoped->Name);
-		Decl->Value = Scoped->Value;
-		Decl->Flags = MLC_DECL_CONSTANT;
-		Decl->Next = Function->Decls;
-		Function->Decls = Decl;
-	}
-	return mlc_compile(Function, Expr->Child, Flags);
-}
-
-ML_METHODV("scoped", MLExprT, MLNamesT) {
-//!macro
-//<Expr
-//<Name,Value
-//>expr
-// Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
-	ML_NAMES_CHECK_ARG_COUNT(1);
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	mlc_expr_t *Child = Value->Expr;
-	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, ml_names_length(Args[1]) + 1, mlc_scoped_decl_t);
-	Expr->Source = Child->Source;
-	Expr->StartLine = Child->StartLine;
-	Expr->EndLine = Child->EndLine;
-	Expr->compile = ml_scoped_expr_compile;
-	Expr->Child = Child;
-	int I = 2;
-	mlc_scoped_decl_t *Decl = Expr->Decls;
-	ML_NAMES_FOREACH(Args[1], Iter) {
-		Decl->Name = ml_string_value(Iter->Value);
-		Decl->Value = Args[I++];
-		++Decl;
-	}
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
-}
-
-ML_METHOD("scoped", MLExprT, MLMapT) {
-//!macro
-//<Expr
-//<Definitions
-//>expr
-// Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	mlc_expr_t *Child = Value->Expr;
-	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, ml_map_size(Args[1]) + 1, mlc_scoped_decl_t);
-	Expr->Source = Child->Source;
-	Expr->StartLine = Child->StartLine;
-	Expr->EndLine = Child->EndLine;
-	Expr->compile = ml_scoped_expr_compile;
-	Expr->Child = Child;
-	mlc_scoped_decl_t *Decl = Expr->Decls;
-	ML_MAP_FOREACH(Args[1], Iter) {
-		if (!ml_is(Iter->Key, MLStringT)) return ml_error("MacroError", "Invalid definition");
-		Decl->Name = ml_string_value(Iter->Key);
-		Decl->Value = Iter->Value;
-		++Decl;
-	}
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
-}
-
-static int ml_scoped_decl_add(const char *Name, ml_value_t *Value, mlc_scoped_decl_t **Decls) {
-	Decls[0]->Name = Name;
-	Decls[0]->Value = Value;
-	++Decls[0];
-	return 0;
-}
-
-ML_METHOD("scoped", MLExprT, MLModuleT) {
-//!macro
-//<Expr
-//<Module
-//>expr
-// Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	ml_module_t *Module = (ml_module_t *)Args[1];
-	mlc_expr_t *Child = Value->Expr;
-	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, Module->Exports->Size + 1, mlc_scoped_decl_t);
-	Expr->Source = Child->Source;
-	Expr->StartLine = Child->StartLine;
-	Expr->EndLine = Child->EndLine;
-	Expr->compile = ml_scoped_expr_compile;
-	Expr->Child = Child;
-	mlc_scoped_decl_t *Decl = Expr->Decls;
-	stringmap_foreach(Module->Exports, &Decl, (void *)ml_scoped_decl_add);
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
-}
-
-ML_METHOD("scoped", MLExprT, MLTypeT) {
-//!macro
-//<Expr
-//<Module
-//>expr
-// Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	ml_type_t *Type = (ml_type_t *)Args[1];
-	mlc_expr_t *Child = Value->Expr;
-	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, Type->Exports->Size + 1, mlc_scoped_decl_t);
-	Expr->Source = Child->Source;
-	Expr->StartLine = Child->StartLine;
-	Expr->EndLine = Child->EndLine;
-	Expr->compile = ml_scoped_expr_compile;
-	Expr->Child = Child;
-	mlc_scoped_decl_t *Decl = Expr->Decls;
-	stringmap_foreach(Type->Exports, &Decl, (void *)ml_scoped_decl_add);
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
-}
-
-typedef struct mlc_subst_expr_t mlc_subst_expr_t;
-
-struct mlc_subst_expr_t {
-	MLC_EXPR_FIELDS(subst);
-	mlc_expr_t *Child;
-	stringmap_t Subst[1];
-};
-
-static void ml_subst_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_define_t **Frame) {
-	Function->Defines = Frame[0];
-	MLC_POP();
-	MLC_RETURN(NULL);
-}
-
-static int ml_subst_define_fn(const char *Ident, ml_expr_value_t *Value, mlc_function_t *Function) {
-	mlc_define_t *Define = new(mlc_define_t);
-	Define->Ident = Ident;
-	Define->Hash = ml_ident_hash(Ident);
-	Define->Expr = Value->Expr;
-	Define->Next = Function->Defines;
-	Function->Defines = Define;
-	return 0;
-}
-
-static void ml_subst_expr_compile(mlc_function_t *Function, mlc_subst_expr_t *Expr, int Flags) {
-	MLC_FRAME(mlc_define_t *, ml_subst_expr_compile2);
-	Frame[0] = Function->Defines;
-	stringmap_foreach(Expr->Subst, Function, (void *)ml_subst_define_fn);
-	return mlc_compile(Function, Expr->Child, Flags);
-}
-
-ML_METHODV("subst", MLExprT, MLNamesT) {
-//!macro
-//<Expr
-//<Name,Sub
-//>expr
-// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expression :mini:`Sub/i`.
-	ML_NAMES_CHECK_ARG_COUNT(1);
-	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	mlc_expr_t *Child = Value->Expr;
-	Expr->Source = Child->Source;
-	Expr->StartLine = Child->StartLine;
-	Expr->EndLine = Child->EndLine;
-	Expr->compile = ml_subst_expr_compile;
-	Expr->Child = Child;
-	int I = 2;
-	ML_NAMES_FOREACH(Args[1], Iter) {
-		ML_CHECK_ARG_TYPE(I, MLExprT);
-		stringmap_insert(Expr->Subst, ml_string_value(Iter->Value), Args[I]);
-		++I;
-	}
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
-}
-
-ML_METHOD("subst", MLExprT, MLListT, MLListT) {
-//!macro
-//<Expr
-//<Names
-//<Subs
-//>expr
-// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expressions :mini:`Sub/i`.
-	if (ml_list_length(Args[2]) < ml_list_length(Args[1])) return ml_error("MacroError", "Insufficient arguments to macro");
-	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	mlc_expr_t *Child = Value->Expr;
-	Expr->Source = Child->Source;
-	Expr->StartLine = Child->StartLine;
-	Expr->EndLine = Child->EndLine;
-	Expr->compile = ml_subst_expr_compile;
-	Expr->Child = Child;
-	ml_list_node_t *Node = ((ml_list_t *)Args[2])->Head;
-	ML_LIST_FOREACH(Args[1], Iter) {
-		if (!ml_is(Iter->Value, MLStringT)) return ml_error("MacroError", "Substitution name must be string");
-		if (!ml_is(Node->Value, MLExprT)) return ml_error("MacroError", "Substitution value must be expr");
-		stringmap_insert(Expr->Subst, ml_string_value(Iter->Value), Node->Value);
-		Node = Node->Next;
-	}
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
-}
-
-ML_METHODV("subst", MLExprT, MLMapT) {
-//!macro
-//<Expr
-//<Subs
-//>expr
-// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expression :mini:`Sub/i`.
-	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	mlc_expr_t *Child = Value->Expr;
-	Expr->Source = Child->Source;
-	Expr->StartLine = Child->StartLine;
-	Expr->EndLine = Child->EndLine;
-	Expr->compile = ml_subst_expr_compile;
-	Expr->Child = Child;
-	ML_MAP_FOREACH(Args[1], Iter) {
-		if (!ml_is(Iter->Key, MLStringT)) return ml_error("MacroError", "Substitution name must be a string");
-		if (!ml_is(Iter->Value, MLExprT)) return ml_error("MacroError", "Substitution value must be expr");
-		stringmap_insert(Expr->Subst, ml_string_value(Iter->Key), Iter->Value);
-	}
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
-}
-
 ML_METHOD("source", MLExprT) {
-	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
 	return ml_string(Child->Source, -1);
 }
 
 ML_METHOD("start", MLExprT) {
-	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
 	return ml_integer(Child->StartLine);
 }
 
 ML_METHOD("end", MLExprT) {
-	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
 	return ml_integer(Child->EndLine);
 }
 
@@ -2302,7 +2068,7 @@ static void ml_call_macro_compile2(mlc_function_t *Function, ml_value_t *Value, 
 	Value = ml_deref(Value);
 	if (!ml_is(Value, MLExprT)) MLC_EXPR_ERROR(Frame->Expr, ml_error("MacroError", "Macro returned %s instead of expr", ml_typeof(Value)->Name));
 	MLC_POP();
-	mlc_expr_t *Expr = ((ml_expr_value_t *)Value)->Expr;
+	mlc_expr_t *Expr = (mlc_expr_t *)Value;
 	return mlc_compile(Function, Expr, Frame->Flags);
 }
 
@@ -2319,7 +2085,7 @@ static void ml_call_macro_compile(mlc_function_t *Function, ml_macro_t *Macro, m
 				continue;
 			}
 		}
-		Args[Count++] = ml_expr_value(E, Function);
+		Args[Count++] = ml_expr_value(E);
 	}
 	MLC_FRAME(ml_macro_frame_t, ml_call_macro_compile2);
 	Frame->Expr = Expr;
@@ -2722,6 +2488,291 @@ static void ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Exp
 		--Function->Top;
 	}
 	MLC_RETURN(NULL);
+}
+
+typedef struct mlc_scoped_expr_t mlc_scoped_expr_t;
+
+typedef struct {
+	const char *Name;
+	ml_value_t *Value;
+} mlc_scoped_decl_t;
+
+struct mlc_scoped_expr_t {
+	MLC_EXPR_FIELDS(scoped);
+	mlc_expr_t *Child;
+	mlc_scoped_decl_t Decls[];
+};
+
+static void ml_scoped_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml_decl_t **Frame) {
+	Function->Decls = Frame[0];
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static void ml_scoped_expr_compile(mlc_function_t *Function, mlc_scoped_expr_t *Expr, int Flags) {
+	MLC_FRAME(ml_decl_t *, ml_scoped_expr_compile2);
+	Frame[0] = Function->Decls;
+	for (mlc_scoped_decl_t *Scoped = Expr->Decls; Scoped->Name; ++Scoped) {
+		ml_decl_t *Decl = new(ml_decl_t);
+		Decl->Ident = Scoped->Name;
+		Decl->Hash = ml_ident_hash(Scoped->Name);
+		Decl->Value = Scoped->Value;
+		Decl->Flags = MLC_DECL_CONSTANT;
+		Decl->Next = Function->Decls;
+		Function->Decls = Decl;
+	}
+	return mlc_compile(Function, Expr->Child, Flags);
+}
+
+ML_METHODV("scoped", MLExprT, MLNamesT) {
+//!macro
+//<Expr
+//<Name,Value
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
+	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, ml_names_length(Args[1]) + 1, mlc_scoped_decl_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_scoped_expr_compile;
+	Expr->Child = Child;
+	int I = 2;
+	mlc_scoped_decl_t *Decl = Expr->Decls;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		Decl->Name = ml_string_value(Iter->Value);
+		Decl->Value = Args[I++];
+		++Decl;
+	}
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+ML_METHOD("scoped", MLExprT, MLMapT) {
+//!macro
+//<Expr
+//<Definitions
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
+	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, ml_map_size(Args[1]) + 1, mlc_scoped_decl_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_scoped_expr_compile;
+	Expr->Child = Child;
+	mlc_scoped_decl_t *Decl = Expr->Decls;
+	ML_MAP_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Key, MLStringT)) return ml_error("MacroError", "Invalid definition");
+		Decl->Name = ml_string_value(Iter->Key);
+		Decl->Value = Iter->Value;
+		++Decl;
+	}
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+static int ml_scoped_decl_add(const char *Name, ml_value_t *Value, mlc_scoped_decl_t **Decls) {
+	Decls[0]->Name = Name;
+	Decls[0]->Value = Value;
+	++Decls[0];
+	return 0;
+}
+
+ML_METHOD("scoped", MLExprT, MLModuleT) {
+//!macro
+//<Expr
+//<Module
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
+	ml_module_t *Module = (ml_module_t *)Args[1];
+	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, Module->Exports->Size + 1, mlc_scoped_decl_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_scoped_expr_compile;
+	Expr->Child = Child;
+	mlc_scoped_decl_t *Decl = Expr->Decls;
+	stringmap_foreach(Module->Exports, &Decl, (void *)ml_scoped_decl_add);
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+ML_METHOD("scoped", MLExprT, MLTypeT) {
+//!macro
+//<Expr
+//<Module
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
+	ml_type_t *Type = (ml_type_t *)Args[1];
+	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, Type->Exports->Size + 1, mlc_scoped_decl_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_scoped_expr_compile;
+	Expr->Child = Child;
+	mlc_scoped_decl_t *Decl = Expr->Decls;
+	stringmap_foreach(Type->Exports, &Decl, (void *)ml_scoped_decl_add);
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+typedef struct mlc_subst_expr_t mlc_subst_expr_t;
+
+struct mlc_subst_expr_t {
+	MLC_EXPR_FIELDS(subst);
+	mlc_expr_t *Child;
+	stringmap_t Subst[1];
+};
+
+static void ml_subst_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_define_t **Frame) {
+	Function->Defines = Frame[0];
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static int ml_subst_define_fn(const char *Ident, mlc_expr_t *Expr, mlc_function_t *Function) {
+	mlc_define_t *Define = new(mlc_define_t);
+	Define->Ident = Ident;
+	Define->Hash = ml_ident_hash(Ident);
+	Define->Expr = Expr;
+	Define->Next = Function->Defines;
+	Function->Defines = Define;
+	return 0;
+}
+
+static void ml_subst_expr_compile(mlc_function_t *Function, mlc_subst_expr_t *Expr, int Flags) {
+	MLC_FRAME(mlc_define_t *, ml_subst_expr_compile2);
+	Frame[0] = Function->Defines;
+	stringmap_foreach(Expr->Subst, Function, (void *)ml_subst_define_fn);
+	return mlc_compile(Function, Expr->Child, Flags);
+}
+
+typedef struct mlc_args_expr_t mlc_args_expr_t;
+
+struct mlc_args_expr_t {
+	MLC_EXPR_FIELDS(args);
+	mlc_expr_t *Args[];
+};
+
+typedef struct {
+	mlc_args_expr_t *Expr;
+	ml_call_expr_frame_t *Parent;
+	mlc_expr_t **Arg;
+} mlc_args_expr_frame_t;
+
+static void ml_args_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_args_expr_frame_t *Frame) {
+	++Frame->Parent->Index;
+	++Frame->Parent->Count;
+	mlc_expr_t **Arg = Frame->Arg + 1;
+	if (Arg[0]) {
+		Frame->Arg = Arg;
+		return mlc_compile(Function, Arg[0], MLCF_PUSH);
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static void ml_args_expr_compile(mlc_function_t *Function, mlc_args_expr_t *Expr, int Flags) {
+	if (!Function->Frame) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Invalid use of expression list"));
+	if ((void *)Function->Frame->run == (void *)ml_call_expr_compile5) {
+		ml_call_expr_frame_t *Parent = (ml_call_expr_frame_t *)Function->Frame->Data;
+		--Parent->Index;
+		--Parent->Count;
+		if (!Expr->Args[0]) MLC_RETURN(NULL);
+		MLC_FRAME(mlc_args_expr_frame_t, ml_args_expr_compile2);
+		Frame->Expr = Expr;
+		Frame->Parent = Parent;
+		Frame->Arg = Expr->Args;
+		return mlc_compile(Function, Expr->Args[0], MLCF_PUSH);
+	} else {
+		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Invalid use of expression list"));
+	}
+}
+
+ML_METHODV("subst", MLExprT, MLNamesT) {
+//!macro
+//<Expr
+//<Name,Sub
+//>expr
+// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expression :mini:`Sub/i`.
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_subst_expr_compile;
+	Expr->Child = Child;
+	int I = 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		ml_value_t *Arg = Args[I];
+		if (ml_is(Arg, MLListT)) {
+			mlc_args_expr_t *ArgsExpr = xnew(mlc_args_expr_t, ml_list_length(Arg) + 1, mlc_expr_t *);
+			ArgsExpr->Source = Child->Source;
+			ArgsExpr->StartLine = Child->StartLine;
+			ArgsExpr->EndLine = Child->EndLine;
+			ArgsExpr->compile = ml_args_expr_compile;
+			int J = 0;
+			ML_LIST_FOREACH(Arg, Iter2) {
+				if (!ml_is(Iter2->Value, MLExprT)) {
+					return ml_error("CompilerError", "Expected expression not %s", ml_typeof(Iter2->Value)->Name);
+				}
+				ArgsExpr->Args[J++] = (mlc_expr_t *)Iter2->Value;
+			}
+			Arg = ml_expr_value((mlc_expr_t *)ArgsExpr);
+		} else {
+			ML_CHECK_ARG_TYPE(I, MLExprT);
+		}
+		stringmap_insert(Expr->Subst, ml_string_value(Iter->Value), Arg);
+		++I;
+	}
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+ML_METHOD("subst", MLExprT, MLListT, MLListT) {
+//!macro
+//<Expr
+//<Names
+//<Subs
+//>expr
+// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expressions :mini:`Sub/i`.
+	if (ml_list_length(Args[2]) < ml_list_length(Args[1])) return ml_error("MacroError", "Insufficient arguments to macro");
+	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_subst_expr_compile;
+	Expr->Child = Child;
+	ml_list_node_t *Node = ((ml_list_t *)Args[2])->Head;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLStringT)) return ml_error("MacroError", "Substitution name must be string");
+		if (!ml_is(Node->Value, MLExprT)) return ml_error("MacroError", "Substitution value must be expr");
+		stringmap_insert(Expr->Subst, ml_string_value(Iter->Value), Node->Value);
+		Node = Node->Next;
+	}
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+ML_METHODV("subst", MLExprT, MLMapT) {
+//!macro
+//<Expr
+//<Subs
+//>expr
+// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expression :mini:`Sub/i`.
+	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
+	mlc_expr_t *Child = (mlc_expr_t *)Args[0];
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_subst_expr_compile;
+	Expr->Child = Child;
+	ML_MAP_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Key, MLStringT)) return ml_error("MacroError", "Substitution name must be a string");
+		if (!ml_is(Iter->Value, MLExprT)) return ml_error("MacroError", "Substitution value must be expr");
+		stringmap_insert(Expr->Subst, ml_string_value(Iter->Key), Iter->Value);
+	}
+	return ml_expr_value((mlc_expr_t *)Expr);
 }
 
 typedef struct {
@@ -3183,7 +3234,7 @@ ML_FUNCTION(MLIdentExpr) {
 	Expr->StartLine = 1;
 	Expr->EndLine = 1;
 	Expr->Ident = ml_string_value(Args[0]);
-	return ml_expr_value((mlc_expr_t *)Expr, NULL);
+	return ml_expr_value((mlc_expr_t *)Expr);
 }
 
 ML_FUNCTION(MLValueExpr) {
@@ -3199,7 +3250,7 @@ ML_FUNCTION(MLValueExpr) {
 		Expr->Source = "<macro>";
 		Expr->StartLine = 1;
 		Expr->EndLine = 1;
-		return ml_expr_value(Expr, NULL);
+		return ml_expr_value(Expr);
 	} else {
 		mlc_value_expr_t *Expr = new(mlc_value_expr_t);
 		Expr->compile = ml_value_expr_compile;
@@ -3207,7 +3258,7 @@ ML_FUNCTION(MLValueExpr) {
 		Expr->StartLine = 1;
 		Expr->EndLine = 1;
 		Expr->Value = Args[0];
-		return ml_expr_value((mlc_expr_t *)Expr, NULL);
+		return ml_expr_value((mlc_expr_t *)Expr);
 	}
 }
 
@@ -3215,7 +3266,6 @@ typedef struct {
 	ml_type_t *Type;
 	mlc_expr_t *Expr;
 	mlc_param_t *Params;
-	mlc_function_t *Function;
 } ml_macro_subst_t;
 
 static void ml_macro_subst_call(ml_state_t *Caller, ml_macro_subst_t *Subst, int Count, ml_value_t **Args) {
@@ -3232,7 +3282,7 @@ static void ml_macro_subst_call(ml_state_t *Caller, ml_macro_subst_t *Subst, int
 		stringmap_insert(Expr->Subst, Param->Ident, Args[I]);
 		++I;
 	}
-	ML_RETURN(ml_expr_value((mlc_expr_t *)Expr, Subst->Function));
+	ML_RETURN(ml_expr_value((mlc_expr_t *)Expr));
 }
 
 ML_TYPE(MLMacroSubstT, (MLFunctionT), "macro::subst",
@@ -3247,23 +3297,21 @@ ML_FUNCTION(MLMacroSubst) {
 // Returns a new macro which substitutes its arguments into :mini:`Expr`.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLExprT);
-	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
-	if (Value->Expr->compile != (void *)ml_fun_expr_compile) {
+	mlc_fun_expr_t *FunExpr = (mlc_fun_expr_t *)Args[0];
+	if (FunExpr->compile != (void *)ml_fun_expr_compile) {
 		return ml_error("MacroError", "Function expression required for substitution");
 	}
-	mlc_fun_expr_t *FunExpr = (mlc_fun_expr_t *)Value->Expr;
 	ml_macro_subst_t *Subst = new(ml_macro_subst_t);
 	Subst->Type = MLMacroSubstT;
 	Subst->Expr = FunExpr->Body;
 	Subst->Params = FunExpr->Params;
-	Subst->Function = Value->Function;
 	mlc_value_expr_t *Expr = new(mlc_value_expr_t);
 	Expr->compile = ml_value_expr_compile;
 	Expr->Source = FunExpr->Source;
 	Expr->StartLine = FunExpr->StartLine;
 	Expr->EndLine = FunExpr->EndLine;
 	Expr->Value = ml_macro((ml_value_t *)Subst);
-	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
+	return ml_expr_value((mlc_expr_t *)Expr);
 }
 
 ML_METHOD_DECL(VarMethod, "var");
@@ -3302,7 +3350,7 @@ ML_FUNCTION(MLFunExpr) {
 	Expr->EndLine = 1;
 	Expr->Params = Params;
 	Expr->Body = ml_delegate_expr(Args[1]);
-	return ml_expr_value((mlc_expr_t *)Expr, NULL);
+	return ml_expr_value((mlc_expr_t *)Expr);
 }
 
 typedef struct {
@@ -3414,7 +3462,7 @@ ML_METHOD("end", MLBlockBuilderT) {
 		Local->Index = Index++;
 	}
 	Expr->NumDefs = Index - First;
-	return ml_expr_value((mlc_expr_t *)Expr, NULL);
+	return ml_expr_value((mlc_expr_t *)Expr);
 }
 
 ML_FUNCTION(MLBlockBuilder) {
@@ -3536,7 +3584,7 @@ ML_METHOD("end", MLExprBuilderT) {
 //>expr
 // Finishes a block and returns it as an expression.
 	mlc_expr_builder_t *Builder = (mlc_expr_builder_t *)Args[0];
-	return ml_expr_value((mlc_expr_t *)Builder->Expr, NULL);
+	return ml_expr_value((mlc_expr_t *)Builder->Expr);
 }
 
 static void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
@@ -5454,7 +5502,7 @@ with_name:
 	case MLT_ESCAPE: {
 		ml_next(Parser);
 		ml_value_t *Value = Parser->Escape(Parser->EscapeData);
-		if (ml_is(Value, MLExprT)) return ((ml_expr_value_t *)Value)->Expr;
+		if (ml_is(Value, MLExprT)) return (mlc_expr_t *)Value;
 		if (ml_is_error(Value)) {
 			ml_parse_warn(Parser, ml_error_type(Value), "%s", ml_error_message(Value));
 		} else {
@@ -5477,7 +5525,7 @@ with_name:
 		ml_next(Parser);
 		if (ml_parse(Parser, MLT_VALUE)) {
 			ml_value_t *Value = Parser->Value;
-			if (ml_is(Value, MLExprT)) return ((ml_expr_value_t *)Value)->Expr;
+			if (ml_is(Value, MLExprT)) return (mlc_expr_t *)Value;
 			ml_parse_warn(Parser, "ParseError", "Expected expression not %s", ml_typeof(Value)->Name);
 			mlc_expr_t *Expr = new(mlc_expr_t);
 			Expr->Source = Parser->Source.Name;
@@ -5493,7 +5541,7 @@ with_name:
 	case MLT_EXPR_VALUE: {
 		ml_next(Parser);
 		ML_EXPR(ValueExpr, value, value);
-		ValueExpr->Value = ml_expr_value(ml_accept_expression(Parser, EXPR_DEFAULT), NULL);
+		ValueExpr->Value = ml_expr_value(ml_accept_expression(Parser, EXPR_DEFAULT));
 		mlc_expr_t *Expr = ML_EXPR_END(ValueExpr);
 		if (ml_parse(Parser, MLT_COMMA)) {
 			ML_EXPR(CallExpr, parent_value, const_call);
@@ -6304,7 +6352,7 @@ ML_METHOD("parse", MLParserT) {
 //>expr
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
 	if (setjmp(Parser->OnError)) return Parser->Value;
-	return ml_expr_value(ml_accept_expression(Parser, EXPR_DEFAULT), NULL);
+	return ml_expr_value(ml_accept_expression(Parser, EXPR_DEFAULT));
 }
 
 ML_METHODX("compile", MLParserT, MLCompilerT) {
@@ -6445,16 +6493,16 @@ ML_METHODX("compile", MLExprT, MLCompilerT) {
 //<Expr
 //<Compiler
 //>any
-	ml_expr_value_t *Expr = (ml_expr_value_t *)Args[0];
+	mlc_expr_t *Expr = (mlc_expr_t *)Args[0];
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[1];
-	return ml_function_compile(Caller, Expr->Expr, Compiler, NULL);
+	return ml_function_compile(Caller, Expr, Compiler, NULL);
 }
 
 ML_METHODX("compile", MLExprT, MLCompilerT, MLListT) {
 //<Expr
 //<Compiler
 //>any
-	ml_expr_value_t *Expr = (ml_expr_value_t *)Args[0];
+	mlc_expr_t *Expr = (mlc_expr_t *)Args[0];
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[1];
 	const char **Parameters = anew(const char *, ml_list_length(Args[2]) + 1);
 	int I = 0;
@@ -6462,7 +6510,7 @@ ML_METHODX("compile", MLExprT, MLCompilerT, MLListT) {
 		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Parameter name must be a string");
 		Parameters[I++] = ml_string_value(Iter->Value);
 	}
-	return ml_function_compile(Caller, Expr->Expr, Compiler, Parameters);
+	return ml_function_compile(Caller, Expr, Compiler, Parameters);
 }
 
 ML_METHOD("[]", MLCompilerT, MLStringT) {
@@ -7016,7 +7064,7 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 static void ml_inline_call_macro_fn(ml_state_t *Caller, void *Value, int Count, ml_value_t **Args) {
 	struct { ml_source_t Source; } Parser[1];
 	if (Count) {
-		mlc_expr_t *Expr = ((ml_expr_value_t *)Args[0])->Expr;
+		mlc_expr_t *Expr = (mlc_expr_t *)Args[0];
 		Parser->Source.Name = Expr->Source;
 		Parser->Source.Line = Expr->StartLine;
 	} else {
@@ -7032,7 +7080,7 @@ static void ml_inline_call_macro_fn(ml_state_t *Caller, void *Value, int Count, 
 	}
 	ML_EXPR(InlineExpr, parent, inline);
 	InlineExpr->Child = ML_EXPR_END(CallExpr);
-	ML_RETURN(ml_expr_value(ML_EXPR_END(InlineExpr), NULL));
+	ML_RETURN(ml_expr_value(ML_EXPR_END(InlineExpr)));
 }
 
 ml_value_t *ml_inline_call_macro(ml_value_t *Value) {

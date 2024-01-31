@@ -90,8 +90,6 @@ ml_value_t *ml_inline_call_macro(ml_value_t *Value);
 
 ml_value_t *ml_inline_function(ml_value_t *Value);
 
-void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr);
-
 #ifdef __cplusplus
 }
 #endif

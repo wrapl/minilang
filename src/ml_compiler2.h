@@ -80,6 +80,7 @@ typedef struct mlc_upvalue_t mlc_upvalue_t;
 typedef struct mlc_define_t mlc_define_t;
 
 struct mlc_expr_t {
+	ml_type_t *Type;
 	void (*compile)(mlc_function_t *, mlc_expr_t *, int);
 	mlc_expr_t *Next;
 	const char *Source;
@@ -110,6 +111,7 @@ struct mlc_define_t {
 	mlc_define_t *Next;
 	const char *Ident;
 	mlc_expr_t *Expr;
+	ml_value_t *List;
 	long Hash;
 };
 
@@ -118,6 +120,7 @@ struct mlc_define_t {
 ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
 
 #define MLC_EXPR_FIELDS(name) \
+	ml_type_t *Type; \
 	void (*compile)(mlc_function_t *, mlc_## name ## _expr_t *, int); \
 	mlc_expr_t *Next; \
 	const char *Source; \
@@ -297,12 +300,6 @@ struct mlc_frame_t {
 	int AllowErrors, Line;
 	void *Data[];
 };
-
-typedef struct {
-	ml_type_t *Type;
-	mlc_expr_t *Expr;
-	mlc_function_t *Function;
-} ml_expr_value_t;
 
 void mlc_expr_error(mlc_function_t *Function, mlc_expr_t *Expr, ml_value_t *Error);
 
