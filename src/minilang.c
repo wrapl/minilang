@@ -13,6 +13,7 @@
 #include <locale.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
+#include "ml_logging.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -284,6 +285,8 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
 
+	ml_logging_init(Globals);
+
 #ifdef ML_LIBRARY
 	ml_library_init(Globals);
 	ml_module_t *Sys = ml_library_internal("sys");
@@ -371,9 +374,6 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	ml_value_t *Args = ml_list();
 	const char *MainModule = NULL;
-	const char *SchedulerModule = NULL;
-	const char *LoggerModule = NULL;
-	const char *DebuggerModule = NULL;
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif

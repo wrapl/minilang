@@ -616,7 +616,7 @@ size_t ml_real_range_count(ml_real_range_t *Range);
 // Strings //
 
 int GC_vasprintf(char **Ptr, const char *Format, va_list Args);
-int GC_asprintf(char **Ptr, const char *Format, ...);
+int GC_asprintf(char **Ptr, const char *Format, ...) __attribute__((format(printf, 2, 3)));
 
 typedef struct ml_address_t ml_address_t;
 typedef struct ml_string_t ml_string_t;
