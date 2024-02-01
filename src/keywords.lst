@@ -1,7 +1,6 @@
 struct keyword_t {const char *Name; int Token;};
 %%
 _, MLT_BLANK
-__if_config__, MLT_IF_CONFIG
 and, MLT_AND
 case, MLT_CASE
 def, MLT_DEF
@@ -14,6 +13,7 @@ exit, MLT_EXIT
 for, MLT_FOR
 fun, MLT_FUN
 if, MLT_IF
+ifConfig, MLT_IF_CONFIG
 in, MLT_IN
 is, MLT_IS
 it, MLT_IT

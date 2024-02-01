@@ -55,10 +55,13 @@ ml_value_t *ml_parser_value(ml_parser_t *Parser);
 const char *ml_parser_clear(ml_parser_t *Parser);
 //void ml_parse_error(ml_parser_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
 void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, ...);
+mlc_expr_t *ml_parse_expr(ml_parser_t *Parser);
 mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 
 void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data);
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data);
+
+ml_value_t *ml_macro_subst(mlc_expr_t *Child, int Count, const char **Names, ml_value_t **Exprs);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals);
 void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value);
@@ -76,10 +79,6 @@ typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
 void ml_string_fn_register(const char *Prefix, string_fn_t Fn);
 
 void ml_compiler_init();
-
-typedef struct ml_scope_macro_t ml_scope_macro_t;
-ml_scope_macro_t *ml_scope_macro();
-void ml_scope_macro_define(ml_scope_macro_t *Macro, const char *Name, ml_value_t *Value);
 
 ml_value_t *ml_global(const char *Name);
 ml_value_t *ml_global_get(ml_value_t *Global);

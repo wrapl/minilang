@@ -3262,6 +3262,35 @@ ML_FUNCTION(MLValueExpr) {
 	}
 }
 
+ml_value_t *ml_macro_subst(mlc_expr_t *Child, int Count, const char **Names, ml_value_t **Exprs) {
+	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_subst_expr_compile;
+	Expr->Child = Child;
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = Exprs[I];
+		if (ml_is(Arg, MLListT)) {
+			mlc_args_expr_t *ArgsExpr = xnew(mlc_args_expr_t, ml_list_length(Arg) + 1, mlc_expr_t *);
+			ArgsExpr->Source = Child->Source;
+			ArgsExpr->StartLine = Child->StartLine;
+			ArgsExpr->EndLine = Child->EndLine;
+			ArgsExpr->compile = ml_args_expr_compile;
+			int J = 0;
+			ML_LIST_FOREACH(Arg, Iter2) {
+				if (!ml_is(Iter2->Value, MLExprT)) {
+					return ml_error("CompilerError", "Expected expression not %s", ml_typeof(Iter2->Value)->Name);
+				}
+				ArgsExpr->Args[J++] = (mlc_expr_t *)Iter2->Value;
+			}
+			Arg = ml_expr_value((mlc_expr_t *)ArgsExpr);
+		}
+		stringmap_insert(Expr->Subst, Names[I], Arg);
+	}
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
 typedef struct {
 	ml_type_t *Type;
 	mlc_expr_t *Expr;
@@ -3278,6 +3307,7 @@ static void ml_macro_subst_call(ml_state_t *Caller, ml_macro_subst_t *Subst, int
 	Expr->Child = Child;
 	int I = 0;
 	for (mlc_param_t *Param = Subst->Params; Param; Param = Param->Next) {
+		ML_CHECKX_ARG_COUNT(I + 1);
 		ML_CHECKX_ARG_TYPE(I, MLExprT);
 		stringmap_insert(Expr->Subst, Param->Ident, Args[I]);
 		++I;
@@ -3608,7 +3638,6 @@ const char *MLTokens[] = {
 	"", // MLT_NONE,
 	"<end of line>", // MLT_EOL,
 	"<end of input>", // MLT_EOI,
-	"__if_config__", // MLT_IF_CONFIG
 	"and", // MLT_AND,
 	"case", // MLT_CASE,
 	"def", // MLT_DEF,
@@ -3621,6 +3650,7 @@ const char *MLTokens[] = {
 	"for", // MLT_FOR,
 	"fun", // MLT_FUN,
 	"if", // MLT_IF,
+	"ifConfig", // MLT_IF_CONFIG
 	"in", // MLT_IN,
 	"is", // MLT_IS,
 	"it", // MLT_IT,
@@ -6268,6 +6298,12 @@ mlc_expr_t *ml_accept_file(ml_parser_t *Parser) {
 	mlc_expr_t *Expr = ml_accept_block(Parser);
 	ml_accept_eoi(Parser);
 	return Expr;
+}
+
+mlc_expr_t *ml_parse_expr(ml_parser_t *Parser) {
+	if (setjmp(Parser->OnError)) return NULL;
+	ml_skip_eol(Parser);
+	return ml_parse_expression(Parser, EXPR_DEFAULT);
 }
 
 static void ml_function_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_compile_frame_t *Frame) {

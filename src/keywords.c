@@ -34,7 +34,7 @@ struct keyword_t {const char *Name; int Token;};
 
 #define TOTAL_KEYWORDS 39
 #define MIN_WORD_LENGTH 1
-#define MAX_WORD_LENGTH 13
+#define MAX_WORD_LENGTH 8
 #define MIN_HASH_VALUE 1
 #define MAX_HASH_VALUE 45
 /* maximum key range = 45, duplicates = 0 */
@@ -61,8 +61,8 @@ hash (register const char *str, register size_t len)
       46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
       46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
       46, 46, 46, 46, 46,  0,  0, 46, 27, 46,
-      12, 15,  3, 27,  9, 46,  0, 46, 30,  6,
-       6,  0, 30, 36,  0, 21,  0, 27,  6,  3,
+      12, 15,  3, 21,  9, 46,  0, 46,  6,  3,
+       6,  0, 30, 36,  9, 21,  0, 30,  0, 24,
       15, 46, 46, 46, 46, 46, 46, 46, 46, 46,
       46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
       46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
@@ -95,38 +95,37 @@ lookup (register const char *str, register size_t len)
       {"not", MLT_NOT},
 #line 24 "keywords.lst"
       {"next", MLT_NEXT},
-#line 16 "keywords.lst"
+#line 15 "keywords.lst"
       {"if", MLT_IF},
-#line 38 "keywords.lst"
-      {"var", MLT_VAR},
-#line 13 "keywords.lst"
+#line 20 "keywords.lst"
+      {"let", MLT_LET},
+#line 12 "keywords.lst"
       {"exit", MLT_EXIT},
 #line 17 "keywords.lst"
       {"in", MLT_IN},
-#line 20 "keywords.lst"
-      {"let", MLT_LET},
+#line 25 "keywords.lst"
+      {"nil", MLT_NIL},
 #line 23 "keywords.lst"
       {"must", MLT_MUST},
-      {""},
-#line 11 "keywords.lst"
+#line 37 "keywords.lst"
+      {"until", MLT_UNTIL},
+#line 10 "keywords.lst"
       {"elseif", MLT_ELSEIF},
-#line 4 "keywords.lst"
-      {"__if_config__", MLT_IF_CONFIG},
-      {""},
+      {""}, {""},
 #line 34 "keywords.lst"
       {"switch", MLT_SWITCH},
-#line 9 "keywords.lst"
-      {"each", MLT_EACH},
 #line 8 "keywords.lst"
+      {"each", MLT_EACH},
+#line 7 "keywords.lst"
       {"do", MLT_DO},
-#line 12 "keywords.lst"
+#line 11 "keywords.lst"
       {"end", MLT_END},
 #line 22 "keywords.lst"
       {"meth", MLT_METH},
       {""},
-#line 7 "keywords.lst"
+#line 6 "keywords.lst"
       {"def", MLT_DEF},
-#line 10 "keywords.lst"
+#line 9 "keywords.lst"
       {"else", MLT_ELSE},
 #line 18 "keywords.lst"
       {"is", MLT_IS},
@@ -139,33 +138,33 @@ lookup (register const char *str, register size_t len)
       {"ref", MLT_REF},
 #line 41 "keywords.lst"
       {"with", MLT_WITH},
+#line 16 "keywords.lst"
+      {"ifConfig", MLT_IF_CONFIG},
+#line 14 "keywords.lst"
+      {"fun", MLT_FUN},
+#line 5 "keywords.lst"
+      {"case", MLT_CASE},
 #line 36 "keywords.lst"
       {"to", MLT_TO},
-#line 14 "keywords.lst"
+#line 13 "keywords.lst"
       {"for", MLT_FOR},
-#line 6 "keywords.lst"
-      {"case", MLT_CASE},
-#line 29 "keywords.lst"
-      {"or", MLT_OR},
-#line 25 "keywords.lst"
-      {"nil", MLT_NIL},
 #line 33 "keywords.lst"
       {"susp", MLT_SUSP},
 #line 40 "keywords.lst"
       {"while", MLT_WHILE},
-#line 15 "keywords.lst"
-      {"fun", MLT_FUN},
-#line 35 "keywords.lst"
-      {"then", MLT_THEN},
+#line 38 "keywords.lst"
+      {"var", MLT_VAR},
+#line 21 "keywords.lst"
+      {"loop", MLT_LOOP},
 #line 28 "keywords.lst"
       {"on", MLT_ON},
 #line 32 "keywords.lst"
       {"seq", MLT_SEQ},
-#line 21 "keywords.lst"
-      {"loop", MLT_LOOP},
-#line 37 "keywords.lst"
-      {"until", MLT_UNTIL},
-#line 5 "keywords.lst"
+#line 35 "keywords.lst"
+      {"then", MLT_THEN},
+#line 29 "keywords.lst"
+      {"or", MLT_OR},
+#line 4 "keywords.lst"
       {"and", MLT_AND},
       {""}, {""},
 #line 27 "keywords.lst"
