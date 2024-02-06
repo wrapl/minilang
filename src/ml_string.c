@@ -4204,7 +4204,7 @@ int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)
 		Node = Node->Next;
 	}
 	Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
-done:
+done:;
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
 #ifdef ML_THREADSAFE
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
