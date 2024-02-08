@@ -66,7 +66,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2024-02-08T07:09:13.545906
+      time() :> 2024-02-08T09:05:59.358642
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`

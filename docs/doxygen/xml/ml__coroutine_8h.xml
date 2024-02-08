@@ -1,0 +1,266 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__coroutine_8h" kind="file" language="C++">
+    <compoundname>ml_coroutine.h</compoundname>
+    <includes refid="ml__types_8h" local="yes">ml_types.h</includes>
+    <incdepgraph>
+      <node id="8">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_coroutine.h</label>
+        <link refid="ml__coroutine_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="11">
+        <label>ml_config.h</label>
+      </node>
+      <node id="5">
+        <label>stdarg.h</label>
+      </node>
+      <node id="10">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stdio.h</label>
+      </node>
+      <node id="9">
+        <label>stdlib.h</label>
+      </node>
+      <node id="4">
+        <label>string.h</label>
+      </node>
+      <node id="6">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ml__coroutine_8h_1a07d50a1203ab330563fad757fe3e3459" prot="public" static="no">
+        <name>ML_COFUNCTION2</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>FUNCTION</defname></param>
+        <initializer>static <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *State, int Count, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Args); \
+\
+<ref refid="structml__cfunction__t" kindref="compound">ml_cfunction_t</ref> NAME[1] = {{MLCoFunctionT, FUNCTION, NULL}}; \
+\
+static <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *State, int Count, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Args)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="22" column="9" bodyfile="src/ml_coroutine.h" bodystart="22" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__coroutine_8h_1ae7a41baea369f87277685a80f904730a" prot="public" static="no">
+        <name>ML_COFUNCTION</name>
+        <param><defname>NAME</defname></param>
+        <initializer>ML_COFUNCTION2(NAME, CONCAT3(ml_cofunction_, __LINE__, __COUNTER__))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="28" column="9" bodyfile="src/ml_coroutine.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ml__coroutine_8h_1a30762bf7152ca04f55607cf82a59b2da" prot="public" static="no">
+        <type>struct ml_coro_state_t</type>
+        <definition>typedef struct ml_coro_state_t ml_coro_state_t</definition>
+        <argsstring></argsstring>
+        <name>ml_coro_state_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="14" column="30" bodyfile="src/ml_coroutine.h" bodystart="14" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ml__coroutine_8h_1acbbb1ab31b51ab7427eb7b4dd39bc12f" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLCoFunctionT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLCoFunctionT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="20" column="18" declfile="src/ml_coroutine.h" declline="20" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__coroutine_8h_1a63e2581418598132ced8a59c43350b17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_coro_enter</definition>
+        <argsstring>(ml_state_t *Caller, ml_callback_t Function, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_coro_enter</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type>ml_callback_t</type>
+          <declname>Function</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="10" column="6" declfile="src/ml_coroutine.h" declline="10" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__coroutine_8h_1ab12eac82a546270e6c798255bffcc25c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_coro_call</definition>
+        <argsstring>(ml_value_t *Function, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_coro_call</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="12" column="12" declfile="src/ml_coroutine.h" declline="12" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__coroutine_8h_1a51fdb6ad90d9b6bfc9d1b98fda67cf6e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * ml_coro_escape</definition>
+        <argsstring>(void *Data, void(*Callback)(ml_coro_state_t *, void *))</argsstring>
+        <name>ml_coro_escape</name>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>void(*)(ml_coro_state_t *, void *)</type>
+          <declname>Callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="16" column="6" declfile="src/ml_coroutine.h" declline="16" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__coroutine_8h_1ac0098ebcd0bf8073ccd09fb8c0ffe498" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_coro_resume</definition>
+        <argsstring>(ml_coro_state_t *State, void *Data)</argsstring>
+        <name>ml_coro_resume</name>
+        <param>
+          <type>ml_coro_state_t *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.h" line="18" column="6" declfile="src/ml_coroutine.h" declline="18" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_COROUTINE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_COROUTINE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_types.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_coro_enter(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/>ml_callback_t<sp/>Function,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_coro_call(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Function,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_coro_state_t<sp/>ml_coro_state_t;</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*ml_coro_escape(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*Callback)(ml_coro_state_t<sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_coro_resume(ml_coro_state_t<sp/>*State,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLCoFunctionT[];</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_COFUNCTION2(NAME,<sp/>FUNCTION)<sp/>static<sp/>ml_value_t<sp/>*FUNCTION(ml_state_t<sp/>*State,<sp/>int<sp/>Count,<sp/>ml_value_t<sp/>**Args);<sp/>\</highlight></codeline>
+<codeline lineno="23"><highlight class="preprocessor">\</highlight></codeline>
+<codeline lineno="24"><highlight class="preprocessor">ml_cfunction_t<sp/>NAME[1]<sp/>=<sp/>{{MLCoFunctionT,<sp/>FUNCTION,<sp/>NULL}};<sp/>\</highlight></codeline>
+<codeline lineno="25"><highlight class="preprocessor">\</highlight></codeline>
+<codeline lineno="26"><highlight class="preprocessor">static<sp/>ml_value_t<sp/>*FUNCTION(ml_state_t<sp/>*State,<sp/>int<sp/>Count,<sp/>ml_value_t<sp/>**Args)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_COFUNCTION(NAME)<sp/>ML_COFUNCTION2(NAME,<sp/>CONCAT3(ml_cofunction_,<sp/>__LINE__,<sp/>__COUNTER__))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_coroutine.h"/>
+  </compounddef>
+</doxygen>

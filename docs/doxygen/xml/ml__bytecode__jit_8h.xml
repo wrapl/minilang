@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__bytecode__jit_8h" kind="file" language="C++">
+    <compoundname>ml_bytecode_jit.h</compoundname>
+    <includes refid="ml__bytecode_8h" local="yes">ml_bytecode.h</includes>
+    <incdepgraph>
+      <node id="9">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_bytecode_jit.h</label>
+        <link refid="ml__bytecode__jit_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>ml_opcodes.h</label>
+        <link refid="ml__opcodes_8h_source"/>
+      </node>
+      <node id="13">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="14">
+        <label>limits.h</label>
+      </node>
+      <node id="12">
+        <label>ml_config.h</label>
+      </node>
+      <node id="6">
+        <label>stdarg.h</label>
+      </node>
+      <node id="11">
+        <label>stdint.h</label>
+      </node>
+      <node id="4">
+        <label>stdio.h</label>
+      </node>
+      <node id="10">
+        <label>stdlib.h</label>
+      </node>
+      <node id="5">
+        <label>string.h</label>
+      </node>
+      <node id="7">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__bytecode__jit_8h_1a3ed7d8ba8b278ce720bafb3015488de2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_bytecode_jit</definition>
+        <argsstring>(ml_closure_info_t *Info)</argsstring>
+        <name>ml_bytecode_jit</name>
+        <param>
+          <type><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref> *</type>
+          <declname>Info</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode_jit.h" line="6" column="6" declfile="src/ml_bytecode_jit.h" declline="6" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_BYTECODE_JIT_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_BYTECODE_JIT_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_bytecode.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_bytecode_jit(<ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*Info);</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_bytecode_jit.h"/>
+  </compounddef>
+</doxygen>

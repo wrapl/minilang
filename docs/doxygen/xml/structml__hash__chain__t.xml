@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__hash__chain__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_hash_chain_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__hash__chain__t_1a99f2402e3a64edec6c417fa49a78c0f4" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__hash__chain__t" kindref="compound">ml_hash_chain_t</ref> *</type>
+        <definition>ml_hash_chain_t* Previous</definition>
+        <argsstring></argsstring>
+        <name>Previous</name>
+        <qualifiedname>ml_hash_chain_t::Previous</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="50" column="17" bodyfile="src/ml_types.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__hash__chain__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_hash_chain_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="51" column="12" bodyfile="src/ml_types.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__hash__chain__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_hash_chain_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="52" column="5" bodyfile="src/ml_types.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_hash_chain_t</label>
+        <link refid="structml__hash__chain__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Previous</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="49" column="1" bodyfile="src/ml_types.h" bodystart="49" bodyend="53"/>
+    <listofallmembers>
+      <member refid="structml__hash__chain__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" virt="non-virtual"><scope>ml_hash_chain_t</scope><name>Index</name></member>
+      <member refid="structml__hash__chain__t_1a99f2402e3a64edec6c417fa49a78c0f4" prot="public" virt="non-virtual"><scope>ml_hash_chain_t</scope><name>Previous</name></member>
+      <member refid="structml__hash__chain__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" virt="non-virtual"><scope>ml_hash_chain_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,2 +1,4 @@
 CBOR
 ====
+
+.. doxygengroup:: cbor

@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__polynomial__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_polynomial_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__polynomial__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_polynomial_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="38" column="11" bodyfile="src/ml_polynomial.h" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__polynomial__t_1aad462966ed963f892117056de1eba502" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Count</definition>
+        <argsstring></argsstring>
+        <name>Count</name>
+        <qualifiedname>ml_polynomial_t::Count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="39" column="5" bodyfile="src/ml_polynomial.h" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__polynomial__t_1a4de6b52ec2bdf93dd688497cb69333ea" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__term__t" kindref="compound">ml_term_t</ref></type>
+        <definition>ml_term_t Terms[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Terms</name>
+        <qualifiedname>ml_polynomial_t::Terms</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="40" column="11" bodyfile="src/ml_polynomial.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_factor_t</label>
+        <link refid="structml__factor__t"/>
+      </node>
+      <node id="7">
+        <label>ml_factors_t</label>
+        <link refid="structml__factors__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Factors</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_polynomial_t</label>
+        <link refid="structml__polynomial__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Terms</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_term_t</label>
+        <link refid="structml__term__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Factors</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_polynomial.h" line="37" column="1" bodyfile="src/ml_polynomial.h" bodystart="37" bodyend="41"/>
+    <listofallmembers>
+      <member refid="structml__polynomial__t_1aad462966ed963f892117056de1eba502" prot="public" virt="non-virtual"><scope>ml_polynomial_t</scope><name>Count</name></member>
+      <member refid="structml__polynomial__t_1a4de6b52ec2bdf93dd688497cb69333ea" prot="public" virt="non-virtual"><scope>ml_polynomial_t</scope><name>Terms</name></member>
+      <member refid="structml__polynomial__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_polynomial_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

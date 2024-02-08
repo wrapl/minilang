@@ -1,0 +1,677 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__array_8h" kind="file" language="C++">
+    <compoundname>ml_array.h</compoundname>
+    <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <includedby refid="compare__impl_8h" local="yes">src/array/compare_impl.h</includedby>
+    <includedby refid="update__impl_8h" local="yes">src/array/update_impl.h</includedby>
+    <includedby refid="update__impl__integer_8h" local="yes">src/array/update_impl_integer.h</includedby>
+    <incdepgraph>
+      <node id="13">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_array.h</label>
+        <link refid="ml__array_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="16">
+        <label>limits.h</label>
+      </node>
+      <node id="15">
+        <label>ml_config.h</label>
+      </node>
+      <node id="6">
+        <label>setjmp.h</label>
+      </node>
+      <node id="11">
+        <label>stdarg.h</label>
+      </node>
+      <node id="14">
+        <label>stdint.h</label>
+      </node>
+      <node id="9">
+        <label>stdio.h</label>
+      </node>
+      <node id="3">
+        <label>stdlib.h</label>
+      </node>
+      <node id="10">
+        <label>string.h</label>
+      </node>
+      <node id="4">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>src/array/compare_impl.h</label>
+        <link refid="compare__impl_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>src/array/compare_impl_complex.h</label>
+        <link refid="compare__impl__complex_8h_source"/>
+      </node>
+      <node id="4">
+        <label>src/array/compare_impl_real.h</label>
+        <link refid="compare__impl__real_8h_source"/>
+      </node>
+      <node id="5">
+        <label>src/array/update_impl.h</label>
+        <link refid="update__impl_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>src/array/update_impl_complex.h</label>
+        <link refid="update__impl__complex_8h_source"/>
+      </node>
+      <node id="8">
+        <label>src/array/update_impl_integer.h</label>
+        <link refid="update__impl__integer_8h_source"/>
+      </node>
+      <node id="7">
+        <label>src/array/update_impl_real.h</label>
+        <link refid="update__impl__real_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/ml_array.h</label>
+        <link refid="ml__array_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structml__array__dimension__t" prot="public">ml_array_dimension_t</innerclass>
+    <innerclass refid="structml__array__t" prot="public">ml_array_t</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ml__array_8h_1ad3bfbbf0e3632a5d3cbb42fee65305d4" prot="public" static="no">
+        <name>MAX_FORMATS</name>
+        <initializer>16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="28" column="9" bodyfile="src/ml_array.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__array_8h_1a05b46f42cc6d2601c83bd67c4276ac33" prot="public" static="no">
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param><defname>CTYPE</defname></param>
+        <initializer>CTYPE ml_array_get_ ## CTYPE (<ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *Array, ...); \
+void ml_array_set_ ## CTYPE (CTYPE Value, <ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *Array, ...)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="49" column="9" bodyfile="src/ml_array.h" bodystart="49" bodyend="51"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_array_format_t</name>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a6d2c17e1fda09f00b9e0e47651266ab9" prot="public">
+          <name>ML_ARRAY_FORMAT_NONE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a8228fe9c62403c47f98521e1f2fb83e7" prot="public">
+          <name>ML_ARRAY_FORMAT_U8</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a0c40a82f8ff2e713592966eeb2f775c2" prot="public">
+          <name>ML_ARRAY_FORMAT_I8</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373ac5ca5e841fb2754026830e2ecdfaf97e" prot="public">
+          <name>ML_ARRAY_FORMAT_U16</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373ad877d120d0f91fa3136142346b0b007d" prot="public">
+          <name>ML_ARRAY_FORMAT_I16</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a4156fe9e57d7280c95a0b3d0e69dab23" prot="public">
+          <name>ML_ARRAY_FORMAT_U32</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373adc7dbc7b56b908f516e7702ac9d1a0d5" prot="public">
+          <name>ML_ARRAY_FORMAT_I32</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a36995b3bcc6f133d903d7d731b17e90c" prot="public">
+          <name>ML_ARRAY_FORMAT_U64</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a715c52f7e8f705ee9979c7cefa47ac4d" prot="public">
+          <name>ML_ARRAY_FORMAT_I64</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a7a0ee18f67079ebbf8650c67f484f48e" prot="public">
+          <name>ML_ARRAY_FORMAT_F32</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a5b15653be2f238b9ce98001479054f10" prot="public">
+          <name>ML_ARRAY_FORMAT_F64</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a1ad15a65cb9778594c1a03dc6ec573b4" prot="public">
+          <name>ML_ARRAY_FORMAT_ANY</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="15" column="1" bodyfile="src/ml_array.h" bodystart="15" bodyend="26"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ml__array_8h_1a52cca795aefbeae57b03bb83d7d2c924" prot="public" static="no" extern="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t MLArraySizes[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLArraySizes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="30" column="15" declfile="src/ml_array.h" declline="30" declcolumn="15"/>
+      </memberdef>
+      <memberdef kind="variable" id="ml__array_8h_1ab9332866ef51f2ee1e89af4b99659a3f" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLArrayT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLArrayT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="39" column="18" declfile="src/ml_array.h" declline="39" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__array_8h_1a6844c232b8ac69227fccd412d0d496d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_array_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_array_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="41" column="6" declfile="src/ml_array.h" declline="41" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1af51cede71f829e3926b6acf5ccfb7e05" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *</type>
+        <definition>ml_array_t * ml_array_alloc</definition>
+        <argsstring>(ml_array_format_t Format, int Degree)</argsstring>
+        <name>ml_array_alloc</name>
+        <param>
+          <type>ml_array_format_t</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Degree</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="43" column="12" declfile="src/ml_array.h" declline="43" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1ae9e4e1f9d8c3d1da1402071aaf0fdfa2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *</type>
+        <definition>ml_array_t * ml_array</definition>
+        <argsstring>(ml_array_format_t Format, int Degree,...)</argsstring>
+        <name>ml_array</name>
+        <param>
+          <type>ml_array_format_t</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Degree</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="44" column="12" declfile="src/ml_array.h" declline="44" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a2c74fe3d13c9294dfa0e24f926bc3cbf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_array_degree</definition>
+        <argsstring>(ml_value_t *Array)</argsstring>
+        <name>ml_array_degree</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Array</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="45" column="5" declfile="src/ml_array.h" declline="45" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a6c6130c9f4ea1156810402e2dd16f66c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_array_size</definition>
+        <argsstring>(ml_value_t *Array, int Dim)</argsstring>
+        <name>ml_array_size</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Array</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Dim</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="46" column="5" declfile="src/ml_array.h" declline="46" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a04f775d73be07991ab6076362debe764" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_array_index</definition>
+        <argsstring>(ml_array_t *Array, int Count, ml_value_t **Indices)</argsstring>
+        <name>ml_array_index</name>
+        <param>
+          <type><ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *</type>
+          <declname>Array</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Indices</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="47" column="12" declfile="src/ml_array.h" declline="47" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a1acf07a2bead117f050aaec41dfc8dce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(int8_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>int8_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="53" column="1" declfile="src/ml_array.h" declline="53" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a27f749ff92c01c31f5dcd16899ac4209" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(uint8_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>uint8_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="54" column="1" declfile="src/ml_array.h" declline="54" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1ad260afc8c3a139859676738be2c6fcdc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(int16_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>int16_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="55" column="1" declfile="src/ml_array.h" declline="55" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a42cbb71a714fbf7fb20971402203ffee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(uint16_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>uint16_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="56" column="1" declfile="src/ml_array.h" declline="56" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a0c9ee68991ef9265ec05338e4891dc6c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(int32_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>int32_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="57" column="1" declfile="src/ml_array.h" declline="57" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1afa3e5ba09ab9d14d569f3b43784ea357" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(uint32_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>uint32_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="58" column="1" declfile="src/ml_array.h" declline="58" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1ad26d2f8d105fff8546f7681adbe85e49" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(int64_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>int64_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="59" column="1" declfile="src/ml_array.h" declline="59" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a96859bcd4239a9723ec4070e23326114" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(uint64_t)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>uint64_t</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="60" column="1" declfile="src/ml_array.h" declline="60" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1aa6578a9c9c763f61ece1d4f718d3279a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(float)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>float</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="61" column="1" declfile="src/ml_array.h" declline="61" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1abb7064d6f32e9f21c5a93223e0ccf904" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ARRAY_ACCESSORS</definition>
+        <argsstring>(double)</argsstring>
+        <name>ML_ARRAY_ACCESSORS</name>
+        <param>
+          <type>double</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="62" column="1" declfile="src/ml_array.h" declline="62" declcolumn="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_ARRAY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ARRAY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10" refid="structml__array__dimension__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size,<sp/>Stride;</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*Indices;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal">}<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref>;</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_NONE,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_U8,<sp/>ML_ARRAY_FORMAT_I8,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_U16,<sp/>ML_ARRAY_FORMAT_I16,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_U32,<sp/>ML_ARRAY_FORMAT_I32,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_U64,<sp/>ML_ARRAY_FORMAT_I64,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_F32,<sp/>ML_ARRAY_FORMAT_F64,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_COMPLEX</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_C32,<sp/>ML_ARRAY_FORMAT_C64,</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_ARRAY_FORMAT_ANY</highlight></codeline>
+<codeline lineno="26"><highlight class="normal">}<sp/>ml_array_format_t;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MAX_FORMATS<sp/>16</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>MLArraySizes[];</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32" refid="structml__array__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__address__t" kindref="compound">ml_address_t</ref><sp/>Base;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Degree;</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_array_format_t<sp/>Format;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>Dimensions[];</highlight></codeline>
+<codeline lineno="37"><highlight class="normal">}<sp/><ref refid="structml__array__t" kindref="compound">ml_array_t</ref>;</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLArrayT[];</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*ml_array_alloc(ml_array_format_t<sp/>Format,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Degree);</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*ml_array(ml_array_format_t<sp/>Format,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Degree,<sp/>...);</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_array_degree(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Array);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_array_size(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Array,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Dim);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_array_index(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Array,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Indices);</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ARRAY_ACCESSORS(CTYPE)<sp/>\</highlight></codeline>
+<codeline lineno="50"><highlight class="preprocessor">CTYPE<sp/>ml_array_get_<sp/>##<sp/>CTYPE<sp/>(ml_array_t<sp/>*Array,<sp/>...);<sp/>\</highlight></codeline>
+<codeline lineno="51"><highlight class="preprocessor">void<sp/>ml_array_set_<sp/>##<sp/>CTYPE<sp/>(CTYPE<sp/>Value,<sp/>ml_array_t<sp/>*Array,<sp/>...)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal">ML_ARRAY_ACCESSORS(int8_t);</highlight></codeline>
+<codeline lineno="54"><highlight class="normal">ML_ARRAY_ACCESSORS(uint8_t);</highlight></codeline>
+<codeline lineno="55"><highlight class="normal">ML_ARRAY_ACCESSORS(int16_t);</highlight></codeline>
+<codeline lineno="56"><highlight class="normal">ML_ARRAY_ACCESSORS(uint16_t);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal">ML_ARRAY_ACCESSORS(int32_t);</highlight></codeline>
+<codeline lineno="58"><highlight class="normal">ML_ARRAY_ACCESSORS(uint32_t);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal">ML_ARRAY_ACCESSORS(int64_t);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal">ML_ARRAY_ACCESSORS(uint64_t);</highlight></codeline>
+<codeline lineno="61"><highlight class="normal">ML_ARRAY_ACCESSORS(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal">ML_ARRAY_ACCESSORS(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_COMPLEX</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal">ML_ARRAY_ACCESSORS(complex_float);</highlight></codeline>
+<codeline lineno="67"><highlight class="normal">ML_ARRAY_ACCESSORS(complex_double);</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_array.h"/>
+  </compounddef>
+</doxygen>

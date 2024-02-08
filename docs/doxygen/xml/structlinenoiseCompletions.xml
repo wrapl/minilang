@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structlinenoiseCompletions" kind="struct" language="C++" prot="public">
+    <compoundname>linenoiseCompletions</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structlinenoiseCompletions_1a7360b55975153b822efc5217b7734e6a" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t len</definition>
+        <argsstring></argsstring>
+        <name>len</name>
+        <qualifiedname>linenoiseCompletions::len</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/linenoise.h" line="42" column="10" bodyfile="src/linenoise.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structlinenoiseCompletions_1a5bc366b69841e18fec421b20c293b3d3" prot="public" static="no" mutable="no">
+        <type>char **</type>
+        <definition>char** cvec</definition>
+        <argsstring></argsstring>
+        <name>cvec</name>
+        <qualifiedname>linenoiseCompletions::cvec</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/linenoise.h" line="43" column="8" bodyfile="src/linenoise.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/linenoise.h" line="41" column="1" bodyfile="src/linenoise.h" bodystart="41" bodyend="44"/>
+    <listofallmembers>
+      <member refid="structlinenoiseCompletions_1a5bc366b69841e18fec421b20c293b3d3" prot="public" virt="non-virtual"><scope>linenoiseCompletions</scope><name>cvec</name></member>
+      <member refid="structlinenoiseCompletions_1a7360b55975153b822efc5217b7734e6a" prot="public" virt="non-virtual"><scope>linenoiseCompletions</scope><name>len</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

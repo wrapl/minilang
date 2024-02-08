@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="dir_c440a0232048a2af23c47d1be7b434ce" kind="dir">
+    <compoundname>src/array</compoundname>
+    <innerfile refid="compare__impl_8h">compare_impl.h</innerfile>
+    <innerfile refid="compare__impl__complex_8h">compare_impl_complex.h</innerfile>
+    <innerfile refid="compare__impl__real_8h">compare_impl_real.h</innerfile>
+    <innerfile refid="update__impl_8h">update_impl.h</innerfile>
+    <innerfile refid="update__impl__complex_8h">update_impl_complex.h</innerfile>
+    <innerfile refid="update__impl__integer_8h">update_impl_integer.h</innerfile>
+    <innerfile refid="update__impl__real_8h">update_impl_real.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/array/"/>
+  </compounddef>
+</doxygen>

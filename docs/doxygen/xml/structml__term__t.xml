@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__term__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_term_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__term__t_1a642e62197ec24d192ab1953b003cc435" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structml__factors__t" kindref="compound">ml_factors_t</ref> *</type>
+        <definition>const ml_factors_t* Factors</definition>
+        <argsstring></argsstring>
+        <name>Factors</name>
+        <qualifiedname>ml_term_t::Factors</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="33" column="20" bodyfile="src/ml_polynomial.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__term__t_1a4a177d6946e8a8553b2e0979eeadaa7f" prot="public" static="no" mutable="no">
+        <type>ml_coeff_t</type>
+        <definition>ml_coeff_t Coeff</definition>
+        <argsstring></argsstring>
+        <name>Coeff</name>
+        <qualifiedname>ml_term_t::Coeff</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="34" column="12" bodyfile="src/ml_polynomial.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>ml_factor_t</label>
+        <link refid="structml__factor__t"/>
+      </node>
+      <node id="2">
+        <label>ml_factors_t</label>
+        <link refid="structml__factors__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Factors</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_term_t</label>
+        <link refid="structml__term__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Factors</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_polynomial.h" line="32" column="1" bodyfile="src/ml_polynomial.h" bodystart="32" bodyend="35"/>
+    <listofallmembers>
+      <member refid="structml__term__t_1a4a177d6946e8a8553b2e0979eeadaa7f" prot="public" virt="non-virtual"><scope>ml_term_t</scope><name>Coeff</name></member>
+      <member refid="structml__term__t_1a642e62197ec24d192ab1953b003cc435" prot="public" virt="non-virtual"><scope>ml_term_t</scope><name>Factors</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

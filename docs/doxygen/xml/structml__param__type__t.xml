@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__param__type__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_param_type_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__param__type__t_1afa261eeca2c339b77879c587227c3272" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__param__type__t" kindref="compound">ml_param_type_t</ref> *</type>
+        <definition>ml_param_type_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>ml_param_type_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="64" column="17" bodyfile="src/ml_bytecode.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__param__type__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_param_type_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="65" column="11" bodyfile="src/ml_bytecode.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__param__type__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_param_type_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="66" column="5" bodyfile="src/ml_bytecode.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__param__type__t_1a7ca82dd8fc907365a6a3453f3fe51b0d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int HasDefault</definition>
+        <argsstring></argsstring>
+        <name>HasDefault</name>
+        <qualifiedname>ml_param_type_t::HasDefault</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="66" column="11" bodyfile="src/ml_bytecode.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_param_type_t</label>
+        <link refid="structml__param__type__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_bytecode.h" line="63" column="1" bodyfile="src/ml_bytecode.h" bodystart="63" bodyend="67"/>
+    <listofallmembers>
+      <member refid="structml__param__type__t_1a7ca82dd8fc907365a6a3453f3fe51b0d" prot="public" virt="non-virtual"><scope>ml_param_type_t</scope><name>HasDefault</name></member>
+      <member refid="structml__param__type__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" virt="non-virtual"><scope>ml_param_type_t</scope><name>Index</name></member>
+      <member refid="structml__param__type__t_1afa261eeca2c339b77879c587227c3272" prot="public" virt="non-virtual"><scope>ml_param_type_t</scope><name>Next</name></member>
+      <member refid="structml__param__type__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_param_type_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

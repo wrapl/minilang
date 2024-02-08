@@ -2,7 +2,7 @@
 #define ML_COMPILER_H
 
 /// \defgroup compiler
-///  @{
+/// @{
 ///
 
 #include <setjmp.h>

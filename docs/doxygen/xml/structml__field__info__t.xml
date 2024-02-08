@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__field__info__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_field_info_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__field__info__t_1a22d91517a56a9725ce0354151e407a7b" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref> *</type>
+        <definition>ml_field_info_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>ml_field_info_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="17" column="17" bodyfile="src/ml_object.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__field__info__t_1a335d56bb6c578875c7b8269d289de0e9" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Method</definition>
+        <argsstring></argsstring>
+        <name>Method</name>
+        <qualifiedname>ml_field_info_t::Method</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="18" column="12" bodyfile="src/ml_object.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__field__info__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_field_info_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="19" column="11" bodyfile="src/ml_object.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__field__info__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_field_info_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="20" column="5" bodyfile="src/ml_object.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_field_info_t</label>
+        <link refid="structml__field__info__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Method</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_object.h" line="16" column="1" bodyfile="src/ml_object.h" bodystart="16" bodyend="21"/>
+    <listofallmembers>
+      <member refid="structml__field__info__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" virt="non-virtual"><scope>ml_field_info_t</scope><name>Index</name></member>
+      <member refid="structml__field__info__t_1a335d56bb6c578875c7b8269d289de0e9" prot="public" virt="non-virtual"><scope>ml_field_info_t</scope><name>Method</name></member>
+      <member refid="structml__field__info__t_1a22d91517a56a9725ce0354151e407a7b" prot="public" virt="non-virtual"><scope>ml_field_info_t</scope><name>Next</name></member>
+      <member refid="structml__field__info__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_field_info_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

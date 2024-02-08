@@ -1,0 +1,177 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="timelib__mem_8h" kind="file" language="C++">
+    <compoundname>timelib_mem.h</compoundname>
+    <includes local="no">gc/gc.h</includes>
+    <includes local="no">string.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>src/timelib_mem.h</label>
+        <link refid="timelib__mem_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>gc/gc.h</label>
+      </node>
+      <node id="3">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="timelib__mem_8h_1a169e5bce5af810344e2bc538a6844675" prot="public" static="no">
+        <name>timelib_malloc</name>
+        <initializer>GC_malloc</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="7" column="9" bodyfile="src/timelib_mem.h" bodystart="7" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="timelib__mem_8h_1ab402ba3aa1a1591cbbd6526fd5888c4e" prot="public" static="no">
+        <name>timelib_realloc</name>
+        <initializer>GC_realloc</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="8" column="9" bodyfile="src/timelib_mem.h" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="timelib__mem_8h_1ade15ad02fb1a68672e7f7df9ab9d039e" prot="public" static="no">
+        <name>timelib_free</name>
+        <initializer>nop_free</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="9" column="9" bodyfile="src/timelib_mem.h" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="timelib__mem_8h_1ad66858a050b47e7f191e770d53ef97e1" prot="public" static="no">
+        <name>timelib_calloc</name>
+        <initializer>GC_calloc</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="10" column="9" bodyfile="src/timelib_mem.h" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="timelib__mem_8h_1a828c896d2aecfb0bc9865cf4701e6b53" prot="public" static="no">
+        <name>timelib_strdup</name>
+        <initializer>GC_strdup</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="11" column="9" bodyfile="src/timelib_mem.h" bodystart="11" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="timelib__mem_8h_1a10706e3477a9978077f6f7ce71bc7eaa" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void nop_free</definition>
+        <argsstring>(void *Ptr)</argsstring>
+        <name>nop_free</name>
+        <param>
+          <type>void *</type>
+          <declname>Ptr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="13" column="20" bodyfile="src/timelib_mem.h" bodystart="13" bodyend="13"/>
+      </memberdef>
+      <memberdef kind="function" id="timelib__mem_8h_1a5cb7776101e4521b5778c01137b4f125" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void *</type>
+        <definition>static void * GC_calloc</definition>
+        <argsstring>(size_t N, size_t M)</argsstring>
+        <name>GC_calloc</name>
+        <param>
+          <type>size_t</type>
+          <declname>N</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>M</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="14" column="20" bodyfile="src/timelib_mem.h" bodystart="14" bodyend="16"/>
+      </memberdef>
+      <memberdef kind="function" id="timelib__mem_8h_1a85326bf49026ede27d95b01ff0272bb3" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>char *</type>
+        <definition>static char * timelib_strndup</definition>
+        <argsstring>(const char *S, size_t N)</argsstring>
+        <name>timelib_strndup</name>
+        <param>
+          <type>const char *</type>
+          <declname>S</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>N</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/timelib_mem.h" line="18" column="20" bodyfile="src/timelib_mem.h" bodystart="18" bodyend="26"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>TIMELIB_MEM_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TIMELIB_MEM_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;gc/gc.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>timelib_malloc<sp/>GC_malloc</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>timelib_realloc<sp/>GC_realloc</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>timelib_free<sp/>nop_free</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>timelib_calloc<sp/>GC_calloc</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>timelib_strdup<sp/>GC_strdup</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>nop_free(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Ptr)<sp/>{}</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*GC_calloc(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>N,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>M)<sp/>{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>GC_malloc(N<sp/>*<sp/>M);</highlight></codeline>
+<codeline lineno="16"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*timelib_strndup(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*S,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>N)<sp/>{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*C;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>M;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>M<sp/>=<sp/>strlen(S);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(N<sp/>&gt;<sp/>M)<sp/>N<sp/>=<sp/>M;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>C<sp/>=<sp/>GC_malloc_atomic(N<sp/>+<sp/>1);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>C[N]<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>memcpy(C,<sp/>S,<sp/>N);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/timelib_mem.h"/>
+  </compounddef>
+</doxygen>

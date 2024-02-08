@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structSHA256__CTX" kind="struct" language="C++" prot="public">
+    <compoundname>SHA256_CTX</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structSHA256__CTX_1a8a8dd994e57fbe5afc89ea8619498a8a" prot="public" static="no" mutable="no">
+        <type>unsigned char</type>
+        <definition>unsigned char data[64]</definition>
+        <argsstring>[64]</argsstring>
+        <name>data</name>
+        <qualifiedname>SHA256_CTX::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="21" column="15" bodyfile="src/sha256.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structSHA256__CTX_1aa1717d6454f640fa1520a135ec92f4af" prot="public" static="no" mutable="no">
+        <type>unsigned int</type>
+        <definition>unsigned int datalen</definition>
+        <argsstring></argsstring>
+        <name>datalen</name>
+        <qualifiedname>SHA256_CTX::datalen</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="22" column="14" bodyfile="src/sha256.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structSHA256__CTX_1a9ef8c3daffe76c802a308b323158fc79" prot="public" static="no" mutable="no">
+        <type>unsigned long long</type>
+        <definition>unsigned long long bitlen</definition>
+        <argsstring></argsstring>
+        <name>bitlen</name>
+        <qualifiedname>SHA256_CTX::bitlen</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="23" column="20" bodyfile="src/sha256.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structSHA256__CTX_1a280ea88df9670f196f2478c8cb5c4e5c" prot="public" static="no" mutable="no">
+        <type>unsigned int</type>
+        <definition>unsigned int state[8]</definition>
+        <argsstring>[8]</argsstring>
+        <name>state</name>
+        <qualifiedname>SHA256_CTX::state</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="24" column="14" bodyfile="src/sha256.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/sha256.h" line="20" column="1" bodyfile="src/sha256.h" bodystart="20" bodyend="25"/>
+    <listofallmembers>
+      <member refid="structSHA256__CTX_1a9ef8c3daffe76c802a308b323158fc79" prot="public" virt="non-virtual"><scope>SHA256_CTX</scope><name>bitlen</name></member>
+      <member refid="structSHA256__CTX_1a8a8dd994e57fbe5afc89ea8619498a8a" prot="public" virt="non-virtual"><scope>SHA256_CTX</scope><name>data</name></member>
+      <member refid="structSHA256__CTX_1aa1717d6454f640fa1520a135ec92f4af" prot="public" virt="non-virtual"><scope>SHA256_CTX</scope><name>datalen</name></member>
+      <member refid="structSHA256__CTX_1a280ea88df9670f196f2478c8cb5c4e5c" prot="public" virt="non-virtual"><scope>SHA256_CTX</scope><name>state</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

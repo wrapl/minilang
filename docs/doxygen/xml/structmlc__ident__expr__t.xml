@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__ident__expr__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_ident_expr_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__ident__expr__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Ident</definition>
+        <argsstring></argsstring>
+        <name>Ident</name>
+        <qualifiedname>mlc_ident_expr_t::Ident</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="280" column="12" bodyfile="src/ml_compiler2.h" bodystart="280" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structmlc__ident__expr__t_1ab974f73c88eaa9f2171f6f5582fd2b93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MLC_EXPR_FIELDS</definition>
+        <argsstring>(ident)</argsstring>
+        <name>MLC_EXPR_FIELDS</name>
+        <qualifiedname>mlc_ident_expr_t::MLC_EXPR_FIELDS</qualifiedname>
+        <param>
+          <type>ident</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="279" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/ml_compiler2.h" line="278" column="1" bodyfile="src/ml_compiler2.h" bodystart="278" bodyend="281"/>
+    <listofallmembers>
+      <member refid="structmlc__ident__expr__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" prot="public" virt="non-virtual"><scope>mlc_ident_expr_t</scope><name>Ident</name></member>
+      <member refid="structmlc__ident__expr__t_1ab974f73c88eaa9f2171f6f5582fd2b93" prot="public" virt="non-virtual"><scope>mlc_ident_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

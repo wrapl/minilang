@@ -135,6 +135,23 @@ static ml_value_t *ml_log_macro(ml_logger_t *Logger, ml_value_t *LogFn, const ch
 	return ml_macro((ml_value_t *)Macro);
 }
 
+ml_logger_t *ml_logger(const char *Name) {
+	static stringmap_t Loggers[1] = {STRINGMAP_INIT};
+	ml_logger_t **Slot = (ml_logger_t **)stringmap_slot(Loggers, Name);
+	if (!Slot[0]) {
+		ml_logger_t *Logger = new(ml_logger_t);
+		Logger->Type = MLLoggerT;
+		Logger->Name = Name;
+		ml_value_t *LogFn = ml_cfunctionx(Logger, (ml_callbackx_t)ml_log_fn);
+		Logger->Loggers[ML_LOG_LEVEL_ERROR] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=ERROR\" \uFFFC(1, :$Args)");
+		Logger->Loggers[ML_LOG_LEVEL_WARN] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=WARN\" \uFFFC(2, :$Args)");
+		Logger->Loggers[ML_LOG_LEVEL_INFO] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=INFO\" \uFFFC(3, :$Args)");
+		Logger->Loggers[ML_LOG_LEVEL_DEBUG] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=DEBUG\" \uFFFC(4, :$Args)");
+		Slot[0] = Logger;
+	}
+	return Slot[0];
+}
+
 ML_FUNCTION(MLLogger) {
 //@logger
 //<Category
@@ -142,15 +159,7 @@ ML_FUNCTION(MLLogger) {
 // Returns a new logger with levels :mini:`::error`, :mini:`::warn`, :mini:`::info` and :mini:`::debug`.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_logger_t *Logger = new(ml_logger_t);
-	Logger->Type = MLLoggerT;
-	Logger->Name = ml_string_value(Args[0]);
-	ml_value_t *LogFn = ml_cfunctionx(Logger, (ml_callbackx_t)ml_log_fn);
-	Logger->Loggers[ML_LOG_LEVEL_ERROR] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=ERROR\" \uFFFC(1, :$Args)");
-	Logger->Loggers[ML_LOG_LEVEL_WARN] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=WARN\" \uFFFC(2, :$Args)");
-	Logger->Loggers[ML_LOG_LEVEL_INFO] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=INFO\" \uFFFC(3, :$Args)");
-	Logger->Loggers[ML_LOG_LEVEL_DEBUG] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=DEBUG\" \uFFFC(4, :$Args)");
-	return (ml_value_t *)Logger;
+	return (ml_value_t *)ml_logger(ml_string_value(Args[0]));
 }
 
 ML_TYPE(MLLoggerT, (), "logger",

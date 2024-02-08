@@ -1,0 +1,237 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__time_8h" kind="file" language="C++">
+    <compoundname>ml_time.h</compoundname>
+    <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <includes local="no">time.h</includes>
+    <incdepgraph>
+      <node id="13">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_time.h</label>
+        <link refid="ml__time_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="16">
+        <label>limits.h</label>
+      </node>
+      <node id="15">
+        <label>ml_config.h</label>
+      </node>
+      <node id="6">
+        <label>setjmp.h</label>
+      </node>
+      <node id="11">
+        <label>stdarg.h</label>
+      </node>
+      <node id="14">
+        <label>stdint.h</label>
+      </node>
+      <node id="9">
+        <label>stdio.h</label>
+      </node>
+      <node id="3">
+        <label>stdlib.h</label>
+      </node>
+      <node id="10">
+        <label>string.h</label>
+      </node>
+      <node id="17">
+        <label>time.h</label>
+      </node>
+      <node id="4">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ml__time_8h_1a0c8a767713a6a162f9937ffbdb1e9465" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLTimeT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLTimeT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_time.h" line="11" column="18" declfile="src/ml_time.h" declline="11" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__time_8h_1a281aa75e7c21a8c98be4594534de70df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_time_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_time_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_time.h" line="13" column="6" declfile="src/ml_time.h" declline="13" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__time_8h_1acde1f79e1372e227ee6a65fae4446bd6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_time</definition>
+        <argsstring>(time_t Sec, unsigned long NSec)</argsstring>
+        <name>ml_time</name>
+        <param>
+          <type>time_t</type>
+          <declname>Sec</declname>
+        </param>
+        <param>
+          <type>unsigned long</type>
+          <declname>NSec</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_time.h" line="14" column="12" declfile="src/ml_time.h" declline="14" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__time_8h_1afe0f6df080eb6deb7294a183baa7a2ab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_time_parse</definition>
+        <argsstring>(const char *Value, int Length)</argsstring>
+        <name>ml_time_parse</name>
+        <param>
+          <type>const char *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_time.h" line="15" column="12" declfile="src/ml_time.h" declline="15" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__time_8h_1a907af0efff4d7928b94135e990bbe1b2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_time_value</definition>
+        <argsstring>(ml_value_t *Value, struct timespec *Time)</argsstring>
+        <name>ml_time_value</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>struct timespec *</type>
+          <declname>Time</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_time.h" line="17" column="6" declfile="src/ml_time.h" declline="17" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_TIME_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_TIME_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;time.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLTimeT[];</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_time_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_time(time_t<sp/>Sec,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>NSec);</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_time_parse(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_time_value(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>timespec<sp/>*Time);</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_time.h"/>
+  </compounddef>
+</doxygen>

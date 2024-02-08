@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__if__expr__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_if_expr_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__if__expr__t_1a6c9ec47e5957ba57c6700de8d12669cf" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__if__case__t" kindref="compound">mlc_if_case_t</ref> *</type>
+        <definition>mlc_if_case_t* Cases</definition>
+        <argsstring></argsstring>
+        <name>Cases</name>
+        <qualifiedname>mlc_if_expr_t::Cases</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="158" column="15" bodyfile="src/ml_compiler2.h" bodystart="158" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__if__expr__t_1a3b5b3709f7de1287178e02f4985c2c75" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* Else</definition>
+        <argsstring></argsstring>
+        <name>Else</name>
+        <qualifiedname>mlc_if_expr_t::Else</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="159" column="12" bodyfile="src/ml_compiler2.h" bodystart="159" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structmlc__if__expr__t_1ac1561280ef7e65e069274b14d7367861" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MLC_EXPR_FIELDS</definition>
+        <argsstring>(if)</argsstring>
+        <name>MLC_EXPR_FIELDS</name>
+        <qualifiedname>mlc_if_expr_t::MLC_EXPR_FIELDS</qualifiedname>
+        <param>
+          <type>if</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="157" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="4">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_if_case_t</label>
+        <link refid="structmlc__if__case__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Body</edgelabel>
+          <edgelabel>Condition</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Local</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_if_expr_t</label>
+        <link refid="structmlc__if__expr__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Cases</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Else</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>mlc_local_t</label>
+        <link refid="structmlc__local__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="156" column="1" bodyfile="src/ml_compiler2.h" bodystart="156" bodyend="160"/>
+    <listofallmembers>
+      <member refid="structmlc__if__expr__t_1a6c9ec47e5957ba57c6700de8d12669cf" prot="public" virt="non-virtual"><scope>mlc_if_expr_t</scope><name>Cases</name></member>
+      <member refid="structmlc__if__expr__t_1a3b5b3709f7de1287178e02f4985c2c75" prot="public" virt="non-virtual"><scope>mlc_if_expr_t</scope><name>Else</name></member>
+      <member refid="structmlc__if__expr__t_1ac1561280ef7e65e069274b14d7367861" prot="public" virt="non-virtual"><scope>mlc_if_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

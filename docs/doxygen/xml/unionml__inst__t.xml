@@ -1,0 +1,315 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="unionml__inst__t" kind="union" language="C++" prot="public">
+    <compoundname>ml_inst_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="unionml__inst__t_1a123c300e06a1d0c7eb2a2c2bd837dbd6" prot="public" static="no" mutable="no">
+        <type>ml_opcode_t</type>
+        <definition>ml_opcode_t Opcode</definition>
+        <argsstring></argsstring>
+        <name>Opcode</name>
+        <qualifiedname>ml_inst_t::Opcode</qualifiedname>
+        <bitfield>8</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="22" column="13" bodyfile="src/ml_bytecode.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1ac132425a70f39fe07667cecb77969764" prot="public" static="no" mutable="no">
+        <type>unsigned int</type>
+        <definition>unsigned int Reserved</definition>
+        <argsstring></argsstring>
+        <name>Reserved</name>
+        <qualifiedname>ml_inst_t::Reserved</qualifiedname>
+        <bitfield>8</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="23" column="14" bodyfile="src/ml_bytecode.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1a1cd966d36202496180f973f7284b3806" prot="public" static="no" mutable="no">
+        <type>unsigned int</type>
+        <definition>unsigned int Label</definition>
+        <argsstring></argsstring>
+        <name>Label</name>
+        <qualifiedname>ml_inst_t::Label</qualifiedname>
+        <bitfield>16</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="24" column="14" bodyfile="src/ml_bytecode.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1af7f07a1fda3ef5519223c66c30d01a90" prot="public" static="no" mutable="no">
+        <type>unsigned int</type>
+        <definition>unsigned int Line</definition>
+        <argsstring></argsstring>
+        <name>Line</name>
+        <qualifiedname>ml_inst_t::Line</qualifiedname>
+        <bitfield>32</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="25" column="14" bodyfile="src/ml_bytecode.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1ab4a28e6a5002cd64a1eedb0b7ae1c173" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref></type>
+        <definition>struct ml_inst_t </definition>
+        <argsstring></argsstring>
+        <name></name>
+        <qualifiedname>ml_inst_t</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="26" column="1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1a176d72e6e12a34c0016fa8cb4a894621" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t* Inst</definition>
+        <argsstring></argsstring>
+        <name>Inst</name>
+        <qualifiedname>ml_inst_t::Inst</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="27" column="11" bodyfile="src/ml_bytecode.h" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1ab7494fbcf04e1ca7ec49d5b29bf7b8a9" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> **</type>
+        <definition>ml_inst_t** Insts</definition>
+        <argsstring></argsstring>
+        <name>Insts</name>
+        <qualifiedname>ml_inst_t::Insts</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="28" column="11" bodyfile="src/ml_bytecode.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1aad462966ed963f892117056de1eba502" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Count</definition>
+        <argsstring></argsstring>
+        <name>Count</name>
+        <qualifiedname>ml_inst_t::Count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="29" column="5" bodyfile="src/ml_bytecode.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_inst_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="30" column="12" bodyfile="src/ml_bytecode.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1a3d37e831f78d251ad12a5b8c5a0a6541" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref> *</type>
+        <definition>ml_closure_info_t* ClosureInfo</definition>
+        <argsstring></argsstring>
+        <name>ClosureInfo</name>
+        <qualifiedname>ml_inst_t::ClosureInfo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="31" column="19" bodyfile="src/ml_bytecode.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1ab9e79ae97c8aae37e13afb27d5681ecd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__decl__t" kindref="compound">ml_decl_t</ref> *</type>
+        <definition>ml_decl_t* Decls</definition>
+        <argsstring></argsstring>
+        <name>Decls</name>
+        <qualifiedname>ml_inst_t::Decls</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="32" column="11" bodyfile="src/ml_bytecode.h" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1a0a05a7f058cc32175a859aad95e3c0dd" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Chars</definition>
+        <argsstring></argsstring>
+        <name>Chars</name>
+        <qualifiedname>ml_inst_t::Chars</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="33" column="12" bodyfile="src/ml_bytecode.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1a0655776ec1c81753458648fabb7c5812" prot="public" static="no" mutable="no">
+        <type>const char **</type>
+        <definition>const char** Ptrs</definition>
+        <argsstring></argsstring>
+        <name>Ptrs</name>
+        <qualifiedname>ml_inst_t::Ptrs</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="34" column="12" bodyfile="src/ml_bytecode.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionml__inst__t_1a93462051e04a57e2459e6a2ab149a01c" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* Data</definition>
+        <argsstring></argsstring>
+        <name>Data</name>
+        <qualifiedname>ml_inst_t::Data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="35" column="6" bodyfile="src/ml_bytecode.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="6">
+        <label>ml_closure_info_t</label>
+        <link refid="structml__closure__info__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Entry</edgelabel>
+          <edgelabel>Halt</edgelabel>
+          <edgelabel>Return</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Params</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_decl_t</label>
+        <link refid="structml__decl__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_inst_t</label>
+        <link refid="unionml__inst__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Inst</edgelabel>
+          <edgelabel>Insts</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>ClosureInfo</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_bytecode.h" line="20" column="1" bodyfile="src/ml_bytecode.h" bodystart="20" bodyend="36"/>
+    <listofallmembers>
+      <member refid="unionml__inst__t_1a0a05a7f058cc32175a859aad95e3c0dd" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Chars</name></member>
+      <member refid="unionml__inst__t_1a3d37e831f78d251ad12a5b8c5a0a6541" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>ClosureInfo</name></member>
+      <member refid="unionml__inst__t_1aad462966ed963f892117056de1eba502" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Count</name></member>
+      <member refid="unionml__inst__t_1a93462051e04a57e2459e6a2ab149a01c" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Data</name></member>
+      <member refid="unionml__inst__t_1ab9e79ae97c8aae37e13afb27d5681ecd" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Decls</name></member>
+      <member refid="unionml__inst__t_1a176d72e6e12a34c0016fa8cb4a894621" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Inst</name></member>
+      <member refid="unionml__inst__t_1ab7494fbcf04e1ca7ec49d5b29bf7b8a9" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Insts</name></member>
+      <member refid="unionml__inst__t_1a1cd966d36202496180f973f7284b3806" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Label</name></member>
+      <member refid="unionml__inst__t_1af7f07a1fda3ef5519223c66c30d01a90" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Line</name></member>
+      <member refid="unionml__inst__t_1a123c300e06a1d0c7eb2a2c2bd837dbd6" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Opcode</name></member>
+      <member refid="unionml__inst__t_1a0655776ec1c81753458648fabb7c5812" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Ptrs</name></member>
+      <member refid="unionml__inst__t_1ac132425a70f39fe07667cecb77969764" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Reserved</name></member>
+      <member refid="unionml__inst__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" virt="non-virtual"><scope>ml_inst_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

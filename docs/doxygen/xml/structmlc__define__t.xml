@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__define__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_define_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__define__t_1a04ff08c02a7ea0e95629b1ab79a5d482" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref> *</type>
+        <definition>mlc_define_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>mlc_define_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="111" column="14" bodyfile="src/ml_compiler2.h" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__define__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Ident</definition>
+        <argsstring></argsstring>
+        <name>Ident</name>
+        <qualifiedname>mlc_define_t::Ident</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="112" column="12" bodyfile="src/ml_compiler2.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__define__t_1a2ebabbbf2f4b784c39233f2cc8fb2450" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* Expr</definition>
+        <argsstring></argsstring>
+        <name>Expr</name>
+        <qualifiedname>mlc_define_t::Expr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="113" column="12" bodyfile="src/ml_compiler2.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__define__t_1a0b1c0d43d5102cc48de52bf7295fc19f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* List</definition>
+        <argsstring></argsstring>
+        <name>List</name>
+        <qualifiedname>mlc_define_t::List</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="114" column="12" bodyfile="src/ml_compiler2.h" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__define__t_1a295be8ec098a21a7f81d0932be0d327e" prot="public" static="no" mutable="no">
+        <type>long</type>
+        <definition>long Hash</definition>
+        <argsstring></argsstring>
+        <name>Hash</name>
+        <qualifiedname>mlc_define_t::Hash</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="115" column="6" bodyfile="src/ml_compiler2.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_define_t</label>
+        <link refid="structmlc__define__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>List</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="110" column="1" bodyfile="src/ml_compiler2.h" bodystart="110" bodyend="116"/>
+    <listofallmembers>
+      <member refid="structmlc__define__t_1a2ebabbbf2f4b784c39233f2cc8fb2450" prot="public" virt="non-virtual"><scope>mlc_define_t</scope><name>Expr</name></member>
+      <member refid="structmlc__define__t_1a295be8ec098a21a7f81d0932be0d327e" prot="public" virt="non-virtual"><scope>mlc_define_t</scope><name>Hash</name></member>
+      <member refid="structmlc__define__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" prot="public" virt="non-virtual"><scope>mlc_define_t</scope><name>Ident</name></member>
+      <member refid="structmlc__define__t_1a0b1c0d43d5102cc48de52bf7295fc19f" prot="public" virt="non-virtual"><scope>mlc_define_t</scope><name>List</name></member>
+      <member refid="structmlc__define__t_1a04ff08c02a7ea0e95629b1ab79a5d482" prot="public" virt="non-virtual"><scope>mlc_define_t</scope><name>Next</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

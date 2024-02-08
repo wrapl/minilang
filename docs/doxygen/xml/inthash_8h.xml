@@ -1,0 +1,586 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="inthash_8h" kind="file" language="C++">
+    <compoundname>inthash.h</compoundname>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includedby refid="ml__types_8h" local="yes">src/ml_types.h</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>src/inthash.h</label>
+        <link refid="inthash_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="2">
+        <label>stdlib.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="16">
+        <label>src/array/compare_impl.h</label>
+        <link refid="compare__impl_8h_source"/>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>src/array/compare_impl_complex.h</label>
+        <link refid="compare__impl__complex_8h_source"/>
+      </node>
+      <node id="18">
+        <label>src/array/compare_impl_real.h</label>
+        <link refid="compare__impl__real_8h_source"/>
+      </node>
+      <node id="19">
+        <label>src/array/update_impl.h</label>
+        <link refid="update__impl_8h_source"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>src/array/update_impl_complex.h</label>
+        <link refid="update__impl__complex_8h_source"/>
+      </node>
+      <node id="22">
+        <label>src/array/update_impl_integer.h</label>
+        <link refid="update__impl__integer_8h_source"/>
+      </node>
+      <node id="21">
+        <label>src/array/update_impl_real.h</label>
+        <link refid="update__impl__real_8h_source"/>
+      </node>
+      <node id="14">
+        <label>src/gtk_console.h</label>
+        <link refid="gtk__console_8h_source"/>
+      </node>
+      <node id="12">
+        <label>src/gtk_console_completion.h</label>
+        <link refid="gtk__console__completion_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/inthash.h</label>
+        <link refid="inthash_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>src/minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="34" relation="include">
+        </childnode>
+        <childnode refid="35" relation="include">
+        </childnode>
+        <childnode refid="36" relation="include">
+        </childnode>
+        <childnode refid="37" relation="include">
+        </childnode>
+        <childnode refid="38" relation="include">
+        </childnode>
+        <childnode refid="39" relation="include">
+        </childnode>
+        <childnode refid="40" relation="include">
+        </childnode>
+        <childnode refid="41" relation="include">
+        </childnode>
+        <childnode refid="42" relation="include">
+        </childnode>
+        <childnode refid="43" relation="include">
+        </childnode>
+        <childnode refid="44" relation="include">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>src/ml_array.h</label>
+        <link refid="ml__array_8h_source"/>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+      </node>
+      <node id="23">
+        <label>src/ml_ast.h</label>
+        <link refid="ml__ast_8h_source"/>
+      </node>
+      <node id="3">
+        <label>src/ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>src/ml_bytecode_jit.h</label>
+        <link refid="ml__bytecode__jit_8h_source"/>
+      </node>
+      <node id="24">
+        <label>src/ml_cbor.h</label>
+        <link refid="ml__cbor_8h_source"/>
+      </node>
+      <node id="11">
+        <label>src/ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>src/ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h_source"/>
+      </node>
+      <node id="25">
+        <label>src/ml_console.h</label>
+        <link refid="ml__console_8h_source"/>
+      </node>
+      <node id="6">
+        <label>src/ml_coroutine.h</label>
+        <link refid="ml__coroutine_8h_source"/>
+      </node>
+      <node id="45">
+        <label>src/ml_debugger.h</label>
+        <link refid="ml__debugger_8h_source"/>
+      </node>
+      <node id="26">
+        <label>src/ml_file.h</label>
+        <link refid="ml__file_8h_source"/>
+      </node>
+      <node id="27">
+        <label>src/ml_gir.h</label>
+        <link refid="ml__gir_8h_source"/>
+      </node>
+      <node id="28">
+        <label>src/ml_json.h</label>
+        <link refid="ml__json_8h_source"/>
+      </node>
+      <node id="29">
+        <label>src/ml_library.h</label>
+        <link refid="ml__library_8h_source"/>
+      </node>
+      <node id="30">
+        <label>src/ml_logging.h</label>
+        <link refid="ml__logging_8h_source"/>
+      </node>
+      <node id="31">
+        <label>src/ml_math.h</label>
+        <link refid="ml__math_8h_source"/>
+      </node>
+      <node id="32">
+        <label>src/ml_method.h</label>
+        <link refid="ml__method_8h_source"/>
+      </node>
+      <node id="33">
+        <label>src/ml_minijs.h</label>
+        <link refid="ml__minijs_8h_source"/>
+      </node>
+      <node id="34">
+        <label>src/ml_mmap.h</label>
+        <link refid="ml__mmap_8h_source"/>
+      </node>
+      <node id="35">
+        <label>src/ml_module.h</label>
+        <link refid="ml__module_8h_source"/>
+      </node>
+      <node id="7">
+        <label>src/ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+      </node>
+      <node id="8">
+        <label>src/ml_polynomial.h</label>
+        <link refid="ml__polynomial_8h_source"/>
+      </node>
+      <node id="9">
+        <label>src/ml_pqueue.h</label>
+        <link refid="ml__pqueue_8h_source"/>
+      </node>
+      <node id="10">
+        <label>src/ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="45" relation="include">
+        </childnode>
+      </node>
+      <node id="36">
+        <label>src/ml_socket.h</label>
+        <link refid="ml__socket_8h_source"/>
+      </node>
+      <node id="37">
+        <label>src/ml_stream.h</label>
+        <link refid="ml__stream_8h_source"/>
+      </node>
+      <node id="38">
+        <label>src/ml_struct.h</label>
+        <link refid="ml__struct_8h_source"/>
+      </node>
+      <node id="39">
+        <label>src/ml_table.h</label>
+        <link refid="ml__table_8h_source"/>
+      </node>
+      <node id="40">
+        <label>src/ml_thread.h</label>
+        <link refid="ml__thread_8h_source"/>
+      </node>
+      <node id="41">
+        <label>src/ml_time.h</label>
+        <link refid="ml__time_8h_source"/>
+      </node>
+      <node id="2">
+        <label>src/ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="42">
+        <label>src/ml_uuid.h</label>
+        <link refid="ml__uuid_8h_source"/>
+      </node>
+      <node id="43">
+        <label>src/ml_xe.h</label>
+        <link refid="ml__xe_8h_source"/>
+      </node>
+      <node id="44">
+        <label>src/ml_xml.h</label>
+        <link refid="ml__xml_8h_source"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structinthash__t" prot="public">inthash_t</innerclass>
+    <innerclass refid="structinthash__result__t" prot="public">inthash_result_t</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="inthash_8h_1a27d72e87f09dbeafc3d36cc7904db468" prot="public" static="no">
+        <name>INTHASH_INDEX_SHIFT</name>
+        <initializer>6</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="19" column="9" bodyfile="src/inthash.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="inthash_8h_1a815f76b04432c6fb81ad28140a77a6dc" prot="public" static="no">
+        <name>INTHASH_INCR_SHIFT</name>
+        <initializer>9</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="20" column="9" bodyfile="src/inthash.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="inthash_8h_1aa68df1ce06c4c8542b0ecf7c4c77c94a" prot="public" static="no">
+        <name>INTHASH_INIT</name>
+        <initializer>(<ref refid="structinthash__t" kindref="compound">inthash_t</ref>){NULL, NULL, 0, 0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="22" column="9" bodyfile="src/inthash.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="inthash_8h_1a35ec6770c96376fbd7e4ebd33c41e225" prot="public" static="no">
+        <type>struct inthash_t</type>
+        <definition>typedef struct inthash_t inthash_t</definition>
+        <argsstring></argsstring>
+        <name>inthash_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="11" column="24" bodyfile="src/inthash.h" bodystart="11" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="inthash_8h_1ac8b4e1f4707c584dc03a5a4b1fe6915f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+        <definition>inthash_t * inthash_new</definition>
+        <argsstring>() __attribute__((malloc))</argsstring>
+        <name>inthash_new</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="24" column="11" declfile="src/inthash.h" declline="24" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="inthash_8h_1aa9f7ec5134103dc383959064723a2e25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * inthash_search</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key) __attribute__((pure))</argsstring>
+        <name>inthash_search</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="26" column="6" declfile="src/inthash.h" declline="26" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="inthash_8h_1aee868ab4d35a35ba57302035133f5282" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * inthash_insert</definition>
+        <argsstring>(inthash_t *Map, uintptr_t Key, void *Value)</argsstring>
+        <name>inthash_insert</name>
+        <param>
+          <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="27" column="6" declfile="src/inthash.h" declline="27" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="inthash_8h_1a4a152e7b6312c0d13311d92bdaeccdb1" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void *</type>
+        <definition>static void * inthash_search_inline</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key)</argsstring>
+        <name>inthash_search_inline</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="29" column="20" bodyfile="src/inthash.h" bodystart="29" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="inthash_8h_1adc81ecd4ba4a3bc61c95fd9099b71e60" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int inthash_contains_inline</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key)</argsstring>
+        <name>inthash_contains_inline</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="44" column="19" bodyfile="src/inthash.h" bodystart="44" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="inthash_8h_1af28e2d798de07546d19ad48a8e9746cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref></type>
+        <definition>inthash_result_t inthash_search2</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key) __attribute__((pure))</argsstring>
+        <name>inthash_search2</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="61" column="18" declfile="src/inthash.h" declline="61" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="inthash_8h_1a6d0b8beaaf60a0692f8b1c2d40fa80b0" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref></type>
+        <definition>static inthash_result_t inthash_search2_inline</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key)</argsstring>
+        <name>inthash_search2_inline</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="63" column="32" bodyfile="src/inthash.h" bodystart="63" bodyend="76"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>INTHASH_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>INTHASH_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref>;</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13" refid="structinthash__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/>uintptr_t<sp/>*Keys;</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**Values;</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size,<sp/>Space;</highlight></codeline>
+<codeline lineno="17"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>INTHASH_INDEX_SHIFT<sp/>6</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>INTHASH_INCR_SHIFT<sp/>9</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>INTHASH_INIT<sp/>(inthash_t){NULL,<sp/>NULL,<sp/>0,<sp/>0}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>*inthash_new()<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*inthash_search(const<sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>*Map,<sp/>uintptr_t<sp/>Key)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*inthash_insert(<ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>*Map,<sp/>uintptr_t<sp/>Key,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal">static<sp/>inline<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*inthash_search_inline(const<sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>*Map,<sp/>uintptr_t<sp/>Key)<sp/>{</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Map-&gt;Size)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>uintptr_t<sp/>*Keys<sp/>=<sp/>Map-&gt;Keys;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Mask<sp/>=<sp/>Map-&gt;Size<sp/>-<sp/>1;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Index<sp/>=<sp/>(Key<sp/>&gt;&gt;<sp/>INTHASH_INDEX_SHIFT)<sp/>&amp;<sp/>Mask;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Map-&gt;Values[Index];</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>&lt;<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Incr<sp/>=<sp/>(Key<sp/>&gt;&gt;<sp/>INTHASH_INCR_SHIFT)<sp/>|<sp/>1;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">do</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Index<sp/>=<sp/>(Index<sp/>+<sp/>Incr)<sp/>&amp;<sp/>Mask;</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Map-&gt;Values[Index];</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>&gt;<sp/>Key);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="42"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>inthash_contains_inline(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>*Map,<sp/>uintptr_t<sp/>Key)<sp/>{</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Map-&gt;Size)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>uintptr_t<sp/>*Keys<sp/>=<sp/>Map-&gt;Keys;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Mask<sp/>=<sp/>Map-&gt;Size<sp/>-<sp/>1;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Index<sp/>=<sp/>(Key<sp/>&gt;&gt;<sp/>INTHASH_INDEX_SHIFT)<sp/>&amp;<sp/>Mask;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>&lt;<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Incr<sp/>=<sp/>(Key<sp/>&gt;&gt;<sp/>INTHASH_INCR_SHIFT)<sp/>|<sp/>1;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">do</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Index<sp/>=<sp/>(Index<sp/>+<sp/>Incr)<sp/>&amp;<sp/>Mask;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>&gt;<sp/>Key);</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="structinthash__result__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value;<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Present;}<sp/><ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref>;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref><sp/>inthash_search2(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>*Map,<sp/>uintptr_t<sp/>Key)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/><ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref><sp/>inthash_search2_inline(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>*Map,<sp/>uintptr_t<sp/>Key)<sp/>{</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Map-&gt;Size)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(<ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref>){NULL,<sp/>0};</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>uintptr_t<sp/>*Keys<sp/>=<sp/>Map-&gt;Keys;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Mask<sp/>=<sp/>Map-&gt;Size<sp/>-<sp/>1;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Index<sp/>=<sp/>(Key<sp/>&gt;&gt;<sp/>INTHASH_INDEX_SHIFT)<sp/>&amp;<sp/>Mask;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(<ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref>){Map-&gt;Values[Index],<sp/>1};</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>&lt;<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(<ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref>){NULL,<sp/>0};</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Incr<sp/>=<sp/>(Key<sp/>&gt;&gt;<sp/>INTHASH_INCR_SHIFT)<sp/>|<sp/>1;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">do</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Index<sp/>=<sp/>(Index<sp/>+<sp/>Incr)<sp/>&amp;<sp/>Mask;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(<ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref>){Map-&gt;Values[Index],<sp/>1};</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(Keys[Index]<sp/>&gt;<sp/>Key);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(<ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref>){NULL,<sp/>0};</highlight></codeline>
+<codeline lineno="76"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/inthash.h"/>
+  </compounddef>
+</doxygen>

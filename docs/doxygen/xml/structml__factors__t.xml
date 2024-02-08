@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__factors__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_factors_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__factors__t_1a94c43e7db9c6d7044d4a3b6355c81526" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Degree</definition>
+        <argsstring></argsstring>
+        <name>Degree</name>
+        <qualifiedname>ml_factors_t::Degree</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="16" column="5" bodyfile="src/ml_polynomial.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__factors__t_1aad462966ed963f892117056de1eba502" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Count</definition>
+        <argsstring></argsstring>
+        <name>Count</name>
+        <qualifiedname>ml_factors_t::Count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="16" column="12" bodyfile="src/ml_polynomial.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__factors__t_1a5d3a8896c18353d06020aa572bd31a32" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__factor__t" kindref="compound">ml_factor_t</ref></type>
+        <definition>ml_factor_t Factors[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Factors</name>
+        <qualifiedname>ml_factors_t::Factors</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="17" column="13" bodyfile="src/ml_polynomial.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>ml_factor_t</label>
+        <link refid="structml__factor__t"/>
+      </node>
+      <node id="1">
+        <label>ml_factors_t</label>
+        <link refid="structml__factors__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Factors</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_polynomial.h" line="15" column="1" bodyfile="src/ml_polynomial.h" bodystart="15" bodyend="18"/>
+    <listofallmembers>
+      <member refid="structml__factors__t_1aad462966ed963f892117056de1eba502" prot="public" virt="non-virtual"><scope>ml_factors_t</scope><name>Count</name></member>
+      <member refid="structml__factors__t_1a94c43e7db9c6d7044d4a3b6355c81526" prot="public" virt="non-virtual"><scope>ml_factors_t</scope><name>Degree</name></member>
+      <member refid="structml__factors__t_1a5d3a8896c18353d06020aa572bd31a32" prot="public" virt="non-virtual"><scope>ml_factors_t</scope><name>Factors</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

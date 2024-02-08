@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__array__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_array_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__array__t_1ac9587e70fd201f287412492f9b82ff01" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__address__t" kindref="compound">ml_address_t</ref></type>
+        <definition>ml_address_t Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_array_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="33" column="14" bodyfile="src/ml_array.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__array__t_1a94c43e7db9c6d7044d4a3b6355c81526" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Degree</definition>
+        <argsstring></argsstring>
+        <name>Degree</name>
+        <qualifiedname>ml_array_t::Degree</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="34" column="5" bodyfile="src/ml_array.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__array__t_1a764c6213c3d7c2e8254f206a97c63f04" prot="public" static="no" mutable="no">
+        <type>ml_array_format_t</type>
+        <definition>ml_array_format_t Format</definition>
+        <argsstring></argsstring>
+        <name>Format</name>
+        <qualifiedname>ml_array_t::Format</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="35" column="19" bodyfile="src/ml_array.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__array__t_1a6787c07217613ae7a8b52ea865663026" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref></type>
+        <definition>ml_array_dimension_t Dimensions[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Dimensions</name>
+        <qualifiedname>ml_array_t::Dimensions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="36" column="22" bodyfile="src/ml_array.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_address_t</label>
+        <link refid="structml__address__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_array_dimension_t</label>
+        <link refid="structml__array__dimension__t"/>
+      </node>
+      <node id="1">
+        <label>ml_array_t</label>
+        <link refid="structml__array__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Dimensions</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_array.h" line="32" column="1" bodyfile="src/ml_array.h" bodystart="32" bodyend="37"/>
+    <listofallmembers>
+      <member refid="structml__array__t_1ac9587e70fd201f287412492f9b82ff01" prot="public" virt="non-virtual"><scope>ml_array_t</scope><name>Base</name></member>
+      <member refid="structml__array__t_1a94c43e7db9c6d7044d4a3b6355c81526" prot="public" virt="non-virtual"><scope>ml_array_t</scope><name>Degree</name></member>
+      <member refid="structml__array__t_1a6787c07217613ae7a8b52ea865663026" prot="public" virt="non-virtual"><scope>ml_array_t</scope><name>Dimensions</name></member>
+      <member refid="structml__array__t_1a764c6213c3d7c2e8254f206a97c63f04" prot="public" virt="non-virtual"><scope>ml_array_t</scope><name>Format</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

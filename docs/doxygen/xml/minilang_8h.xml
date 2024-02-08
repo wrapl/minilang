@@ -1,0 +1,361 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="minilang_8h" kind="file" language="C++">
+    <compoundname>minilang.h</compoundname>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">unistd.h</includes>
+    <includes refid="ml__compiler_8h" local="yes">ml_compiler.h</includes>
+    <includedby refid="gtk__console_8h" local="yes">src/gtk_console.h</includedby>
+    <includedby refid="ml__array_8h" local="yes">src/ml_array.h</includedby>
+    <includedby refid="ml__ast_8h" local="yes">src/ml_ast.h</includedby>
+    <includedby refid="ml__cbor_8h" local="yes">src/ml_cbor.h</includedby>
+    <includedby refid="ml__console_8h" local="yes">src/ml_console.h</includedby>
+    <includedby refid="ml__file_8h" local="yes">src/ml_file.h</includedby>
+    <includedby refid="ml__gir_8h" local="yes">src/ml_gir.h</includedby>
+    <includedby refid="ml__json_8h" local="yes">src/ml_json.h</includedby>
+    <includedby refid="ml__library_8h" local="yes">src/ml_library.h</includedby>
+    <includedby refid="ml__logging_8h" local="yes">src/ml_logging.h</includedby>
+    <includedby refid="ml__math_8h" local="yes">src/ml_math.h</includedby>
+    <includedby refid="ml__method_8h" local="yes">src/ml_method.h</includedby>
+    <includedby refid="ml__minijs_8h" local="yes">src/ml_minijs.h</includedby>
+    <includedby refid="ml__mmap_8h" local="yes">src/ml_mmap.h</includedby>
+    <includedby refid="ml__module_8h" local="yes">src/ml_module.h</includedby>
+    <includedby refid="ml__socket_8h" local="yes">src/ml_socket.h</includedby>
+    <includedby refid="ml__stream_8h" local="yes">src/ml_stream.h</includedby>
+    <includedby refid="ml__struct_8h" local="yes">src/ml_struct.h</includedby>
+    <includedby refid="ml__table_8h" local="yes">src/ml_table.h</includedby>
+    <includedby refid="ml__thread_8h" local="yes">src/ml_thread.h</includedby>
+    <includedby refid="ml__time_8h" local="yes">src/ml_time.h</includedby>
+    <includedby refid="ml__uuid_8h" local="yes">src/ml_uuid.h</includedby>
+    <includedby refid="ml__xe_8h" local="yes">src/ml_xe.h</includedby>
+    <includedby refid="ml__xml_8h" local="yes">src/ml_xml.h</includedby>
+    <incdepgraph>
+      <node id="12">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/minilang.h</label>
+        <link refid="minilang_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="15">
+        <label>limits.h</label>
+      </node>
+      <node id="14">
+        <label>ml_config.h</label>
+      </node>
+      <node id="5">
+        <label>setjmp.h</label>
+      </node>
+      <node id="10">
+        <label>stdarg.h</label>
+      </node>
+      <node id="13">
+        <label>stdint.h</label>
+      </node>
+      <node id="8">
+        <label>stdio.h</label>
+      </node>
+      <node id="2">
+        <label>stdlib.h</label>
+      </node>
+      <node id="9">
+        <label>string.h</label>
+      </node>
+      <node id="3">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="4">
+        <label>src/array/compare_impl.h</label>
+        <link refid="compare__impl_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>src/array/compare_impl_complex.h</label>
+        <link refid="compare__impl__complex_8h_source"/>
+      </node>
+      <node id="6">
+        <label>src/array/compare_impl_real.h</label>
+        <link refid="compare__impl__real_8h_source"/>
+      </node>
+      <node id="7">
+        <label>src/array/update_impl.h</label>
+        <link refid="update__impl_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>src/array/update_impl_complex.h</label>
+        <link refid="update__impl__complex_8h_source"/>
+      </node>
+      <node id="10">
+        <label>src/array/update_impl_integer.h</label>
+        <link refid="update__impl__integer_8h_source"/>
+      </node>
+      <node id="9">
+        <label>src/array/update_impl_real.h</label>
+        <link refid="update__impl__real_8h_source"/>
+      </node>
+      <node id="2">
+        <label>src/gtk_console.h</label>
+        <link refid="gtk__console_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/minilang.h</label>
+        <link refid="minilang_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>src/ml_array.h</label>
+        <link refid="ml__array_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>src/ml_ast.h</label>
+        <link refid="ml__ast_8h_source"/>
+      </node>
+      <node id="12">
+        <label>src/ml_cbor.h</label>
+        <link refid="ml__cbor_8h_source"/>
+      </node>
+      <node id="13">
+        <label>src/ml_console.h</label>
+        <link refid="ml__console_8h_source"/>
+      </node>
+      <node id="14">
+        <label>src/ml_file.h</label>
+        <link refid="ml__file_8h_source"/>
+      </node>
+      <node id="15">
+        <label>src/ml_gir.h</label>
+        <link refid="ml__gir_8h_source"/>
+      </node>
+      <node id="16">
+        <label>src/ml_json.h</label>
+        <link refid="ml__json_8h_source"/>
+      </node>
+      <node id="17">
+        <label>src/ml_library.h</label>
+        <link refid="ml__library_8h_source"/>
+      </node>
+      <node id="18">
+        <label>src/ml_logging.h</label>
+        <link refid="ml__logging_8h_source"/>
+      </node>
+      <node id="19">
+        <label>src/ml_math.h</label>
+        <link refid="ml__math_8h_source"/>
+      </node>
+      <node id="20">
+        <label>src/ml_method.h</label>
+        <link refid="ml__method_8h_source"/>
+      </node>
+      <node id="21">
+        <label>src/ml_minijs.h</label>
+        <link refid="ml__minijs_8h_source"/>
+      </node>
+      <node id="22">
+        <label>src/ml_mmap.h</label>
+        <link refid="ml__mmap_8h_source"/>
+      </node>
+      <node id="23">
+        <label>src/ml_module.h</label>
+        <link refid="ml__module_8h_source"/>
+      </node>
+      <node id="24">
+        <label>src/ml_socket.h</label>
+        <link refid="ml__socket_8h_source"/>
+      </node>
+      <node id="25">
+        <label>src/ml_stream.h</label>
+        <link refid="ml__stream_8h_source"/>
+      </node>
+      <node id="26">
+        <label>src/ml_struct.h</label>
+        <link refid="ml__struct_8h_source"/>
+      </node>
+      <node id="27">
+        <label>src/ml_table.h</label>
+        <link refid="ml__table_8h_source"/>
+      </node>
+      <node id="28">
+        <label>src/ml_thread.h</label>
+        <link refid="ml__thread_8h_source"/>
+      </node>
+      <node id="29">
+        <label>src/ml_time.h</label>
+        <link refid="ml__time_8h_source"/>
+      </node>
+      <node id="30">
+        <label>src/ml_uuid.h</label>
+        <link refid="ml__uuid_8h_source"/>
+      </node>
+      <node id="31">
+        <label>src/ml_xe.h</label>
+        <link refid="ml__xe_8h_source"/>
+      </node>
+      <node id="32">
+        <label>src/ml_xml.h</label>
+        <link refid="ml__xml_8h_source"/>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="minilang_8h_1a4c01a7e9a9beb0e447ec08b7b41767bd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minilang.h" line="13" column="6" declfile="src/minilang.h" declline="13" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>MINILANG_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MINILANG_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;unistd.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_compiler.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/minilang.h"/>
+  </compounddef>
+</doxygen>

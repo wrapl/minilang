@@ -1,0 +1,1337 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__cbor" kind="group">
+    <compoundname>cbor</compoundname>
+    <title>Cbor</title>
+    <innerclass refid="structml__cbor__t" prot="public">ml_cbor_t</innerclass>
+    <innerclass refid="structml__cbor__result__t" prot="public">ml_cbor_result_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" prot="public" static="no">
+        <type>struct ml_cbor_reader_t</type>
+        <definition>typedef struct ml_cbor_reader_t ml_cbor_reader_t</definition>
+        <argsstring></argsstring>
+        <name>ml_cbor_reader_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="23" column="31" bodyfile="src/ml_cbor.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" prot="public" static="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*</type>
+        <definition>typedef ml_value_t *(* ml_cbor_tag_fn) (ml_cbor_reader_t *Reader, ml_value_t *Value)</definition>
+        <argsstring>)(ml_cbor_reader_t *Reader, ml_value_t *Value)</argsstring>
+        <name>ml_cbor_tag_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="25" column="9" bodyfile="src/ml_cbor.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" prot="public" static="no">
+        <type>struct ml_cbor_tag_fns_t</type>
+        <definition>typedef struct ml_cbor_tag_fns_t ml_cbor_tag_fns_t</definition>
+        <argsstring></argsstring>
+        <name>ml_cbor_tag_fns_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="26" column="32" bodyfile="src/ml_cbor.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" prot="public" static="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*</type>
+        <definition>typedef ml_value_t *(* ml_external_fn_t) (void *Data, const char *Name)</definition>
+        <argsstring>)(void *Data, const char *Name)</argsstring>
+        <name>ml_external_fn_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="36" column="9" bodyfile="src/ml_cbor.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__cbor_1ga83753ed54fc23e31dc443dd870e693fa" prot="public" static="no">
+        <type>int(*</type>
+        <definition>typedef int(* ml_cbor_write_fn) (void *Data, const unsigned char *Bytes, size_t Size)</definition>
+        <argsstring>)(void *Data, const unsigned char *Bytes, size_t Size)</argsstring>
+        <name>ml_cbor_write_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="54" column="9" bodyfile="src/ml_cbor.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__cbor_1ga8b3adf33c257a3a951f5ed9e013dfb08" prot="public" static="no">
+        <type>struct ml_cbor_writer_t</type>
+        <definition>typedef struct ml_cbor_writer_t ml_cbor_writer_t</definition>
+        <argsstring></argsstring>
+        <name>ml_cbor_writer_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="55" column="31" bodyfile="src/ml_cbor.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__cbor_1ga1875649a317944eb80c96a3dbe837e22" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_cbor_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="17" column="6" declfile="src/ml_cbor.h" declline="17" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gaa0708b17e23cbb8b9f8b6a7ae4336649" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_default_object</definition>
+        <argsstring>(const char *Name, ml_value_t *Constructor)</argsstring>
+        <name>ml_cbor_default_object</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Constructor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="19" column="6" declfile="src/ml_cbor.h" declline="19" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_cbor_setting</definition>
+        <argsstring>()</argsstring>
+        <name>ml_cbor_setting</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="21" column="5" declfile="src/ml_cbor.h" declline="21" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_cbor_tag_fns_t *</type>
+        <definition>ml_cbor_tag_fns_t * ml_cbor_tag_fns</definition>
+        <argsstring>(int Default)</argsstring>
+        <name>ml_cbor_tag_fns</name>
+        <param>
+          <type>int</type>
+          <declname>Default</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="28" column="19" declfile="src/ml_cbor.h" declline="28" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_cbor_tag_fns_t *</type>
+        <definition>ml_cbor_tag_fns_t * ml_cbor_tag_fns_copy</definition>
+        <argsstring>(ml_cbor_tag_fns_t *TagFns)</argsstring>
+        <name>ml_cbor_tag_fns_copy</name>
+        <param>
+          <type>ml_cbor_tag_fns_t *</type>
+          <declname>TagFns</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="29" column="19" declfile="src/ml_cbor.h" declline="29" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_cbor_tag_fn</type>
+        <definition>ml_cbor_tag_fn ml_cbor_tag_fn_get</definition>
+        <argsstring>(ml_cbor_tag_fns_t *TagFns, uint64_t Tag)</argsstring>
+        <name>ml_cbor_tag_fn_get</name>
+        <param>
+          <type>ml_cbor_tag_fns_t *</type>
+          <declname>TagFns</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>Tag</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="30" column="16" declfile="src/ml_cbor.h" declline="30" declcolumn="16"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_tag_fn_set</definition>
+        <argsstring>(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn)</argsstring>
+        <name>ml_cbor_tag_fn_set</name>
+        <param>
+          <type>ml_cbor_tag_fns_t *</type>
+          <declname>TagFns</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>Tag</declname>
+        </param>
+        <param>
+          <type>ml_cbor_tag_fn</type>
+          <declname>Fn</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="31" column="6" declfile="src/ml_cbor.h" declline="31" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gadd973c7e9f41d7e5077073d540f8865e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_default_tag</definition>
+        <argsstring>(uint64_t Tag, ml_cbor_tag_fn TagFn)</argsstring>
+        <name>ml_cbor_default_tag</name>
+        <param>
+          <type>uint64_t</type>
+          <declname>Tag</declname>
+        </param>
+        <param>
+          <type>ml_cbor_tag_fn</type>
+          <declname>TagFn</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="33" column="6" declfile="src/ml_cbor.h" declline="33" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga0731346fd6ade363da69269de78ea66d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_default_global</definition>
+        <argsstring>(const char *Name, void *Value)</argsstring>
+        <name>ml_cbor_default_global</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="34" column="6" declfile="src/ml_cbor.h" declline="34" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_cbor_reader_t *</type>
+        <definition>ml_cbor_reader_t * ml_cbor_reader</definition>
+        <argsstring>(ml_cbor_tag_fns_t *TagFns, ml_external_fn_t GlobalGet, void *Globals)</argsstring>
+        <name>ml_cbor_reader</name>
+        <param>
+          <type>ml_cbor_tag_fns_t *</type>
+          <declname>TagFns</declname>
+        </param>
+        <param>
+          <type>ml_external_fn_t</type>
+          <declname>GlobalGet</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="38" column="18" declfile="src/ml_cbor.h" declline="38" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga8f33df522c0cda12e6de463bc84ea5c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_reader_reset</definition>
+        <argsstring>(ml_cbor_reader_t *Reader)</argsstring>
+        <name>ml_cbor_reader_reset</name>
+        <param>
+          <type>ml_cbor_reader_t *</type>
+          <declname>Reader</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="39" column="6" declfile="src/ml_cbor.h" declline="39" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga6c6781dee628dfa15ac2179a1e5e0f16" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_reader_set_setting</definition>
+        <argsstring>(ml_cbor_reader_t *Reader, int Key, void *Value)</argsstring>
+        <name>ml_cbor_reader_set_setting</name>
+        <param>
+          <type>ml_cbor_reader_t *</type>
+          <declname>Reader</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Key</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="40" column="6" declfile="src/ml_cbor.h" declline="40" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gabffa0dcaa75e02406d93e94e3991d2ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * ml_cbor_reader_get_setting</definition>
+        <argsstring>(ml_cbor_reader_t *Reader, int Key)</argsstring>
+        <name>ml_cbor_reader_get_setting</name>
+        <param>
+          <type>ml_cbor_reader_t *</type>
+          <declname>Reader</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="41" column="6" declfile="src/ml_cbor.h" declline="41" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga49916bbca25f2306233795b4fdc07a0e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_cbor_reader_read</definition>
+        <argsstring>(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size)</argsstring>
+        <name>ml_cbor_reader_read</name>
+        <param>
+          <type>ml_cbor_reader_t *</type>
+          <declname>Reader</declname>
+        </param>
+        <param>
+          <type>unsigned char *</type>
+          <declname>Bytes</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="42" column="5" declfile="src/ml_cbor.h" declline="42" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_cbor_reader_get</definition>
+        <argsstring>(ml_cbor_reader_t *Reader)</argsstring>
+        <name>ml_cbor_reader_get</name>
+        <param>
+          <type>ml_cbor_reader_t *</type>
+          <declname>Reader</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="43" column="12" declfile="src/ml_cbor.h" declline="43" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gaa8424e59dea6603c428ce454cff50561" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_cbor_reader_extra</definition>
+        <argsstring>(ml_cbor_reader_t *Reader)</argsstring>
+        <name>ml_cbor_reader_extra</name>
+        <param>
+          <type>ml_cbor_reader_t *</type>
+          <declname>Reader</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="44" column="5" declfile="src/ml_cbor.h" declline="44" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_cbor_writer_t *</type>
+        <definition>ml_cbor_writer_t * ml_cbor_writer</definition>
+        <argsstring>(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals)</argsstring>
+        <name>ml_cbor_writer</name>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>ml_cbor_write_fn</type>
+          <declname>WriteFn</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref> *</type>
+          <declname>Externals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="57" column="18" declfile="src/ml_cbor.h" declline="57" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_writer_reset</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, void *Data)</argsstring>
+        <name>ml_cbor_writer_reset</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="58" column="6" declfile="src/ml_cbor.h" declline="58" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga654054d6c9c10b740bd0167794d52230" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_writer_set_setting</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, int Setting, void *Value)</argsstring>
+        <name>ml_cbor_writer_set_setting</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Setting</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="59" column="6" declfile="src/ml_cbor.h" declline="59" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga2d018c5d6f978f4db12b92d7aec8836f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * ml_cbor_writer_get_setting</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, int Setting)</argsstring>
+        <name>ml_cbor_writer_get_setting</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Setting</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="60" column="6" declfile="src/ml_cbor.h" declline="60" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga8039fbc40c6a8c958cc51d7c19010f4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_writer_find_refs</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, ml_value_t *Value)</argsstring>
+        <name>ml_cbor_writer_find_refs</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="61" column="6" declfile="src/ml_cbor.h" declline="61" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga2ff101352521b6e816f82fdc5ee5bd96" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
+        <definition>ml_cbor_t ml_cbor_encode</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_cbor_encode</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="62" column="11" declfile="src/ml_cbor.h" declline="62" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gaed315706c7e475cb6e0dbeb9826be8f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_cbor_encode_to</definition>
+        <argsstring>(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals, ml_value_t *Value)</argsstring>
+        <name>ml_cbor_encode_to</name>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>ml_cbor_write_fn</type>
+          <declname>WriteFn</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref> *</type>
+          <declname>Externals</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="63" column="12" declfile="src/ml_cbor.h" declline="63" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga4c76629bc733070ac9d808ceeb5b81bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_writer_error</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, ml_value_t *Error) __attribute__((noreturn))</argsstring>
+        <name>ml_cbor_writer_error</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Error</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="65" column="6" declfile="src/ml_cbor.h" declline="65" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gae23c6895c6d8d51619a7129694407a8a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, ml_value_t *Value)</argsstring>
+        <name>ml_cbor_write</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="69" column="6" declfile="src/ml_cbor.h" declline="69" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gadfb041f36774032a98b8cf608b230649" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_cbor_try_write</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, ml_value_t *Value)</argsstring>
+        <name>ml_cbor_try_write</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="70" column="12" declfile="src/ml_cbor.h" declline="70" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gaf5ba137da8e8bc80a85e0ddf38b3b036" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_cbor_write_raw</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, const void *Bytes, size_t Length)</argsstring>
+        <name>ml_cbor_write_raw</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>Bytes</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="72" column="5" declfile="src/ml_cbor.h" declline="72" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gac11b1f1a50d8d88403e006f321ff9cab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_integer</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, int64_t Number)</argsstring>
+        <name>ml_cbor_write_integer</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>int64_t</type>
+          <declname>Number</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="73" column="6" declfile="src/ml_cbor.h" declline="73" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gad0aa28a76639b58bf5cc54643800e1e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_positive</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, uint64_t Number)</argsstring>
+        <name>ml_cbor_write_positive</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>Number</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="74" column="6" declfile="src/ml_cbor.h" declline="74" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga27f93dbd9b8e424a3c830ef9340679b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_negative</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, uint64_t Number)</argsstring>
+        <name>ml_cbor_write_negative</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>Number</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="75" column="6" declfile="src/ml_cbor.h" declline="75" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga15ffa0f97f39f76becceb72c31303794" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_bytes</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, unsigned Size)</argsstring>
+        <name>ml_cbor_write_bytes</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="76" column="6" declfile="src/ml_cbor.h" declline="76" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gad18b36e18bbbcfb76b51e83ad2124064" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_indef_bytes</definition>
+        <argsstring>(ml_cbor_writer_t *Writer)</argsstring>
+        <name>ml_cbor_write_indef_bytes</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="77" column="6" declfile="src/ml_cbor.h" declline="77" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gac908ac00fe8401fd1f33711901a7d44d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_string</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, unsigned Size)</argsstring>
+        <name>ml_cbor_write_string</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="78" column="6" declfile="src/ml_cbor.h" declline="78" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga55a59c36c0f5e9b795eb419b12cf9ac7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_indef_string</definition>
+        <argsstring>(ml_cbor_writer_t *Writer)</argsstring>
+        <name>ml_cbor_write_indef_string</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="79" column="6" declfile="src/ml_cbor.h" declline="79" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga746cce265db853a62c7787867f20dd52" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_array</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, unsigned Size)</argsstring>
+        <name>ml_cbor_write_array</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="80" column="6" declfile="src/ml_cbor.h" declline="80" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga63788e2a09d0a3f1550dde44545a82ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_indef_array</definition>
+        <argsstring>(ml_cbor_writer_t *Writer)</argsstring>
+        <name>ml_cbor_write_indef_array</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="81" column="6" declfile="src/ml_cbor.h" declline="81" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga3d3a4a5a8e9a906498faa746cd5203e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_map</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, unsigned Size)</argsstring>
+        <name>ml_cbor_write_map</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="82" column="6" declfile="src/ml_cbor.h" declline="82" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga7cb03ede6917a82a27aaa5de6a2f1b9b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_indef_map</definition>
+        <argsstring>(ml_cbor_writer_t *Writer)</argsstring>
+        <name>ml_cbor_write_indef_map</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="83" column="6" declfile="src/ml_cbor.h" declline="83" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gaf4ee99f92b9ad9fdbcc1cd51b21db960" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_float2</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, double Number)</argsstring>
+        <name>ml_cbor_write_float2</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>Number</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="84" column="6" declfile="src/ml_cbor.h" declline="84" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gad4d1e978c0b9dec68780ddf8b6e4ed0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_float4</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, double Number)</argsstring>
+        <name>ml_cbor_write_float4</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>Number</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="85" column="6" declfile="src/ml_cbor.h" declline="85" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga84975ef5fcf8dd66a87eb4e1a232b922" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_float8</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, double Number)</argsstring>
+        <name>ml_cbor_write_float8</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>Number</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="86" column="6" declfile="src/ml_cbor.h" declline="86" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga304f841ff275f70d186f71cd1c876f7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_simple</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, unsigned char Simple)</argsstring>
+        <name>ml_cbor_write_simple</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>unsigned char</type>
+          <declname>Simple</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="87" column="6" declfile="src/ml_cbor.h" declline="87" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gaf012c0fba7c38ad2e628be0b46d7730b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_break</definition>
+        <argsstring>(ml_cbor_writer_t *Writer)</argsstring>
+        <name>ml_cbor_write_break</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="88" column="6" declfile="src/ml_cbor.h" declline="88" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga855a61374e2ed28281b15b09868e100c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_cbor_write_tag</definition>
+        <argsstring>(ml_cbor_writer_t *Writer, uint64_t Tag)</argsstring>
+        <name>ml_cbor_write_tag</name>
+        <param>
+          <type>ml_cbor_writer_t *</type>
+          <declname>Writer</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>Tag</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="89" column="6" declfile="src/ml_cbor.h" declline="89" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga1a9844ccc58fb268ecd9bfb45acac18d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
+        <definition>ml_cbor_t ml_to_cbor</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_to_cbor</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="91" column="11" declfile="src/ml_cbor.h" declline="91" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga875acf4b0085636e0ec8fc2b78cec64c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_from_cbor</definition>
+        <argsstring>(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns)</argsstring>
+        <name>ml_from_cbor</name>
+        <param>
+          <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
+          <declname>Cbor</declname>
+        </param>
+        <param>
+          <type>ml_cbor_tag_fns_t *</type>
+          <declname>TagFns</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="92" column="12" declfile="src/ml_cbor.h" declline="92" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1gab60f5ad34cf7e3f07f2cd211778d5379" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref></type>
+        <definition>ml_cbor_result_t ml_from_cbor_extra</definition>
+        <argsstring>(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns)</argsstring>
+        <name>ml_from_cbor_extra</name>
+        <param>
+          <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
+          <declname>Cbor</declname>
+        </param>
+        <param>
+          <type>ml_cbor_tag_fns_t *</type>
+          <declname>TagFns</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="96" column="18" declfile="src/ml_cbor.h" declline="96" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__cbor_1ga42c342cfc94c4315b24a889ae2a41fad" prot="public" static="no">
+        <name>ML_CBOR_WRITER_ERROR</name>
+        <param><defname>WRITER</defname></param>
+        <param><defname>ARGS...</defname></param>
+        <initializer>ml_cbor_writer_error(WRITER, ml_error(ARGS))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="67" column="9" bodyfile="src/ml_cbor.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gaada70f0ea23e15bf397e61a143bb2be0" prot="public" static="no">
+        <name>ML_CBOR_TAG_TIME_STRING</name>
+        <initializer>0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="98" column="9" bodyfile="src/ml_cbor.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gac49547f7b37eb1c8ae832c371cad7c7a" prot="public" static="no">
+        <name>ML_CBOR_TAG_TIME_EPOCH</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="99" column="9" bodyfile="src/ml_cbor.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" prot="public" static="no">
+        <name>ML_CBOR_TAG_OBJECT</name>
+        <initializer>27</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="100" column="9" bodyfile="src/ml_cbor.h" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga414e0a857e7cb34490db404457eed09d" prot="public" static="no">
+        <name>ML_CBOR_TAG_MARK_REUSED</name>
+        <initializer>28</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="101" column="9" bodyfile="src/ml_cbor.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" prot="public" static="no">
+        <name>ML_CBOR_TAG_USE_PREVIOUS</name>
+        <initializer>29</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="102" column="9" bodyfile="src/ml_cbor.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" prot="public" static="no">
+        <name>ML_CBOR_TAG_REGEX</name>
+        <initializer>35</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="103" column="9" bodyfile="src/ml_cbor.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" prot="public" static="no">
+        <name>ML_CBOR_TAG_UUID</name>
+        <initializer>37</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="104" column="9" bodyfile="src/ml_cbor.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" prot="public" static="no">
+        <name>ML_CBOR_TAG_IDENTIFIER</name>
+        <initializer>39</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="105" column="9" bodyfile="src/ml_cbor.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gac9cb5eb0c13e16631cc6ddf156e183bb" prot="public" static="no">
+        <name>ML_CBOR_TAG_MULTI_ARRAY</name>
+        <initializer>40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="106" column="9" bodyfile="src/ml_cbor.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga007b8b13ad17160f0f4f92a3284b2f17" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_ANY</name>
+        <initializer>41</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="107" column="9" bodyfile="src/ml_cbor.h" bodystart="107" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga86ff208b3e86bb5d51a354151f8b08e8" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_UINT8</name>
+        <initializer>64</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="108" column="9" bodyfile="src/ml_cbor.h" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gaf451bb81e5a7663bf3abd6cb2a5f2262" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_UINT16_LE</name>
+        <initializer>69</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="109" column="9" bodyfile="src/ml_cbor.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga7239c24bc9cd9090204e22e619585b76" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_UINT32_LE</name>
+        <initializer>70</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="110" column="9" bodyfile="src/ml_cbor.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gae96cd04c218ba612c229d6e5340a0d62" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_UINT64_LE</name>
+        <initializer>71</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="111" column="9" bodyfile="src/ml_cbor.h" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga9a8ca4450155ae9e464bebf6a93a4297" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_INT8</name>
+        <initializer>72</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="112" column="9" bodyfile="src/ml_cbor.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gad197c4abc0e791e6571271e806bc00c7" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_INT16_LE</name>
+        <initializer>77</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="113" column="9" bodyfile="src/ml_cbor.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gac81e3b6eedfb8a30c66071be1dcd2430" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_INT32_LE</name>
+        <initializer>78</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="114" column="9" bodyfile="src/ml_cbor.h" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga2dc366c6ae887cb821e7983471486625" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_INT64_LE</name>
+        <initializer>79</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="115" column="9" bodyfile="src/ml_cbor.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gaf98e5c8e177d600bc5928e7c17306952" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_FLOAT32_LE</name>
+        <initializer>85</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="116" column="9" bodyfile="src/ml_cbor.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gac52cb1c1a502ea091f5e6e3c8ec365bf" prot="public" static="no">
+        <name>ML_CBOR_TAG_ARRAY_FLOAT64_LE</name>
+        <initializer>86</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="117" column="9" bodyfile="src/ml_cbor.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gac5ec85003926cfc97499d360b355e860" prot="public" static="no">
+        <name>ML_CBOR_TAG_FINITE_SET</name>
+        <initializer>258</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="118" column="9" bodyfile="src/ml_cbor.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga3eceae59d2801f4ac001004e4841edd7" prot="public" static="no">
+        <name>ML_CBOR_TAG_EMBEDDED_JSON</name>
+        <initializer>262</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="119" column="9" bodyfile="src/ml_cbor.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1gabdce4b6c792a8feb77e2564f4a62e435" prot="public" static="no">
+        <name>ML_CBOR_TAG_COMPLEX</name>
+        <initializer>43000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="120" column="9" bodyfile="src/ml_cbor.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__cbor_1ga5456f51b3c2664a7618b7e9deb6c8d9d" prot="public" static="no">
+        <name>ML_CBOR_TAG_COMPLEX_ARRAY</name>
+        <initializer>43001</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="121" column="9" bodyfile="src/ml_cbor.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

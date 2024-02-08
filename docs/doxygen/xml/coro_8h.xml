@@ -1,0 +1,569 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="coro_8h" kind="file" language="C++">
+    <compoundname>coro.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>src/coro.h</label>
+        <link refid="coro_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structcoro__stack" prot="public">coro_stack</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="coro_8h_1a74559141bdca26df136ddf6b8290936e" prot="public" static="no">
+        <name>CORO_VERSION</name>
+        <initializer>3</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="167" column="9" bodyfile="src/coro.h" bodystart="167" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="coro_8h_1ad3e7b6045e1896e82f629970e5555e25" prot="public" static="no">
+        <name>CORO_STACKALLOC</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="249" column="10" bodyfile="src/coro.h" bodystart="249" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="coro_8h_1a4b6672da914517c1cd11d4063ff52bfd" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* coro_func) (void *)</definition>
+        <argsstring>)(void *)</argsstring>
+        <name>coro_func</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="174" column="9" bodyfile="src/coro.h" bodystart="174" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="coro_8h_1a66a7871c542f31e838aed62571e07196" prot="public" static="no">
+        <type>struct coro_context</type>
+        <definition>typedef struct coro_context coro_context</definition>
+        <argsstring></argsstring>
+        <name>coro_context</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="181" column="27" bodyfile="src/coro.h" bodystart="181" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="coro_8h_1ae529e5f3c77cfe36ae2fad1ffe2ea8ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void coro_create</definition>
+        <argsstring>(coro_context *ctx, coro_func coro, void *arg, void *sptr, size_t ssze)</argsstring>
+        <name>coro_create</name>
+        <param>
+          <type>coro_context *</type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>coro_func</type>
+          <declname>coro</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>arg</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>sptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>ssze</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="197" column="6" declfile="src/coro.h" declline="197" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="coro_8h_1af889af911dcc4afc6014c9402b77b2e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int coro_stack_alloc</definition>
+        <argsstring>(struct coro_stack *stack, unsigned int size)</argsstring>
+        <name>coro_stack_alloc</name>
+        <param>
+          <type>struct <ref refid="structcoro__stack" kindref="compound">coro_stack</ref> *</type>
+          <declname>stack</declname>
+        </param>
+        <param>
+          <type>unsigned int</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="281" column="5" declfile="src/coro.h" declline="281" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="coro_8h_1a2b0db6ba1253ca9fb7753fef48c406f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void coro_stack_free</definition>
+        <argsstring>(struct coro_stack *stack)</argsstring>
+        <name>coro_stack_free</name>
+        <param>
+          <type>struct <ref refid="structcoro__stack" kindref="compound">coro_stack</ref> *</type>
+          <declname>stack</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="288" column="6" declfile="src/coro.h" declline="288" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>Copyright<sp/>(c)<sp/>2001-2012<sp/>Marc<sp/>Alexander<sp/>Lehmann<sp/>&lt;schmorp@schmorp.de&gt;</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*<sp/>Redistribution<sp/>and<sp/>use<sp/>in<sp/>source<sp/>and<sp/>binary<sp/>forms,<sp/>with<sp/>or<sp/>without<sp/>modifica-</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>tion,<sp/>are<sp/>permitted<sp/>provided<sp/>that<sp/>the<sp/>following<sp/>conditions<sp/>are<sp/>met:</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*<sp/><sp/><sp/>1.<sp/><sp/>Redistributions<sp/>of<sp/>source<sp/>code<sp/>must<sp/>retain<sp/>the<sp/>above<sp/>copyright<sp/>notice,</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>this<sp/>list<sp/>of<sp/>conditions<sp/>and<sp/>the<sp/>following<sp/>disclaimer.</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*<sp/><sp/><sp/>2.<sp/><sp/>Redistributions<sp/>in<sp/>binary<sp/>form<sp/>must<sp/>reproduce<sp/>the<sp/>above<sp/>copyright</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>notice,<sp/>this<sp/>list<sp/>of<sp/>conditions<sp/>and<sp/>the<sp/>following<sp/>disclaimer<sp/>in<sp/>the</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>documentation<sp/>and/or<sp/>other<sp/>materials<sp/>provided<sp/>with<sp/>the<sp/>distribution.</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>THIS<sp/>SOFTWARE<sp/>IS<sp/>PROVIDED<sp/>BY<sp/>THE<sp/>AUTHOR<sp/>``AS<sp/>IS&apos;&apos;<sp/>AND<sp/>ANY<sp/>EXPRESS<sp/>OR<sp/>IMPLIED</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>WARRANTIES,<sp/>INCLUDING,<sp/>BUT<sp/>NOT<sp/>LIMITED<sp/>TO,<sp/>THE<sp/>IMPLIED<sp/>WARRANTIES<sp/>OF<sp/>MER-</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*<sp/>CHANTABILITY<sp/>AND<sp/>FITNESS<sp/>FOR<sp/>A<sp/>PARTICULAR<sp/>PURPOSE<sp/>ARE<sp/>DISCLAIMED.<sp/><sp/>IN<sp/>NO</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>EVENT<sp/>SHALL<sp/>THE<sp/>AUTHOR<sp/>BE<sp/>LIABLE<sp/>FOR<sp/>ANY<sp/>DIRECT,<sp/>INDIRECT,<sp/>INCIDENTAL,<sp/>SPE-</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>CIAL,<sp/>EXEMPLARY,<sp/>OR<sp/>CONSEQUENTIAL<sp/>DAMAGES<sp/>(INCLUDING,<sp/>BUT<sp/>NOT<sp/>LIMITED<sp/>TO,</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>PROCUREMENT<sp/>OF<sp/>SUBSTITUTE<sp/>GOODS<sp/>OR<sp/>SERVICES;<sp/>LOSS<sp/>OF<sp/>USE,<sp/>DATA,<sp/>OR<sp/>PROFITS;</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*<sp/>OR<sp/>BUSINESS<sp/>INTERRUPTION)<sp/>HOWEVER<sp/>CAUSED<sp/>AND<sp/>ON<sp/>ANY<sp/>THEORY<sp/>OF<sp/>LIABILITY,</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>WHETHER<sp/>IN<sp/>CONTRACT,<sp/>STRICT<sp/>LIABILITY,<sp/>OR<sp/>TORT<sp/>(INCLUDING<sp/>NEGLIGENCE<sp/>OR<sp/>OTH-</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/>ERWISE)<sp/>ARISING<sp/>IN<sp/>ANY<sp/>WAY<sp/>OUT<sp/>OF<sp/>THE<sp/>USE<sp/>OF<sp/>THIS<sp/>SOFTWARE,<sp/>EVEN<sp/>IF<sp/>ADVISED</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/>OF<sp/>THE<sp/>POSSIBILITY<sp/>OF<sp/>SUCH<sp/>DAMAGE.</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>Alternatively,<sp/>the<sp/>contents<sp/>of<sp/>this<sp/>file<sp/>may<sp/>be<sp/>used<sp/>under<sp/>the<sp/>terms<sp/>of</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/>the<sp/>GNU<sp/>General<sp/>Public<sp/>License<sp/>(&quot;GPL&quot;)<sp/>version<sp/>2<sp/>or<sp/>any<sp/>later<sp/>version,</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>in<sp/>which<sp/>case<sp/>the<sp/>provisions<sp/>of<sp/>the<sp/>GPL<sp/>are<sp/>applicable<sp/>instead<sp/>of</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*<sp/>the<sp/>above.<sp/>If<sp/>you<sp/>wish<sp/>to<sp/>allow<sp/>the<sp/>use<sp/>of<sp/>your<sp/>version<sp/>of<sp/>this<sp/>file</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>*<sp/>only<sp/>under<sp/>the<sp/>terms<sp/>of<sp/>the<sp/>GPL<sp/>and<sp/>not<sp/>to<sp/>allow<sp/>others<sp/>to<sp/>use<sp/>your</highlight></codeline>
+<codeline lineno="30"><highlight class="comment"><sp/>*<sp/>version<sp/>of<sp/>this<sp/>file<sp/>under<sp/>the<sp/>BSD<sp/>license,<sp/>indicate<sp/>your<sp/>decision</highlight></codeline>
+<codeline lineno="31"><highlight class="comment"><sp/>*<sp/>by<sp/>deleting<sp/>the<sp/>provisions<sp/>above<sp/>and<sp/>replace<sp/>them<sp/>with<sp/>the<sp/>notice</highlight></codeline>
+<codeline lineno="32"><highlight class="comment"><sp/>*<sp/>and<sp/>other<sp/>provisions<sp/>required<sp/>by<sp/>the<sp/>GPL.<sp/>If<sp/>you<sp/>do<sp/>not<sp/>delete<sp/>the</highlight></codeline>
+<codeline lineno="33"><highlight class="comment"><sp/>*<sp/>provisions<sp/>above,<sp/>a<sp/>recipient<sp/>may<sp/>use<sp/>your<sp/>version<sp/>of<sp/>this<sp/>file<sp/>under</highlight></codeline>
+<codeline lineno="34"><highlight class="comment"><sp/>*<sp/>either<sp/>the<sp/>BSD<sp/>or<sp/>the<sp/>GPL.</highlight></codeline>
+<codeline lineno="35"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="36"><highlight class="comment"><sp/>*<sp/>This<sp/>library<sp/>is<sp/>modelled<sp/>strictly<sp/>after<sp/>Ralf<sp/>S.<sp/>Engelschalls<sp/>article<sp/>at</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>*<sp/>http://www.gnu.org/software/pth/rse-pmt.ps.<sp/>So<sp/>most<sp/>of<sp/>the<sp/>credit<sp/>must</highlight></codeline>
+<codeline lineno="38"><highlight class="comment"><sp/>*<sp/>go<sp/>to<sp/>Ralf<sp/>S.<sp/>Engelschall<sp/>&lt;rse@engelschall.com&gt;.</highlight></codeline>
+<codeline lineno="39"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="40"><highlight class="comment"><sp/>*<sp/>This<sp/>coroutine<sp/>library<sp/>is<sp/>very<sp/>much<sp/>stripped<sp/>down.<sp/>You<sp/>should<sp/>either</highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*<sp/>build<sp/>your<sp/>own<sp/>process<sp/>abstraction<sp/>using<sp/>it<sp/>or<sp/>-<sp/>better<sp/>-<sp/>just<sp/>use<sp/>GNU</highlight></codeline>
+<codeline lineno="42"><highlight class="comment"><sp/>*<sp/>Portable<sp/>Threads,<sp/>http://www.gnu.org/software/pth/.</highlight></codeline>
+<codeline lineno="43"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="44"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/>2006-10-26<sp/>Include<sp/>stddef.h<sp/>on<sp/>OS<sp/>X<sp/>to<sp/>work<sp/>around<sp/>one<sp/>of<sp/>its<sp/>bugs.</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Reported<sp/>by<sp/>Michael_G_Schwern.</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*<sp/>2006-11-26<sp/>Use<sp/>_setjmp<sp/>instead<sp/>of<sp/>setjmp<sp/>on<sp/>GNU/Linux.</highlight></codeline>
+<codeline lineno="50"><highlight class="comment"><sp/>*<sp/>2007-04-27<sp/>Set<sp/>unwind<sp/>frame<sp/>info<sp/>if<sp/>gcc<sp/>3+<sp/>and<sp/>ELF<sp/>is<sp/>detected.</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Use<sp/>_setjmp<sp/>instead<sp/>of<sp/>setjmp<sp/>on<sp/>_XOPEN_SOURCE<sp/>&gt;=<sp/>600.</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/>2007-05-02<sp/>Add<sp/>assembly<sp/>versions<sp/>for<sp/>x86<sp/>and<sp/>amd64<sp/>(to<sp/>avoid<sp/>reliance</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>on<sp/>SIGUSR2<sp/>and<sp/>sigaltstack<sp/>in<sp/>Crossfire).</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/>2008-01-21<sp/>Disable<sp/>CFI<sp/>usage<sp/>on<sp/>anything<sp/>but<sp/>GNU/Linux.</highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*<sp/>2008-03-02<sp/>Switched<sp/>to<sp/>2-clause<sp/>BSD<sp/>license<sp/>with<sp/>GPL<sp/>exception.</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/>2008-04-04<sp/>New<sp/>(but<sp/>highly<sp/>unrecommended)<sp/>pthreads<sp/>backend.</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/>2008-04-24<sp/>Reinstate<sp/>CORO_LOSER<sp/>(had<sp/>wrong<sp/>stack<sp/>adjustments).</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/>2008-10-30<sp/>Support<sp/>assembly<sp/>method<sp/>on<sp/>x86<sp/>with<sp/>and<sp/>without<sp/>frame<sp/>pointer.</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/>2008-11-03<sp/>Use<sp/>a<sp/>global<sp/>asm<sp/>statement<sp/>for<sp/>CORO_ASM,<sp/>idea<sp/>by<sp/>pippijn.</highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*<sp/>2008-11-05<sp/>Hopefully<sp/>fix<sp/>misaligned<sp/>stacks<sp/>with<sp/>CORO_ASM/SETJMP.</highlight></codeline>
+<codeline lineno="61"><highlight class="comment"><sp/>*<sp/>2008-11-07<sp/>rbp<sp/>wasn&apos;t<sp/>saved<sp/>in<sp/>CORO_ASM<sp/>on<sp/>x86_64.</highlight></codeline>
+<codeline lineno="62"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>introduce<sp/>coro_destroy,<sp/>which<sp/>is<sp/>a<sp/>nop<sp/>except<sp/>for<sp/>pthreads.</highlight></codeline>
+<codeline lineno="63"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>speed<sp/>up<sp/>CORO_PTHREAD.<sp/>Do<sp/>no<sp/>longer<sp/>leak<sp/>threads<sp/>either.</highlight></codeline>
+<codeline lineno="64"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>coro_create<sp/>now<sp/>allows<sp/>one<sp/>to<sp/>create<sp/>source<sp/>coro_contexts.</highlight></codeline>
+<codeline lineno="65"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>not<sp/>rely<sp/>on<sp/>makecontext<sp/>passing<sp/>a<sp/>void<sp/>*<sp/>correctly.</highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>try<sp/>harder<sp/>to<sp/>get<sp/>_setjmp/_longjmp.</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>major<sp/>code<sp/>cleanup/restructuring.</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*<sp/>2008-11-10<sp/>the<sp/>.cfi<sp/>hacks<sp/>are<sp/>no<sp/>longer<sp/>needed.</highlight></codeline>
+<codeline lineno="69"><highlight class="comment"><sp/>*<sp/>2008-11-16<sp/>work<sp/>around<sp/>a<sp/>freebsd<sp/>pthread<sp/>bug.</highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/>*<sp/>2008-11-19<sp/>define<sp/>coro_*jmp<sp/>symbols<sp/>for<sp/>easier<sp/>porting.</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/>*<sp/>2009-06-23<sp/>tentative<sp/>win32-backend<sp/>support<sp/>for<sp/>mingw32<sp/>(Yasuhiro<sp/>Matsumoto).</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/>*<sp/>2010-12-03<sp/>tentative<sp/>support<sp/>for<sp/>uclibc<sp/>(which<sp/>lacks<sp/>all<sp/>sorts<sp/>of<sp/>things).</highlight></codeline>
+<codeline lineno="73"><highlight class="comment"><sp/>*<sp/>2011-05-30<sp/>set<sp/>initial<sp/>callee-saved-registers<sp/>to<sp/>zero<sp/>with<sp/>CORO_ASM.</highlight></codeline>
+<codeline lineno="74"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>use<sp/>.cfi_undefined<sp/>rip<sp/>on<sp/>linux-amd64<sp/>for<sp/>better<sp/>backtraces.</highlight></codeline>
+<codeline lineno="75"><highlight class="comment"><sp/>*<sp/>2011-06-08<sp/>maybe<sp/>properly<sp/>implement<sp/>weird<sp/>windows<sp/>amd64<sp/>calling<sp/>conventions.</highlight></codeline>
+<codeline lineno="76"><highlight class="comment"><sp/>*<sp/>2011-07-03<sp/>rely<sp/>on<sp/>__GCC_HAVE_DWARF2_CFI_ASM<sp/>for<sp/>cfi<sp/>detection.</highlight></codeline>
+<codeline lineno="77"><highlight class="comment"><sp/>*<sp/>2011-08-08<sp/>cygwin<sp/>trashes<sp/>stacks,<sp/>use<sp/>pthreads<sp/>with<sp/>double<sp/>stack<sp/>on<sp/>cygwin.</highlight></codeline>
+<codeline lineno="78"><highlight class="comment"><sp/>*<sp/>2012-12-04<sp/>reduce<sp/>misprediction<sp/>penalty<sp/>for<sp/>x86/amd64<sp/>assembly<sp/>switcher.</highlight></codeline>
+<codeline lineno="79"><highlight class="comment"><sp/>*<sp/>2012-12-05<sp/>experimental<sp/>fiber<sp/>backend<sp/>(allocates<sp/>stack<sp/>twice).</highlight></codeline>
+<codeline lineno="80"><highlight class="comment"><sp/>*<sp/>2012-12-07<sp/>API<sp/>version<sp/>3<sp/>-<sp/>add<sp/>coro_stack_alloc/coro_stack_free.</highlight></codeline>
+<codeline lineno="81"><highlight class="comment"><sp/>*<sp/>2012-12-21<sp/>valgrind<sp/>stack<sp/>registering<sp/>was<sp/>broken.</highlight></codeline>
+<codeline lineno="82"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>CORO_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>CORO_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="92"><highlight class="comment"><sp/>*<sp/>This<sp/>library<sp/>consists<sp/>of<sp/>only<sp/>three<sp/>files</highlight></codeline>
+<codeline lineno="93"><highlight class="comment"><sp/>*<sp/>coro.h,<sp/>coro.c<sp/>and<sp/>LICENSE<sp/>(and<sp/>optionally<sp/>README)</highlight></codeline>
+<codeline lineno="94"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="95"><highlight class="comment"><sp/>*<sp/>It<sp/>implements<sp/>what<sp/>is<sp/>known<sp/>as<sp/>coroutines,<sp/>in<sp/>a<sp/>hopefully</highlight></codeline>
+<codeline lineno="96"><highlight class="comment"><sp/>*<sp/>portable<sp/>way.</highlight></codeline>
+<codeline lineno="97"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="98"><highlight class="comment"><sp/>*<sp/>All<sp/>compiletime<sp/>symbols<sp/>must<sp/>be<sp/>defined<sp/>both<sp/>when<sp/>including<sp/>coro.h</highlight></codeline>
+<codeline lineno="99"><highlight class="comment"><sp/>*<sp/>(using<sp/>libcoro)<sp/>as<sp/>well<sp/>as<sp/>when<sp/>compiling<sp/>coro.c<sp/>(the<sp/>implementation).</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/>*<sp/>You<sp/>can<sp/>manually<sp/>specify<sp/>which<sp/>flavour<sp/>you<sp/>want.<sp/>If<sp/>you<sp/>don&apos;t<sp/>define</highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/>*<sp/>any<sp/>of<sp/>these,<sp/>libcoro<sp/>tries<sp/>to<sp/>choose<sp/>a<sp/>safe<sp/>and<sp/>fast<sp/>default:</highlight></codeline>
+<codeline lineno="103"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="104"><highlight class="comment"><sp/>*<sp/>-DCORO_UCONTEXT</highlight></codeline>
+<codeline lineno="105"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="106"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>This<sp/>flavour<sp/>uses<sp/>SUSv2&apos;s<sp/>get/set/swap/makecontext<sp/>functions<sp/>that</highlight></codeline>
+<codeline lineno="107"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>unfortunately<sp/>only<sp/>some<sp/>unices<sp/>support,<sp/>and<sp/>is<sp/>quite<sp/>slow.</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="109"><highlight class="comment"><sp/>*<sp/>-DCORO_SJLJ</highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="111"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>This<sp/>flavour<sp/>uses<sp/>SUSv2&apos;s<sp/>setjmp/longjmp<sp/>and<sp/>sigaltstack<sp/>functions<sp/>to</highlight></codeline>
+<codeline lineno="112"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>do<sp/>it&apos;s<sp/>job.<sp/>Coroutine<sp/>creation<sp/>is<sp/>much<sp/>slower<sp/>than<sp/>UCONTEXT,<sp/>but</highlight></codeline>
+<codeline lineno="113"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>context<sp/>switching<sp/>is<sp/>a<sp/>bit<sp/>cheaper.<sp/>It<sp/>should<sp/>work<sp/>on<sp/>almost<sp/>all<sp/>unices.</highlight></codeline>
+<codeline lineno="114"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="115"><highlight class="comment"><sp/>*<sp/>-DCORO_LINUX</highlight></codeline>
+<codeline lineno="116"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="117"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>CORO_SJLJ<sp/>variant.</highlight></codeline>
+<codeline lineno="118"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>Old<sp/>GNU/Linux<sp/>systems<sp/>(&lt;=<sp/>glibc-2.1)<sp/>only<sp/>work<sp/>with<sp/>this<sp/>implementation</highlight></codeline>
+<codeline lineno="119"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>(it<sp/>is<sp/>very<sp/>fast<sp/>and<sp/>therefore<sp/>recommended<sp/>over<sp/>other<sp/>methods,<sp/>but</highlight></codeline>
+<codeline lineno="120"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>doesn&apos;t<sp/>work<sp/>with<sp/>anything<sp/>newer).</highlight></codeline>
+<codeline lineno="121"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="122"><highlight class="comment"><sp/>*<sp/>-DCORO_LOSER</highlight></codeline>
+<codeline lineno="123"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="124"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>CORO_SJLJ<sp/>variant.</highlight></codeline>
+<codeline lineno="125"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>Microsoft&apos;s<sp/>highly<sp/>proprietary<sp/>platform<sp/>doesn&apos;t<sp/>support<sp/>sigaltstack,<sp/>and</highlight></codeline>
+<codeline lineno="126"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>this<sp/>selects<sp/>a<sp/>suitable<sp/>workaround<sp/>for<sp/>this<sp/>platform.<sp/>It<sp/>might<sp/>not<sp/>work</highlight></codeline>
+<codeline lineno="127"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>with<sp/>your<sp/>compiler<sp/>though<sp/>-<sp/>it<sp/>has<sp/>only<sp/>been<sp/>tested<sp/>with<sp/>MSVC<sp/>6.</highlight></codeline>
+<codeline lineno="128"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="129"><highlight class="comment"><sp/>*<sp/>-DCORO_FIBER</highlight></codeline>
+<codeline lineno="130"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="131"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>Slower,<sp/>but<sp/>probably<sp/>more<sp/>portable<sp/>variant<sp/>for<sp/>the<sp/>Microsoft<sp/>operating</highlight></codeline>
+<codeline lineno="132"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>system,<sp/>using<sp/>fibers.<sp/>Ignores<sp/>the<sp/>passed<sp/>stack<sp/>and<sp/>allocates<sp/>it<sp/>internally.</highlight></codeline>
+<codeline lineno="133"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>Also,<sp/>due<sp/>to<sp/>bugs<sp/>in<sp/>cygwin,<sp/>this<sp/>does<sp/>not<sp/>work<sp/>with<sp/>cygwin.</highlight></codeline>
+<codeline lineno="134"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="135"><highlight class="comment"><sp/>*<sp/>-DCORO_IRIX</highlight></codeline>
+<codeline lineno="136"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="137"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>CORO_SJLJ<sp/>variant.</highlight></codeline>
+<codeline lineno="138"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>For<sp/>SGI&apos;s<sp/>version<sp/>of<sp/>Microsoft&apos;s<sp/>NT<sp/>;)</highlight></codeline>
+<codeline lineno="139"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="140"><highlight class="comment"><sp/>*<sp/>-DCORO_ASM</highlight></codeline>
+<codeline lineno="141"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="142"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>Hand<sp/>coded<sp/>assembly,<sp/>known<sp/>to<sp/>work<sp/>only<sp/>on<sp/>a<sp/>few<sp/>architectures/ABI:</highlight></codeline>
+<codeline lineno="143"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>GCC<sp/>+<sp/>x86/IA32<sp/>and<sp/>amd64/x86_64<sp/>+<sp/>GNU/Linux<sp/>and<sp/>a<sp/>few<sp/>BSDs.<sp/>Fastest<sp/>choice,</highlight></codeline>
+<codeline lineno="144"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>if<sp/>it<sp/>works.</highlight></codeline>
+<codeline lineno="145"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="146"><highlight class="comment"><sp/>*<sp/>-DCORO_PTHREAD</highlight></codeline>
+<codeline lineno="147"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="148"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>Use<sp/>the<sp/>pthread<sp/>API.<sp/>You<sp/>have<sp/>to<sp/>provide<sp/>&lt;pthread.h&gt;<sp/>and<sp/>-lpthread.</highlight></codeline>
+<codeline lineno="149"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>This<sp/>is<sp/>likely<sp/>the<sp/>slowest<sp/>backend,<sp/>and<sp/>it<sp/>also<sp/>does<sp/>not<sp/>support<sp/>fork(),</highlight></codeline>
+<codeline lineno="150"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>so<sp/>avoid<sp/>it<sp/>at<sp/>all<sp/>costs.</highlight></codeline>
+<codeline lineno="151"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="152"><highlight class="comment"><sp/>*<sp/>If<sp/>you<sp/>define<sp/>neither<sp/>of<sp/>these<sp/>symbols,<sp/>coro.h<sp/>will<sp/>try<sp/>to<sp/>autodetect</highlight></codeline>
+<codeline lineno="153"><highlight class="comment"><sp/>*<sp/>the<sp/>best/safest<sp/>model.<sp/>To<sp/>help<sp/>with<sp/>the<sp/>autodetection,<sp/>you<sp/>should<sp/>check</highlight></codeline>
+<codeline lineno="154"><highlight class="comment"><sp/>*<sp/>(e.g.<sp/>using<sp/>autoconf)<sp/>and<sp/>define<sp/>the<sp/>following<sp/>symbols:<sp/>HAVE_UCONTEXT_H</highlight></codeline>
+<codeline lineno="155"><highlight class="comment"><sp/>*<sp/>/<sp/>HAVE_SETJMP_H<sp/>/<sp/>HAVE_SIGALTSTACK.</highlight></codeline>
+<codeline lineno="156"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="159"><highlight class="comment"><sp/>*<sp/>Changes<sp/>when<sp/>the<sp/>API<sp/>changes<sp/>incompatibly.</highlight></codeline>
+<codeline lineno="160"><highlight class="comment"><sp/>*<sp/>This<sp/>is<sp/>ONLY<sp/>the<sp/>API<sp/>version<sp/>-<sp/>there<sp/>is<sp/>no<sp/>ABI<sp/>compatibility<sp/>between<sp/>releases.</highlight></codeline>
+<codeline lineno="161"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="162"><highlight class="comment"><sp/>*<sp/>Changes<sp/>in<sp/>API<sp/>version<sp/>2:</highlight></codeline>
+<codeline lineno="163"><highlight class="comment"><sp/>*<sp/>replaced<sp/>bogus<sp/>-DCORO_LOOSE<sp/>with<sp/>grammatically<sp/>more<sp/>correct<sp/>-DCORO_LOSER</highlight></codeline>
+<codeline lineno="164"><highlight class="comment"><sp/>*<sp/>Changes<sp/>in<sp/>API<sp/>version<sp/>3:</highlight></codeline>
+<codeline lineno="165"><highlight class="comment"><sp/>*<sp/>introduced<sp/>stack<sp/>management<sp/>(CORO_STACKALLOC)</highlight></codeline>
+<codeline lineno="166"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>CORO_VERSION<sp/>3</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="172"><highlight class="comment"><sp/>*<sp/>This<sp/>is<sp/>the<sp/>type<sp/>for<sp/>the<sp/>initialization<sp/>function<sp/>of<sp/>a<sp/>new<sp/>coroutine.</highlight></codeline>
+<codeline lineno="173"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*coro_func)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*);</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"></highlight></codeline>
+<codeline lineno="176"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="177"><highlight class="comment"><sp/>*<sp/>A<sp/>coroutine<sp/>state<sp/>is<sp/>saved<sp/>in<sp/>the<sp/>following<sp/>structure.<sp/>Treat<sp/>it<sp/>as<sp/>an</highlight></codeline>
+<codeline lineno="178"><highlight class="comment"><sp/>*<sp/>opaque<sp/>type.<sp/>errno<sp/>and<sp/>sigmask<sp/>might<sp/>be<sp/>saved,<sp/>but<sp/>don&apos;t<sp/>rely<sp/>on<sp/>it,</highlight></codeline>
+<codeline lineno="179"><highlight class="comment"><sp/>*<sp/>implement<sp/>your<sp/>own<sp/>switching<sp/>primitive<sp/>if<sp/>you<sp/>need<sp/>that.</highlight></codeline>
+<codeline lineno="180"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">coro_context<sp/>coro_context;</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="184"><highlight class="comment"><sp/>*<sp/>This<sp/>function<sp/>creates<sp/>a<sp/>new<sp/>coroutine.<sp/>Apart<sp/>from<sp/>a<sp/>pointer<sp/>to<sp/>an</highlight></codeline>
+<codeline lineno="185"><highlight class="comment"><sp/>*<sp/>uninitialised<sp/>coro_context,<sp/>it<sp/>expects<sp/>a<sp/>pointer<sp/>to<sp/>the<sp/>entry<sp/>function</highlight></codeline>
+<codeline lineno="186"><highlight class="comment"><sp/>*<sp/>and<sp/>the<sp/>single<sp/>pointer<sp/>value<sp/>that<sp/>is<sp/>given<sp/>to<sp/>it<sp/>as<sp/>argument.</highlight></codeline>
+<codeline lineno="187"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="188"><highlight class="comment"><sp/>*<sp/>Allocating/deallocating<sp/>the<sp/>stack<sp/>is<sp/>your<sp/>own<sp/>responsibility.</highlight></codeline>
+<codeline lineno="189"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="190"><highlight class="comment"><sp/>*<sp/>As<sp/>a<sp/>special<sp/>case,<sp/>if<sp/>coro,<sp/>arg,<sp/>sptr<sp/>and<sp/>ssze<sp/>are<sp/>all<sp/>zero,</highlight></codeline>
+<codeline lineno="191"><highlight class="comment"><sp/>*<sp/>then<sp/>an<sp/>&quot;empty&quot;<sp/>coro_context<sp/>will<sp/>be<sp/>created<sp/>that<sp/>is<sp/>suitable</highlight></codeline>
+<codeline lineno="192"><highlight class="comment"><sp/>*<sp/>as<sp/>an<sp/>initial<sp/>source<sp/>for<sp/>coro_transfer.</highlight></codeline>
+<codeline lineno="193"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="194"><highlight class="comment"><sp/>*<sp/>This<sp/>function<sp/>is<sp/>not<sp/>reentrant,<sp/>but<sp/>putting<sp/>a<sp/>mutex<sp/>around<sp/>it</highlight></codeline>
+<codeline lineno="195"><highlight class="comment"><sp/>*<sp/>will<sp/>work.</highlight></codeline>
+<codeline lineno="196"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_create<sp/>(coro_context<sp/>*ctx,<sp/></highlight><highlight class="comment">/*<sp/>an<sp/>uninitialised<sp/>coro_context<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>coro_func<sp/>coro,<sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>the<sp/>coroutine<sp/>code<sp/>to<sp/>be<sp/>executed<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*arg,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>a<sp/>single<sp/>pointer<sp/>passed<sp/>to<sp/>the<sp/>coro<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*sptr,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>start<sp/>of<sp/>stack<sp/>area<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ssze);<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>size<sp/>of<sp/>stack<sp/>area<sp/>in<sp/>bytes<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="204"><highlight class="comment"><sp/>*<sp/>The<sp/>following<sp/>prototype<sp/>defines<sp/>the<sp/>coroutine<sp/>switching<sp/>function.<sp/>It<sp/>is</highlight></codeline>
+<codeline lineno="205"><highlight class="comment"><sp/>*<sp/>sometimes<sp/>implemented<sp/>as<sp/>a<sp/>macro,<sp/>so<sp/>watch<sp/>out.</highlight></codeline>
+<codeline lineno="206"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="207"><highlight class="comment"><sp/>*<sp/>This<sp/>function<sp/>is<sp/>thread-safe<sp/>and<sp/>reentrant.</highlight></codeline>
+<codeline lineno="208"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="210"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_transfer<sp/>(coro_context<sp/>*prev,<sp/>coro_context<sp/>*next);</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="212"><highlight class="normal"></highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="214"><highlight class="comment"><sp/>*<sp/>The<sp/>following<sp/>prototype<sp/>defines<sp/>the<sp/>coroutine<sp/>destroy<sp/>function.<sp/>It</highlight></codeline>
+<codeline lineno="215"><highlight class="comment"><sp/>*<sp/>is<sp/>sometimes<sp/>implemented<sp/>as<sp/>a<sp/>macro,<sp/>so<sp/>watch<sp/>out.<sp/>It<sp/>also<sp/>serves<sp/>no</highlight></codeline>
+<codeline lineno="216"><highlight class="comment"><sp/>*<sp/>purpose<sp/>unless<sp/>you<sp/>want<sp/>to<sp/>use<sp/>the<sp/>CORO_PTHREAD<sp/>backend,<sp/>where<sp/>it<sp/>is</highlight></codeline>
+<codeline lineno="217"><highlight class="comment"><sp/>*<sp/>used<sp/>to<sp/>clean<sp/>up<sp/>the<sp/>thread.<sp/>You<sp/>are<sp/>responsible<sp/>for<sp/>freeing<sp/>the<sp/>stack</highlight></codeline>
+<codeline lineno="218"><highlight class="comment"><sp/>*<sp/>and<sp/>the<sp/>context<sp/>itself.</highlight></codeline>
+<codeline lineno="219"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="220"><highlight class="comment"><sp/>*<sp/>This<sp/>function<sp/>is<sp/>thread-safe<sp/>and<sp/>reentrant.</highlight></codeline>
+<codeline lineno="221"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="222"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="223"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_destroy<sp/>(coro_context<sp/>*ctx);</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="225"><highlight class="normal"></highlight></codeline>
+<codeline lineno="226"><highlight class="normal"></highlight><highlight class="comment">/*****************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="227"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>optional<sp/>stack<sp/>management<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="228"><highlight class="normal"></highlight><highlight class="comment">/*****************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="230"><highlight class="comment"><sp/>*<sp/>You<sp/>can<sp/>disable<sp/>all<sp/>of<sp/>the<sp/>stack<sp/>management<sp/>functions<sp/>by</highlight></codeline>
+<codeline lineno="231"><highlight class="comment"><sp/>*<sp/>defining<sp/>CORO_STACKALLOC<sp/>to<sp/>0.<sp/>Otherwise,<sp/>they<sp/>are<sp/>enabled<sp/>by<sp/>default.</highlight></codeline>
+<codeline lineno="232"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="233"><highlight class="comment"><sp/>*<sp/>If<sp/>stack<sp/>management<sp/>is<sp/>enabled,<sp/>you<sp/>can<sp/>influence<sp/>the<sp/>implementation<sp/>via<sp/>these</highlight></codeline>
+<codeline lineno="234"><highlight class="comment"><sp/>*<sp/>symbols:</highlight></codeline>
+<codeline lineno="235"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="236"><highlight class="comment"><sp/>*<sp/>-DCORO_USE_VALGRIND</highlight></codeline>
+<codeline lineno="237"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="238"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>If<sp/>defined,<sp/>then<sp/>libcoro<sp/>will<sp/>include<sp/>valgrind/valgrind.h<sp/>and<sp/>register</highlight></codeline>
+<codeline lineno="239"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>and<sp/>unregister<sp/>stacks<sp/>with<sp/>valgrind.</highlight></codeline>
+<codeline lineno="240"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="241"><highlight class="comment"><sp/>*<sp/>-DCORO_GUARDPAGES=n</highlight></codeline>
+<codeline lineno="242"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="243"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>libcoro<sp/>will<sp/>try<sp/>to<sp/>use<sp/>the<sp/>specified<sp/>number<sp/>of<sp/>guard<sp/>pages<sp/>to<sp/>protect<sp/>against</highlight></codeline>
+<codeline lineno="244"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>stack<sp/>overflow.<sp/>If<sp/>n<sp/>is<sp/>0,<sp/>then<sp/>the<sp/>feature<sp/>will<sp/>be<sp/>disabled.<sp/>If<sp/>it<sp/>isn&apos;t</highlight></codeline>
+<codeline lineno="245"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>defined,<sp/>then<sp/>libcoro<sp/>will<sp/>choose<sp/>a<sp/>suitable<sp/>default.<sp/>If<sp/>guardpages<sp/>are<sp/>not</highlight></codeline>
+<codeline lineno="246"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>supported<sp/>on<sp/>the<sp/>platform,<sp/>then<sp/>the<sp/>feature<sp/>will<sp/>be<sp/>silently<sp/>disabled.</highlight></codeline>
+<codeline lineno="247"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="248"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>CORO_STACKALLOC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="249"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>CORO_STACKALLOC<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="250"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="251"><highlight class="normal"></highlight></codeline>
+<codeline lineno="252"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>CORO_STACKALLOC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="253"><highlight class="normal"></highlight></codeline>
+<codeline lineno="254"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="255"><highlight class="comment"><sp/>*<sp/>The<sp/>only<sp/>allowed<sp/>operations<sp/>on<sp/>these<sp/>struct<sp/>members<sp/>is<sp/>to<sp/>read<sp/>the</highlight></codeline>
+<codeline lineno="256"><highlight class="comment"><sp/>*<sp/>&quot;sptr&quot;<sp/>and<sp/>&quot;ssze&quot;<sp/>members<sp/>to<sp/>pass<sp/>it<sp/>to<sp/>coro_create,<sp/>to<sp/>read<sp/>the<sp/>&quot;sptr&quot;</highlight></codeline>
+<codeline lineno="257"><highlight class="comment"><sp/>*<sp/>member<sp/>to<sp/>see<sp/>if<sp/>it<sp/>is<sp/>false,<sp/>in<sp/>which<sp/>case<sp/>the<sp/>stack<sp/>isn&apos;t<sp/>allocated,</highlight></codeline>
+<codeline lineno="258"><highlight class="comment"><sp/>*<sp/>and<sp/>to<sp/>set<sp/>the<sp/>&quot;sptr&quot;<sp/>member<sp/>to<sp/>0,<sp/>to<sp/>indicate<sp/>to<sp/>coro_stack_free<sp/>to</highlight></codeline>
+<codeline lineno="259"><highlight class="comment"><sp/>*<sp/>not<sp/>actually<sp/>do<sp/>anything.</highlight></codeline>
+<codeline lineno="260"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"></highlight></codeline>
+<codeline lineno="262" refid="structcoro__stack" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structcoro__stack" kindref="compound">coro_stack</ref></highlight></codeline>
+<codeline lineno="263"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*sptr;</highlight></codeline>
+<codeline lineno="265"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ssze;</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>CORO_USE_VALGRIND</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="267"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>valgrind_id;</highlight></codeline>
+<codeline lineno="268"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="269"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="270"><highlight class="normal"></highlight></codeline>
+<codeline lineno="271"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="272"><highlight class="comment"><sp/>*<sp/>Try<sp/>to<sp/>allocate<sp/>a<sp/>stack<sp/>of<sp/>at<sp/>least<sp/>the<sp/>given<sp/>size<sp/>and<sp/>return<sp/>true<sp/>if</highlight></codeline>
+<codeline lineno="273"><highlight class="comment"><sp/>*<sp/>successful,<sp/>or<sp/>false<sp/>otherwise.</highlight></codeline>
+<codeline lineno="274"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="275"><highlight class="comment"><sp/>*<sp/>The<sp/>size<sp/>is<sp/>*NOT*<sp/>specified<sp/>in<sp/>bytes,<sp/>but<sp/>in<sp/>units<sp/>of<sp/>sizeof<sp/>(void<sp/>*),</highlight></codeline>
+<codeline lineno="276"><highlight class="comment"><sp/>*<sp/>i.e.<sp/>the<sp/>stack<sp/>is<sp/>typically<sp/>4(8)<sp/>times<sp/>larger<sp/>on<sp/>32<sp/>bit(64<sp/>bit)<sp/>platforms</highlight></codeline>
+<codeline lineno="277"><highlight class="comment"><sp/>*<sp/>then<sp/>the<sp/>size<sp/>passed<sp/>in.</highlight></codeline>
+<codeline lineno="278"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="279"><highlight class="comment"><sp/>*<sp/>If<sp/>size<sp/>is<sp/>0,<sp/>then<sp/>a<sp/>&quot;suitable&quot;<sp/>stack<sp/>size<sp/>is<sp/>chosen<sp/>(usually<sp/>1-2MB).</highlight></codeline>
+<codeline lineno="280"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="281"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>coro_stack_alloc<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structcoro__stack" kindref="compound">coro_stack</ref><sp/>*stack,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>size);</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"></highlight></codeline>
+<codeline lineno="283"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="284"><highlight class="comment"><sp/>*<sp/>Free<sp/>the<sp/>stack<sp/>allocated<sp/>by<sp/>coro_stack_alloc<sp/>again.<sp/>It<sp/>is<sp/>safe<sp/>to</highlight></codeline>
+<codeline lineno="285"><highlight class="comment"><sp/>*<sp/>call<sp/>this<sp/>function<sp/>on<sp/>the<sp/>coro_stack<sp/>structure<sp/>even<sp/>if<sp/>coro_stack_alloc</highlight></codeline>
+<codeline lineno="286"><highlight class="comment"><sp/>*<sp/>failed.</highlight></codeline>
+<codeline lineno="287"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="288"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_stack_free<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structcoro__stack" kindref="compound">coro_stack</ref><sp/>*stack);</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"></highlight></codeline>
+<codeline lineno="290"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="291"><highlight class="normal"></highlight></codeline>
+<codeline lineno="292"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="293"><highlight class="comment"><sp/>*<sp/>That<sp/>was<sp/>it.<sp/>No<sp/>other<sp/>user-serviceable<sp/>parts<sp/>below<sp/>here.</highlight></codeline>
+<codeline lineno="294"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="295"><highlight class="normal"></highlight></codeline>
+<codeline lineno="296"><highlight class="normal"></highlight><highlight class="comment">/*****************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="297"><highlight class="normal"></highlight></codeline>
+<codeline lineno="298"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>!defined<sp/>CORO_LOSER<sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>!defined<sp/>CORO_UCONTEXT<sp/>\</highlight></codeline>
+<codeline lineno="299"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>!defined<sp/>CORO_SJLJ<sp/><sp/><sp/><sp/>&amp;&amp;<sp/>!defined<sp/>CORO_LINUX<sp/>\</highlight></codeline>
+<codeline lineno="300"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>!defined<sp/>CORO_IRIX<sp/><sp/><sp/><sp/>&amp;&amp;<sp/>!defined<sp/>CORO_ASM<sp/>\</highlight></codeline>
+<codeline lineno="301"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>!defined<sp/>CORO_PTHREAD<sp/>&amp;&amp;<sp/>!defined<sp/>CORO_FIBER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="302"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>if<sp/>defined<sp/>WINDOWS<sp/>&amp;&amp;<sp/>(defined<sp/>__i386<sp/>||<sp/>(defined<sp/>__x86_64<sp/>||<sp/>defined<sp/>_M_IX86<sp/>||<sp/>defined<sp/>_M_AMD64))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="303"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>CORO_ASM<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="304"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>elif<sp/>defined<sp/>WINDOWS<sp/>||<sp/>defined<sp/>_WIN32</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="305"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>CORO_LOSER<sp/>1<sp/></highlight><highlight class="comment">/*<sp/>you<sp/>don&apos;t<sp/>win<sp/>with<sp/>windoze<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="306"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>elif<sp/>__linux<sp/>&amp;&amp;<sp/>(__i386<sp/>||<sp/>(__x86_64<sp/>&amp;&amp;<sp/>!__ILP32))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>CORO_ASM<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="308"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>elif<sp/>defined<sp/>HAVE_UCONTEXT_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="309"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>CORO_UCONTEXT<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="310"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>elif<sp/>defined<sp/>HAVE_SETJMP_H<sp/>&amp;&amp;<sp/>defined<sp/>HAVE_SIGALTSTACK</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="311"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>CORO_SJLJ<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="312"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="313"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>error<sp/>unknown<sp/>or<sp/>unsupported<sp/>architecture</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="314"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="315"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="316"><highlight class="normal"></highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight><highlight class="comment">/*****************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"></highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>CORO_UCONTEXT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="320"><highlight class="normal"></highlight></codeline>
+<codeline lineno="321"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;ucontext.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="322"><highlight class="normal"></highlight></codeline>
+<codeline lineno="323"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">coro_context</highlight></codeline>
+<codeline lineno="324"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/>ucontext_t<sp/>uc;</highlight></codeline>
+<codeline lineno="326"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"></highlight></codeline>
+<codeline lineno="328"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>coro_transfer(p,n)<sp/>swapcontext<sp/>(&amp;((p)-&gt;uc),<sp/>&amp;((n)-&gt;uc))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="329"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>coro_destroy(ctx)<sp/>(void<sp/>*)(ctx)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="330"><highlight class="normal"></highlight></codeline>
+<codeline lineno="331"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>CORO_SJLJ<sp/>||<sp/>CORO_LOSER<sp/>||<sp/>CORO_LINUX<sp/>||<sp/>CORO_IRIX</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="332"><highlight class="normal"></highlight></codeline>
+<codeline lineno="333"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>if<sp/>defined(CORO_LINUX)<sp/>&amp;&amp;<sp/>!defined(_GNU_SOURCE)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="334"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>_GNU_SOURCE<sp/></highlight><highlight class="comment">/*<sp/>for<sp/>glibc<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="335"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="336"><highlight class="normal"></highlight></codeline>
+<codeline lineno="337"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>if<sp/>!CORO_LOSER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="338"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>include<sp/>&lt;unistd.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="339"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="340"><highlight class="normal"></highlight></codeline>
+<codeline lineno="341"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>solaris<sp/>is<sp/>hopelessly<sp/>borked,<sp/>it<sp/>expands<sp/>_XOPEN_UNIX<sp/>to<sp/>nothing<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="342"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>if<sp/>__sun</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="343"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>undef<sp/>_XOPEN_UNIX</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="344"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>_XOPEN_UNIX<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="345"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="346"><highlight class="normal"></highlight></codeline>
+<codeline lineno="347"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;setjmp.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="348"><highlight class="normal"></highlight></codeline>
+<codeline lineno="349"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>if<sp/>_XOPEN_UNIX<sp/>&gt;<sp/>0<sp/>||<sp/>defined<sp/>(_setjmp)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="350"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_jmp_buf<sp/><sp/><sp/><sp/><sp/><sp/>jmp_buf</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="351"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_setjmp(env)<sp/><sp/>_setjmp<sp/>(env)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="352"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_longjmp(env)<sp/>_longjmp<sp/>((env),<sp/>1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="353"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>elif<sp/>CORO_LOSER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="354"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_jmp_buf<sp/><sp/><sp/><sp/><sp/><sp/>jmp_buf</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="355"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_setjmp(env)<sp/><sp/>setjmp<sp/>(env)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="356"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_longjmp(env)<sp/>longjmp<sp/>((env),<sp/>1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="357"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="358"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_jmp_buf<sp/><sp/><sp/><sp/><sp/><sp/>sigjmp_buf</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="359"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_setjmp(env)<sp/><sp/>sigsetjmp<sp/>(env,<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="360"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>coro_longjmp(env)<sp/>siglongjmp<sp/>((env),<sp/>1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="361"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="362"><highlight class="normal"></highlight></codeline>
+<codeline lineno="363"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">coro_context</highlight></codeline>
+<codeline lineno="364"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="365"><highlight class="normal"><sp/><sp/>coro_jmp_buf<sp/>env;</highlight></codeline>
+<codeline lineno="366"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="367"><highlight class="normal"></highlight></codeline>
+<codeline lineno="368"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>coro_transfer(p,n)<sp/>do<sp/>{<sp/>if<sp/>(!coro_setjmp<sp/>((p)-&gt;env))<sp/>coro_longjmp<sp/>((n)-&gt;env);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="369"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>coro_destroy(ctx)<sp/>(void<sp/>*)(ctx)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="370"><highlight class="normal"></highlight></codeline>
+<codeline lineno="371"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>CORO_ASM</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="372"><highlight class="normal"></highlight></codeline>
+<codeline lineno="373"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">coro_context</highlight></codeline>
+<codeline lineno="374"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="375"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**sp;<sp/></highlight><highlight class="comment">/*<sp/>must<sp/>be<sp/>at<sp/>offset<sp/>0<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="376"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="377"><highlight class="normal"></highlight></codeline>
+<codeline lineno="378"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>__attribute__<sp/>((__noinline__,<sp/>__regparm__(2)))</highlight></codeline>
+<codeline lineno="379"><highlight class="normal">coro_transfer<sp/>(coro_context<sp/>*prev,<sp/>coro_context<sp/>*next);</highlight></codeline>
+<codeline lineno="380"><highlight class="normal"></highlight></codeline>
+<codeline lineno="381"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>coro_destroy(ctx)<sp/>(void<sp/>*)(ctx)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="382"><highlight class="normal"></highlight></codeline>
+<codeline lineno="383"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>CORO_PTHREAD</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="384"><highlight class="normal"></highlight></codeline>
+<codeline lineno="385"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;pthread.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="386"><highlight class="normal"></highlight></codeline>
+<codeline lineno="387"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>pthread_mutex_t<sp/>coro_mutex;</highlight></codeline>
+<codeline lineno="388"><highlight class="normal"></highlight></codeline>
+<codeline lineno="389"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">coro_context</highlight></codeline>
+<codeline lineno="390"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="391"><highlight class="normal"><sp/><sp/>pthread_cond_t<sp/>cv;</highlight></codeline>
+<codeline lineno="392"><highlight class="normal"><sp/><sp/>pthread_t<sp/>id;</highlight></codeline>
+<codeline lineno="393"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="394"><highlight class="normal"></highlight></codeline>
+<codeline lineno="395"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_transfer<sp/>(coro_context<sp/>*prev,<sp/>coro_context<sp/>*next);</highlight></codeline>
+<codeline lineno="396"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_destroy<sp/>(coro_context<sp/>*ctx);</highlight></codeline>
+<codeline lineno="397"><highlight class="normal"></highlight></codeline>
+<codeline lineno="398"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>CORO_FIBER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="399"><highlight class="normal"></highlight></codeline>
+<codeline lineno="400"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">coro_context</highlight></codeline>
+<codeline lineno="401"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="402"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*fiber;</highlight></codeline>
+<codeline lineno="403"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>only<sp/>used<sp/>for<sp/>initialisation<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="404"><highlight class="normal"><sp/><sp/>coro_func<sp/>coro;</highlight></codeline>
+<codeline lineno="405"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*arg;</highlight></codeline>
+<codeline lineno="406"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="407"><highlight class="normal"></highlight></codeline>
+<codeline lineno="408"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_transfer<sp/>(coro_context<sp/>*prev,<sp/>coro_context<sp/>*next);</highlight></codeline>
+<codeline lineno="409"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>coro_destroy<sp/>(coro_context<sp/>*ctx);</highlight></codeline>
+<codeline lineno="410"><highlight class="normal"></highlight></codeline>
+<codeline lineno="411"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="412"><highlight class="normal"></highlight></codeline>
+<codeline lineno="413"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="414"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="415"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="416"><highlight class="normal"></highlight></codeline>
+<codeline lineno="417"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="418"><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="src/coro.h"/>
+  </compounddef>
+</doxygen>

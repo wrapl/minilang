@@ -1,0 +1,251 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__block__expr__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_block_expr_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__block__expr__t_1a8c407c556d162949c752071fc47773ce" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> *</type>
+        <definition>mlc_local_t* Vars</definition>
+        <argsstring></argsstring>
+        <name>Vars</name>
+        <qualifiedname>mlc_block_expr_t::Vars</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="203" column="13" bodyfile="src/ml_compiler2.h" bodystart="203" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1a2a595498b6d8093d0aeef71261827f12" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> *</type>
+        <definition>mlc_local_t* Lets</definition>
+        <argsstring></argsstring>
+        <name>Lets</name>
+        <qualifiedname>mlc_block_expr_t::Lets</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="204" column="13" bodyfile="src/ml_compiler2.h" bodystart="204" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1a63abd54946aec0a71f7346d4fac428f2" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> *</type>
+        <definition>mlc_local_t* Defs</definition>
+        <argsstring></argsstring>
+        <name>Defs</name>
+        <qualifiedname>mlc_block_expr_t::Defs</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="205" column="13" bodyfile="src/ml_compiler2.h" bodystart="205" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* Child</definition>
+        <argsstring></argsstring>
+        <name>Child</name>
+        <qualifiedname>mlc_block_expr_t::Child</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="206" column="12" bodyfile="src/ml_compiler2.h" bodystart="206" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1a27d0899020be78dce128b9b40a3b3007" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* CatchBody</definition>
+        <argsstring></argsstring>
+        <name>CatchBody</name>
+        <qualifiedname>mlc_block_expr_t::CatchBody</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="207" column="12" bodyfile="src/ml_compiler2.h" bodystart="207" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1a5b84a1cacc26501719460b1cba64ff51" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* Must</definition>
+        <argsstring></argsstring>
+        <name>Must</name>
+        <qualifiedname>mlc_block_expr_t::Must</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="208" column="12" bodyfile="src/ml_compiler2.h" bodystart="208" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1a290c0ed301b45273f4d6730ece0c1711" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* CatchIdent</definition>
+        <argsstring></argsstring>
+        <name>CatchIdent</name>
+        <qualifiedname>mlc_block_expr_t::CatchIdent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="209" column="12" bodyfile="src/ml_compiler2.h" bodystart="209" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1aa17b61ab805c68e20552b13a8ddb431d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NumVars</definition>
+        <argsstring></argsstring>
+        <name>NumVars</name>
+        <qualifiedname>mlc_block_expr_t::NumVars</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="210" column="5" bodyfile="src/ml_compiler2.h" bodystart="210" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1ae31a6ea31e7c9f23296c4f3deabe98f2" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NumLets</definition>
+        <argsstring></argsstring>
+        <name>NumLets</name>
+        <qualifiedname>mlc_block_expr_t::NumLets</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="211" column="5" bodyfile="src/ml_compiler2.h" bodystart="211" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__expr__t_1aa420afa8c493a9ad26864d1c65b582a6" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NumDefs</definition>
+        <argsstring></argsstring>
+        <name>NumDefs</name>
+        <qualifiedname>mlc_block_expr_t::NumDefs</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="212" column="5" bodyfile="src/ml_compiler2.h" bodystart="212" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structmlc__block__expr__t_1ab189658a59dfbffef902d511ec376129" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MLC_EXPR_FIELDS</definition>
+        <argsstring>(block)</argsstring>
+        <name>MLC_EXPR_FIELDS</name>
+        <qualifiedname>mlc_block_expr_t::MLC_EXPR_FIELDS</qualifiedname>
+        <param>
+          <type>block</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="202" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="4">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_block_expr_t</label>
+        <link refid="structmlc__block__expr__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Defs</edgelabel>
+          <edgelabel>Lets</edgelabel>
+          <edgelabel>Vars</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>CatchBody</edgelabel>
+          <edgelabel>Child</edgelabel>
+          <edgelabel>Must</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_local_t</label>
+        <link refid="structmlc__local__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="201" column="1" bodyfile="src/ml_compiler2.h" bodystart="201" bodyend="213"/>
+    <listofallmembers>
+      <member refid="structmlc__block__expr__t_1a27d0899020be78dce128b9b40a3b3007" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>CatchBody</name></member>
+      <member refid="structmlc__block__expr__t_1a290c0ed301b45273f4d6730ece0c1711" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>CatchIdent</name></member>
+      <member refid="structmlc__block__expr__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>Child</name></member>
+      <member refid="structmlc__block__expr__t_1a63abd54946aec0a71f7346d4fac428f2" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>Defs</name></member>
+      <member refid="structmlc__block__expr__t_1a2a595498b6d8093d0aeef71261827f12" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>Lets</name></member>
+      <member refid="structmlc__block__expr__t_1ab189658a59dfbffef902d511ec376129" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
+      <member refid="structmlc__block__expr__t_1a5b84a1cacc26501719460b1cba64ff51" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>Must</name></member>
+      <member refid="structmlc__block__expr__t_1aa420afa8c493a9ad26864d1c65b582a6" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>NumDefs</name></member>
+      <member refid="structmlc__block__expr__t_1ae31a6ea31e7c9f23296c4f3deabe98f2" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>NumLets</name></member>
+      <member refid="structmlc__block__expr__t_1aa17b61ab805c68e20552b13a8ddb431d" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>NumVars</name></member>
+      <member refid="structmlc__block__expr__t_1a8c407c556d162949c752071fc47773ce" prot="public" virt="non-virtual"><scope>mlc_block_expr_t</scope><name>Vars</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

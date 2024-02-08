@@ -9,6 +9,10 @@
 #include "inthash.h"
 #include "ml_config.h"
 
+/// \defgroup types
+/// @{
+///
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1293,5 +1297,7 @@ template <typename... args> void ml_methodx_by_auto(ml_type_t *Type, void *Data,
 }
 
 #endif
+
+/// @}
 
 #endif

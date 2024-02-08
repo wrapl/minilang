@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__tuple__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_tuple_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__tuple__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_tuple_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="462" column="11" bodyfile="src/ml_types.h" bodystart="462" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__tuple__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_tuple_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="463" column="5" bodyfile="src/ml_types.h" bodystart="463" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__tuple__t_1a89d568a12750246b9e6ca7798aa9541c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NoRefs</definition>
+        <argsstring></argsstring>
+        <name>NoRefs</name>
+        <qualifiedname>ml_tuple_t::NoRefs</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="463" column="10" bodyfile="src/ml_types.h" bodystart="463" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__tuple__t_1a77ea04ebbd682128002b5b9dcfd96053" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Values[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Values</name>
+        <qualifiedname>ml_tuple_t::Values</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="464" column="12" bodyfile="src/ml_types.h" bodystart="464" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_tuple_t</label>
+        <link refid="structml__tuple__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Values</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="461" column="1" bodyfile="src/ml_types.h" bodystart="461" bodyend="465"/>
+    <listofallmembers>
+      <member refid="structml__tuple__t_1a89d568a12750246b9e6ca7798aa9541c" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>NoRefs</name></member>
+      <member refid="structml__tuple__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>Size</name></member>
+      <member refid="structml__tuple__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>Type</name></member>
+      <member refid="structml__tuple__t_1a77ea04ebbd682128002b5b9dcfd96053" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>Values</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

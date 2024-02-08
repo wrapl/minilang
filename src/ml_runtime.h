@@ -1,6 +1,10 @@
 #ifndef ML_RUNTIME_H
 #define ML_RUNTIME_H
 
+/// \defgroup runtime
+/// @{
+///
+
 #include "ml_types.h"
 #include <limits.h>
 #include <stdarg.h>
@@ -279,5 +283,7 @@ extern ml_type_t MLChannelT[];
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

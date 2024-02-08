@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__set__iter__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_set_iter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__set__iter__t_1a0e5bda0d3f995088a49430796cad681e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
+        <definition>ml_set_node_t* Node</definition>
+        <argsstring></argsstring>
+        <name>Node</name>
+        <qualifiedname>ml_set_iter_t::Node</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1129" column="15" bodyfile="src/ml_types.h" bodystart="1129" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__set__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Key</definition>
+        <argsstring></argsstring>
+        <name>Key</name>
+        <qualifiedname>ml_set_iter_t::Key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1130" column="12" bodyfile="src/ml_types.h" bodystart="1130" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_set_iter_t</label>
+        <link refid="structml__set__iter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Node</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Key</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_set_node_t</label>
+        <link refid="structml__set__node__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Key</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="1128" column="1" bodyfile="src/ml_types.h" bodystart="1128" bodyend="1131"/>
+    <listofallmembers>
+      <member refid="structml__set__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" virt="non-virtual"><scope>ml_set_iter_t</scope><name>Key</name></member>
+      <member refid="structml__set__iter__t_1a0e5bda0d3f995088a49430796cad681e" prot="public" virt="non-virtual"><scope>ml_set_iter_t</scope><name>Node</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

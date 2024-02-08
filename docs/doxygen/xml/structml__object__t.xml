@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__object__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_object_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__object__t_1a879ff976b9bdcbd254366aa54731905d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__class__t" kindref="compound">ml_class_t</ref> *</type>
+        <definition>ml_class_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_object_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="37" column="12" bodyfile="src/ml_object.h" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__object__t_1ad6224aa2b3e38e85071b00cf2d9cb26e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__field__t" kindref="compound">ml_field_t</ref></type>
+        <definition>ml_field_t Fields[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Fields</name>
+        <qualifiedname>ml_object_t::Fields</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="38" column="12" bodyfile="src/ml_object.h" bodystart="38" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_class_t</label>
+        <link refid="structml__class__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Call</edgelabel>
+          <edgelabel>Initializer</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Fields</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Names</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_field_info_t</label>
+        <link refid="structml__field__info__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Method</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_field_t</label>
+        <link refid="structml__field__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_object_t</label>
+        <link refid="structml__object__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Fields</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_object.h" line="36" column="1" bodyfile="src/ml_object.h" bodystart="36" bodyend="39"/>
+    <listofallmembers>
+      <member refid="structml__object__t_1ad6224aa2b3e38e85071b00cf2d9cb26e" prot="public" virt="non-virtual"><scope>ml_object_t</scope><name>Fields</name></member>
+      <member refid="structml__object__t_1a879ff976b9bdcbd254366aa54731905d" prot="public" virt="non-virtual"><scope>ml_object_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

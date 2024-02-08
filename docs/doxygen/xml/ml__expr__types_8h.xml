@@ -1,0 +1,470 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__expr__types_8h" kind="file" language="C++">
+    <compoundname>ml_expr_types.h</compoundname>
+    <includedby refid="ml__compiler2_8h" local="yes">src/ml_compiler2.h</includedby>
+    <invincdepgraph>
+      <node id="2">
+        <label>src/ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/ml_expr_types.h</label>
+        <link refid="ml__expr__types_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884f" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_expr_type_t</name>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa7d0b141318eb2417bf613ee2d4841bf5" prot="public">
+          <name>ML_EXPR_AND</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fac6073e8bd578c966d38834c4017d2a0c" prot="public">
+          <name>ML_EXPR_ASSIGN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fae3140de260cfd2fa56d30c6fe4f6b341" prot="public">
+          <name>ML_EXPR_BLANK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fab811fa00dbd0db2ad3580eb10093b21f" prot="public">
+          <name>ML_EXPR_BLOCK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa826fc7545d51f7be9a6b42bff269c0b1" prot="public">
+          <name>ML_EXPR_CALL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fabc6132125eae6e568c9eb74ca9f03b5f" prot="public">
+          <name>ML_EXPR_CONST_CALL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884faa368a12053d7d9379238eee0db2bb64d" prot="public">
+          <name>ML_EXPR_DEBUG</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa442dbe30cfa5ded61e087a3cd62915cd" prot="public">
+          <name>ML_EXPR_DEF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa7b42995d1c298601394644b948c284fd" prot="public">
+          <name>ML_EXPR_DEF_IN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fac3c11e3f80cec79f4ee0e5a15e62c4ec" prot="public">
+          <name>ML_EXPR_DEF_UNPACK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa17892489b45669a67b5df6cd7133d7fe" prot="public">
+          <name>ML_EXPR_DEFAULT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa1b80c565f1a7add63fefc30d349c7f83" prot="public">
+          <name>ML_EXPR_DEFINE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa6dd47cc6650d4ec8d30e457e3cc79be1" prot="public">
+          <name>ML_EXPR_DELEGATE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fae30419e4ca67f479b96ebe6803b22ea6" prot="public">
+          <name>ML_EXPR_EACH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa85619db46ae4d48835b2e85ad7b8ffe7" prot="public">
+          <name>ML_EXPR_EXIT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fac6f5e93d30438f087b7768be2c082365" prot="public">
+          <name>ML_EXPR_FOR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884faae5d6e45a6aa6871fd2378b20c0af8c5" prot="public">
+          <name>ML_EXPR_FUN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa02a8523aa9db58b94d38581844999516" prot="public">
+          <name>ML_EXPR_GUARD</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa6d773affa0f7dc2345d8ffd11a651b07" prot="public">
+          <name>ML_EXPR_IDENT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884faeb71b393ed422bf1faf9a411d7fd605d" prot="public">
+          <name>ML_EXPR_IF_CONFIG</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa8b4a37bbbed11e5ee2895cc99309e3d5" prot="public">
+          <name>ML_EXPR_IF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa79be152768d50bb2499c5eb4f5aa0202" prot="public">
+          <name>ML_EXPR_INLINE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa488988f51ac1af4f3abc85bf3ffdbdf0" prot="public">
+          <name>ML_EXPR_IT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa1155566a7d97e2ab8f7c37ded27765bd" prot="public">
+          <name>ML_EXPR_LET</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fad668047c857773a99dd4497db47a7bd5" prot="public">
+          <name>ML_EXPR_LET_IN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa4d7410a32e6a43426a6194aa22bb19a9" prot="public">
+          <name>ML_EXPR_LET_UNPACK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa6297e52bb2b6ecbc1c29567832f7c37e" prot="public">
+          <name>ML_EXPR_LIST</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fac8f866d41f21d7cd7558bb66a21b2c0b" prot="public">
+          <name>ML_EXPR_LOOP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa7655b01482eaed9619a03a68528e0cc9" prot="public">
+          <name>ML_EXPR_MAP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa98cde5e6490a979caa7ad742e1b53156" prot="public">
+          <name>ML_EXPR_NEXT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa44070a91abb57d5427557c0ccda26f82" prot="public">
+          <name>ML_EXPR_NIL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa42ff16c2d2255c65728ef8071497e4b9" prot="public">
+          <name>ML_EXPR_NOT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa997aae6dca4c6411065450b4f01ecf1a" prot="public">
+          <name>ML_EXPR_OLD</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa4af13ccff2908167c5ebc2f747d859e5" prot="public">
+          <name>ML_EXPR_OR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa71e2b37913f59b6af826643d81d66f63" prot="public">
+          <name>ML_EXPR_REF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa539596aa8324b4735c36d580e3f822e0" prot="public">
+          <name>ML_EXPR_REF_IN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa6373df2176d5bf4b937926db1abea112" prot="public">
+          <name>ML_EXPR_REF_UNPACK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fac1fa13c569a3ef1e36082ec0ff1797ae" prot="public">
+          <name>ML_EXPR_REGISTER</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fadff4aab83976c7e98a5304f536b6e068" prot="public">
+          <name>ML_EXPR_RESOLVE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa15207e9a983a753a350e6521ed0d631e" prot="public">
+          <name>ML_EXPR_RETURN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa0ddc7e9587507c3e524f58461016ea44" prot="public">
+          <name>ML_EXPR_SCOPED</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa361a234647331f1b71d87e6cc1767091" prot="public">
+          <name>ML_EXPR_STRING</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fab6910c134b3bafcc1d74a33f24253681" prot="public">
+          <name>ML_EXPR_SUBST</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884faa93ab7a332b92bb92239317e8a141c47" prot="public">
+          <name>ML_EXPR_SUSPEND</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fae59c192a1acf8a6cf13d8d4654e54c97" prot="public">
+          <name>ML_EXPR_SWITCH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fae9e57715277890f64e4fcaac13a7309b" prot="public">
+          <name>ML_EXPR_TUPLE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa17088dd8d4bea9eab8514f2637ba951f" prot="public">
+          <name>ML_EXPR_UNKNOWN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884faef2ea8e4b40968118109e71659d5d44b" prot="public">
+          <name>ML_EXPR_VALUE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa349c01d6ceb4d43d17b2fc5cf30524d1" prot="public">
+          <name>ML_EXPR_VAR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fadae0f1919384e21b4e92d5e9dc4e7bdc" prot="public">
+          <name>ML_EXPR_VAR_IN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884face64fd856f21ee601814868789c73aa6" prot="public">
+          <name>ML_EXPR_VAR_TYPE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fa34a4b371767551e5929083dc3f996211" prot="public">
+          <name>ML_EXPR_VAR_UNPACK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884fad2f0cad084db5f99aedb907d3ab12778" prot="public">
+          <name>ML_EXPR_WITH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_expr_types.h" line="4" column="1" bodyfile="src/ml_expr_types.h" bodystart="4" bodyend="58"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_EXPR_TYPES_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_EXPR_TYPES_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_AND,</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_ASSIGN,</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_BLANK,</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_BLOCK,</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_CALL,</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_CONST_CALL,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_DEBUG,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_DEF,</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_DEF_IN,</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_DEF_UNPACK,</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_DEFAULT,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_DEFINE,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_DELEGATE,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_EACH,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_EXIT,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_FOR,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_FUN,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_GUARD,</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_IDENT,</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_IF_CONFIG,</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_IF,</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_INLINE,</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_IT,</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_LET,</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_LET_IN,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_LET_UNPACK,</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_LIST,</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_LOOP,</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_MAP,</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_NEXT,</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_NIL,</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_NOT,</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_OLD,</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_OR,</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_REF,</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_REF_IN,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_REF_UNPACK,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_REGISTER,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_RESOLVE,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_RETURN,</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_SCOPED,</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_STRING,</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_SUBST,</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_SUSPEND,</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_SWITCH,</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_TUPLE,</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_UNKNOWN,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_VALUE,</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_VAR,</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_VAR_IN,</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_VAR_TYPE,</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_VAR_UNPACK,</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_EXPR_WITH,</highlight></codeline>
+<codeline lineno="58"><highlight class="normal">}<sp/>ml_expr_type_t;</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_expr_types.h"/>
+  </compounddef>
+</doxygen>

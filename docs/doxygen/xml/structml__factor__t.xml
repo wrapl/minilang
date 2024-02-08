@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__factor__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_factor_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__factor__t_1a249fb2efff538c371e57abc052f47b8f" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Variable</definition>
+        <argsstring></argsstring>
+        <name>Variable</name>
+        <qualifiedname>ml_factor_t::Variable</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="12" column="5" bodyfile="src/ml_polynomial.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__factor__t_1a94c43e7db9c6d7044d4a3b6355c81526" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Degree</definition>
+        <argsstring></argsstring>
+        <name>Degree</name>
+        <qualifiedname>ml_factor_t::Degree</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_polynomial.h" line="12" column="14" bodyfile="src/ml_polynomial.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/ml_polynomial.h" line="11" column="1" bodyfile="src/ml_polynomial.h" bodystart="11" bodyend="13"/>
+    <listofallmembers>
+      <member refid="structml__factor__t_1a94c43e7db9c6d7044d4a3b6355c81526" prot="public" virt="non-virtual"><scope>ml_factor_t</scope><name>Degree</name></member>
+      <member refid="structml__factor__t_1a249fb2efff538c371e57abc052f47b8f" prot="public" virt="non-virtual"><scope>ml_factor_t</scope><name>Variable</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__symbol__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_symbol_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__symbol__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_symbol_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1248" column="11" bodyfile="src/ml_types.h" bodystart="1248" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__symbol__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>ml_symbol_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1249" column="12" bodyfile="src/ml_types.h" bodystart="1249" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_symbol_t</label>
+        <link refid="structml__symbol__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="1247" column="1" bodyfile="src/ml_types.h" bodystart="1247" bodyend="1250"/>
+    <listofallmembers>
+      <member refid="structml__symbol__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_symbol_t</scope><name>Name</name></member>
+      <member refid="structml__symbol__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_symbol_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

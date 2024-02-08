@@ -1,0 +1,354 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="gtk__console_8h" kind="file" language="C++">
+    <compoundname>gtk_console.h</compoundname>
+    <includes local="no">gtk/gtk.h</includes>
+    <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>src/gtk_console.h</label>
+        <link refid="gtk__console_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="2">
+        <label>gtk/gtk.h</label>
+      </node>
+      <node id="17">
+        <label>limits.h</label>
+      </node>
+      <node id="16">
+        <label>ml_config.h</label>
+      </node>
+      <node id="7">
+        <label>setjmp.h</label>
+      </node>
+      <node id="12">
+        <label>stdarg.h</label>
+      </node>
+      <node id="15">
+        <label>stdint.h</label>
+      </node>
+      <node id="10">
+        <label>stdio.h</label>
+      </node>
+      <node id="4">
+        <label>stdlib.h</label>
+      </node>
+      <node id="11">
+        <label>string.h</label>
+      </node>
+      <node id="5">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="gtk__console_8h_1a51fd9ea886f1efb234fe13e6dfb8ac84" prot="public" static="no">
+        <type>struct gtk_console_t</type>
+        <definition>typedef struct gtk_console_t gtk_console_t</definition>
+        <argsstring></argsstring>
+        <name>gtk_console_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="7" column="28" bodyfile="src/gtk_console.h" bodystart="7" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="gtk__console_8h_1aabe8cf4c5a610f89b5b053b8d2d568c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>gtk_console_t *</type>
+        <definition>gtk_console_t * gtk_console</definition>
+        <argsstring>(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals)</argsstring>
+        <name>gtk_console</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type>ml_getter_t</type>
+          <declname>GlobalGet</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="9" column="15" declfile="src/gtk_console.h" declline="9" declcolumn="15"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1a61ccc621bccc38732668e868cf39991f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void gtk_console_show</definition>
+        <argsstring>(gtk_console_t *Console, GtkWindow *Parent)</argsstring>
+        <name>gtk_console_show</name>
+        <param>
+          <type>gtk_console_t *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type>GtkWindow *</type>
+          <declname>Parent</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="10" column="6" declfile="src/gtk_console.h" declline="10" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1af1ef5f5d42508fae608d64e7c7443ec3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void gtk_console_log</definition>
+        <argsstring>(gtk_console_t *Console, ml_value_t *Value)</argsstring>
+        <name>gtk_console_log</name>
+        <param>
+          <type>gtk_console_t *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="11" column="6" declfile="src/gtk_console.h" declline="11" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1ae85dc8471575c880c30215d896430672" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int gtk_console_append</definition>
+        <argsstring>(gtk_console_t *Console, const char *Buffer, int Length)</argsstring>
+        <name>gtk_console_append</name>
+        <param>
+          <type>gtk_console_t *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="12" column="5" declfile="src/gtk_console.h" declline="12" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1a4976bceb0ce3175145673aa3ce9fb0c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * gtk_console_print</definition>
+        <argsstring>(gtk_console_t *Console, int Count, ml_value_t **Args)</argsstring>
+        <name>gtk_console_print</name>
+        <param>
+          <type>gtk_console_t *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="13" column="12" declfile="src/gtk_console.h" declline="13" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1a12fbc245939630d9a853413954caf94c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void gtk_console_printf</definition>
+        <argsstring>(gtk_console_t *Console, const char *Format,...)</argsstring>
+        <name>gtk_console_printf</name>
+        <param>
+          <type>gtk_console_t *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="14" column="6" declfile="src/gtk_console.h" declline="14" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1a0ad92cc292237e5eac880a8e264d0d70" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void gtk_console_load_file</definition>
+        <argsstring>(gtk_console_t *Console, const char *FileName, ml_value_t *Args)</argsstring>
+        <name>gtk_console_load_file</name>
+        <param>
+          <type>gtk_console_t *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>FileName</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="15" column="6" declfile="src/gtk_console.h" declline="15" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1af676b5618838f3682bfd3adc4f872e8e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void gtk_console_evaluate</definition>
+        <argsstring>(gtk_console_t *Console, const char *Text)</argsstring>
+        <name>gtk_console_evaluate</name>
+        <param>
+          <type>gtk_console_t *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Text</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="16" column="6" declfile="src/gtk_console.h" declline="16" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="gtk__console_8h_1a3847f68f0d7c98eba61649b84a173ce1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void gtk_console_init</definition>
+        <argsstring>()</argsstring>
+        <name>gtk_console_init</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.h" line="18" column="6" declfile="src/gtk_console.h" declline="18" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>VIEWER_CONSOLE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>VIEWER_CONSOLE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;gtk/gtk.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">gtk_console_t<sp/>gtk_console_t;</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal">gtk_console_t<sp/>*gtk_console(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/>ml_getter_t<sp/>GlobalGet,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Globals);</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_show(gtk_console_t<sp/>*Console,<sp/>GtkWindow<sp/>*Parent);</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_log(gtk_console_t<sp/>*Console,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>gtk_console_append(gtk_console_t<sp/>*Console,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Buffer,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*gtk_console_print(gtk_console_t<sp/>*Console,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_printf(gtk_console_t<sp/>*Console,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Format,<sp/>...);</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_load_file(gtk_console_t<sp/>*Console,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*FileName,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Args);</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_evaluate(gtk_console_t<sp/>*Console,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Text);</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_init();</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/gtk_console.h"/>
+  </compounddef>
+</doxygen>

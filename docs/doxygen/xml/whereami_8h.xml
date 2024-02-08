@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="whereami_8h" kind="file" language="C++">
+    <compoundname>whereami.h</compoundname>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="whereami_8h_1af4a5433582844c6d1f4e5f48e911fe02" prot="public" static="no">
+        <name>WAI_FUNCSPEC</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/whereami.h" line="14" column="11" bodyfile="src/whereami.h" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="whereami_8h_1aca46f8ead8100022a86fa699ccffab93" prot="public" static="no">
+        <name>WAI_PREFIX</name>
+        <param><defname>function</defname></param>
+        <initializer>wai_##function</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/whereami.h" line="17" column="9" bodyfile="src/whereami.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="whereami_8h_1ab24b0c2afc4a0386e3681df5d8c74ff7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>WAI_FUNCSPEC int WAI_PREFIX</type>
+        <definition>WAI_FUNCSPEC int WAI_PREFIX getExecutablePath</definition>
+        <argsstring>(char *out, int capacity, int *dirname_length)</argsstring>
+        <name>getExecutablePath</name>
+        <param>
+          <type>char *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>capacity</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>dirname_length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns the path to the current executable.</para>
+<para>Usage:<itemizedlist>
+<listitem><para>first call <computeroutput>int length = wai_getExecutablePath(NULL, 0, NULL);</computeroutput> to retrieve the length of the path</para>
+</listitem><listitem><para>allocate the destination buffer with <computeroutput>path = (char*)malloc(length + 1);</computeroutput></para>
+</listitem><listitem><para>call <computeroutput>wai_getExecutablePath(path, length, NULL)</computeroutput> again to retrieve the path</para>
+</listitem><listitem><para>add a terminal NUL character with <lsquo/>path[length] = <rsquo/>\0&apos;;`</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>destination buffer, optional </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>capacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>destination buffer capacity </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dirname_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>optional recipient for the length of the dirname part of the path.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>the length of the executable path on success (without a terminal NUL character), otherwise <computeroutput>-1</computeroutput> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/whereami.h" line="40" column="5" declfile="src/whereami.h" declline="40" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="whereami_8h_1afbc999f1124e81d03119803a1f817627" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>WAI_FUNCSPEC int WAI_PREFIX</type>
+        <definition>WAI_FUNCSPEC int WAI_PREFIX getModulePath</definition>
+        <argsstring>(char *out, int capacity, int *dirname_length)</argsstring>
+        <name>getModulePath</name>
+        <param>
+          <type>char *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>capacity</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>dirname_length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns the path to the current module</para>
+<para>Usage:<itemizedlist>
+<listitem><para>first call <computeroutput>int length = wai_getModulePath(NULL, 0, NULL);</computeroutput> to retrieve the length of the path</para>
+</listitem><listitem><para>allocate the destination buffer with <computeroutput>path = (char*)malloc(length + 1);</computeroutput></para>
+</listitem><listitem><para>call <computeroutput>wai_getModulePath(path, length, NULL)</computeroutput> again to retrieve the path</para>
+</listitem><listitem><para>add a terminal NUL character with <lsquo/>path[length] = <rsquo/>\0&apos;;`</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>destination buffer, optional </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>capacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>destination buffer capacity </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dirname_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>optional recipient for the length of the dirname part of the path.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>the length of the module path on success (without a terminal NUL character), otherwise <computeroutput>-1</computeroutput> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/whereami.h" line="61" column="5" declfile="src/whereami.h" declline="61" declcolumn="5"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">//<sp/>(‑●‑●)&gt;<sp/>dual<sp/>licensed<sp/>under<sp/>the<sp/>WTFPL<sp/>v2<sp/>and<sp/>MIT<sp/>licenses</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/>without<sp/>any<sp/>warranty.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/>by<sp/>Gregory<sp/>Pakosz<sp/>(@gpakosz)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="comment">//<sp/>https://github.com/gpakosz/whereami</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>WHEREAMI_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>WHEREAMI_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>WAI_FUNCSPEC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>WAI_FUNCSPEC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>WAI_PREFIX</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>WAI_PREFIX(function)<sp/>wai_##function</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal">WAI_FUNCSPEC</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>WAI_PREFIX(getExecutablePath)(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>out,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>capacity,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal">*<sp/>dirname_length);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal">WAI_FUNCSPEC</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>WAI_PREFIX(getModulePath)(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>out,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>capacity,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal">*<sp/>dirname_length);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">//<sp/>#ifndef<sp/>WHEREAMI_H</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="src/whereami.h"/>
+  </compounddef>
+</doxygen>

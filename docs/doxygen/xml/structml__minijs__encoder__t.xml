@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__minijs__encoder__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_minijs_encoder_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__minijs__encoder__t_1a648ddf2d0a9e244bcf220aebce1f235a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref> *</type>
+        <definition>ml_externals_t* Externals</definition>
+        <argsstring></argsstring>
+        <name>Externals</name>
+        <qualifiedname>ml_minijs_encoder_t::Externals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_minijs.h" line="20" column="16" bodyfile="src/ml_minijs.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__minijs__encoder__t_1a9b43dcac24c417556872e8c629b29c67" prot="public" static="no" mutable="no">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
+        <definition>inthash_t Cached[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Cached</name>
+        <qualifiedname>ml_minijs_encoder_t::Cached</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_minijs.h" line="21" column="11" bodyfile="src/ml_minijs.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__minijs__encoder__t_1a9da0233db61be933269e71059da27b34" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int LastIndex</definition>
+        <argsstring></argsstring>
+        <name>LastIndex</name>
+        <qualifiedname>ml_minijs_encoder_t::LastIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_minijs.h" line="22" column="5" bodyfile="src/ml_minijs.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_externals_t</label>
+        <link refid="structml__externals__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Values</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Names</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_minijs_encoder_t</label>
+        <link refid="structml__minijs__encoder__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Externals</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Cached</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_minijs.h" line="19" column="1" bodyfile="src/ml_minijs.h" bodystart="19" bodyend="23"/>
+    <listofallmembers>
+      <member refid="structml__minijs__encoder__t_1a9b43dcac24c417556872e8c629b29c67" prot="public" virt="non-virtual"><scope>ml_minijs_encoder_t</scope><name>Cached</name></member>
+      <member refid="structml__minijs__encoder__t_1a648ddf2d0a9e244bcf220aebce1f235a" prot="public" virt="non-virtual"><scope>ml_minijs_encoder_t</scope><name>Externals</name></member>
+      <member refid="structml__minijs__encoder__t_1a9da0233db61be933269e71059da27b34" prot="public" virt="non-virtual"><scope>ml_minijs_encoder_t</scope><name>LastIndex</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

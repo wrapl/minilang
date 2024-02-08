@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structcoro__stack" kind="struct" language="C++" prot="public">
+    <compoundname>coro_stack</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* sptr</definition>
+        <argsstring></argsstring>
+        <name>sptr</name>
+        <qualifiedname>coro_stack::sptr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="264" column="8" bodyfile="src/coro.h" bodystart="264" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ssze</definition>
+        <argsstring></argsstring>
+        <name>ssze</name>
+        <qualifiedname>coro_stack::ssze</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/coro.h" line="265" column="10" bodyfile="src/coro.h" bodystart="265" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/coro.h" line="262" column="1" bodyfile="src/coro.h" bodystart="263" bodyend="269"/>
+    <listofallmembers>
+      <member refid="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" prot="public" virt="non-virtual"><scope>coro_stack</scope><name>sptr</name></member>
+      <member refid="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" prot="public" virt="non-virtual"><scope>coro_stack</scope><name>ssze</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

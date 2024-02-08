@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structinthash__result__t" kind="struct" language="C++" prot="public">
+    <compoundname>inthash_result_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structinthash__result__t_1a9a84652401e8c660ac57ed1de60549f3" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>inthash_result_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="59" column="20" bodyfile="src/inthash.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinthash__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Present</definition>
+        <argsstring></argsstring>
+        <name>Present</name>
+        <qualifiedname>inthash_result_t::Present</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="59" column="30" bodyfile="src/inthash.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/inthash.h" line="59" column="1" bodyfile="src/inthash.h" bodystart="59" bodyend="59"/>
+    <listofallmembers>
+      <member refid="structinthash__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" prot="public" virt="non-virtual"><scope>inthash_result_t</scope><name>Present</name></member>
+      <member refid="structinthash__result__t_1a9a84652401e8c660ac57ed1de60549f3" prot="public" virt="non-virtual"><scope>inthash_result_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

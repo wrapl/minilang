@@ -1,0 +1,876 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__opcodes_8h" kind="file" language="C++">
+    <compoundname>ml_opcodes.h</compoundname>
+    <includedby refid="ml__bytecode_8h" local="yes">src/ml_bytecode.h</includedby>
+    <invincdepgraph>
+      <node id="2">
+        <label>src/ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>src/ml_bytecode_jit.h</label>
+        <link refid="ml__bytecode__jit_8h_source"/>
+      </node>
+      <node id="4">
+        <label>src/ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/ml_opcodes.h</label>
+        <link refid="ml__opcodes_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ml__opcodes_8h_1a9d0ebae08939337b89a9ed808d0e6b33" prot="public" static="no">
+        <name>ML_BYTECODE_VERSION</name>
+        <initializer>5</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_opcodes.h" line="4" column="9" bodyfile="src/ml_opcodes.h" bodystart="4" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_opcode_t</name>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a9df070fd2681e080ab6a96e20ad33357" prot="public">
+          <name>MLI_AND</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a2e0941aac73a1a0f3e0d67a71d23f3ed" prot="public">
+          <name>MLI_AND_POP</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a99a2dbc444ecd04c1e25bb9569c44cbd" prot="public">
+          <name>MLI_ASSIGN</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a9d99786d2d8b763ef66026a913a21811" prot="public">
+          <name>MLI_ASSIGN_LOCAL</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a860d52f19fe469a1aa184a690c4bfe6b" prot="public">
+          <name>MLI_CALL</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a84425f799a4b9c1b22423508557e4460" prot="public">
+          <name>MLI_CALL_CONST</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aa350274b7790835be4d77271a6af47f6" prot="public">
+          <name>MLI_CALL_METHOD</name>
+          <initializer>= 6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aa7fd38832204e9f6063da0022f2131e2" prot="public">
+          <name>MLI_CATCH</name>
+          <initializer>= 7</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a9c471524e66b51a4f7544ffcd0ca6ad5" prot="public">
+          <name>MLI_CATCHX</name>
+          <initializer>= 8</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ac4e2de6b2efbfa5fa1fdded3a80016f8" prot="public">
+          <name>MLI_CLOSURE</name>
+          <initializer>= 9</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a4958af66d611404ba922ebb649e10b12" prot="public">
+          <name>MLI_CLOSURE_TYPED</name>
+          <initializer>= 10</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a93825cb726f48d3d6a0741db426918b9" prot="public">
+          <name>MLI_ENTER</name>
+          <initializer>= 11</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a6013665422fea20c71e4e7b231ec7542" prot="public">
+          <name>MLI_EXIT</name>
+          <initializer>= 12</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a24386c924f642aa4f3f28e4cf534bb94" prot="public">
+          <name>MLI_FOR</name>
+          <initializer>= 13</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a34ae506e06bfd85c24fb5714b17f6bf7" prot="public">
+          <name>MLI_GOTO</name>
+          <initializer>= 14</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a47a239ce196fbf177751dbf98f47dece" prot="public">
+          <name>MLI_IF_CONFIG</name>
+          <initializer>= 15</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258af5db61a1cadbb94e7e1556bcc491b3f1" prot="public">
+          <name>MLI_ITER</name>
+          <initializer>= 16</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a531ff8878d366d41e7b5a6338e0b3d58" prot="public">
+          <name>MLI_KEY</name>
+          <initializer>= 17</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a79058968f02a2b662cb004bd1e26ba00" prot="public">
+          <name>MLI_LET</name>
+          <initializer>= 18</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a186482b5841ff272cc9d1d4e1bfb4689" prot="public">
+          <name>MLI_LETI</name>
+          <initializer>= 19</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a02b536d206a329f8e9096c98c67e7f30" prot="public">
+          <name>MLI_LETX</name>
+          <initializer>= 20</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a64b3c73bc18d330d908886a65c62e56c" prot="public">
+          <name>MLI_LINK</name>
+          <initializer>= 21</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ada41c938e3dcdc43f08a942caa75fa2a" prot="public">
+          <name>MLI_LIST_APPEND</name>
+          <initializer>= 22</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a671a3d7fd50172744a6409919382210b" prot="public">
+          <name>MLI_LIST_NEW</name>
+          <initializer>= 23</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a1cc0214d36620b406957cd7a91189c80" prot="public">
+          <name>MLI_LOAD</name>
+          <initializer>= 24</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a1fb6e22f8efece392154e6140ed8c506" prot="public">
+          <name>MLI_LOAD_PUSH</name>
+          <initializer>= 25</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a7e30a06d784ca7a7b9804e8b276339af" prot="public">
+          <name>MLI_LOAD_VAR</name>
+          <initializer>= 26</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ae124246fb1f3e634ffd633d15c71aae5" prot="public">
+          <name>MLI_LOCAL</name>
+          <initializer>= 27</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a476d6c6f5b4ca7c8ce4e6e04e31bf85f" prot="public">
+          <name>MLI_LOCALI</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ac351fd0a8fb32bada54b930e46a00bf8" prot="public">
+          <name>MLI_LOCAL_PUSH</name>
+          <initializer>= 29</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aef142ea1aa45abe58e993e2135668be4" prot="public">
+          <name>MLI_MAP_INSERT</name>
+          <initializer>= 30</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aee111a3c313e5c8ec001094a43332c93" prot="public">
+          <name>MLI_MAP_NEW</name>
+          <initializer>= 31</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258afef457eafa37b4f571793523dead5c52" prot="public">
+          <name>MLI_NEXT</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258af11083af0d64ce197730ecd1ff331fcf" prot="public">
+          <name>MLI_NIL</name>
+          <initializer>= 33</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ac8839a1037e7f6f5d433179f26ecfe83" prot="public">
+          <name>MLI_NIL_PUSH</name>
+          <initializer>= 34</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a0b4fdf24062e413c6080c3e896044d36" prot="public">
+          <name>MLI_NOT</name>
+          <initializer>= 35</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a36eeaac58529f93b1009e94278a38ef6" prot="public">
+          <name>MLI_OR</name>
+          <initializer>= 36</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a3b2c39de829fe277a65fbbcc33f3de85" prot="public">
+          <name>MLI_PARAM_TYPE</name>
+          <initializer>= 37</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a422aa2c18ed605c3ebe6c82ac4660ee3" prot="public">
+          <name>MLI_PARTIAL_NEW</name>
+          <initializer>= 38</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a06e0cf62b3bff5e5410867162b7bc696" prot="public">
+          <name>MLI_PARTIAL_SET</name>
+          <initializer>= 39</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a426c1519db32517fa4d63ad6bb1ad696" prot="public">
+          <name>MLI_POP</name>
+          <initializer>= 40</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a0bb70c02ea140334f984517b633d4922" prot="public">
+          <name>MLI_PUSH</name>
+          <initializer>= 41</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a8054037c3c3f9830e9f164d9152dce57" prot="public">
+          <name>MLI_REF</name>
+          <initializer>= 42</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a6d0434679d3e2917c1b9af68752b774c" prot="public">
+          <name>MLI_REFI</name>
+          <initializer>= 43</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ab31a0bbe60d75622bcd2bd4fbae62948" prot="public">
+          <name>MLI_REFX</name>
+          <initializer>= 44</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a67a876abad91890833e7f601f12e0eb3" prot="public">
+          <name>MLI_RESOLVE</name>
+          <initializer>= 45</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a9ca224fc0a5f6a196e177e3a817edf65" prot="public">
+          <name>MLI_RESUME</name>
+          <initializer>= 46</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aa2f31ede659633b09084fa0546791169" prot="public">
+          <name>MLI_RETRY</name>
+          <initializer>= 47</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a931ee2daf02590aa06680e979a075fb6" prot="public">
+          <name>MLI_RETURN</name>
+          <initializer>= 48</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a5f8466bb8a76979e10211951a2f4eab6" prot="public">
+          <name>MLI_STRING_ADD</name>
+          <initializer>= 49</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ada857ee5a388eb2db5a4505e3eb27553" prot="public">
+          <name>MLI_STRING_ADDS</name>
+          <initializer>= 50</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a09dbb4b3675a322a40e517ccc05e96fb" prot="public">
+          <name>MLI_STRING_ADD_1</name>
+          <initializer>= 51</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aee4b5ebcb74e073e3069980d1d47f114" prot="public">
+          <name>MLI_STRING_END</name>
+          <initializer>= 52</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a67c8e337695e2bc759bc2be4dc40a44e" prot="public">
+          <name>MLI_STRING_NEW</name>
+          <initializer>= 53</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ae681bc8f4632ce5919c06d8baac2cf20" prot="public">
+          <name>MLI_STRING_POP</name>
+          <initializer>= 54</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a12659e9678c850fb0f30683665c9eb5a" prot="public">
+          <name>MLI_SUSPEND</name>
+          <initializer>= 55</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ae38b674b469b97fc9f20069c3bf0722b" prot="public">
+          <name>MLI_SWITCH</name>
+          <initializer>= 56</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ab8e4a0663f35686e14b90b1927afb380" prot="public">
+          <name>MLI_TAIL_CALL</name>
+          <initializer>= 57</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a343089594f1d53c74113c27e140e45a2" prot="public">
+          <name>MLI_TAIL_CALL_CONST</name>
+          <initializer>= 58</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a6b1262735e8806438973ee3fe1c7eee0" prot="public">
+          <name>MLI_TAIL_CALL_METHOD</name>
+          <initializer>= 59</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aeeec074455a12a3ca3ed07a81a61d6e3" prot="public">
+          <name>MLI_TRY</name>
+          <initializer>= 60</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a5cc64acba7b4bb45eac9a497453bcf8e" prot="public">
+          <name>MLI_TUPLE_NEW</name>
+          <initializer>= 61</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258aae4f291a7aa0e0cc0abe05eff5292076" prot="public">
+          <name>MLI_UPVALUE</name>
+          <initializer>= 62</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a40f4580f71e5ca967001a8f98fba455d" prot="public">
+          <name>MLI_VALUE_1</name>
+          <initializer>= 63</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a859c86d4c7d0a9a5d42d23fa816395da" prot="public">
+          <name>MLI_VALUE_2</name>
+          <initializer>= 64</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a48ba99756e3772484ffb1bf8273c8bbc" prot="public">
+          <name>MLI_VAR</name>
+          <initializer>= 65</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ac262812d97c0b83fdea6cc04f8d95cfa" prot="public">
+          <name>MLI_VARX</name>
+          <initializer>= 66</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ae4a22f6bad14ab3a64461fcc09c2cbba" prot="public">
+          <name>MLI_VAR_TYPE</name>
+          <initializer>= 67</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258a33e8699840c5765845c7c50c0203e97a" prot="public">
+          <name>MLI_WITH</name>
+          <initializer>= 68</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7725156adf266dc03eee040f00b72258ad386bfbad05a0229647d02c90da153e0" prot="public">
+          <name>MLI_WITHX</name>
+          <initializer>= 69</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_opcodes.h" line="6" column="1" bodyfile="src/ml_opcodes.h" bodystart="6" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="enum" id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_inst_type_t</name>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55ab4ca76cc740ba1c30ff950af98a1a821" prot="public">
+          <name>MLIT_CLOSURE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55af3f639fd7c9a458795d01628e1b38fe8" prot="public">
+          <name>MLIT_COUNT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55acb46dc9b2a9f52d49f08158e098fb10a" prot="public">
+          <name>MLIT_COUNT_CHARS</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a342030552d5720c1da0f30efa9ce55ff" prot="public">
+          <name>MLIT_COUNT_COUNT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a734f0c77dbb835424e1b0a6deb0cf7ee" prot="public">
+          <name>MLIT_COUNT_COUNT_DECL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a2d499e2dcc21ec8eaaf02e13c96d14e6" prot="public">
+          <name>MLIT_COUNT_DECL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55ad305a3368ebe0385ddb2ffe8415f0c6b" prot="public">
+          <name>MLIT_DECL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a83bec7c7e838945ea394608f7742e00e" prot="public">
+          <name>MLIT_INST</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55ac1984eefef63813eb0c92f59f14467b6" prot="public">
+          <name>MLIT_INST_CONFIG</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a11ee345820482c4f8f315cfdf188fbd1" prot="public">
+          <name>MLIT_INST_COUNT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a3adeaca62b04a33f68256d1e48f478e6" prot="public">
+          <name>MLIT_INST_COUNT_DECL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55af64c2255469b2b130552b8fa49763717" prot="public">
+          <name>MLIT_NONE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55aec02627daec7d3a7776cfa5d544e9c2b" prot="public">
+          <name>MLIT_SWITCH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55ab31e5d99dbd85a6cfc5503ab88226e2a" prot="public">
+          <name>MLIT_VALUE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a5a21de6a194ff01bf1498f035754f7fe" prot="public">
+          <name>MLIT_VALUE_COUNT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__opcodes_8h_1a7774f747ca449e44f68b586940988c55a51c3571e56890a0b5a7a4decb96e7043" prot="public">
+          <name>MLIT_VALUE_COUNT_DATA</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_opcodes.h" line="79" column="1" bodyfile="src/ml_opcodes.h" bodystart="79" bodyend="96"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ml__opcodes_8h_1a89f08561dfd634d485c4a5a39b835b19" prot="public" static="no" extern="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* MLInstNames[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLInstNames</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_opcodes.h" line="98" column="19" declfile="src/ml_opcodes.h" declline="98" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="ml__opcodes_8h_1a185fc2908eb418e09f0892b770d9e181" prot="public" static="no" extern="yes" mutable="no">
+        <type>const ml_inst_type_t</type>
+        <definition>const ml_inst_type_t MLInstTypes[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLInstTypes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_opcodes.h" line="99" column="29" declfile="src/ml_opcodes.h" declline="99" declcolumn="29"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_OPCODES_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_OPCODES_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_BYTECODE_VERSION<sp/>5</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_AND<sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_AND_POP<sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_ASSIGN<sp/>=<sp/>2,</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_ASSIGN_LOCAL<sp/>=<sp/>3,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_CALL<sp/>=<sp/>4,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_CALL_CONST<sp/>=<sp/>5,</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_CALL_METHOD<sp/>=<sp/>6,</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_CATCH<sp/>=<sp/>7,</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_CATCHX<sp/>=<sp/>8,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_CLOSURE<sp/>=<sp/>9,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_CLOSURE_TYPED<sp/>=<sp/>10,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_ENTER<sp/>=<sp/>11,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_EXIT<sp/>=<sp/>12,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_FOR<sp/>=<sp/>13,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_GOTO<sp/>=<sp/>14,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_IF_CONFIG<sp/>=<sp/>15,</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_ITER<sp/>=<sp/>16,</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_KEY<sp/>=<sp/>17,</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LET<sp/>=<sp/>18,</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LETI<sp/>=<sp/>19,</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LETX<sp/>=<sp/>20,</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LINK<sp/>=<sp/>21,</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LIST_APPEND<sp/>=<sp/>22,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LIST_NEW<sp/>=<sp/>23,</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LOAD<sp/>=<sp/>24,</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LOAD_PUSH<sp/>=<sp/>25,</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LOAD_VAR<sp/>=<sp/>26,</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LOCAL<sp/>=<sp/>27,</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LOCALI<sp/>=<sp/>28,</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_LOCAL_PUSH<sp/>=<sp/>29,</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_MAP_INSERT<sp/>=<sp/>30,</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_MAP_NEW<sp/>=<sp/>31,</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_NEXT<sp/>=<sp/>32,</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_NIL<sp/>=<sp/>33,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_NIL_PUSH<sp/>=<sp/>34,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_NOT<sp/>=<sp/>35,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_OR<sp/>=<sp/>36,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_PARAM_TYPE<sp/>=<sp/>37,</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_PARTIAL_NEW<sp/>=<sp/>38,</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_PARTIAL_SET<sp/>=<sp/>39,</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_POP<sp/>=<sp/>40,</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_PUSH<sp/>=<sp/>41,</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_REF<sp/>=<sp/>42,</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_REFI<sp/>=<sp/>43,</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_REFX<sp/>=<sp/>44,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_RESOLVE<sp/>=<sp/>45,</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_RESUME<sp/>=<sp/>46,</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_RETRY<sp/>=<sp/>47,</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_RETURN<sp/>=<sp/>48,</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_STRING_ADD<sp/>=<sp/>49,</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_STRING_ADDS<sp/>=<sp/>50,</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_STRING_ADD_1<sp/>=<sp/>51,</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_STRING_END<sp/>=<sp/>52,</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_STRING_NEW<sp/>=<sp/>53,</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_STRING_POP<sp/>=<sp/>54,</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_SUSPEND<sp/>=<sp/>55,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_SWITCH<sp/>=<sp/>56,</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_TAIL_CALL<sp/>=<sp/>57,</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_TAIL_CALL_CONST<sp/>=<sp/>58,</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_TAIL_CALL_METHOD<sp/>=<sp/>59,</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_TRY<sp/>=<sp/>60,</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_TUPLE_NEW<sp/>=<sp/>61,</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_UPVALUE<sp/>=<sp/>62,</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_VALUE_1<sp/>=<sp/>63,</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_VALUE_2<sp/>=<sp/>64,</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_VAR<sp/>=<sp/>65,</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_VARX<sp/>=<sp/>66,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_VAR_TYPE<sp/>=<sp/>67,</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_WITH<sp/>=<sp/>68,</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/>MLI_WITHX<sp/>=<sp/>69,</highlight></codeline>
+<codeline lineno="77"><highlight class="normal">}<sp/>ml_opcode_t;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_CLOSURE,</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_COUNT_CHARS,</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_COUNT_COUNT,</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_COUNT_COUNT_DECL,</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_COUNT_DECL,</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_DECL,</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_INST_CONFIG,</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_INST_COUNT,</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_INST_COUNT_DECL,</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_SWITCH,</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_VALUE,</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_VALUE_COUNT,</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/>MLIT_VALUE_COUNT_DATA,</highlight></codeline>
+<codeline lineno="96"><highlight class="normal">}<sp/>ml_inst_type_t;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*MLInstNames[];</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>ml_inst_type_t<sp/>MLInstTypes[];</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_opcodes.h"/>
+  </compounddef>
+</doxygen>
