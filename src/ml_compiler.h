@@ -1,6 +1,10 @@
 #ifndef ML_COMPILER_H
 #define ML_COMPILER_H
 
+/// \defgroup compiler
+///  @{
+///
+
 #include <setjmp.h>
 
 #include "ml_runtime.h"
@@ -44,10 +48,61 @@ typedef struct mlc_expr_t mlc_expr_t;
 
 typedef const char *(*ml_reader_t)(void *);
 
+/**
+ * Returns a new parser.
+ *
+ * @param Read Function to call to read the next line of source.
+ * @param Data Data passed to \a Read.
+ *
+ * @return A new parser.
+ */
 ml_parser_t *ml_parser(ml_reader_t Read, void *Data);
+
+/**
+ * Resets the state of a parser.
+ *
+ * @param Parser Parser.
+ */
 void ml_parser_reset(ml_parser_t *Parser);
+
+/**
+ * Enables or disabled permissive parsing.
+ *
+ * When permissive parsing is enabled, parsing errors are stored as warnings instead
+ * and an invalid expression is substituted. The parser output in this case will
+ * cause an error when compiled. The list of warnings can be retrieved with
+ * ml_parser_warnings().
+ *
+ * @param Parser Parser.
+ * @param Permissive 0 - disable permissive mode (default), 1 - enable permissive mode.
+ *
+ * @see ml_parser_warnings
+ */
 void ml_parser_permissive(ml_parser_t *Parser, int Permissive);
+
+/**
+ * Returns a list (\a ml_list_t *) of the warnings generated while parsing. If permissive
+ * parsing is disabled, this will always be an empty list.
+ *
+ * @param Parser Parser.
+ *
+ * @return List of warnings.
+ *
+ * @see ml_parser_permissive
+ */
 ml_value_t *ml_parser_warnings(ml_parser_t *Parser);
+
+/**
+ * Sets the next source text for parsing. Any existing unparsed source within parser is
+ * discarded. \a Text can be a single line, contain multiple lines of source, or even be
+ * the entire contents of a source file.
+ *
+ * End-of-line characters should *not* be stripped from \a Text. Currently, tokens cannot
+ * be split across different calls to ml_parser_input().
+ *
+ * @param Parser Parser.
+ * @param Text Source text.
+ */
 void ml_parser_input(ml_parser_t *Parser, const char *Text);
 const char *ml_parser_name(ml_parser_t *Parser);
 ml_source_t ml_parser_source(ml_parser_t *Parser, ml_source_t Source);
@@ -92,5 +147,7 @@ ml_value_t *ml_inline_function(ml_value_t *Value);
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

@@ -171,8 +171,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "a"
-      L:random :> "e"
+      L:random :> "c"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

@@ -8,7 +8,7 @@ from sphinx import version_info
 
 class FoldersDirective(Directive):
 	has_content = True
-	
+
 	def run(self):
 		env = self.state.document.settings.env
 		block_quote = nodes.line_block()
@@ -75,9 +75,14 @@ extensions = [
 	'sphinx.ext.viewcode',
 	'sphinx_toolbox.collapse',
 	'sphinxcontrib.ansi',
+	'breathe'
 	#"sphinxawesome_theme"
 	#'sphinx_design'
 ]
+
+breathe_projects = {"minilang": "doxygen/xml"}
+
+breathe_default_project = "minilang"
 
 graphviz_output_format = "svg"
 
