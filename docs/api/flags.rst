@@ -1,0 +1,4 @@
+Flags
+=====
+
+.. doxygengroup:: flags

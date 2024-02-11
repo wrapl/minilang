@@ -206,6 +206,69 @@ ML_METHODVX(MLTableT, MLNamesT) {
 	ML_RETURN(Table);
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_table_t *Table;
+	ml_value_t *Names, *Values;
+	ml_value_t *List;
+	int Index, Count;
+} ml_table_pivot_state_t;
+
+static void ml_table_pivot_state_run(ml_table_pivot_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_map_insert(State->Table->Columns, ml_list_get(State->Names, State->Index), Value);
+	if (State->Index == State->Count) ML_CONTINUE(State->Base.Caller, State->Table);
+	int Index = ++State->Index;
+	ml_list_node_t *Node = ((ml_list_t *)State->List)->Head;
+	ML_LIST_FOREACH(State->Values, Iter) {
+		Node->Value = ml_list_get(Iter->Value, Index);
+		Node = Node->Next;
+	}
+	return ml_call((ml_state_t *)State, (ml_value_t *)MLArrayT, 1, &State->List);
+}
+
+ML_METHODX(MLTableT, MLListT, MLListT) {
+//<Names
+//<Rows
+//>table
+// Returns a table using :mini:`Names` for column names and :mini:`Rows` as rows, where each row in :mini:`Rows` is a list of values corresponding to :mini:`Names`.
+	ml_table_t *Table = (ml_table_t *)ml_table();
+	int N = ml_list_length(Args[0]);
+	ML_LIST_FOREACH(Args[0], Iter) {
+		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Expected string not %s", ml_typeof(Iter->Value)->Name);
+	}
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLListT)) ML_ERROR("TypeError", "Expected list not %s", ml_typeof(Iter->Value)->Name);
+		if (ml_list_length(Iter->Value) != N) ML_ERROR("ValueError", "List lengths do not match");
+	}
+	if (!N) ML_RETURN(Table);
+	int Size = ml_list_length(Args[1]);
+	Table->Size = Size;
+	Table->Rows = anew(ml_table_row_t, Size + 1);
+	for (int I = 0; I < Size; ++I) {
+		Table->Rows[I].Type = MLTableRowT;
+		Table->Rows[I].Table = Table;
+	}
+	ml_value_t *List = ml_list();
+	for (int I = 0; I < Size; ++I) ml_list_put(List, MLNil);
+	ml_table_pivot_state_t *State = new(ml_table_pivot_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_table_pivot_state_run;
+	State->Table = Table;
+	State->Names = Args[0];
+	State->Values = Args[1];
+	State->List = List;
+	State->Index = 1;
+	State->Count = N;
+	ml_list_node_t *Node = ((ml_list_t *)List)->Head;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		Node->Value = ml_list_get(Iter->Value, 1);
+		Node = Node->Next;
+	}
+	return ml_call((ml_state_t *)State, (ml_value_t *)MLArrayT, 1, &State->List);
+}
+
 ml_value_t *ml_table_insert(ml_value_t *Value, ml_value_t *Name, ml_value_t *Column) {
 	ml_table_t *Table = (ml_table_t *)Value;
 	if (!ml_array_degree(Column)) return ml_error("ValueError", "Cannot add empty array to table");

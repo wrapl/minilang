@@ -1,0 +1,4 @@
+Externals
+=========
+
+.. doxygengroup:: externals

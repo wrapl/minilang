@@ -328,6 +328,12 @@ void ml_value_find_all(ml_value_t *Value, void *Data, ml_value_find_fn RefFn);
 
 int ml_value_is_constant(ml_value_t *Value);
 
+/// @}
+
+/// \defgroup iterators
+/// @{
+///
+
 // Iterators //
 
 extern ml_type_t MLSequenceT[];
@@ -341,6 +347,12 @@ void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
 ml_value_t *ml_chained(int Count, ml_value_t **Functions);
 ml_value_t *ml_chainedv(int Count, ...);
 ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function);
+
+/// @}
+
+/// \defgroup functions
+/// @{
+///
 
 // Functions //
 
@@ -452,6 +464,12 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 #define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
 #define ML_ERROR(ARGS...) ML_RETURN(ml_error(ARGS))
 
+/// @}
+
+/// \defgroup tuples
+/// @{
+///
+
 // Tuples //
 
 typedef struct ml_tuple_t ml_tuple_t;
@@ -491,6 +509,12 @@ static inline ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index);
 
+/// @}
+
+/// \defgroup booleans
+/// @{
+///
+
 // Booleans //
 
 typedef struct ml_boolean_t {
@@ -505,6 +529,12 @@ extern ml_boolean_t MLFalse[];
 
 ml_value_t *ml_boolean(int Value) __attribute__ ((const));
 int ml_boolean_value(const ml_value_t *Value) __attribute__ ((const));
+
+/// @}
+
+/// \defgroup numbers
+/// @{
+///
 
 // Numbers //
 
@@ -616,6 +646,12 @@ typedef struct {
 } ml_real_range_t;
 
 size_t ml_real_range_count(ml_real_range_t *Range);
+
+/// @}
+
+/// \defgroup strings
+/// @{
+///
 
 // Strings //
 
@@ -733,6 +769,12 @@ int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)
 #define ml_stringbuffer_uncollectable ml_stringbuffer_get_uncollectable
 #define ml_stringbuffer_value ml_stringbuffer_get_value
 
+/// @}
+
+/// \defgroup lists
+/// @{
+///
+
 // Lists //
 
 typedef struct ml_list_node_t ml_list_node_t;
@@ -831,6 +873,12 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 
 #define ML_LIST_REVERSE(LIST, ITER) \
 	for (ml_list_node_t *ITER = ((ml_list_t *)LIST)->Tail; ITER; ITER = ITER->Prev)
+
+/// @}
+
+/// \defgroup methods
+/// @{
+///
 
 // Methods //
 
@@ -949,6 +997,12 @@ static inline ml_value_t *ml_nop(void *Value) {
 void ml_methods_prevent_changes(ml_methods_t *Methods, int PreventChanges);
 ml_methods_t *ml_methods_context(ml_context_t *Context);
 
+/// @}
+
+/// \defgroup maps
+/// @{
+///
+
 // Maps //
 
 typedef struct ml_map_t ml_map_t;
@@ -1057,6 +1111,12 @@ static inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
 #define ML_MAP_FOREACH(MAP, ITER) \
 	for (ml_map_node_t *ITER = ((ml_map_t *)MAP)->Head; ITER; ITER = ITER->Next)
 
+/// @}
+
+/// \defgroup names
+/// @{
+///
+
 // Names //
 
 extern ml_type_t MLNamesT[];
@@ -1080,6 +1140,12 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value);
 }
 
 #define ML_NAMES_FOREACH(NAMES, ITER) ML_LIST_FOREACH(ml_deref(NAMES), ITER)
+
+/// @}
+
+/// \defgroup sets
+/// @{
+///
 
 // Sets //
 
@@ -1179,6 +1245,12 @@ static inline int ml_set_iter_valid(ml_set_iter_t *Iter) {
 #define ML_SET_FOREACH(SET, ITER) \
 	for (ml_set_node_t *ITER = ((ml_set_t *)SET)->Head; ITER; ITER = ITER->Next)
 
+/// @}
+
+/// \defgroup modules
+/// @{
+///
+
 // Modules //
 
 extern ml_type_t MLModuleT[];
@@ -1193,6 +1265,12 @@ ml_value_t *ml_module(const char *Path, ...) __attribute__ ((malloc, sentinel));
 const char *ml_module_path(ml_value_t *Module) __attribute__ ((pure));
 ml_value_t *ml_module_import(ml_value_t *Module, const char *Name) __attribute__ ((pure));
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
+
+/// @}
+
+/// \defgroup externals
+/// @{
+///
 
 // Externals //
 
@@ -1242,6 +1320,12 @@ ml_value_t *ml_deserialize(const char *Type, int Count, ml_value_t **Args);
 
 #endif
 
+/// @}
+
+/// \defgroup symbols
+/// @{
+///
+
 // Symbols //
 
 typedef struct {
@@ -1264,6 +1348,12 @@ extern ml_type_t MLSymbolRangeT[];
 
 #define ml_symbol_range_first(VALUE) ((ml_symbol_range_t *)VALUE)->First
 #define ml_symbol_range_last(VALUE) ((ml_symbol_range_t *)VALUE)->Last
+
+/// @}
+
+/// \defgroup init
+/// @{
+///
 
 // Init //
 

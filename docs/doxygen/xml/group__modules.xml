@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__modules" kind="group">
+    <compoundname>modules</compoundname>
+    <title>Modules</title>
+    <innerclass refid="structml__module__t" prot="public">ml_module_t</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__modules_1ga7b17bc09f170e0b7ec6194931ee90ccf" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLModuleT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLModuleT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1256" column="18" declfile="src/ml_types.h" declline="1256" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__modules_1ga40c8e39a70f2eb8fc1bb7fc62c8fff21" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref></type>
+        <definition>ml_value_t sentinel</definition>
+        <argsstring></argsstring>
+        <name>sentinel</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1264" column="27" bodyfile="src/ml_types.h" bodystart="1264" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__modules_1ga0bd2e3bd45556bdec0237bee5b0bca87" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_module</definition>
+        <argsstring>(const char *Path,...) __attribute__((malloc</argsstring>
+        <name>ml_module</name>
+        <param>
+          <type>const char *</type>
+          <declname>Path</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1264" column="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__modules_1ga796eb10d4e962bc49be3d495e898ec13" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_module_path</definition>
+        <argsstring>(ml_value_t *Module) __attribute__((pure))</argsstring>
+        <name>ml_module_path</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Module</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1265" column="12" declfile="src/ml_types.h" declline="1265" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__modules_1ga9a9edc767a2be7b1571227b4d40f4b6a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_module_import</definition>
+        <argsstring>(ml_value_t *Module, const char *Name) __attribute__((pure))</argsstring>
+        <name>ml_module_import</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Module</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1266" column="12" declfile="src/ml_types.h" declline="1266" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__modules_1ga33b4b8ad2b74e2a0c54d78ffe11d82c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_module_export</definition>
+        <argsstring>(ml_value_t *Module, const char *Name, ml_value_t *Value)</argsstring>
+        <name>ml_module_export</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Module</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1267" column="12" declfile="src/ml_types.h" declline="1267" declcolumn="12"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

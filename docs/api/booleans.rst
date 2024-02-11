@@ -1,0 +1,4 @@
+Booleans
+========
+
+.. doxygengroup:: booleans

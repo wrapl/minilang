@@ -1,6 +1,10 @@
 #ifndef ML_MATH_H
 #define ML_MATH_H
 
+/// \defgroup math
+/// @{
+///
+
 #include "minilang.h"
 
 #ifdef __cplusplus
@@ -45,5 +49,7 @@ void ml_math_init(stringmap_t *Globals);
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

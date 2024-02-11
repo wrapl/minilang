@@ -1,0 +1,439 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__math" kind="group">
+    <compoundname>math</compoundname>
+    <title>Math</title>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__math_1gabed55e2c9824b63b4fdf650ae4862abc" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* AcosMethod</definition>
+        <argsstring></argsstring>
+        <name>AcosMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="14" column="19" declfile="src/ml_math.h" declline="14" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gae9f127f774e16560a1ae08e76eb68ab6" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* AsinMethod</definition>
+        <argsstring></argsstring>
+        <name>AsinMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="15" column="19" declfile="src/ml_math.h" declline="15" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gaaf832b2fcee8879d8b0b37552cd85143" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* AtanMethod</definition>
+        <argsstring></argsstring>
+        <name>AtanMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="16" column="19" declfile="src/ml_math.h" declline="16" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gac4c75ea180043682a85e34f75c70d4f5" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* CeilMethod</definition>
+        <argsstring></argsstring>
+        <name>CeilMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="17" column="19" declfile="src/ml_math.h" declline="17" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga4ab5c41782eb883169d77ac33a7711fa" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* CosMethod</definition>
+        <argsstring></argsstring>
+        <name>CosMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="18" column="19" declfile="src/ml_math.h" declline="18" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gaf3640a6b8537a0e72a10695ea28e493c" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* CoshMethod</definition>
+        <argsstring></argsstring>
+        <name>CoshMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="19" column="19" declfile="src/ml_math.h" declline="19" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gae08fe21ee1c77b780e79deb2090bb533" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ExpMethod</definition>
+        <argsstring></argsstring>
+        <name>ExpMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="20" column="19" declfile="src/ml_math.h" declline="20" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gad7385526f25d36ea6c3619e0e31333e2" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* AbsMethod</definition>
+        <argsstring></argsstring>
+        <name>AbsMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="21" column="19" declfile="src/ml_math.h" declline="21" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gad6d540547ac1a4a855e8cf6b55c83ca0" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* FloorMethod</definition>
+        <argsstring></argsstring>
+        <name>FloorMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="22" column="19" declfile="src/ml_math.h" declline="22" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga9008fdc7ad32fa1975399c87a59ebbcd" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* LogMethod</definition>
+        <argsstring></argsstring>
+        <name>LogMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="23" column="19" declfile="src/ml_math.h" declline="23" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gaa373aa45566a2ea8158622d0d9ec8d91" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Log10Method</definition>
+        <argsstring></argsstring>
+        <name>Log10Method</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="24" column="19" declfile="src/ml_math.h" declline="24" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga4c02545f0f9341763a4fc80978ff9f23" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* LogitMethod</definition>
+        <argsstring></argsstring>
+        <name>LogitMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="25" column="19" declfile="src/ml_math.h" declline="25" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga7f10b427b0d9bcfc6a2d808a3c05e9be" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* SinMethod</definition>
+        <argsstring></argsstring>
+        <name>SinMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="26" column="19" declfile="src/ml_math.h" declline="26" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga0fc30b709de477b94e107b9e63105ce6" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* SinhMethod</definition>
+        <argsstring></argsstring>
+        <name>SinhMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="27" column="19" declfile="src/ml_math.h" declline="27" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga3422d3f8b70227260b510ca86309db5e" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* SqrtMethod</definition>
+        <argsstring></argsstring>
+        <name>SqrtMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="28" column="19" declfile="src/ml_math.h" declline="28" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga212a67b61f3f775e49d4083b51269bbf" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* SquareMethod</definition>
+        <argsstring></argsstring>
+        <name>SquareMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="29" column="19" declfile="src/ml_math.h" declline="29" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gaf1e995ab7d7277bc34880b5974db27e1" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* TanMethod</definition>
+        <argsstring></argsstring>
+        <name>TanMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="30" column="19" declfile="src/ml_math.h" declline="30" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga62387d3df25a0064c0796153522f56af" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* TanhMethod</definition>
+        <argsstring></argsstring>
+        <name>TanhMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="31" column="19" declfile="src/ml_math.h" declline="31" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga052b6f4ab5891b64d94aa19d3dfec58c" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ErfMethod</definition>
+        <argsstring></argsstring>
+        <name>ErfMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="32" column="19" declfile="src/ml_math.h" declline="32" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gab42e7ca1e3597c7a75584897bf876825" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ErfcMethod</definition>
+        <argsstring></argsstring>
+        <name>ErfcMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="33" column="19" declfile="src/ml_math.h" declline="33" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga53ea42220abc4313914640ac96cdcb95" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* GammaMethod</definition>
+        <argsstring></argsstring>
+        <name>GammaMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="34" column="19" declfile="src/ml_math.h" declline="34" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga7089485c38d14f7d96bddd0c8fd45ca0" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* AcoshMethod</definition>
+        <argsstring></argsstring>
+        <name>AcoshMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="35" column="19" declfile="src/ml_math.h" declline="35" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga647018dca3eb4e58d1a08b474ab392b7" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* AsinhMethod</definition>
+        <argsstring></argsstring>
+        <name>AsinhMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="36" column="19" declfile="src/ml_math.h" declline="36" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga5cc96ec52b206be1a72e8c701c518fcf" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* AtanhMethod</definition>
+        <argsstring></argsstring>
+        <name>AtanhMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="37" column="19" declfile="src/ml_math.h" declline="37" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga5006605197f59e10ee4e9cd1ca5dac68" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* CbrtMethod</definition>
+        <argsstring></argsstring>
+        <name>CbrtMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="38" column="19" declfile="src/ml_math.h" declline="38" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gab013bcf4d3fe64a435fd03f321aa88b2" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Expm1Method</definition>
+        <argsstring></argsstring>
+        <name>Expm1Method</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="39" column="19" declfile="src/ml_math.h" declline="39" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1gaa58a7c4558997e9129b98058b20200bb" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Log1pMethod</definition>
+        <argsstring></argsstring>
+        <name>Log1pMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="40" column="19" declfile="src/ml_math.h" declline="40" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga65c6b91eedd08d47d2d3788676c7c539" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* RoundMethod</definition>
+        <argsstring></argsstring>
+        <name>RoundMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="41" column="19" declfile="src/ml_math.h" declline="41" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga4e55e8027fb5c0a4debd03244e6cac1e" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ArgMethod</definition>
+        <argsstring></argsstring>
+        <name>ArgMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="42" column="19" declfile="src/ml_math.h" declline="42" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__math_1ga5cde6e3558ee9d898dbb48860fffb6ea" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ConjMethod</definition>
+        <argsstring></argsstring>
+        <name>ConjMethod</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="43" column="19" declfile="src/ml_math.h" declline="43" declcolumn="19"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__math_1gab11365c101544e35e115790ec7fc6b41" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double logit</definition>
+        <argsstring>(double X)</argsstring>
+        <name>logit</name>
+        <param>
+          <type>double</type>
+          <declname>X</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="45" column="8" declfile="src/ml_math.h" declline="45" declcolumn="8"/>
+      </memberdef>
+      <memberdef kind="function" id="group__math_1ga6fe9eb087418b1e91eb516db995969bd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_math_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_math_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_math.h" line="47" column="6" declfile="src/ml_math.h" declline="47" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

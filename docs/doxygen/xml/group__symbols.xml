@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__symbols" kind="group">
+    <compoundname>symbols</compoundname>
+    <title>Symbols</title>
+    <innerclass refid="structml__symbol__t" prot="public">ml_symbol_t</innerclass>
+    <innerclass refid="structml__symbol__range__t" prot="public">ml_symbol_range_t</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__symbols_1ga659caeec6bd9c25d72a141e7b4e82ea2" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSymbolT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSymbolT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1336" column="18" declfile="src/ml_types.h" declline="1336" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__symbols_1ga6f0c8c1c0f120d865a99f0a17f55dc66" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSymbolRangeT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSymbolRangeT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1347" column="18" declfile="src/ml_types.h" declline="1347" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__symbols_1gaf40c21abe6f857df644d104ec5417f90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_symbol</definition>
+        <argsstring>(const char *Name)</argsstring>
+        <name>ml_symbol</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1338" column="12" declfile="src/ml_types.h" declline="1338" declcolumn="12"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__symbols_1gac0d196c2db80f2c9104e0e36946fd94c" prot="public" static="no">
+        <name>ml_symbol_name</name>
+        <param><defname>VALUE</defname></param>
+        <initializer>((<ref refid="structml__symbol__t" kindref="compound">ml_symbol_t</ref> *)VALUE)-&gt;Name</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1340" column="9" bodyfile="src/ml_types.h" bodystart="1340" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__symbols_1ga0e78e078ee19501971928a5b118dba70" prot="public" static="no">
+        <name>ml_symbol_range_first</name>
+        <param><defname>VALUE</defname></param>
+        <initializer>((<ref refid="structml__symbol__range__t" kindref="compound">ml_symbol_range_t</ref> *)VALUE)-&gt;First</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1349" column="9" bodyfile="src/ml_types.h" bodystart="1349" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__symbols_1ga7fbf1bf4f31b165e8c04d6941b78b5cf" prot="public" static="no">
+        <name>ml_symbol_range_last</name>
+        <param><defname>VALUE</defname></param>
+        <initializer>((<ref refid="structml__symbol__range__t" kindref="compound">ml_symbol_range_t</ref> *)VALUE)-&gt;Last</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1350" column="9" bodyfile="src/ml_types.h" bodystart="1350" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

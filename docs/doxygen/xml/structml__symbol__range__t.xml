@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1259" column="11" bodyfile="src/ml_types.h" bodystart="1259" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1343" column="11" bodyfile="src/ml_types.h" bodystart="1343" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__symbol__range__t_1a207dca2cc50284a4758381fea6ab1cad" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1260" column="12" bodyfile="src/ml_types.h" bodystart="1260" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1344" column="12" bodyfile="src/ml_types.h" bodystart="1344" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__symbol__range__t_1a50f85990a56a7263d638002cbd80d4b3" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1260" column="18" bodyfile="src/ml_types.h" bodystart="1260" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1344" column="18" bodyfile="src/ml_types.h" bodystart="1344" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -92,7 +92,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1258" column="1" bodyfile="src/ml_types.h" bodystart="1258" bodyend="1261"/>
+    <location file="src/ml_types.h" line="1342" column="1" bodyfile="src/ml_types.h" bodystart="1342" bodyend="1345"/>
     <listofallmembers>
       <member refid="structml__symbol__range__t_1a207dca2cc50284a4758381fea6ab1cad" prot="public" virt="non-virtual"><scope>ml_symbol_range_t</scope><name>First</name></member>
       <member refid="structml__symbol__range__t_1a50f85990a56a7263d638002cbd80d4b3" prot="public" virt="non-virtual"><scope>ml_symbol_range_t</scope><name>Last</name></member>

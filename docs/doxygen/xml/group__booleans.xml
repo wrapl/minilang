@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__booleans" kind="group">
+    <compoundname>booleans</compoundname>
+    <title>Booleans</title>
+    <innerclass refid="structml__boolean__t" prot="public">ml_boolean_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__booleans_1gaefe0dadf345114067b00eda0bd1ef00e" prot="public" static="no">
+        <type>struct ml_boolean_t</type>
+        <definition>typedef struct ml_boolean_t ml_boolean_t</definition>
+        <argsstring></argsstring>
+        <name>ml_boolean_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="524" column="14"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__booleans_1ga42098a64bc6c6c63f8e80c1338124a58" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLBooleanT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLBooleanT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="526" column="18" declfile="src/ml_types.h" declline="526" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__booleans_1ga030042dbfb5c710e445ddd1d836c2ee0" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__boolean__t" kindref="compound">ml_boolean_t</ref></type>
+        <definition>ml_boolean_t MLTrue[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLTrue</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="527" column="21" declfile="src/ml_types.h" declline="527" declcolumn="21"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__booleans_1gac87a475b780a3409eb8fe3d2104329ef" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__boolean__t" kindref="compound">ml_boolean_t</ref></type>
+        <definition>ml_boolean_t MLFalse[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLFalse</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="528" column="21" declfile="src/ml_types.h" declline="528" declcolumn="21"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__booleans_1gaf2917c1df458f0cf9475a531af368362" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_boolean</definition>
+        <argsstring>(int Value) __attribute__((const))</argsstring>
+        <name>ml_boolean</name>
+        <param>
+          <type>int</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="530" column="12" declfile="src/ml_types.h" declline="530" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__booleans_1gae68130990e046a964dcb7ad9d61c78fd" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_boolean_value</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((const))</argsstring>
+        <name>ml_boolean_value</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="531" column="5" declfile="src/ml_types.h" declline="531" declcolumn="5"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

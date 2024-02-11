@@ -1,0 +1,421 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__objects" kind="group">
+    <compoundname>objects</compoundname>
+    <title>Objects</title>
+    <innerclass refid="structml__field__info__t" prot="public">ml_field_info_t</innerclass>
+    <innerclass refid="structml__class__t" prot="public">ml_class_t</innerclass>
+    <innerclass refid="structml__field__t" prot="public">ml_field_t</innerclass>
+    <innerclass refid="structml__object__t" prot="public">ml_object_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__objects_1gae70523f3347bde71e77757b6b758fa22" prot="public" static="no">
+        <type>struct ml_class_t</type>
+        <definition>typedef struct ml_class_t ml_class_t</definition>
+        <argsstring></argsstring>
+        <name>ml_class_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="15" column="25" bodyfile="src/ml_object.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__objects_1ga9a70e051c2a7fcd44e1c356f977aa0f5" prot="public" static="no">
+        <type>struct ml_object_t</type>
+        <definition>typedef struct ml_object_t ml_object_t</definition>
+        <argsstring></argsstring>
+        <name>ml_object_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="16" column="26" bodyfile="src/ml_object.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__objects_1ga72704d3e342214fb2f53d72e3c8e85a7" prot="public" static="no">
+        <type>struct ml_field_t</type>
+        <definition>typedef struct ml_field_t ml_field_t</definition>
+        <argsstring></argsstring>
+        <name>ml_field_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="17" column="25" bodyfile="src/ml_object.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__objects_1gae65682223379e765e79c0f50e04f80a3" prot="public" static="no">
+        <type>struct ml_field_info_t</type>
+        <definition>typedef struct ml_field_info_t ml_field_info_t</definition>
+        <argsstring></argsstring>
+        <name>ml_field_info_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="18" column="30" bodyfile="src/ml_object.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__objects_1ga22e8d0514421a25e9548e3b7f0797f81" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLClassT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLClassT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="49" column="18" declfile="src/ml_object.h" declline="49" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__objects_1ga177646a0c55dc0180d6c9657e57119ea" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLObjectT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLObjectT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="50" column="18" declfile="src/ml_object.h" declline="50" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__objects_1gaf0860eca949bab3e4d5aa79b805cbee1" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLFieldT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLFieldT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="51" column="18" declfile="src/ml_object.h" declline="51" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__objects_1gabcd0654d1007797f1546d9071fc01781" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLFieldMutableT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLFieldMutableT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="52" column="18" declfile="src/ml_object.h" declline="52" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__objects_1ga08e4f63f432473b1e590ca6fcbddb580" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_object_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_object_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="45" column="6" declfile="src/ml_object.h" declline="45" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga2985e6f8f42dc6f056f3ab57689cf0cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_field_fn</definition>
+        <argsstring>(void *Data, int Count, ml_value_t **Args) __attribute__((malloc))</argsstring>
+        <name>ml_field_fn</name>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="47" column="12" declfile="src/ml_object.h" declline="47" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga879ddfefbf2438a69f766cd6681ad4ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__object__t" kindref="compound">ml_object_t</ref> *</type>
+        <definition>ml_object_t * ml_field_owner</definition>
+        <argsstring>(ml_field_t *Field)</argsstring>
+        <name>ml_field_owner</name>
+        <param>
+          <type><ref refid="structml__field__t" kindref="compound">ml_field_t</ref> *</type>
+          <declname>Field</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="54" column="13" declfile="src/ml_object.h" declline="54" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga18d82bd95fad2865b096af5a154a734b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t * ml_class</definition>
+        <argsstring>(const char *Name)</argsstring>
+        <name>ml_class</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="56" column="11" declfile="src/ml_object.h" declline="56" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1gad0ca2a89ea09a6cdab2dd34155f27f48" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_class_add_parent</definition>
+        <argsstring>(ml_context_t *Context, ml_type_t *Class, ml_type_t *Parent)</argsstring>
+        <name>ml_class_add_parent</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Class</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Parent</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="57" column="6" declfile="src/ml_object.h" declline="57" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga5dea0e8961ffa806f6dc593e4e0d47a2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_class_add_field</definition>
+        <argsstring>(ml_context_t *Context, ml_type_t *Class, ml_value_t *Field, ml_type_t *Type)</argsstring>
+        <name>ml_class_add_field</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Class</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Field</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="58" column="6" declfile="src/ml_object.h" declline="58" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga3213cb60e8d82e3cf0b0535fa927b417" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_class_modify</definition>
+        <argsstring>(ml_context_t *Context, ml_class_t *Class, ml_value_t *Modifier)</argsstring>
+        <name>ml_class_modify</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__class__t" kindref="compound">ml_class_t</ref> *</type>
+          <declname>Class</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Modifier</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="60" column="12" declfile="src/ml_object.h" declline="60" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1gaa9496be0561dc1d54c67d025874bdfa0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_modified_field</definition>
+        <argsstring>(ml_value_t *Field, ml_type_t *Type)</argsstring>
+        <name>ml_modified_field</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Field</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="62" column="12" declfile="src/ml_object.h" declline="62" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1gafa86bd55039f9d84589faae382c4ed4f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ml_class_size</definition>
+        <argsstring>(const ml_type_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_class_size</name>
+        <param>
+          <type>const <ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="64" column="8" declfile="src/ml_object.h" declline="64" declcolumn="8"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1gaff4c60fbfa3d5814be2d6176dee0c274" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_class_field_name</definition>
+        <argsstring>(const ml_type_t *Value, int Index) __attribute__((pure))</argsstring>
+        <name>ml_class_field_name</name>
+        <param>
+          <type>const <ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="65" column="12" declfile="src/ml_object.h" declline="65" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga5523c0ae8d8ed812fc85d14d1acd115f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_object</definition>
+        <argsstring>(ml_type_t *Class,...) __attribute__((sentinel))</argsstring>
+        <name>ml_object</name>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Class</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="67" column="12" declfile="src/ml_object.h" declline="67" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga095d9d56848aefa66d2054fbbb9220b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ml_object_size</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_object_size</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="68" column="8" declfile="src/ml_object.h" declline="68" declcolumn="8"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1gad761297f2c77bc8b1bdd6fe0c1d147ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_object_field</definition>
+        <argsstring>(const ml_value_t *Value, int Index) __attribute__((pure))</argsstring>
+        <name>ml_object_field</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="69" column="12" declfile="src/ml_object.h" declline="69" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga77adb04068271677e3a51f9de1025e5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_object_foreach</definition>
+        <argsstring>(const ml_value_t *Value, void *Data, int(*)(const char *, ml_value_t *, void *))</argsstring>
+        <name>ml_object_foreach</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int(*)(const char *, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *, void *)</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="70" column="6" declfile="src/ml_object.h" declline="70" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

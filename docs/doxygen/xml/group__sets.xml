@@ -1,0 +1,375 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__sets" kind="group">
+    <compoundname>sets</compoundname>
+    <title>Sets</title>
+    <innerclass refid="structml__set__t" prot="public">ml_set_t</innerclass>
+    <innerclass refid="structml__set__node__t" prot="public">ml_set_node_t</innerclass>
+    <innerclass refid="structml__set__iter__t" prot="public">ml_set_iter_t</innerclass>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sets_1gaa2cac66264dd0aa81c32904fb861e0f0" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_set_order_t</name>
+        <enumvalue id="group__sets_1ggaa2cac66264dd0aa81c32904fb861e0f0a8a0987104e1c2b9dec1b12767eb80171" prot="public">
+          <name>SET_ORDER_INSERT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sets_1ggaa2cac66264dd0aa81c32904fb861e0f0ac85dd7da03f53e51a341c90327813e85" prot="public">
+          <name>SET_ORDER_LRU</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sets_1ggaa2cac66264dd0aa81c32904fb861e0f0a9b961b2b59f0da10038d60fbe236770c" prot="public">
+          <name>SET_ORDER_MRU</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sets_1ggaa2cac66264dd0aa81c32904fb861e0f0ac35bec0ffba87ddcdd1e369320323125" prot="public">
+          <name>SET_ORDER_ASC</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sets_1ggaa2cac66264dd0aa81c32904fb861e0f0a504cc6cd5a28fba7f7ca465d7b8b8089" prot="public">
+          <name>SET_ORDER_DESC</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1154" column="1" bodyfile="src/ml_types.h" bodystart="1154" bodyend="1160"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sets_1gae44b147b7a48e620195df83903664efe" prot="public" static="no">
+        <type>struct ml_set_t</type>
+        <definition>typedef struct ml_set_t ml_set_t</definition>
+        <argsstring></argsstring>
+        <name>ml_set_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1152" column="23" bodyfile="src/ml_types.h" bodystart="1152" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__sets_1ga94845e632ee33a05c4fec12f90158403" prot="public" static="no">
+        <type>struct ml_set_node_t</type>
+        <definition>typedef struct ml_set_node_t ml_set_node_t</definition>
+        <argsstring></argsstring>
+        <name>ml_set_node_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1153" column="28" bodyfile="src/ml_types.h" bodystart="1153" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__sets_1gacb01e14b7512cc6feb92c9e0ec72b1de" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSetT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSetT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1162" column="18" declfile="src/ml_types.h" declline="1162" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__sets_1ga448a03019cba8b9038bb1b189a0a738e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_set</definition>
+        <argsstring>() __attribute__((malloc))</argsstring>
+        <name>ml_set</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1181" column="12" declfile="src/ml_types.h" declline="1181" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1ga7698977f9597e949d91ad8c7afd8eb00" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_set_search</definition>
+        <argsstring>(ml_value_t *Set, ml_value_t *Key)</argsstring>
+        <name>ml_set_search</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1182" column="12" declfile="src/ml_types.h" declline="1182" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1gaad9dd2813915306925713868f6e9ab60" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_set_search0</definition>
+        <argsstring>(ml_value_t *Set, ml_value_t *Key)</argsstring>
+        <name>ml_set_search0</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1183" column="12" declfile="src/ml_types.h" declline="1183" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1gab8a57deef5878c04c374ecf125ff350b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
+        <definition>ml_set_node_t * ml_set_slot</definition>
+        <argsstring>(ml_value_t *Set, ml_value_t *Key)</argsstring>
+        <name>ml_set_slot</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1184" column="15" declfile="src/ml_types.h" declline="1184" declcolumn="15"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1gae21564f0f998c4155d340f63ac7cf8f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_set_insert</definition>
+        <argsstring>(ml_value_t *Set, ml_value_t *Key)</argsstring>
+        <name>ml_set_insert</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1185" column="12" declfile="src/ml_types.h" declline="1185" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1gafb96b11863eee5a551d6e5978110149c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_set_delete</definition>
+        <argsstring>(ml_value_t *Set, ml_value_t *Key)</argsstring>
+        <name>ml_set_delete</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1186" column="12" declfile="src/ml_types.h" declline="1186" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1gac1ee42484d69f9d544bfc8135e6d2875" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_set_size</definition>
+        <argsstring>(ml_value_t *Set)</argsstring>
+        <name>ml_set_size</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1188" column="19" bodyfile="src/ml_types.h" bodystart="1188" bodyend="1190"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1ga2fd49557e044cd50a80f0e39937decb7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_set_foreach</definition>
+        <argsstring>(ml_value_t *Set, void *Data, int(*callback)(ml_value_t *, void *))</argsstring>
+        <name>ml_set_foreach</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int(*)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *, void *)</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1192" column="5" declfile="src/ml_types.h" declline="1192" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1ga9b2711513c8c5b1b16d81b2b1bcda636" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_set_iter_forward</definition>
+        <argsstring>(ml_value_t *Set0, ml_set_iter_t *Iter)</argsstring>
+        <name>ml_set_iter_forward</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set0</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1199" column="19" bodyfile="src/ml_types.h" bodystart="1199" bodyend="1208"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1ga0fdbfa30aa90577cebd9608c92e27e81" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_set_iter_next</definition>
+        <argsstring>(ml_set_iter_t *Iter)</argsstring>
+        <name>ml_set_iter_next</name>
+        <param>
+          <type><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1210" column="19" bodyfile="src/ml_types.h" bodystart="1210" bodyend="1218"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1ga504624918163b5b6c7ef8fdc9db14b08" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_set_iter_backward</definition>
+        <argsstring>(ml_value_t *Set0, ml_set_iter_t *Iter)</argsstring>
+        <name>ml_set_iter_backward</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Set0</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1220" column="19" bodyfile="src/ml_types.h" bodystart="1220" bodyend="1229"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1ga0e9972988a1237e0fbbc9050ff71ccc2" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_set_iter_prev</definition>
+        <argsstring>(ml_set_iter_t *Iter)</argsstring>
+        <name>ml_set_iter_prev</name>
+        <param>
+          <type><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1231" column="19" bodyfile="src/ml_types.h" bodystart="1231" bodyend="1239"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sets_1ga47f97e5b63cf20ae78cbc2063bd9f8e4" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_set_iter_valid</definition>
+        <argsstring>(ml_set_iter_t *Iter)</argsstring>
+        <name>ml_set_iter_valid</name>
+        <param>
+          <type><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1241" column="19" bodyfile="src/ml_types.h" bodystart="1241" bodyend="1243"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__sets_1gad25128a10cd47e15c3e9dc798a04b70c" prot="public" static="no">
+        <name>ML_SET_FOREACH</name>
+        <param><defname>SET</defname></param>
+        <param><defname>ITER</defname></param>
+        <initializer>	for (<ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *ITER = ((<ref refid="structml__set__t" kindref="compound">ml_set_t</ref> *)SET)-&gt;Head; ITER; ITER = ITER-&gt;Next)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1245" column="9" bodyfile="src/ml_types.h" bodystart="1245" bodyend="1246"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>
