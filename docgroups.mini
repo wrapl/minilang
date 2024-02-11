@@ -1,0 +1,19 @@
+let Groups := set()
+for Header in dir("src") ->? _:ends(".h") do
+	let File := file('src/{Header}', "r")
+	for Line in seq File:read do
+		if let Match := Line % r"/// \\defgroup (.*)\n" then
+			Groups:insert(Match[2])
+		end
+	end
+	File:close
+end
+
+for Group in Groups do
+	let File := file('docs/api/{Group}.rst', "w")
+	File:write(Group:title, "\n")
+	File:write(Group:length * "=", "\n")
+	File:write("\n")
+	File:write('.. doxygengroup:: {Group}')
+	File:close
+end
