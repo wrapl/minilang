@@ -1759,17 +1759,9 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			ml_stringbuffer_printf(Buffer, ", %d", Inst[2 + N].Count);
 		}
-		ml_closure_info_labels(Info);
-		ml_stringbuffer_put(Buffer, '\n');
-		for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
-			if (Inst->Opcode == MLI_LINK) {
-				Inst = Inst[1].Inst;
-			} else {
-				Inst += ml_closure_inst_list(Inst, Buffer);
-			}
-			ml_stringbuffer_put(Buffer, '\n');
-		}
-		ml_stringbuffer_write(Buffer, "\t----------", strlen("\t----------"));
+		ml_stringbuffer_write(Buffer, "\n\t    /--------\\\n", strlen("\n\t    /--------\\\n"));
+		ml_closure_info_list(Buffer, Info);
+		ml_stringbuffer_write(Buffer, "\t    \\--------/", strlen("\t    \\--------/"));
 		return 2 + Info->NumUpValues;
 	}
 	case MLIT_SWITCH: {
@@ -1819,39 +1811,27 @@ ML_METHOD("values", MLClosureT) {
 	return Result;
 }
 
+void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info) {
+	ml_closure_info_labels(Info);
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			Inst = Inst[1].Inst;
+		} else {
+			Inst += ml_closure_inst_list(Inst, Buffer);
+		}
+		ml_stringbuffer_put(Buffer, '\n');
+	}
+}
+
 ML_METHOD("list", MLClosureT) {
 //<Closure
 //>string
 // Returns a listing of the bytecode of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	ml_closure_info_t *Info = Closure->Info;
-	ml_closure_info_labels(Info);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
-		if (Inst->Opcode == MLI_LINK) {
-			Inst = Inst[1].Inst;
-		} else {
-			Inst += ml_closure_inst_list(Inst, Buffer);
-		}
-		ml_stringbuffer_put(Buffer, '\n');
-	}
-	return ml_stringbuffer_get_value(Buffer);
-}
-
-void ml_closure_list(ml_value_t *Value) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
-	ml_closure_info_labels(Info);
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
-	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
-		if (Inst->Opcode == MLI_LINK) {
-			Inst = Inst[1].Inst;
-		} else {
-			Inst += ml_closure_inst_list(Inst, Buffer);
-		}
-		ml_stringbuffer_put(Buffer, '\n');
-	}
+	ml_closure_info_list(Buffer, Info);
 	ml_stringbuffer_put(Buffer, '\n');
 	for (int I = 0; I < Info->NumUpValues; ++I) {
 		ml_value_t *UpValue = Closure->UpValues[I];
@@ -1859,7 +1839,7 @@ void ml_closure_list(ml_value_t *Value) {
 		ml_closure_value_list(UpValue, Buffer);
 		ml_stringbuffer_put(Buffer, '\n');
 	}
-	puts(ml_stringbuffer_get_string(Buffer));
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 #ifdef ML_JIT
