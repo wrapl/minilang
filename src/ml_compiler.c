@@ -4931,7 +4931,7 @@ static mlc_expr_t *ml_accept_with_expr(ml_parser_t *Parser, mlc_expr_t *Child) {
 			Local->Index = 0;
 		}
 		ml_accept(Parser, MLT_ASSIGN);
-		mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
+		mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Parser, EXPR_OR);
 		ExprSlot = &Expr->Next;
 	} while (ml_parse2(Parser, MLT_COMMA));
 	if (Child) {

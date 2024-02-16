@@ -1560,6 +1560,27 @@ ML_METHOD("last", MLIntegerRangeT) {
 	}
 }
 
+ML_METHOD("find", MLIntegerRangeT, MLIntegerT) {
+//!range
+//<Range
+//<X
+//>integer | nil
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	long Value = ml_integer_value_fast(Args[1]);
+	if (Range->Step < 0) {
+		if (Value > Range->Start) return MLNil;
+		if (Value < Range->Limit) return MLNil;
+	} else if (Range->Step > 0) {
+		if (Value < Range->Start) return MLNil;
+		if (Value > Range->Limit) return MLNil;
+	} else {
+		return Value == Range->Start ? ml_integer(1) : MLNil;
+	}
+	long Diff = Value - Range->Start;
+	if (Diff % Range->Step) return MLNil;
+	return ml_integer(Diff / Range->Step + 1);
+}
+
 ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
 //!range
 //<X
@@ -1567,8 +1588,13 @@ ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
 //>X | nil
 	long Value = ml_integer_value_fast(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
+	if (Range->Step < 0) {
+		if (Value > Range->Start) return MLNil;
+		if (Value < Range->Limit) return MLNil;
+	} else {
+		if (Value < Range->Start) return MLNil;
+		if (Value > Range->Limit) return MLNil;
+	}
 	return Args[0];
 }
 
@@ -1579,8 +1605,13 @@ ML_METHOD("in", MLDoubleT, MLIntegerRangeT) {
 //>X | nil
 	double Value = ml_double_value_fast(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
+	if (Range->Step < 0) {
+		if (Value > Range->Start) return MLNil;
+		if (Value < Range->Limit) return MLNil;
+	} else {
+		if (Value < Range->Start) return MLNil;
+		if (Value > Range->Limit) return MLNil;
+	}
 	return Args[0];
 }
 
