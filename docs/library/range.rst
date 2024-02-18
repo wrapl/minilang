@@ -105,6 +105,10 @@ range
    Returns the number of values in :mini:`Range`.
 
 
+:mini:`meth (Range: integer::range):find(X: integer): integer | nil`
+   *TBD*
+
+
 :mini:`meth (Range: integer::range):first: integer`
    Returns the start of :mini:`Range`.
 

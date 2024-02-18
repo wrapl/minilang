@@ -1581,14 +1581,14 @@ ML_METHOD("find", MLIntegerRangeT, MLIntegerT) {
 	return ml_integer(Diff / Range->Step + 1);
 }
 
-ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
+ML_METHOD("between", MLIntegerT, MLIntegerRangeT) {
 //!range
 //<X
 //<Range
 //>X | nil
 	long Value = ml_integer_value_fast(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Range->Step < 0) {
+	if (Range->Limit < Range->Start) {
 		if (Value > Range->Start) return MLNil;
 		if (Value < Range->Limit) return MLNil;
 	} else {
@@ -1598,14 +1598,14 @@ ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
 	return Args[0];
 }
 
-ML_METHOD("in", MLDoubleT, MLIntegerRangeT) {
+ML_METHOD("between", MLDoubleT, MLIntegerRangeT) {
 //!range
 //<X
 //<Range
 //>X | nil
 	double Value = ml_double_value_fast(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Range->Step < 0) {
+	if (Range->Limit < Range->Start) {
 		if (Value > Range->Start) return MLNil;
 		if (Value < Range->Limit) return MLNil;
 	} else {
@@ -1952,27 +1952,37 @@ ML_METHOD("last", MLRealRangeT) {
 	}
 }
 
-ML_METHOD("in", MLIntegerT, MLRealRangeT) {
+ML_METHOD("between", MLIntegerT, MLRealRangeT) {
 //!range
 //<X
 //<Range
 //>X | nil
 	long Value = ml_integer_value_fast(Args[0]);
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
+	if (Range->Limit < Range->Start) {
+		if (Value > Range->Start) return MLNil;
+		if (Value < Range->Limit) return MLNil;
+	} else {
+		if (Value < Range->Start) return MLNil;
+		if (Value > Range->Limit) return MLNil;
+	}
 	return Args[0];
 }
 
-ML_METHOD("in", MLDoubleT, MLRealRangeT) {
+ML_METHOD("between", MLDoubleT, MLRealRangeT) {
 //!range
 //<X
 //<Range
 //>X | nil
 	double Value = ml_double_value_fast(Args[0]);
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
+	if (Range->Limit < Range->Start) {
+		if (Value > Range->Start) return MLNil;
+		if (Value < Range->Limit) return MLNil;
+	} else {
+		if (Value < Range->Start) return MLNil;
+		if (Value > Range->Limit) return MLNil;
+	}
 	return Args[0];
 }
 

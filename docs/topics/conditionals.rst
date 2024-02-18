@@ -53,11 +53,3 @@ The condition value itself can optionally contain a variable declaration using :
 
 .. parser-rule-diagram:: 'if' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block ( 'elseif' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block )* ( 'else' block )? 'end'
 
-When expressions
-----------------
-
-A :mini:`when`-expression evaluates an expression and then evaluates a number of conditions in turn using the result, until one of the conditions returns non-:mini:`nil`. The corresponding block is then evaluated. If no condition returns non-:mini:`nil` then the :mini:`else`-block is evaluted if present, otherwise :mini:`nil` is returned.
-
-.. parser-rule-diagram:: 'when' expression ( ( 'is' ( 'nil' | ( 'in' | operator )? expression ) ( ',' ( 'nil' | ( 'in' | operator )? expression ) )* ) 'do' block )+ ( 'else' block )? 'end'
-
-

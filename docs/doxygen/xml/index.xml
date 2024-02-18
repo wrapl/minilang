@@ -1115,7 +1115,7 @@
     <member refid="ml__bytecode_8h_1a89566123e1f933cbf6e36d50e3d7a3a0" kind="function"><name>ml_closure_debug</name></member>
     <member refid="ml__bytecode_8h_1add50f18dfec38d1e76f9b028802f30cc" kind="function"><name>ml_closure_sha256</name></member>
     <member refid="ml__bytecode_8h_1af5b6edafb0893765c5dc817fe227ed1b" kind="function"><name>ml_closure_info_labels</name></member>
-    <member refid="ml__bytecode_8h_1a9630fdfbaa7a05983c3e86005ec5f802" kind="function"><name>ml_closure_list</name></member>
+    <member refid="ml__bytecode_8h_1a32470932ca940277187ee7f73be20425" kind="function"><name>ml_closure_info_list</name></member>
     <member refid="ml__bytecode_8h_1a4baaad8a0886b5baf76fcfa273a6f4f1" kind="function"><name>ml_count_cached_frames</name></member>
     <member refid="ml__bytecode_8h_1a130a345d1d6abc145a204c3c4e32aab6" kind="function"><name>ml_bytecode_init</name></member>
   </compound>

@@ -5371,61 +5371,6 @@ with_name:
 		ml_accept(Parser, MLT_END);
 		return ML_EXPR_END(CaseExpr);
 	}
-	case MLT_WHEN: {
-		ml_next(Parser);
-		ML_EXPR(WhenExpr, local, with);
-		char *Ident;
-		GC_asprintf(&Ident, "when:%d", Parser->Source.Line);
-		WhenExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
-		WhenExpr->Local = mlc_local_new(Ident, Parser->Source.Line);
-		ML_EXPR(IfExpr, if, if);
-		mlc_if_case_t **CaseSlot = &IfExpr->Cases;
-		do {
-			mlc_if_case_t *Case = CaseSlot[0] = new(mlc_if_case_t);
-			CaseSlot = &Case->Next;
-			mlc_expr_t **ConditionSlot = &Case->Condition;
-			ml_accept(Parser, MLT_IS);
-			ml_value_t *Method = MLIsMethod;
-			do {
-				ML_EXPR(IdentExpr, ident, ident);
-				IdentExpr->Ident = Ident;
-				if (ml_parse2(Parser, MLT_NIL)) {
-					ML_EXPR(NotExpr, parent, not);
-					NotExpr->Child = ML_EXPR_END(IdentExpr);
-					ConditionSlot[0] = ML_EXPR_END(NotExpr);
-					ConditionSlot = &NotExpr->Next;
-					Method = MLIsMethod;
-				} else {
-					if (ml_parse2(Parser, MLT_IN)) {
-						Method = MLInMethod;
-					} else if (ml_parse2(Parser, MLT_OPERATOR)) {
-						Method = ml_method(Parser->Ident);
-					}
-					if (!Method) ml_parse_warn(Parser, "ParseError", "Expected operator not %s", MLTokens[Parser->Token]);
-					IdentExpr->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
-					ML_EXPR(CallExpr, parent_value, const_call);
-					CallExpr->Value = Method;
-					CallExpr->Child = ML_EXPR_END(IdentExpr);
-					ConditionSlot[0] = ML_EXPR_END(CallExpr);
-					ConditionSlot = &CallExpr->Next;
-				}
-			} while (ml_parse2(Parser, MLT_COMMA));
-			if (Case->Condition->Next) {
-				ML_EXPR(OrExpr, parent, or);
-				OrExpr->Child = Case->Condition;
-				Case->Condition = ML_EXPR_END(OrExpr);
-			}
-			ml_accept(Parser, MLT_DO);
-			Case->Body = ml_accept_block(Parser);
-			if (ml_parse2(Parser, MLT_ELSE)) {
-				IfExpr->Else = ml_accept_block(Parser);
-				ml_accept(Parser, MLT_END);
-				break;
-			}
-		} while (!ml_parse2(Parser, MLT_END));
-		WhenExpr->Child->Next = ML_EXPR_END(IfExpr);
-		return ML_EXPR_END(WhenExpr);
-	}
 	case MLT_LOOP: {
 		ml_next(Parser);
 		ML_EXPR(LoopExpr, parent, loop);
