@@ -237,6 +237,14 @@ ML_METHODVX("grow", MLMapMutableT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
 }
 
+ML_METHODV("grow", MLMapMutableT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	ml_value_t *Map = Args[0];
+	int I = 1;
+	ML_NAMES_FOREACH(Args[1], Iter) ml_map_insert(Map, Iter->Value, Args[++I]);
+	return Map;
+}
+
 extern ml_value_t *CompareMethod;
 
 static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
