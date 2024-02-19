@@ -4,7 +4,7 @@
     <compoundname>symbols</compoundname>
     <title>Symbols</title>
     <innerclass refid="structml__symbol__t" prot="public">ml_symbol_t</innerclass>
-    <innerclass refid="structml__symbol__range__t" prot="public">ml_symbol_range_t</innerclass>
+    <innerclass refid="structml__symbol__interval__t" prot="public">ml_symbol_interval_t</innerclass>
     <sectiondef kind="var">
       <memberdef kind="variable" id="group__symbols_1ga659caeec6bd9c25d72a141e7b4e82ea2" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -17,20 +17,20 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1336" column="18" declfile="src/ml_types.h" declline="1336" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1352" column="18" declfile="src/ml_types.h" declline="1352" declcolumn="18"/>
       </memberdef>
-      <memberdef kind="variable" id="group__symbols_1ga6f0c8c1c0f120d865a99f0a17f55dc66" prot="public" static="no" extern="yes" mutable="no">
+      <memberdef kind="variable" id="group__symbols_1ga3bc4dea944bb5e056dae16efc973f76f" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
-        <definition>ml_type_t MLSymbolRangeT[]</definition>
+        <definition>ml_type_t MLSymbolIntervalT[]</definition>
         <argsstring>[]</argsstring>
-        <name>MLSymbolRangeT</name>
+        <name>MLSymbolIntervalT</name>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1347" column="18" declfile="src/ml_types.h" declline="1347" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1363" column="18" declfile="src/ml_types.h" declline="1363" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -49,7 +49,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1338" column="12" declfile="src/ml_types.h" declline="1338" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1354" column="12" declfile="src/ml_types.h" declline="1354" declcolumn="12"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -63,31 +63,31 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1340" column="9" bodyfile="src/ml_types.h" bodystart="1340" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1356" column="9" bodyfile="src/ml_types.h" bodystart="1356" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="define" id="group__symbols_1ga0e78e078ee19501971928a5b118dba70" prot="public" static="no">
-        <name>ml_symbol_range_first</name>
+      <memberdef kind="define" id="group__symbols_1ga147785770a3d8d8f93e266dd57acee36" prot="public" static="no">
+        <name>ml_symbol_interval_first</name>
         <param><defname>VALUE</defname></param>
-        <initializer>((<ref refid="structml__symbol__range__t" kindref="compound">ml_symbol_range_t</ref> *)VALUE)-&gt;First</initializer>
+        <initializer>((<ref refid="structml__symbol__interval__t" kindref="compound">ml_symbol_interval_t</ref> *)VALUE)-&gt;First</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1349" column="9" bodyfile="src/ml_types.h" bodystart="1349" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1365" column="9" bodyfile="src/ml_types.h" bodystart="1365" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="define" id="group__symbols_1ga7fbf1bf4f31b165e8c04d6941b78b5cf" prot="public" static="no">
-        <name>ml_symbol_range_last</name>
+      <memberdef kind="define" id="group__symbols_1ga6006cd404d12e02ed29d82c1bf33272c" prot="public" static="no">
+        <name>ml_symbol_interval_last</name>
         <param><defname>VALUE</defname></param>
-        <initializer>((<ref refid="structml__symbol__range__t" kindref="compound">ml_symbol_range_t</ref> *)VALUE)-&gt;Last</initializer>
+        <initializer>((<ref refid="structml__symbol__interval__t" kindref="compound">ml_symbol_interval_t</ref> *)VALUE)-&gt;Last</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1350" column="9" bodyfile="src/ml_types.h" bodystart="1350" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1366" column="9" bodyfile="src/ml_types.h" bodystart="1366" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

@@ -224,6 +224,11 @@
     <member refid="unionml__inst__t_1a0655776ec1c81753458648fabb7c5812" kind="variable"><name>Ptrs</name></member>
     <member refid="unionml__inst__t_1a93462051e04a57e2459e6a2ab149a01c" kind="variable"><name>Data</name></member>
   </compound>
+  <compound refid="structml__integer__interval__t" kind="struct"><name>ml_integer_interval_t</name>
+    <member refid="structml__integer__interval__t_1a995de71ec1f0a304711c106993871f65" kind="variable"><name>Type</name></member>
+    <member refid="structml__integer__interval__t_1ae869fb5dcf79da56aac1fadac719dc21" kind="variable"><name>Start</name></member>
+    <member refid="structml__integer__interval__t_1aa7af31cea4c172e7bcb060e8296fb8de" kind="variable"><name>Limit</name></member>
+  </compound>
   <compound refid="structml__integer__range__t" kind="struct"><name>ml_integer_range_t</name>
     <member refid="structml__integer__range__t_1a995de71ec1f0a304711c106993871f65" kind="variable"><name>Type</name></member>
     <member refid="structml__integer__range__t_1ae869fb5dcf79da56aac1fadac719dc21" kind="variable"><name>Start</name></member>
@@ -346,6 +351,11 @@
     <member refid="structml__queued__state__t_1a2fcac259ec6fdb9c0ca902542af450c6" kind="variable"><name>State</name></member>
     <member refid="structml__queued__state__t_1a022b24deb82c844e73083ad06165b5bd" kind="variable"><name>Value</name></member>
   </compound>
+  <compound refid="structml__real__interval__t" kind="struct"><name>ml_real_interval_t</name>
+    <member refid="structml__real__interval__t_1a995de71ec1f0a304711c106993871f65" kind="variable"><name>Type</name></member>
+    <member refid="structml__real__interval__t_1a2dddecc38b11adf00c657fb5f3acd39b" kind="variable"><name>Start</name></member>
+    <member refid="structml__real__interval__t_1af684a78bb3c742b04a5b196836bb3d84" kind="variable"><name>Limit</name></member>
+  </compound>
   <compound refid="structml__real__range__t" kind="struct"><name>ml_real_range_t</name>
     <member refid="structml__real__range__t_1a995de71ec1f0a304711c106993871f65" kind="variable"><name>Type</name></member>
     <member refid="structml__real__range__t_1a2dddecc38b11adf00c657fb5f3acd39b" kind="variable"><name>Start</name></member>
@@ -416,10 +426,10 @@
     <member refid="structml__stringbuffer__t_1a0b2c355629c0c41a383ab8db641304ee" kind="variable"><name>Start</name></member>
     <member refid="structml__stringbuffer__t_1a075e1e3c9dd399cef584d7338cc37938" kind="variable"><name>Index</name></member>
   </compound>
-  <compound refid="structml__symbol__range__t" kind="struct"><name>ml_symbol_range_t</name>
-    <member refid="structml__symbol__range__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
-    <member refid="structml__symbol__range__t_1a207dca2cc50284a4758381fea6ab1cad" kind="variable"><name>First</name></member>
-    <member refid="structml__symbol__range__t_1a50f85990a56a7263d638002cbd80d4b3" kind="variable"><name>Last</name></member>
+  <compound refid="structml__symbol__interval__t" kind="struct"><name>ml_symbol_interval_t</name>
+    <member refid="structml__symbol__interval__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
+    <member refid="structml__symbol__interval__t_1a207dca2cc50284a4758381fea6ab1cad" kind="variable"><name>First</name></member>
+    <member refid="structml__symbol__interval__t_1a50f85990a56a7263d638002cbd80d4b3" kind="variable"><name>Last</name></member>
   </compound>
   <compound refid="structml__symbol__t" kind="struct"><name>ml_symbol_t</name>
     <member refid="structml__symbol__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
@@ -1952,8 +1962,8 @@
     <member refid="group__sets_1gad25128a10cd47e15c3e9dc798a04b70c" kind="define"><name>ML_SET_FOREACH</name></member>
     <member refid="group__externals_1gaaf7f818d142260cb6609be112d48e874" kind="define"><name>ML_DESERIALIZER</name></member>
     <member refid="group__symbols_1gac0d196c2db80f2c9104e0e36946fd94c" kind="define"><name>ml_symbol_name</name></member>
-    <member refid="group__symbols_1ga0e78e078ee19501971928a5b118dba70" kind="define"><name>ml_symbol_range_first</name></member>
-    <member refid="group__symbols_1ga7fbf1bf4f31b165e8c04d6941b78b5cf" kind="define"><name>ml_symbol_range_last</name></member>
+    <member refid="group__symbols_1ga147785770a3d8d8f93e266dd57acee36" kind="define"><name>ml_symbol_interval_first</name></member>
+    <member refid="group__symbols_1ga6006cd404d12e02ed29d82c1bf33272c" kind="define"><name>ml_symbol_interval_last</name></member>
     <member refid="group__maps_1gad5edeaa21792576b6bc1ba21c2c9277d" kind="enum"><name>ml_map_order_t</name></member>
     <member refid="group__sets_1gaa2cac66264dd0aa81c32904fb861e0f0" kind="enum"><name>ml_set_order_t</name></member>
     <member refid="group__types_1ga5d1583b78bcbb3d035efb58c8bcad3ab" kind="typedef"><name>ml_value_t</name></member>
@@ -2013,7 +2023,9 @@
     <member refid="group__numbers_1ga7f36d3290d9943138ec1effb4cb4eb49" kind="variable"><name>MLIntegerT</name></member>
     <member refid="group__numbers_1ga033fb58a59ea7899d14702914c86ebf5" kind="variable"><name>MLDoubleT</name></member>
     <member refid="group__numbers_1ga29e6655325017198ddb547b0b77596cf" kind="variable"><name>MLIntegerRangeT</name></member>
+    <member refid="group__numbers_1gaca7fa7ee81f270f09369a33323aa465d" kind="variable"><name>MLIntegerIntervalT</name></member>
     <member refid="group__numbers_1ga4375c307ffeb47f4fbd0099b21838ad5" kind="variable"><name>MLRealRangeT</name></member>
+    <member refid="group__numbers_1ga60567984e82fce3c83d3a5bfc81fe7c3" kind="variable"><name>MLRealIntervalT</name></member>
     <member refid="group__strings_1ga7ac4a867adf2e7577ea5c461ba115710" kind="variable"><name>MLAddressT</name></member>
     <member refid="group__strings_1ga5f3415f26ed67ee2456de64886bfe9ae" kind="variable"><name>MLBufferT</name></member>
     <member refid="group__strings_1ga3e9d8b4e0367d7899e3cf3812f39d3f2" kind="variable"><name>MLStringT</name></member>
@@ -2032,7 +2044,7 @@
     <member refid="group__externals_1gacf1fce9ad8267b45c03259f33f2b8678" kind="variable"><name>MLExternalSetT</name></member>
     <member refid="group__externals_1gacb691b8ab8295533b6548e21857794df" kind="variable"><name>MLExternals</name></member>
     <member refid="group__symbols_1ga659caeec6bd9c25d72a141e7b4e82ea2" kind="variable"><name>MLSymbolT</name></member>
-    <member refid="group__symbols_1ga6f0c8c1c0f120d865a99f0a17f55dc66" kind="variable"><name>MLSymbolRangeT</name></member>
+    <member refid="group__symbols_1ga3bc4dea944bb5e056dae16efc973f76f" kind="variable"><name>MLSymbolIntervalT</name></member>
     <member refid="group__types_1ga093661bf7854acd034da312aaa49f89f" kind="function"><name>ml_default_hash</name></member>
     <member refid="group__types_1ga0bac995f5964d44bfc29ff12420a2ec6" kind="function"><name>ml_default_call</name></member>
     <member refid="group__types_1ga73bf3edecce945aeb176908e1964ba0b" kind="function"><name>ml_default_assign</name></member>
@@ -2091,7 +2103,8 @@
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
     <member refid="group__numbers_1gacbf417155859dac0636077db335a130c" kind="function"><name>ml_integer_value_fast</name></member>
     <member refid="group__numbers_1ga8a391b659bb4df532d7cd113a6c75fda" kind="function"><name>ml_double_value_fast</name></member>
-    <member refid="group__numbers_1gacb366b80a6e8dd36c1229e3531c5065d" kind="function"><name>ml_real_range_count</name></member>
+    <member refid="group__numbers_1ga26fdf346e2362e83f1999ad3af9aa007" kind="function"><name>ml_real_range_count</name></member>
+    <member refid="group__numbers_1ga7e74177cc7e9a1682d5e7839b1e6347f" kind="function"><name>ml_real_interval_count</name></member>
     <member refid="group__strings_1ga786e2f2bc4133f0ab328b47f53a04a5f" kind="function"><name>GC_vasprintf</name></member>
     <member refid="group__strings_1ga5e678d2c7b8a423641ecab495ad672d7" kind="function"><name>GC_asprintf</name></member>
     <member refid="group__strings_1ga1cb3bd85bbcbaa372192a9bf18ee0e3f" kind="function"><name>ml_address</name></member>
@@ -2724,14 +2737,17 @@
     <member refid="group__numbers_1ga7f36d3290d9943138ec1effb4cb4eb49" kind="variable"><name>MLIntegerT</name></member>
     <member refid="group__numbers_1ga033fb58a59ea7899d14702914c86ebf5" kind="variable"><name>MLDoubleT</name></member>
     <member refid="group__numbers_1ga29e6655325017198ddb547b0b77596cf" kind="variable"><name>MLIntegerRangeT</name></member>
+    <member refid="group__numbers_1gaca7fa7ee81f270f09369a33323aa465d" kind="variable"><name>MLIntegerIntervalT</name></member>
     <member refid="group__numbers_1ga4375c307ffeb47f4fbd0099b21838ad5" kind="variable"><name>MLRealRangeT</name></member>
+    <member refid="group__numbers_1ga60567984e82fce3c83d3a5bfc81fe7c3" kind="variable"><name>MLRealIntervalT</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
     <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
     <member refid="group__numbers_1gacbf417155859dac0636077db335a130c" kind="function"><name>ml_integer_value_fast</name></member>
     <member refid="group__numbers_1ga8a391b659bb4df532d7cd113a6c75fda" kind="function"><name>ml_double_value_fast</name></member>
-    <member refid="group__numbers_1gacb366b80a6e8dd36c1229e3531c5065d" kind="function"><name>ml_real_range_count</name></member>
+    <member refid="group__numbers_1ga26fdf346e2362e83f1999ad3af9aa007" kind="function"><name>ml_real_range_count</name></member>
+    <member refid="group__numbers_1ga7e74177cc7e9a1682d5e7839b1e6347f" kind="function"><name>ml_real_interval_count</name></member>
   </compound>
   <compound refid="group__strings" kind="group"><name>strings</name>
     <member refid="group__strings_1gaf100447b111e59544a8d0a6e2a85fd3f" kind="typedef"><name>ml_address_t</name></member>
@@ -2934,11 +2950,11 @@
   </compound>
   <compound refid="group__symbols" kind="group"><name>symbols</name>
     <member refid="group__symbols_1ga659caeec6bd9c25d72a141e7b4e82ea2" kind="variable"><name>MLSymbolT</name></member>
-    <member refid="group__symbols_1ga6f0c8c1c0f120d865a99f0a17f55dc66" kind="variable"><name>MLSymbolRangeT</name></member>
+    <member refid="group__symbols_1ga3bc4dea944bb5e056dae16efc973f76f" kind="variable"><name>MLSymbolIntervalT</name></member>
     <member refid="group__symbols_1gaf40c21abe6f857df644d104ec5417f90" kind="function"><name>ml_symbol</name></member>
     <member refid="group__symbols_1gac0d196c2db80f2c9104e0e36946fd94c" kind="define"><name>ml_symbol_name</name></member>
-    <member refid="group__symbols_1ga0e78e078ee19501971928a5b118dba70" kind="define"><name>ml_symbol_range_first</name></member>
-    <member refid="group__symbols_1ga7fbf1bf4f31b165e8c04d6941b78b5cf" kind="define"><name>ml_symbol_range_last</name></member>
+    <member refid="group__symbols_1ga147785770a3d8d8f93e266dd57acee36" kind="define"><name>ml_symbol_interval_first</name></member>
+    <member refid="group__symbols_1ga6006cd404d12e02ed29d82c1bf33272c" kind="define"><name>ml_symbol_interval_last</name></member>
   </compound>
   <compound refid="group__init" kind="group"><name>init</name>
     <member refid="group__init_1ga2b26ef655ee57ffc1302d73a3f32eb51" kind="function"><name>ml_types_init</name></member>

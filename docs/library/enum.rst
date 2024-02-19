@@ -53,8 +53,8 @@ enum
    *TBD*
 
 
-:mini:`type enum::range < sequence`
-   A range of enum values.
+:mini:`type enum::interval < sequence`
+   A interval of enum values.
 
 
 :mini:`type enum::value < integer`
@@ -69,14 +69,14 @@ enum
    *TBD*
 
 
-:mini:`meth (Min: enum::value) .. (Max: enum::value): enum::range`
-   Returns a range of enum values. :mini:`Min` and :mini:`Max` must belong to the same enumeration.
+:mini:`meth (Min: enum::value) .. (Max: enum::value): enum::interval`
+   Returns a interval of enum values. :mini:`Min` and :mini:`Max` must belong to the same enumeration.
 
    .. code-block:: mini
 
       let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
       :> <<day>>
-      day::Mon .. day::Fri :> <enum-range[day]>
+      day::Mon .. day::Fri :> <enum-interval[day]>
 
 
 :mini:`meth (Arg₁: enum::value) <> (Arg₂: integer)`

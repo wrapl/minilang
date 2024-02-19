@@ -516,7 +516,7 @@ ML_METHOD("[]", MLListT, MLIntegerT) {
 //<List
 //<Index
 //>list::node | nil
-// Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
+// Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the interval of :mini:`List`.
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 //$- let L := ["a", "b", "c", "d", "e", "f"]
 //$= L[3]
@@ -606,13 +606,33 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 
 ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
 //<List
-//<Range
+//<Interval
 //>list::slice
-// Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`, both inclusive.
+// Returns a slice of :mini:`List` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`, both inclusive.
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	int Start = Range->Start, End = Range->Limit + 1, Step = Range->Step;
+	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
+	int Start = Sequence->Start, End = Sequence->Limit + 1, Step = Sequence->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_list_slice_t *Slice = new(ml_list_slice_t);
+	Slice->Type = MLListSliceT;
+	Slice->Head = ml_list_index(List, Start);
+	Slice->Length = End - Start;
+	return (ml_value_t *)Slice;
+}
+
+ML_METHOD("[]", MLListMutableT, MLIntegerIntervalT) {
+//<List
+//<Interval
+//>list::slice
+// Returns a slice of :mini:`List` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`, both inclusive.
+// Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	int Start = Interval->Start, End = Interval->Limit + 1, Step = 1;
 	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
 	if (Start <= 0) Start += List->Length + 1;
 	if (End <= 0) End += List->Length + 1;
@@ -629,8 +649,24 @@ ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
 ML_METHOD("[]", MLListT, MLIntegerRangeT) {
 //!internal
 	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	int Start = Range->Start, End = Range->Limit + 1, Step = Range->Step;
+	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
+	int Start = Sequence->Start, End = Sequence->Limit + 1, Step = Sequence->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_list_slice_t *Slice = new(ml_list_slice_t);
+	Slice->Type = MLListSliceT;
+	Slice->Head = ml_list_index(List, Start);
+	Slice->Length = End - Start;
+	return ml_deref((ml_value_t *)Slice);
+}
+
+ML_METHOD("[]", MLListT, MLIntegerIntervalT) {
+//!internal
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	int Start = Interval->Start, End = Interval->Limit + 1, Step = 1;
 	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
 	if (Start <= 0) Start += List->Length + 1;
 	if (End <= 0) End += List->Length + 1;

@@ -731,7 +731,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int64_t Value = ml_integer_value_fast(Args[1]);
 	int Base = ml_integer_value_fast(Args[2]);
-	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
@@ -771,17 +771,28 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
-//!range
+//!interval
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Range->Step != 1) {
-		ml_stringbuffer_printf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
+	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
+	if (Sequence->Step != 1) {
+		ml_stringbuffer_printf(Buffer, "%ld .. %ld by %ld", Sequence->Start, Sequence->Limit, Sequence->Step);
 	} else {
-		ml_stringbuffer_printf(Buffer, "%ld .. %ld", Range->Start, Range->Limit);
+		ml_stringbuffer_printf(Buffer, "%ld .. %ld", Sequence->Start, Sequence->Limit);
 	}
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLIntegerIntervalT) {
+//!interval
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	ml_stringbuffer_printf(Buffer, "%ld .. %ld", Interval->Start, Interval->Limit);
 	return MLSome;
 }
 
@@ -789,13 +800,24 @@ ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
 #define TOSTRING(x) STRINGIFY(x)
 
 ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
-//!range
+//!sequence
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g by %." TOSTRING(DBL_DIG) "g", Range->Start, Range->Limit, Range->Step);
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLRealIntervalT) {
+//!interval
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g", Interval->Start, Interval->Limit);
 	return MLSome;
 }
 
@@ -1513,13 +1535,41 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 
 ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
 //<String
-//<Range
+//<Interval
 //>string
-// Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+// Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
 	int Lo = Range->Start, Hi = Range->Limit + 1, Step = Range->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Lo <= 0) Lo += Length + 1;
+	if (Hi <= 0) Hi += Length + 1;
+	if (Lo <= 0) return MLNil;
+	if (Hi > Length + 1) return MLNil;
+	if (Hi < Lo) return MLNil;
+	Hi -= Lo;
+	if (Lo > 0) for (;;) {
+		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
+		++Start;
+	}
+	const char *End = Start;
+	if (++Hi > 0) while (*End) {
+		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
+		++End;
+	}
+	return ml_string(Start, End - Start);
+}
+
+ML_METHOD("[]", MLStringT, MLIntegerIntervalT) {
+//<String
+//<Interval
+//>string
+// Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
+	const char *Start = ml_string_value(Args[0]);
+	int Length = utf8_strlen(Args[0]);
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	int Lo = Interval->Start, Hi = Interval->Limit + 1, Step = 1;
 	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
 	if (Lo <= 0) Lo += Length + 1;
 	if (Hi <= 0) Hi += Length + 1;

@@ -2260,12 +2260,12 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 //<Tuple
 //<Index
 //>any | error
-// Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
+// Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of interval.
 // Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	long Index = ml_integer_value_fast(Args[1]);
 	if (--Index < 0) Index += Tuple->Size + 1;
-	if (Index < 0 || Index >= Tuple->Size) return ml_error("RangeError", "Tuple index out of bounds");
+	if (Index < 0 || Index >= Tuple->Size) return ml_error("IntervalError", "Tuple index out of bounds");
 	return Tuple->Values[Index];
 }
 
@@ -3069,14 +3069,14 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLSymbolT, ml_symbol_t *Symbol) {
 	return List;
 }
 
-ML_TYPE(MLSymbolRangeT, (), "symbol::range");
+ML_TYPE(MLSymbolIntervalT, (), "symbol::interval");
 
 ML_METHOD("..", MLSymbolT, MLSymbolT) {
-	ml_symbol_range_t *Range = new(ml_symbol_range_t);
-	Range->Type = MLSymbolRangeT;
-	Range->First = ml_symbol_name(Args[0]);
-	Range->Last = ml_symbol_name(Args[1]);
-	return (ml_value_t *)Range;
+	ml_symbol_interval_t *Interval = new(ml_symbol_interval_t);
+	Interval->Type = MLSymbolIntervalT;
+	Interval->First = ml_symbol_name(Args[0]);
+	Interval->Last = ml_symbol_name(Args[1]);
+	return (ml_value_t *)Interval;
 }
 
 ML_METHOD("::", MLSymbolT, MLStringT) {

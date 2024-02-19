@@ -73,6 +73,10 @@ sequence
    *TBD*
 
 
+:mini:`meth (Arg₁: integer::interval) & (Arg₂: integer::interval)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: integer::range) & (Arg₂: integer::range)`
    *TBD*
 
@@ -91,6 +95,10 @@ sequence
 
 :mini:`meth (Iterator: iterator):value: any`
    Returns the current value produced by :mini:`Iterator`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: real::range)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
 :mini:`type sequence`
@@ -575,7 +583,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "c"
+      random("cake") :> "e"
       random([]) :> nil
 
 

@@ -794,7 +794,7 @@ ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
 	ML_LIST_FOREACH(Args[2], Iter) {
 		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid size");
 		int Size = ml_integer_value(Iter->Value);
-		if (Size <= 0) return ml_error("RangeError", "Invalid size");
+		if (Size <= 0) return ml_error("IntervalError", "Invalid size");
 		Total *= Size;
 	}
 	if (Source->Dimensions[Expand].Size != Total) return ml_error("ArrayError", "Invalid size");
@@ -829,7 +829,7 @@ ML_METHOD("join", MLArrayT, MLIntegerT, MLIntegerT) {
 	if (Join <= 0) return ml_error("ArrayError", "Invalid run");
 	--Start;
 	int End = Start + Join - 1;
-	if (End >= Degree) return ml_error("RangeError", "Invalid run");
+	if (End >= Degree) return ml_error("IntervalError", "Invalid run");
 	ml_array_t *Target = ml_array_alloc(Source->Format, Degree + 1 - Join);
 	ml_array_dimension_t *SourceDimension = Source->Dimensions + Degree;
 	ml_array_dimension_t *TargetDimension = Target->Dimensions + Target->Degree;
@@ -971,7 +971,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 	ml_value_t *Index0 = ((ml_list_t *)Index)->Head->Value;
 	if (ml_is(Index0, MLTupleT)) {
 		int Size = ((ml_tuple_t *)Index0)->Size;
-		if (Indexer->Source + Size > Indexer->Limit) return ml_error("RangeError", "Too many indices");
+		if (Indexer->Source + Size > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 		ML_LIST_FOREACH(Index, Iter) {
 			if (((ml_tuple_t *)Index0)->Size != Size) return ml_error("ShapeError", "Inconsistent tuple size");
 			ml_value_t **Values = ((ml_tuple_t *)Iter->Value)->Values;
@@ -1021,10 +1021,40 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_integer_range_t *Range, ml_array_indexer_t *Indexer) {
-	int Min = Range->Start;
-	int Max = Range->Limit;
-	int Step = Range->Step;
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_integer_range_t *Sequence, ml_array_indexer_t *Indexer) {
+	int Min = Sequence->Start;
+	int Max = Sequence->Limit;
+	int Step = Sequence->Step;
+	if (Min < 1) Min += Indexer->Source->Size + 1;
+	if (Max < 1) Max += Indexer->Source->Size + 1;
+	if (--Min < 0) return (ml_value_t *)MLArrayNil;
+	if (Min >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
+	if (--Max < 0) return (ml_value_t *)MLArrayNil;
+	if (Max >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
+	if (Step == 0) return (ml_value_t *)MLArrayNil;
+	int Size = Indexer->Target->Size = (Max - Min) / Step + 1;
+	if (Size < 0) return (ml_value_t *)MLArrayNil;
+	if (Indexer->Source->Indices) {
+		int *Indices = Indexer->Target->Indices = (int *)snew(Size * sizeof(int));
+		int *IndexPtr = Indices;
+		for (int I = Min; I <= Max; I += Step) {
+			*IndexPtr++ = Indexer->Source->Indices[I];
+		}
+		Indexer->Target->Stride = Indexer->Source->Stride;
+	} else {
+		Indexer->Target->Indices = 0;
+		Indexer->Address += Indexer->Source->Stride * Min;
+		Indexer->Target->Stride = Indexer->Source->Stride * Step;
+	}
+	++Indexer->Target;
+	++Indexer->Source;
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerIntervalT, ml_integer_interval_t *Interval, ml_array_indexer_t *Indexer) {
+	int Min = Interval->Start;
+	int Max = Interval->Limit;
+	int Step = 1;
 	if (Min < 1) Min += Indexer->Source->Size + 1;
 	if (Max < 1) Max += Indexer->Source->Size + 1;
 	if (--Min < 0) return (ml_value_t *)MLArrayNil;
@@ -1053,7 +1083,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_integer_r
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLTupleT, ml_tuple_t *Tuple, ml_array_indexer_t *Indexer) {
 	int Size = Tuple->Size;
-	if (Indexer->Source + Size > Indexer->Limit) return ml_error("RangeError", "Too many indices");
+	if (Indexer->Source + Size > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 	ml_value_t **TupleValues = Tuple->Values;
 	for (int I = 0; I < Size; ++I) {
 		if (!ml_is(TupleValues[I], MLIntegerT)) return ml_error("TypeError", "Expected integer in tuple index");
@@ -1225,7 +1255,7 @@ static int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimen
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
 	int Degree = Array->Degree;
-	if (Indexer->Source + Degree > Indexer->Limit) return ml_error("RangeError", "Too many indices");
+	if (Indexer->Source + Degree > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 	for (int I = 0; I < Degree; ++I) {
 		if (Array->Dimensions[I].Size != Indexer->Source[I].Size) {
 			return ml_error("ShapeError", "Array sizes do not match");
@@ -1317,7 +1347,7 @@ static int *ml_array_to_indices(int *Indices, int Degree, ml_array_dimension_t *
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt32T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
 	int Degree = Array->Degree - 1;
 	int Total = Degree + Array->Dimensions[Degree].Size;
-	if (Indexer->Source + Total > Indexer->Limit) return ml_error("RangeError", "Too many indices");
+	if (Indexer->Source + Total > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 	int Count = 1;
 	for (int I = 0; I < Degree; ++I) {
 		if (Array->Dimensions[I].Size != Indexer->Source[I].Size) {
@@ -1349,19 +1379,19 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 		ml_value_t *Index = Indices[I];
 		if (Index == RangeMethod) {
 			ml_array_dimension_t *Skip = Indexer->Limit - (Count - (I + 1));
-			if (Skip > Indexer->Limit) return ml_error("RangeError", "Too many indices");
+			if (Skip > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 			while (Indexer->Source < Skip) {
 				*Indexer->Target = *Indexer->Source;
 				++Indexer->Target;
 				++Indexer->Source;
 			}
 		} else if (Index == MulMethod) {
-			if (Indexer->Source >= Indexer->Limit) return ml_error("RangeError", "Too many indices");
+			if (Indexer->Source >= Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 			*Indexer->Target = *Indexer->Source;
 			++Indexer->Target;
 			++Indexer->Source;
 		} else {
-			if (Indexer->Source >= Indexer->Limit) return ml_error("RangeError", "Too many indices");
+			if (Indexer->Source >= Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 			ml_value_t *Result = ml_array_index_get(Index, Indexer);
 			if (Result) return Result;
 		}
@@ -1398,7 +1428,7 @@ ML_METHODV("[]", MLArrayT) {
 //
 // * If :mini:`Index/i` is an :mini:`integer` then the :mini:`Index/i`-th value of the next dimension is selected and the dimension is dropped from the output.
 //
-// * If :mini:`Index/i` is an :mini:`integer::range` then the corresponding slice of the next dimension is copied to the output.
+// * If :mini:`Index/i` is an :mini:`integer::interval` then the corresponding slice of the next dimension is copied to the output.
 //
 // * If :mini:`Index/i` is a :mini:`tuple[integer, ...]` then the next dimensions are indexed by the corresponding integer in turn (i.e. :mini:`A[(I, J, K)]` gives the same result as :mini:`A[I, J, K]`).
 //
@@ -1442,7 +1472,7 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 	ML_MAP_FOREACH(Args[1], Iter) {
 		int Index = ml_integer_value(Iter->Key) - 1;
 		if (Index < 0) Index += Degree + 1;
-		if (Index < 0 || Index >= Degree) return ml_error("RangeError", "Index out of range");
+		if (Index < 0 || Index >= Degree) return ml_error("IntervalError", "Index out of interval");
 		Indices[Index] = Iter->Value;
 	}
 	return ml_array_index(Source, Degree, Indices);
@@ -1795,7 +1825,7 @@ static ml_value_t *update_array_fn(void *Data, int Count, ml_value_t **Args) {
 static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Degree = A->Degree;
-	if (Axis >= A->Degree) return ml_error("RangeError", "Invalid axis");
+	if (Axis >= A->Degree) return ml_error("IntervalError", "Invalid axis");
 	int Total = A->Dimensions[Axis].Size;
 	ml_array_format_t Format = A->Format;
 	for (int I = 1; I < Count; ++I) {
@@ -1854,7 +1884,7 @@ ML_FUNCTION(MLArrayCat) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Axis = ml_integer_value(Args[0]) - 1;
-	if (Axis < 0) return ml_error("RangeError", "Invalid axis");
+	if (Axis < 0) return ml_error("IntervalError", "Invalid axis");
 	ML_CHECK_ARG_TYPE(1, MLArrayT);
 	return ml_array_cat(Axis, Count - 1, Args + 1);
 }
@@ -3288,7 +3318,7 @@ ML_METHOD("sum", MLArrayT, MLIntegerT) {
 //$= A:sum(1)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Slice = ml_integer_value(Args[1]);
-	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("RangeError", "Invalid axes count for sum");
+	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("IntervalError", "Invalid axes count for sum");
 	ml_array_format_t Format;
 	void (*fill_sums)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
@@ -3405,7 +3435,7 @@ ML_METHOD("prod", MLArrayT, MLIntegerT) {
 //$= A:prod(1)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Slice = ml_integer_value(Args[1]);
-	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("RangeError", "Invalid axes count for prod");
+	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("IntervalError", "Invalid axes count for prod");
 	ml_array_format_t Format;
 	void (*fill_prods)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
@@ -3517,7 +3547,7 @@ ML_METHOD("minval", MLArrayT, MLIntegerT) {
 //$= A:minval(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Slice = ml_integer_value(Args[1]);
-	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("RangeError", "Invalid axes count for min");
+	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("IntervalError", "Invalid axes count for min");
 	void (*fill_mins)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_U8:
@@ -3625,7 +3655,7 @@ ML_METHOD("minidx", MLArrayT, MLIntegerT) {
 //$= A:minidx(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Slice = ml_integer_value(Args[1]);
-	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("RangeError", "Invalid axes count for min");
+	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("IntervalError", "Invalid axes count for min");
 	void (*index_mins)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_U8:
@@ -3719,7 +3749,7 @@ ML_METHOD("maxval", MLArrayT, MLIntegerT) {
 //$= A:maxval(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Slice = ml_integer_value(Args[1]);
-	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("RangeError", "Invalid axes count for max");
+	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("IntervalError", "Invalid axes count for max");
 	void (*fill_maxs)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_U8:
@@ -3827,7 +3857,7 @@ ML_METHOD("maxidx", MLArrayT, MLIntegerT) {
 //$= A:maxidx(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Slice = ml_integer_value(Args[1]);
-	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("RangeError", "Invalid axes count for max");
+	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("IntervalError", "Invalid axes count for max");
 	void (*index_maxs)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_U8:
@@ -4874,12 +4904,12 @@ static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLComplexT, ml_valu
 }
 #endif
 
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerRangeT, ml_value_t *Value, ml_array_format_t Format) {
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerIntervalT, ml_value_t *Value, ml_array_format_t Format) {
 	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
 	return Format;
 }
 
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealRangeT, ml_value_t *Value, ml_array_format_t Format) {
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealIntervalT, ml_value_t *Value, ml_array_format_t Format) {
 	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
 	return Format;
 }
@@ -4931,14 +4961,14 @@ static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLArrayT, ml_array_t *Value, 
 	return Array;
 }
 
-static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLIntegerRangeT, ml_integer_range_t *Range, int Degree, ml_array_format_t Format) {
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLIntegerRangeT, ml_integer_range_t *Sequence, int Degree, ml_array_format_t Format) {
 	size_t Count = 0;
-	int64_t Diff = Range->Limit - Range->Start;
-	if (!Range->Step) {
-	} else if (Diff < 0 && Range->Step > 0) {
-	} else if (Diff > 0 && Range->Step < 0) {
+	int64_t Diff = Sequence->Limit - Sequence->Start;
+	if (!Sequence->Step) {
+	} else if (Diff < 0 && Sequence->Step > 0) {
+	} else if (Diff > 0 && Sequence->Step < 0) {
 	} else {
-		Count = Diff / Range->Step + 1;
+		Count = Diff / Sequence->Step + 1;
 	}
 	if (!Count) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 	ml_array_t *Array = ml_array_alloc(Format, Degree + 1);
@@ -4948,8 +4978,20 @@ static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLIntegerRangeT, ml_integer_r
 	return Array;
 }
 
-static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLRealRangeT, ml_real_range_t *Range, int Degree, ml_array_format_t Format) {
-	size_t Count = ml_real_range_count(Range);
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLIntegerIntervalT, ml_integer_interval_t *Interval, int Degree, ml_array_format_t Format) {
+	size_t Count = 0;
+	int64_t Diff = Interval->Limit - Interval->Start;
+	Count = Diff + 1;
+	if (!Count) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
+	ml_array_t *Array = ml_array_alloc(Format, Degree + 1);
+	ml_array_dimension_t *Dimension = Array->Dimensions + Degree;
+	Dimension->Stride = MLArraySizes[Format];
+	Dimension->Size = Count;
+	return Array;
+}
+
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLRealIntervalT, ml_real_interval_t *Interval, int Degree, ml_array_format_t Format) {
+	size_t Count = ml_real_interval_count(Interval);
 	if (Count) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 	ml_array_t *Array = ml_array_alloc(Format, Degree + 1);
 	ml_array_dimension_t *Dimension = Array->Dimensions + Degree;
@@ -5016,22 +5058,22 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLArrayT, ml_array_format_t For
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerRangeT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_integer_range_t *Range) {
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerRangeT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_integer_range_t *Sequence) {
 	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
 	size_t Count = 0;
-	int64_t Diff = Range->Limit - Range->Start;
-	if (!Range->Step) {
+	int64_t Diff = Sequence->Limit - Sequence->Start;
+	if (!Sequence->Step) {
 		Count = Dimension->Size;
-	} else if (Diff < 0 && Range->Step > 0) {
+	} else if (Diff < 0 && Sequence->Step > 0) {
 		return ml_error("ValueError", "Inconsistent lengths in array");
-	} else if (Diff > 0 && Range->Step < 0) {
+	} else if (Diff > 0 && Sequence->Step < 0) {
 		return ml_error("ValueError", "Inconsistent lengths in array");
 	} else {
-		Count = Diff / Range->Step + 1;
+		Count = Diff / Sequence->Step + 1;
 		if (Count < Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
 		if (Count > Dimension->Size) Count = Dimension->Size;
 	}
-	int64_t Value = Range->Start, Step = Range->Step;
+	int64_t Value = Sequence->Start, Step = Sequence->Step;
 	switch (Format) {
 	case ML_ARRAY_FORMAT_NONE: break;
 	case ML_ARRAY_FORMAT_U8: {
@@ -5144,11 +5186,248 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerRangeT, ml_array_forma
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealRangeT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_real_range_t *Range) {
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerIntervalT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_integer_interval_t *Interval) {
 	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
-	size_t Count = ml_real_range_count(Range);
+	size_t Count = 0;
+	int64_t Diff = Interval->Limit - Interval->Start;
+	Count = Diff + 1;
+	if (Count < Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+	if (Count > Dimension->Size) Count = Dimension->Size;
+	int64_t Value = Interval->Start, Step = 1;
+	switch (Format) {
+	case ML_ARRAY_FORMAT_NONE: break;
+	case ML_ARRAY_FORMAT_U8: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I8: {
+		for (int I = 0; I < Count; ++I) {
+			*(int8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U16: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I16: {
+		for (int I = 0; I < Count; ++I) {
+			*(int16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U32: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I32: {
+		for (int I = 0; I < Count; ++I) {
+			*(int32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U64: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		for (int I = 0; I < Count; ++I) {
+			*(int64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F32: {
+		for (int I = 0; I < Count; ++I) {
+			*(float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		for (int I = 0; I < Count; ++I) {
+			*(double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_C64: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#endif
+	case ML_ARRAY_FORMAT_ANY: {
+		for (int I = 0; I < Count; ++I) {
+			*(ml_value_t **)Address = ml_integer(Value);
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealRangeT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_real_range_t *Sequence) {
+	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	size_t Count = ml_real_range_count(Sequence);
 	if (Count != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
-	double Value = Range->Start, Step = Range->Step;
+	double Value = Sequence->Start, Step = Sequence->Step;
+	switch (Format) {
+	case ML_ARRAY_FORMAT_NONE: break;
+	case ML_ARRAY_FORMAT_U8: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I8: {
+		for (int I = 0; I < Count; ++I) {
+			*(int8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U16: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I16: {
+		for (int I = 0; I < Count; ++I) {
+			*(int16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U32: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I32: {
+		for (int I = 0; I < Count; ++I) {
+			*(int32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U64: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		for (int I = 0; I < Count; ++I) {
+			*(int64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F32: {
+		for (int I = 0; I < Count; ++I) {
+			*(float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		for (int I = 0; I < Count; ++I) {
+			*(double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_C64: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#endif
+	case ML_ARRAY_FORMAT_ANY: {
+		for (int I = 0; I < Count; ++I) {
+			*(ml_value_t **)Address = ml_integer(Value);
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealIntervalT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_real_interval_t *Interval) {
+	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	size_t Count = ml_real_interval_count(Interval);
+	if (Count != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+	double Value = Interval->Start, Step = 1;
 	switch (Format) {
 	case ML_ARRAY_FORMAT_NONE: break;
 	case ML_ARRAY_FORMAT_U8: {

@@ -638,6 +638,13 @@ typedef struct {
 	long Start, Limit, Step;
 } ml_integer_range_t;
 
+extern ml_type_t MLIntegerIntervalT[];
+
+typedef struct {
+	const ml_type_t *Type;
+	long Start, Limit;
+} ml_integer_interval_t;
+
 extern ml_type_t MLRealRangeT[];
 
 typedef struct {
@@ -645,7 +652,16 @@ typedef struct {
 	double Start, Limit, Step;
 } ml_real_range_t;
 
-size_t ml_real_range_count(ml_real_range_t *Range);
+size_t ml_real_range_count(ml_real_range_t *Interval);
+
+extern ml_type_t MLRealIntervalT[];
+
+typedef struct {
+	const ml_type_t *Type;
+	double Start, Limit;
+} ml_real_interval_t;
+
+size_t ml_real_interval_count(ml_real_interval_t *Interval);
 
 /// @}
 
@@ -1342,12 +1358,12 @@ ml_value_t *ml_symbol(const char *Name);
 typedef struct {
 	ml_type_t *Type;
 	const char *First, *Last;
-} ml_symbol_range_t;
+} ml_symbol_interval_t;
 
-extern ml_type_t MLSymbolRangeT[];
+extern ml_type_t MLSymbolIntervalT[];
 
-#define ml_symbol_range_first(VALUE) ((ml_symbol_range_t *)VALUE)->First
-#define ml_symbol_range_last(VALUE) ((ml_symbol_range_t *)VALUE)->Last
+#define ml_symbol_interval_first(VALUE) ((ml_symbol_interval_t *)VALUE)->First
+#define ml_symbol_interval_last(VALUE) ((ml_symbol_interval_t *)VALUE)->Last
 
 /// @}
 

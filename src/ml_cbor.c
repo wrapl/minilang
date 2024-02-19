@@ -1190,20 +1190,21 @@ static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_v
 
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_cbor_writer_t *Writer, ml_integer_range_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
-	if (Arg->Step != 1) {
-		minicbor_write_array(Writer, 4);
-		minicbor_write_string(Writer, 5);
-		Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
-		minicbor_write_integer(Writer, Arg->Start);
-		minicbor_write_integer(Writer, Arg->Limit);
-		minicbor_write_integer(Writer, Arg->Step);
-	} else {
-		minicbor_write_array(Writer, 3);
-		minicbor_write_string(Writer, 5);
-		Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
-		minicbor_write_integer(Writer, Arg->Start);
-		minicbor_write_integer(Writer, Arg->Limit);
-	}
+	minicbor_write_array(Writer, 4);
+	minicbor_write_string(Writer, 5);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
+	minicbor_write_integer(Writer, Arg->Start);
+	minicbor_write_integer(Writer, Arg->Limit);
+	minicbor_write_integer(Writer, Arg->Step);
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLIntegerIntervalT, ml_cbor_writer_t *Writer, ml_integer_interval_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	minicbor_write_array(Writer, 3);
+	minicbor_write_string(Writer, 5);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
+	minicbor_write_integer(Writer, Arg->Start);
+	minicbor_write_integer(Writer, Arg->Limit);
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Writer, ml_real_range_t *Arg) {
@@ -1214,6 +1215,15 @@ static void ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Writer, m
 	minicbor_write_float8(Writer, Arg->Start);
 	minicbor_write_float8(Writer, Arg->Limit);
 	minicbor_write_float8(Writer, Arg->Step);
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLRealIntervalT, ml_cbor_writer_t *Writer, ml_real_interval_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	minicbor_write_array(Writer, 3);
+	minicbor_write_string(Writer, 5);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
+	minicbor_write_float8(Writer, Arg->Start);
+	minicbor_write_float8(Writer, Arg->Limit);
 }
 
 #ifdef ML_COMPLEX

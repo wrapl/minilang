@@ -25,7 +25,7 @@ hierarchy
       "any":e -> "external":w;
       "any":e -> "external::set":w;
       "function":e -> "symbol":w;
-      "any":e -> "symbol::range":w;
+      "any":e -> "symbol::interval":w;
       "any":e -> "weakref":w;
       "any":e -> "weakmaptoken":w;
       "any":e -> "weakmap":w;
@@ -110,7 +110,7 @@ hierarchy
       "type":e -> "enum":w;
       "sequence":e -> "enum":w;
       "enum":e -> "enum::cyclic":w;
-      "sequence":e -> "enum::range":w;
+      "sequence":e -> "enum::interval":w;
       "type":e -> "flags":w;
       "any":e -> "flags::value":w;
       "any":e -> "flags::spec":w;
@@ -121,7 +121,9 @@ hierarchy
       "function":e -> "integer":w;
       "real":e -> "double":w;
       "sequence":e -> "integer::range":w;
+      "sequence":e -> "integer::interval":w;
       "sequence":e -> "real::range":w;
+      "sequence":e -> "real::interval":w;
       "address":e -> "mmap":w;
       "mmap":e -> "mmap::buffer":w;
       "buffer":e -> "mmap::buffer":w;

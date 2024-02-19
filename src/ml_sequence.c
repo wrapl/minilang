@@ -2006,12 +2006,25 @@ ML_METHOD("&", MLSequenceT, MLSequenceT) {
 	return ml_sequenced(Args[0], Args[1]);
 }
 
+ML_METHOD("&", MLIntegerIntervalT, MLIntegerIntervalT) {
+	ml_integer_interval_t *Interval1 = (ml_integer_interval_t *)Args[0];
+	ml_integer_interval_t *Interval2 = (ml_integer_interval_t *)Args[1];
+	if (Interval1->Limit + 1 == Interval2->Start) {
+		ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+		Interval->Type = MLIntegerIntervalT;
+		Interval->Start = Interval1->Start;
+		Interval->Limit = Interval2->Limit;
+		return (ml_value_t *)Interval;
+	}
+	return ml_sequenced(Args[0], Args[1]);
+}
+
 ML_METHOD("&", MLIntegerRangeT, MLIntegerRangeT) {
 	ml_integer_range_t *Range1 = (ml_integer_range_t *)Args[0];
 	ml_integer_range_t *Range2 = (ml_integer_range_t *)Args[1];
 	if ((Range1->Step == Range2->Step) && (Range1->Limit + Range1->Step == Range2->Start)) {
 		ml_integer_range_t *Range = new(ml_integer_range_t);
-		Range->Type = MLIntegerRangeT;
+		Range->Type = MLIntegerIntervalT;
 		Range->Start = Range1->Start;
 		Range->Limit = Range2->Limit;
 		Range->Step = Range1->Step;
@@ -3280,7 +3293,7 @@ ML_FUNCTION(Batch) {
 		ML_CHECK_ARG_TYPE(2, MLIntegerT);
 		Batched->Shift = ml_integer_value(Args[2]);
 		if (Batched->Shift <= 0 || Batched->Shift > Batched->Size) {
-			return ml_error("RangeError", "Invalid shift value");
+			return ml_error("IntervalError", "Invalid shift value");
 		}
 		Batched->Function = Args[3];
 	} else {
