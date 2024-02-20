@@ -1758,13 +1758,8 @@ ML_METHOD("between", MLIntegerT, MLIntegerIntervalT) {
 //>X | nil
 	long Value = ml_integer_value_fast(Args[0]);
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
-	if (Interval->Limit < Interval->Start) {
-		if (Value > Interval->Start) return MLNil;
-		if (Value < Interval->Limit) return MLNil;
-	} else {
-		if (Value < Interval->Start) return MLNil;
-		if (Value > Interval->Limit) return MLNil;
-	}
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
 	return Args[0];
 }
 
@@ -1775,13 +1770,8 @@ ML_METHOD("between", MLDoubleT, MLIntegerIntervalT) {
 //>X | nil
 	double Value = ml_double_value_fast(Args[0]);
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
-	if (Interval->Limit < Interval->Start) {
-		if (Value > Interval->Start) return MLNil;
-		if (Value < Interval->Limit) return MLNil;
-	} else {
-		if (Value < Interval->Start) return MLNil;
-		if (Value > Interval->Limit) return MLNil;
-	}
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
 	return Args[0];
 }
 
@@ -2204,13 +2194,8 @@ ML_METHOD("between", MLIntegerT, MLRealIntervalT) {
 //>X | nil
 	long Value = ml_integer_value_fast(Args[0]);
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
-	if (Interval->Limit < Interval->Start) {
-		if (Value > Interval->Start) return MLNil;
-		if (Value < Interval->Limit) return MLNil;
-	} else {
-		if (Value < Interval->Start) return MLNil;
-		if (Value > Interval->Limit) return MLNil;
-	}
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
 	return Args[0];
 }
 
@@ -2221,13 +2206,8 @@ ML_METHOD("between", MLDoubleT, MLRealIntervalT) {
 //>X | nil
 	double Value = ml_double_value_fast(Args[0]);
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
-	if (Interval->Limit < Interval->Start) {
-		if (Value > Interval->Start) return MLNil;
-		if (Value < Interval->Limit) return MLNil;
-	} else {
-		if (Value < Interval->Start) return MLNil;
-		if (Value > Interval->Limit) return MLNil;
-	}
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
 	return Args[0];
 }
 
