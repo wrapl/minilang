@@ -6,6 +6,7 @@
 #include "ml_file.h"
 #include "ml_socket.h"
 #include "ml_object.h"
+#include "ml_time.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
@@ -68,10 +69,6 @@
 
 #ifdef ML_PQUEUES
 #include "ml_pqueue.h"
-#endif
-
-#ifdef ML_TIME
-#include "ml_time.h"
 #endif
 
 #ifdef ML_UUID
@@ -241,6 +238,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_init(Globals);
 	ml_sequence_init(Globals);
 	ml_object_init(Globals);
+	ml_time_init(Globals);
 #ifdef ML_STRUCT
 	ml_struct_init(Globals);
 #endif
@@ -355,9 +353,6 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_PQUEUES
 	ml_pqueue_init(UTIL_EXPORTS);
-#endif
-#ifdef ML_TIME
-	ml_time_init(Globals);
 #endif
 #ifdef ML_UUID
 	ml_uuid_init(UTIL_EXPORTS);

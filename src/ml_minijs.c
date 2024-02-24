@@ -2,13 +2,10 @@
 #include "ml_bytecode.h"
 #include <string.h>
 #include "ml_minijs.h"
+#include "ml_time.h"
 
 #ifdef ML_UUID
 #include "ml_uuid.h"
-#endif
-
-#ifdef ML_TIME
-#include "ml_time.h"
 #endif
 
 #undef ML_CATEGORY
@@ -198,8 +195,6 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLUUIDT, ml_minijs_encoder_t *E
 
 #endif
 
-#ifdef ML_TIME
-
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTimeT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	struct timespec Time[1];
 	ml_time_value(Value, Time);
@@ -222,8 +217,6 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTimeT, ml_minijs_encoder_t *E
 	ml_list_put(Json, ml_string_copy(Buffer, End - Buffer));
 	return Json;
 }
-
-#endif
 
 #ifdef ML_MATH
 
@@ -746,16 +739,12 @@ static ml_value_t *ml_minijs_decode_uuid(ml_minijs_decoder_t *Decoder, ml_list_n
 
 #endif
 
-#ifdef ML_TIME
-
 static ml_value_t *ml_minijs_decode_time(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
 	if (!Node) return ml_error("TypeError", "Global requires string name");
 	ml_value_t *Value = Node->Value;
 	if (!ml_is(Value, MLStringT)) return ml_error("TypeError", "Time requires strings");
 	return ml_time_parse(ml_string_value(Value), ml_string_length(Value));
 }
-
-#endif
 
 #ifdef ML_MATH
 
@@ -1098,9 +1087,7 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "closure", ml_minijs_decode_closure);
 	stringmap_insert(Decoders, "z", ml_minijs_decode_closure);
 	stringmap_insert(Decoders, "o", ml_minijs_decode_object);
-#ifdef ML_TIME
 	stringmap_insert(Decoders, "time", ml_minijs_decode_time);
-#endif
 #ifdef ML_MATH
 	stringmap_insert(Decoders, "array", ml_minijs_decode_array);
 #endif

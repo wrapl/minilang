@@ -26,7 +26,7 @@ CFLAGS := old + [
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
 	:>"-Wsuggest-attribute=malloc",
-	'-I.', "-pthread",
+	'-I.', '-I{PATH / "include"}', "-pthread",
 	"-DGC_THREADS",
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
@@ -136,6 +136,7 @@ let Objects := [
 	file("ml_socket.o"),
 	file("ml_stream.o"),
 	file("ml_string.o"),
+	file("ml_time.o"),
 	file("ml_types.o"),
 	file("sha256.o"),
 	file("stringmap.o")
@@ -159,6 +160,7 @@ let InstallHeaders := [
 	"ml_runtime.h",
 	"ml_sequence.h",
 	"ml_stream.h",
+	"ml_time.h",
 	"ml_types.h",
 	"stringmap.h"
 ]
@@ -190,10 +192,46 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	end
 	GC := Lib
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-I{PATH / "include"}']
 	Libraries:put(Lib)
 	:>LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
 end
+
+let Options := [
+	"TABLES",
+	"MATH",
+	"AST",
+	"COMPLEX",
+	"GIR",
+	"CBOR",
+	"JSON",
+	"XML",
+	"XE",
+	"LIBRARY",
+	"MODULES",
+	"SCHEDULER",
+	"THREADS",
+	"THREADSAFE",
+	"JIT",
+	"NANBOXING",
+	"TRE",
+	"GENERICS",
+	"MUTABLES",
+	"PQUEUES",
+	"TIMEZONES",
+	"UUID",
+	"ICU",
+	"LIBS",
+	"BACKTRACE",
+	"MINIJS",
+	"RELAX_NAMES",
+	"GTK_CONSOLE",
+	"COROUTINES",
+	"ENCODINGS",
+	"STRUCTS",
+	"MMAP"
+] 
+
+MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_TABLES := 1
@@ -209,7 +247,6 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_GENERICS := not defined("NOGENERICS")
 	MINILANG_MUTABLES := 1
 	MINILANG_PQUEUES := 1
-	MINILANG_TIME := 1
 	MINILANG_UUID := 1
 	MINILANG_ICU := 1
 	MINILANG_ENCODINGS := 1
@@ -223,8 +260,7 @@ MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
-MINILANG_GIR_BYTECODE := old or defined("GIR_BYTECODE")
-MINILANG_GIR := MINILANG_GIR_BYTECODE or old or defined("GIR")
+MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
@@ -241,7 +277,6 @@ MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_MUTABLES := old or defined("MUTABLES")
 MINILANG_PQUEUES := old or defined("PQUEUES")
 MINILANG_TIMEZONES := old or defined("TIMEZONES")
-MINILANG_TIME := old or MINILANG_TIMEZONES or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
@@ -348,10 +383,6 @@ if MINILANG_GIR then
 	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
 	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0 gio-2.0")]
 	InstallHeaders:put("ml_gir.h")
-end
-
-if MINILANG_GIR_BYTECODE then
-	CFLAGS := old + ["-DML_GIR_BYTECODE"]
 end
 
 if MINILANG_LIGHTNING or defined("LIGHTNING") then
@@ -512,12 +543,6 @@ if MINILANG_PQUEUES then
 	Objects:put(file("ml_pqueue.o"))
 	CFLAGS := old + ["-DML_PQUEUES"]
 	InstallHeaders:put("ml_pqueue.h")
-end
-
-if MINILANG_TIME then
-	Objects:put(file("ml_time.o"))
-	CFLAGS := old + ["-DML_TIME"]
-	InstallHeaders:put("ml_time.h")
 end
 
 if MINILANG_TIMEZONES then
