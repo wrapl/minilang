@@ -1,0 +1,461 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__library_8h" kind="file" language="C++">
+    <compoundname>ml_library.h</compoundname>
+    <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <incdepgraph>
+      <node id="13">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_library.h</label>
+        <link refid="ml__library_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="16">
+        <label>limits.h</label>
+      </node>
+      <node id="15">
+        <label>ml_config.h</label>
+      </node>
+      <node id="6">
+        <label>setjmp.h</label>
+      </node>
+      <node id="11">
+        <label>stdarg.h</label>
+      </node>
+      <node id="14">
+        <label>stdint.h</label>
+      </node>
+      <node id="9">
+        <label>stdio.h</label>
+      </node>
+      <node id="3">
+        <label>stdlib.h</label>
+      </node>
+      <node id="10">
+        <label>string.h</label>
+      </node>
+      <node id="4">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ml__library_8h_1a6df1d22fb5f09eccc23b9f399670cfd7" prot="public" static="no">
+        <name>STRINGIFY</name>
+        <param><defname>x</defname></param>
+        <initializer>#x</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="28" column="9" bodyfile="src/ml_library.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__library_8h_1a4d3a9a841563631ab020bf6beec58bf9" prot="public" static="no">
+        <name>TOSTRING3</name>
+        <param><defname>x</defname></param>
+        <param><defname>y</defname></param>
+        <param><defname>z</defname></param>
+        <initializer>STRINGIFY(x ## y ## z)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="29" column="9" bodyfile="src/ml_library.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__library_8h_1aab9392972869176bb410c092a182ec3f" prot="public" static="no">
+        <name>LIBRARY_ENTRY</name>
+        <param><defname>NAME</defname></param>
+        <initializer>TOSTRING3(ml_, NAME, _entry)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="31" column="9" bodyfile="src/ml_library.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__library_8h_1a73453b30a666bff84a1a32a453199cdc" prot="public" static="no">
+        <name>LIBRARY_ENTRY0</name>
+        <param><defname>NAME</defname></param>
+        <initializer>TOSTRING3(ml_, NAME, _entry0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="32" column="9" bodyfile="src/ml_library.h" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__library_8h_1ab05f2ae4f8e3ac1c02e2ae49f182042a" prot="public" static="no">
+        <name>ML_LIBRARY_ENTRY</name>
+        <param><defname>NAME</defname></param>
+        <initializer>void CONCAT3(ml_, NAME, entry)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *Caller, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Slot); \
+void ml_library_entry(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *Caller, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY(NAME)))); \
+void CONCAT3(ml_, NAME, entry)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *Caller, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Slot)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="34" column="9" bodyfile="src/ml_library.h" bodystart="34" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__library_8h_1ad3b66441b88534c08595495518594fa4" prot="public" static="no">
+        <name>ML_LIBRARY_ENTRY0</name>
+        <param><defname>NAME</defname></param>
+        <initializer>void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Slot); \
+void ml_library_entry0(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY0(NAME)))); \
+void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **Slot)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="39" column="9" bodyfile="src/ml_library.h" bodystart="39" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__library_8h_1a19d56efa0c91abfb11f50be436c28ddb" prot="public" static="no">
+        <name>ML_LIBRARY_SCHEDULER</name>
+        <param><defname>NAME</defname></param>
+        <initializer>ml_main_loop_t ml_library_scheduler_init(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *Context)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="46" column="9" bodyfile="src/ml_library.h" bodystart="46" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__library_8h_1a0970aa160bcb264fb1296eecb52a274f" prot="public" static="no">
+        <name>ML_LIBRARY_LOGGER</name>
+        <param><defname>NAME</defname></param>
+        <initializer>void ml_library_logger_init(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *Context)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="49" column="9" bodyfile="src/ml_library.h" bodystart="49" bodyend="50"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ml__library_8h_1a20e5f8a02e7294d23434e10d9d166464" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* ml_library_entry_t) (ml_state_t *Caller, ml_value_t **Slot)</definition>
+        <argsstring>)(ml_state_t *Caller, ml_value_t **Slot)</argsstring>
+        <name>ml_library_entry_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="25" column="9" bodyfile="src/ml_library.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__library_8h_1a53f62e2d1fc2464446281858802292c6" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* ml_library_entry0_t) (ml_value_t **Slot)</definition>
+        <argsstring>)(ml_value_t **Slot)</argsstring>
+        <name>ml_library_entry0_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="26" column="9" bodyfile="src/ml_library.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__library_8h_1a42f2ac9fff6125e708ddc1b86b90acee" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* ml_main_loop_t) ()</definition>
+        <argsstring>)()</argsstring>
+        <name>ml_main_loop_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="44" column="9" bodyfile="src/ml_library.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__library_8h_1ac82c21aae6bc9bd995f9e5da2fa156ea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_library_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_library_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="10" column="6" declfile="src/ml_library.h" declline="10" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__library_8h_1a2050dc4fec3a0f33dd7967bc33c59bad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_library_path_add</definition>
+        <argsstring>(const char *Path)</argsstring>
+        <name>ml_library_path_add</name>
+        <param>
+          <type>const char *</type>
+          <declname>Path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="12" column="6" declfile="src/ml_library.h" declline="12" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__library_8h_1a914ac3d4b79184d0330af57d0ac4bae9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_library_loader_add</definition>
+        <argsstring>(const char *Extension, int(*Test)(const char *), void(*Load)(ml_state_t *, const char *, ml_value_t **), ml_value_t *(*Load0)(const char *, ml_value_t **))</argsstring>
+        <name>ml_library_loader_add</name>
+        <param>
+          <type>const char *</type>
+          <declname>Extension</declname>
+        </param>
+        <param>
+          <type>int(*)(const char *)</type>
+          <declname>Test</declname>
+        </param>
+        <param>
+          <type>void(*)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *, const char *, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **)</type>
+          <declname>Load</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*)(const char *, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **)</type>
+          <declname>Load0</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="13" column="6" declfile="src/ml_library.h" declline="13" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__library_8h_1a6739ec121de9625088634f8be881dd25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_library_load</definition>
+        <argsstring>(ml_state_t *Caller, const char *Path, const char *Name)</argsstring>
+        <name>ml_library_load</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Path</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="19" column="6" declfile="src/ml_library.h" declline="19" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__library_8h_1a04777fdfc70ab1075a67bb58e674c364" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_library_load0</definition>
+        <argsstring>(const char *Path, const char *Name)</argsstring>
+        <name>ml_library_load0</name>
+        <param>
+          <type>const char *</type>
+          <declname>Path</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="20" column="12" declfile="src/ml_library.h" declline="20" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__library_8h_1a16f8a6d3ee673c600c57e31ebe8cc59e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_library_register</definition>
+        <argsstring>(const char *Name, ml_value_t *Module)</argsstring>
+        <name>ml_library_register</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Module</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="22" column="6" declfile="src/ml_library.h" declline="22" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__library_8h_1a320d8c6ee2f15a1e15a9a4ca13b32006" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__module__t" kindref="compound">ml_module_t</ref> *</type>
+        <definition>ml_module_t * ml_library_internal</definition>
+        <argsstring>(const char *Name)</argsstring>
+        <name>ml_library_internal</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="23" column="13" declfile="src/ml_library.h" declline="23" declcolumn="13"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_LIBRARY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_path_add(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path);</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_loader_add(</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Extension,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*Test)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*),</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*Load)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**),</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*(*Load0)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**)</highlight></codeline>
+<codeline lineno="17"><highlight class="normal">);</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_load(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_library_load0(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_register(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module);</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><ref refid="structml__module__t" kindref="compound">ml_module_t</ref><sp/>*ml_library_internal(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_library_entry_t)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_library_entry0_t)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGIFY(x)<sp/>#x</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TOSTRING3(x,<sp/>y,<sp/>z)<sp/>STRINGIFY(x<sp/>##<sp/>y<sp/>##<sp/>z)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LIBRARY_ENTRY(NAME)<sp/>TOSTRING3(ml_,<sp/>NAME,<sp/>_entry)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LIBRARY_ENTRY0(NAME)<sp/>TOSTRING3(ml_,<sp/>NAME,<sp/>_entry0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_ENTRY(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="35"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry)(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot);<sp/>\</highlight></codeline>
+<codeline lineno="36"><highlight class="preprocessor">void<sp/>ml_library_entry(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot)<sp/>__attribute__<sp/>((weak,<sp/>alias(LIBRARY_ENTRY(NAME))));<sp/>\</highlight></codeline>
+<codeline lineno="37"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry)(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_ENTRY0(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="40"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry0)(ml_value_t<sp/>**Slot);<sp/>\</highlight></codeline>
+<codeline lineno="41"><highlight class="preprocessor">void<sp/>ml_library_entry0(ml_value_t<sp/>**Slot)<sp/>__attribute__<sp/>((weak,<sp/>alias(LIBRARY_ENTRY0(NAME))));<sp/>\</highlight></codeline>
+<codeline lineno="42"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry0)(ml_value_t<sp/>**Slot)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_main_loop_t)();</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_SCHEDULER(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="47"><highlight class="preprocessor">ml_main_loop_t<sp/>ml_library_scheduler_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_LOGGER(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="50"><highlight class="preprocessor">void<sp/>ml_library_logger_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_library.h"/>
+  </compounddef>
+</doxygen>

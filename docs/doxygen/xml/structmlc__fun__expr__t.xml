@@ -1,0 +1,161 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__fun__expr__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_fun_expr_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__fun__expr__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>mlc_fun_expr_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="270" column="12" bodyfile="src/ml_compiler2.h" bodystart="270" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__fun__expr__t_1a1659426d82ac8460591022f9f1f7b9b2" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__param__t" kindref="compound">mlc_param_t</ref> *</type>
+        <definition>mlc_param_t* Params</definition>
+        <argsstring></argsstring>
+        <name>Params</name>
+        <qualifiedname>mlc_fun_expr_t::Params</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="271" column="13" bodyfile="src/ml_compiler2.h" bodystart="271" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__fun__expr__t_1ae1402862dedb75eff8bf2d083a91d790" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* Body</definition>
+        <argsstring></argsstring>
+        <name>Body</name>
+        <qualifiedname>mlc_fun_expr_t::Body</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="272" column="12" bodyfile="src/ml_compiler2.h" bodystart="272" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__fun__expr__t_1afceddbbc0e7743767d18d9c7e082b86c" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* ReturnType</definition>
+        <argsstring></argsstring>
+        <name>ReturnType</name>
+        <qualifiedname>mlc_fun_expr_t::ReturnType</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="273" column="12" bodyfile="src/ml_compiler2.h" bodystart="273" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structmlc__fun__expr__t_1a9088cea7a86eb35a12830e34605466ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MLC_EXPR_FIELDS</definition>
+        <argsstring>(fun)</argsstring>
+        <name>MLC_EXPR_FIELDS</name>
+        <qualifiedname>mlc_fun_expr_t::MLC_EXPR_FIELDS</qualifiedname>
+        <param>
+          <type>fun</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="269" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="4">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_fun_expr_t</label>
+        <link refid="structmlc__fun__expr__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Params</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Body</edgelabel>
+          <edgelabel>ReturnType</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_param_t</label>
+        <link refid="structmlc__param__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="268" column="1" bodyfile="src/ml_compiler2.h" bodystart="268" bodyend="274"/>
+    <listofallmembers>
+      <member refid="structmlc__fun__expr__t_1ae1402862dedb75eff8bf2d083a91d790" prot="public" virt="non-virtual"><scope>mlc_fun_expr_t</scope><name>Body</name></member>
+      <member refid="structmlc__fun__expr__t_1a9088cea7a86eb35a12830e34605466ba" prot="public" virt="non-virtual"><scope>mlc_fun_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
+      <member refid="structmlc__fun__expr__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>mlc_fun_expr_t</scope><name>Name</name></member>
+      <member refid="structmlc__fun__expr__t_1a1659426d82ac8460591022f9f1f7b9b2" prot="public" virt="non-virtual"><scope>mlc_fun_expr_t</scope><name>Params</name></member>
+      <member refid="structmlc__fun__expr__t_1afceddbbc0e7743767d18d9c7e082b86c" prot="public" virt="non-virtual"><scope>mlc_fun_expr_t</scope><name>ReturnType</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

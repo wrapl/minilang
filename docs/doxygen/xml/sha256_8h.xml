@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="sha256_8h" kind="file" language="C++">
+    <compoundname>sha256.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>src/sha256.h</label>
+        <link refid="sha256_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structSHA256__CTX" prot="public">SHA256_CTX</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="sha256_8h_1a9c1fe69ad43d4ca74b84303a0ed64f2f" prot="public" static="no">
+        <name>SHA256_BLOCK_SIZE</name>
+        <initializer>32</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="16" column="9" bodyfile="src/sha256.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="sha256_8h_1ade6fde6ef9ea137449d72891931c77ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sha256_init</definition>
+        <argsstring>(SHA256_CTX *ctx)</argsstring>
+        <name>sha256_init</name>
+        <param>
+          <type><ref refid="structSHA256__CTX" kindref="compound">SHA256_CTX</ref> *</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="28" column="6" declfile="src/sha256.h" declline="28" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="sha256_8h_1a8b73344dee7926a2b49d701cfe805d95" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sha256_update</definition>
+        <argsstring>(SHA256_CTX *ctx, const unsigned char data[], size_t len)</argsstring>
+        <name>sha256_update</name>
+        <param>
+          <type><ref refid="structSHA256__CTX" kindref="compound">SHA256_CTX</ref> *</type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>const unsigned char</type>
+          <declname>data</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="29" column="6" declfile="src/sha256.h" declline="29" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="sha256_8h_1a4e83d24657605fb0263b398430da53d2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sha256_final</definition>
+        <argsstring>(SHA256_CTX *ctx, unsigned char hash[])</argsstring>
+        <name>sha256_final</name>
+        <param>
+          <type><ref refid="structSHA256__CTX" kindref="compound">SHA256_CTX</ref> *</type>
+          <declname>ctx</declname>
+        </param>
+        <param>
+          <type>unsigned char</type>
+          <declname>hash</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/sha256.h" line="30" column="6" declfile="src/sha256.h" declline="30" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*********************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment">*<sp/>Filename:<sp/><sp/><sp/>sha256.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment">*<sp/>Author:<sp/><sp/><sp/><sp/><sp/>Brad<sp/>Conte<sp/>(brad<sp/>AT<sp/>bradconte.com)</highlight></codeline>
+<codeline lineno="4"><highlight class="comment">*<sp/>Copyright:</highlight></codeline>
+<codeline lineno="5"><highlight class="comment">*<sp/>Disclaimer:<sp/>This<sp/>code<sp/>is<sp/>presented<sp/>&quot;as<sp/>is&quot;<sp/>without<sp/>any<sp/>guarantees.</highlight></codeline>
+<codeline lineno="6"><highlight class="comment">*<sp/>Details:<sp/><sp/><sp/><sp/>Defines<sp/>the<sp/>API<sp/>for<sp/>the<sp/>corresponding<sp/>SHA1<sp/>implementation.</highlight></codeline>
+<codeline lineno="7"><highlight class="comment">*********************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SHA256_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SHA256_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="comment">/***************************<sp/>HEADER<sp/>FILES<sp/>***************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="comment">/******************************<sp/>MACROS<sp/>******************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SHA256_BLOCK_SIZE<sp/>32<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>SHA256<sp/>outputs<sp/>a<sp/>32<sp/>unsigned<sp/>char<sp/>digest</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="comment">/****************************<sp/>DATA<sp/>TYPES<sp/>****************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20" refid="structSHA256__CTX" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>data[64];</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>datalen;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>bitlen;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>state[8];</highlight></codeline>
+<codeline lineno="25"><highlight class="normal">}<sp/><ref refid="structSHA256__CTX" kindref="compound">SHA256_CTX</ref>;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="comment">/***********************<sp/>FUNCTION<sp/>DECLARATIONS<sp/>**********************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>sha256_init(<ref refid="structSHA256__CTX" kindref="compound">SHA256_CTX</ref><sp/>*ctx);</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>sha256_update(<ref refid="structSHA256__CTX" kindref="compound">SHA256_CTX</ref><sp/>*ctx,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>data[],<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>len);</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>sha256_final(<ref refid="structSHA256__CTX" kindref="compound">SHA256_CTX</ref><sp/>*ctx,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>hash[]);</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>SHA256_H</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="src/sha256.h"/>
+  </compounddef>
+</doxygen>

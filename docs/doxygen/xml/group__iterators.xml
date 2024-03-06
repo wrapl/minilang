@@ -1,0 +1,195 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__iterators" kind="group">
+    <compoundname>iterators</compoundname>
+    <title>Iterators</title>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__iterators_1gadfa686e2b22ff3de8efd996b22ebe109" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSequenceT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSequenceT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="339" column="18" declfile="src/ml_types.h" declline="339" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__iterators_1gad04a6e6975ecb220982d335f4d2d9ce9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_count</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_count</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="341" column="6" declfile="src/ml_types.h" declline="341" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gae73f12ecd8e7e2808051e632a4a4be06" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_iterate</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_iterate</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="342" column="6" declfile="src/ml_types.h" declline="342" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gac43acf7cb1f818d158117bde4fd04970" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_iter_value</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>ml_iter_value</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="343" column="6" declfile="src/ml_types.h" declline="343" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gac5128aa4a2c0a4ceba680d70e99e9ec9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_iter_key</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>ml_iter_key</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="344" column="6" declfile="src/ml_types.h" declline="344" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gad17892853f1c491d8f8f0d1efbeab631" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_iter_next</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>ml_iter_next</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="345" column="6" declfile="src/ml_types.h" declline="345" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1ga4e71d6bf465f811e1ef83213f65876cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_chained</definition>
+        <argsstring>(int Count, ml_value_t **Functions)</argsstring>
+        <name>ml_chained</name>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Functions</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="347" column="12" declfile="src/ml_types.h" declline="347" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gae8980ea2a51e8e7d9ae571fe08184bdb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_chainedv</definition>
+        <argsstring>(int Count,...)</argsstring>
+        <name>ml_chainedv</name>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="348" column="12" declfile="src/ml_types.h" declline="348" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gaec234bd1761198d4c52eaab8bdfddced" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_doubled</definition>
+        <argsstring>(ml_value_t *Sequence, ml_value_t *Function)</argsstring>
+        <name>ml_doubled</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Sequence</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="349" column="12" declfile="src/ml_types.h" declline="349" declcolumn="12"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

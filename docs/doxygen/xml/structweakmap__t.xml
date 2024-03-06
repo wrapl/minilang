@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structweakmap__t" kind="struct" language="C++" prot="public">
+    <compoundname>weakmap_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structweakmap__t_1a03b52dff1e4d61ef0018aea270163189" prot="public" static="no" mutable="no">
+        <type>weakmap_node_t *</type>
+        <definition>weakmap_node_t* Nodes</definition>
+        <argsstring></argsstring>
+        <name>Nodes</name>
+        <qualifiedname>weakmap_t::Nodes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.h" line="9" column="16" bodyfile="src/weakmap.h" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structweakmap__t_1a5968f62599fab877c35a32a5a5f327ec" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Mask</definition>
+        <argsstring></argsstring>
+        <name>Mask</name>
+        <qualifiedname>weakmap_t::Mask</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.h" line="10" column="8" bodyfile="src/weakmap.h" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structweakmap__t_1afc984916d385f1f9abec51846dd48643" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Space</definition>
+        <argsstring></argsstring>
+        <name>Space</name>
+        <qualifiedname>weakmap_t::Space</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.h" line="10" column="13" bodyfile="src/weakmap.h" bodystart="10" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/weakmap.h" line="8" column="1" bodyfile="src/weakmap.h" bodystart="8" bodyend="11"/>
+    <listofallmembers>
+      <member refid="structweakmap__t_1a5968f62599fab877c35a32a5a5f327ec" prot="public" virt="non-virtual"><scope>weakmap_t</scope><name>Mask</name></member>
+      <member refid="structweakmap__t_1a03b52dff1e4d61ef0018aea270163189" prot="public" virt="non-virtual"><scope>weakmap_t</scope><name>Nodes</name></member>
+      <member refid="structweakmap__t_1afc984916d385f1f9abec51846dd48643" prot="public" virt="non-virtual"><scope>weakmap_t</scope><name>Space</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

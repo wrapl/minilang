@@ -117,7 +117,16 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 static void ML_TYPED_FN(ml_value_find_all, MLObjectT, ml_object_t *Value, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Value, 1)) return;
 	int NumFields = ((ml_object_t *)Value)->Type->NumFields;
-	for (int I = 0; I < NumFields; ++I) ml_value_find_all(Value->Fields[I].Value, Data, RefFn);
+	for (int I = 1; I <= NumFields; ++I) ml_value_find_all(Value->Fields[I].Value, Data, RefFn);
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLObjectT, ml_object_t *Value) {
+	int NumFields = ((ml_object_t *)Value)->Type->NumFields;
+	for (int I = 1; I <= NumFields; ++I) {
+		if (Value->Fields[I].Type != MLFieldT) return 0;
+		if (!ml_value_is_constant(Value->Fields[I].Value)) return 0;
+	}
+	return 1;
 }
 
 ML_METHOD("::", MLObjectT, MLStringT) {
@@ -1087,25 +1096,25 @@ typedef struct {
 	ml_enum_value_t *Values;
 	int Index, Count;
 	int Current, Max;
-} ml_enum_range_iter_t;
+} ml_enum_interval_iter_t;
 
-ML_TYPE(MLEnumRangeIterT, (), "enum-range-iter");
+ML_TYPE(MLEnumIntervalIterT, (), "enum-interval-iter");
 //!internal
 
 typedef struct {
 	ml_type_t *Type;
 	ml_enum_t *Enum;
 	int Start, Count;
-} ml_enum_range_t;
+} ml_enum_interval_t;
 
-ML_TYPE(MLEnumRangeT, (MLSequenceT), "enum-range");
-// A range of enum values.
+ML_TYPE(MLEnumIntervalT, (MLSequenceT), "enum-interval");
+// A interval of enum values.
 
 ML_METHOD("..", MLEnumValueT, MLEnumValueT) {
 //<Min
 //<Max
-//>enum::range
-// Returns a range of enum values. :mini:`Min` and :mini:`Max` must belong to the same enumeration.
+//>enum::interval
+// Returns a interval of enum values. :mini:`Min` and :mini:`Max` must belong to the same enumeration.
 //$= let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 //$= day::Mon .. day::Fri
 	ml_enum_value_t *ValueA = (ml_enum_value_t *)Args[0];
@@ -1113,39 +1122,39 @@ ML_METHOD("..", MLEnumValueT, MLEnumValueT) {
 	if (ValueA->Base.Type != ValueB->Base.Type) {
 		return ml_error("TypeError", "Enum types do not match");
 	}
-	ml_enum_range_t *Range = new(ml_enum_range_t);
+	ml_enum_interval_t *Interval = new(ml_enum_interval_t);
 #ifdef ML_GENERICS
-	ml_type_t *Types[2] = {MLEnumRangeT, ValueA->Base.Type};
-	Range->Type = ml_generic_type(2, Types);
+	ml_type_t *Types[2] = {MLEnumIntervalT, ValueA->Base.Type};
+	Interval->Type = ml_generic_type(2, Types);
 #else
-	Range->Type = MLEnumRangeT;
+	Interval->Type = MLEnumIntervalT;
 #endif
-	ml_enum_t *Enum = Range->Enum = (ml_enum_t *)ValueA->Base.Type;
-	int Start = Range->Start = ValueA - Enum->Values;
+	ml_enum_t *Enum = Interval->Enum = (ml_enum_t *)ValueA->Base.Type;
+	int Start = Interval->Start = ValueA - Enum->Values;
 	int Last = ValueB - Enum->Values;
-	if (Last >= Range->Start) {
-		Range->Count = (Last - Start) + 1;
+	if (Last >= Interval->Start) {
+		Interval->Count = (Last - Start) + 1;
 	} else if (Enum->Base.Type == MLEnumCyclicT) {
-		Range->Count = (Last + Enum->Base.Exports->Size - Start) + 1;
+		Interval->Count = (Last + Enum->Base.Exports->Size - Start) + 1;
 	} else {
-		Range->Count = 0;
+		Interval->Count = 0;
 	}
-	return (ml_value_t *)Range;
+	return (ml_value_t *)Interval;
 }
 
-static void ML_TYPED_FN(ml_iterate, MLEnumRangeT, ml_state_t *Caller, ml_enum_range_t *Range) {
-	if (Range->Count == 0) ML_RETURN(MLNil);
-	ml_enum_range_iter_t *Iter = new(ml_enum_range_iter_t);
-	Iter->Type = MLEnumRangeIterT;
-	Iter->Values = Range->Enum->Values;
+static void ML_TYPED_FN(ml_iterate, MLEnumIntervalT, ml_state_t *Caller, ml_enum_interval_t *Interval) {
+	if (Interval->Count == 0) ML_RETURN(MLNil);
+	ml_enum_interval_iter_t *Iter = new(ml_enum_interval_iter_t);
+	Iter->Type = MLEnumIntervalIterT;
+	Iter->Values = Interval->Enum->Values;
 	Iter->Index = 1;
-	Iter->Count = Range->Count;
-	Iter->Current = Range->Start;
-	Iter->Max = Range->Enum->Base.Exports->Size;
+	Iter->Count = Interval->Count;
+	Iter->Current = Interval->Start;
+	Iter->Max = Interval->Enum->Base.Exports->Size;
 	ML_RETURN(Iter);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_next, MLEnumIntervalIterT, ml_state_t *Caller, ml_enum_interval_iter_t *Iter) {
 	if (Iter->Index == Iter->Count) {
 		ML_RETURN(MLNil);
 	} else {
@@ -1155,11 +1164,11 @@ static void ML_TYPED_FN(ml_iter_next, MLEnumRangeIterT, ml_state_t *Caller, ml_e
 	}
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_key, MLEnumIntervalIterT, ml_state_t *Caller, ml_enum_interval_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_value, MLEnumIntervalIterT, ml_state_t *Caller, ml_enum_interval_iter_t *Iter) {
 	ML_RETURN(Iter->Values + Iter->Current);
 }
 
@@ -1209,18 +1218,18 @@ static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Ar
 				ml_enum_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
 				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
 				Switch->Cases[EnumValue - Enum->Values] = Case;
-			} else if (ml_is(Value, MLEnumRangeT)) {
-				ml_enum_range_t *Range = (ml_enum_range_t *)Value;
-				if (Range->Enum != Enum) return ml_error("ValueError", "Unsupported value in enum case");
-				int J = Range->Start;
-				for (int L = Range->Count; --L >= 0;) {
+			} else if (ml_is(Value, MLEnumIntervalT)) {
+				ml_enum_interval_t *Interval = (ml_enum_interval_t *)Value;
+				if (Interval->Enum != Enum) return ml_error("ValueError", "Unsupported value in enum case");
+				int J = Interval->Start;
+				for (int L = Interval->Count; --L >= 0;) {
 					Switch->Cases[J] = Case;
 					if (++J == Size) J = 0;
 				}
-			} else if (ml_is(Value, MLSymbolRangeT)) {
-				ml_symbol_range_t *Range = (ml_symbol_range_t *)Value;
-				ml_enum_value_t *Min = stringmap_search(Enum->Base.Exports, Range->First);
-				ml_enum_value_t *Max = stringmap_search(Enum->Base.Exports, Range->Last);
+			} else if (ml_is(Value, MLSymbolIntervalT)) {
+				ml_symbol_interval_t *Interval = (ml_symbol_interval_t *)Value;
+				ml_enum_value_t *Min = stringmap_search(Enum->Base.Exports, Interval->First);
+				ml_enum_value_t *Max = stringmap_search(Enum->Base.Exports, Interval->Last);
 				if (!Min) return ml_error("EnumError", "Invalid enum name");
 				if (!Max) return ml_error("EnumError", "Invalid enum name");
 				int MinIndex = Min - Enum->Values;
@@ -1831,7 +1840,7 @@ void ml_object_init(stringmap_t *Globals) {
 	ml_externals_default_add("enum", MLEnumT);
 	ml_externals_default_add("flags", MLFlagsT);
 #ifdef ML_GENERICS
-	ml_type_add_rule(MLEnumRangeT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+	ml_type_add_rule(MLEnumIntervalT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #endif
 	if (Globals) {
 		stringmap_insert(Globals, "property", MLPropertyT);

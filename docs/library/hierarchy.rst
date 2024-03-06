@@ -25,8 +25,10 @@ hierarchy
       "any":e -> "external":w;
       "any":e -> "external::set":w;
       "function":e -> "symbol":w;
-      "any":e -> "symbol::range":w;
+      "any":e -> "symbol::interval":w;
       "any":e -> "weakref":w;
+      "any":e -> "weakmaptoken":w;
+      "any":e -> "weakmap":w;
       "any":e -> "xml":w;
       "xml":e -> "xml::text":w;
       "string":e -> "xml::text":w;
@@ -48,7 +50,8 @@ hierarchy
       "any":e -> "thread::protected":w;
       "any":e -> "thread::condition":w;
       "function":e -> "task":w;
-      "function":e -> "tasks":w;
+      "task":e -> "task::set":w;
+      "function":e -> "task::queue":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
       "any":e -> "instance::field":w;
@@ -107,7 +110,7 @@ hierarchy
       "type":e -> "enum":w;
       "sequence":e -> "enum":w;
       "enum":e -> "enum::cyclic":w;
-      "sequence":e -> "enum::range":w;
+      "sequence":e -> "enum::interval":w;
       "type":e -> "flags":w;
       "any":e -> "flags::value":w;
       "any":e -> "flags::spec":w;
@@ -118,7 +121,12 @@ hierarchy
       "function":e -> "integer":w;
       "real":e -> "double":w;
       "sequence":e -> "integer::range":w;
+      "sequence":e -> "integer::interval":w;
       "sequence":e -> "real::range":w;
+      "sequence":e -> "real::interval":w;
+      "address":e -> "mmap":w;
+      "mmap":e -> "mmap::buffer":w;
+      "buffer":e -> "mmap::buffer":w;
       "any":e -> "minijs":w;
       "any":e -> "method::context":w;
       "function":e -> "method":w;
@@ -129,7 +137,8 @@ hierarchy
       "any":e -> "map::node":w;
       "map::node":e -> "map::node::mutable":w;
       "any":e -> "map::node::mutable":w;
-      "sequence":e -> "list2":w;
+      "function":e -> "log::macro":w;
+      "any":e -> "logger":w;
       "sequence":e -> "list":w;
       "list":e -> "list::mutable":w;
       "any":e -> "list::node":w;
@@ -205,6 +214,7 @@ hierarchy
       "ast::expr":e -> "ast::expr::scoped":w;
       "ast::expr":e -> "ast::expr::parent":w;
       "ast::expr":e -> "ast::expr::default":w;
+      "ast::expr":e -> "ast::expr::ifconfig":w;
       "ast::expr":e -> "ast::expr::parentvalue":w;
       "ast::expr::parent":e -> "ast::expr::and":w;
       "ast::expr::parent":e -> "ast::expr::assign":w;

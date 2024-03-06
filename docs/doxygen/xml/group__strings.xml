@@ -1,0 +1,917 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__strings" kind="group">
+    <compoundname>strings</compoundname>
+    <title>Strings</title>
+    <innerclass refid="structml__address__t" prot="public">ml_address_t</innerclass>
+    <innerclass refid="structml__string__t" prot="public">ml_string_t</innerclass>
+    <innerclass refid="structml__stringbuffer__t" prot="public">ml_stringbuffer_t</innerclass>
+    <innerclass refid="structml__stringbuffer__node__t" prot="public">ml_stringbuffer_node_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__strings_1gaf100447b111e59544a8d0a6e2a85fd3f" prot="public" static="no">
+        <type>typedefint struct ml_address_t</type>
+        <definition>typedef typedefint struct ml_address_t ml_address_t</definition>
+        <argsstring></argsstring>
+        <name>ml_address_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="677" column="27" bodyfile="src/ml_types.h" bodystart="677" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__strings_1ga30f9e713738c7c2a9b49763ef2e33cdc" prot="public" static="no">
+        <type>struct ml_string_t</type>
+        <definition>typedef struct ml_string_t ml_string_t</definition>
+        <argsstring></argsstring>
+        <name>ml_string_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="678" column="26" bodyfile="src/ml_types.h" bodystart="678" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__strings_1ga7d9b1da6a98050a08f867ede682b4441" prot="public" static="no">
+        <type>struct ml_stringbuffer_t</type>
+        <definition>typedef struct ml_stringbuffer_t ml_stringbuffer_t</definition>
+        <argsstring></argsstring>
+        <name>ml_stringbuffer_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="738" column="32" bodyfile="src/ml_types.h" bodystart="738" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__strings_1ga1a9b60322d8f2bf52768fbe87110931d" prot="public" static="no">
+        <type>struct ml_stringbuffer_node_t</type>
+        <definition>typedef struct ml_stringbuffer_node_t ml_stringbuffer_node_t</definition>
+        <argsstring></argsstring>
+        <name>ml_stringbuffer_node_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="739" column="37" bodyfile="src/ml_types.h" bodystart="739" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__strings_1ga7ac4a867adf2e7577ea5c461ba115710" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLAddressT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLAddressT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="693" column="18" declfile="src/ml_types.h" declline="693" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__strings_1ga5f3415f26ed67ee2456de64886bfe9ae" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLBufferT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLBufferT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="694" column="18" declfile="src/ml_types.h" declline="694" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__strings_1ga3e9d8b4e0367d7899e3cf3812f39d3f2" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLStringT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLStringT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="695" column="18" declfile="src/ml_types.h" declline="695" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__strings_1gaf4ce606a5976bcbb41b451750bd530fa" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLRegexT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLRegexT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="697" column="18" declfile="src/ml_types.h" declline="697" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__strings_1ga4ff94a55fc6e37c8a8084c88224c8838" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLStringBufferT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLStringBufferT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="698" column="18" declfile="src/ml_types.h" declline="698" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__strings_1ga786e2f2bc4133f0ab328b47f53a04a5f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int GC_vasprintf</definition>
+        <argsstring>(char **Ptr, const char *Format, va_list Args)</argsstring>
+        <name>GC_vasprintf</name>
+        <param>
+          <type>char **</type>
+          <declname>Ptr</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>va_list</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="674" column="5" declfile="src/ml_types.h" declline="674" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga5e678d2c7b8a423641ecab495ad672d7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int GC_asprintf</definition>
+        <argsstring>(char **Ptr, const char *Format,...) __attribute__((format(printf</argsstring>
+        <name>GC_asprintf</name>
+        <param>
+          <type>char **</type>
+          <declname>Ptr</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="675" column="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga1cb3bd85bbcbaa372192a9bf18ee0e3f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_address</definition>
+        <argsstring>(const char *Value, int Length) __attribute__((malloc))</argsstring>
+        <name>ml_address</name>
+        <param>
+          <type>const char *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="700" column="12" declfile="src/ml_types.h" declline="700" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gafa7fa7b08008b5d9b62a3617ba54c65b" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>const char *</type>
+        <definition>static const char * ml_address_value</definition>
+        <argsstring>(const ml_value_t *Value)</argsstring>
+        <name>ml_address_value</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="702" column="26" bodyfile="src/ml_types.h" bodystart="702" bodyend="704"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gac46806f0b7c6747861cc15fd883e87b0" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t ml_address_length</definition>
+        <argsstring>(const ml_value_t *Value)</argsstring>
+        <name>ml_address_length</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="706" column="22" bodyfile="src/ml_types.h" bodystart="706" bodyend="708"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gaf93b9bd18a174bf4bac0149552179a5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_buffer</definition>
+        <argsstring>(char *Value, int Length) __attribute__((malloc))</argsstring>
+        <name>ml_buffer</name>
+        <param>
+          <type>char *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="710" column="12" declfile="src/ml_types.h" declline="710" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gaaddd0ff7078b0f1c4e35041865b982e4" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>char *</type>
+        <definition>static char * ml_buffer_value</definition>
+        <argsstring>(const ml_value_t *Value)</argsstring>
+        <name>ml_buffer_value</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="712" column="20" bodyfile="src/ml_types.h" bodystart="712" bodyend="714"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gad30be565c10094190786beeea7a2e0f0" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t ml_buffer_length</definition>
+        <argsstring>(const ml_value_t *Value)</argsstring>
+        <name>ml_buffer_length</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="716" column="22" bodyfile="src/ml_types.h" bodystart="716" bodyend="718"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga54b4fdb7f890f70891d399204856977a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_string</definition>
+        <argsstring>(const char *Value, int Length) __attribute__((malloc))</argsstring>
+        <name>ml_string</name>
+        <param>
+          <type>const char *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="720" column="12" declfile="src/ml_types.h" declline="720" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga77b8d59293a7046704492c8d5c5b56c1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_string_copy</definition>
+        <argsstring>(const char *Value, int Length) __attribute__((malloc))</argsstring>
+        <name>ml_string_copy</name>
+        <param>
+          <type>const char *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="721" column="12" declfile="src/ml_types.h" declline="721" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga3d992fd41e41546701b305ec0c2cf626" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_string_format</definition>
+        <argsstring>(const char *Format,...) __attribute__((malloc</argsstring>
+        <name>ml_string_format</name>
+        <param>
+          <type>const char *</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="722" column="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga61a342e0e00ff6922ec7271838e067bd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref></type>
+        <definition>ml_value_t format</definition>
+        <argsstring>(printf, 1, 2)))</argsstring>
+        <name>format</name>
+        <param>
+          <type>printf</type>
+        </param>
+        <param>
+          <type>1</type>
+        </param>
+        <param>
+          <type>2</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="722" column="33" declfile="src/ml_types.h" declline="722" declcolumn="33"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga6a9d482555097293399f5c9bc30806af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_regex</definition>
+        <argsstring>(const char *Value, int Length) __attribute__((malloc))</argsstring>
+        <name>ml_regex</name>
+        <param>
+          <type>const char *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="732" column="12" declfile="src/ml_types.h" declline="732" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gaa383bf26cf453db6f3cdc5a2a542c131" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_regexi</definition>
+        <argsstring>(const char *Value, int Length) __attribute__((malloc))</argsstring>
+        <name>ml_regexi</name>
+        <param>
+          <type>const char *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="733" column="12" declfile="src/ml_types.h" declline="733" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga164105119905996003a097f8864a333d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_regex_pattern</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_regex_pattern</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="734" column="12" declfile="src/ml_types.h" declline="734" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga3d67945bae6d7411d5ef1e0b82371407" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_regex_match</definition>
+        <argsstring>(ml_value_t *Value, const char *Subject, int Length)</argsstring>
+        <name>ml_regex_match</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Subject</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="736" column="5" declfile="src/ml_types.h" declline="736" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga9eaad83d27d77c00d4c3f0b2ae1fbdd3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stringbuffer</definition>
+        <argsstring>()</argsstring>
+        <name>ml_stringbuffer</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="757" column="12" declfile="src/ml_types.h" declline="757" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga32ac71924bcbc14387fe015970e812a6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char * ml_stringbuffer_writer</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, size_t Length)</argsstring>
+        <name>ml_stringbuffer_writer</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="758" column="6" declfile="src/ml_types.h" declline="758" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga127fd4df2e96d4e462e146120aad7f24" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ssize_t</type>
+        <definition>ssize_t ml_stringbuffer_write</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, const char *String, size_t Length)</argsstring>
+        <name>ml_stringbuffer_write</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>String</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="759" column="9" declfile="src/ml_types.h" declline="759" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga3b910f14c86d7fdb18f3cf774475094d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ssize_t</type>
+        <definition>ssize_t ml_stringbuffer_printf</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, const char *Format,...) __attribute__((format(printf</argsstring>
+        <name>ml_stringbuffer_printf</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="760" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gacd4d69ebea6e4de2bf520a127f1db50a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ssize_t void</type>
+        <definition>ssize_t void ml_stringbuffer_put</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, char Char)</argsstring>
+        <name>ml_stringbuffer_put</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>char</type>
+          <declname>Char</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="761" column="6" declfile="src/ml_types.h" declline="761" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga091de766590ef18b48eeb64fdd39d936" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char</type>
+        <definition>char ml_stringbuffer_last</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer)</argsstring>
+        <name>ml_stringbuffer_last</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="762" column="6" declfile="src/ml_types.h" declline="762" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gab5a92246f9bb2db6106fb1943df8ec79" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stringbuffer_put32</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, uint32_t Code)</argsstring>
+        <name>ml_stringbuffer_put32</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>Code</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="763" column="6" declfile="src/ml_types.h" declline="763" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga3d289fad4e03330ff3f938ef9a544953" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stringbuffer_append</definition>
+        <argsstring>(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value)</argsstring>
+        <name>ml_stringbuffer_append</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="764" column="6" declfile="src/ml_types.h" declline="764" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga7f8281b09ed06b5c88db0b178eb2967b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stringbuffer_simple_append</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, ml_value_t *Value)</argsstring>
+        <name>ml_stringbuffer_simple_append</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="766" column="12" declfile="src/ml_types.h" declline="766" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga43340f5bb19474b6e841313078519c8f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char * ml_stringbuffer_get_string</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer) __attribute__((malloc))</argsstring>
+        <name>ml_stringbuffer_get_string</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="768" column="6" declfile="src/ml_types.h" declline="768" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gac641653a059a4d860d3842eb6c606a37" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char *</type>
+        <definition>char * ml_stringbuffer_get_uncollectable</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer) __attribute__((malloc))</argsstring>
+        <name>ml_stringbuffer_get_uncollectable</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="769" column="6" declfile="src/ml_types.h" declline="769" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga0ea3054d60ebbce31cf972edb293ef24" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stringbuffer_get_value</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer) __attribute__((malloc))</argsstring>
+        <name>ml_stringbuffer_get_value</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="770" column="12" declfile="src/ml_types.h" declline="770" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gac1607695132a335945a3c54788f75c8b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stringbuffer_to_address</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer) __attribute__((malloc))</argsstring>
+        <name>ml_stringbuffer_to_address</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="772" column="12" declfile="src/ml_types.h" declline="772" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gad6f77ca5620470988e7b0a0cf65293f8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stringbuffer_to_buffer</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer) __attribute__((malloc))</argsstring>
+        <name>ml_stringbuffer_to_buffer</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="773" column="12" declfile="src/ml_types.h" declline="773" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gacd6c670b7e369e84fbf78601b3ff2dc6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stringbuffer_to_string</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer) __attribute__((malloc))</argsstring>
+        <name>ml_stringbuffer_to_string</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="774" column="12" declfile="src/ml_types.h" declline="774" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1gabd3d3a7609b71a887b846ce5cda07777" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ml_stringbuffer_reader</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, size_t Length)</argsstring>
+        <name>ml_stringbuffer_reader</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="776" column="8" declfile="src/ml_types.h" declline="776" declcolumn="8"/>
+      </memberdef>
+      <memberdef kind="function" id="group__strings_1ga8fa09a9f2e2f27846322376c158c4e9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_stringbuffer_drain</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, void *Data, int(*callback)(void *, const char *, size_t))</argsstring>
+        <name>ml_stringbuffer_drain</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int(*)(void *, const char *, size_t)</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="778" column="5" declfile="src/ml_types.h" declline="778" declcolumn="5"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__strings_1ga1ee5a3d2b7a860ec2ff5be5c90849a73" prot="public" static="no">
+        <name>ml_string_value</name>
+        <initializer>ml_address_value</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="723" column="9" bodyfile="src/ml_types.h" bodystart="723" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1ga815174c5b483deb85db51849f6399d99" prot="public" static="no">
+        <name>ml_string_length</name>
+        <initializer>ml_address_length</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="724" column="9" bodyfile="src/ml_types.h" bodystart="724" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1ga00ffbc023fa5e4b7f0955e9c8186fc0d" prot="public" static="no">
+        <name>ml_cstring</name>
+        <param><defname>VALUE</defname></param>
+        <initializer>	({ \
+	static <ref refid="structml__string__t" kindref="compound">ml_string_t</ref> String ## __COUNTER__ = {MLStringT, VALUE, strlen(VALUE), 0}; \
+	(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *)&amp;String ## __COUNTER__; \
+})</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="727" column="9" bodyfile="src/ml_types.h" bodystart="727" bodyend="730"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1gab7a772c5189b33ab35eff7bf199dbdd3" prot="public" static="no">
+        <name>ML_STRINGBUFFER_NODE_SIZE</name>
+        <initializer>248</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="748" column="9" bodyfile="src/ml_types.h" bodystart="748" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1ga836f4e39a0896b08f52b09d228282169" prot="public" static="no">
+        <name>ML_STRINGBUFFER_INIT</name>
+        <initializer>(<ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref>){MLStringBufferT, 0,}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="755" column="9" bodyfile="src/ml_types.h" bodystart="755" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1ga9956634c48adfbe33e862922c620ba78" prot="public" static="no">
+        <name>ml_stringbuffer_add</name>
+        <initializer>ml_stringbuffer_write</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="782" column="9" bodyfile="src/ml_types.h" bodystart="782" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1ga10c7c2c1419b703f57a5eb354e354934" prot="public" static="no">
+        <name>ml_stringbuffer_addf</name>
+        <initializer>ml_stringbuffer_printf</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="783" column="9" bodyfile="src/ml_types.h" bodystart="783" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1ga98c0b1fa775d4f960022c068793f947b" prot="public" static="no">
+        <name>ml_stringbuffer_string</name>
+        <initializer>ml_stringbuffer_get_string</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="784" column="9" bodyfile="src/ml_types.h" bodystart="784" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1ga39aa150c5ceab6aa8e605e7284a86038" prot="public" static="no">
+        <name>ml_stringbuffer_uncollectable</name>
+        <initializer>ml_stringbuffer_get_uncollectable</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="785" column="9" bodyfile="src/ml_types.h" bodystart="785" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__strings_1gadcd922ef6446903744563cb0fb0baec7" prot="public" static="no">
+        <name>ml_stringbuffer_value</name>
+        <initializer>ml_stringbuffer_get_value</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="786" column="9" bodyfile="src/ml_types.h" bodystart="786" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

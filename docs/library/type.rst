@@ -80,8 +80,20 @@ type
    Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
 
 
+:mini:`meth (Type₁: type) | (Type₂: type::union): type`
+   Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: type)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
+
+:mini:`meth ?(Type: type::union): type`
+   Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
+
+
+:mini:`meth (Type₁: type::union) | (Type₂: type): type`
+   Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
 
 
 :mini:`meth (Ref: weak::ref):get: any | nil`

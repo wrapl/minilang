@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__local__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_local_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__local__t_1a5b28dd5d888ea0c9a837ab7be10cd8e4" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> *</type>
+        <definition>mlc_local_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>mlc_local_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="139" column="13" bodyfile="src/ml_compiler2.h" bodystart="139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__local__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Ident</definition>
+        <argsstring></argsstring>
+        <name>Ident</name>
+        <qualifiedname>mlc_local_t::Ident</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="140" column="12" bodyfile="src/ml_compiler2.h" bodystart="140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__local__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Line</definition>
+        <argsstring></argsstring>
+        <name>Line</name>
+        <qualifiedname>mlc_local_t::Line</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="141" column="5" bodyfile="src/ml_compiler2.h" bodystart="141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__local__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>mlc_local_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="142" column="5" bodyfile="src/ml_compiler2.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>mlc_local_t</label>
+        <link refid="structmlc__local__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="138" column="1" bodyfile="src/ml_compiler2.h" bodystart="138" bodyend="143"/>
+    <listofallmembers>
+      <member refid="structmlc__local__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" prot="public" virt="non-virtual"><scope>mlc_local_t</scope><name>Ident</name></member>
+      <member refid="structmlc__local__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" virt="non-virtual"><scope>mlc_local_t</scope><name>Index</name></member>
+      <member refid="structmlc__local__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" virt="non-virtual"><scope>mlc_local_t</scope><name>Line</name></member>
+      <member refid="structmlc__local__t_1a5b28dd5d888ea0c9a837ab7be10cd8e4" prot="public" virt="non-virtual"><scope>mlc_local_t</scope><name>Next</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

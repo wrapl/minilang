@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structstringmap__t" kind="struct" language="C++" prot="public">
+    <compoundname>stringmap_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structstringmap__t_1ae4399f8c8d02037b3de60736354e4dae" prot="public" static="no" mutable="no">
+        <type>stringmap_node_t *</type>
+        <definition>stringmap_node_t* Root</definition>
+        <argsstring></argsstring>
+        <name>Root</name>
+        <qualifiedname>stringmap_t::Root</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="12" column="18" bodyfile="src/stringmap.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringmap__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>stringmap_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="13" column="5" bodyfile="src/stringmap.h" bodystart="13" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/stringmap.h" line="11" column="1" bodyfile="src/stringmap.h" bodystart="11" bodyend="14"/>
+    <listofallmembers>
+      <member refid="structstringmap__t_1ae4399f8c8d02037b3de60736354e4dae" prot="public" virt="non-virtual"><scope>stringmap_t</scope><name>Root</name></member>
+      <member refid="structstringmap__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>stringmap_t</scope><name>Size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

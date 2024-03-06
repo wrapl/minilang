@@ -1,0 +1,328 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__cbor_8h" kind="file" language="C++">
+    <compoundname>ml_cbor.h</compoundname>
+    <includes local="no">stdint.h</includes>
+    <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <includes refid="stringmap_8h" local="yes">stringmap.h</includes>
+    <incdepgraph>
+      <node id="14">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_cbor.h</label>
+        <link refid="ml__cbor_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="16">
+        <label>limits.h</label>
+      </node>
+      <node id="15">
+        <label>ml_config.h</label>
+      </node>
+      <node id="7">
+        <label>setjmp.h</label>
+      </node>
+      <node id="12">
+        <label>stdarg.h</label>
+      </node>
+      <node id="2">
+        <label>stdint.h</label>
+      </node>
+      <node id="10">
+        <label>stdio.h</label>
+      </node>
+      <node id="4">
+        <label>stdlib.h</label>
+      </node>
+      <node id="11">
+        <label>string.h</label>
+      </node>
+      <node id="5">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structml__cbor__t" prot="public">ml_cbor_t</innerclass>
+    <innerclass refid="structml__cbor__result__t" prot="public">ml_cbor_result_t</innerclass>
+    <sectiondef kind="define">
+      <member refid="group__cbor_1ga42c342cfc94c4315b24a889ae2a41fad" kind="define"><name>ML_CBOR_WRITER_ERROR</name></member>
+      <member refid="group__cbor_1gaada70f0ea23e15bf397e61a143bb2be0" kind="define"><name>ML_CBOR_TAG_TIME_STRING</name></member>
+      <member refid="group__cbor_1gac49547f7b37eb1c8ae832c371cad7c7a" kind="define"><name>ML_CBOR_TAG_TIME_EPOCH</name></member>
+      <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
+      <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
+      <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+      <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
+      <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
+      <member refid="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" kind="define"><name>ML_CBOR_TAG_IDENTIFIER</name></member>
+      <member refid="group__cbor_1gac9cb5eb0c13e16631cc6ddf156e183bb" kind="define"><name>ML_CBOR_TAG_MULTI_ARRAY</name></member>
+      <member refid="group__cbor_1ga007b8b13ad17160f0f4f92a3284b2f17" kind="define"><name>ML_CBOR_TAG_ARRAY_ANY</name></member>
+      <member refid="group__cbor_1ga86ff208b3e86bb5d51a354151f8b08e8" kind="define"><name>ML_CBOR_TAG_ARRAY_UINT8</name></member>
+      <member refid="group__cbor_1gaf451bb81e5a7663bf3abd6cb2a5f2262" kind="define"><name>ML_CBOR_TAG_ARRAY_UINT16_LE</name></member>
+      <member refid="group__cbor_1ga7239c24bc9cd9090204e22e619585b76" kind="define"><name>ML_CBOR_TAG_ARRAY_UINT32_LE</name></member>
+      <member refid="group__cbor_1gae96cd04c218ba612c229d6e5340a0d62" kind="define"><name>ML_CBOR_TAG_ARRAY_UINT64_LE</name></member>
+      <member refid="group__cbor_1ga9a8ca4450155ae9e464bebf6a93a4297" kind="define"><name>ML_CBOR_TAG_ARRAY_INT8</name></member>
+      <member refid="group__cbor_1gad197c4abc0e791e6571271e806bc00c7" kind="define"><name>ML_CBOR_TAG_ARRAY_INT16_LE</name></member>
+      <member refid="group__cbor_1gac81e3b6eedfb8a30c66071be1dcd2430" kind="define"><name>ML_CBOR_TAG_ARRAY_INT32_LE</name></member>
+      <member refid="group__cbor_1ga2dc366c6ae887cb821e7983471486625" kind="define"><name>ML_CBOR_TAG_ARRAY_INT64_LE</name></member>
+      <member refid="group__cbor_1gaf98e5c8e177d600bc5928e7c17306952" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT32_LE</name></member>
+      <member refid="group__cbor_1gac52cb1c1a502ea091f5e6e3c8ec365bf" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT64_LE</name></member>
+      <member refid="group__cbor_1gac5ec85003926cfc97499d360b355e860" kind="define"><name>ML_CBOR_TAG_FINITE_SET</name></member>
+      <member refid="group__cbor_1ga3eceae59d2801f4ac001004e4841edd7" kind="define"><name>ML_CBOR_TAG_EMBEDDED_JSON</name></member>
+      <member refid="group__cbor_1gabdce4b6c792a8feb77e2564f4a62e435" kind="define"><name>ML_CBOR_TAG_COMPLEX</name></member>
+      <member refid="group__cbor_1ga5456f51b3c2664a7618b7e9deb6c8d9d" kind="define"><name>ML_CBOR_TAG_COMPLEX_ARRAY</name></member>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
+      <member refid="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" kind="typedef"><name>ml_cbor_tag_fn</name></member>
+      <member refid="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" kind="typedef"><name>ml_cbor_tag_fns_t</name></member>
+      <member refid="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" kind="typedef"><name>ml_external_fn_t</name></member>
+      <member refid="group__cbor_1ga83753ed54fc23e31dc443dd870e693fa" kind="typedef"><name>ml_cbor_write_fn</name></member>
+      <member refid="group__cbor_1ga8b3adf33c257a3a951f5ed9e013dfb08" kind="typedef"><name>ml_cbor_writer_t</name></member>
+    </sectiondef>
+    <sectiondef kind="func">
+      <member refid="group__cbor_1ga1875649a317944eb80c96a3dbe837e22" kind="function"><name>ml_cbor_init</name></member>
+      <member refid="group__cbor_1gaa0708b17e23cbb8b9f8b6a7ae4336649" kind="function"><name>ml_cbor_default_object</name></member>
+      <member refid="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" kind="function"><name>ml_cbor_setting</name></member>
+      <member refid="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" kind="function"><name>ml_cbor_tag_fns</name></member>
+      <member refid="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" kind="function"><name>ml_cbor_tag_fns_copy</name></member>
+      <member refid="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" kind="function"><name>ml_cbor_tag_fn_get</name></member>
+      <member refid="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" kind="function"><name>ml_cbor_tag_fn_set</name></member>
+      <member refid="group__cbor_1gadd973c7e9f41d7e5077073d540f8865e" kind="function"><name>ml_cbor_default_tag</name></member>
+      <member refid="group__cbor_1ga0731346fd6ade363da69269de78ea66d" kind="function"><name>ml_cbor_default_global</name></member>
+      <member refid="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" kind="function"><name>ml_cbor_reader</name></member>
+      <member refid="group__cbor_1ga8f33df522c0cda12e6de463bc84ea5c2" kind="function"><name>ml_cbor_reader_reset</name></member>
+      <member refid="group__cbor_1ga6c6781dee628dfa15ac2179a1e5e0f16" kind="function"><name>ml_cbor_reader_set_setting</name></member>
+      <member refid="group__cbor_1gabffa0dcaa75e02406d93e94e3991d2ff" kind="function"><name>ml_cbor_reader_get_setting</name></member>
+      <member refid="group__cbor_1ga49916bbca25f2306233795b4fdc07a0e" kind="function"><name>ml_cbor_reader_read</name></member>
+      <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
+      <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
+      <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
+      <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
+      <member refid="group__cbor_1ga654054d6c9c10b740bd0167794d52230" kind="function"><name>ml_cbor_writer_set_setting</name></member>
+      <member refid="group__cbor_1ga2d018c5d6f978f4db12b92d7aec8836f" kind="function"><name>ml_cbor_writer_get_setting</name></member>
+      <member refid="group__cbor_1ga8039fbc40c6a8c958cc51d7c19010f4a" kind="function"><name>ml_cbor_writer_find_refs</name></member>
+      <member refid="group__cbor_1ga2ff101352521b6e816f82fdc5ee5bd96" kind="function"><name>ml_cbor_encode</name></member>
+      <member refid="group__cbor_1gaed315706c7e475cb6e0dbeb9826be8f3" kind="function"><name>ml_cbor_encode_to</name></member>
+      <member refid="group__cbor_1ga4c76629bc733070ac9d808ceeb5b81bb" kind="function"><name>ml_cbor_writer_error</name></member>
+      <member refid="group__cbor_1gae23c6895c6d8d51619a7129694407a8a" kind="function"><name>ml_cbor_write</name></member>
+      <member refid="group__cbor_1gadfb041f36774032a98b8cf608b230649" kind="function"><name>ml_cbor_try_write</name></member>
+      <member refid="group__cbor_1gaf5ba137da8e8bc80a85e0ddf38b3b036" kind="function"><name>ml_cbor_write_raw</name></member>
+      <member refid="group__cbor_1gac11b1f1a50d8d88403e006f321ff9cab" kind="function"><name>ml_cbor_write_integer</name></member>
+      <member refid="group__cbor_1gad0aa28a76639b58bf5cc54643800e1e8" kind="function"><name>ml_cbor_write_positive</name></member>
+      <member refid="group__cbor_1ga27f93dbd9b8e424a3c830ef9340679b4" kind="function"><name>ml_cbor_write_negative</name></member>
+      <member refid="group__cbor_1ga15ffa0f97f39f76becceb72c31303794" kind="function"><name>ml_cbor_write_bytes</name></member>
+      <member refid="group__cbor_1gad18b36e18bbbcfb76b51e83ad2124064" kind="function"><name>ml_cbor_write_indef_bytes</name></member>
+      <member refid="group__cbor_1gac908ac00fe8401fd1f33711901a7d44d" kind="function"><name>ml_cbor_write_string</name></member>
+      <member refid="group__cbor_1ga55a59c36c0f5e9b795eb419b12cf9ac7" kind="function"><name>ml_cbor_write_indef_string</name></member>
+      <member refid="group__cbor_1ga746cce265db853a62c7787867f20dd52" kind="function"><name>ml_cbor_write_array</name></member>
+      <member refid="group__cbor_1ga63788e2a09d0a3f1550dde44545a82ef" kind="function"><name>ml_cbor_write_indef_array</name></member>
+      <member refid="group__cbor_1ga3d3a4a5a8e9a906498faa746cd5203e1" kind="function"><name>ml_cbor_write_map</name></member>
+      <member refid="group__cbor_1ga7cb03ede6917a82a27aaa5de6a2f1b9b" kind="function"><name>ml_cbor_write_indef_map</name></member>
+      <member refid="group__cbor_1gaf4ee99f92b9ad9fdbcc1cd51b21db960" kind="function"><name>ml_cbor_write_float2</name></member>
+      <member refid="group__cbor_1gad4d1e978c0b9dec68780ddf8b6e4ed0a" kind="function"><name>ml_cbor_write_float4</name></member>
+      <member refid="group__cbor_1ga84975ef5fcf8dd66a87eb4e1a232b922" kind="function"><name>ml_cbor_write_float8</name></member>
+      <member refid="group__cbor_1ga304f841ff275f70d186f71cd1c876f7b" kind="function"><name>ml_cbor_write_simple</name></member>
+      <member refid="group__cbor_1gaf012c0fba7c38ad2e628be0b46d7730b" kind="function"><name>ml_cbor_write_break</name></member>
+      <member refid="group__cbor_1ga855a61374e2ed28281b15b09868e100c" kind="function"><name>ml_cbor_write_tag</name></member>
+      <member refid="group__cbor_1ga1a9844ccc58fb268ecd9bfb45acac18d" kind="function"><name>ml_to_cbor</name></member>
+      <member refid="group__cbor_1ga875acf4b0085636e0ec8fc2b78cec64c" kind="function"><name>ml_from_cbor</name></member>
+      <member refid="group__cbor_1gab60f5ad34cf7e3f07f2cd211778d5379" kind="function"><name>ml_from_cbor_extra</name></member>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_CBOR_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;stringmap.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_default_object(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Constructor);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_cbor_setting();</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_cbor_reader_t<sp/>ml_cbor_reader_t;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*(*ml_cbor_tag_fn)(ml_cbor_reader_t<sp/>*Reader,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_cbor_tag_fns_t<sp/>ml_cbor_tag_fns_t;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal">ml_cbor_tag_fns_t<sp/>*ml_cbor_tag_fns(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Default);</highlight></codeline>
+<codeline lineno="29"><highlight class="normal">ml_cbor_tag_fns_t<sp/>*ml_cbor_tag_fns_copy(ml_cbor_tag_fns_t<sp/>*TagFns);</highlight></codeline>
+<codeline lineno="30"><highlight class="normal">ml_cbor_tag_fn<sp/>ml_cbor_tag_fn_get(ml_cbor_tag_fns_t<sp/>*TagFns,<sp/>uint64_t<sp/>Tag);</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_tag_fn_set(ml_cbor_tag_fns_t<sp/>*TagFns,<sp/>uint64_t<sp/>Tag,<sp/>ml_cbor_tag_fn<sp/>Fn);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_default_tag(uint64_t<sp/>Tag,<sp/>ml_cbor_tag_fn<sp/>TagFn);</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_default_global(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*(*ml_external_fn_t)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal">ml_cbor_reader_t<sp/>*ml_cbor_reader(ml_cbor_tag_fns_t<sp/>*TagFns,<sp/>ml_external_fn_t<sp/>GlobalGet,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Globals);</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_reader_reset(ml_cbor_reader_t<sp/>*Reader);</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_reader_set_setting(ml_cbor_reader_t<sp/>*Reader,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Key,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*ml_cbor_reader_get_setting(ml_cbor_reader_t<sp/>*Reader,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Key);</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_cbor_reader_read(ml_cbor_reader_t<sp/>*Reader,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Bytes,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_cbor_reader_get(ml_cbor_reader_t<sp/>*Reader);</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_cbor_reader_extra(ml_cbor_reader_t<sp/>*Reader);</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46" refid="structml__cbor__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Error;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal">}<sp/><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref>;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>int<sp/>(*ml_cbor_write_fn)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Bytes,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_cbor_writer_t<sp/>ml_cbor_writer_t;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal">ml_cbor_writer_t<sp/>*ml_cbor_writer(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_cbor_write_fn<sp/>WriteFn,<sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals);</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_writer_reset(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_writer_set_setting(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Setting,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*ml_cbor_writer_get_setting(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Setting);</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_writer_find_refs(ml_cbor_writer_t<sp/>*Writer,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>ml_cbor_encode(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_cbor_encode_to(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_cbor_write_fn<sp/>WriteFn,<sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_writer_error(ml_cbor_writer_t<sp/>*Writer,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Error)<sp/>__attribute__((noreturn));</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_WRITER_ERROR(WRITER,<sp/>ARGS...)<sp/>ml_cbor_writer_error(WRITER,<sp/>ml_error(ARGS))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write(ml_cbor_writer_t<sp/>*Writer,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_cbor_try_write(ml_cbor_writer_t<sp/>*Writer,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_cbor_write_raw(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Bytes,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_integer(ml_cbor_writer_t<sp/>*Writer,<sp/>int64_t<sp/>Number);</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_positive(ml_cbor_writer_t<sp/>*Writer,<sp/>uint64_t<sp/>Number);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_negative(ml_cbor_writer_t<sp/>*Writer,<sp/>uint64_t<sp/>Number);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_bytes(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_indef_bytes(ml_cbor_writer_t<sp/>*Writer);</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_string(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_indef_string(ml_cbor_writer_t<sp/>*Writer);</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_array(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_indef_array(ml_cbor_writer_t<sp/>*Writer);</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_map(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_indef_map(ml_cbor_writer_t<sp/>*Writer);</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_float2(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>Number);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_float4(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>Number);</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_float8(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>Number);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_simple(ml_cbor_writer_t<sp/>*Writer,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>Simple);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_break(ml_cbor_writer_t<sp/>*Writer);</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_tag(ml_cbor_writer_t<sp/>*Writer,<sp/>uint64_t<sp/>Tag);</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>ml_to_cbor(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_from_cbor(<ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>Cbor,<sp/>ml_cbor_tag_fns_t<sp/>*TagFns);</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94" refid="structml__cbor__result__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Extra;}<sp/><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref>;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref><sp/>ml_from_cbor_extra(<ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>Cbor,<sp/>ml_cbor_tag_fns_t<sp/>*TagFns);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_TIME_STRING<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_TIME_EPOCH<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_OBJECT<sp/>27</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_MARK_REUSED<sp/>28</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_USE_PREVIOUS<sp/>29</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_REGEX<sp/>35</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_UUID<sp/>37</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_IDENTIFIER<sp/>39</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_MULTI_ARRAY<sp/>40</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_ANY<sp/>41</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT8<sp/>64</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT16_LE<sp/>69</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT32_LE<sp/>70</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT64_LE<sp/>71</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT8<sp/>72</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT16_LE<sp/>77</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT32_LE<sp/>78</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT64_LE<sp/>79</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_FLOAT32_LE<sp/>85</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_FLOAT64_LE<sp/>86</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_FINITE_SET<sp/>258</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_EMBEDDED_JSON<sp/>262</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_COMPLEX<sp/>43000</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_COMPLEX_ARRAY<sp/>43001</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_cbor.h"/>
+  </compounddef>
+</doxygen>

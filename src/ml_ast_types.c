@@ -179,6 +179,17 @@ ML_FIELD("index", AstDefaultExprT);
 
 ML_FIELD("flags", AstDefaultExprT);
 
+ML_CLASS(AstIfConfigExprT, (AstExprT), "ast::expr::ifconfig");
+//@ast::expr::ifconfig
+// An :mini:`if` :mini:`config` expression
+//
+// * :mini:`:child(Value: ast::expr::ifconfig): list[ast::expr]`
+// * :mini:`:config(Value: ast::expr::ifconfig): string`
+
+ML_FIELD("child", AstIfConfigExprT);
+
+ML_FIELD("config", AstIfConfigExprT);
+
 ML_CLASS(AstParentValueExprT, (AstExprT), "ast::expr::parentvalue");
 //@ast::expr::parentvalue
 // A :mini:`parent` :mini:`value` expression
@@ -480,6 +491,7 @@ static void ml_ast_types_init() {
 	stringmap_insert(AstExprT->Exports, "scoped", AstScopedExprT);
 	stringmap_insert(AstExprT->Exports, "parent", AstParentExprT);
 	stringmap_insert(AstExprT->Exports, "default", AstDefaultExprT);
+	stringmap_insert(AstExprT->Exports, "ifconfig", AstIfConfigExprT);
 	stringmap_insert(AstExprT->Exports, "parentvalue", AstParentValueExprT);
 	stringmap_insert(AstExprT->Exports, "and", AstAndExprT);
 	stringmap_insert(AstExprT->Exports, "assign", AstAssignExprT);
@@ -730,6 +742,17 @@ static ml_value_t *a_mlc_local_expr_t(ml_type_t *Class, mlc_local_expr_t *Struct
 	NULL);
 }
 
+static ml_value_t *a_mlc_if_config_expr_t(ml_type_t *Class, mlc_if_config_expr_t *Struct) {
+	if (!Struct) return MLNil;
+	return ml_object(Class,
+		"source", ml_string(Struct->Source, -1),
+		"startline", ml_integer(Struct->StartLine),
+		"endline", ml_integer(Struct->EndLine),
+		"child", l_mlc_expr_t(Struct->Child),
+		"config", Struct->Config ? ml_string(Struct->Config, -1) : MLNil,
+	NULL);
+}
+
 static ml_value_t *a_mlc_parent_expr_t(ml_type_t *Class, mlc_parent_expr_t *Struct) {
 	if (!Struct) return MLNil;
 	return ml_object(Class,
@@ -784,6 +807,7 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		case ML_EXPR_FUN: return a_mlc_fun_expr_t(AstFunExprT, (mlc_fun_expr_t *)Expr);
 		case ML_EXPR_GUARD: return a_mlc_parent_expr_t(AstGuardExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_IDENT: return a_mlc_ident_expr_t(AstIdentExprT, (mlc_ident_expr_t *)Expr);
+		case ML_EXPR_IF_CONFIG: return a_mlc_if_config_expr_t(AstIfConfigExprT, (mlc_if_config_expr_t *)Expr);
 		case ML_EXPR_IF: return a_mlc_if_expr_t(AstIfExprT, (mlc_if_expr_t *)Expr);
 		case ML_EXPR_INLINE: return a_mlc_parent_expr_t(AstInlineExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_IT: return a_mlc_expr_t(AstItExprT, (mlc_expr_t *)Expr);

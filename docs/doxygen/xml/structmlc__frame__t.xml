@@ -1,0 +1,254 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__frame__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_frame_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__frame__t_1ae2be67ce172a1063512935796365c228" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__frame__t" kindref="compound">mlc_frame_t</ref> *</type>
+        <definition>mlc_frame_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>mlc_frame_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="298" column="13" bodyfile="src/ml_compiler2.h" bodystart="298" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__frame__t_1af7b3574fc3c8c6cc704b25d74c4f828a" prot="public" static="no" mutable="no">
+        <type>mlc_frame_fn</type>
+        <definition>mlc_frame_fn run</definition>
+        <argsstring></argsstring>
+        <name>run</name>
+        <qualifiedname>mlc_frame_t::run</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="299" column="14" bodyfile="src/ml_compiler2.h" bodystart="299" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__frame__t_1aeece89906b54daa221df61626b44d3cf" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int AllowErrors</definition>
+        <argsstring></argsstring>
+        <name>AllowErrors</name>
+        <qualifiedname>mlc_frame_t::AllowErrors</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="300" column="5" bodyfile="src/ml_compiler2.h" bodystart="300" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__frame__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Line</definition>
+        <argsstring></argsstring>
+        <name>Line</name>
+        <qualifiedname>mlc_frame_t::Line</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="300" column="17" bodyfile="src/ml_compiler2.h" bodystart="300" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__frame__t_1ab119c17bb3096020775fca58ae64f2e1" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* Data[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Data</name>
+        <qualifiedname>mlc_frame_t::Data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="301" column="6" bodyfile="src/ml_compiler2.h" bodystart="301" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="14">
+        <label>ml_closure_info_t</label>
+        <link refid="structml__closure__info__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Entry</edgelabel>
+          <edgelabel>Halt</edgelabel>
+          <edgelabel>Return</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Params</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_decl_t</label>
+        <link refid="structml__decl__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>ml_inst_t</label>
+        <link refid="unionml__inst__t"/>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Inst</edgelabel>
+          <edgelabel>Insts</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>ClosureInfo</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
+      </node>
+      <node id="3">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>mlc_define_t</label>
+        <link refid="structmlc__define__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>List</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_frame_t</label>
+        <link refid="structmlc__frame__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>run</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_function_t</label>
+        <link refid="structmlc__function__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Frame</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Up</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Defines</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Returns</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="297" column="1" bodyfile="src/ml_compiler2.h" bodystart="297" bodyend="302"/>
+    <listofallmembers>
+      <member refid="structmlc__frame__t_1aeece89906b54daa221df61626b44d3cf" prot="public" virt="non-virtual"><scope>mlc_frame_t</scope><name>AllowErrors</name></member>
+      <member refid="structmlc__frame__t_1ab119c17bb3096020775fca58ae64f2e1" prot="public" virt="non-virtual"><scope>mlc_frame_t</scope><name>Data</name></member>
+      <member refid="structmlc__frame__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" virt="non-virtual"><scope>mlc_frame_t</scope><name>Line</name></member>
+      <member refid="structmlc__frame__t_1ae2be67ce172a1063512935796365c228" prot="public" virt="non-virtual"><scope>mlc_frame_t</scope><name>Next</name></member>
+      <member refid="structmlc__frame__t_1af7b3574fc3c8c6cc704b25d74c4f828a" prot="public" virt="non-virtual"><scope>mlc_frame_t</scope><name>run</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

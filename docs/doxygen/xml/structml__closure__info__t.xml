@@ -1,0 +1,327 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__closure__info__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_closure_info_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__closure__info__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_closure_info_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="47" column="11" bodyfile="src/ml_bytecode.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a518cf6dc0b27ddac3e02bdb94b01fe32" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t* Entry</definition>
+        <argsstring></argsstring>
+        <name>Entry</name>
+        <qualifiedname>ml_closure_info_t::Entry</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="48" column="11" bodyfile="src/ml_bytecode.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a1be85570b4e8f4c77c61963a60f697f5" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t * Return</definition>
+        <argsstring></argsstring>
+        <name>Return</name>
+        <qualifiedname>ml_closure_info_t::Return</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="48" column="17" bodyfile="src/ml_bytecode.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1ae2ba94387c060ae7dbbfac2eb5225918" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t * Halt</definition>
+        <argsstring></argsstring>
+        <name>Halt</name>
+        <qualifiedname>ml_closure_info_t::Halt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="48" column="24" bodyfile="src/ml_bytecode.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>ml_closure_info_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="49" column="12" bodyfile="src/ml_bytecode.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1aa11c55e0e62a007b9ff39f09b357064b" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char * Source</definition>
+        <argsstring></argsstring>
+        <name>Source</name>
+        <qualifiedname>ml_closure_info_t::Source</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="49" column="17" bodyfile="src/ml_bytecode.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1ab9e79ae97c8aae37e13afb27d5681ecd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__decl__t" kindref="compound">ml_decl_t</ref> *</type>
+        <definition>ml_decl_t* Decls</definition>
+        <argsstring></argsstring>
+        <name>Decls</name>
+        <qualifiedname>ml_closure_info_t::Decls</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="50" column="11" bodyfile="src/ml_bytecode.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a7e05c06df5b8c948b808abae86d0e3df" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t Params[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Params</name>
+        <qualifiedname>ml_closure_info_t::Params</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="54" column="13" bodyfile="src/ml_bytecode.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a9855686941541467b60594248301314f" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int StartLine</definition>
+        <argsstring></argsstring>
+        <name>StartLine</name>
+        <qualifiedname>ml_closure_info_t::StartLine</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="55" column="5" bodyfile="src/ml_bytecode.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a1cb2ca00844a248a8fa9c8c6f2a22098" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int EndLine</definition>
+        <argsstring></argsstring>
+        <name>EndLine</name>
+        <qualifiedname>ml_closure_info_t::EndLine</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="55" column="15" bodyfile="src/ml_bytecode.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a603843d9dc021f0fe23d7160af2f4741" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FrameSize</definition>
+        <argsstring></argsstring>
+        <name>FrameSize</name>
+        <qualifiedname>ml_closure_info_t::FrameSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="55" column="23" bodyfile="src/ml_bytecode.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1ad6a9ff93babb132679b358f65cc4f74d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NumParams</definition>
+        <argsstring></argsstring>
+        <name>NumParams</name>
+        <qualifiedname>ml_closure_info_t::NumParams</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="56" column="5" bodyfile="src/ml_bytecode.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1a19bbe221e4c2837c3fd90d106fc74e91" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NumUpValues</definition>
+        <argsstring></argsstring>
+        <name>NumUpValues</name>
+        <qualifiedname>ml_closure_info_t::NumUpValues</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="56" column="15" bodyfile="src/ml_bytecode.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1ac3e60a9fc42fb6c0b656191ebb1d658b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Flags</definition>
+        <argsstring></argsstring>
+        <name>Flags</name>
+        <qualifiedname>ml_closure_info_t::Flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="57" column="5" bodyfile="src/ml_bytecode.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__closure__info__t_1abd25172494e2440d185ab7b91ba71e23" prot="public" static="no" mutable="no">
+        <type>unsigned char</type>
+        <definition>unsigned char Hash[SHA256_BLOCK_SIZE]</definition>
+        <argsstring>[SHA256_BLOCK_SIZE]</argsstring>
+        <name>Hash</name>
+        <qualifiedname>ml_closure_info_t::Hash</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="58" column="15" bodyfile="src/ml_bytecode.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_closure_info_t</label>
+        <link refid="structml__closure__info__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Entry</edgelabel>
+          <edgelabel>Halt</edgelabel>
+          <edgelabel>Return</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Params</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_decl_t</label>
+        <link refid="structml__decl__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_inst_t</label>
+        <link refid="unionml__inst__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Inst</edgelabel>
+          <edgelabel>Insts</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="1" relation="usage">
+          <edgelabel>ClosureInfo</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_bytecode.h" line="46" column="1" bodyfile="src/ml_bytecode.h" bodystart="46" bodyend="59"/>
+    <listofallmembers>
+      <member refid="structml__closure__info__t_1ab9e79ae97c8aae37e13afb27d5681ecd" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Decls</name></member>
+      <member refid="structml__closure__info__t_1a1cb2ca00844a248a8fa9c8c6f2a22098" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>EndLine</name></member>
+      <member refid="structml__closure__info__t_1a518cf6dc0b27ddac3e02bdb94b01fe32" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Entry</name></member>
+      <member refid="structml__closure__info__t_1ac3e60a9fc42fb6c0b656191ebb1d658b" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Flags</name></member>
+      <member refid="structml__closure__info__t_1a603843d9dc021f0fe23d7160af2f4741" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>FrameSize</name></member>
+      <member refid="structml__closure__info__t_1ae2ba94387c060ae7dbbfac2eb5225918" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Halt</name></member>
+      <member refid="structml__closure__info__t_1abd25172494e2440d185ab7b91ba71e23" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Hash</name></member>
+      <member refid="structml__closure__info__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Name</name></member>
+      <member refid="structml__closure__info__t_1ad6a9ff93babb132679b358f65cc4f74d" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>NumParams</name></member>
+      <member refid="structml__closure__info__t_1a19bbe221e4c2837c3fd90d106fc74e91" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>NumUpValues</name></member>
+      <member refid="structml__closure__info__t_1a7e05c06df5b8c948b808abae86d0e3df" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Params</name></member>
+      <member refid="structml__closure__info__t_1a1be85570b4e8f4c77c61963a60f697f5" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Return</name></member>
+      <member refid="structml__closure__info__t_1aa11c55e0e62a007b9ff39f09b357064b" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Source</name></member>
+      <member refid="structml__closure__info__t_1a9855686941541467b60594248301314f" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>StartLine</name></member>
+      <member refid="structml__closure__info__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_closure_info_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -114,7 +114,7 @@ list
 
 
 :mini:`meth (List: list)[Index: integer]: list::node | nil`
-   Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
+   Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the interval of :mini:`List`.
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
    .. code-block:: mini
@@ -171,7 +171,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "a"
+      L:random :> "k"
       L:random :> "e"
 
 
@@ -199,8 +199,13 @@ list
    *TBD*
 
 
-:mini:`meth (List: list::mutable)[Range: integer::range]: list::slice`
-   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
+:mini:`meth (List: list::mutable)[Interval: integer::interval]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`,  both inclusive.
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+
+:mini:`meth (List: list::mutable)[Interval: integer::range]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`,  both inclusive.
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
 
@@ -342,13 +347,13 @@ list
    Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
 
-:mini:`type list::node::mutable < list::node`
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::node::mutable`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.

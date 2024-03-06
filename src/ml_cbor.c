@@ -921,6 +921,12 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		case MLIT_INST:
 			Inst += 2;
 			break;
+		case MLIT_INST_CONFIG:
+			Inst += 3;
+			break;
+		case MLIT_INST_COUNT:
+			Inst += 3;
+			break;
 		case MLIT_INST_COUNT_DECL:
 			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
@@ -965,7 +971,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		}
 	}
 	vlq64_encode(Buffer, Decls->Size - Decls->Space);
-	ml_stringbuffer_foreach(DeclBuffer, Buffer, (void *)ml_stringbuffer_copy);
+	ml_stringbuffer_drain(DeclBuffer, Buffer, (void *)ml_stringbuffer_copy);
 	vlq64_encode(Buffer, DeclsIndex);
 	vlq64_encode(Buffer, (Info->Halt - Base) + BaseOffset);
 	vlq64_encode(Buffer, Return);
@@ -990,6 +996,16 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		case MLIT_INST:
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			Inst += 2;
+			break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			Inst += 2;
+			break;
+		case MLIT_INST_COUNT:
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			vlq64_encode(Buffer, Inst[2].Count);
+			Inst += 3;
 			break;
 		case MLIT_INST_COUNT_DECL:
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
@@ -1065,7 +1081,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 	minicbor_write_string(Writer, 1);
 	Writer->WriteFn(Writer->Data, (unsigned char *)"!", 1);
 	minicbor_write_bytes(Writer, Buffer->Length);
-	ml_stringbuffer_foreach(Buffer, Writer, (void *)ml_stringbuffer_to_cbor);
+	ml_stringbuffer_drain(Buffer, Writer, (void *)ml_stringbuffer_to_cbor);
 	ML_LIST_FOREACH(Values, Iter) ml_cbor_write(Writer, Iter->Value);
 }
 
@@ -1174,20 +1190,21 @@ static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_v
 
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_cbor_writer_t *Writer, ml_integer_range_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
-	if (Arg->Step != 1) {
-		minicbor_write_array(Writer, 4);
-		minicbor_write_string(Writer, 5);
-		Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
-		minicbor_write_integer(Writer, Arg->Start);
-		minicbor_write_integer(Writer, Arg->Limit);
-		minicbor_write_integer(Writer, Arg->Step);
-	} else {
-		minicbor_write_array(Writer, 3);
-		minicbor_write_string(Writer, 5);
-		Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
-		minicbor_write_integer(Writer, Arg->Start);
-		minicbor_write_integer(Writer, Arg->Limit);
-	}
+	minicbor_write_array(Writer, 4);
+	minicbor_write_string(Writer, 5);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
+	minicbor_write_integer(Writer, Arg->Start);
+	minicbor_write_integer(Writer, Arg->Limit);
+	minicbor_write_integer(Writer, Arg->Step);
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLIntegerIntervalT, ml_cbor_writer_t *Writer, ml_integer_interval_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	minicbor_write_array(Writer, 3);
+	minicbor_write_string(Writer, 5);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
+	minicbor_write_integer(Writer, Arg->Start);
+	minicbor_write_integer(Writer, Arg->Limit);
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Writer, ml_real_range_t *Arg) {
@@ -1198,6 +1215,15 @@ static void ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Writer, m
 	minicbor_write_float8(Writer, Arg->Start);
 	minicbor_write_float8(Writer, Arg->Limit);
 	minicbor_write_float8(Writer, Arg->Step);
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLRealIntervalT, ml_cbor_writer_t *Writer, ml_real_interval_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	minicbor_write_array(Writer, 3);
+	minicbor_write_string(Writer, 5);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"range", 5);
+	minicbor_write_float8(Writer, Arg->Start);
+	minicbor_write_float8(Writer, Arg->Limit);
 }
 
 #ifdef ML_COMPLEX
@@ -1465,6 +1491,11 @@ ML_FUNCTION(DecodeClosureInfo) {
 		case MLIT_INST:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst += 2; break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			Inst[1].Inst = Code + VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 3; break;
 		case MLIT_INST_COUNT:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst[2].Count = VLQ64_NEXT();

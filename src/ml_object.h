@@ -1,6 +1,10 @@
 #ifndef ML_OBJECT_H
 #define ML_OBJECT_H
 
+/// \defgroup objects
+/// @{
+///
+
 #include "ml_types.h"
 #include "stringmap.h"
 
@@ -65,6 +69,12 @@ size_t ml_object_size(const ml_value_t *Value) __attribute__ ((pure));
 ml_value_t *ml_object_field(const ml_value_t *Value, int Index) __attribute__ ((pure));
 void ml_object_foreach(const ml_value_t *Value, void *Data, int (*)(const char *, ml_value_t *, void *));
 
+/// @}
+
+/// \defgroup enums
+/// @{
+///
+
 extern ml_type_t MLEnumT[];
 extern ml_type_t MLEnumValueT[];
 
@@ -75,6 +85,12 @@ ml_type_t *ml_enum2(const char *Name, ...);
 ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Enum);
 int64_t ml_enum_value_value(ml_value_t *Value);
 const char *ml_enum_value_name(ml_value_t *Value);
+
+/// @}
+
+/// \defgroup flags
+/// @{
+///
 
 extern ml_type_t MLFlagsT[];
 extern ml_type_t MLFlagsValueT[];
@@ -119,5 +135,7 @@ const char *ml_flags_value_name(ml_value_t *Value);
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

@@ -1,0 +1,494 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__function__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_function_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__function__t_1a5f6302c7483f44fd65e3e86ef35e8a72" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>mlc_function_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="92" column="12" bodyfile="src/ml_compiler2.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a09b3ee2b960b28e5aadc074c4d2a485b" prot="public" static="no" mutable="no">
+        <type>ml_compiler_t *</type>
+        <definition>ml_compiler_t* Compiler</definition>
+        <argsstring></argsstring>
+        <name>Compiler</name>
+        <qualifiedname>mlc_function_t::Compiler</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="93" column="15" bodyfile="src/ml_compiler2.h" bodystart="93" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1aff1dff72899c4be9858a2d2d88ed940f" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__frame__t" kindref="compound">mlc_frame_t</ref> *</type>
+        <definition>mlc_frame_t* Frame</definition>
+        <argsstring></argsstring>
+        <name>Frame</name>
+        <qualifiedname>mlc_function_t::Frame</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="94" column="13" bodyfile="src/ml_compiler2.h" bodystart="94" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a4f207b35b380180b58e4e01abe45fe7e" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* Limit</definition>
+        <argsstring></argsstring>
+        <name>Limit</name>
+        <qualifiedname>mlc_function_t::Limit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="95" column="6" bodyfile="src/ml_compiler2.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1acf4bd6e1b9e491ae82464869f0ea1a0f" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Source</definition>
+        <argsstring></argsstring>
+        <name>Source</name>
+        <qualifiedname>mlc_function_t::Source</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="96" column="12" bodyfile="src/ml_compiler2.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a840d3a34e379bbd14d1fd29e049d3029" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
+        <definition>mlc_function_t* Up</definition>
+        <argsstring></argsstring>
+        <name>Up</name>
+        <qualifiedname>mlc_function_t::Up</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="97" column="16" bodyfile="src/ml_compiler2.h" bodystart="97" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1ade77b5a8f603db11001da2d4c3b54f23" prot="public" static="no" mutable="no">
+        <type>mlc_block_t *</type>
+        <definition>mlc_block_t* Block</definition>
+        <argsstring></argsstring>
+        <name>Block</name>
+        <qualifiedname>mlc_function_t::Block</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="98" column="13" bodyfile="src/ml_compiler2.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1ab9e79ae97c8aae37e13afb27d5681ecd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__decl__t" kindref="compound">ml_decl_t</ref> *</type>
+        <definition>ml_decl_t* Decls</definition>
+        <argsstring></argsstring>
+        <name>Decls</name>
+        <qualifiedname>mlc_function_t::Decls</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="99" column="11" bodyfile="src/ml_compiler2.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a356e00f88d93e09acd5c1d3088658e65" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref> *</type>
+        <definition>mlc_define_t* Defines</definition>
+        <argsstring></argsstring>
+        <name>Defines</name>
+        <qualifiedname>mlc_function_t::Defines</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="100" column="14" bodyfile="src/ml_compiler2.h" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a867b1e40aa177faebf4167e0d4077b22" prot="public" static="no" mutable="no">
+        <type>mlc_loop_t *</type>
+        <definition>mlc_loop_t* Loop</definition>
+        <argsstring></argsstring>
+        <name>Loop</name>
+        <qualifiedname>mlc_function_t::Loop</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="101" column="12" bodyfile="src/ml_compiler2.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a01cfb5b9a2f4c01827176befd5dc4cfc" prot="public" static="no" mutable="no">
+        <type>mlc_try_t *</type>
+        <definition>mlc_try_t* Try</definition>
+        <argsstring></argsstring>
+        <name>Try</name>
+        <qualifiedname>mlc_function_t::Try</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="102" column="11" bodyfile="src/ml_compiler2.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a5d336b4e827eb0734e615a1854a5c2f1" prot="public" static="no" mutable="no">
+        <type>mlc_must_t *</type>
+        <definition>mlc_must_t* Must</definition>
+        <argsstring></argsstring>
+        <name>Must</name>
+        <qualifiedname>mlc_function_t::Must</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="103" column="12" bodyfile="src/ml_compiler2.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1aaf36742ab100955c2ab9bb2675ab4c65" prot="public" static="no" mutable="no">
+        <type>mlc_upvalue_t *</type>
+        <definition>mlc_upvalue_t* UpValues</definition>
+        <argsstring></argsstring>
+        <name>UpValues</name>
+        <qualifiedname>mlc_function_t::UpValues</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="104" column="15" bodyfile="src/ml_compiler2.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a514e9661148638fc1ef9c39a2a68381c" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>mlc_function_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="105" column="11" bodyfile="src/ml_compiler2.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a55a86da4322148002f9bdb41e36c8f92" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t * Returns</definition>
+        <argsstring></argsstring>
+        <name>Returns</name>
+        <qualifiedname>mlc_function_t::Returns</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="105" column="16" bodyfile="src/ml_compiler2.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a0ce92b11ec313a08cc69dadd05bd9cd0" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Top</definition>
+        <argsstring></argsstring>
+        <name>Top</name>
+        <qualifiedname>mlc_function_t::Top</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="106" column="5" bodyfile="src/ml_compiler2.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>mlc_function_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="106" column="9" bodyfile="src/ml_compiler2.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a5ba42fe2816dace92bcc2d4742119866" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Old</definition>
+        <argsstring></argsstring>
+        <name>Old</name>
+        <qualifiedname>mlc_function_t::Old</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="106" column="14" bodyfile="src/ml_compiler2.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1a6f93b9d95d6807c54729067c7fe220e2" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int It</definition>
+        <argsstring></argsstring>
+        <name>It</name>
+        <qualifiedname>mlc_function_t::It</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="106" column="18" bodyfile="src/ml_compiler2.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1adbeb0cbccc7ac4e39443f6cf8049b260" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Space</definition>
+        <argsstring></argsstring>
+        <name>Space</name>
+        <qualifiedname>mlc_function_t::Space</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="106" column="21" bodyfile="src/ml_compiler2.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__function__t_1afc354fb82f1c3f8b83ccb2121706aacc" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Eval</definition>
+        <argsstring></argsstring>
+        <name>Eval</name>
+        <qualifiedname>mlc_function_t::Eval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="107" column="5" bodyfile="src/ml_compiler2.h" bodystart="107" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="14">
+        <label>ml_closure_info_t</label>
+        <link refid="structml__closure__info__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Entry</edgelabel>
+          <edgelabel>Halt</edgelabel>
+          <edgelabel>Return</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Params</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_decl_t</label>
+        <link refid="structml__decl__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>ml_inst_t</label>
+        <link refid="unionml__inst__t"/>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Inst</edgelabel>
+          <edgelabel>Insts</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>ClosureInfo</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>mlc_define_t</label>
+        <link refid="structmlc__define__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>List</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>mlc_frame_t</label>
+        <link refid="structmlc__frame__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="1" relation="usage">
+          <edgelabel>run</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_function_t</label>
+        <link refid="structmlc__function__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Frame</edgelabel>
+        </childnode>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Up</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Defines</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Returns</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="91" column="1" bodyfile="src/ml_compiler2.h" bodystart="91" bodyend="108"/>
+    <listofallmembers>
+      <member refid="structmlc__function__t_1a5f6302c7483f44fd65e3e86ef35e8a72" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Base</name></member>
+      <member refid="structmlc__function__t_1ade77b5a8f603db11001da2d4c3b54f23" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Block</name></member>
+      <member refid="structmlc__function__t_1a09b3ee2b960b28e5aadc074c4d2a485b" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Compiler</name></member>
+      <member refid="structmlc__function__t_1ab9e79ae97c8aae37e13afb27d5681ecd" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Decls</name></member>
+      <member refid="structmlc__function__t_1a356e00f88d93e09acd5c1d3088658e65" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Defines</name></member>
+      <member refid="structmlc__function__t_1afc354fb82f1c3f8b83ccb2121706aacc" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Eval</name></member>
+      <member refid="structmlc__function__t_1aff1dff72899c4be9858a2d2d88ed940f" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Frame</name></member>
+      <member refid="structmlc__function__t_1a6f93b9d95d6807c54729067c7fe220e2" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>It</name></member>
+      <member refid="structmlc__function__t_1a4f207b35b380180b58e4e01abe45fe7e" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Limit</name></member>
+      <member refid="structmlc__function__t_1a867b1e40aa177faebf4167e0d4077b22" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Loop</name></member>
+      <member refid="structmlc__function__t_1a5d336b4e827eb0734e615a1854a5c2f1" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Must</name></member>
+      <member refid="structmlc__function__t_1a514e9661148638fc1ef9c39a2a68381c" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Next</name></member>
+      <member refid="structmlc__function__t_1a5ba42fe2816dace92bcc2d4742119866" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Old</name></member>
+      <member refid="structmlc__function__t_1a55a86da4322148002f9bdb41e36c8f92" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Returns</name></member>
+      <member refid="structmlc__function__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Size</name></member>
+      <member refid="structmlc__function__t_1acf4bd6e1b9e491ae82464869f0ea1a0f" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Source</name></member>
+      <member refid="structmlc__function__t_1adbeb0cbccc7ac4e39443f6cf8049b260" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Space</name></member>
+      <member refid="structmlc__function__t_1a0ce92b11ec313a08cc69dadd05bd9cd0" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Top</name></member>
+      <member refid="structmlc__function__t_1a01cfb5b9a2f4c01827176befd5dc4cfc" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Try</name></member>
+      <member refid="structmlc__function__t_1a840d3a34e379bbd14d1fd29e049d3029" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>Up</name></member>
+      <member refid="structmlc__function__t_1aaf36742ab100955c2ab9bb2675ab4c65" prot="public" virt="non-virtual"><scope>mlc_function_t</scope><name>UpValues</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

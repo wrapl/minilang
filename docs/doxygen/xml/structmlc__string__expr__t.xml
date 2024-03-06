@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__string__expr__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_string_expr_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__string__expr__t_1a9cfba765a5db7ac05ba202a9aba113b2" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref> *</type>
+        <definition>mlc_string_part_t* Parts</definition>
+        <argsstring></argsstring>
+        <name>Parts</name>
+        <qualifiedname>mlc_string_expr_t::Parts</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="228" column="19" bodyfile="src/ml_compiler2.h" bodystart="228" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structmlc__string__expr__t_1a81046a7f96e68d6fb551fe40e9b9f88b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MLC_EXPR_FIELDS</definition>
+        <argsstring>(string)</argsstring>
+        <name>MLC_EXPR_FIELDS</name>
+        <qualifiedname>mlc_string_expr_t::MLC_EXPR_FIELDS</qualifiedname>
+        <param>
+          <type>string</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="227" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="4">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_string_expr_t</label>
+        <link refid="structmlc__string__expr__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Parts</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_string_part_t</label>
+        <link refid="structmlc__string__part__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Child</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="226" column="1" bodyfile="src/ml_compiler2.h" bodystart="226" bodyend="229"/>
+    <listofallmembers>
+      <member refid="structmlc__string__expr__t_1a81046a7f96e68d6fb551fe40e9b9f88b" prot="public" virt="non-virtual"><scope>mlc_string_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
+      <member refid="structmlc__string__expr__t_1a9cfba765a5db7ac05ba202a9aba113b2" prot="public" virt="non-virtual"><scope>mlc_string_expr_t</scope><name>Parts</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

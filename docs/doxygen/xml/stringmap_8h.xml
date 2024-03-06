@@ -1,0 +1,539 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="stringmap_8h" kind="file" language="C++">
+    <compoundname>stringmap.h</compoundname>
+    <includedby refid="ml__cbor_8h" local="yes">src/ml_cbor.h</includedby>
+    <includedby refid="ml__compiler_8h" local="yes">src/ml_compiler.h</includedby>
+    <includedby refid="ml__debugger_8h" local="yes">src/ml_debugger.h</includedby>
+    <includedby refid="ml__object_8h" local="yes">src/ml_object.h</includedby>
+    <includedby refid="ml__polynomial_8h" local="yes">src/ml_polynomial.h</includedby>
+    <includedby refid="ml__pqueue_8h" local="yes">src/ml_pqueue.h</includedby>
+    <includedby refid="ml__sequence_8h" local="yes">src/ml_sequence.h</includedby>
+    <includedby refid="ml__tasks_8h" local="yes">src/ml_tasks.h</includedby>
+    <includedby refid="ml__types_8h" local="yes">src/ml_types.h</includedby>
+    <invincdepgraph>
+      <node id="8">
+        <label>src/array/compare_impl.h</label>
+        <link refid="compare__impl_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>src/array/compare_impl_complex.h</label>
+        <link refid="compare__impl__complex_8h_source"/>
+      </node>
+      <node id="10">
+        <label>src/array/compare_impl_real.h</label>
+        <link refid="compare__impl__real_8h_source"/>
+      </node>
+      <node id="11">
+        <label>src/array/update_impl.h</label>
+        <link refid="update__impl_8h_source"/>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>src/array/update_impl_complex.h</label>
+        <link refid="update__impl__complex_8h_source"/>
+      </node>
+      <node id="14">
+        <label>src/array/update_impl_integer.h</label>
+        <link refid="update__impl__integer_8h_source"/>
+      </node>
+      <node id="13">
+        <label>src/array/update_impl_real.h</label>
+        <link refid="update__impl__real_8h_source"/>
+      </node>
+      <node id="6">
+        <label>src/gtk_console.h</label>
+        <link refid="gtk__console_8h_source"/>
+      </node>
+      <node id="4">
+        <label>src/gtk_console_completion.h</label>
+        <link refid="gtk__console__completion_8h_source"/>
+      </node>
+      <node id="5">
+        <label>src/minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="34" relation="include">
+        </childnode>
+        <childnode refid="35" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>src/ml_array.h</label>
+        <link refid="ml__array_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>src/ml_ast.h</label>
+        <link refid="ml__ast_8h_source"/>
+      </node>
+      <node id="44">
+        <label>src/ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h_source"/>
+        <childnode refid="45" relation="include">
+        </childnode>
+        <childnode refid="36" relation="include">
+        </childnode>
+      </node>
+      <node id="45">
+        <label>src/ml_bytecode_jit.h</label>
+        <link refid="ml__bytecode__jit_8h_source"/>
+      </node>
+      <node id="2">
+        <label>src/ml_cbor.h</label>
+        <link refid="ml__cbor_8h_source"/>
+      </node>
+      <node id="3">
+        <label>src/ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="36" relation="include">
+        </childnode>
+      </node>
+      <node id="36">
+        <label>src/ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h_source"/>
+      </node>
+      <node id="16">
+        <label>src/ml_console.h</label>
+        <link refid="ml__console_8h_source"/>
+      </node>
+      <node id="46">
+        <label>src/ml_coroutine.h</label>
+        <link refid="ml__coroutine_8h_source"/>
+      </node>
+      <node id="37">
+        <label>src/ml_debugger.h</label>
+        <link refid="ml__debugger_8h_source"/>
+      </node>
+      <node id="17">
+        <label>src/ml_file.h</label>
+        <link refid="ml__file_8h_source"/>
+      </node>
+      <node id="18">
+        <label>src/ml_gir.h</label>
+        <link refid="ml__gir_8h_source"/>
+      </node>
+      <node id="19">
+        <label>src/ml_json.h</label>
+        <link refid="ml__json_8h_source"/>
+      </node>
+      <node id="20">
+        <label>src/ml_library.h</label>
+        <link refid="ml__library_8h_source"/>
+      </node>
+      <node id="21">
+        <label>src/ml_logging.h</label>
+        <link refid="ml__logging_8h_source"/>
+      </node>
+      <node id="22">
+        <label>src/ml_math.h</label>
+        <link refid="ml__math_8h_source"/>
+      </node>
+      <node id="23">
+        <label>src/ml_method.h</label>
+        <link refid="ml__method_8h_source"/>
+      </node>
+      <node id="24">
+        <label>src/ml_minijs.h</label>
+        <link refid="ml__minijs_8h_source"/>
+      </node>
+      <node id="25">
+        <label>src/ml_mmap.h</label>
+        <link refid="ml__mmap_8h_source"/>
+      </node>
+      <node id="26">
+        <label>src/ml_module.h</label>
+        <link refid="ml__module_8h_source"/>
+      </node>
+      <node id="38">
+        <label>src/ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+      </node>
+      <node id="39">
+        <label>src/ml_polynomial.h</label>
+        <link refid="ml__polynomial_8h_source"/>
+      </node>
+      <node id="40">
+        <label>src/ml_pqueue.h</label>
+        <link refid="ml__pqueue_8h_source"/>
+      </node>
+      <node id="47">
+        <label>src/ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="44" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="37" relation="include">
+        </childnode>
+      </node>
+      <node id="41">
+        <label>src/ml_sequence.h</label>
+        <link refid="ml__sequence_8h_source"/>
+      </node>
+      <node id="27">
+        <label>src/ml_socket.h</label>
+        <link refid="ml__socket_8h_source"/>
+      </node>
+      <node id="28">
+        <label>src/ml_stream.h</label>
+        <link refid="ml__stream_8h_source"/>
+      </node>
+      <node id="29">
+        <label>src/ml_struct.h</label>
+        <link refid="ml__struct_8h_source"/>
+      </node>
+      <node id="30">
+        <label>src/ml_table.h</label>
+        <link refid="ml__table_8h_source"/>
+      </node>
+      <node id="42">
+        <label>src/ml_tasks.h</label>
+        <link refid="ml__tasks_8h_source"/>
+      </node>
+      <node id="31">
+        <label>src/ml_thread.h</label>
+        <link refid="ml__thread_8h_source"/>
+      </node>
+      <node id="32">
+        <label>src/ml_time.h</label>
+        <link refid="ml__time_8h_source"/>
+      </node>
+      <node id="43">
+        <label>src/ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="44" relation="include">
+        </childnode>
+        <childnode refid="46" relation="include">
+        </childnode>
+        <childnode refid="38" relation="include">
+        </childnode>
+        <childnode refid="39" relation="include">
+        </childnode>
+        <childnode refid="40" relation="include">
+        </childnode>
+        <childnode refid="47" relation="include">
+        </childnode>
+      </node>
+      <node id="33">
+        <label>src/ml_uuid.h</label>
+        <link refid="ml__uuid_8h_source"/>
+      </node>
+      <node id="34">
+        <label>src/ml_xe.h</label>
+        <link refid="ml__xe_8h_source"/>
+      </node>
+      <node id="35">
+        <label>src/ml_xml.h</label>
+        <link refid="ml__xml_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/stringmap.h</label>
+        <link refid="stringmap_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="37" relation="include">
+        </childnode>
+        <childnode refid="38" relation="include">
+        </childnode>
+        <childnode refid="39" relation="include">
+        </childnode>
+        <childnode refid="40" relation="include">
+        </childnode>
+        <childnode refid="41" relation="include">
+        </childnode>
+        <childnode refid="42" relation="include">
+        </childnode>
+        <childnode refid="43" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structstringmap__t" prot="public">stringmap_t</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="stringmap_8h_1a04ce49e388ce3b5f4bf48647a444a2be" prot="public" static="no">
+        <name>STRINGMAP_INIT</name>
+        <initializer>{0,}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="16" column="9" bodyfile="src/stringmap.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="stringmap_8h_1a4db75414a24fd822287a7c96bf705566" prot="public" static="no">
+        <type>struct stringmap_t</type>
+        <definition>typedef struct stringmap_t stringmap_t</definition>
+        <argsstring></argsstring>
+        <name>stringmap_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="8" column="26" bodyfile="src/stringmap.h" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="stringmap_8h_1a21fd9fa7b35391ee3d02c7f8a27fc9ab" prot="public" static="no">
+        <type>struct stringmap_node_t</type>
+        <definition>typedef struct stringmap_node_t stringmap_node_t</definition>
+        <argsstring></argsstring>
+        <name>stringmap_node_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="9" column="31" bodyfile="src/stringmap.h" bodystart="9" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="stringmap_8h_1a42f10093d6219fab973e69d5ce9751eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+        <definition>stringmap_t * stringmap_new</definition>
+        <argsstring>() __attribute__((malloc))</argsstring>
+        <name>stringmap_new</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="18" column="13" declfile="src/stringmap.h" declline="18" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="stringmap_8h_1a10f0f63b9f8fd79d440152242674e147" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * stringmap_search</definition>
+        <argsstring>(const stringmap_t *Map, const char *Key) __attribute__((pure))</argsstring>
+        <name>stringmap_search</name>
+        <param>
+          <type>const <ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="20" column="6" declfile="src/stringmap.h" declline="20" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="stringmap_8h_1aa998fa79f38f255353f826e936dab5ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * stringmap_insert</definition>
+        <argsstring>(stringmap_t *Map, const char *Key, void *Value)</argsstring>
+        <name>stringmap_insert</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="21" column="6" declfile="src/stringmap.h" declline="21" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="stringmap_8h_1a0417ec748d22adad862d966c22117cb0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * stringmap_remove</definition>
+        <argsstring>(stringmap_t *Map, const char *Key)</argsstring>
+        <name>stringmap_remove</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="22" column="6" declfile="src/stringmap.h" declline="22" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="stringmap_8h_1a30e3dcebb967aaf27cc9a76603bae8b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void **</type>
+        <definition>void ** stringmap_slot</definition>
+        <argsstring>(stringmap_t *Map, const char *Key)</argsstring>
+        <name>stringmap_slot</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="23" column="6" declfile="src/stringmap.h" declline="23" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="stringmap_8h_1ad12eec37972389dfeec0d3496cb81d61" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int stringmap_foreach</definition>
+        <argsstring>(stringmap_t *Map, void *Data, int(*callback)(const char *, void *, void *))</argsstring>
+        <name>stringmap_foreach</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int(*)(const char *, void *, void *)</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="24" column="5" declfile="src/stringmap.h" declline="24" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="stringmap_8h_1a3c4928ecb13ded49f590f494e7c7cff0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>unsigned long</type>
+        <definition>unsigned long stringmap_hash</definition>
+        <argsstring>(const char *Key) __attribute__((pure))</argsstring>
+        <name>stringmap_hash</name>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="26" column="15" declfile="src/stringmap.h" declline="26" declcolumn="15"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>STRINGMAP_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGMAP_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref>;</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">stringmap_node_t<sp/>stringmap_node_t;</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11" refid="structstringmap__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_node_t<sp/>*Root;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size;</highlight></codeline>
+<codeline lineno="14"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGMAP_INIT<sp/>{0,}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*stringmap_new()<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*stringmap_search(const<sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*stringmap_insert(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*stringmap_remove(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key);</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**stringmap_slot(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>stringmap_foreach(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>stringmap_hash(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/stringmap.h"/>
+  </compounddef>
+</doxygen>

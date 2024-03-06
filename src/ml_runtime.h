@@ -1,6 +1,10 @@
 #ifndef ML_RUNTIME_H
 #define ML_RUNTIME_H
 
+/// \defgroup runtime
+/// @{
+///
+
 #include "ml_types.h"
 #include <limits.h>
 #include <stdarg.h>
@@ -50,6 +54,11 @@ int ml_context_index();
 
 void ml_context_set(ml_context_t *Context, int Index, void *Value);
 
+typedef int (*ml_config_fn)(ml_context_t *Context);
+
+void ml_config_register(const char *Name, ml_config_fn Fn);
+ml_config_fn ml_config_lookup(const char *Name);
+
 typedef void (*ml_state_fn)(ml_state_t *State, ml_value_t *Result);
 
 struct ml_state_t {
@@ -96,6 +105,15 @@ typedef struct {
 	ml_value_t *Iter;
 	ml_value_t *Values[];
 } ml_iter_state_t;
+
+// Nested Comparisons //
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *A, *B;
+} ml_comparison_state_t;
+
+extern ml_type_t MLComparisonStateT[];
 
 // References //
 
@@ -265,5 +283,7 @@ extern ml_type_t MLChannelT[];
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

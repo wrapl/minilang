@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__names" kind="group">
+    <compoundname>names</compoundname>
+    <title>Names</title>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__names_1gab822cd09cc98aea6b5d7a1a176e67e88" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLNamesT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLNamesT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1138" column="18" declfile="src/ml_types.h" declline="1138" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__names_1ga7d99e731e1c61f6fe4f26f1dd6d559a1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_names</definition>
+        <argsstring>()</argsstring>
+        <name>ml_names</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1140" column="12" declfile="src/ml_types.h" declline="1140" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__names_1ga5e126a6d8e278926855cca8f1830a6e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_names_add</definition>
+        <argsstring>(ml_value_t *Names, ml_value_t *Value)</argsstring>
+        <name>ml_names_add</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Names</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1141" column="6" declfile="src/ml_types.h" declline="1141" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__names_1gaecb24121cccbdafb7b0c11694fbc1fac" prot="public" static="no">
+        <name>ml_names_length</name>
+        <initializer>ml_list_length</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1142" column="9" bodyfile="src/ml_types.h" bodystart="1142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__names_1gaf9e68a97ed911530e76a3eb562a01d0b" prot="public" static="no">
+        <name>ML_NAMES_CHECK_ARG_COUNT</name>
+        <param><defname>N</defname></param>
+        <initializer>	{ \
+	int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
+	if (Count &lt; Required) { \
+		return ml_error(&quot;CallError&quot;, &quot;%d arguments required&quot;, Required); \
+	} \
+}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1144" column="9" bodyfile="src/ml_types.h" bodystart="1144" bodyend="1149"/>
+      </memberdef>
+      <memberdef kind="define" id="group__names_1ga37dc66bd2e5157f6d5801bb4705ad9d8" prot="public" static="no">
+        <name>ML_NAMES_CHECKX_ARG_COUNT</name>
+        <param><defname>N</defname></param>
+        <initializer>	{ \
+	int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
+	if (Count &lt; Required) { \
+		ML_ERROR(&quot;CallError&quot;, &quot;%d arguments required&quot;, Required); \
+	} \
+}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1151" column="9" bodyfile="src/ml_types.h" bodystart="1151" bodyend="1156"/>
+      </memberdef>
+      <memberdef kind="define" id="group__names_1ga1a287bc72e9a9d425b1261d1a8ac5e32" prot="public" static="no">
+        <name>ML_NAMES_FOREACH</name>
+        <param><defname>NAMES</defname></param>
+        <param><defname>ITER</defname></param>
+        <initializer>ML_LIST_FOREACH(ml_deref(NAMES), ITER)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1158" column="9" bodyfile="src/ml_types.h" bodystart="1158" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

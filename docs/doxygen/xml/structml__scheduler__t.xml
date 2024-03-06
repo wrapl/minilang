@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__scheduler__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_scheduler_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__scheduler__t_1a54152e0b3afbca24edcbbc0fb0aea0f2" prot="public" static="no" mutable="no">
+        <type>ml_scheduler_fn</type>
+        <definition>ml_scheduler_fn add</definition>
+        <argsstring></argsstring>
+        <name>add</name>
+        <qualifiedname>ml_scheduler_t::add</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="223" column="17" bodyfile="src/ml_runtime.h" bodystart="223" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>ml_scheduler_t</label>
+        <link refid="structml__scheduler__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>add</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_runtime.h" line="222" column="1" bodyfile="src/ml_runtime.h" bodystart="222" bodyend="224"/>
+    <listofallmembers>
+      <member refid="structml__scheduler__t_1a54152e0b3afbca24edcbbc0fb0aea0f2" prot="public" virt="non-virtual"><scope>ml_scheduler_t</scope><name>add</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -9,6 +9,10 @@ general
 
 .. rst-class:: mini-api
 
+:mini:`meth :WeakMapT()`
+   *TBD*
+
+
 :mini:`fun assign(Var: any, Value: any): any`
    Functional equivalent of :mini:`Var := Value`.
 
@@ -67,10 +71,6 @@ general
    Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
 
 
-:mini:`type list2 < sequence`
-   *TBD*
-
-
 :mini:`type visitor < function`
    Used to apply a transformation recursively to values.
    
@@ -91,5 +91,21 @@ general
 
 :mini:`meth (Visitor: visitor):visit(Value: any): any`
    Default visitor implementation,  just returns :mini:`nil`.
+
+
+:mini:`type weakmap`
+   *TBD*
+
+
+:mini:`meth (Arg₁: weakmap):insert(Arg₂: string)`
+   *TBD*
+
+
+:mini:`type weakmaptoken`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: weakmaptoken)`
+   *TBD*
 
 

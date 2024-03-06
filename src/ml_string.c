@@ -575,7 +575,8 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	long Hash = String->Hash;
 	if (!Hash) {
 		Hash = 5381;
-		for (int I = 0; I < String->Length; ++I) Hash = ((Hash << 5) + Hash) + String->Value[I];
+		int Length = String->Length;
+		for (const unsigned char *P = (const unsigned char *)String->Value; --Length >= 0; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 		String->Hash = Hash;
 	}
 	return Hash;
@@ -730,7 +731,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int64_t Value = ml_integer_value_fast(Args[1]);
 	int Base = ml_integer_value_fast(Args[2]);
-	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
@@ -770,17 +771,28 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
-//!range
+//!interval
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Range->Step != 1) {
-		ml_stringbuffer_printf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
+	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
+	if (Sequence->Step != 1) {
+		ml_stringbuffer_printf(Buffer, "%ld .. %ld by %ld", Sequence->Start, Sequence->Limit, Sequence->Step);
 	} else {
-		ml_stringbuffer_printf(Buffer, "%ld .. %ld", Range->Start, Range->Limit);
+		ml_stringbuffer_printf(Buffer, "%ld .. %ld", Sequence->Start, Sequence->Limit);
 	}
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLIntegerIntervalT) {
+//!interval
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	ml_stringbuffer_printf(Buffer, "%ld .. %ld", Interval->Start, Interval->Limit);
 	return MLSome;
 }
 
@@ -788,13 +800,24 @@ ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
 #define TOSTRING(x) STRINGIFY(x)
 
 ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
-//!range
+//!sequence
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g by %." TOSTRING(DBL_DIG) "g", Range->Start, Range->Limit, Range->Step);
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLRealIntervalT) {
+//!interval
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g", Interval->Start, Interval->Limit);
 	return MLSome;
 }
 
@@ -894,6 +917,14 @@ ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
 }
 
 #endif
+
+ML_METHOD("append", MLStringBufferT, MLUninitializedT) {
+//!internal
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_source_t Source = ml_uninitialized_source(Args[1]);
+	ml_stringbuffer_printf(Buffer, "uninitialized value %s @ %s:%d", ml_uninitialized_name(Args[1]), Source.Name, Source.Line);
+	return MLSome;
+}
 
 ML_METHOD(MLIntegerT, MLStringT) {
 //!number
@@ -1512,13 +1543,41 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 
 ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
 //<String
-//<Range
+//<Interval
 //>string
-// Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+// Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
 	int Lo = Range->Start, Hi = Range->Limit + 1, Step = Range->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Lo <= 0) Lo += Length + 1;
+	if (Hi <= 0) Hi += Length + 1;
+	if (Lo <= 0) return MLNil;
+	if (Hi > Length + 1) return MLNil;
+	if (Hi < Lo) return MLNil;
+	Hi -= Lo;
+	if (Lo > 0) for (;;) {
+		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
+		++Start;
+	}
+	const char *End = Start;
+	if (++Hi > 0) while (*End) {
+		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
+		++End;
+	}
+	return ml_string(Start, End - Start);
+}
+
+ML_METHOD("[]", MLStringT, MLIntegerIntervalT) {
+//<String
+//<Interval
+//>string
+// Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
+	const char *Start = ml_string_value(Args[0]);
+	int Length = utf8_strlen(Args[0]);
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	int Lo = Interval->Start, Hi = Interval->Limit + 1, Step = 1;
 	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
 	if (Lo <= 0) Lo += Length + 1;
 	if (Hi <= 0) Hi += Length + 1;
@@ -3945,6 +4004,18 @@ static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 	return Next;
 }
 
+static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+	do {
+		Node->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
+#else
+	Node->Next = StringBufferNodeCache;
+	StringBufferNodeCache = Node;
+#endif
+}
+
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	Buffer->Length -= Length;
@@ -3954,15 +4025,7 @@ size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 		if (Node == Buffer->Tail) Limit -= Buffer->Space;
 		if (Buffer->Start < Limit) return Limit - Buffer->Start;
 		ml_stringbuffer_node_t *Next = Node->Next;
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
-		do {
-			Node->Next = CacheNext;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
-#else
-		Node->Next = StringBufferNodeCache;
-		StringBufferNodeCache = Node;
-#endif
+		ml_stringbuffer_node_free(Node);
 		Buffer->Start = 0;
 		if (Next) {
 			Node = Buffer->Head = Next;
@@ -4042,6 +4105,18 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 	Buffer->Space -= 1;
 	Buffer->Length += 1;
 	Buffer->Tail = Node;
+}
+
+char ml_stringbuffer_last(ml_stringbuffer_t *Buffer) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail;
+	if (!Node) return 0;
+	if (Buffer->Space == ML_STRINGBUFFER_NODE_SIZE) {
+		ml_stringbuffer_node_t *Prev = Buffer->Head;
+		if (Prev == Node) return 0;
+		while (Prev->Next != Node) Prev = Prev->Next;
+		return Prev->Chars[ML_STRINGBUFFER_NODE_SIZE - 1];
+	}
+	return Node->Chars[ML_STRINGBUFFER_NODE_SIZE - (Buffer->Space + 1)];
 }
 
 void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
@@ -4169,20 +4244,38 @@ ML_METHOD("length", MLStringBufferT) {
 	return ml_integer(Buffer->Length);
 }
 
-int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
+int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	if (!Node) return 0;
+	int Result = 0;
 	int Start = Buffer->Start;
 	if (!Node->Next) {
-		return callback(Data, Node->Chars + Start, (ML_STRINGBUFFER_NODE_SIZE - Buffer->Space) - Start);
+		Result = callback(Data, Node->Chars + Start, (ML_STRINGBUFFER_NODE_SIZE - Buffer->Space) - Start);
+		goto done;
 	}
-	if (callback(Data, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - Start)) return 1;
+	Result = callback(Data, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - Start);
+	if (Result) goto done;
 	Node = Node->Next;
 	while (Node->Next) {
-		if (callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE)) return 1;
+		Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
+		if (Result) goto done;
 		Node = Node->Next;
 	}
-	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+	Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+done:;
+	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+	do {
+		Tail->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Head));
+#else
+	Tail->Next = StringBufferNodeCache;
+	StringBufferNodeCache = Head;
+#endif
+	Buffer->Head = Buffer->Tail = NULL;
+	Buffer->Length = Buffer->Space = Buffer->Start = 0;
+	return Result;
 }
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {

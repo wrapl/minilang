@@ -44,6 +44,7 @@ obj/ml_compiler.o: obj/ml_compiler_init.c
 obj/ml_file.o: obj/ml_file_init.c
 obj/ml_json.o: obj/ml_json_init.c
 obj/ml_list.o: obj/ml_list_init.c
+obj/ml_logging.o: obj/ml_logging_init.c
 obj/ml_map.o: obj/ml_map_init.c
 obj/ml_math.o: obj/ml_math_init.c
 obj/ml_method.o: obj/ml_method_init.c
@@ -52,6 +53,7 @@ obj/ml_object.o: obj/ml_object_init.c
 obj/ml_runtime.o: obj/ml_runtime_init.c
 obj/ml_sequence.o: obj/ml_sequence_init.c
 obj/ml_set.o: obj/ml_set_init.c
+obj/ml_socket.o: obj/ml_socket_init.c
 obj/ml_stream.o: obj/ml_stream_init.c
 obj/ml_string.o: obj/ml_string_init.c
 obj/ml_time.o: obj/ml_time_init.c
@@ -66,6 +68,7 @@ common_objects = \
 	obj/ml_file.o \
 	obj/ml_json.o \
 	obj/ml_list.o \
+	obj/ml_logging.o \
 	obj/ml_map.o \
 	obj/ml_method.o \
 	obj/ml_number.o \
@@ -74,6 +77,7 @@ common_objects = \
 	obj/ml_runtime.o \
 	obj/ml_sequence.o \
 	obj/ml_set.o \
+	obj/ml_socket.o \
 	obj/ml_stream.o \
 	obj/ml_string.o \
 	obj/ml_time.o \

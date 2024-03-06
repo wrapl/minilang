@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__source__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_source_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__source__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>ml_source_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="136" column="12" bodyfile="src/ml_runtime.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__source__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Line</definition>
+        <argsstring></argsstring>
+        <name>Line</name>
+        <qualifiedname>ml_source_t::Line</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="137" column="5" bodyfile="src/ml_runtime.h" bodystart="137" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/ml_runtime.h" line="135" column="1" bodyfile="src/ml_runtime.h" bodystart="135" bodyend="138"/>
+    <listofallmembers>
+      <member refid="structml__source__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" virt="non-virtual"><scope>ml_source_t</scope><name>Line</name></member>
+      <member refid="structml__source__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_source_t</scope><name>Name</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

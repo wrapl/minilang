@@ -1,0 +1,261 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__numbers" kind="group">
+    <compoundname>numbers</compoundname>
+    <title>Numbers</title>
+    <innerclass refid="structml__integer__t" prot="public">ml_integer_t</innerclass>
+    <innerclass refid="structml__double__t" prot="public">ml_double_t</innerclass>
+    <innerclass refid="structml__integer__range__t" prot="public">ml_integer_range_t</innerclass>
+    <innerclass refid="structml__integer__interval__t" prot="public">ml_integer_interval_t</innerclass>
+    <innerclass refid="structml__real__range__t" prot="public">ml_real_range_t</innerclass>
+    <innerclass refid="structml__real__interval__t" prot="public">ml_real_interval_t</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__numbers_1ga71e8d0ffd0f61b431b81786176d1daef" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLNumberT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLNumberT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="541" column="18" declfile="src/ml_types.h" declline="541" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__numbers_1ga792f15e358253d7114d702cd1142efc2" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLRealT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLRealT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="542" column="18" declfile="src/ml_types.h" declline="542" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__numbers_1ga7f36d3290d9943138ec1effb4cb4eb49" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLIntegerT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLIntegerT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="543" column="18" declfile="src/ml_types.h" declline="543" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__numbers_1ga033fb58a59ea7899d14702914c86ebf5" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLDoubleT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLDoubleT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="544" column="18" declfile="src/ml_types.h" declline="544" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__numbers_1ga29e6655325017198ddb547b0b77596cf" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLIntegerRangeT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLIntegerRangeT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="634" column="18" declfile="src/ml_types.h" declline="634" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__numbers_1gaca7fa7ee81f270f09369a33323aa465d" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLIntegerIntervalT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLIntegerIntervalT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="641" column="18" declfile="src/ml_types.h" declline="641" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__numbers_1ga4375c307ffeb47f4fbd0099b21838ad5" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLRealRangeT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLRealRangeT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="648" column="18" declfile="src/ml_types.h" declline="648" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__numbers_1ga60567984e82fce3c83d3a5bfc81fe7c3" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLRealIntervalT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLRealIntervalT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="657" column="18" declfile="src/ml_types.h" declline="657" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int64_t</type>
+        <definition>int64_t ml_integer_value</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((const))</argsstring>
+        <name>ml_integer_value</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="546" column="9" declfile="src/ml_types.h" declline="546" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double ml_real_value</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((const))</argsstring>
+        <name>ml_real_value</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="547" column="8" declfile="src/ml_types.h" declline="547" declcolumn="8"/>
+      </memberdef>
+      <memberdef kind="function" id="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_integer</definition>
+        <argsstring>(int64_t Value) __attribute__((malloc))</argsstring>
+        <name>ml_integer</name>
+        <param>
+          <type>int64_t</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="599" column="12" declfile="src/ml_types.h" declline="599" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__numbers_1gad14069fd889acb05e0511873cf98c484" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_real</definition>
+        <argsstring>(double Value) __attribute__((malloc))</argsstring>
+        <name>ml_real</name>
+        <param>
+          <type>double</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="600" column="12" declfile="src/ml_types.h" declline="600" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__numbers_1gacbf417155859dac0636077db335a130c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int64_t</type>
+        <definition>int64_t ml_integer_value_fast</definition>
+        <argsstring>(const ml_value_t *Value)</argsstring>
+        <name>ml_integer_value_fast</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="602" column="16" bodyfile="src/ml_types.h" bodystart="602" bodyend="604"/>
+      </memberdef>
+      <memberdef kind="function" id="group__numbers_1ga8a391b659bb4df532d7cd113a6c75fda" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double ml_double_value_fast</definition>
+        <argsstring>(const ml_value_t *Value)</argsstring>
+        <name>ml_double_value_fast</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="611" column="15" bodyfile="src/ml_types.h" bodystart="611" bodyend="613"/>
+      </memberdef>
+      <memberdef kind="function" id="group__numbers_1ga26fdf346e2362e83f1999ad3af9aa007" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ml_real_range_count</definition>
+        <argsstring>(ml_real_range_t *Interval)</argsstring>
+        <name>ml_real_range_count</name>
+        <param>
+          <type><ref refid="structml__real__range__t" kindref="compound">ml_real_range_t</ref> *</type>
+          <declname>Interval</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="655" column="8" declfile="src/ml_types.h" declline="655" declcolumn="8"/>
+      </memberdef>
+      <memberdef kind="function" id="group__numbers_1ga7e74177cc7e9a1682d5e7839b1e6347f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ml_real_interval_count</definition>
+        <argsstring>(ml_real_interval_t *Interval)</argsstring>
+        <name>ml_real_interval_count</name>
+        <param>
+          <type><ref refid="structml__real__interval__t" kindref="compound">ml_real_interval_t</ref> *</type>
+          <declname>Interval</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="664" column="8" declfile="src/ml_types.h" declline="664" declcolumn="8"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

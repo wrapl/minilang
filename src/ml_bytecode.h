@@ -93,8 +93,7 @@ const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
 void ml_closure_info_labels(ml_closure_info_t *Info);
-
-void ml_closure_list(ml_value_t *Closure);
+void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info);
 
 
 #ifdef ML_CBOR_BYTECODE

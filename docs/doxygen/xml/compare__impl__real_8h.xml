@@ -1,0 +1,455 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="compare__impl__real_8h" kind="file" language="C++">
+    <compoundname>compare_impl_real.h</compoundname>
+    <includes refid="compare__impl_8h" local="yes">compare_impl.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>compare_impl.h</label>
+        <link refid="compare__impl_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/array/compare_impl_real.h</label>
+        <link refid="compare__impl__real_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>../ml_array.h</label>
+        <link refid="ml__array_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="18">
+        <label>limits.h</label>
+      </node>
+      <node id="17">
+        <label>ml_config.h</label>
+      </node>
+      <node id="8">
+        <label>setjmp.h</label>
+      </node>
+      <node id="13">
+        <label>stdarg.h</label>
+      </node>
+      <node id="16">
+        <label>stdint.h</label>
+      </node>
+      <node id="11">
+        <label>stdio.h</label>
+      </node>
+      <node id="5">
+        <label>stdlib.h</label>
+      </node>
+      <node id="12">
+        <label>string.h</label>
+      </node>
+      <node id="6">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="compare__impl__real_8h_1a15aa5f7a834e01508d9ca0e8ec502c21" prot="public" static="no">
+        <name>COMPARE_ROW_LEFT_IMPL_BASE</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>OP</defname></param>
+        <param><defname>METH</defname></param>
+        <param><defname>LEFT</defname></param>
+        <initializer>COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, uint8_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, int8_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, uint16_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, int16_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, uint32_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, int32_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, uint64_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, int64_t) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, float) \
+COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, double) \
+COMPARE_ROW_IMPL_VALUE(NAME, OP, METH, LEFT)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="3" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="3" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1accb2ffa2c1296aef6263e6872ea9394e" prot="public" static="no">
+        <name>COMPARE_ROW_LEFT_IMPL</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>OP</defname></param>
+        <param><defname>METH</defname></param>
+        <param><defname>LEFT</defname></param>
+        <initializer>COMPARE_ROW_LEFT_IMPL_BASE(NAME, OP, METH, LEFT)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="16" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="16" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1aa49501cb8ab9cfcc56cca7a8b4c1c0c4" prot="public" static="no">
+        <name>COMPARE_ROW_LEFT_VALUE_IMPL_BASE</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>OP</defname></param>
+        <param><defname>METH</defname></param>
+        <initializer>COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, uint8_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, int8_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, uint16_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, int16_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, uint32_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, int32_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, uint64_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, int64_t) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, float) \
+COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, double) \
+COMPARE_ROW_VALUE_IMPL_VALUE(NAME, OP, METH)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="19" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="19" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1ae11ecb780561e96100ac2dade345ab58" prot="public" static="no">
+        <name>COMPARE_ROW_LEFT_VALUE_IMPL</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>OP</defname></param>
+        <param><defname>METH</defname></param>
+        <initializer>COMPARE_ROW_LEFT_VALUE_IMPL_BASE(NAME, OP, METH)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="32" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="32" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1a6d7911fb46a0e616db09b0192a7fc261" prot="public" static="no">
+        <name>COMPARE_ROW_OPS_IMPL_BASE</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>OP</defname></param>
+        <param><defname>METH</defname></param>
+        <initializer>COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, uint8_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, int8_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, uint16_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, int16_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, uint32_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, int32_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, uint64_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, int64_t) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, float) \
+COMPARE_ROW_LEFT_IMPL(NAME, OP, METH, double) \
+COMPARE_ROW_LEFT_VALUE_IMPL(NAME, OP, METH)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="35" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="35" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1a2717692437b3d5f9d414e25705e2f1b0" prot="public" static="no">
+        <name>COMPARE_ROW_OPS_IMPL</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>OP</defname></param>
+        <param><defname>METH</defname></param>
+        <initializer>COMPARE_ROW_OPS_IMPL_BASE(NAME, OP, METH)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="48" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="48" bodyend="49"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1a3aa6269a54ff8ff5eb02f28fd04f5190" prot="public" static="no">
+        <name>COMPARE_ROW_ENTRY</name>
+        <param><defname>INDEX</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>LEFT</defname></param>
+        <param><defname>RIGHT</defname></param>
+        <initializer>	[INDEX] = NAME ## _row_ ## LEFT ## _ ## RIGHT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="51" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="51" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1ac99fb69ba658930f5683690e97b813ae" prot="public" static="no">
+        <name>COMPARE_ROW_LEFT_ENTRIES_BASE</name>
+        <param><defname>INDEX</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>LEFT</defname></param>
+        <initializer>COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U8, NAME, LEFT, uint8_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I8, NAME, LEFT, int8_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U16, NAME, LEFT, uint16_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I16, NAME, LEFT, int16_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U32, NAME, LEFT, uint32_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I32, NAME, LEFT, int32_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U64, NAME, LEFT, uint64_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I64, NAME, LEFT, int64_t), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_F32, NAME, LEFT, float), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_F64, NAME, LEFT, double), \
+COMPARE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_ANY, NAME, LEFT, any)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="54" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="54" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1aae6079a587cad33ddd047258364d9a56" prot="public" static="no">
+        <name>COMPARE_ROW_LEFT_ENTRIES</name>
+        <param><defname>INDEX</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>LEFT</defname></param>
+        <initializer>COMPARE_ROW_LEFT_ENTRIES_BASE(INDEX, NAME, LEFT)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="67" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="67" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1a98a86cee474382238e2f4fe12442928b" prot="public" static="no">
+        <name>COMPARE_ROW_OPS_ENTRIES_BASE</name>
+        <param><defname>NAME</defname></param>
+        <initializer>COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U8, NAME, uint8_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I8, NAME, int8_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U16, NAME, uint16_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I16, NAME, int16_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U32, NAME, uint32_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I32, NAME, int32_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U64, NAME, uint64_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I64, NAME, int64_t), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_F32, NAME, float), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_F64, NAME, double), \
+COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_ANY, NAME, any)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="70" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="70" bodyend="81"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1a40e308a1ec5e80a75ce3a23f91e2090c" prot="public" static="no">
+        <name>COMPARE_ROW_OPS_ENTRIES</name>
+        <param><defname>NAME</defname></param>
+        <initializer>COMPARE_ROW_OPS_ENTRIES_BASE(NAME)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="83" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="83" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="define" id="compare__impl__real_8h_1af05d490766ff3bed6a77368aa97e7dd7" prot="public" static="no">
+        <name>COMPARE_FNS</name>
+        <param><defname>TITLE</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>OP</defname></param>
+        <param><defname>METH</defname></param>
+        <initializer>	COMPARE_ROW_OPS_IMPL(NAME, OP, METH) \
+\
+compare_row_fn_t Compare ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
+	COMPARE_ROW_OPS_ENTRIES(NAME) \
+}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="88" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="88" bodyend="93"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="compare__impl__real_8h_1a81dab8f537f607478701161410e9d9e4" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* compare_row_fn_t) (char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData)</definition>
+        <argsstring>)(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData)</argsstring>
+        <name>compare_row_fn_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/array/compare_impl_real.h" line="86" column="9" bodyfile="src/array/compare_impl_real.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;compare_impl.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_LEFT_IMPL_BASE(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT)<sp/>\</highlight></codeline>
+<codeline lineno="4"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>uint8_t)<sp/>\</highlight></codeline>
+<codeline lineno="5"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>int8_t)<sp/>\</highlight></codeline>
+<codeline lineno="6"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>uint16_t)<sp/>\</highlight></codeline>
+<codeline lineno="7"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>int16_t)<sp/>\</highlight></codeline>
+<codeline lineno="8"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>uint32_t)<sp/>\</highlight></codeline>
+<codeline lineno="9"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>int32_t)<sp/>\</highlight></codeline>
+<codeline lineno="10"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>uint64_t)<sp/>\</highlight></codeline>
+<codeline lineno="11"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>int64_t)<sp/>\</highlight></codeline>
+<codeline lineno="12"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>float)<sp/>\</highlight></codeline>
+<codeline lineno="13"><highlight class="preprocessor">COMPARE_ROW_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT,<sp/>double)<sp/>\</highlight></codeline>
+<codeline lineno="14"><highlight class="preprocessor">COMPARE_ROW_IMPL_VALUE(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT)<sp/>\</highlight></codeline>
+<codeline lineno="17"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL_BASE(NAME,<sp/>OP,<sp/>METH,<sp/>LEFT)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_LEFT_VALUE_IMPL_BASE(NAME,<sp/>OP,<sp/>METH)<sp/>\</highlight></codeline>
+<codeline lineno="20"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint8_t)<sp/>\</highlight></codeline>
+<codeline lineno="21"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int8_t)<sp/>\</highlight></codeline>
+<codeline lineno="22"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint16_t)<sp/>\</highlight></codeline>
+<codeline lineno="23"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int16_t)<sp/>\</highlight></codeline>
+<codeline lineno="24"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint32_t)<sp/>\</highlight></codeline>
+<codeline lineno="25"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int32_t)<sp/>\</highlight></codeline>
+<codeline lineno="26"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint64_t)<sp/>\</highlight></codeline>
+<codeline lineno="27"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int64_t)<sp/>\</highlight></codeline>
+<codeline lineno="28"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>float)<sp/>\</highlight></codeline>
+<codeline lineno="29"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>double)<sp/>\</highlight></codeline>
+<codeline lineno="30"><highlight class="preprocessor">COMPARE_ROW_VALUE_IMPL_VALUE(NAME,<sp/>OP,<sp/>METH)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_LEFT_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH)<sp/>\</highlight></codeline>
+<codeline lineno="33"><highlight class="preprocessor">COMPARE_ROW_LEFT_VALUE_IMPL_BASE(NAME,<sp/>OP,<sp/>METH)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_OPS_IMPL_BASE(NAME,<sp/>OP,<sp/>METH)<sp/>\</highlight></codeline>
+<codeline lineno="36"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint8_t)<sp/>\</highlight></codeline>
+<codeline lineno="37"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int8_t)<sp/>\</highlight></codeline>
+<codeline lineno="38"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint16_t)<sp/>\</highlight></codeline>
+<codeline lineno="39"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int16_t)<sp/>\</highlight></codeline>
+<codeline lineno="40"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint32_t)<sp/>\</highlight></codeline>
+<codeline lineno="41"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int32_t)<sp/>\</highlight></codeline>
+<codeline lineno="42"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>uint64_t)<sp/>\</highlight></codeline>
+<codeline lineno="43"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>int64_t)<sp/>\</highlight></codeline>
+<codeline lineno="44"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>float)<sp/>\</highlight></codeline>
+<codeline lineno="45"><highlight class="preprocessor">COMPARE_ROW_LEFT_IMPL(NAME,<sp/>OP,<sp/>METH,<sp/>double)<sp/>\</highlight></codeline>
+<codeline lineno="46"><highlight class="preprocessor">COMPARE_ROW_LEFT_VALUE_IMPL(NAME,<sp/>OP,<sp/>METH)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_OPS_IMPL(NAME,<sp/>OP,<sp/>METH)<sp/>\</highlight></codeline>
+<codeline lineno="49"><highlight class="preprocessor">COMPARE_ROW_OPS_IMPL_BASE(NAME,<sp/>OP,<sp/>METH)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_ENTRY(INDEX,<sp/>NAME,<sp/>LEFT,<sp/>RIGHT)<sp/>\</highlight></codeline>
+<codeline lineno="52"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>[INDEX]<sp/>=<sp/>NAME<sp/>##<sp/>_row_<sp/>##<sp/>LEFT<sp/>##<sp/>_<sp/>##<sp/>RIGHT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_LEFT_ENTRIES_BASE(INDEX,<sp/>NAME,<sp/>LEFT)<sp/>\</highlight></codeline>
+<codeline lineno="55"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_U8,<sp/>NAME,<sp/>LEFT,<sp/>uint8_t),<sp/>\</highlight></codeline>
+<codeline lineno="56"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_I8,<sp/>NAME,<sp/>LEFT,<sp/>int8_t),<sp/>\</highlight></codeline>
+<codeline lineno="57"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_U16,<sp/>NAME,<sp/>LEFT,<sp/>uint16_t),<sp/>\</highlight></codeline>
+<codeline lineno="58"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_I16,<sp/>NAME,<sp/>LEFT,<sp/>int16_t),<sp/>\</highlight></codeline>
+<codeline lineno="59"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_U32,<sp/>NAME,<sp/>LEFT,<sp/>uint32_t),<sp/>\</highlight></codeline>
+<codeline lineno="60"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_I32,<sp/>NAME,<sp/>LEFT,<sp/>int32_t),<sp/>\</highlight></codeline>
+<codeline lineno="61"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_U64,<sp/>NAME,<sp/>LEFT,<sp/>uint64_t),<sp/>\</highlight></codeline>
+<codeline lineno="62"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_I64,<sp/>NAME,<sp/>LEFT,<sp/>int64_t),<sp/>\</highlight></codeline>
+<codeline lineno="63"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_F32,<sp/>NAME,<sp/>LEFT,<sp/>float),<sp/>\</highlight></codeline>
+<codeline lineno="64"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_F64,<sp/>NAME,<sp/>LEFT,<sp/>double),<sp/>\</highlight></codeline>
+<codeline lineno="65"><highlight class="preprocessor">COMPARE_ROW_ENTRY(MAX_FORMATS<sp/>*<sp/>(INDEX)<sp/>+<sp/>ML_ARRAY_FORMAT_ANY,<sp/>NAME,<sp/>LEFT,<sp/>any)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_LEFT_ENTRIES(INDEX,<sp/>NAME,<sp/>LEFT)<sp/>\</highlight></codeline>
+<codeline lineno="68"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES_BASE(INDEX,<sp/>NAME,<sp/>LEFT)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_OPS_ENTRIES_BASE(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="71"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U8,<sp/>NAME,<sp/>uint8_t),<sp/>\</highlight></codeline>
+<codeline lineno="72"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I8,<sp/>NAME,<sp/>int8_t),<sp/>\</highlight></codeline>
+<codeline lineno="73"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U16,<sp/>NAME,<sp/>uint16_t),<sp/>\</highlight></codeline>
+<codeline lineno="74"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I16,<sp/>NAME,<sp/>int16_t),<sp/>\</highlight></codeline>
+<codeline lineno="75"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U32,<sp/>NAME,<sp/>uint32_t),<sp/>\</highlight></codeline>
+<codeline lineno="76"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I32,<sp/>NAME,<sp/>int32_t),<sp/>\</highlight></codeline>
+<codeline lineno="77"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_U64,<sp/>NAME,<sp/>uint64_t),<sp/>\</highlight></codeline>
+<codeline lineno="78"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_I64,<sp/>NAME,<sp/>int64_t),<sp/>\</highlight></codeline>
+<codeline lineno="79"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_F32,<sp/>NAME,<sp/>float),<sp/>\</highlight></codeline>
+<codeline lineno="80"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_F64,<sp/>NAME,<sp/>double),<sp/>\</highlight></codeline>
+<codeline lineno="81"><highlight class="preprocessor">COMPARE_ROW_LEFT_ENTRIES(ML_ARRAY_FORMAT_ANY,<sp/>NAME,<sp/>any)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_ROW_OPS_ENTRIES(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="84"><highlight class="preprocessor">COMPARE_ROW_OPS_ENTRIES_BASE(NAME)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*compare_row_fn_t)(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Target,<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*LeftDimension,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*LeftData,<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*RightDimension,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*RightData);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>COMPARE_FNS(TITLE,<sp/>NAME,<sp/>OP,<sp/>METH)<sp/>\</highlight></codeline>
+<codeline lineno="89"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>COMPARE_ROW_OPS_IMPL(NAME,<sp/>OP,<sp/>METH)<sp/>\</highlight></codeline>
+<codeline lineno="90"><highlight class="preprocessor">\</highlight></codeline>
+<codeline lineno="91"><highlight class="preprocessor">compare_row_fn_t<sp/>Compare<sp/>##<sp/>TITLE<sp/>##<sp/>RowFns[MAX_FORMATS<sp/>*<sp/>MAX_FORMATS]<sp/>=<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="92"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>COMPARE_ROW_OPS_ENTRIES(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="93"><highlight class="preprocessor">}</highlight></codeline>
+    </programlisting>
+    <location file="src/array/compare_impl_real.h"/>
+  </compounddef>
+</doxygen>

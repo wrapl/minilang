@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__array__dimension__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_array_dimension_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__array__dimension__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_array_dimension_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="11" column="5" bodyfile="src/ml_array.h" bodystart="11" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__array__dimension__t_1a2bc9777201b278cf5e84e9124ffbba71" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Stride</definition>
+        <argsstring></argsstring>
+        <name>Stride</name>
+        <qualifiedname>ml_array_dimension_t::Stride</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="11" column="10" bodyfile="src/ml_array.h" bodystart="11" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__array__dimension__t_1a1d8839d8a03ff495c70687efa04e94e2" prot="public" static="no" mutable="no">
+        <type>int *</type>
+        <definition>int* Indices</definition>
+        <argsstring></argsstring>
+        <name>Indices</name>
+        <qualifiedname>ml_array_dimension_t::Indices</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="12" column="5" bodyfile="src/ml_array.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/ml_array.h" line="10" column="1" bodyfile="src/ml_array.h" bodystart="10" bodyend="13"/>
+    <listofallmembers>
+      <member refid="structml__array__dimension__t_1a1d8839d8a03ff495c70687efa04e94e2" prot="public" virt="non-virtual"><scope>ml_array_dimension_t</scope><name>Indices</name></member>
+      <member refid="structml__array__dimension__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>ml_array_dimension_t</scope><name>Size</name></member>
+      <member refid="structml__array__dimension__t_1a2bc9777201b278cf5e84e9124ffbba71" prot="public" virt="non-virtual"><scope>ml_array_dimension_t</scope><name>Stride</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

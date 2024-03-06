@@ -18,6 +18,7 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {
 	if (Expr->compile == (void *)ml_fun_expr_compile) return ML_EXPR_FUN;
 	if (Expr->compile == (void *)ml_guard_expr_compile) return ML_EXPR_GUARD;
 	if (Expr->compile == (void *)ml_ident_expr_compile) return ML_EXPR_IDENT;
+	if (Expr->compile == (void *)ml_if_config_expr_compile) return ML_EXPR_IF_CONFIG;
 	if (Expr->compile == (void *)ml_if_expr_compile) return ML_EXPR_IF;
 	if (Expr->compile == (void *)ml_inline_expr_compile) return ML_EXPR_INLINE;
 	if (Expr->compile == (void *)ml_it_expr_compile) return ML_EXPR_IT;

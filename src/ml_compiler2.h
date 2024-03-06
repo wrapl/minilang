@@ -10,7 +10,6 @@ typedef enum {
 	MLT_EOI,
 	MLT_AND,
 	MLT_CASE,
-	MLT_DEBUG,
 	MLT_DEF,
 	MLT_DO,
 	MLT_EACH,
@@ -21,6 +20,7 @@ typedef enum {
 	MLT_FOR,
 	MLT_FUN,
 	MLT_IF,
+	MLT_IF_CONFIG,
 	MLT_IN,
 	MLT_IS,
 	MLT_IT,
@@ -59,7 +59,7 @@ typedef enum {
 	MLT_COMMA,
 	MLT_ASSIGN,
 	MLT_NAMED,
-	MLT_NIL_CHECK,
+	MLT_ESCAPE,
 	MLT_IMPORT,
 	MLT_VALUE,
 	MLT_EXPR,
@@ -80,6 +80,7 @@ typedef struct mlc_upvalue_t mlc_upvalue_t;
 typedef struct mlc_define_t mlc_define_t;
 
 struct mlc_expr_t {
+	ml_type_t *Type;
 	void (*compile)(mlc_function_t *, mlc_expr_t *, int);
 	mlc_expr_t *Next;
 	const char *Source;
@@ -110,6 +111,7 @@ struct mlc_define_t {
 	mlc_define_t *Next;
 	const char *Ident;
 	mlc_expr_t *Expr;
+	ml_value_t *List;
 	long Hash;
 };
 
@@ -118,6 +120,7 @@ struct mlc_define_t {
 ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
 
 #define MLC_EXPR_FIELDS(name) \
+	ml_type_t *Type; \
 	void (*compile)(mlc_function_t *, mlc_## name ## _expr_t *, int); \
 	mlc_expr_t *Next; \
 	const char *Source; \
@@ -162,6 +165,14 @@ struct mlc_parent_expr_t {
 	MLC_EXPR_FIELDS(parent);
 	mlc_expr_t *Child;
 	const char *Name;
+};
+
+typedef struct mlc_if_config_expr_t mlc_if_config_expr_t;
+
+struct mlc_if_config_expr_t {
+	MLC_EXPR_FIELDS(if_config);
+	mlc_expr_t *Child;
+	const char *Config;
 };
 
 typedef struct mlc_local_expr_t mlc_local_expr_t;
@@ -289,12 +300,6 @@ struct mlc_frame_t {
 	int AllowErrors, Line;
 	void *Data[];
 };
-
-typedef struct {
-	ml_type_t *Type;
-	mlc_expr_t *Expr;
-	mlc_function_t *Function;
-} ml_expr_value_t;
 
 void mlc_expr_error(mlc_function_t *Function, mlc_expr_t *Expr, ml_value_t *Error);
 

@@ -1,0 +1,186 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__tuples" kind="group">
+    <compoundname>tuples</compoundname>
+    <title>Tuples</title>
+    <innerclass refid="structml__tuple__t" prot="public">ml_tuple_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__tuples_1ga44cd4a6d85015feb41ac4ae9763b4ca5" prot="public" static="no">
+        <type>struct ml_tuple_t</type>
+        <definition>typedef struct ml_tuple_t ml_tuple_t</definition>
+        <argsstring></argsstring>
+        <name>ml_tuple_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="475" column="25" bodyfile="src/ml_types.h" bodystart="475" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__tuples_1ga61289eb0573f6351ea7416a268c97aec" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLTupleT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLTupleT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="477" column="18" declfile="src/ml_types.h" declline="477" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__tuples_1ga209a3bfec0d894ed059651524985c069" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_tuple</definition>
+        <argsstring>(size_t Size) __attribute__((malloc))</argsstring>
+        <name>ml_tuple</name>
+        <param>
+          <type>size_t</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="485" column="12" declfile="src/ml_types.h" declline="485" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__tuples_1ga1dbdb643371c3558c232163c9f6183f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_tuplen</definition>
+        <argsstring>(size_t Size, ml_value_t **Values) __attribute__((malloc))</argsstring>
+        <name>ml_tuplen</name>
+        <param>
+          <type>size_t</type>
+          <declname>Size</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Values</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="486" column="12" declfile="src/ml_types.h" declline="486" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__tuples_1ga422faa08aff54a45d1562430ce98ed40" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_tuplev</definition>
+        <argsstring>(size_t Size,...) __attribute__((malloc))</argsstring>
+        <name>ml_tuplev</name>
+        <param>
+          <type>size_t</type>
+          <declname>Size</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="487" column="12" declfile="src/ml_types.h" declline="487" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__tuples_1gae55920fd8911b4b2c766d4e43c390d28" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_tuple_size</definition>
+        <argsstring>(ml_value_t *Tuple)</argsstring>
+        <name>ml_tuple_size</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Tuple</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="489" column="19" bodyfile="src/ml_types.h" bodystart="489" bodyend="491"/>
+      </memberdef>
+      <memberdef kind="function" id="group__tuples_1gab195fb9081c1633279af01cc619ab22e" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_tuple_get</definition>
+        <argsstring>(ml_value_t *Tuple, int Index)</argsstring>
+        <name>ml_tuple_get</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Tuple</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="493" column="26" bodyfile="src/ml_types.h" bodystart="493" bodyend="495"/>
+      </memberdef>
+      <memberdef kind="function" id="group__tuples_1ga68bd0d9d52370c174da63a9153d8c50a" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_tuple_set</definition>
+        <argsstring>(ml_value_t *Tuple0, int Index, ml_value_t *Value)</argsstring>
+        <name>ml_tuple_set</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Tuple0</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="503" column="26" bodyfile="src/ml_types.h" bodystart="503" bodyend="506"/>
+      </memberdef>
+      <memberdef kind="function" id="group__tuples_1ga8f3d07715072ebb78a856e5cbb68348f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_unpack</definition>
+        <argsstring>(ml_value_t *Value, int Index)</argsstring>
+        <name>ml_unpack</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="510" column="12" declfile="src/ml_types.h" declline="510" declcolumn="12"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

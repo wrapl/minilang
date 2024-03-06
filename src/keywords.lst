@@ -3,7 +3,6 @@ struct keyword_t {const char *Name; int Token;};
 _, MLT_BLANK
 and, MLT_AND
 case, MLT_CASE
-debug, MLT_DEBUG
 def, MLT_DEF
 do, MLT_DO
 each, MLT_EACH
@@ -14,6 +13,7 @@ exit, MLT_EXIT
 for, MLT_FOR
 fun, MLT_FUN
 if, MLT_IF
+ifConfig, MLT_IF_CONFIG
 in, MLT_IN
 is, MLT_IS
 it, MLT_IT

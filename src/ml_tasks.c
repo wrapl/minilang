@@ -84,6 +84,105 @@ ML_METHODX("wait", MLTaskT) {
 	return ml_task_call(Caller, Task, 0, NULL);
 }
 
+#ifdef ML_GENERICS
+
+ML_GENERIC_TYPE(MLTaskListT, MLListT, MLTaskT);
+
+typedef struct {
+	ml_state_t Base;
+	int Remaining;
+} ml_task_list_t;
+
+static void ml_task_list_run(ml_task_list_t *TaskList, ml_value_t *Value) {
+	if (!TaskList->Remaining) return;
+	if (ml_is_error(Value)) {
+		TaskList->Remaining = 0;
+		ML_CONTINUE(TaskList->Base.Caller, Value);
+	} else if (--TaskList->Remaining == 0) {
+		ML_CONTINUE(TaskList->Base.Caller, Value);
+	}
+}
+
+ML_METHODX("wait", MLTaskListT) {
+//<Tasks
+//>any|error
+// Waits until all the tasks in :mini:`Tasks` are completed or any task returns an error.
+	ml_task_list_t *TaskList = new(ml_task_list_t);
+	TaskList->Base.Caller = Caller;
+	TaskList->Base.Context = Caller->Context;
+	TaskList->Base.run = (ml_state_fn)ml_task_list_run;
+	TaskList->Remaining = ml_list_length(Args[0]);
+	ML_LIST_FOREACH(Args[0], Iter) {
+		if (!ml_is(Iter->Value, MLTaskT)) ML_ERROR("TypeError", "Expected task not %s", ml_typeof(Iter->Value)->Name);
+		ml_task_call((ml_state_t *)TaskList, (ml_task_t *)Iter->Value, 0, NULL);
+	}
+}
+
+#endif
+
+typedef struct {
+	ml_task_t Base;
+	int Remaining, Count;
+	ml_task_t *Tasks[];
+} ml_task_set_t;
+
+static void ml_task_all_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
+	if (!TaskSet->Remaining) return;
+	if (ml_is_error(Value)) {
+		TaskSet->Remaining = 0;
+		ml_task_set((ml_task_t *)TaskSet, Value);
+	} else if (--TaskSet->Remaining) {
+		ml_task_set((ml_task_t *)TaskSet, Value);
+	}
+}
+
+ML_TYPE(MLTaskSetT, (MLTaskT), "task::set");
+// A task combining a set of sub tasks.
+
+ML_METHOD("*", MLTaskT, MLTaskT) {
+//<Task/1
+//<Task/2
+//>task::set
+// Returns a :mini:`task::set` that completes when all of its sub tasks complete, or any raises an error.
+	ML_CHECK_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
+	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.run = (ml_state_fn)ml_task_all_run;
+	TaskSet->Remaining = TaskSet->Count = Count;
+	for (int I = 0; I < Count; ++I) {
+		ml_task_t *Task = (ml_task_t *)Args[I];
+		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
+		TaskSet->Tasks[I] = Task;
+	}
+	return (ml_value_t *)TaskSet;
+}
+
+static void ml_task_any_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
+	if (!TaskSet->Remaining) return;
+	TaskSet->Remaining = 0;
+	ml_task_set((ml_task_t *)TaskSet, Value);
+}
+
+ML_METHOD("+", MLTaskT, MLTaskT) {
+//<Task/1
+//<Task/2
+//>task::set
+// Returns a :mini:`task::set` that completes when any of its sub tasks complete, or any raises an error.
+	ML_CHECK_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
+	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.run = (ml_state_fn)ml_task_any_run;
+	TaskSet->Remaining = TaskSet->Count = Count;
+	for (int I = 0; I < Count; ++I) {
+		ml_task_t *Task = (ml_task_t *)Args[I];
+		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
+		TaskSet->Tasks[I] = Task;
+	}
+	return (ml_value_t *)TaskSet;
+}
+
 ML_METHOD("done", MLTaskT, MLAnyT) {
 //<Task
 //<Result
@@ -191,11 +290,11 @@ ML_METHODX("on", MLFunctionT, MLFunctionT) {
 	ML_RETURN(Composed);
 }
 
-typedef struct ml_tasks_pending_t ml_tasks_pending_t;
+typedef struct ml_task_pending_t ml_task_pending_t;
 
-struct ml_tasks_pending_t {
-	ml_tasks_pending_t *Next;
-	ml_state_t *Caller, *Task;
+struct ml_task_pending_t {
+	ml_task_pending_t *Next;
+	ml_task_t *Task;
 	ml_value_t *Fn;
 	int Count;
 	ml_value_t *Args[];
@@ -203,145 +302,69 @@ struct ml_tasks_pending_t {
 
 typedef struct {
 	ml_state_t Base;
-	ml_tasks_pending_t *Pending, **PendingSlot;
-	ml_tasks_pending_t *Adding;
-	size_t NumRunning, MaxRunning;
-	size_t NumPending, MaxPending;
-} ml_tasks_t;
+	ml_task_pending_t *Head, *Tail;
+	int NumRunning, MaxRunning;
+	int NumPending, MaxPending;
+} ml_task_queue_t;
 
-static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		ml_tasks_pending_t *Adding = Tasks->Adding;
-		Tasks->Adding = NULL;
-		while (Adding) {
-			Adding->Caller->run(Adding->Caller, Value);
-			Adding = Adding->Next;
-		}
-		ml_state_t *Caller = Tasks->Base.Caller;
-		ML_RETURN(Value);
-	}
-	ml_tasks_pending_t *Pending = Tasks->Pending;
-	if (Pending) {
-		Tasks->Pending = Pending->Next;
-		--Tasks->NumPending;
-		ml_tasks_pending_t *Adding = Tasks->Adding;
-		if (Adding) {
-			Tasks->Adding = Adding->Next;
-			Adding->Caller->run(Adding->Caller, (ml_value_t *)Adding->Task);
-		}
-		return ml_call(Pending->Task, Pending->Fn, Pending->Count, Pending->Args);
-	} else {
-		Tasks->PendingSlot = &Tasks->Pending;
-		if (--Tasks->NumRunning == 0) {
-			ml_state_t *Caller = Tasks->Base.Caller;
-			ML_RETURN(MLNil);
-		}
-	}
-}
-
-static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_value_t **Args) {
-	//if (!Tasks->Base.Caller) ML_ERROR("StateError", "Tasks already complete");
+static void ml_task_queue_call(ml_state_t *Caller, ml_task_queue_t *Queue, int Count, ml_value_t **Args) {
 	ml_value_t *Fn = ml_deref(Args[Count - 1]);
 	if (!ml_is(Fn, MLFunctionT)) ML_ERROR("TypeError", "expected function for argument %d", Count);
 	ml_task_t *Task = new(ml_task_t);
 	Task->Base.Type = MLTaskT;
-	Task->Base.Caller = (ml_state_t *)Tasks;
 	Task->Base.Context = Caller->Context;
 	Task->Base.run = (ml_state_fn)ml_task_run;
-	if (Tasks->NumRunning >= Tasks->MaxRunning) {
-		ml_tasks_pending_t *Pending = xnew(ml_tasks_pending_t, Count - 1, ml_value_t *);
-		Pending->Task = (ml_state_t *)Task;
+	ml_task_call((ml_state_t *)Queue, Task, 0, NULL);
+	if (Queue->NumRunning < Queue->MaxRunning) {
+		++Queue->NumRunning;
+		ml_call(Task, Fn, Count - 1, Args);
+	} else {
+		ml_task_pending_t *Pending = new(ml_task_pending_t);
+		Pending->Task = Task;
 		Pending->Fn = Fn;
 		Pending->Count = Count - 1;
-		for (int I = 0; I < Count - 1; ++I) Pending->Args[I] = Args[I];
-		Tasks->PendingSlot[0] = Pending;
-		Tasks->PendingSlot = &Pending->Next;
-		if (++Tasks->NumPending > Tasks->MaxPending) {
-			Pending->Caller = Caller;
-			if (!Tasks->Adding) Tasks->Adding = Pending;
-		} else {
-			ML_RETURN(Task);
-		}
+		for (int I = 1; I < Count; ++I) Pending->Args[I - 1] = Args[I];
+		if (Queue->Tail) Queue->Tail->Next = Pending; else Queue->Head = Pending;
+		Queue->Tail = Pending;
+	}
+	ML_RETURN(Task);
+}
+
+ML_TYPE(MLTaskQueueT, (MLFunctionT), "task::queue",
+// A queue of tasks that can run a limited number of tasks at once.
+//
+// :mini:`fun (Queue: task::queue)(Arg/1, ..., Arg/n, Fn): task`
+//    Returns a new task that calls :mini:`Fn(Arg/1, ..., Arg/n)`. The task will be delayed if :mini:`Queue` has reached its limit.
+	.call = (void *)ml_task_queue_call
+);
+
+static void ml_task_queue_run(ml_task_queue_t *Queue, ml_value_t *Value) {
+	ml_task_pending_t *Pending = Queue->Head;
+	if (Pending) {
+		if (!(Queue->Head = Pending->Next)) Queue->Tail = NULL;
+		ml_call(Pending->Task, Pending->Fn, Pending->Count, Pending->Args);
 	} else {
-		++Tasks->NumRunning;
-		ml_call(Task, Fn, Count - 1, Args);
-		ML_RETURN(Task);
+		--Queue->NumRunning;
 	}
 }
 
-extern ml_type_t MLTasksT[];
-
-ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
-// A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
-//
-// :mini:`fun (Tasks: tasks)(Arg/1, ..., Arg/n, Fn): task`
-//    Creates a new :mini:`task` that runs :mini:`Fn(Arg/1, ..., Arg/n)`.
-	.call = (void *)ml_tasks_call
-);
-
-ML_METHODX(MLTasksT, MLFunctionT) {
-//<Main
-//>nil|error
-// Creates a new :mini:`tasks` set with no limits, and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
-	ml_tasks_t *Tasks = new(ml_tasks_t);
-	Tasks->Base.Type = MLTasksT;
-	Tasks->Base.run = (void *)ml_tasks_continue;
-	Tasks->Base.Caller = Caller;
-	Tasks->Base.Context = Caller->Context;
-	Tasks->NumRunning = 1;
-	Tasks->NumPending = 0;
-	Tasks->PendingSlot = &Tasks->Pending;
-	Tasks->MaxRunning = SIZE_MAX;
-	Tasks->MaxPending = SIZE_MAX;
-	ml_value_t *Main = Args[0];
-	Args = ml_alloc_args(1);
-	Args[0] = (ml_value_t *)Tasks;
-	return ml_call(Tasks, Main, 1, Args);
+ML_METHOD(MLTaskQueueT, MLIntegerT) {
+//@task::queue
+//<MaxRunning
+//>task::queue
+// Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
+	ml_task_queue_t *Queue = new(ml_task_queue_t);
+	Queue->Base.Type = MLTaskQueueT;
+	Queue->Base.run = (ml_state_fn)ml_task_queue_run;
+	Queue->MaxRunning = ml_integer_value(Args[0]);
+	Queue->NumRunning = 0;
+	return (ml_value_t *)Queue;
 }
 
-ML_METHODX(MLTasksT, MLIntegerT, MLFunctionT) {
-//<MaxRunning
-//<Main
-//>nil|error
-// Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel, and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
-	ml_tasks_t *Tasks = new(ml_tasks_t);
-	Tasks->Base.Type = MLTasksT;
-	Tasks->Base.run = (void *)ml_tasks_continue;
-	Tasks->Base.Caller = Caller;
-	Tasks->Base.Context = Caller->Context;
-	Tasks->NumRunning = 1;
-	Tasks->NumPending = 0;
-	Tasks->PendingSlot = &Tasks->Pending;
-	Tasks->MaxRunning = ml_integer_value_fast(Args[0]);
-	Tasks->MaxPending = SIZE_MAX;
-	ml_value_t *Main = Args[1];
-	Args = ml_alloc_args(1);
-	Args[0] = (ml_value_t *)Tasks;
-	return ml_call(Tasks, Main, 1, Args);
-}
-
-ML_METHODX(MLTasksT, MLIntegerT, MLIntegerT, MLFunctionT) {
-//<MaxRunning
-//<MaxPending
-//<Main
-//>nil|error
-// Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel, and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
-//
-// At most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
-	ml_tasks_t *Tasks = new(ml_tasks_t);
-	Tasks->Base.Type = MLTasksT;
-	Tasks->Base.run = (void *)ml_tasks_continue;
-	Tasks->Base.Caller = Caller;
-	Tasks->Base.Context = Caller->Context;
-	Tasks->NumRunning = 1;
-	Tasks->NumPending = 0;
-	Tasks->PendingSlot = &Tasks->Pending;
-	Tasks->MaxRunning = ml_integer_value_fast(Args[0]);
-	Tasks->MaxPending = ml_integer_value_fast(Args[1]);
-	ml_value_t *Main = Args[2];
-	Args = ml_alloc_args(1);
-	Args[0] = (ml_value_t *)Tasks;
-	return ml_call(Tasks, Main, 1, Args);
+ML_METHOD("cancel", MLTaskQueueT) {
+	ml_task_queue_t *Queue = (ml_task_queue_t *)Args[0];
+	Queue->Head = Queue->Tail = NULL;
+	return (ml_value_t *)Queue;
 }
 
 typedef struct ml_parallel_iter_t ml_parallel_iter_t;
@@ -624,9 +647,9 @@ ML_METHODX("count", MLBufferedT) {
 
 void ml_tasks_init(stringmap_t *Globals) {
 #include "ml_tasks_init.c"
+	stringmap_insert(MLTaskT->Exports, "queue", MLTaskQueueT);
 	if (Globals) {
 		stringmap_insert(Globals, "task", MLTaskT);
-		stringmap_insert(Globals, "tasks", MLTasksT);
 		stringmap_insert(Globals, "parallel", Parallel);
 		stringmap_insert(Globals, "buffered", Buffered);
 	}

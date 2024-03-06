@@ -1,0 +1,252 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__flags" kind="group">
+    <compoundname>flags</compoundname>
+    <title>Flags</title>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__flags_1ga22c1e33d95637b0d82ab55db344c2b81" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLFlagsT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLFlagsT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="95" column="18" declfile="src/ml_object.h" declline="95" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__flags_1ga8f426dc32abaa0f640d2799f94e616b9" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLFlagsValueT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLFlagsValueT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="96" column="18" declfile="src/ml_object.h" declline="96" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__flags_1gac7a0b121ec4b7b961c9e6fbac28390ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t * ml_flags</definition>
+        <argsstring>(const char *Name,...)</argsstring>
+        <name>ml_flags</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="98" column="11" declfile="src/ml_object.h" declline="98" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__flags_1ga8a6e62bc2f6f4efb6192ea057a894b7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t * ml_flags2</definition>
+        <argsstring>(const char *Name,...)</argsstring>
+        <name>ml_flags2</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="99" column="11" declfile="src/ml_object.h" declline="99" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__flags_1gae73f85be76af86969e688273e18e366f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_flags_value</definition>
+        <argsstring>(ml_type_t *Type, uint64_t Flags)</argsstring>
+        <name>ml_flags_value</name>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>Flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="101" column="12" declfile="src/ml_object.h" declline="101" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__flags_1gab6f50968d01441cd12d8da8976babd7c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>uint64_t ml_flags_value_value</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_flags_value_value</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="102" column="10" declfile="src/ml_object.h" declline="102" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="group__flags_1ga066edf5b12061ebbe7e2f420d2a85798" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_flags_value_name</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_flags_value_name</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="103" column="12" declfile="src/ml_object.h" declline="103" declcolumn="12"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__flags_1gaff64ed8b6e4351149f95843609cfb2bd" prot="public" static="no">
+        <name>ML_CLASS</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>PARENTS</defname></param>
+        <param><defname>NAME</defname></param>
+        <initializer><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *TYPE</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="107" column="9" bodyfile="src/ml_object.h" bodystart="107" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__flags_1ga3eb1398dbc4993ee4752e07d18edf082" prot="public" static="no">
+        <name>ML_CLASS_ADD_PARENTS</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>PARENTS ...</defname></param>
+        <initializer>	{ \
+	<ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *Parents[] = {PARENTS}; \
+	for (int I = 0; I &lt; (sizeof(Parents) / sizeof(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *)); ++I) { \
+		ml_class_add_parent(NULL, TYPE, Parents[I]); \
+	} \
+}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="108" column="9" bodyfile="src/ml_object.h" bodystart="108" bodyend="113"/>
+      </memberdef>
+      <memberdef kind="define" id="group__flags_1gab2604f74e595e6834034ecd477d96036" prot="public" static="no">
+        <name>ML_FIELD</name>
+        <param><defname>FIELD</defname></param>
+        <param><defname>TYPE</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="114" column="9" bodyfile="src/ml_object.h" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__flags_1ga82e405226ae6f4e48c3a15b9fff8cfc5" prot="public" static="no">
+        <name>ML_ENUM</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>VALUES ...</defname></param>
+        <initializer><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *TYPE</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="115" column="9" bodyfile="src/ml_object.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__flags_1gac2cd8f2e32d448a162784ade1ecc4ef6" prot="public" static="no">
+        <name>ML_ENUM_CYCLIC</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>VALUES ...</defname></param>
+        <initializer><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *TYPE</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="116" column="9" bodyfile="src/ml_object.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__flags_1gadc751bc7b4b146dc5e4733cb8c6b75f0" prot="public" static="no">
+        <name>ML_FLAGS</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>VALUES ...</defname></param>
+        <initializer><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *TYPE</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="117" column="9" bodyfile="src/ml_object.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__flags_1ga3f906af67a6cad8c688fe2741ad92a79" prot="public" static="no">
+        <name>ML_ENUM2</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>VALUES ...</defname></param>
+        <initializer><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *TYPE</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="118" column="9" bodyfile="src/ml_object.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__flags_1ga150596e88430f302a5208579891d659e" prot="public" static="no">
+        <name>ML_FLAGS2</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>NAME</defname></param>
+        <param><defname>VALUES ...</defname></param>
+        <initializer><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *TYPE</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="119" column="9" bodyfile="src/ml_object.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

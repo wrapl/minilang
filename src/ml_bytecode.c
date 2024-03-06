@@ -455,7 +455,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_EXIT] = &&DO_EXIT,
 		[MLI_FOR] = &&DO_FOR,
 		[MLI_GOTO] = &&DO_GOTO,
-		[MLI_IF_DEBUG] = &&DO_IF_DEBUG,
+		[MLI_IF_CONFIG] = &&DO_IF_CONFIG,
 		[MLI_ITER] = &&DO_ITER,
 		[MLI_KEY] = &&DO_KEY,
 		[MLI_LET] = &&DO_LET,
@@ -1080,12 +1080,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (Index < 0 || Index >= Count) Index = Count - 1;
 		ADVANCE(Inst[2].Insts[Index]);
 	}
-	DO_IF_DEBUG: {
-#ifdef DEBUG_VERSION
-		ADVANCE(Inst[1].Inst);
-#else
-		ADVANCE(Inst + 2);
-#endif
+	DO_IF_CONFIG: {
+		if (((ml_config_fn)Inst[2].Data)(Frame->Base.Context)) {
+			ADVANCE(Inst + 3);
+		} else {
+			ADVANCE(Inst[1].Inst);
+		}
 	}
 	DO_CALL_COUNT(0);
 	DO_CALL_COUNT(1);
@@ -1185,7 +1185,8 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		Frame->Stack[I] = Arg;
 	}
 	for (int J = I; J < NumParams; ++J) {
-		Frame->Stack[J] = MLNil;
+		Frame->Stack[J] = Decl->Flags & MLC_DECL_ASVAR ? ml_variable(MLNil, NULL) : MLNil;
+		Decl = Decl->Next;
 	}
 	if (Flags & ML_CLOSURE_EXTRA_ARGS) {
 		ml_value_t *Rest = ml_list();
@@ -1317,6 +1318,8 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_INST:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 2;
+	case MLIT_INST_CONFIG:
+		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 	case MLIT_INST_COUNT:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 3;
@@ -1367,6 +1370,10 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	case MLIT_INST:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		return 2;
+	case MLIT_INST_CONFIG:
+		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
+		*(int *)(Info->Hash + J) ^= Inst[2].Count;
+		return 3;
 	case MLIT_INST_COUNT:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		*(int *)(Info->Hash + J) ^= Inst[2].Count;
@@ -1675,6 +1682,11 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	case MLIT_INST:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
+	case MLIT_INST_CONFIG:
+		// TODO: Implement this!
+		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
+		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
+		return 3;
 	case MLIT_INST_COUNT:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
@@ -1747,17 +1759,9 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			ml_stringbuffer_printf(Buffer, ", %d", Inst[2 + N].Count);
 		}
-		ml_closure_info_labels(Info);
-		ml_stringbuffer_put(Buffer, '\n');
-		for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
-			if (Inst->Opcode == MLI_LINK) {
-				Inst = Inst[1].Inst;
-			} else {
-				Inst += ml_closure_inst_list(Inst, Buffer);
-			}
-			ml_stringbuffer_put(Buffer, '\n');
-		}
-		ml_stringbuffer_write(Buffer, "\t----------", strlen("\t----------"));
+		ml_stringbuffer_write(Buffer, "\n\t    /--------\\\n", strlen("\n\t    /--------\\\n"));
+		ml_closure_info_list(Buffer, Info);
+		ml_stringbuffer_write(Buffer, "\t    \\--------/", strlen("\t    \\--------/"));
 		return 2 + Info->NumUpValues;
 	}
 	case MLIT_SWITCH: {
@@ -1807,39 +1811,27 @@ ML_METHOD("values", MLClosureT) {
 	return Result;
 }
 
+void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info) {
+	ml_closure_info_labels(Info);
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			Inst = Inst[1].Inst;
+		} else {
+			Inst += ml_closure_inst_list(Inst, Buffer);
+		}
+		ml_stringbuffer_put(Buffer, '\n');
+	}
+}
+
 ML_METHOD("list", MLClosureT) {
 //<Closure
 //>string
 // Returns a listing of the bytecode of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	ml_closure_info_t *Info = Closure->Info;
-	ml_closure_info_labels(Info);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
-		if (Inst->Opcode == MLI_LINK) {
-			Inst = Inst[1].Inst;
-		} else {
-			Inst += ml_closure_inst_list(Inst, Buffer);
-		}
-		ml_stringbuffer_put(Buffer, '\n');
-	}
-	return ml_stringbuffer_get_value(Buffer);
-}
-
-void ml_closure_list(ml_value_t *Value) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
-	ml_closure_info_labels(Info);
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
-	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
-		if (Inst->Opcode == MLI_LINK) {
-			Inst = Inst[1].Inst;
-		} else {
-			Inst += ml_closure_inst_list(Inst, Buffer);
-		}
-		ml_stringbuffer_put(Buffer, '\n');
-	}
+	ml_closure_info_list(Buffer, Info);
 	ml_stringbuffer_put(Buffer, '\n');
 	for (int I = 0; I < Info->NumUpValues; ++I) {
 		ml_value_t *UpValue = Closure->UpValues[I];
@@ -1847,7 +1839,7 @@ void ml_closure_list(ml_value_t *Value) {
 		ml_closure_value_list(UpValue, Buffer);
 		ml_stringbuffer_put(Buffer, '\n');
 	}
-	puts(ml_stringbuffer_get_string(Buffer));
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 #ifdef ML_JIT

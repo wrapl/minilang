@@ -97,7 +97,7 @@ tuple
 
 
 :mini:`meth (Tuple: tuple)[Index: integer]: any | error`
-   Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
+   Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of interval.
    Indexing starts at :mini:`1`. Negative indices count from the end,  with :mini:`-1` returning the last element.
 
 

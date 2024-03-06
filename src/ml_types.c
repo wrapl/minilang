@@ -351,8 +351,31 @@ typedef struct {
 	ml_type_t *Types[];
 } ml_union_type_t;
 
-ML_TYPE(MLTypeUnionT, (MLTypeT), "union-type");
+ML_TYPE(MLTypeUnionT, (MLTypeT), "type::union");
 //!internal
+
+ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]) {
+	ml_union_type_t *Type = xnew(ml_union_type_t, NumTypes, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	size_t Length = strlen(Types[0]->Name) + NumTypes;
+	for (int I = 1; I < NumTypes; ++I) Length += strlen(Types[I]->Name);
+	char *Name = snew(Length);
+	Type->Base.Name = Name;
+	Name = stpcpy(Name, Types[0]->Name);
+	for (int I = 1; I < NumTypes; ++I) {
+		*Name++ = '|';
+		Name = stpcpy(Name, Types[I]->Name);
+	}
+	*Name = 0;
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = NumTypes;
+	for (int I = 0; I < NumTypes; ++I) Type->Types[I] = Types[I];
+	return (ml_type_t *)Type;
+}
 
 ML_METHOD("|", MLTypeT, MLTypeT) {
 //<Type/1
@@ -363,19 +386,57 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	GC_asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Name, Type2->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
-	if (Type1->Rank > Type2->Rank) {
-		Type->Base.Rank = Type1->Rank + 1;
-	} else {
-		Type->Base.Rank = Type2->Rank + 1;
-	}
+	Type->Base.Rank = 1;
 	Type->NumTypes = 2;
 	Type->Types[0] = Type1;
 	Type->Types[1] = Type2;
+	return (ml_value_t *)Type;
+}
+
+ML_METHOD("|", MLTypeUnionT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_union_type_t *Type1 = (ml_union_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	ml_union_type_t *Type = xnew(ml_union_type_t, Type1->NumTypes + 1, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Base.Name, Type2->Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = Type1->NumTypes + 1;
+	for (int I = 0; I < Type1->NumTypes; ++I) Type->Types[I] = Type1->Types[I];
+	Type->Types[Type1->NumTypes] = Type2;
+	return (ml_value_t *)Type;
+}
+
+ML_METHOD("|", MLTypeT, MLTypeUnionT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_union_type_t *Type2 = (ml_union_type_t *)Args[1];
+	ml_union_type_t *Type = xnew(ml_union_type_t, Type2->NumTypes + 1, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Name, Type2->Base.Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = Type2->NumTypes + 1;
+	Type->Types[0] = Type1;
+	for (int I = 0; I < Type2->NumTypes; ++I) Type->Types[I + 1] = Type2->Types[I];
 	return (ml_value_t *)Type;
 }
 
@@ -386,15 +447,34 @@ ML_METHOD("?", MLTypeT) {
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	GC_asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s|nil", Type1->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
-	Type->Base.Rank = Type1->Rank + 1;
+	Type->Base.Rank = 1;
 	Type->NumTypes = 2;
 	Type->Types[0] = Type1;
 	Type->Types[1] = MLNilT;
+	return (ml_value_t *)Type;
+}
+
+ML_METHOD("?", MLTypeUnionT) {
+//<Type
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_union_type_t *Type1 = (ml_union_type_t *)Args[0];
+	ml_union_type_t *Type = xnew(ml_union_type_t, Type1->NumTypes + 1, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	GC_asprintf((char **)&Type->Base.Name, "%s|nil", Type1->Base.Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = 1;
+	Type->NumTypes = Type1->NumTypes + 1;
+	for (int I = 0; I < Type1->NumTypes; ++I) Type->Types[I] = Type1->Types[I];
+	Type->Types[Type1->NumTypes] = MLNilT;
 	return (ml_value_t *)Type;
 }
 
@@ -2180,12 +2260,12 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 //<Tuple
 //<Index
 //>any | error
-// Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
+// Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of interval.
 // Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	long Index = ml_integer_value_fast(Args[1]);
 	if (--Index < 0) Index += Tuple->Size + 1;
-	if (Index < 0 || Index >= Tuple->Size) return ml_error("RangeError", "Tuple index out of bounds");
+	if (Index < 0 || Index >= Tuple->Size) return ml_error("IntervalError", "Tuple index out of bounds");
 	return Tuple->Values[Index];
 }
 
@@ -2280,8 +2360,11 @@ ML_METHOD("<>", MLTupleT, MLTupleT) {
 	return ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]);
 }
 
+ML_TYPE(MLComparisonStateT, (MLStateT), "comparison_state");
+//!internal
+
 typedef struct {
-	ml_state_t Base;
+	ml_comparison_state_t Base;
 	ml_value_t *Result, *Order, *Default;
 	ml_value_t **A, **B;
 	ml_value_t *Args[2];
@@ -2289,7 +2372,7 @@ typedef struct {
 } ml_tuple_compare_state_t;
 
 static void ml_tuple_compare_equal_run(ml_tuple_compare_state_t *State, ml_value_t *Result) {
-	ml_state_t *Caller = State->Base.Caller;
+	ml_state_t *Caller = State->Base.Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (Result == MLNil) ML_RETURN(State->Result);
 	if (--State->Count == 0) ML_RETURN(State->Default);
@@ -2310,12 +2393,19 @@ ML_METHODX("=", MLTupleT, MLTupleT) {
 //$= =((1, 3, 2), (1, 2, 3))
 	ml_tuple_t *A = (ml_tuple_t *)Args[0];
 	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
 	if (A->Size != B->Size) ML_RETURN(MLNil);
 	if (!A->Size) ML_RETURN(B);
 	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_equal_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_equal_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = MLNil;
 	State->Default = (ml_value_t *)B;
 	State->Count = A->Size;
@@ -2338,12 +2428,19 @@ ML_METHODX("!=", MLTupleT, MLTupleT) {
 //$= !=((1, 3, 2), (1, 2, 3))
 	ml_tuple_t *A = (ml_tuple_t *)Args[0];
 	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
 	if (A->Size != B->Size) ML_RETURN(B);
 	if (!A->Size) ML_RETURN(MLNil);
 	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_equal_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_equal_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Default = MLNil;
 	State->Count = A->Size;
@@ -2357,23 +2454,23 @@ ML_METHODX("!=", MLTupleT, MLTupleT) {
 static void ml_tuple_compare_order_run(ml_tuple_compare_state_t *State, ml_value_t *Result);
 
 static void ml_tuple_compare_order2_run(ml_tuple_compare_state_t *State, ml_value_t *Result) {
-	ml_state_t *Caller = State->Base.Caller;
+	ml_state_t *Caller = State->Base.Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (Result == MLNil) ML_RETURN(MLNil);
 	if (--State->Count == 0) ML_RETURN(State->Default);
 	State->Args[0] = *++State->A;
 	State->Args[1] = *++State->B;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_order_run;
 	return ml_call(State, State->Order, 2, State->Args);
 }
 
 static void ml_tuple_compare_order_run(ml_tuple_compare_state_t *State, ml_value_t *Result) {
-	ml_state_t *Caller = State->Base.Caller;
+	ml_state_t *Caller = State->Base.Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (Result != MLNil) ML_RETURN(State->Result);
 	State->Args[0] = *State->A;
 	State->Args[1] = *State->B;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_order2_run;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_order2_run;
 	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
@@ -2389,15 +2486,22 @@ ML_METHODX("<", MLTupleT, MLTupleT) {
 //$= <((1, 3, 2), (1, 2, 3))
 	ml_tuple_t *A = (ml_tuple_t *)Args[0];
 	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
 	if (!A->Size) {
 		if (!B->Size) ML_RETURN(MLNil);
 		ML_RETURN(B);
 	}
 	if (!B->Size) ML_RETURN(MLNil);
 	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = LessMethod;
 	if (A->Size >= B->Size) {
@@ -2426,15 +2530,22 @@ ML_METHODX("<=", MLTupleT, MLTupleT) {
 //$= <=((1, 3, 2), (1, 2, 3))
 	ml_tuple_t *A = (ml_tuple_t *)Args[0];
 	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
 	if (!A->Size) {
 		if (!B->Size) ML_RETURN(B);
 		ML_RETURN(B);
 	}
 	if (!B->Size) ML_RETURN(MLNil);
 	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = LessMethod;
 	if (A->Size > B->Size) {
@@ -2463,15 +2574,22 @@ ML_METHODX(">", MLTupleT, MLTupleT) {
 //$= >((1, 3, 2), (1, 2, 3))
 	ml_tuple_t *A = (ml_tuple_t *)Args[0];
 	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
 	if (!A->Size) {
 		if (!B->Size) ML_RETURN(MLNil);
 		ML_RETURN(MLNil);
 	}
 	if (!B->Size) ML_RETURN(A);
 	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = GreaterMethod;
 	if (A->Size <= B->Size) {
@@ -2500,15 +2618,22 @@ ML_METHODX(">=", MLTupleT, MLTupleT) {
 //$= >=((1, 3, 2), (1, 2, 3))
 	ml_tuple_t *A = (ml_tuple_t *)Args[0];
 	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
 	if (!A->Size) {
 		if (!B->Size) ML_RETURN(B);
 		ML_RETURN(MLNil);
 	}
 	if (!B->Size) ML_RETURN(B);
 	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
 	State->Result = (ml_value_t *)B;
 	State->Order = GreaterMethod;
 	if (A->Size < B->Size) {
@@ -2944,14 +3069,14 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLSymbolT, ml_symbol_t *Symbol) {
 	return List;
 }
 
-ML_TYPE(MLSymbolRangeT, (), "symbol::range");
+ML_TYPE(MLSymbolIntervalT, (), "symbol::interval");
 
 ML_METHOD("..", MLSymbolT, MLSymbolT) {
-	ml_symbol_range_t *Range = new(ml_symbol_range_t);
-	Range->Type = MLSymbolRangeT;
-	Range->First = ml_symbol_name(Args[0]);
-	Range->Last = ml_symbol_name(Args[1]);
-	return (ml_value_t *)Range;
+	ml_symbol_interval_t *Interval = new(ml_symbol_interval_t);
+	Interval->Type = MLSymbolIntervalT;
+	Interval->First = ml_symbol_name(Args[0]);
+	Interval->Last = ml_symbol_name(Args[1]);
+	return (ml_value_t *)Interval;
 }
 
 ML_METHOD("::", MLSymbolT, MLStringT) {

@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__map__iter__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_map_iter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__map__iter__t_1afc78fff3c29652843496f018eba98489" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref> *</type>
+        <definition>ml_map_node_t* Node</definition>
+        <argsstring></argsstring>
+        <name>Node</name>
+        <qualifiedname>ml_map_iter_t::Node</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1069" column="15" bodyfile="src/ml_types.h" bodystart="1069" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__map__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Key</definition>
+        <argsstring></argsstring>
+        <name>Key</name>
+        <qualifiedname>ml_map_iter_t::Key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1070" column="12" bodyfile="src/ml_types.h" bodystart="1070" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__map__iter__t_1a87afd663f0a4b73070f1de58a6e47ceb" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_map_iter_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1070" column="16" bodyfile="src/ml_types.h" bodystart="1070" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_map_iter_t</label>
+        <link refid="structml__map__iter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Node</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Key</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_map_node_t</label>
+        <link refid="structml__map__node__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Key</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Map</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_map_t</label>
+        <link refid="structml__map__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Root</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Cached</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_method_cached_t</label>
+        <link refid="structml__method__cached__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>MethodNext</edgelabel>
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Method</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Callback</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Types</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_method_t</label>
+        <link refid="structml__method__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="1068" column="1" bodyfile="src/ml_types.h" bodystart="1068" bodyend="1071"/>
+    <listofallmembers>
+      <member refid="structml__map__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" virt="non-virtual"><scope>ml_map_iter_t</scope><name>Key</name></member>
+      <member refid="structml__map__iter__t_1afc78fff3c29652843496f018eba98489" prot="public" virt="non-virtual"><scope>ml_map_iter_t</scope><name>Node</name></member>
+      <member refid="structml__map__iter__t_1a87afd663f0a4b73070f1de58a6e47ceb" prot="public" virt="non-virtual"><scope>ml_map_iter_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

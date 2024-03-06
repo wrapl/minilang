@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__integer__range__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_integer_range_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__integer__range__t_1a995de71ec1f0a304711c106993871f65" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>const ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_integer_range_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="637" column="17" bodyfile="src/ml_types.h" bodystart="637" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__integer__range__t_1ae869fb5dcf79da56aac1fadac719dc21" prot="public" static="no" mutable="no">
+        <type>long</type>
+        <definition>long Start</definition>
+        <argsstring></argsstring>
+        <name>Start</name>
+        <qualifiedname>ml_integer_range_t::Start</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="638" column="6" bodyfile="src/ml_types.h" bodystart="638" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__integer__range__t_1aa7af31cea4c172e7bcb060e8296fb8de" prot="public" static="no" mutable="no">
+        <type>long</type>
+        <definition>long Limit</definition>
+        <argsstring></argsstring>
+        <name>Limit</name>
+        <qualifiedname>ml_integer_range_t::Limit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="638" column="12" bodyfile="src/ml_types.h" bodystart="638" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__integer__range__t_1ac8db2e243084c35368da21c91528e966" prot="public" static="no" mutable="no">
+        <type>long</type>
+        <definition>long Step</definition>
+        <argsstring></argsstring>
+        <name>Step</name>
+        <qualifiedname>ml_integer_range_t::Step</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="638" column="18" bodyfile="src/ml_types.h" bodystart="638" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_integer_range_t</label>
+        <link refid="structml__integer__range__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="636" column="1" bodyfile="src/ml_types.h" bodystart="636" bodyend="639"/>
+    <listofallmembers>
+      <member refid="structml__integer__range__t_1aa7af31cea4c172e7bcb060e8296fb8de" prot="public" virt="non-virtual"><scope>ml_integer_range_t</scope><name>Limit</name></member>
+      <member refid="structml__integer__range__t_1ae869fb5dcf79da56aac1fadac719dc21" prot="public" virt="non-virtual"><scope>ml_integer_range_t</scope><name>Start</name></member>
+      <member refid="structml__integer__range__t_1ac8db2e243084c35368da21c91528e966" prot="public" virt="non-virtual"><scope>ml_integer_range_t</scope><name>Step</name></member>
+      <member refid="structml__integer__range__t_1a995de71ec1f0a304711c106993871f65" prot="public" virt="non-virtual"><scope>ml_integer_range_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

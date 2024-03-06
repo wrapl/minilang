@@ -6,6 +6,7 @@
 #include "ml_file.h"
 #include "ml_socket.h"
 #include "ml_object.h"
+#include "ml_time.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 #include <locale.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
+#include "ml_logging.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -69,10 +71,6 @@
 #include "ml_pqueue.h"
 #endif
 
-#ifdef ML_TIME
-#include "ml_time.h"
-#endif
-
 #ifdef ML_UUID
 #include "ml_uuid.h"
 #endif
@@ -88,6 +86,10 @@
 
 #ifdef ML_STRUCT
 #include "ml_struct.h"
+#endif
+
+#ifdef ML_MMAP
+#include "ml_mmap.h"
 #endif
 
 #undef ML_CATEGORY
@@ -126,7 +128,7 @@ ML_FUNCTION(MLPrint) {
 		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
-	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
+	ml_stringbuffer_drain(Buffer, stdout, (void *)ml_stringbuffer_print);
 	fflush(stdout);
 	return MLNil;
 }
@@ -236,6 +238,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_init(Globals);
 	ml_sequence_init(Globals);
 	ml_object_init(Globals);
+	ml_time_init(Globals);
 #ifdef ML_STRUCT
 	ml_struct_init(Globals);
 #endif
@@ -280,6 +283,8 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
 
+	ml_logging_init(Globals);
+
 #ifdef ML_LIBRARY
 	ml_library_init(Globals);
 	ml_module_t *Sys = ml_library_internal("sys");
@@ -312,6 +317,9 @@ int main(int Argc, const char *Argv[]) {
 	ml_stream_init(IO_EXPORTS);
 	ml_file_init(Globals);
 	ml_socket_init(Globals);
+#ifdef ML_MMAP
+	ml_mmap_init(Globals);
+#endif
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
 #endif
@@ -346,9 +354,6 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_PQUEUES
 	ml_pqueue_init(UTIL_EXPORTS);
 #endif
-#ifdef ML_TIME
-	ml_time_init(Globals);
-#endif
 #ifdef ML_UUID
 	ml_uuid_init(UTIL_EXPORTS);
 #endif
@@ -363,7 +368,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_thread_init(SYS_EXPORTS);
 #endif
 	ml_value_t *Args = ml_list();
-	const char *FileName = NULL;
+	const char *MainModule = NULL;
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
@@ -373,7 +378,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
-		if (FileName) {
+		if (MainModule) {
 			ml_list_put(Args, ml_string(Argv[I], -1));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
@@ -390,10 +395,10 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MODULES
 			case 'm':
 				if (Argv[I][2]) {
-					FileName = Argv[I] + 2;
+					MainModule = Argv[I] + 2;
 					LoadModule = 1;
 				} else if (++I < Argc) {
-					FileName = Argv[I];
+					MainModule = Argv[I];
 					LoadModule = 1;
 				} else {
 					fprintf(stderr, "Error: module name required\n");
@@ -448,7 +453,7 @@ int main(int Argc, const char *Argv[]) {
 				break;
 			}
 		} else {
-			FileName = Argv[I];
+			MainModule = Argv[I];
 		}
 	}
 	ml_state_t *Main = ml_state(NULL);
@@ -471,21 +476,21 @@ int main(int Argc, const char *Argv[]) {
 	if (GtkConsole) {
 		gtk_console_t *Console = gtk_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
-		if (FileName) gtk_console_load_file(Console, FileName, Args);
+		if (MainModule) gtk_console_load_file(Console, MainModule, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
 		ml_gir_loop_run();
 		return 0;
 	}
 #endif
-	if (FileName) {
+	if (MainModule) {
 #ifdef ML_LIBRARY
 		if (LoadModule) {
-			ml_library_load(Main, NULL, FileName);
+			ml_library_load(Main, NULL, MainModule);
 		} else {
 #endif
 		ml_call_state_t *State = ml_call_state(Main, 1);
 		State->Args[0] = Args;
-		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, NULL);
+		ml_load_file((ml_state_t *)State, global_get, NULL, MainModule, NULL);
 #ifdef ML_LIBRARY
 		}
 #endif

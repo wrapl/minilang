@@ -1199,7 +1199,7 @@ static void ML_TYPED_FN(ml_iter_key, MLIntegerDownIterT, ml_state_t *Caller, ml_
 }
 
 ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
-//!range
+//!interval
 
 static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
@@ -1230,41 +1230,54 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 	}
 }
 
+ML_TYPE(MLIntegerIntervalT, (MLSequenceT), "integer-interval");
+//!interval
+
+static void ML_TYPED_FN(ml_iterate, MLIntegerIntervalT, ml_state_t *Caller, ml_value_t *Value) {
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Value;
+	if (Interval->Start > Interval->Limit) ML_RETURN(MLNil);
+	ml_integer_iter_t *Iter = new(ml_integer_iter_t);
+	Iter->Type = MLIntegerUpIterT;
+	Iter->Index = 1;
+	Iter->Current = Interval->Start;
+	Iter->Limit = Interval->Limit;
+	Iter->Step = 1;
+	ML_RETURN(Iter);
+}
+
 ML_METHOD("..", MLIntegerT, MLIntegerT) {
-//!range
+//!interval
 //<Start
 //<Limit
-//>integer::range
-// Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
-	ml_integer_range_t *Range = new(ml_integer_range_t);
-	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
-	Range->Limit = ml_integer_value_fast(Args[1]);
-	Range->Step = 1;
-	return (ml_value_t *)Range;
+//>integer::interval
+// Returns a interval from :mini:`Start` to :mini:`Limit` (inclusive).
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = ml_integer_value_fast(Args[0]);
+	Interval->Limit = ml_integer_value_fast(Args[1]);
+	return (ml_value_t *)Interval;
 }
 
 ML_METHOD("..<", MLIntegerT, MLIntegerT) {
-//!range
+//!interval
 //<Start
 //<Limit
-//>integer::range
-// Returns a range from :mini:`Start` to :mini:`Limit` (exclusive).
-	ml_integer_range_t *Range = new(ml_integer_range_t);
-	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
-	Range->Limit = ml_integer_value_fast(Args[1]) - 1;
-	Range->Step = 1;
-	return (ml_value_t *)Range;
+//>integer::interval
+// Returns a interval from :mini:`Start` to :mini:`Limit` (exclusive).
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = ml_integer_value_fast(Args[0]);
+	Interval->Limit = ml_integer_value_fast(Args[1]) - 1;
+	return (ml_value_t *)Interval;
 }
 
 ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
-//!range
+//!interval
 //<Start
 //<Limit
 //<Step
 //>integer::range
-// Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
+// Returns a range from :mini:`Start` to :mini:`Limit` (inclusive) with step :mini:`Step`.
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
 	Range->Start = ml_integer_value_fast(Args[0]);
@@ -1274,34 +1287,32 @@ ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("up", MLIntegerT) {
-//!range
+//!interval
 //<Start
-//>integer::range
-// Returns an unlimited range from :mini:`Start`.
-	ml_integer_range_t *Range = new(ml_integer_range_t);
-	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
-	Range->Limit = LONG_MAX;
-	Range->Step = 1;
-	return (ml_value_t *)Range;
+//>integer::interval
+// Returns an unlimited interval from :mini:`Start`.
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = ml_integer_value_fast(Args[0]);
+	Interval->Limit = LONG_MAX;
+	return (ml_value_t *)Interval;
 }
 
 ML_METHOD("up", MLIntegerT, MLIntegerT) {
-//!range
+//!interval
 //<Start
 //<Count
-//>integer::range
-// Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
-	ml_integer_range_t *Range = new(ml_integer_range_t);
-	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
-	Range->Limit = Range->Start + ml_integer_value_fast(Args[1]) - 1;
-	Range->Step = 1;
-	return (ml_value_t *)Range;
+//>integer::interval
+// Returns a interval from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = ml_integer_value_fast(Args[0]);
+	Interval->Limit = Interval->Start + ml_integer_value_fast(Args[1]) - 1;
+	return (ml_value_t *)Interval;
 }
 
 ML_METHOD("by", MLIntegerT, MLIntegerT) {
-//!range
+//!interval
 //<Start
 //<Step
 //>integer::range
@@ -1320,17 +1331,17 @@ ML_METHOD("by", MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
-ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
-//!range
-//<Range
+ML_METHOD("by", MLIntegerIntervalT, MLIntegerT) {
+//!interval
+//<Interval
 //<Step
 //>integer::range
-// Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
-	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
+// Returns a range with the same limits as :mini:`Interval` but with step :mini:`Step`.
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = Range0->Start;
-	Range->Limit = Range0->Limit;
+	Range->Start = Interval0->Start;
+	Range->Limit = Interval0->Limit;
 	Range->Step = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Range;
 }
@@ -1345,7 +1356,7 @@ ML_METHOD("+", MLIntegerRangeT, MLIntegerT) {
 	int64_t Shift = ml_integer_value_fast(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = Range0->Start + Shift;
+	Range->Start = Range0->Start;
 	Range->Limit = Range0->Limit + Shift;
 	Range->Step = Range0->Step;
 	return (ml_value_t *)Range;
@@ -1361,7 +1372,7 @@ ML_METHOD("-", MLIntegerRangeT, MLIntegerT) {
 	int64_t Shift = ml_integer_value_fast(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = Range0->Start - Shift;
+	Range->Start = Range0->Start;
 	Range->Limit = Range0->Limit - Shift;
 	Range->Step = Range0->Step;
 	return (ml_value_t *)Range;
@@ -1394,24 +1405,8 @@ ML_METHOD("+", MLIntegerT, MLIntegerRangeT) {
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
 	Range->Start = Shift + Range0->Start;
-	Range->Limit = Shift + Range0->Limit;
+	Range->Limit = Range0->Limit;
 	Range->Step = Range0->Step;
-	return (ml_value_t *)Range;
-}
-
-ML_METHOD("-", MLIntegerT, MLIntegerRangeT) {
-//!range
-//<Shift
-//<Range
-//>integer::range
-// Returns a range
-	int64_t Shift = ml_integer_value_fast(Args[0]);
-	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[1];
-	ml_integer_range_t *Range = new(ml_integer_range_t);
-	Range->Type = MLIntegerRangeT;
-	Range->Start = Shift - Range0->Start;
-	Range->Limit = Shift - Range0->Limit;
-	Range->Step = -Range0->Step;
 	return (ml_value_t *)Range;
 }
 
@@ -1560,28 +1555,25 @@ ML_METHOD("last", MLIntegerRangeT) {
 	}
 }
 
-ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
+ML_METHOD("find", MLIntegerRangeT, MLIntegerT) {
 //!range
-//<X
 //<Range
-//>X | nil
-	long Value = ml_integer_value_fast(Args[0]);
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
-	return Args[0];
-}
-
-ML_METHOD("in", MLDoubleT, MLIntegerRangeT) {
-//!range
 //<X
-//<Range
-//>X | nil
-	double Value = ml_double_value_fast(Args[0]);
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
-	return Args[0];
+//>integer | nil
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	long Value = ml_integer_value_fast(Args[1]);
+	if (Range->Step < 0) {
+		if (Value > Range->Start) return MLNil;
+		if (Value < Range->Limit) return MLNil;
+	} else if (Range->Step > 0) {
+		if (Value < Range->Start) return MLNil;
+		if (Value > Range->Limit) return MLNil;
+	} else {
+		return Value == Range->Start ? ml_integer(1) : MLNil;
+	}
+	long Diff = Value - Range->Start;
+	if (Diff % Range->Step) return MLNil;
+	return ml_integer(Diff / Range->Step + 1);
 }
 
 ML_METHOD("random", MLIntegerRangeT) {
@@ -1598,6 +1590,202 @@ ML_METHOD("random", MLIntegerRangeT) {
 	int Random;
 	do Random = random() / Divisor; while (Random >= Limit);
 	return ml_integer(Range->Start + Random * Range->Step);
+}
+
+ML_METHOD("+", MLIntegerIntervalT, MLIntegerT) {
+//!interval
+//<Interval
+//<Shift
+//>integer::interval
+// Returns a interval
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
+	int64_t Shift = ml_integer_value_fast(Args[1]);
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = Interval0->Start;
+	Interval->Limit = Interval0->Limit + Shift;
+	return (ml_value_t *)Interval;
+}
+
+ML_METHOD("-", MLIntegerIntervalT, MLIntegerT) {
+//!interval
+//<Interval
+//<Shift
+//>integer::interval
+// Returns a interval
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
+	int64_t Shift = ml_integer_value_fast(Args[1]);
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = Interval0->Start;
+	Interval->Limit = Interval0->Limit - Shift;
+	return (ml_value_t *)Interval;
+}
+
+ML_METHOD("*", MLIntegerIntervalT, MLIntegerT) {
+//!interval
+//<Interval
+//<Scale
+//>integer::interval
+// Returns a interval
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
+	int64_t Scale = ml_integer_value_fast(Args[1]);
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = Interval0->Start * Scale;
+	Interval->Limit = Interval0->Limit * Scale;
+	return (ml_value_t *)Interval;
+}
+
+ML_METHOD("+", MLIntegerT, MLIntegerIntervalT) {
+//!interval
+//<Shift
+//<Interval
+//>integer::interval
+// Returns a interval
+	int64_t Shift = ml_integer_value_fast(Args[0]);
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[1];
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = Shift + Interval0->Start;
+	Interval->Limit = Interval0->Limit;
+	return (ml_value_t *)Interval;
+}
+
+ML_METHOD("*", MLIntegerT, MLIntegerIntervalT) {
+//!interval
+//<Scale
+//<Interval
+//>integer::interval
+// Returns a interval
+	int64_t Scale = ml_integer_value_fast(Args[0]);
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[1];
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLIntegerIntervalT;
+	Interval->Start = Scale * Interval0->Start;
+	Interval->Limit = Scale * Interval0->Limit;
+	return (ml_value_t *)Interval;
+}
+
+ML_METHOD("=", MLIntegerIntervalT, MLIntegerIntervalT) {
+//!interval
+//<A
+//<B
+//>integer::interval|nil
+// Returns a interval
+	ml_integer_interval_t *A = (ml_integer_interval_t *)Args[0];
+	ml_integer_interval_t *B = (ml_integer_interval_t *)Args[1];
+	if (A->Start != B->Start) return MLNil;
+	if (A->Limit != B->Limit) return MLNil;
+	return (ml_value_t *)B;
+}
+
+ML_METHOD("!=", MLIntegerIntervalT, MLIntegerIntervalT) {
+//!interval
+//<A
+//<B
+//>integer::interval|nil
+// Returns a interval
+	ml_integer_interval_t *A = (ml_integer_interval_t *)Args[0];
+	ml_integer_interval_t *B = (ml_integer_interval_t *)Args[1];
+	if (A->Start != B->Start) return (ml_value_t *)B;
+	if (A->Limit != B->Limit) return (ml_value_t *)B;
+	return MLNil;
+}
+
+ML_METHOD("precount", MLIntegerIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the number of values in :mini:`Interval`.
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	if (Interval->Start > Interval->Limit) return ml_integer(0);
+	int64_t Diff = Interval->Limit - Interval->Start;
+	return ml_integer(Diff + 1);
+}
+
+ML_METHOD("count", MLIntegerIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the number of values in :mini:`Interval`.
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	if (Interval->Start > Interval->Limit) return ml_integer(0);
+	int64_t Diff = Interval->Limit - Interval->Start;
+	return ml_integer(Diff + 1);
+}
+
+ML_METHOD("start", MLIntegerIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the start of :mini:`Interval`.
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	return ml_integer(Interval->Start);
+}
+
+ML_METHOD("limit", MLIntegerIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the limit of :mini:`Interval`.
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	return ml_integer(Interval->Limit);
+}
+
+ML_METHOD("first", MLIntegerIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the start of :mini:`Interval`.
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	return ml_integer(Interval->Start);
+}
+
+ML_METHOD("last", MLIntegerIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the limit of :mini:`Interval`.
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	return ml_integer(Interval->Limit);
+}
+
+ML_METHOD("between", MLIntegerT, MLIntegerIntervalT) {
+//!interval
+//<X
+//<Interval
+//>X | nil
+	long Value = ml_integer_value_fast(Args[0]);
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
+	return Args[0];
+}
+
+ML_METHOD("between", MLDoubleT, MLIntegerIntervalT) {
+//!interval
+//<X
+//<Interval
+//>X | nil
+	double Value = ml_double_value_fast(Args[0]);
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
+	return Args[0];
+}
+
+ML_METHOD("random", MLIntegerIntervalT) {
+//!interval
+//<Interval
+//>integer
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	int64_t Diff = Interval->Limit - Interval->Start;
+	int Limit = Diff + 1;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	return ml_integer(Interval->Start + Random);
 }
 
 typedef struct ml_real_iter_t {
@@ -1643,7 +1831,7 @@ static void ML_TYPED_FN(ml_iter_key, MLRealDownIterT, ml_state_t *Caller, ml_rea
 }
 
 ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
-//!range
+//!interval
 
 static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_real_range_t *Range = (ml_real_range_t *)Value;
@@ -1674,17 +1862,31 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 	}
 }
 
+ML_TYPE(MLRealIntervalT, (MLSequenceT), "real-interval");
+//!interval
+
+static void ML_TYPED_FN(ml_iterate, MLRealIntervalT, ml_state_t *Caller, ml_value_t *Value) {
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Value;
+	if (Interval->Start > Interval->Limit) ML_RETURN(MLNil);
+	ml_real_iter_t *Iter = new(ml_real_iter_t);
+	Iter->Type = MLRealUpIterT;
+	Iter->Index = 1;
+	Iter->Current = Interval->Start;
+	Iter->Limit = Interval->Limit;
+	Iter->Step = 1;
+	ML_RETURN(Iter);
+}
+
 ML_METHOD("..", MLNumberT, MLNumberT) {
-//!range
+//!interval
 //<Start
 //<Limit
-//>real::range
-	ml_real_range_t *Range = new(ml_real_range_t);
-	Range->Type = MLRealRangeT;
-	Range->Start = ml_real_value(Args[0]);
-	Range->Limit = ml_real_value(Args[1]);
-	Range->Step = 1.0;
-	return (ml_value_t *)Range;
+//>real::interval
+	ml_real_interval_t *Interval = new(ml_real_interval_t);
+	Interval->Type = MLRealIntervalT;
+	Interval->Start = ml_real_value(Args[0]);
+	Interval->Limit = ml_real_value(Args[1]);
+	return (ml_value_t *)Interval;
 }
 
 ML_METHOD("..", MLNumberT, MLNumberT, MLNumberT) {
@@ -1713,78 +1915,78 @@ ML_METHOD("by", MLNumberT, MLNumberT) {
 	return (ml_value_t *)Range;
 }
 
-ML_METHOD("by", MLRealRangeT, MLNumberT) {
-//!range
-//<Range
+ML_METHOD("by", MLRealIntervalT, MLNumberT) {
+//!interval
+//<Interval
 //<Step
 //>real::range
-	ml_real_range_t *Range0 = (ml_real_range_t *)Args[0];
+	ml_real_interval_t *Interval0 = (ml_real_interval_t *)Args[0];
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
-	Range->Start = Range0->Start;
-	Range->Limit = Range0->Limit;
+	Range->Start = Interval0->Start;
+	Range->Limit = Interval0->Limit;
 	Range->Step = ml_real_value(Args[1]);
 	return (ml_value_t *)Range;
 }
 
-ML_METHOD("in", MLIntegerRangeT, MLIntegerT) {
-//!range
-//<Range
+ML_METHOD("in", MLIntegerIntervalT, MLIntegerT) {
+//!interval
+//<Interval
 //<Count
-//>real::range
-	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
+//>integer::range|real::range
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
 	long C = ml_integer_value_fast(Args[1]);
-	if (C <= 0) return ml_error("RangeError", "Invalid step count");
-	if ((Range0->Limit - Range0->Start) % C) {
+	if (C <= 0) return ml_error("IntervalError", "Invalid step count");
+	if ((Interval0->Limit - Interval0->Start) % C) {
 		ml_real_range_t *Range = new(ml_real_range_t);
 		Range->Type = MLRealRangeT;
-		Range->Start = Range0->Start;
-		Range->Limit = Range0->Limit;
+		Range->Start = Interval0->Start;
+		Range->Limit = Interval0->Limit;
 		Range->Step = (Range->Limit - Range->Start) / C;
 		return (ml_value_t *)Range;
 	} else {
 		ml_integer_range_t *Range = new(ml_integer_range_t);
 		Range->Type = MLIntegerRangeT;
-		Range->Start = Range0->Start;
-		Range->Limit = Range0->Limit;
+		Range->Start = Interval0->Start;
+		Range->Limit = Interval0->Limit;
 		Range->Step = (Range->Limit - Range->Start) / C;
 		return (ml_value_t *)Range;
 	}
 }
 
-ML_METHOD("in", MLRealRangeT, MLIntegerT) {
-//!range
-//<Range
+ML_METHOD("in", MLRealIntervalT, MLIntegerT) {
+//!interval
+//<Interval
 //<Count
 //>real::range
-	ml_real_range_t *Range0 = (ml_real_range_t *)Args[0];
+	ml_real_interval_t *Interval0 = (ml_real_interval_t *)Args[0];
 	long C = ml_integer_value_fast(Args[1]);
-	if (C <= 0) return ml_error("RangeError", "Invalid step count");
+	if (C <= 0) return ml_error("IntervalError", "Invalid step count");
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
-	Range->Start = Range0->Start;
-	Range->Limit = Range0->Limit;
+	Range->Start = Interval0->Start;
+	Range->Limit = Interval0->Limit;
 	Range->Step = (Range->Limit - Range->Start) / C;
 	return (ml_value_t *)Range;
 }
 
-ML_METHOD("by", MLIntegerRangeT, MLDoubleT) {
-//!range
-//<Range
+ML_METHOD("by", MLIntegerIntervalT, MLDoubleT) {
+//!interval
+//<Interval
 //<Step
 //>real::range
-	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
+	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
-	Range->Start = Range0->Start;
-	Range->Limit = Range0->Limit;
+	Range->Start = Interval0->Start;
+	Range->Limit = Interval0->Limit;
 	Range->Step = ml_double_value_fast(Args[1]);
 	return (ml_value_t *)Range;
 }
 
 ML_METHOD("bin", MLIntegerRangeT, MLIntegerT) {
-//!range
-//<Range
+//!interval
+//<Interval
 //<Value
 //>integer | nil
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
@@ -1795,8 +1997,8 @@ ML_METHOD("bin", MLIntegerRangeT, MLIntegerT) {
 }
 
 ML_METHOD("bin", MLIntegerRangeT, MLDoubleT) {
-//!range
-//<Range
+//!interval
+//<Interval
 //<Value
 //>integer | nil
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
@@ -1818,6 +2020,12 @@ size_t ml_real_range_count(ml_real_range_t *Range) {
 	} else {
 		return 0;
 	}
+}
+
+size_t ml_real_interval_count(ml_real_interval_t *Interval) {
+	if (Interval->Start > Interval->Limit) return 0;
+	double Diff = Interval->Limit - Interval->Start;
+	return Diff + 1;
 }
 
 ML_METHOD("precount", MLRealRangeT) {
@@ -1921,27 +2129,85 @@ ML_METHOD("last", MLRealRangeT) {
 	}
 }
 
-ML_METHOD("in", MLIntegerT, MLRealRangeT) {
-//!range
+ML_METHOD("precount", MLRealIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the number of values in :mini:`Interval`.
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
+	if (Interval->Start > Interval->Limit) return ml_integer(0);
+	double Diff = Interval->Limit - Interval->Start;
+	return ml_integer(Diff + 1);
+}
+
+ML_METHOD("count", MLRealIntervalT) {
+//!interval
+//<Interval
+//>integer
+// Returns the number of values in :mini:`Interval`.
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
+	if (Interval->Start > Interval->Limit) return ml_integer(0);
+	double Diff = Interval->Limit - Interval->Start;
+	return ml_integer(Diff + 1);
+}
+
+ML_METHOD("start", MLRealIntervalT) {
+//!interval
+//<Interval
+//>real
+// Returns the start of :mini:`Interval`.
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
+	return ml_real(Interval->Start);
+}
+
+ML_METHOD("limit", MLRealIntervalT) {
+//!interval
+//<Interval
+//>real
+// Returns the limit of :mini:`Interval`.
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
+	return ml_real(Interval->Limit);
+}
+
+ML_METHOD("first", MLRealIntervalT) {
+//!interval
+//<Interval
+//>real
+// Returns the start of :mini:`Interval`.
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
+	return ml_real(Interval->Start);
+}
+
+ML_METHOD("last", MLRealIntervalT) {
+//!interval
+//<Interval
+//>real
+// Returns the limit of :mini:`Interval`.
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
+	return ml_real(Interval->Start + floor(Interval->Limit - Interval->Start));
+}
+
+ML_METHOD("between", MLIntegerT, MLRealIntervalT) {
+//!interval
 //<X
-//<Range
+//<Interval
 //>X | nil
 	long Value = ml_integer_value_fast(Args[0]);
-	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
 	return Args[0];
 }
 
-ML_METHOD("in", MLDoubleT, MLRealRangeT) {
-//!range
+ML_METHOD("between", MLDoubleT, MLRealIntervalT) {
+//!interval
 //<X
-//<Range
+//<Interval
 //>X | nil
 	double Value = ml_double_value_fast(Args[0]);
-	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
+	if (Value < Interval->Start) return MLNil;
+	if (Value > Interval->Limit) return MLNil;
 	return Args[0];
 }
 
@@ -1966,6 +2232,21 @@ ML_METHOD("random", MLRealRangeT) {
 	int Random;
 	do Random = random() / Divisor; while (Random >= Limit);
 	return ml_real(Range->Start + Random * Range->Step);
+}
+
+ML_METHOD("random", MLRealIntervalT) {
+//!interval
+//<Interval
+//>real
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
+	int Limit;
+	if (Interval->Start > Interval->Limit) return MLNil;
+	double Diff = Interval->Limit - Interval->Start;
+	Limit = floor(Diff);
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	return ml_real(Interval->Start + Random);
 }
 
 ML_METHOD("bin", MLRealRangeT, MLIntegerT) {
@@ -2042,14 +2323,14 @@ ML_FUNCTION_INLINE(MLIntegerSwitch) {
 				double Real = ml_real_value(Value), Int = floor(Real);
 				if (Real != Int) return ml_error("ValueError", "Non-integer value in integer case");
 				Case->Min = Case->Max = Int;
-			} else if (ml_is(Value, MLIntegerRangeT)) {
-				ml_integer_range_t *Range = (ml_integer_range_t *)Value;
-				Case->Min = Range->Start;
-				Case->Max = Range->Limit;
-			} else if (ml_is(Value, MLRealRangeT)) {
-				ml_real_range_t *Range = (ml_real_range_t *)Value;
-				Case->Min = ceil(Range->Start);
-				Case->Max = floor(Range->Limit);
+			} else if (ml_is(Value, MLIntegerIntervalT)) {
+				ml_integer_interval_t *Interval = (ml_integer_interval_t *)Value;
+				Case->Min = Interval->Start;
+				Case->Max = Interval->Limit;
+			} else if (ml_is(Value, MLRealIntervalT)) {
+				ml_real_interval_t *Interval = (ml_real_interval_t *)Value;
+				Case->Min = ceil(Interval->Start);
+				Case->Max = floor(Interval->Limit);
 			} else {
 				return ml_error("ValueError", "Unsupported value in integer case");
 			}
@@ -2074,10 +2355,10 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLIntegerSwitchT, ml_integer_switch
 				Last = ml_list();
 				ml_list_put(Result, Last);
 			}
-			ml_value_t *Range = ml_list();
-			ml_list_put(Range, ml_integer(Case->Min));
-			ml_list_put(Range, ml_integer(Case->Max));
-			ml_list_put(Last, Range);
+			ml_value_t *Interval = ml_list();
+			ml_list_put(Interval, ml_integer(Case->Min));
+			ml_list_put(Interval, ml_integer(Case->Max));
+			ml_list_put(Last, Interval);
 		} else {
 			break;
 		}
@@ -2158,14 +2439,14 @@ ML_FUNCTION_INLINE(MLRealSwitch) {
 				Case->Min = Case->Max = ml_integer_value(Value);
 			} else if (ml_is(Value, MLDoubleT)) {
 				Case->Min = Case->Max = ml_real_value(Value);
-			} else if (ml_is(Value, MLIntegerRangeT)) {
-				ml_integer_range_t *Range = (ml_integer_range_t *)Value;
-				Case->Min = Range->Start;
-				Case->Max = Range->Limit;
-			} else if (ml_is(Value, MLRealRangeT)) {
-				ml_real_range_t *Range = (ml_real_range_t *)Value;
-				Case->Min = Range->Start;
-				Case->Max = Range->Limit;
+			} else if (ml_is(Value, MLIntegerIntervalT)) {
+				ml_integer_interval_t *Interval = (ml_integer_interval_t *)Value;
+				Case->Min = Interval->Start;
+				Case->Max = Interval->Limit;
+			} else if (ml_is(Value, MLRealIntervalT)) {
+				ml_real_interval_t *Interval = (ml_real_interval_t *)Value;
+				Case->Min = Interval->Start;
+				Case->Max = Interval->Limit;
 			} else {
 				return ml_error("ValueError", "Unsupported value in real case");
 			}
@@ -2190,10 +2471,10 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLRealSwitchT, ml_real_switch_t *Sw
 				Last = ml_list();
 				ml_list_put(Result, Last);
 			}
-			ml_value_t *Range = ml_list();
-			ml_list_put(Range, ml_real(Case->Min));
-			ml_list_put(Range, ml_real(Case->Max));
-			ml_list_put(Last, Range);
+			ml_value_t *Interval = ml_list();
+			ml_list_put(Interval, ml_real(Case->Min));
+			ml_list_put(Interval, ml_real(Case->Max));
+			ml_list_put(Last, Interval);
 		} else {
 			break;
 		}
@@ -2233,16 +2514,16 @@ void ml_number_init() {
 #include "ml_number_init.c"
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLIntegerT};
-	ml_type_add_parent(MLIntegerRangeT, ml_generic_type(3, TArgs));
+	ml_type_add_parent(MLIntegerIntervalT, ml_generic_type(3, TArgs));
 	TArgs[2] = MLRealT;
-	ml_type_add_parent(MLRealRangeT, ml_generic_type(3, TArgs));
+	ml_type_add_parent(MLRealIntervalT, ml_generic_type(3, TArgs));
 #endif
-	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
+	stringmap_insert(MLIntegerT->Exports, "interval", MLIntegerIntervalT);
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);
 	stringmap_insert(MLIntegerT->Exports, "random_permutation", RandomPermutation);
 	stringmap_insert(MLIntegerT->Exports, "random_cycle", RandomCycle);
-	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
+	stringmap_insert(MLRealT->Exports, "interval", MLRealIntervalT);
 	stringmap_insert(MLRealT->Exports, "switch", MLRealSwitch);
 	stringmap_insert(MLRealT->Exports, "random", RandomReal);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);

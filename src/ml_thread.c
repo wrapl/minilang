@@ -2,6 +2,7 @@
 #include "ml_macros.h"
 #include "ml_compiler2.h"
 #include "ml_stream.h"
+#include "ml_time.h"
 
 typedef struct {
 	ml_state_t Base;
@@ -84,6 +85,7 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 			switch (MLInstTypes[Inst->Opcode]) {
 			case MLIT_NONE: Inst += 1; break;
 			case MLIT_INST: Inst += 2; break;
+			case MLIT_INST_CONFIG: Inst += 3; break;
 			case MLIT_INST_COUNT: Inst += 3; break;
 			case MLIT_INST_COUNT_DECL: Inst += 4; break;
 			case MLIT_COUNT_COUNT: Inst += 3; break;
@@ -150,15 +152,9 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLClosureT, ml_closure_t *Closu
 	return ml_is_closure_threadsafe(Info);
 }
 
-#ifdef ML_TIME
-
-#include "ml_time.h"
-
 static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLTimeT, ml_value_t *Value) {
 	return NULL;
 }
-
-#endif
 
 #ifdef ML_UUID
 

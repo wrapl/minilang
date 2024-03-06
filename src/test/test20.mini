@@ -1,11 +1,11 @@
 fun test(X) do
-	when X is nil do
+	if not X then
 		"<nil>"
-	is in string, list do
+	elseif X in string or X in list then
 		"<string or list>"
-	is 100, 50, > 200 do
+	elseif X = 100 or X = 50 or X > 200 then
 		"100 50, or > 200"
-	is in 60 .. 70 do
+	elseif X between (60 .. 70) then
 		"60 .. 70"
 	else
 		"<unknown>"

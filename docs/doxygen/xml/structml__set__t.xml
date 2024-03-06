@@ -1,0 +1,210 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__set__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_set_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__set__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_set_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1181" column="11" bodyfile="src/ml_types.h" bodystart="1181" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__set__t_1aab29c9778d2c2d6211fbe1b37d0b0571" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
+        <definition>ml_set_node_t* Head</definition>
+        <argsstring></argsstring>
+        <name>Head</name>
+        <qualifiedname>ml_set_t::Head</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1182" column="15" bodyfile="src/ml_types.h" bodystart="1182" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__set__t_1ae61f9825d1926037683c02c1789b45bf" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
+        <definition>ml_set_node_t * Tail</definition>
+        <argsstring></argsstring>
+        <name>Tail</name>
+        <qualifiedname>ml_set_t::Tail</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1182" column="20" bodyfile="src/ml_types.h" bodystart="1182" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__set__t_1a698de0e27a79959e0d07ebc3063f9386" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
+        <definition>ml_set_node_t * Root</definition>
+        <argsstring></argsstring>
+        <name>Root</name>
+        <qualifiedname>ml_set_t::Root</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1182" column="25" bodyfile="src/ml_types.h" bodystart="1182" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__set__t_1a7c08387c13dd996bac9f9aea2f89aefd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__method__cached__t" kindref="compound">ml_method_cached_t</ref> *</type>
+        <definition>ml_method_cached_t* Cached</definition>
+        <argsstring></argsstring>
+        <name>Cached</name>
+        <qualifiedname>ml_set_t::Cached</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1183" column="20" bodyfile="src/ml_types.h" bodystart="1183" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__set__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_set_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1184" column="5" bodyfile="src/ml_types.h" bodystart="1184" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__set__t_1a8e0c8267c109b3360503553133355dbc" prot="public" static="no" mutable="no">
+        <type>ml_set_order_t</type>
+        <definition>ml_set_order_t Order</definition>
+        <argsstring></argsstring>
+        <name>Order</name>
+        <qualifiedname>ml_set_t::Order</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1185" column="16" bodyfile="src/ml_types.h" bodystart="1185" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="7">
+        <label>ml_method_cached_t</label>
+        <link refid="structml__method__cached__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>MethodNext</edgelabel>
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Method</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Callback</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Types</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_method_t</label>
+        <link refid="structml__method__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_set_node_t</label>
+        <link refid="structml__set__node__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Key</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_set_t</label>
+        <link refid="structml__set__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Root</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Cached</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="1180" column="1" bodyfile="src/ml_types.h" bodystart="1180" bodyend="1186"/>
+    <listofallmembers>
+      <member refid="structml__set__t_1a7c08387c13dd996bac9f9aea2f89aefd" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Cached</name></member>
+      <member refid="structml__set__t_1aab29c9778d2c2d6211fbe1b37d0b0571" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Head</name></member>
+      <member refid="structml__set__t_1a8e0c8267c109b3360503553133355dbc" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Order</name></member>
+      <member refid="structml__set__t_1a698de0e27a79959e0d07ebc3063f9386" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Root</name></member>
+      <member refid="structml__set__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Size</name></member>
+      <member refid="structml__set__t_1ae61f9825d1926037683c02c1789b45bf" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Tail</name></member>
+      <member refid="structml__set__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

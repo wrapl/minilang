@@ -1,0 +1,1512 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__runtime" kind="group">
+    <compoundname>runtime</compoundname>
+    <title>Runtime</title>
+    <innerclass refid="structml__context__t" prot="public">ml_context_t</innerclass>
+    <innerclass refid="structml__state__t" prot="public">ml_state_t</innerclass>
+    <innerclass refid="structml__result__state__t" prot="public">ml_result_state_t</innerclass>
+    <innerclass refid="structml__call__state__t" prot="public">ml_call_state_t</innerclass>
+    <innerclass refid="structml__iter__state__t" prot="public">ml_iter_state_t</innerclass>
+    <innerclass refid="structml__comparison__state__t" prot="public">ml_comparison_state_t</innerclass>
+    <innerclass refid="structml__reference__t" prot="public">ml_reference_t</innerclass>
+    <innerclass refid="structml__source__t" prot="public">ml_source_t</innerclass>
+    <innerclass refid="structml__decl__t" prot="public">ml_decl_t</innerclass>
+    <innerclass refid="structml__debugger__t" prot="public">ml_debugger_t</innerclass>
+    <innerclass refid="structml__scheduler__t" prot="public">ml_scheduler_t</innerclass>
+    <innerclass refid="structml__queued__state__t" prot="public">ml_queued_state_t</innerclass>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__runtime_1ga385c44f6fb256e5716a2302a5b940388" prot="public" static="no" strong="no">
+        <type></type>
+        <name></name>
+        <enumvalue id="group__runtime_1gga385c44f6fb256e5716a2302a5b940388adf0ec3ef24e00de9e7e703b0de3e7ea0" prot="public">
+          <name>ML_METHODS_INDEX</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__runtime_1gga385c44f6fb256e5716a2302a5b940388aa839a411d2f1a0119f0145ac6a0fd2d1" prot="public">
+          <name>ML_VARIABLES_INDEX</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__runtime_1gga385c44f6fb256e5716a2302a5b940388ad97ccf7157754f3627ff85fba8c8dbf0" prot="public">
+          <name>ML_DEBUGGER_INDEX</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__runtime_1gga385c44f6fb256e5716a2302a5b940388a334f839778b5b11a525196448d0e069f" prot="public">
+          <name>ML_SCHEDULER_INDEX</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__runtime_1gga385c44f6fb256e5716a2302a5b940388a2ffc514a89fc08fd889ff06c5eec7636" prot="public">
+          <name>ML_COUNTER_INDEX</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__runtime_1gga385c44f6fb256e5716a2302a5b940388a37b4572b78e0227ec99456dba33eba26" prot="public">
+          <name>ML_THREAD_INDEX</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__runtime_1gga385c44f6fb256e5716a2302a5b940388af79d64693d119d01060920679480ed93" prot="public">
+          <name>ML_CONTEXT_SIZE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="37" column="1" bodyfile="src/ml_runtime.h" bodystart="37" bodyend="45"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__runtime_1gad422db96e7445bb8df941890132ae087" prot="public" static="no">
+        <type>int(*</type>
+        <definition>typedef int(* ml_config_fn) (ml_context_t *Context)</definition>
+        <argsstring>)(ml_context_t *Context)</argsstring>
+        <name>ml_config_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="57" column="9" bodyfile="src/ml_runtime.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga0a66ed25c741cc91af6ca91e2b021f32" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* ml_state_fn) (ml_state_t *State, ml_value_t *Result)</definition>
+        <argsstring>)(ml_state_t *State, ml_value_t *Result)</argsstring>
+        <name>ml_state_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="62" column="9" bodyfile="src/ml_runtime.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1gaa140198038a9c57021935ab84bdb9e8f" prot="public" static="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*</type>
+        <definition>typedef ml_value_t *(* ml_getter_t) (void *Globals, const char *Name, const char *Source, int Line, int Mode)</definition>
+        <argsstring>)(void *Globals, const char *Name, const char *Source, int Line, int Mode)</argsstring>
+        <name>ml_getter_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="123" column="9" bodyfile="src/ml_runtime.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga0d6992752ba98d40c0d338a7c9ef23b5" prot="public" static="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*</type>
+        <definition>typedef ml_value_t *(* ml_setter_t) (void *Globals, const char *Name, ml_value_t *Value)</definition>
+        <argsstring>)(void *Globals, const char *Name, ml_value_t *Value)</argsstring>
+        <name>ml_setter_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="124" column="9" bodyfile="src/ml_runtime.h" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga5c767a8b2ce9f8ef892526ba1ea60f74" prot="public" static="no">
+        <type>struct ml_reference_t</type>
+        <definition>typedef struct ml_reference_t ml_reference_t</definition>
+        <argsstring></argsstring>
+        <name>ml_reference_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="126" column="29" bodyfile="src/ml_runtime.h" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga293a126ab42486e9db7146f8218e1f8a" prot="public" static="no">
+        <type>struct ml_source_t</type>
+        <definition>typedef struct ml_source_t ml_source_t</definition>
+        <argsstring></argsstring>
+        <name>ml_source_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="138" column="13"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1gad9cbe0394673a01f4acb0dd9116c807e" prot="public" static="no">
+        <type>struct ml_decl_t</type>
+        <definition>typedef struct ml_decl_t ml_decl_t</definition>
+        <argsstring></argsstring>
+        <name>ml_decl_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="180" column="24" bodyfile="src/ml_runtime.h" bodystart="180" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga349934bfcbc22dd8ad09bb0c5be41e06" prot="public" static="no">
+        <type>struct ml_debugger_t</type>
+        <definition>typedef struct ml_debugger_t ml_debugger_t</definition>
+        <argsstring></argsstring>
+        <name>ml_debugger_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="181" column="28" bodyfile="src/ml_runtime.h" bodystart="181" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga3d5b2c20c4f3355468a2661469a26a5d" prot="public" static="no">
+        <type>struct ml_scheduler_t</type>
+        <definition>typedef struct ml_scheduler_t ml_scheduler_t</definition>
+        <argsstring></argsstring>
+        <name>ml_scheduler_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="218" column="29" bodyfile="src/ml_runtime.h" bodystart="218" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga03d8d497ecdada6aa119514f4e8f35fc" prot="public" static="no">
+        <type>int(*</type>
+        <definition>typedef int(* ml_scheduler_fn) (ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value)</definition>
+        <argsstring>)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value)</argsstring>
+        <name>ml_scheduler_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="220" column="9" bodyfile="src/ml_runtime.h" bodystart="220" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__runtime_1ga30ea21a83c14f17753fc1265cb952c75" prot="public" static="no">
+        <type>struct ml_scheduler_queue_t</type>
+        <definition>typedef struct ml_scheduler_queue_t ml_scheduler_queue_t</definition>
+        <argsstring></argsstring>
+        <name>ml_scheduler_queue_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="240" column="35" bodyfile="src/ml_runtime.h" bodystart="240" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__runtime_1ga9e4a5e05bc20f28d92db209c48002871" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* MLArgCache[ML_ARG_CACHE_SIZE]</definition>
+        <argsstring>[ML_ARG_CACHE_SIZE]</argsstring>
+        <name>MLArgCache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="25" column="12" declfile="src/ml_runtime.h" declline="25" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1gac1ad2e5f00dcb7ffab65bf1b58334aef" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref></type>
+        <definition>ml_context_t MLRootContext</definition>
+        <argsstring></argsstring>
+        <name>MLRootContext</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="47" column="21" declfile="src/ml_runtime.h" declline="47" declcolumn="21"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1gac966d41213fdc6f77ddf16aebce9dd49" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLStateT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLStateT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="71" column="18" declfile="src/ml_runtime.h" declline="71" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga00a9b3bf3ee5760cb85991433fbc144e" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLComparisonStateT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLComparisonStateT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="116" column="18" declfile="src/ml_runtime.h" declline="116" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga80daa34751a0871a6fe8c3202548defc" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLReferenceT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLReferenceT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="120" column="18" declfile="src/ml_runtime.h" declline="120" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga0b748f6d626886aa5b11fc2e99c5f417" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLUninitializedT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLUninitializedT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="121" column="18" declfile="src/ml_runtime.h" declline="121" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1gab5336998b43eed2b08c36906983cabf8" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLErrorT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLErrorT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="148" column="18" declfile="src/ml_runtime.h" declline="148" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga0696d5f6f40851d20c2897118697d85a" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLErrorValueT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLErrorValueT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="149" column="18" declfile="src/ml_runtime.h" declline="149" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1gaf343dad7a9a3aceec04acfa0209bbc4e" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__cfunction__t" kindref="compound">ml_cfunction_t</ref></type>
+        <definition>ml_cfunction_t MLRaise[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLRaise</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="150" column="23" declfile="src/ml_runtime.h" declline="150" declcolumn="23"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga16993d79f433ea0ed22112f642d760a7" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref></type>
+        <definition>ml_cfunctionx_t MLBreak[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLBreak</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="212" column="24" declfile="src/ml_runtime.h" declline="212" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga1469287b038effd0be7808b4a280ac84" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref></type>
+        <definition>ml_cfunctionx_t MLDebugger[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLDebugger</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="213" column="24" declfile="src/ml_runtime.h" declline="213" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga5a6fb7f85d840ea54b9354edd6582bd4" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref></type>
+        <definition>ml_cfunctionx_t MLTrace[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLTrace</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="214" column="24" declfile="src/ml_runtime.h" declline="214" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1gab8ee5ad682037d14be38199f6aa7f853" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref></type>
+        <definition>ml_cfunctionx_t MLFinalizer[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLFinalizer</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="249" column="24" declfile="src/ml_runtime.h" declline="249" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga08a8099ffaf70d61df6e251d359e2f1b" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSemaphoreT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSemaphoreT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="275" column="18" declfile="src/ml_runtime.h" declline="275" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1gae0f4fd68326b1c45a0264f7804668ae0" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLConditionT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLConditionT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="276" column="18" declfile="src/ml_runtime.h" declline="276" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1ga4af60912290c5530a4a08a4318627fd0" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLRWLockT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLRWLockT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="277" column="18" declfile="src/ml_runtime.h" declline="277" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__runtime_1gaf27023974e1446cef64248000038ae5c" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLChannelT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLChannelT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="281" column="18" declfile="src/ml_runtime.h" declline="281" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__runtime_1ga69d173bc33563bcb8f5f311e3526ed59" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+        <definition>ml_context_t * ml_context</definition>
+        <argsstring>(ml_context_t *Parent) __attribute__((malloc))</argsstring>
+        <name>ml_context</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Parent</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="49" column="14" declfile="src/ml_runtime.h" declline="49" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga70f324714e575500eea732499c6a9456" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_context_index</definition>
+        <argsstring>()</argsstring>
+        <name>ml_context_index</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="51" column="5" declfile="src/ml_runtime.h" declline="51" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gad9c4b6c86988ef02c3dcbd73882e92b6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_context_set</definition>
+        <argsstring>(ml_context_t *Context, int Index, void *Value)</argsstring>
+        <name>ml_context_set</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="55" column="6" declfile="src/ml_runtime.h" declline="55" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gad9cfdc978865bc3d4f509b2af310f149" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_config_register</definition>
+        <argsstring>(const char *Name, ml_config_fn Fn)</argsstring>
+        <name>ml_config_register</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>ml_config_fn</type>
+          <declname>Fn</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="59" column="6" declfile="src/ml_runtime.h" declline="59" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga35e789ee30e220733088c39ae4194b18" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_config_fn</type>
+        <definition>ml_config_fn ml_config_lookup</definition>
+        <argsstring>(const char *Name)</argsstring>
+        <name>ml_config_lookup</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="60" column="14" declfile="src/ml_runtime.h" declline="60" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+        <definition>ml_state_t * ml_state</definition>
+        <argsstring>(ml_state_t *Caller) __attribute__((malloc))</argsstring>
+        <name>ml_state</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="73" column="12" declfile="src/ml_runtime.h" declline="73" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga41748b84e0dff33483013c5f26970c51" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_default_state_run</definition>
+        <argsstring>(ml_state_t *State, ml_value_t *Value)</argsstring>
+        <name>ml_default_state_run</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="75" column="6" declfile="src/ml_runtime.h" declline="75" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga2be6e789393b900e951136eea2cb5336" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_result_state_run</definition>
+        <argsstring>(ml_result_state_t *State, ml_value_t *Value)</argsstring>
+        <name>ml_result_state_run</name>
+        <param>
+          <type><ref refid="structml__result__state__t" kindref="compound">ml_result_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="82" column="6" declfile="src/ml_runtime.h" declline="82" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gaa283c72d35952c7b569b4d9c18b97ba9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__result__state__t" kindref="compound">ml_result_state_t</ref> *</type>
+        <definition>ml_result_state_t * ml_result_state</definition>
+        <argsstring>(ml_context_t *Context) __attribute__((malloc))</argsstring>
+        <name>ml_result_state</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="83" column="19" declfile="src/ml_runtime.h" declline="83" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gaac161795d2df9af58f3deca0dff384bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__call__state__t" kindref="compound">ml_call_state_t</ref> *</type>
+        <definition>ml_call_state_t * ml_call_state</definition>
+        <argsstring>(ml_state_t *Caller, int Count) __attribute__((malloc))</argsstring>
+        <name>ml_call_state</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="92" column="17" declfile="src/ml_runtime.h" declline="92" declcolumn="17"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gabbc4d2f9454ddfeffb90419fd2de6428" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_simple_call</definition>
+        <argsstring>(ml_value_t *Value, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_simple_call</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="94" column="12" declfile="src/ml_runtime.h" declline="94" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga0d52632f3a3fd7def5aaee9a23f75ec4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_simple_assign</definition>
+        <argsstring>(ml_value_t *Value, ml_value_t *Value2)</argsstring>
+        <name>ml_simple_assign</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value2</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="95" column="12" declfile="src/ml_runtime.h" declline="95" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga57528ac25b01d2a781500b372f14fe37" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_runtime_init</definition>
+        <argsstring>()</argsstring>
+        <name>ml_runtime_init</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="101" column="6" declfile="src/ml_runtime.h" declline="101" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga974a5b05d15d601bd0de4e92a74f4f46" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_reference</definition>
+        <argsstring>(ml_value_t **Address) __attribute__((malloc))</argsstring>
+        <name>ml_reference</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Address</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="133" column="12" declfile="src/ml_runtime.h" declline="133" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga87051d70cc770221b9da41e48e3f9cf1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_uninitialized</definition>
+        <argsstring>(const char *Name, ml_source_t Source) __attribute__((malloc))</argsstring>
+        <name>ml_uninitialized</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
+          <declname>Source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="140" column="12" declfile="src/ml_runtime.h" declline="140" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga7820bf0a49f3ba94bc11a8ad6adb4fea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_uninitialized_use</definition>
+        <argsstring>(ml_value_t *Uninitialized, ml_value_t **Slot)</argsstring>
+        <name>ml_uninitialized_use</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Uninitialized</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Slot</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="141" column="6" declfile="src/ml_runtime.h" declline="141" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga47132b1afc1de7bad97ba1a50adbb493" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_uninitialized_set</definition>
+        <argsstring>(ml_value_t *Uninitialized, ml_value_t *Value)</argsstring>
+        <name>ml_uninitialized_set</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Uninitialized</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="142" column="6" declfile="src/ml_runtime.h" declline="142" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gaa9d1722f4b553b334463a55bd6a58bea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_uninitialized_name</definition>
+        <argsstring>(ml_value_t *Uninitialized)</argsstring>
+        <name>ml_uninitialized_name</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Uninitialized</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="143" column="12" declfile="src/ml_runtime.h" declline="143" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga627a55970344757243fbbbd0db5cd70c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
+        <definition>ml_source_t ml_uninitialized_source</definition>
+        <argsstring>(ml_value_t *Uninitialized)</argsstring>
+        <name>ml_uninitialized_source</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Uninitialized</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="144" column="13" declfile="src/ml_runtime.h" declline="144" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gab58836a023054d3ec67fa43390728008" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_is_error</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_is_error</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="152" column="19" bodyfile="src/ml_runtime.h" bodystart="152" bodyend="158"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga4779497872e6f36deafe8ae9212273e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_error</definition>
+        <argsstring>(const char *Error, const char *Format,...) __attribute__((malloc</argsstring>
+        <name>ml_error</name>
+        <param>
+          <type>const char *</type>
+          <declname>Error</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="160" column="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga08e90030c51b2e380dd1527a97a6934f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref></type>
+        <definition>ml_value_t format</definition>
+        <argsstring>(printf, 2, 3)))</argsstring>
+        <name>format</name>
+        <param>
+          <type>printf</type>
+        </param>
+        <param>
+          <type>2</type>
+        </param>
+        <param>
+          <type>3</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="160" column="29" declfile="src/ml_runtime.h" declline="160" declcolumn="29"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga6158d33568fabd7d6c5340a757873bfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_errorv</definition>
+        <argsstring>(const char *Error, const char *Format, va_list Args) __attribute__((malloc))</argsstring>
+        <name>ml_errorv</name>
+        <param>
+          <type>const char *</type>
+          <declname>Error</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type>va_list</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="161" column="12" declfile="src/ml_runtime.h" declline="161" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga4264ad1f11198b206ff1ea90acb36d37" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_error_unwrap</definition>
+        <argsstring>(const ml_value_t *Value)</argsstring>
+        <name>ml_error_unwrap</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="162" column="12" declfile="src/ml_runtime.h" declline="162" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga2f36390372ac3ea6b37982d9686cbc8d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_error_type</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_error_type</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="163" column="12" declfile="src/ml_runtime.h" declline="163" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga35b90a0fa1fa90d44f9efa3dc389edab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_error_message</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_error_message</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="164" column="12" declfile="src/ml_runtime.h" declline="164" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga8b97a98a13e6e5e2d4508bf82f764ede" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_error_value</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_error_value</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="165" column="12" declfile="src/ml_runtime.h" declline="165" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gaddc5ccfa2ddd386f0fbcc4a859f469f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_error_source</definition>
+        <argsstring>(const ml_value_t *Value, int Level, ml_source_t *Source)</argsstring>
+        <name>ml_error_source</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Level</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref> *</type>
+          <declname>Source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="166" column="5" declfile="src/ml_runtime.h" declline="166" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga41fe8083eb9e674740bf5058b8f53a4b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_error_trace_add</definition>
+        <argsstring>(ml_value_t *Error, ml_source_t Source)</argsstring>
+        <name>ml_error_trace_add</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Error</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
+          <declname>Source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="167" column="12" declfile="src/ml_runtime.h" declline="167" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga283f03bda24e39400708ccc8643e1645" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_error_value_set</definition>
+        <argsstring>(ml_value_t *Error, ml_value_t *Value)</argsstring>
+        <name>ml_error_value_set</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Error</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="168" column="6" declfile="src/ml_runtime.h" declline="168" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gac935f58e1c4ef06f210982e22002742a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_error_print</definition>
+        <argsstring>(const ml_value_t *Error)</argsstring>
+        <name>ml_error_print</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Error</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="169" column="6" declfile="src/ml_runtime.h" declline="169" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga07f75eeb9d54e782545248465f4698a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_error_fprint</definition>
+        <argsstring>(FILE *File, const ml_value_t *Error)</argsstring>
+        <name>ml_error_fprint</name>
+        <param>
+          <type>FILE *</type>
+          <declname>File</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Error</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="170" column="6" declfile="src/ml_runtime.h" declline="170" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga28551bd1cbe29a6c8de5ed3cc2390c43" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_error_value_type</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_error_value_type</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="172" column="12" declfile="src/ml_runtime.h" declline="172" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga11b191bff691a4e11e037882aede2ffd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_error_value_message</definition>
+        <argsstring>(const ml_value_t *Value) __attribute__((pure))</argsstring>
+        <name>ml_error_value_message</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="173" column="12" declfile="src/ml_runtime.h" declline="173" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga04326d13882081a9e27d8692e50aa8bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_error_value_source</definition>
+        <argsstring>(const ml_value_t *Value, int Level, ml_source_t *Source)</argsstring>
+        <name>ml_error_value_source</name>
+        <param>
+          <type>const <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Level</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref> *</type>
+          <declname>Source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="174" column="5" declfile="src/ml_runtime.h" declline="174" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga93405b5a85e955046cee32f4e9ab4883" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_debugger_check</definition>
+        <argsstring>(ml_state_t *State)</argsstring>
+        <name>ml_debugger_check</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="206" column="5" declfile="src/ml_runtime.h" declline="206" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga5c50a4b2fc5852675d857a128a96e668" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_debugger_step_mode</definition>
+        <argsstring>(ml_state_t *State, int StepOver, int StepOut)</argsstring>
+        <name>ml_debugger_step_mode</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>StepOver</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>StepOut</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="207" column="6" declfile="src/ml_runtime.h" declline="207" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga9f32f068f3b250e6a05c936a0114c924" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
+        <definition>ml_source_t ml_debugger_source</definition>
+        <argsstring>(ml_state_t *State)</argsstring>
+        <name>ml_debugger_source</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="208" column="13" declfile="src/ml_runtime.h" declline="208" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gaedfc931f83981097241e0e104b9073c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__decl__t" kindref="compound">ml_decl_t</ref> *</type>
+        <definition>ml_decl_t * ml_debugger_decls</definition>
+        <argsstring>(ml_state_t *State)</argsstring>
+        <name>ml_debugger_decls</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="209" column="11" declfile="src/ml_runtime.h" declline="209" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gafd39568826e945dae842d6a019d91364" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_debugger_local</definition>
+        <argsstring>(ml_state_t *State, int Index)</argsstring>
+        <name>ml_debugger_local</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="210" column="12" declfile="src/ml_runtime.h" declline="210" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga32198d43f48db3b8d94e998fc0209f18" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_state_schedule</definition>
+        <argsstring>(ml_state_t *State, ml_value_t *Value)</argsstring>
+        <name>ml_state_schedule</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="226" column="20" bodyfile="src/ml_runtime.h" bodystart="226" bodyend="229"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gaf7a35d4daa1f84539802f558fe0814cc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_default_queue_init</definition>
+        <argsstring>(ml_context_t *Context, int Slice)</argsstring>
+        <name>ml_default_queue_init</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Slice</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="236" column="6" declfile="src/ml_runtime.h" declline="236" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gacbf0d8270573ee8b04a8917c794c6be9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref></type>
+        <definition>ml_queued_state_t ml_default_queue_next</definition>
+        <argsstring>()</argsstring>
+        <name>ml_default_queue_next</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="237" column="19" declfile="src/ml_runtime.h" declline="237" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga9655e777aafdaf54b4ea2426fb328a18" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_default_queue_add</definition>
+        <argsstring>(ml_state_t *State, ml_value_t *Value)</argsstring>
+        <name>ml_default_queue_add</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="238" column="5" declfile="src/ml_runtime.h" declline="238" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1gad1aef37a4ffee47b96fff69264f7f966" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_scheduler_queue_t *</type>
+        <definition>ml_scheduler_queue_t * ml_default_queue_get</definition>
+        <argsstring>()</argsstring>
+        <name>ml_default_queue_get</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="242" column="22" declfile="src/ml_runtime.h" declline="242" declcolumn="22"/>
+      </memberdef>
+      <memberdef kind="function" id="group__runtime_1ga8555e14f7fe295112f6adb8260a1a6f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_default_queue_set</definition>
+        <argsstring>(ml_scheduler_queue_t *Queue)</argsstring>
+        <name>ml_default_queue_set</name>
+        <param>
+          <type>ml_scheduler_queue_t *</type>
+          <declname>Queue</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="243" column="6" declfile="src/ml_runtime.h" declline="243" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__runtime_1gacb4dbc9c60321a197cb4e383665d732b" prot="public" static="no">
+        <name>ML_ARG_CACHE_SIZE</name>
+        <initializer>64</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="19" column="9" bodyfile="src/ml_runtime.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" prot="public" static="no">
+        <name>ml_alloc_args</name>
+        <param><defname>COUNT</defname></param>
+        <initializer>(((COUNT) &lt;= ML_ARG_CACHE_SIZE) ? MLArgCache : anew(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *, COUNT))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="27" column="9" bodyfile="src/ml_runtime.h" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga9389dff42b52f0da9eba7898a7eb48ba" prot="public" static="no">
+        <name>ml_context_get</name>
+        <param><defname>CONTEXT</defname></param>
+        <param><defname>INDEX</defname></param>
+        <initializer>((CONTEXT)-&gt;Size &lt;= (INDEX) ? NULL : (CONTEXT)-&gt;Values[(INDEX)])</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="53" column="9" bodyfile="src/ml_runtime.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" prot="public" static="no">
+        <name>ml_simple_inline</name>
+        <param><defname>VALUE</defname></param>
+        <param><defname>COUNT</defname></param>
+        <param><defname>ARGS ...</defname></param>
+        <initializer>	({ \
+	ml_simple_call((<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *)VALUE, COUNT, (<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **)(void *[]){ARGS}); \
+})</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="97" column="9" bodyfile="src/ml_runtime.h" bodystart="97" bodyend="99"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" prot="public" static="no">
+        <name>SIZE_BITS</name>
+        <initializer>(CHAR_BIT * sizeof(size_t))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="178" column="9" bodyfile="src/ml_runtime.h" bodystart="178" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga1c4e727662d91855584cc5f105ead657" prot="public" static="no">
+        <name>MLC_DECL_CONSTANT</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="192" column="9" bodyfile="src/ml_runtime.h" bodystart="192" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga11e3df0bb21bd4d7ecff69b09d9ec7f0" prot="public" static="no">
+        <name>MLC_DECL_FORWARD</name>
+        <initializer>2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="193" column="9" bodyfile="src/ml_runtime.h" bodystart="193" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga355979ac31f5f51b4e1db309cf7bf7c2" prot="public" static="no">
+        <name>MLC_DECL_BACKFILL</name>
+        <initializer>4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="194" column="9" bodyfile="src/ml_runtime.h" bodystart="194" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga6719ad4b0313acf83f2c4b463cda53c8" prot="public" static="no">
+        <name>MLC_DECL_BYREF</name>
+        <initializer>8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="195" column="9" bodyfile="src/ml_runtime.h" bodystart="195" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga051cb433271b4305a6d7d13d1d46b2ef" prot="public" static="no">
+        <name>MLC_DECL_ASVAR</name>
+        <initializer>16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="196" column="9" bodyfile="src/ml_runtime.h" bodystart="196" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga44204b201d70aacc6352e3128246582c" prot="public" static="no">
+        <name>ML_STATE_FN2</name>
+        <param><defname>NAME</defname></param>
+        <param><defname>FUNCTION</defname></param>
+        <initializer>static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *State, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *Value); \
+\
+static <ref refid="structml__state__t" kindref="compound">ml_state_t</ref> NAME[1] = {{MLStateT, NULL, FUNCTION, &amp;MLRootContext}}; \
+\
+static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *State, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *Value)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="251" column="9" bodyfile="src/ml_runtime.h" bodystart="251" bodyend="256"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1gad2ca04d78c9fa90c543e797ce81d056d" prot="public" static="no">
+        <name>ML_STATE_FN</name>
+        <param><defname>NAME</defname></param>
+        <initializer>ML_STATE_FN2(NAME, CONCAT3(ml_state_fn_, __LINE__, __COUNTER__))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="258" column="9" bodyfile="src/ml_runtime.h" bodystart="258" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga6d5228b69bc4268d7c11a742739144ee" prot="public" static="no">
+        <name>ml_default_queue_next_wait</name>
+        <initializer>ml_default_queue_next</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="269" column="10" bodyfile="src/ml_runtime.h" bodystart="269" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga6500f5cb805750064badb75daf8b4b71" prot="public" static="no">
+        <name>ml_default_queue_add_signal</name>
+        <initializer>ml_default_queue_add</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="270" column="9" bodyfile="src/ml_runtime.h" bodystart="270" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

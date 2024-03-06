@@ -590,7 +590,7 @@ array
    
    * If :mini:`Indexᵢ` is an :mini:`integer` then the :mini:`Indexᵢ`-th value of the next dimension is selected and the dimension is dropped from the output.
    
-   * If :mini:`Indexᵢ` is an :mini:`integer::range` then the corresponding slice of the next dimension is copied to the output.
+   * If :mini:`Indexᵢ` is an :mini:`integer::interval` then the corresponding slice of the next dimension is copied to the output.
    
    * If :mini:`Indexᵢ` is a :mini:`tuple[integer,  ...]` then the next dimensions are indexed by the corresponding integer in turn (i.e. :mini:`A[(I,  J,  K)]` gives the same result as :mini:`A[I,  J,  K]`).
    
@@ -844,7 +844,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1230333292>>
+      A:minidx(2) :> <<2 1> <1 1702129225>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1859,9 +1859,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:00457072D27F0000537465704F757420>
+      :> <16:4091F25E6F7F00003E4C696E65203D20>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<17664 29296> <32722 0>> <<29779 28773> <30031 8308>>>
+      :> <<<37184 24306> <32623 0>> <<19518 28265> <8293 8253>>>
 
 
 :mini:`type vector < array`

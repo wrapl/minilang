@@ -1,6 +1,10 @@
 #ifndef ML_COMPILER_H
 #define ML_COMPILER_H
 
+/// \defgroup compiler
+/// @{
+///
+
 #include <setjmp.h>
 
 #include "ml_runtime.h"
@@ -44,10 +48,61 @@ typedef struct mlc_expr_t mlc_expr_t;
 
 typedef const char *(*ml_reader_t)(void *);
 
+/**
+ * Returns a new parser.
+ *
+ * @param Read Function to call to read the next line of source.
+ * @param Data Data passed to \a Read.
+ *
+ * @return A new parser.
+ */
 ml_parser_t *ml_parser(ml_reader_t Read, void *Data);
+
+/**
+ * Resets the state of a parser.
+ *
+ * @param Parser Parser.
+ */
 void ml_parser_reset(ml_parser_t *Parser);
+
+/**
+ * Enables or disabled permissive parsing.
+ *
+ * When permissive parsing is enabled, parsing errors are stored as warnings instead
+ * and an invalid expression is substituted. The parser output in this case will
+ * cause an error when compiled. The list of warnings can be retrieved with
+ * ml_parser_warnings().
+ *
+ * @param Parser Parser.
+ * @param Permissive 0 - disable permissive mode (default), 1 - enable permissive mode.
+ *
+ * @see ml_parser_warnings
+ */
 void ml_parser_permissive(ml_parser_t *Parser, int Permissive);
+
+/**
+ * Returns a list (\a ml_list_t *) of the warnings generated while parsing. If permissive
+ * parsing is disabled, this will always be an empty list.
+ *
+ * @param Parser Parser.
+ *
+ * @return List of warnings.
+ *
+ * @see ml_parser_permissive
+ */
 ml_value_t *ml_parser_warnings(ml_parser_t *Parser);
+
+/**
+ * Sets the next source text for parsing. Any existing unparsed source within parser is
+ * discarded. \a Text can be a single line, contain multiple lines of source, or even be
+ * the entire contents of a source file.
+ *
+ * End-of-line characters should *not* be stripped from \a Text. Currently, tokens cannot
+ * be split across different calls to ml_parser_input().
+ *
+ * @param Parser Parser.
+ * @param Text Source text.
+ */
 void ml_parser_input(ml_parser_t *Parser, const char *Text);
 const char *ml_parser_name(ml_parser_t *Parser);
 ml_source_t ml_parser_source(ml_parser_t *Parser, ml_source_t Source);
@@ -55,9 +110,13 @@ ml_value_t *ml_parser_value(ml_parser_t *Parser);
 const char *ml_parser_clear(ml_parser_t *Parser);
 //void ml_parse_error(ml_parser_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
 void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, ...);
+mlc_expr_t *ml_parse_expr(ml_parser_t *Parser);
 mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 
+void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data);
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data);
+
+ml_value_t *ml_macro_subst(mlc_expr_t *Child, int Count, const char **Names, ml_value_t **Exprs);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals);
 void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value);
@@ -76,10 +135,6 @@ void ml_string_fn_register(const char *Prefix, string_fn_t Fn);
 
 void ml_compiler_init();
 
-typedef struct ml_scope_macro_t ml_scope_macro_t;
-ml_scope_macro_t *ml_scope_macro();
-void ml_scope_macro_define(ml_scope_macro_t *Macro, const char *Name, ml_value_t *Value);
-
 ml_value_t *ml_global(const char *Name);
 ml_value_t *ml_global_get(ml_value_t *Global);
 ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value);
@@ -89,10 +144,10 @@ ml_value_t *ml_inline_call_macro(ml_value_t *Value);
 
 ml_value_t *ml_inline_function(ml_value_t *Value);
 
-void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr);
-
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

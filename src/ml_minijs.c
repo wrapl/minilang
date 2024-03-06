@@ -2,13 +2,10 @@
 #include "ml_bytecode.h"
 #include <string.h>
 #include "ml_minijs.h"
+#include "ml_time.h"
 
 #ifdef ML_UUID
 #include "ml_uuid.h"
-#endif
-
-#ifdef ML_TIME
-#include "ml_time.h"
 #endif
 
 #undef ML_CATEGORY
@@ -198,8 +195,6 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLUUIDT, ml_minijs_encoder_t *E
 
 #endif
 
-#ifdef ML_TIME
-
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTimeT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	struct timespec Time[1];
 	ml_time_value(Value, Time);
@@ -222,8 +217,6 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTimeT, ml_minijs_encoder_t *E
 	ml_list_put(Json, ml_string_copy(Buffer, End - Buffer));
 	return Json;
 }
-
-#endif
 
 #ifdef ML_MATH
 
@@ -381,6 +374,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: *Offset += 2; return 1;
 	case MLIT_INST: *Offset += 3; return 2;
+	case MLIT_INST_CONFIG: *Offset += 4; return 3;
 	case MLIT_INST_COUNT: *Offset += 4; return 3;
 	case MLIT_INST_COUNT_DECL: *Offset += 5; return 4;
 	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
@@ -409,6 +403,11 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_minijs_encoder_t *Encoder,
 	case MLIT_INST:
 		ml_list_put(Json, ml_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
 		return 2;
+	case MLIT_INST_CONFIG:
+		// TODO: Implement this!
+		ml_list_put(Json, ml_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
+		ml_list_put(Json, ml_integer(Inst[2].Count));
+		return 3;
 	case MLIT_INST_COUNT:
 		ml_list_put(Json, ml_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
 		ml_list_put(Json, ml_integer(Inst[2].Count));
@@ -591,7 +590,7 @@ ml_value_t *ml_minijs_decode(ml_minijs_decoder_t *Decoder, ml_value_t *Json) {
 			ml_value_t *Value = inthash_search(Decoder->Cached, Index);
 			if (Value) return Value;
 			char *Name;
-			GC_asprintf(&Name, "@%d", Index);
+			GC_asprintf(&Name, "@%ld", Index);
 			Value = ml_uninitialized(Name, (ml_source_t){"minijs", 0});
 			inthash_insert(Decoder->Cached, Index, Value);
 			return Value;
@@ -740,16 +739,12 @@ static ml_value_t *ml_minijs_decode_uuid(ml_minijs_decoder_t *Decoder, ml_list_n
 
 #endif
 
-#ifdef ML_TIME
-
 static ml_value_t *ml_minijs_decode_time(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
 	if (!Node) return ml_error("TypeError", "Global requires string name");
 	ml_value_t *Value = Node->Value;
 	if (!ml_is(Value, MLStringT)) return ml_error("TypeError", "Time requires strings");
 	return ml_time_parse(ml_string_value(Value), ml_string_length(Value));
 }
-
-#endif
 
 #ifdef ML_MATH
 
@@ -823,6 +818,7 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 		case MLIT_COUNT:
 		case MLIT_VALUE:
 			Index += 3; Offset += 2; break;
+		case MLIT_INST_CONFIG:
 		case MLIT_INST_COUNT:
 		case MLIT_COUNT_COUNT:
 		case MLIT_VALUE_COUNT:
@@ -885,6 +881,13 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 			Inst[1].Inst = Code + Offsets[ml_integer_value(Iter->Value)];
 			ml_list_iter_next(Iter);
 			Inst += 2; break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			Inst[1].Inst = Code + Offsets[ml_integer_value(Iter->Value)];
+			ml_list_iter_next(Iter);
+			Inst[2].Count = ml_integer_value(Iter->Value);
+			ml_list_iter_next(Iter);
+			Inst += 3; break;
 		case MLIT_INST_COUNT:
 			Inst[1].Inst = Code + Offsets[ml_integer_value(Iter->Value)];
 			ml_list_iter_next(Iter);
@@ -1084,9 +1087,7 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "closure", ml_minijs_decode_closure);
 	stringmap_insert(Decoders, "z", ml_minijs_decode_closure);
 	stringmap_insert(Decoders, "o", ml_minijs_decode_object);
-#ifdef ML_TIME
 	stringmap_insert(Decoders, "time", ml_minijs_decode_time);
-#endif
 #ifdef ML_MATH
 	stringmap_insert(Decoders, "array", ml_minijs_decode_array);
 #endif

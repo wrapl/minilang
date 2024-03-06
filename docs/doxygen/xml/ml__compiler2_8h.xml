@@ -1,0 +1,1641 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__compiler2_8h" kind="file" language="C++">
+    <compoundname>ml_compiler2.h</compoundname>
+    <includes refid="ml__compiler_8h" local="yes">ml_compiler.h</includes>
+    <includes refid="ml__bytecode_8h" local="yes">ml_bytecode.h</includes>
+    <includes refid="ml__expr__types_8h" local="yes">ml_expr_types.h</includes>
+    <incdepgraph>
+      <node id="11">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="16">
+        <label>ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>ml_expr_types.h</label>
+        <link refid="ml__expr__types_8h_source"/>
+      </node>
+      <node id="17">
+        <label>ml_opcodes.h</label>
+        <link refid="ml__opcodes_8h_source"/>
+      </node>
+      <node id="4">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="15">
+        <label>limits.h</label>
+      </node>
+      <node id="14">
+        <label>ml_config.h</label>
+      </node>
+      <node id="3">
+        <label>setjmp.h</label>
+      </node>
+      <node id="8">
+        <label>stdarg.h</label>
+      </node>
+      <node id="13">
+        <label>stdint.h</label>
+      </node>
+      <node id="6">
+        <label>stdio.h</label>
+      </node>
+      <node id="12">
+        <label>stdlib.h</label>
+      </node>
+      <node id="7">
+        <label>string.h</label>
+      </node>
+      <node id="9">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structmlc__expr__t" prot="public">mlc_expr_t</innerclass>
+    <innerclass refid="structmlc__function__t" prot="public">mlc_function_t</innerclass>
+    <innerclass refid="structmlc__define__t" prot="public">mlc_define_t</innerclass>
+    <innerclass refid="structmlc__value__expr__t" prot="public">mlc_value_expr_t</innerclass>
+    <innerclass refid="structmlc__local__t" prot="public">mlc_local_t</innerclass>
+    <innerclass refid="structmlc__if__case__t" prot="public">mlc_if_case_t</innerclass>
+    <innerclass refid="structmlc__if__expr__t" prot="public">mlc_if_expr_t</innerclass>
+    <innerclass refid="structmlc__parent__expr__t" prot="public">mlc_parent_expr_t</innerclass>
+    <innerclass refid="structmlc__if__config__expr__t" prot="public">mlc_if_config_expr_t</innerclass>
+    <innerclass refid="structmlc__local__expr__t" prot="public">mlc_local_expr_t</innerclass>
+    <innerclass refid="structmlc__for__expr__t" prot="public">mlc_for_expr_t</innerclass>
+    <innerclass refid="structmlc__block__expr__t" prot="public">mlc_block_expr_t</innerclass>
+    <innerclass refid="structmlc__parent__value__expr__t" prot="public">mlc_parent_value_expr_t</innerclass>
+    <innerclass refid="structmlc__string__expr__t" prot="public">mlc_string_expr_t</innerclass>
+    <innerclass refid="structmlc__string__part__t" prot="public">mlc_string_part_t</innerclass>
+    <innerclass refid="structmlc__param__t" prot="public">mlc_param_t</innerclass>
+    <innerclass refid="structmlc__default__expr__t" prot="public">mlc_default_expr_t</innerclass>
+    <innerclass refid="structmlc__fun__expr__t" prot="public">mlc_fun_expr_t</innerclass>
+    <innerclass refid="structmlc__ident__expr__t" prot="public">mlc_ident_expr_t</innerclass>
+    <innerclass refid="structml__macro__t" prot="public">ml_macro_t</innerclass>
+    <innerclass refid="structmlc__frame__t" prot="public">mlc_frame_t</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ml__compiler2_8h_1a8bec446c9a672387da017f7ce9de231f" prot="public" static="no">
+        <name>MLC_EXPR_FIELDS</name>
+        <param><defname>name</defname></param>
+        <initializer>	<ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *Type; \
+	void (*compile)(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *, mlc_## name ## _expr_t *, int); \
+	<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *Next; \
+	const char *Source; \
+	int StartLine, EndLine; \</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="122" column="9" bodyfile="src/ml_compiler2.h" bodystart="122" bodyend="128"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a8caeb77c847150327c81b26ea8a2c023" prot="public" static="no">
+        <name>MLCF_PUSH</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="290" column="9" bodyfile="src/ml_compiler2.h" bodystart="290" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a646dbe7e7f45482416a99f01df39fae5" prot="public" static="no">
+        <name>MLCF_LOCAL</name>
+        <initializer>2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="291" column="9" bodyfile="src/ml_compiler2.h" bodystart="291" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a110d89e2dcfabac4234fa0c7ed487fd3" prot="public" static="no">
+        <name>MLCF_CONSTANT</name>
+        <initializer>4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="292" column="9" bodyfile="src/ml_compiler2.h" bodystart="292" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a6e013e708ffd3795d73ffab89a7f0e95" prot="public" static="no">
+        <name>MLCF_RETURN</name>
+        <initializer>8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="293" column="9" bodyfile="src/ml_compiler2.h" bodystart="293" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a94e27aa78b6160690755659617395373" prot="public" static="no">
+        <name>MLC_EXPR_ERROR</name>
+        <param><defname>EXPR</defname></param>
+        <param><defname>ERROR</defname></param>
+        <initializer>return mlc_expr_error(Function, (<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *)(EXPR), ERROR)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="306" column="9" bodyfile="src/ml_compiler2.h" bodystart="306" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1ad1c35e35f0880c3ac6c8c521fd711515" prot="public" static="no">
+        <name>MLC_FRAME</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>RUN</defname></param>
+        <initializer>TYPE *Frame = (TYPE *)mlc_frame_alloc(Function, sizeof(TYPE), (mlc_frame_fn)RUN)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="308" column="9" bodyfile="src/ml_compiler2.h" bodystart="308" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a6ed1440c2a5cd7aedf721dd08d5f58e8" prot="public" static="no">
+        <name>MLC_XFRAME</name>
+        <param><defname>TYPE</defname></param>
+        <param><defname>COUNT</defname></param>
+        <param><defname>TYPE2</defname></param>
+        <param><defname>RUN</defname></param>
+        <initializer>TYPE *Frame = (TYPE *)mlc_frame_alloc(Function, sizeof(TYPE) + (COUNT) * sizeof(TYPE2), (mlc_frame_fn)RUN)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="310" column="9" bodyfile="src/ml_compiler2.h" bodystart="310" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a9aa6c836102097643aa5de9a5ad8b67d" prot="public" static="no">
+        <name>MLC_POP</name>
+        <param></param>
+        <initializer>mlc_pop(Function)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="313" column="9" bodyfile="src/ml_compiler2.h" bodystart="313" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a9a8668e3c5584811e60607f1c70dbe1e" prot="public" static="no">
+        <name>MLC_RETURN</name>
+        <param><defname>VALUE</defname></param>
+        <initializer>return mlc_return(Function, VALUE)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="316" column="9" bodyfile="src/ml_compiler2.h" bodystart="316" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1a04cc903bbf5018ecece45f61c706cadc" prot="public" static="no">
+        <name>MLC_EMIT</name>
+        <param><defname>LINE</defname></param>
+        <param><defname>OPCODE</defname></param>
+        <param><defname>N</defname></param>
+        <initializer>ml_inst_alloc(Function, LINE, OPCODE, N)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="318" column="9" bodyfile="src/ml_compiler2.h" bodystart="318" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__compiler2_8h_1ae32cad6476b12ac91758468045a237c9" prot="public" static="no">
+        <name>MLC_LINK</name>
+        <param><defname>START</defname></param>
+        <param><defname>TARGET</defname></param>
+        <initializer>mlc_fix_links(START, TARGET)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="319" column="9" bodyfile="src/ml_compiler2.h" bodystart="319" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_token_t</name>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da4907fd43e0811d011ed9912bd5ae6a0e" prot="public">
+          <name>MLT_NONE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dac07688695a45555b9e6f4a7d016bbbe9" prot="public">
+          <name>MLT_EOL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da4734949311eb412afdc39c92bd6d7a56" prot="public">
+          <name>MLT_EOI</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dad99ca4f28642dc2d9c1ba67e03802b02" prot="public">
+          <name>MLT_AND</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dab1204ab78036f01b0e14d8bb85c22508" prot="public">
+          <name>MLT_CASE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da47aea41bd3cc69fd731adadd8fc194ba" prot="public">
+          <name>MLT_DEF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da11411e8a7e19da2da876b591e9006c26" prot="public">
+          <name>MLT_DO</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da3cb6e8316171b188eac7057a1ed6fcaf" prot="public">
+          <name>MLT_EACH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da7cd435cf4add95badc6fe6be871c4657" prot="public">
+          <name>MLT_ELSE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da6de1ed557842019871da2a804c05299f" prot="public">
+          <name>MLT_ELSEIF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da6e38eb04021072ef5fe5000b2829f3f9" prot="public">
+          <name>MLT_END</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071daec487e62c5d7ec9d2f444733e828560f" prot="public">
+          <name>MLT_EXIT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071daf9c2b7147f90d389c6acb348495edd6f" prot="public">
+          <name>MLT_FOR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dad7cc0461faf5ba2fe2bbbe5ac242719b" prot="public">
+          <name>MLT_FUN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071daa73b8573a0e8ecfe561a86a56ed39590" prot="public">
+          <name>MLT_IF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dafa461e2a19f56da0ca12cde2f28bb5bd" prot="public">
+          <name>MLT_IF_CONFIG</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da4ad6cd9525686f96d0aeb645fe65961b" prot="public">
+          <name>MLT_IN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da5ae213f27fc29096ac4006ae312085b7" prot="public">
+          <name>MLT_IS</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da8a0fa26a230763b292cdc4e3a574b8f2" prot="public">
+          <name>MLT_IT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dadfa463ef18f204de2fbc2e60d7f43b38" prot="public">
+          <name>MLT_LET</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da655293292191c4e1434bda6d13713584" prot="public">
+          <name>MLT_LOOP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dac4ab2c629b20fa096b844f41b89cf19f" prot="public">
+          <name>MLT_METH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da731867f5b7282fea8efbe6b859971f4e" prot="public">
+          <name>MLT_MUST</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da8f4ab4edde266744c06a109524e59fb1" prot="public">
+          <name>MLT_NEXT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da5b710cdc215c2bf4f53cd3e474d766b2" prot="public">
+          <name>MLT_NIL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da9ca2d61a3c8237da662da8bbaa48e7d2" prot="public">
+          <name>MLT_NOT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da6c990563edd0bfbbe1c67cd1b2129005" prot="public">
+          <name>MLT_OLD</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dad0abb120249eea0aee00fa78c5e10266" prot="public">
+          <name>MLT_ON</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da355342d86374d93665a0639cb96fc1a8" prot="public">
+          <name>MLT_OR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da587a9031de72ec0dae585ade0bb7baa0" prot="public">
+          <name>MLT_REF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da1aa1c5fe2aeabcb1da594c03a0d00190" prot="public">
+          <name>MLT_RET</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da517390b5b3b707f3a7080b86dc8a394c" prot="public">
+          <name>MLT_SEQ</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dadc610e914e72d741527490154aa65372" prot="public">
+          <name>MLT_SUSP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da2f91dcd651b3a34d8a7857dae957556a" prot="public">
+          <name>MLT_SWITCH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071daea935283a6fce432384d05782c8fa5b3" prot="public">
+          <name>MLT_THEN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da830732c8dfe9adb6bea28bc2f3975262" prot="public">
+          <name>MLT_TO</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dac3739eb0e9696a459759c457dc65ae4f" prot="public">
+          <name>MLT_UNTIL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da36554e769c3d46efec8d9b8775e277f1" prot="public">
+          <name>MLT_VAR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071daa40a56b77cdf3e89bce7dfae2caa906f" prot="public">
+          <name>MLT_WHEN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da0a06403cc32a995946756b8234ef9293" prot="public">
+          <name>MLT_WHILE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da54d89a8b6ab5b8fcf773b2964043f7d0" prot="public">
+          <name>MLT_WITH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dafb3a3e1a77e7cacdcb66ecd6f5aab730" prot="public">
+          <name>MLT_IDENT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da4cbaa1a14a48edefed5ca9bddcc3d001" prot="public">
+          <name>MLT_BLANK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da00f51ebb18c08f117acacdd011086c2a" prot="public">
+          <name>MLT_LEFT_PAREN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071daf123cc40a06acb386039f8434a4ac1e1" prot="public">
+          <name>MLT_RIGHT_PAREN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da37de39b7382a90ff05d751229f2c67e9" prot="public">
+          <name>MLT_LEFT_SQUARE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da4347f2786dfa3bd714ffce62f7874f10" prot="public">
+          <name>MLT_RIGHT_SQUARE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da462eddc89d73366f0a7451d355522461" prot="public">
+          <name>MLT_LEFT_BRACE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da3290f1a68965a3704ffb199f29b91748" prot="public">
+          <name>MLT_RIGHT_BRACE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da775ebbf495f1510f94d0e3d948152715" prot="public">
+          <name>MLT_SEMICOLON</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da40b73f72da1ca7620ce2ef4099716693" prot="public">
+          <name>MLT_COLON</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dac917f64e54de443946ca5cdc0c2cecf5" prot="public">
+          <name>MLT_COMMA</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da7cbcdf27e3a6b15701463582ba55b238" prot="public">
+          <name>MLT_ASSIGN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dad0bbf4de3b126784c711a7b395bb21eb" prot="public">
+          <name>MLT_NAMED</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dae10d2985bf11d8b1d5ae2d023cca1bf3" prot="public">
+          <name>MLT_ESCAPE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071daa579e84dd21c3e2cab39e705e68d0022" prot="public">
+          <name>MLT_IMPORT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dafaa5bd436c477cc403beedeeaddb7244" prot="public">
+          <name>MLT_VALUE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da6a289ec976f69eb2db87d86cd3cab418" prot="public">
+          <name>MLT_EXPR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da670f502eba99b601446e4abc97432414" prot="public">
+          <name>MLT_INLINE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da75574091fa4900d2e582b0beed70329b" prot="public">
+          <name>MLT_EXPAND</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dacf622a8b0c052e1519e22b997e43c07b" prot="public">
+          <name>MLT_EXPR_VALUE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da0f0a293839a2e224a1b1019bf8cb8774" prot="public">
+          <name>MLT_OPERATOR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da380c26df7530a0e650364dc8bb5e9aa6" prot="public">
+          <name>MLT_METHOD</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="7" column="1" bodyfile="src/ml_compiler2.h" bodystart="7" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="enum" id="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_param_kind_t</name>
+        <enumvalue id="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896aa29c3f9f8e4cd3390ca4862eccd85bf8" prot="public">
+          <name>ML_PARAM_DEFAULT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896ae585a83a6529832ca1a515961b6ed5e5" prot="public">
+          <name>ML_PARAM_EXTRA</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896a79c2c5f8b6799e5cf9925036980b6463" prot="public">
+          <name>ML_PARAM_NAMED</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896a0921a6976ac9429ece8d4d80e3183102" prot="public">
+          <name>ML_PARAM_BYREF</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896a06c02a9c823142f692a817088257ecc3" prot="public">
+          <name>ML_PARAM_ASVAR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="245" column="1" bodyfile="src/ml_compiler2.h" bodystart="245" bodyend="251"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a51bc800a2f3f826e81963a28aeb9f4e4" prot="public" static="no">
+        <type>struct mlc_function_t</type>
+        <definition>typedef struct mlc_function_t mlc_function_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_function_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="73" column="29" bodyfile="src/ml_compiler2.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a719b5ae66e8ad86c1b4395b182a57e25" prot="public" static="no">
+        <type>struct mlc_frame_t</type>
+        <definition>typedef struct mlc_frame_t mlc_frame_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_frame_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="74" column="26" bodyfile="src/ml_compiler2.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a7ef74592c6a870d815ce9a6e9129f909" prot="public" static="no">
+        <type>struct mlc_loop_t</type>
+        <definition>typedef struct mlc_loop_t mlc_loop_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_loop_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="75" column="25" bodyfile="src/ml_compiler2.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1aaa52454f165383638723d69f421923dc" prot="public" static="no">
+        <type>struct mlc_block_t</type>
+        <definition>typedef struct mlc_block_t mlc_block_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_block_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="76" column="26" bodyfile="src/ml_compiler2.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a47d31227121483cedc30434740595030" prot="public" static="no">
+        <type>struct mlc_try_t</type>
+        <definition>typedef struct mlc_try_t mlc_try_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_try_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="77" column="24" bodyfile="src/ml_compiler2.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a38e06ddcba260f2acc46c67878256e7b" prot="public" static="no">
+        <type>struct mlc_must_t</type>
+        <definition>typedef struct mlc_must_t mlc_must_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_must_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="78" column="25" bodyfile="src/ml_compiler2.h" bodystart="78" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1ad3ec070c08017ac0970ff1baa0cc3973" prot="public" static="no">
+        <type>struct mlc_upvalue_t</type>
+        <definition>typedef struct mlc_upvalue_t mlc_upvalue_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_upvalue_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="79" column="28" bodyfile="src/ml_compiler2.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a93f0813023918f57278215152dd0f188" prot="public" static="no">
+        <type>struct mlc_define_t</type>
+        <definition>typedef struct mlc_define_t mlc_define_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_define_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="80" column="27" bodyfile="src/ml_compiler2.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1aef294d2e4aabc315a314463ff315b5ea" prot="public" static="no">
+        <type>struct mlc_value_expr_t</type>
+        <definition>typedef struct mlc_value_expr_t mlc_value_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_value_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="129" column="31" bodyfile="src/ml_compiler2.h" bodystart="129" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1ae7d2cac55e4c743dd261fd44fd29a5d1" prot="public" static="no">
+        <type>struct mlc_local_t</type>
+        <definition>typedef struct mlc_local_t mlc_local_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_local_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="136" column="26" bodyfile="src/ml_compiler2.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a50917970a9a6c4aa900b650c4ff2f58d" prot="public" static="no">
+        <type>struct mlc_if_expr_t</type>
+        <definition>typedef struct mlc_if_expr_t mlc_if_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_if_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="145" column="28" bodyfile="src/ml_compiler2.h" bodystart="145" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a15b9342113f3cf6e5e475f15e742c7ae" prot="public" static="no">
+        <type>struct mlc_if_case_t</type>
+        <definition>typedef struct mlc_if_case_t mlc_if_case_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_if_case_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="146" column="28" bodyfile="src/ml_compiler2.h" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a6e02acf3643744f613eefc4cd07a7b69" prot="public" static="no">
+        <type>struct mlc_parent_expr_t</type>
+        <definition>typedef struct mlc_parent_expr_t mlc_parent_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_parent_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="162" column="32" bodyfile="src/ml_compiler2.h" bodystart="162" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a9dd8145524b7c256c41ddf035042c186" prot="public" static="no">
+        <type>struct mlc_if_config_expr_t</type>
+        <definition>typedef struct mlc_if_config_expr_t mlc_if_config_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_if_config_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="170" column="35" bodyfile="src/ml_compiler2.h" bodystart="170" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a1c6363bf54176eef20f4eaeaed246c67" prot="public" static="no">
+        <type>struct mlc_local_expr_t</type>
+        <definition>typedef struct mlc_local_expr_t mlc_local_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_local_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="178" column="31" bodyfile="src/ml_compiler2.h" bodystart="178" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a7f099a174f0abc79451ad1dfbb84e7be" prot="public" static="no">
+        <type>struct mlc_for_expr_t</type>
+        <definition>typedef struct mlc_for_expr_t mlc_for_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_for_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="187" column="29" bodyfile="src/ml_compiler2.h" bodystart="187" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a3f73f800e497023dfeb4243477e0c7c7" prot="public" static="no">
+        <type>struct mlc_block_expr_t</type>
+        <definition>typedef struct mlc_block_expr_t mlc_block_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_block_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="199" column="31" bodyfile="src/ml_compiler2.h" bodystart="199" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1aa974929a6d00c38a2bbbe656f8511e05" prot="public" static="no">
+        <type>struct mlc_parent_value_expr_t</type>
+        <definition>typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_parent_value_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="215" column="38" bodyfile="src/ml_compiler2.h" bodystart="215" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a817cb48297513ac1b2a1e571d42eca2b" prot="public" static="no">
+        <type>struct mlc_string_expr_t</type>
+        <definition>typedef struct mlc_string_expr_t mlc_string_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_string_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="223" column="32" bodyfile="src/ml_compiler2.h" bodystart="223" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a8d71f56a5ee830559cf70f0a0bdf4724" prot="public" static="no">
+        <type>struct mlc_string_part_t</type>
+        <definition>typedef struct mlc_string_part_t mlc_string_part_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_string_part_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="224" column="32" bodyfile="src/ml_compiler2.h" bodystart="224" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1ac741594474b702a2c83ef57a6716fa81" prot="public" static="no">
+        <type>struct mlc_fun_expr_t</type>
+        <definition>typedef struct mlc_fun_expr_t mlc_fun_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_fun_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="241" column="29" bodyfile="src/ml_compiler2.h" bodystart="241" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a7c0a757d575d0bdaed2c45fe9dbdb95f" prot="public" static="no">
+        <type>struct mlc_default_expr_t</type>
+        <definition>typedef struct mlc_default_expr_t mlc_default_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_default_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="242" column="33" bodyfile="src/ml_compiler2.h" bodystart="242" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1ac052395cd4356604b21da504448b79d7" prot="public" static="no">
+        <type>struct mlc_param_t</type>
+        <definition>typedef struct mlc_param_t mlc_param_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_param_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="243" column="26" bodyfile="src/ml_compiler2.h" bodystart="243" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1aa7e2af21e4dce1b4fea1125993f80b44" prot="public" static="no">
+        <type>struct mlc_ident_expr_t</type>
+        <definition>typedef struct mlc_ident_expr_t mlc_ident_expr_t</definition>
+        <argsstring></argsstring>
+        <name>mlc_ident_expr_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="276" column="31" bodyfile="src/ml_compiler2.h" bodystart="276" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a7b3b5ce948f972f406b157ccf5618f04" prot="public" static="no">
+        <type>struct ml_macro_t</type>
+        <definition>typedef struct ml_macro_t ml_macro_t</definition>
+        <argsstring></argsstring>
+        <name>ml_macro_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="283" column="25" bodyfile="src/ml_compiler2.h" bodystart="283" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__compiler2_8h_1a0cb338a4803bd2838bc2b3033bfcb0c2" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* mlc_frame_fn) (mlc_function_t *Function, ml_value_t *Value, void *Frame)</definition>
+        <argsstring>)(mlc_function_t *Function, ml_value_t *Value, void *Frame)</argsstring>
+        <name>mlc_frame_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="295" column="9" bodyfile="src/ml_compiler2.h" bodystart="295" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__compiler2_8h_1ad2e69e6765536243b05209d780a2b105" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_expr_type_t</type>
+        <definition>ml_expr_type_t mlc_expr_type</definition>
+        <argsstring>(mlc_expr_t *Expr)</argsstring>
+        <name>mlc_expr_type</name>
+        <param>
+          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <declname>Expr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="120" column="16" declfile="src/ml_compiler2.h" declline="120" declcolumn="16"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__compiler2_8h_1ab740dbc448370206f116a32a31ae5702" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mlc_expr_error</definition>
+        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, ml_value_t *Error)</argsstring>
+        <name>mlc_expr_error</name>
+        <param>
+          <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <param>
+          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <declname>Expr</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Error</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="304" column="6" declfile="src/ml_compiler2.h" declline="304" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__compiler2_8h_1a99d78e5a53e8d645c32ccabf3d44f3cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mlc_pop</definition>
+        <argsstring>(mlc_function_t *Function)</argsstring>
+        <name>mlc_pop</name>
+        <param>
+          <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="312" column="6" declfile="src/ml_compiler2.h" declline="312" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__compiler2_8h_1ad15244da3ff103f30e5da65ca2b87494" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mlc_return</definition>
+        <argsstring>(mlc_function_t *Function, ml_value_t *Value)</argsstring>
+        <name>mlc_return</name>
+        <param>
+          <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="315" column="6" declfile="src/ml_compiler2.h" declline="315" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__compiler2_8h_1a728a04ce3c934b78bf17889230c50abc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t * ml_inst_alloc</definition>
+        <argsstring>(mlc_function_t *Function, int Line, ml_opcode_t Opcode, int N)</argsstring>
+        <name>ml_inst_alloc</name>
+        <param>
+          <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Line</declname>
+        </param>
+        <param>
+          <type>ml_opcode_t</type>
+          <declname>Opcode</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>N</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="321" column="11" declfile="src/ml_compiler2.h" declline="321" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__compiler2_8h_1abaf52dfb8c7f47f05c0dc4c12ca082da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mlc_fix_links</definition>
+        <argsstring>(ml_inst_t *Start, ml_inst_t *Target)</argsstring>
+        <name>mlc_fix_links</name>
+        <param>
+          <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+          <declname>Start</declname>
+        </param>
+        <param>
+          <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+          <declname>Target</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="322" column="6" declfile="src/ml_compiler2.h" declline="322" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__compiler2_8h_1a4ce145bb445abd04547bba3e60834a6f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mlc_inc_top</definition>
+        <argsstring>(mlc_function_t *Function)</argsstring>
+        <name>mlc_inc_top</name>
+        <param>
+          <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="324" column="6" declfile="src/ml_compiler2.h" declline="324" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__compiler2_8h_1a04f8ae472e7289d054f1e6448189edfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void mlc_compile</definition>
+        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <name>mlc_compile</name>
+        <param>
+          <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <param>
+          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <declname>Expr</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="325" column="6" declfile="src/ml_compiler2.h" declline="325" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_COMPILER2_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_COMPILER2_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_compiler.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_bytecode.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_NONE,</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_EOL,</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_EOI,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_AND,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_CASE,</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_DEF,</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_DO,</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_EACH,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_ELSE,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_ELSEIF,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_END,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_EXIT,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_FOR,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_FUN,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_IF,</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_IF_CONFIG,</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_IN,</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_IS,</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_IT,</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_LET,</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_LOOP,</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_METH,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_MUST,</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_NEXT,</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_NIL,</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_NOT,</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_OLD,</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_ON,</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_OR,</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_REF,</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_RET,</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_SEQ,</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_SUSP,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_SWITCH,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_THEN,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_TO,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_UNTIL,</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_VAR,</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_WHEN,</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_WHILE,</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_WITH,</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_IDENT,</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_BLANK,</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_LEFT_PAREN,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_RIGHT_PAREN,</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_LEFT_SQUARE,</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_RIGHT_SQUARE,</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_LEFT_BRACE,</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_RIGHT_BRACE,</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_SEMICOLON,</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_COLON,</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_COMMA,</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_ASSIGN,</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_NAMED,</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_ESCAPE,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_IMPORT,</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_VALUE,</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_EXPR,</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_INLINE,</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_EXPAND,</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_EXPR_VALUE,</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_OPERATOR,</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/>MLT_METHOD</highlight></codeline>
+<codeline lineno="71"><highlight class="normal">}<sp/>ml_token_t;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref>;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__frame__t" kindref="compound">mlc_frame_t</ref><sp/><ref refid="structmlc__frame__t" kindref="compound">mlc_frame_t</ref>;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">mlc_loop_t<sp/>mlc_loop_t;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">mlc_block_t<sp/>mlc_block_t;</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">mlc_try_t<sp/>mlc_try_t;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">mlc_must_t<sp/>mlc_must_t;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">mlc_upvalue_t<sp/>mlc_upvalue_t;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref><sp/><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref>;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82" refid="structmlc__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/>void<sp/>(*compile)(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*,<sp/>int);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source;</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>StartLine;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>EndLine;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91" refid="structmlc__function__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>Base;</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_compiler_t<sp/>*Compiler;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__frame__t" kindref="compound">mlc_frame_t</ref><sp/>*Frame;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Limit;</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Up;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/>mlc_block_t<sp/>*Block;</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__decl__t" kindref="compound">ml_decl_t</ref><sp/>*Decls;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref><sp/>*Defines;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/>mlc_loop_t<sp/>*Loop;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/>mlc_try_t<sp/>*Try;</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/>mlc_must_t<sp/>*Must;</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/>mlc_upvalue_t<sp/>*UpValues;</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*Next,<sp/>*Returns;</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Top,<sp/>Size,<sp/>Old,<sp/>It,<sp/>Space;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Eval;</highlight></codeline>
+<codeline lineno="108"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110" refid="structmlc__define__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Ident;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr;</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*List;</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>Hash;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_expr_types.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal">ml_expr_type_t<sp/>mlc_expr_type(<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_EXPR_FIELDS(name)<sp/>\</highlight></codeline>
+<codeline lineno="123"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>ml_type_t<sp/>*Type;<sp/>\</highlight></codeline>
+<codeline lineno="124"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>void<sp/>(*compile)(mlc_function_t<sp/>*,<sp/>mlc_##<sp/>name<sp/>##<sp/>_expr_t<sp/>*,<sp/>int);<sp/>\</highlight></codeline>
+<codeline lineno="125"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>mlc_expr_t<sp/>*Next;<sp/>\</highlight></codeline>
+<codeline lineno="126"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>const<sp/>char<sp/>*Source;<sp/>\</highlight></codeline>
+<codeline lineno="127"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>StartLine,<sp/>EndLine;<sp/>\</highlight></codeline>
+<codeline lineno="128"><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__value__expr__t" kindref="compound">mlc_value_expr_t</ref><sp/><ref refid="structmlc__value__expr__t" kindref="compound">mlc_value_expr_t</ref>;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131" refid="structmlc__value__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__value__expr__t" kindref="compound">mlc_value_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(value);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref>;</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138" refid="structmlc__local__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Ident;</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line;</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index;</highlight></codeline>
+<codeline lineno="143"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__if__expr__t" kindref="compound">mlc_if_expr_t</ref><sp/><ref refid="structmlc__if__expr__t" kindref="compound">mlc_if_expr_t</ref>;</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__if__case__t" kindref="compound">mlc_if_case_t</ref><sp/><ref refid="structmlc__if__case__t" kindref="compound">mlc_if_case_t</ref>;</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight></codeline>
+<codeline lineno="148" refid="structmlc__if__case__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__if__case__t" kindref="compound">mlc_if_case_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__if__case__t" kindref="compound">mlc_if_case_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Condition;</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Body;</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>Local[1];</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_token_t<sp/>Token;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156" refid="structmlc__if__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__if__expr__t" kindref="compound">mlc_if_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(</highlight><highlight class="keywordflow">if</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__if__case__t" kindref="compound">mlc_if_case_t</ref><sp/>*Cases;</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Else;</highlight></codeline>
+<codeline lineno="160"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref>;</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight></codeline>
+<codeline lineno="164" refid="structmlc__parent__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(parent);</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child;</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
+<codeline lineno="168"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__if__config__expr__t" kindref="compound">mlc_if_config_expr_t</ref><sp/><ref refid="structmlc__if__config__expr__t" kindref="compound">mlc_if_config_expr_t</ref>;</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight></codeline>
+<codeline lineno="172" refid="structmlc__if__config__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__if__config__expr__t" kindref="compound">mlc_if_config_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(if_config);</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child;</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Config;</highlight></codeline>
+<codeline lineno="176"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"></highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__local__expr__t" kindref="compound">mlc_local_expr_t</ref><sp/><ref refid="structmlc__local__expr__t" kindref="compound">mlc_local_expr_t</ref>;</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180" refid="structmlc__local__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__local__expr__t" kindref="compound">mlc_local_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(local);</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>*Local;</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child;</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count;</highlight></codeline>
+<codeline lineno="185"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__for__expr__t" kindref="compound">mlc_for_expr_t</ref><sp/><ref refid="structmlc__for__expr__t" kindref="compound">mlc_for_expr_t</ref>;</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"></highlight></codeline>
+<codeline lineno="189" refid="structmlc__for__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__for__expr__t" kindref="compound">mlc_for_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(</highlight><highlight class="keywordflow">for</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key;</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>*Local;</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Sequence;</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Body;</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Unpack;</highlight></codeline>
+<codeline lineno="197"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"></highlight></codeline>
+<codeline lineno="199"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__block__expr__t" kindref="compound">mlc_block_expr_t</ref><sp/><ref refid="structmlc__block__expr__t" kindref="compound">mlc_block_expr_t</ref>;</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"></highlight></codeline>
+<codeline lineno="201" refid="structmlc__block__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__block__expr__t" kindref="compound">mlc_block_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(block);</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>*Vars;</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>*Lets;</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref><sp/>*Defs;</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child;</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*CatchBody;</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Must;</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*CatchIdent;</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>NumVars;</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>NumLets;</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>NumDefs;</highlight></codeline>
+<codeline lineno="213"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"></highlight></codeline>
+<codeline lineno="215"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__parent__value__expr__t" kindref="compound">mlc_parent_value_expr_t</ref><sp/><ref refid="structmlc__parent__value__expr__t" kindref="compound">mlc_parent_value_expr_t</ref>;</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"></highlight></codeline>
+<codeline lineno="217" refid="structmlc__parent__value__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__parent__value__expr__t" kindref="compound">mlc_parent_value_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(parent_value);</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child;</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;</highlight></codeline>
+<codeline lineno="221"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"></highlight></codeline>
+<codeline lineno="223"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__string__expr__t" kindref="compound">mlc_string_expr_t</ref><sp/><ref refid="structmlc__string__expr__t" kindref="compound">mlc_string_expr_t</ref>;</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref><sp/><ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref>;</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"></highlight></codeline>
+<codeline lineno="226" refid="structmlc__string__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__string__expr__t" kindref="compound">mlc_string_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(</highlight><highlight class="keywordtype">string</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref><sp/>*Parts;</highlight></codeline>
+<codeline lineno="229"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"></highlight></codeline>
+<codeline lineno="231" refid="structmlc__string__part__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child;</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Chars;</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length;</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line;</highlight></codeline>
+<codeline lineno="239"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__fun__expr__t" kindref="compound">mlc_fun_expr_t</ref><sp/><ref refid="structmlc__fun__expr__t" kindref="compound">mlc_fun_expr_t</ref>;</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__default__expr__t" kindref="compound">mlc_default_expr_t</ref><sp/><ref refid="structmlc__default__expr__t" kindref="compound">mlc_default_expr_t</ref>;</highlight></codeline>
+<codeline lineno="243"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__param__t" kindref="compound">mlc_param_t</ref><sp/><ref refid="structmlc__param__t" kindref="compound">mlc_param_t</ref>;</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"></highlight></codeline>
+<codeline lineno="245"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_PARAM_DEFAULT,</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_PARAM_EXTRA,</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_PARAM_NAMED,</highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_PARAM_BYREF,</highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_PARAM_ASVAR</highlight></codeline>
+<codeline lineno="251"><highlight class="normal">}<sp/>ml_param_kind_t;</highlight></codeline>
+<codeline lineno="252"><highlight class="normal"></highlight></codeline>
+<codeline lineno="253" refid="structmlc__param__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__param__t" kindref="compound">mlc_param_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__param__t" kindref="compound">mlc_param_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Ident;</highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line;</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_param_kind_t<sp/>Kind;</highlight></codeline>
+<codeline lineno="259"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"></highlight></codeline>
+<codeline lineno="261" refid="structmlc__default__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__default__expr__t" kindref="compound">mlc_default_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(</highlight><highlight class="keywordflow">default</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child;</highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index;</highlight></codeline>
+<codeline lineno="265"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags;</highlight></codeline>
+<codeline lineno="266"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="267"><highlight class="normal"></highlight></codeline>
+<codeline lineno="268" refid="structmlc__fun__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__fun__expr__t" kindref="compound">mlc_fun_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="269"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(fun);</highlight></codeline>
+<codeline lineno="270"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
+<codeline lineno="271"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__param__t" kindref="compound">mlc_param_t</ref><sp/>*Params;</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Body;</highlight></codeline>
+<codeline lineno="273"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*ReturnType;</highlight></codeline>
+<codeline lineno="274"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="275"><highlight class="normal"></highlight></codeline>
+<codeline lineno="276"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__ident__expr__t" kindref="compound">mlc_ident_expr_t</ref><sp/><ref refid="structmlc__ident__expr__t" kindref="compound">mlc_ident_expr_t</ref>;</highlight></codeline>
+<codeline lineno="277"><highlight class="normal"></highlight></codeline>
+<codeline lineno="278" refid="structmlc__ident__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__ident__expr__t" kindref="compound">mlc_ident_expr_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><sp/><sp/><sp/><sp/>MLC_EXPR_FIELDS(ident);</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Ident;</highlight></codeline>
+<codeline lineno="281"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"></highlight></codeline>
+<codeline lineno="283"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__macro__t" kindref="compound">ml_macro_t</ref><sp/><ref refid="structml__macro__t" kindref="compound">ml_macro_t</ref>;</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"></highlight></codeline>
+<codeline lineno="285" refid="structml__macro__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__macro__t" kindref="compound">ml_macro_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Function;</highlight></codeline>
+<codeline lineno="288"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"></highlight></codeline>
+<codeline lineno="290"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLCF_PUSH<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="291"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLCF_LOCAL<sp/>2</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="292"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLCF_CONSTANT<sp/>4</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="293"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLCF_RETURN<sp/>8</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="294"><highlight class="normal"></highlight></codeline>
+<codeline lineno="295"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*mlc_frame_fn)(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Frame);</highlight></codeline>
+<codeline lineno="296"><highlight class="normal"></highlight></codeline>
+<codeline lineno="297" refid="structmlc__frame__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__frame__t" kindref="compound">mlc_frame_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="298"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__frame__t" kindref="compound">mlc_frame_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/><sp/><sp/>mlc_frame_fn<sp/>run;</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>AllowErrors,<sp/>Line;</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data[];</highlight></codeline>
+<codeline lineno="302"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"></highlight></codeline>
+<codeline lineno="304"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_expr_error(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Error);</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"></highlight></codeline>
+<codeline lineno="306"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_EXPR_ERROR(EXPR,<sp/>ERROR)<sp/>return<sp/>mlc_expr_error(Function,<sp/>(mlc_expr_t<sp/>*)(EXPR),<sp/>ERROR)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight></codeline>
+<codeline lineno="308"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_FRAME(TYPE,<sp/>RUN)<sp/>TYPE<sp/>*Frame<sp/>=<sp/>(TYPE<sp/>*)mlc_frame_alloc(Function,<sp/>sizeof(TYPE),<sp/>(mlc_frame_fn)RUN)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="309"><highlight class="normal"></highlight></codeline>
+<codeline lineno="310"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_XFRAME(TYPE,<sp/>COUNT,<sp/>TYPE2,<sp/>RUN)<sp/>TYPE<sp/>*Frame<sp/>=<sp/>(TYPE<sp/>*)mlc_frame_alloc(Function,<sp/>sizeof(TYPE)<sp/>+<sp/>(COUNT)<sp/>*<sp/>sizeof(TYPE2),<sp/>(mlc_frame_fn)RUN)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="311"><highlight class="normal"></highlight></codeline>
+<codeline lineno="312"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_pop(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function);</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_POP()<sp/>mlc_pop(Function)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="314"><highlight class="normal"></highlight></codeline>
+<codeline lineno="315"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_return(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="316"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_RETURN(VALUE)<sp/>return<sp/>mlc_return(Function,<sp/>VALUE)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_EMIT(LINE,<sp/>OPCODE,<sp/>N)<sp/>ml_inst_alloc(Function,<sp/>LINE,<sp/>OPCODE,<sp/>N)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_LINK(START,<sp/>TARGET)<sp/>mlc_fix_links(START,<sp/>TARGET)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="320"><highlight class="normal"></highlight></codeline>
+<codeline lineno="321"><highlight class="normal"><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*ml_inst_alloc(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line,<sp/>ml_opcode_t<sp/>Opcode,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>N);</highlight></codeline>
+<codeline lineno="322"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_fix_links(<ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*Start,<sp/><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*Target);</highlight></codeline>
+<codeline lineno="323"><highlight class="normal"></highlight></codeline>
+<codeline lineno="324"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_inc_top(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function);</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="326"><highlight class="normal"></highlight></codeline>
+<codeline lineno="327"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_compiler2.h"/>
+  </compounddef>
+</doxygen>

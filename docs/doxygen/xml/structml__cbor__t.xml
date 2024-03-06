@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__cbor__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_cbor_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__cbor__t_1afd75d67662a1d310a64c44f30a50f088" prot="public" static="no" mutable="no">
+        <type>const void *</type>
+        <definition>const void* Data</definition>
+        <argsstring></argsstring>
+        <name>Data</name>
+        <qualifiedname>ml_cbor_t::Data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="48" column="12" bodyfile="src/ml_cbor.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__t_1aa4ac06fe4d51708f71a9d71eef3896ca" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Error</definition>
+        <argsstring></argsstring>
+        <name>Error</name>
+        <qualifiedname>ml_cbor_t::Error</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="49" column="12" bodyfile="src/ml_cbor.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__t_1a6bb9b93896c9977d2a7b3c2ec3a4bb1e" prot="public" static="no" mutable="no">
+        <type>union <ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
+        <definition>union ml_cbor_t </definition>
+        <argsstring></argsstring>
+        <name></name>
+        <qualifiedname>ml_cbor_t</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="50" column="1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Length</definition>
+        <argsstring></argsstring>
+        <name>Length</name>
+        <qualifiedname>ml_cbor_t::Length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="51" column="8" bodyfile="src/ml_cbor.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_cbor_t</label>
+        <link refid="structml__cbor__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Error</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_cbor.h" line="46" column="1" bodyfile="src/ml_cbor.h" bodystart="46" bodyend="52"/>
+    <listofallmembers>
+      <member refid="structml__cbor__t_1afd75d67662a1d310a64c44f30a50f088" prot="public" virt="non-virtual"><scope>ml_cbor_t</scope><name>Data</name></member>
+      <member refid="structml__cbor__t_1aa4ac06fe4d51708f71a9d71eef3896ca" prot="public" virt="non-virtual"><scope>ml_cbor_t</scope><name>Error</name></member>
+      <member refid="structml__cbor__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" prot="public" virt="non-virtual"><scope>ml_cbor_t</scope><name>Length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

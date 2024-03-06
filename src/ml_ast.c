@@ -31,7 +31,7 @@ ML_METHOD("ast", MLExprT) {
 //<Expr
 //>ast::expr
 // Returns a tuple describing the expression :mini:`Expr`.
-	return mlc_expr_describe(((ml_expr_value_t *)Args[0])->Expr);
+	return mlc_expr_describe((mlc_expr_t *)Args[0]);
 }
 
 void ml_ast_init(stringmap_t *Globals) {

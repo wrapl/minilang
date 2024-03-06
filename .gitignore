@@ -27,4 +27,5 @@
 docs/_util/__pycache__
 docs/_build
 /html/
-/doxygen/
+.ipynb_checkpoints
+callgrind.*

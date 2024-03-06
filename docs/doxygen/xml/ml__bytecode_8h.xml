@@ -1,0 +1,613 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__bytecode_8h" kind="file" language="C++">
+    <compoundname>ml_bytecode.h</compoundname>
+    <includes refid="ml__types_8h" local="yes">ml_types.h</includes>
+    <includes refid="ml__runtime_8h" local="yes">ml_runtime.h</includes>
+    <includes refid="ml__opcodes_8h" local="yes">ml_opcodes.h</includes>
+    <includedby refid="ml__bytecode__jit_8h" local="yes">src/ml_bytecode_jit.h</includedby>
+    <includedby refid="ml__compiler2_8h" local="yes">src/ml_compiler2.h</includedby>
+    <incdepgraph>
+      <node id="8">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>ml_opcodes.h</label>
+        <link refid="ml__opcodes_8h_source"/>
+      </node>
+      <node id="12">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="13">
+        <label>limits.h</label>
+      </node>
+      <node id="11">
+        <label>ml_config.h</label>
+      </node>
+      <node id="5">
+        <label>stdarg.h</label>
+      </node>
+      <node id="10">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stdio.h</label>
+      </node>
+      <node id="9">
+        <label>stdlib.h</label>
+      </node>
+      <node id="4">
+        <label>string.h</label>
+      </node>
+      <node id="6">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>src/ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>src/ml_bytecode_jit.h</label>
+        <link refid="ml__bytecode__jit_8h_source"/>
+      </node>
+      <node id="3">
+        <label>src/ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h_source"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="unionml__inst__t" prot="public">ml_inst_t</innerclass>
+    <innerclass refid="structml__closure__info__t" prot="public">ml_closure_info_t</innerclass>
+    <innerclass refid="structml__param__type__t" prot="public">ml_param_type_t</innerclass>
+    <innerclass refid="structml__closure__t" prot="public">ml_closure_t</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ml__bytecode_8h_1a9c1fe69ad43d4ca74b84303a0ed64f2f" prot="public" static="no">
+        <name>SHA256_BLOCK_SIZE</name>
+        <initializer>32</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="38" column="9" bodyfile="src/ml_bytecode.h" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__bytecode_8h_1a8fafeeaa6bd4a9faa04b8d48cd5c998f" prot="public" static="no">
+        <name>ML_CLOSURE_EXTRA_ARGS</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="40" column="9" bodyfile="src/ml_bytecode.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__bytecode_8h_1a2034278a8d739716f77813b1d126995a" prot="public" static="no">
+        <name>ML_CLOSURE_NAMED_ARGS</name>
+        <initializer>2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="41" column="9" bodyfile="src/ml_bytecode.h" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__bytecode_8h_1af2167a0459dd06975bb544c9cb7fb948" prot="public" static="no">
+        <name>ML_CLOSURE_RELAX_NAMES</name>
+        <initializer>4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="42" column="9" bodyfile="src/ml_bytecode.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__bytecode_8h_1a601506bb82cbc380a381e13c432190fb" prot="public" static="no">
+        <name>ML_CLOSURE_LABELLED</name>
+        <initializer>8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="43" column="9" bodyfile="src/ml_bytecode.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ml__bytecode_8h_1a04c7676c86b287663df133ab8b6baff9" prot="public" static="no">
+        <name>ML_CLOSURE_HASHED</name>
+        <initializer>16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="44" column="9" bodyfile="src/ml_bytecode.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ml__bytecode_8h_1afeebe8ec4cef80b0ef9b6a7d44c34dc8" prot="public" static="no">
+        <type>struct ml_closure_t</type>
+        <definition>typedef struct ml_closure_t ml_closure_t</definition>
+        <argsstring></argsstring>
+        <name>ml_closure_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="12" column="27" bodyfile="src/ml_bytecode.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__bytecode_8h_1af89061b0206c16b5194b1614a0f23d66" prot="public" static="no">
+        <type>struct ml_closure_info_t</type>
+        <definition>typedef struct ml_closure_info_t ml_closure_info_t</definition>
+        <argsstring></argsstring>
+        <name>ml_closure_info_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="13" column="32" bodyfile="src/ml_bytecode.h" bodystart="13" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__bytecode_8h_1a1808a725c4223538add246e75974070f" prot="public" static="no">
+        <type>union ml_inst_t</type>
+        <definition>typedef union ml_inst_t ml_inst_t</definition>
+        <argsstring></argsstring>
+        <name>ml_inst_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="18" column="24" bodyfile="src/ml_bytecode.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__bytecode_8h_1a2aaf1d82b0e04532f90000874d42c5c0" prot="public" static="no">
+        <type>struct ml_param_type_t</type>
+        <definition>typedef struct ml_param_type_t ml_param_type_t</definition>
+        <argsstring></argsstring>
+        <name>ml_param_type_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="61" column="30" bodyfile="src/ml_bytecode.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ml__bytecode_8h_1afb1d402b311ad1aafd64482525d7367e" prot="public" static="no">
+        <type>struct ml_frame_t</type>
+        <definition>typedef struct ml_frame_t ml_frame_t</definition>
+        <argsstring></argsstring>
+        <name>ml_frame_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="85" column="25" bodyfile="src/ml_bytecode.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ml__bytecode_8h_1a269ee673e4930fc4795f1d6a61a6b627" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLClosureT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLClosureT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="15" column="18" declfile="src/ml_bytecode.h" declline="15" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="ml__bytecode_8h_1aee6faed48893eb9481a6f77b5370be40" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLClosureInfoT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLClosureInfoT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="16" column="18" declfile="src/ml_bytecode.h" declline="16" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="ml__bytecode_8h_1a0f323e88b0da5c4cc7b66bf231b82d30" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLVariableT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLVariableT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="90" column="18" declfile="src/ml_bytecode.h" declline="90" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__bytecode_8h_1ac5d9492385f776354b892787c42f06b1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_closure</definition>
+        <argsstring>(ml_closure_info_t *Info)</argsstring>
+        <name>ml_closure</name>
+        <param>
+          <type><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref> *</type>
+          <declname>Info</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="69" column="12" declfile="src/ml_bytecode.h" declline="69" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1a1b9d5a164b66de78b6a3ad16e3094251" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_closure_relax_names</definition>
+        <argsstring>(ml_value_t *Closure)</argsstring>
+        <name>ml_closure_relax_names</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Closure</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="71" column="6" declfile="src/ml_bytecode.h" declline="71" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1a893ebddbf66338cb8025ed24cdc38c7b" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+        <definition>static stringmap_t * ml_closure_params</definition>
+        <argsstring>(ml_value_t *Closure)</argsstring>
+        <name>ml_closure_params</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Closure</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="81" column="27" bodyfile="src/ml_bytecode.h" bodystart="81" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1ae4c89df42bdfe839fe908718dd1fb3db" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_variable</definition>
+        <argsstring>(ml_value_t *Value, ml_type_t *Type)</argsstring>
+        <name>ml_variable</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="87" column="12" declfile="src/ml_bytecode.h" declline="87" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1aabc24e65136a141fc7643a81ea1f6b2e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_variable_set</definition>
+        <argsstring>(ml_value_t *Variable, ml_value_t *Value)</argsstring>
+        <name>ml_variable_set</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Variable</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="88" column="12" declfile="src/ml_bytecode.h" declline="88" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1a89566123e1f933cbf6e36d50e3d7a3a0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ml_closure_debug</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_closure_debug</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="92" column="12" declfile="src/ml_bytecode.h" declline="92" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1add50f18dfec38d1e76f9b028802f30cc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_closure_sha256</definition>
+        <argsstring>(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE])</argsstring>
+        <name>ml_closure_sha256</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Closure</declname>
+        </param>
+        <param>
+          <type>unsigned char</type>
+          <declname>Hash</declname>
+          <array>[SHA256_BLOCK_SIZE]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="93" column="6" declfile="src/ml_bytecode.h" declline="93" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1af5b6edafb0893765c5dc817fe227ed1b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_closure_info_labels</definition>
+        <argsstring>(ml_closure_info_t *Info)</argsstring>
+        <name>ml_closure_info_labels</name>
+        <param>
+          <type><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref> *</type>
+          <declname>Info</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="95" column="6" declfile="src/ml_bytecode.h" declline="95" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1a32470932ca940277187ee7f73be20425" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_closure_info_list</definition>
+        <argsstring>(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info)</argsstring>
+        <name>ml_closure_info_list</name>
+        <param>
+          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+          <declname>Buffer</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref> *</type>
+          <declname>Info</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="96" column="6" declfile="src/ml_bytecode.h" declline="96" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1a4baaad8a0886b5baf76fcfa273a6f4f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ml_count_cached_frames</definition>
+        <argsstring>()</argsstring>
+        <name>ml_count_cached_frames</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="109" column="8" declfile="src/ml_bytecode.h" declline="109" declcolumn="8"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__bytecode_8h_1a130a345d1d6abc145a204c3c4e32aab6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_bytecode_init</definition>
+        <argsstring>()</argsstring>
+        <name>ml_bytecode_init</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_bytecode.h" line="111" column="6" declfile="src/ml_bytecode.h" declline="111" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_BYTECODE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_BYTECODE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_types.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_runtime.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_opcodes.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__closure__t" kindref="compound">ml_closure_t</ref><sp/><ref refid="structml__closure__t" kindref="compound">ml_closure_t</ref>;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref>;</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLClosureT[];</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLClosureInfoT[];</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal"><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref>;</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20" refid="unionml__inst__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal"><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_opcode_t<sp/>Opcode:8;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Reserved:8;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Label:16;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line:32;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*Inst;</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>**Insts;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*ClosureInfo;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__decl__t" kindref="compound">ml_decl_t</ref><sp/>*Decls;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Chars;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**Ptrs;</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SHA256_BLOCK_SIZE<sp/>32</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_EXTRA_ARGS<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_NAMED_ARGS<sp/>2</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_RELAX_NAMES<sp/>4</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_LABELLED<sp/>8</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_HASHED<sp/>16</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46" refid="structml__closure__info__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*Entry,<sp/>*Return,<sp/>*Halt;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>*Source;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__decl__t" kindref="compound">ml_decl_t</ref><sp/>*Decls;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_JIT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*JITStart,<sp/>*JITEntry,<sp/>*JITReturn;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Params[1];</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>StartLine,<sp/>EndLine,<sp/>FrameSize;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>NumParams,<sp/>NumUpValues;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>Hash[SHA256_BLOCK_SIZE];</highlight></codeline>
+<codeline lineno="59"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__param__type__t" kindref="compound">ml_param_type_t</ref><sp/><ref refid="structml__param__type__t" kindref="compound">ml_param_type_t</ref>;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63" refid="structml__param__type__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__param__type__t" kindref="compound">ml_param_type_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__param__type__t" kindref="compound">ml_param_type_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index,<sp/>HasDefault;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_closure(<ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*Info);</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_closure_relax_names(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Closure);</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73" refid="structml__closure__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__closure__t" kindref="compound">ml_closure_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*Info;</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__param__type__t" kindref="compound">ml_param_type_t</ref><sp/>*ParamTypes;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*UpValues[];</highlight></codeline>
+<codeline lineno="79"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*ml_closure_params(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Closure)<sp/>{</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>((<ref refid="structml__closure__t" kindref="compound">ml_closure_t</ref><sp/>*)Closure)-&gt;Info-&gt;Params;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_frame_t<sp/>ml_frame_t;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_variable(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_variable_set(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Variable,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLVariableT[];</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_closure_debug(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_closure_sha256(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Closure,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>Hash[SHA256_BLOCK_SIZE]);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_closure_info_labels(<ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*Info);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_closure_info_list(<ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref><sp/>*Buffer,<sp/><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*Info);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_CBOR_BYTECODE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_cbor.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_closure(<ref refid="structml__closure__t" kindref="compound">ml_closure_t</ref><sp/>*Closure,<sp/><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref><sp/>*Buffer);</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_cbor_read_closure(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_count_cached_frames();</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_bytecode_init();</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_bytecode.h"/>
+  </compounddef>
+</doxygen>

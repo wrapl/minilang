@@ -234,8 +234,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "a"
-      M:random :> "a"
+      M:random :> "c"
+      M:random :> "c"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -314,6 +314,10 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3}
       :> {"A" is 1, "B" is 2, "C" is 3}
       M:empty :> {}
+
+
+:mini:`meth (Arg₁: map::mutable):grow(Arg₂₁ is Value₁, ...)`
+   *TBD*
 
 
 :mini:`meth (Map: map::mutable):grow(Sequence: sequence, ...): map`
@@ -552,13 +556,13 @@ map
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.

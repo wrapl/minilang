@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__type__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_type_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__type__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_type_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="62" column="11" bodyfile="src/ml_types.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>ml_type_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="63" column="12" bodyfile="src/ml_types.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1afca1884a023d3d5c139c3cb189a03ac8" prot="public" static="no" mutable="no">
+        <type>long(*</type>
+        <definition>long(* hash) (ml_value_t *, ml_hash_chain_t *)</definition>
+        <argsstring>)(ml_value_t *, ml_hash_chain_t *)</argsstring>
+        <name>hash</name>
+        <qualifiedname>ml_type_t::hash</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="64" column="1" bodyfile="src/ml_types.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1ac55a7f03d05b14e59f053df05b03982c" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* call) (ml_state_t *, ml_value_t *, int, ml_value_t **)</definition>
+        <argsstring>)(ml_state_t *, ml_value_t *, int, ml_value_t **)</argsstring>
+        <name>call</name>
+        <qualifiedname>ml_type_t::call</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="65" column="1" bodyfile="src/ml_types.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a75b45ec1f3a10396a70cde44303b0b39" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*</type>
+        <definition>ml_value_t *(* deref) (ml_value_t *)</definition>
+        <argsstring>)(ml_value_t *)</argsstring>
+        <name>deref</name>
+        <qualifiedname>ml_type_t::deref</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="66" column="1" bodyfile="src/ml_types.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a37934ef806defb15081af02ace0ef935" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* assign) (ml_state_t *, ml_value_t *, ml_value_t *)</definition>
+        <argsstring>)(ml_state_t *, ml_value_t *, ml_value_t *)</argsstring>
+        <name>assign</name>
+        <qualifiedname>ml_type_t::assign</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="67" column="1" bodyfile="src/ml_types.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1adb8f178033d4eb19849140493e6def8b" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* Constructor</definition>
+        <argsstring></argsstring>
+        <name>Constructor</name>
+        <qualifiedname>ml_type_t::Constructor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="68" column="12" bodyfile="src/ml_types.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1ad8542cd012849f2c5e015755e713a09a" prot="public" static="no" mutable="no">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
+        <definition>inthash_t Parents[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Parents</name>
+        <qualifiedname>ml_type_t::Parents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="72" column="11" bodyfile="src/ml_types.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a0c98e9efeb9a158122d228b099b12caa" prot="public" static="no" mutable="no">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
+        <definition>inthash_t TypedFns[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>TypedFns</name>
+        <qualifiedname>ml_type_t::TypedFns</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="73" column="11" bodyfile="src/ml_types.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t Exports[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Exports</name>
+        <qualifiedname>ml_type_t::Exports</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="74" column="13" bodyfile="src/ml_types.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1aa8e7eb314f63a9383edcce8e38694e90" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Rank</definition>
+        <argsstring></argsstring>
+        <name>Rank</name>
+        <qualifiedname>ml_type_t::Rank</qualifiedname>
+        <bitfield>30</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="75" column="5" bodyfile="src/ml_types.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a8bfaa4ed54fd6865b1debd8209bec3df" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Interface</definition>
+        <argsstring></argsstring>
+        <name>Interface</name>
+        <qualifiedname>ml_type_t::Interface</qualifiedname>
+        <bitfield>1</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="76" column="5" bodyfile="src/ml_types.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1adbcabb39ce0cf5cc76e051004c466c4f" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NoInherit</definition>
+        <argsstring></argsstring>
+        <name>NoInherit</name>
+        <qualifiedname>ml_type_t::NoInherit</qualifiedname>
+        <bitfield>1</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="77" column="5" bodyfile="src/ml_types.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="61" column="1" bodyfile="src/ml_types.h" bodystart="61" bodyend="78"/>
+    <listofallmembers>
+      <member refid="structml__type__t_1a37934ef806defb15081af02ace0ef935" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>assign</name></member>
+      <member refid="structml__type__t_1ac55a7f03d05b14e59f053df05b03982c" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>call</name></member>
+      <member refid="structml__type__t_1adb8f178033d4eb19849140493e6def8b" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Constructor</name></member>
+      <member refid="structml__type__t_1a75b45ec1f3a10396a70cde44303b0b39" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>deref</name></member>
+      <member refid="structml__type__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Exports</name></member>
+      <member refid="structml__type__t_1afca1884a023d3d5c139c3cb189a03ac8" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>hash</name></member>
+      <member refid="structml__type__t_1a8bfaa4ed54fd6865b1debd8209bec3df" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Interface</name></member>
+      <member refid="structml__type__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Name</name></member>
+      <member refid="structml__type__t_1adbcabb39ce0cf5cc76e051004c466c4f" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>NoInherit</name></member>
+      <member refid="structml__type__t_1ad8542cd012849f2c5e015755e713a09a" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Parents</name></member>
+      <member refid="structml__type__t_1aa8e7eb314f63a9383edcce8e38694e90" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Rank</name></member>
+      <member refid="structml__type__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Type</name></member>
+      <member refid="structml__type__t_1a0c98e9efeb9a158122d228b099b12caa" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>TypedFns</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

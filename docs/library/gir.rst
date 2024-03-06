@@ -9,7 +9,7 @@ gir
 
 .. rst-class:: mini-api
 
-:mini:`fun girrun(Arg₁: any)`
+:mini:`fun girinstall()`
    *TBD*
 
 

@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__if__config__expr__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_if_config_expr_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__if__config__expr__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* Child</definition>
+        <argsstring></argsstring>
+        <name>Child</name>
+        <qualifiedname>mlc_if_config_expr_t::Child</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="174" column="12" bodyfile="src/ml_compiler2.h" bodystart="174" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__if__config__expr__t_1a3558b087ffa1bd1c79fc17cdb555c607" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Config</definition>
+        <argsstring></argsstring>
+        <name>Config</name>
+        <qualifiedname>mlc_if_config_expr_t::Config</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="175" column="12" bodyfile="src/ml_compiler2.h" bodystart="175" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structmlc__if__config__expr__t_1a82599137136de2b5851f77d50503b89a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MLC_EXPR_FIELDS</definition>
+        <argsstring>(if_config)</argsstring>
+        <name>MLC_EXPR_FIELDS</name>
+        <qualifiedname>mlc_if_config_expr_t::MLC_EXPR_FIELDS</qualifiedname>
+        <param>
+          <type>if_config</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="173" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_if_config_expr_t</label>
+        <link refid="structmlc__if__config__expr__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Child</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="172" column="1" bodyfile="src/ml_compiler2.h" bodystart="172" bodyend="176"/>
+    <listofallmembers>
+      <member refid="structmlc__if__config__expr__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" virt="non-virtual"><scope>mlc_if_config_expr_t</scope><name>Child</name></member>
+      <member refid="structmlc__if__config__expr__t_1a3558b087ffa1bd1c79fc17cdb555c607" prot="public" virt="non-virtual"><scope>mlc_if_config_expr_t</scope><name>Config</name></member>
+      <member refid="structmlc__if__config__expr__t_1a82599137136de2b5851f77d50503b89a" prot="public" virt="non-virtual"><scope>mlc_if_config_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

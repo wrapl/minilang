@@ -1,6 +1,10 @@
 #ifndef ML_CBOR_H
 #define ML_CBOR_H
 
+/// \defgroup cbor
+/// @{
+///
+
 #include <stdint.h>
 
 #include "minilang.h"
@@ -119,5 +123,7 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

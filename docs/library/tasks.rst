@@ -24,26 +24,12 @@ tasks
    *TBD*
 
 
-:mini:`meth tasks(Main: function): nil | error`
-   Creates a new :mini:`tasks` set with no limits,  and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
-
-
 :mini:`meth (Fn: function):then(Then: function): task`
    Equivalent to :mini:`task(Fn,  call -> Then)`.
 
 
 :mini:`meth (Fn: function):then(Then: function, Else: function): task`
    *TBD*
-
-
-:mini:`meth tasks(MaxRunning: integer, Main: function): nil | error`
-   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel,  and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
-
-
-:mini:`meth tasks(MaxRunning: integer, MaxPending: integer, Main: function): nil | error`
-   Creates a new :mini:`tasks` set which will run at most :mini:`MaxRunning` child tasks in parallel,  and calls :mini:`Main(Tasks)`. The call to :mini:`tasks(...)` returns when :mini:`Main` and all tasks created within :mini:`Main` complete.
-   
-   At most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
 
 
 :mini:`fun buffered(Sequence: sequence, Size: integer, Fn: function): sequence`
@@ -67,6 +53,14 @@ tasks
    Returns a task which calls :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
+:mini:`meth (Task₁: task) * (Task₂: task): task::set`
+   Returns a :mini:`task::set` that completes when all of its sub tasks complete,  or any raises an error.
+
+
+:mini:`meth (Task₁: task) + (Task₂: task): task::set`
+   Returns a :mini:`task::set` that completes when any of its sub tasks complete,  or any raises an error.
+
+
 :mini:`meth (Task: task):done(Result: any): any | error`
    Completes :mini:`Task` with :mini:`Result`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
 
@@ -79,10 +73,26 @@ tasks
    Waits until :mini:`Task` is completed and returns its result.
 
 
-:mini:`type tasks < function`
-   A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
+:mini:`meth (Tasks: task::list):wait: any | error`
+   Waits until all the tasks in :mini:`Tasks` are completed or any task returns an error.
+
+
+:mini:`type task::queue < function`
+   A queue of tasks that can run a limited number of tasks at once.
    
-   :mini:`fun (Tasks: tasks)(Arg₁,  ...,  Argₙ,  Fn): task`
-      Creates a new :mini:`task` that runs :mini:`Fn(Arg₁,  ...,  Argₙ)`.
+   :mini:`fun (Queue: task::queue)(Arg₁,  ...,  Argₙ,  Fn): task`
+      Returns a new task that calls :mini:`Fn(Arg₁,  ...,  Argₙ)`. The task will be delayed if :mini:`Queue` has reached its limit.
+
+
+:mini:`meth task::queue(MaxRunning: integer): task::queue`
+   Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
+
+
+:mini:`meth (Arg₁: task::queue):cancel`
+   *TBD*
+
+
+:mini:`type task::set < task`
+   A task combining a set of sub tasks.
 
 

@@ -58,6 +58,16 @@ void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 #pragma GCC diagnostic pop
 }
 
+static stringmap_t MLConfigs[1] = {STRINGMAP_INIT};
+
+void ml_config_register(const char *Name, ml_config_fn Fn) {
+	stringmap_insert(MLConfigs, Name, Fn);
+}
+
+ml_config_fn ml_config_lookup(const char *Name) {
+	return (ml_config_fn)stringmap_search(MLConfigs, Name);
+}
+
 typedef struct  {
 	ml_type_t *Type;
 } ml_context_key_t;
@@ -936,6 +946,10 @@ ML_FUNCTIONX(MLTrace) {
 	ML_RETURN(Trace);
 }
 
+static int ml_config_debugger(ml_context_t *Context) {
+	return !!Context->Values[ML_DEBUGGER_INDEX];
+}
+
 // Schedulers //
 
 #ifdef ML_SCHEDULER
@@ -1676,5 +1690,6 @@ void ml_runtime_init() {
 	GC_add_roots(&DefaultQueue, &DefaultQueue + 1);
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 #endif
+	ml_config_register("DEBUGGER", ml_config_debugger);
 #include "ml_runtime_init.c"
 }

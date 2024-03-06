@@ -1,0 +1,431 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__lists" kind="group">
+    <compoundname>lists</compoundname>
+    <title>Lists</title>
+    <innerclass refid="structml__list__node__t" prot="public">ml_list_node_t</innerclass>
+    <innerclass refid="structml__list__t" prot="public">ml_list_t</innerclass>
+    <innerclass refid="structml__list__iter__t" prot="public">ml_list_iter_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__lists_1ga4100af90ceaf1b5e5bcc4bf7e63828fa" prot="public" static="no">
+        <type>struct ml_list_node_t</type>
+        <definition>typedef struct ml_list_node_t ml_list_node_t</definition>
+        <argsstring></argsstring>
+        <name>ml_list_node_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="796" column="29" bodyfile="src/ml_types.h" bodystart="796" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__lists_1ga8b8cfa7b6a6227ed5388e75a98859f74" prot="public" static="no">
+        <type>struct ml_list_t</type>
+        <definition>typedef struct ml_list_t ml_list_t</definition>
+        <argsstring></argsstring>
+        <name>ml_list_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="797" column="24" bodyfile="src/ml_types.h" bodystart="797" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__lists_1ga9f2ae09d61ca4a50043f754671d75dac" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLListT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLListT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="799" column="18" declfile="src/ml_types.h" declline="799" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__lists_1gaa7281437346e7b6cbb53df8fd5e0ae0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_list</definition>
+        <argsstring>() __attribute__((malloc))</argsstring>
+        <name>ml_list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="815" column="12" declfile="src/ml_types.h" declline="815" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga9c76087e48f2ee66dc365f92cef44395" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_list_grow</definition>
+        <argsstring>(ml_value_t *List, int Count)</argsstring>
+        <name>ml_list_grow</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="816" column="6" declfile="src/ml_types.h" declline="816" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1gaff078de42a6e7f2e0841d68a2aab991a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_list_push</definition>
+        <argsstring>(ml_value_t *List, ml_value_t *Value)</argsstring>
+        <name>ml_list_push</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="817" column="6" declfile="src/ml_types.h" declline="817" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga9e76fd358ea71d6bf84e89c40201f83d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_list_put</definition>
+        <argsstring>(ml_value_t *List, ml_value_t *Value)</argsstring>
+        <name>ml_list_put</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="818" column="6" declfile="src/ml_types.h" declline="818" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga8847ec6327f4a2c69d9f15f7f3d64b6a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_list_pop</definition>
+        <argsstring>(ml_value_t *List)</argsstring>
+        <name>ml_list_pop</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="819" column="12" declfile="src/ml_types.h" declline="819" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1gab8a03d77d35844f34aba6649a8ceaf0f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_list_pull</definition>
+        <argsstring>(ml_value_t *List)</argsstring>
+        <name>ml_list_pull</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="820" column="12" declfile="src/ml_types.h" declline="820" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga7b20fd0a98399a45fb4cb8d9a7ae2c52" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_list_get</definition>
+        <argsstring>(ml_value_t *List, int Index)</argsstring>
+        <name>ml_list_get</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="822" column="12" declfile="src/ml_types.h" declline="822" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1gaf4b69b44050e06ab6812964aa056ed91" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_list_set</definition>
+        <argsstring>(ml_value_t *List, int Index, ml_value_t *Value)</argsstring>
+        <name>ml_list_set</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="823" column="12" declfile="src/ml_types.h" declline="823" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1gaf204499ee3d6bfa22fc03391268ab209" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_list_to_array</definition>
+        <argsstring>(ml_value_t *List, ml_value_t **Array)</argsstring>
+        <name>ml_list_to_array</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Array</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="827" column="6" declfile="src/ml_types.h" declline="827" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga35e8472a3620c74e9aa5dfe90d4cff29" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_list_foreach</definition>
+        <argsstring>(ml_value_t *List, void *Data, int(*callback)(ml_value_t *, void *))</argsstring>
+        <name>ml_list_foreach</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int(*)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *, void *)</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="828" column="5" declfile="src/ml_types.h" declline="828" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1gab5b867780f261027b36341c8c4239c37" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_list_length</definition>
+        <argsstring>(ml_value_t *List)</argsstring>
+        <name>ml_list_length</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="830" column="19" bodyfile="src/ml_types.h" bodystart="830" bodyend="832"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga23782e82f4b3622fda806dad0ac8e96a" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_list_iter_forward</definition>
+        <argsstring>(ml_value_t *List0, ml_list_iter_t *Iter)</argsstring>
+        <name>ml_list_iter_forward</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List0</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__list__iter__t" kindref="compound">ml_list_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="839" column="19" bodyfile="src/ml_types.h" bodystart="839" bodyend="848"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga54ec589cc743666f2aaf32e0f2c45686" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_list_iter_next</definition>
+        <argsstring>(ml_list_iter_t *Iter)</argsstring>
+        <name>ml_list_iter_next</name>
+        <param>
+          <type><ref refid="structml__list__iter__t" kindref="compound">ml_list_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="850" column="19" bodyfile="src/ml_types.h" bodystart="850" bodyend="857"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1gabc2d8a5e3d29971e7c5cfe554699cdf2" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_list_iter_backward</definition>
+        <argsstring>(ml_value_t *List0, ml_list_iter_t *Iter)</argsstring>
+        <name>ml_list_iter_backward</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>List0</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__list__iter__t" kindref="compound">ml_list_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="859" column="19" bodyfile="src/ml_types.h" bodystart="859" bodyend="868"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga33d25b87282ab468a44ad321478e6759" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_list_iter_prev</definition>
+        <argsstring>(ml_list_iter_t *Iter)</argsstring>
+        <name>ml_list_iter_prev</name>
+        <param>
+          <type><ref refid="structml__list__iter__t" kindref="compound">ml_list_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="870" column="19" bodyfile="src/ml_types.h" bodystart="870" bodyend="877"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1gac73e993951191ef83ee46a8617d9c949" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_list_iter_valid</definition>
+        <argsstring>(ml_list_iter_t *Iter)</argsstring>
+        <name>ml_list_iter_valid</name>
+        <param>
+          <type><ref refid="structml__list__iter__t" kindref="compound">ml_list_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="879" column="19" bodyfile="src/ml_types.h" bodystart="879" bodyend="881"/>
+      </memberdef>
+      <memberdef kind="function" id="group__lists_1ga180daa9ffd89687a9aaea09ff6eb64d3" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_list_iter_update</definition>
+        <argsstring>(ml_list_iter_t *Iter, ml_value_t *Value)</argsstring>
+        <name>ml_list_iter_update</name>
+        <param>
+          <type><ref refid="structml__list__iter__t" kindref="compound">ml_list_iter_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="883" column="20" bodyfile="src/ml_types.h" bodystart="883" bodyend="885"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__lists_1gab5aff1e40936cafd7d8732c9d75f2852" prot="public" static="no">
+        <name>ml_list_append</name>
+        <initializer>ml_list_put</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="825" column="9" bodyfile="src/ml_types.h" bodystart="825" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__lists_1ga1789c9ac0f3d673b6a0f5798913d1e80" prot="public" static="no">
+        <name>ML_LIST_FOREACH</name>
+        <param><defname>LIST</defname></param>
+        <param><defname>ITER</defname></param>
+        <initializer>	for (<ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *ITER = ((<ref refid="structml__list__t" kindref="compound">ml_list_t</ref> *)LIST)-&gt;Head; ITER; ITER = ITER-&gt;Next)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="887" column="9" bodyfile="src/ml_types.h" bodystart="887" bodyend="888"/>
+      </memberdef>
+      <memberdef kind="define" id="group__lists_1ga4e28a43d7fae21259fdb7ff92b1dfd57" prot="public" static="no">
+        <name>ML_LIST_REVERSE</name>
+        <param><defname>LIST</defname></param>
+        <param><defname>ITER</defname></param>
+        <initializer>	for (<ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *ITER = ((<ref refid="structml__list__t" kindref="compound">ml_list_t</ref> *)LIST)-&gt;Tail; ITER; ITER = ITER-&gt;Prev)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="890" column="9" bodyfile="src/ml_types.h" bodystart="890" bodyend="891"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -41,6 +41,14 @@ void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot); \
 void ml_library_entry0(ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY0(NAME)))); \
 void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot)
 
+typedef void (*ml_main_loop_t)();
+
+#define ML_LIBRARY_SCHEDULER(NAME) \
+ml_main_loop_t ml_library_scheduler_init(ml_context_t *Context)
+
+#define ML_LIBRARY_LOGGER(NAME) \
+void ml_library_logger_init(ml_context_t *Context)
+
 #ifdef __cplusplus
 }
 #endif

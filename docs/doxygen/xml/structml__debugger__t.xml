@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__debugger__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_debugger_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__debugger__t_1a45b927e2d14013c7cce7c9a8d82d6ec8" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Revision</definition>
+        <argsstring></argsstring>
+        <name>Revision</name>
+        <qualifiedname>ml_debugger_t::Revision</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="199" column="8" bodyfile="src/ml_runtime.h" bodystart="199" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__debugger__t_1a1e7a576750badcba3bf29e764a273d74" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* run) (ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value)</definition>
+        <argsstring>)(ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value)</argsstring>
+        <name>run</name>
+        <qualifiedname>ml_debugger_t::run</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="200" column="1" bodyfile="src/ml_runtime.h" bodystart="200" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__debugger__t_1a93122dbc81b8ae39c6439b39376d52e1" prot="public" static="no" mutable="no">
+        <type>size_t *(*</type>
+        <definition>size_t *(* breakpoints) (ml_debugger_t *Debugger, const char *Source, int LineNo)</definition>
+        <argsstring>)(ml_debugger_t *Debugger, const char *Source, int LineNo)</argsstring>
+        <name>breakpoints</name>
+        <qualifiedname>ml_debugger_t::breakpoints</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="201" column="1" bodyfile="src/ml_runtime.h" bodystart="201" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__debugger__t_1a49430fce113df5a94f63e4db44a36274" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int StepIn</definition>
+        <argsstring></argsstring>
+        <name>StepIn</name>
+        <qualifiedname>ml_debugger_t::StepIn</qualifiedname>
+        <bitfield>1</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="202" column="5" bodyfile="src/ml_runtime.h" bodystart="202" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__debugger__t_1a6adc6f4dee09aeb6f2d2ecdde4eba8fc" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int BreakOnError</definition>
+        <argsstring></argsstring>
+        <name>BreakOnError</name>
+        <qualifiedname>ml_debugger_t::BreakOnError</qualifiedname>
+        <bitfield>1</bitfield>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="203" column="5" bodyfile="src/ml_runtime.h" bodystart="203" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/ml_runtime.h" line="198" column="1" bodyfile="src/ml_runtime.h" bodystart="198" bodyend="204"/>
+    <listofallmembers>
+      <member refid="structml__debugger__t_1a6adc6f4dee09aeb6f2d2ecdde4eba8fc" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>BreakOnError</name></member>
+      <member refid="structml__debugger__t_1a93122dbc81b8ae39c6439b39376d52e1" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>breakpoints</name></member>
+      <member refid="structml__debugger__t_1a45b927e2d14013c7cce7c9a8d82d6ec8" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>Revision</name></member>
+      <member refid="structml__debugger__t_1a1e7a576750badcba3bf29e764a273d74" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>run</name></member>
+      <member refid="structml__debugger__t_1a49430fce113df5a94f63e4db44a36274" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>StepIn</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

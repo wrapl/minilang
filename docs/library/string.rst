@@ -342,8 +342,12 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Not a date" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
 
 
-:mini:`meth (String: string)[Range: integer::range]: string`
-   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+:mini:`meth (String: string)[Interval: integer::interval]: string`
+   Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
+
+
+:mini:`meth (String: string)[Interval: integer::range]: string`
+   Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
 
 
 :mini:`meth (String: string)[Index: integer]: string`

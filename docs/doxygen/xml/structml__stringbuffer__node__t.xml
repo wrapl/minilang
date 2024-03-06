@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__stringbuffer__node__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_stringbuffer_node_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__stringbuffer__node__t_1aa7bc1e1e4709cd1932f0d75b54ff539d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__stringbuffer__node__t" kindref="compound">ml_stringbuffer_node_t</ref> *</type>
+        <definition>ml_stringbuffer_node_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>ml_stringbuffer_node_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="751" column="24" bodyfile="src/ml_types.h" bodystart="751" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__stringbuffer__node__t_1a96c5959eec1087332b3186152d0943b5" prot="public" static="no" mutable="no">
+        <type>char</type>
+        <definition>char Chars[ML_STRINGBUFFER_NODE_SIZE]</definition>
+        <argsstring>[ML_STRINGBUFFER_NODE_SIZE]</argsstring>
+        <name>Chars</name>
+        <qualifiedname>ml_stringbuffer_node_t::Chars</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="752" column="6" bodyfile="src/ml_types.h" bodystart="752" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>ml_stringbuffer_node_t</label>
+        <link refid="structml__stringbuffer__node__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="750" column="1" bodyfile="src/ml_types.h" bodystart="750" bodyend="753"/>
+    <listofallmembers>
+      <member refid="structml__stringbuffer__node__t_1a96c5959eec1087332b3186152d0943b5" prot="public" virt="non-virtual"><scope>ml_stringbuffer_node_t</scope><name>Chars</name></member>
+      <member refid="structml__stringbuffer__node__t_1aa7bc1e1e4709cd1932f0d75b54ff539d" prot="public" virt="non-virtual"><scope>ml_stringbuffer_node_t</scope><name>Next</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

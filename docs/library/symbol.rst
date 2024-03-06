@@ -21,7 +21,7 @@ symbol
    *TBD*
 
 
-:mini:`type symbol::range`
+:mini:`type symbol::interval`
    *TBD*
 
 

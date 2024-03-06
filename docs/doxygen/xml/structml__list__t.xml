@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__list__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_list_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__list__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_list_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="809" column="11" bodyfile="src/ml_types.h" bodystart="809" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__t_1a7363705520ff75ba718b6f0c1387abb6" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* Head</definition>
+        <argsstring></argsstring>
+        <name>Head</name>
+        <qualifiedname>ml_list_t::Head</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="810" column="16" bodyfile="src/ml_types.h" bodystart="810" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__t_1af5c240215c71d3f33bc73eae71807331" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t * Tail</definition>
+        <argsstring></argsstring>
+        <name>Tail</name>
+        <qualifiedname>ml_list_t::Tail</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="810" column="21" bodyfile="src/ml_types.h" bodystart="810" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__t_1a3598f94cfd6fdd85f99e1e9e243b8307" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* CachedNode</definition>
+        <argsstring></argsstring>
+        <name>CachedNode</name>
+        <qualifiedname>ml_list_t::CachedNode</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="811" column="16" bodyfile="src/ml_types.h" bodystart="811" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__t_1a9fde862c8bc443d7a6872a487ec265a3" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Length</definition>
+        <argsstring></argsstring>
+        <name>Length</name>
+        <qualifiedname>ml_list_t::Length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="812" column="5" bodyfile="src/ml_types.h" bodystart="812" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__t_1a46e84908fcd0bdec21e6212ee5cc9f8b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int CachedIndex</definition>
+        <argsstring></argsstring>
+        <name>CachedIndex</name>
+        <qualifiedname>ml_list_t::CachedIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="812" column="12" bodyfile="src/ml_types.h" bodystart="812" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="6">
+        <label>ml_list_node_t</label>
+        <link refid="structml__list__node__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_list_t</label>
+        <link refid="structml__list__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>CachedNode</edgelabel>
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="808" column="1" bodyfile="src/ml_types.h" bodystart="808" bodyend="813"/>
+    <listofallmembers>
+      <member refid="structml__list__t_1a46e84908fcd0bdec21e6212ee5cc9f8b" prot="public" virt="non-virtual"><scope>ml_list_t</scope><name>CachedIndex</name></member>
+      <member refid="structml__list__t_1a3598f94cfd6fdd85f99e1e9e243b8307" prot="public" virt="non-virtual"><scope>ml_list_t</scope><name>CachedNode</name></member>
+      <member refid="structml__list__t_1a7363705520ff75ba718b6f0c1387abb6" prot="public" virt="non-virtual"><scope>ml_list_t</scope><name>Head</name></member>
+      <member refid="structml__list__t_1a9fde862c8bc443d7a6872a487ec265a3" prot="public" virt="non-virtual"><scope>ml_list_t</scope><name>Length</name></member>
+      <member refid="structml__list__t_1af5c240215c71d3f33bc73eae71807331" prot="public" virt="non-virtual"><scope>ml_list_t</scope><name>Tail</name></member>
+      <member refid="structml__list__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_list_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

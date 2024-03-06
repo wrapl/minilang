@@ -25,6 +25,10 @@ table
    Returns an empty table.
 
 
+:mini:`meth table(Names: list, Rows: list): table`
+   Returns a table using :mini:`Names` for column names and :mini:`Rows` as rows,  where each row in :mini:`Rows` is a list of values corresponding to :mini:`Names`.
+
+
 :mini:`meth (Table: table) :: (Name: string, ...): array`
    Returns the column :mini:`Name` from :mini:`Table`.
 

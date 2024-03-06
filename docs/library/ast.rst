@@ -150,6 +150,14 @@ ast
    * :mini:`:else(Value: ast::expr::if): list[ast::expr]`
 
 
+:mini:`type ast::expr::ifconfig < ast::expr`
+   An :mini:`if` :mini:`config` expression
+   
+   
+   * :mini:`:child(Value: ast::expr::ifconfig): list[ast::expr]`
+   * :mini:`:config(Value: ast::expr::ifconfig): string`
+
+
 :mini:`type ast::expr::inline < ast::expr::parent`
    An :mini:`inline` expression
    
