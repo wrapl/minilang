@@ -1267,6 +1267,33 @@ static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_val
 	Writer->WriteFn(Writer->Data, (unsigned const char *)"some", 4);
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+	uint64_t Tag;
+} cbor_tag_t;
+
+extern ml_type_t CborTagT[];
+
+ML_FUNCTION(CborTag) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	cbor_tag_t *Tag = new(cbor_tag_t);
+	Tag->Type = CborTagT;
+	Tag->Value = Args[1];
+	Tag->Tag = ml_integer_value(Args[0]);
+	return (ml_value_t *)Tag;
+}
+
+ML_TYPE(CborTagT, (), "cbor::tag",
+	.Constructor = (ml_value_t *)CborTag
+);
+
+static void ML_TYPED_FN(ml_cbor_write, CborTagT, ml_cbor_writer_t *Writer, cbor_tag_t *Arg) {
+	minicbor_write_tag(Writer, Arg->Tag);
+	ml_cbor_write(Writer, Arg->Value);
+}
+
 ML_METHOD_ANON(CborEncode, "cbor::encode");
 
 ML_METHOD(CborEncode, MLAnyT) {
@@ -1602,6 +1629,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 			"encode", CborEncode,
 			"decode", CborDecode,
 			"decoder", MLCborDecoderT,
+			"tag", CborTagT,
 		NULL));
 	}
 }

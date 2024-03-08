@@ -1533,6 +1533,7 @@ ML_FUNCTIONX(MLSleep) {
 }
 
 ML_FUNCTIONX(GirInstall) {
+//@gir::install
 	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
 	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
 	Scheduler->Parent = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);

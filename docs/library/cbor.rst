@@ -49,3 +49,11 @@ cbor
    Returns a new CBOR decoder that calls :mini:`Callback(Value)` whenever a complete CBOR value is written to the decoder.
 
 
+:mini:`type cbortag`
+   *TBD*
+
+
+:mini:`fun cbortag(Arg₁: integer, Arg₂: any)`
+   *TBD*
+
+

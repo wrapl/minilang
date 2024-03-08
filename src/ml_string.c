@@ -2007,25 +2007,26 @@ ML_METHOD("/", MLStringT, MLStringT) {
 //$= "2022/03/08" / "/"
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
+	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
-	size_t Length = strlen(Pattern);
-	if (!Length) return ml_error("ValueError", "Empty pattern used in split");
+	size_t PatternLength = ml_string_length(Args[1]);
+	if (!PatternLength) return ml_error("ValueError", "Empty pattern used in split");
 	for (;;) {
-		const char *Next = strstr(Subject, Pattern);
+		const char *Next = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 		while (Next == Subject) {
-			Subject += Length;
-			Next = strstr(Subject, Pattern);
+			Subject += PatternLength;
+			Next = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 		}
-		if (!Subject[0]) return Results;
+		if (Subject == SubjectEnd) return Results;
 		if (Next) {
 			size_t MatchLength = Next - Subject;
 			char *Match = snew(MatchLength + 1);
 			memcpy(Match, Subject, MatchLength);
 			Match[MatchLength] = 0;
 			ml_list_put(Results, ml_string(Match, MatchLength));
-			Subject = Next + Length;
+			Subject = Next + PatternLength;
 		} else {
-			ml_list_put(Results, ml_string(Subject, strlen(Subject)));
+			ml_list_put(Results, ml_string(Subject, SubjectEnd - Subject));
 			break;
 		}
 	}
@@ -2151,15 +2152,15 @@ ML_METHOD("/*", MLStringT, MLStringT) {
 // Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 //$= "2022/03/08" /* "/"
 	const char *Subject = ml_string_value(Args[0]);
-	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
-	size_t Length = strlen(Pattern);
+	size_t PatternLength = ml_string_length(Args[1]);
+	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	ml_value_t *Results = ml_tuple(2);
-	const char *Next = strstr(Subject, Pattern);
+	const char *Next = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	if (Next) {
 		ml_tuple_set(Results, 1, ml_string(Subject, Next - Subject));
-		Next += Length;
-		ml_tuple_set(Results, 2, ml_string(Next, End - Next));
+		Next += PatternLength;
+		ml_tuple_set(Results, 2, ml_string(Next, SubjectEnd - Next));
 	} else {
 		ml_tuple_set(Results, 1, Args[0]);
 		ml_tuple_set(Results, 2, ml_cstring(""));
@@ -2212,7 +2213,7 @@ ML_METHOD("*/", MLStringT, MLStringT) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
-	size_t Length = strlen(Pattern);
+	size_t Length = ml_string_length(Args[1]);
 	ml_value_t *Results = ml_tuple(2);
 	const char *Next = End - Length;
 	while (Next >= Subject) {
@@ -2338,9 +2339,11 @@ ML_METHOD("contains", MLStringT, MLStringT) {
 // Returns the :mini:`Haystack` if it contains :mini:`Pattern` or :mini:`nil` otherwise.
 //$= "The cat snored as he slept":contains("cat")
 //$= "The cat snored as he slept":contains("dog")
-	const char *Haystack = ml_string_value(Args[0]);
-	const char *Needle = ml_string_value(Args[1]);
-	return strstr(Haystack, Needle) ? Args[0] : MLNil;
+	const char *Subject = ml_string_value(Args[0]);
+	size_t SubjectLength = ml_string_length(Args[0]);
+	const char *Pattern = ml_string_value(Args[1]);
+	size_t PatternLength = ml_string_length(Args[1]);
+	return memmem(Subject, SubjectLength, Pattern, PatternLength) ? Args[0] : MLNil;
 }
 
 ML_METHOD("find", MLStringT, MLStringT) {
@@ -2351,8 +2354,10 @@ ML_METHOD("find", MLStringT, MLStringT) {
 //$= "The cat snored as he slept":find("cat")
 //$= "The cat snored as he slept":find("dog")
 	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_integer(1 + utf8_position(Haystack, Match));
 	} else {
@@ -2368,8 +2373,10 @@ ML_METHOD("find2", MLStringT, MLStringT) {
 //$= "The cat snored as he slept":find2("cat")
 //$= "The cat snored as he slept":find2("dog")
 	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_tuplev(2, ml_integer(1 + utf8_position(Haystack, Match)), Args[1]);
 	} else {
@@ -2395,15 +2402,17 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find("s", 1)
 //$= "The cat snored as he slept":find("s", 10)
 //$= "The cat snored as he slept":find("s", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	size_t HaystackLength = utf8_strlen(Args[0]);
+	const char *Subject = ml_string_value(Args[0]);
+	size_t SubjectLength = utf8_strlen(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
+	size_t NeedleLength = ml_string_length(Args[1]);
 	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += HaystackLength + 1;
+	if (Start <= 0) Start += SubjectLength + 1;
 	if (Start <= 0) return MLNil;
-	if (Start > HaystackLength) return MLNil;
-	Haystack = utf8_skip(Haystack, Start);
-	const char *Match = strstr(Haystack, Needle);
+	if (Start > SubjectLength) return MLNil;
+	const char *Haystack = utf8_skip(Subject, Start);
+	size_t HaystackLength = ml_string_length(Args[0]) - (Haystack - Subject);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_integer(Start + utf8_position(Haystack, Match));
 	} else {
@@ -2420,15 +2429,17 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *Subject = ml_string_value(Args[0]);
+	size_t SubjectLength = utf8_strlen(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
+	size_t NeedleLength = ml_string_length(Args[1]);
 	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += HaystackLength + 1;
+	if (Start <= 0) Start += SubjectLength + 1;
 	if (Start <= 0) return MLNil;
-	if (Start > HaystackLength) return MLNil;
-	Haystack = utf8_skip(Haystack, Start);
-	const char *Match = strstr(Haystack, Needle);
+	if (Start > SubjectLength) return MLNil;
+	const char *Haystack = utf8_skip(Subject, Start);
+	size_t HaystackLength = ml_string_length(Args[0]) - (Haystack - Subject);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_tuplev(2, ml_integer(Start + utf8_position(Haystack, Match)), Args[1]);
 	} else {
@@ -2627,15 +2638,17 @@ ML_METHOD("find2", MLStringT, MLStringT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *Subject = ml_string_value(Args[0]);
+	size_t SubjectLength = utf8_strlen(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
+	size_t NeedleLength = ml_string_length(Args[1]);
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	if (Start <= 0) Start += HaystackLength + 1;
+	if (Start <= 0) Start += SubjectLength + 1;
 	if (Start <= 0) return MLNil;
-	if (Start > HaystackLength) return MLNil;
-	Haystack = utf8_skip(Haystack, Start);
-	const char *Match = strstr(Haystack, Needle);
+	if (Start > SubjectLength) return MLNil;
+	const char *Haystack = utf8_skip(Subject, Start);
+	size_t HaystackLength = ml_string_length(Args[0]) - (Haystack - Subject);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_tuplev(2, ml_integer(Start + utf8_position(Haystack, Match)), Args[1]);
 	} else {
@@ -2884,7 +2897,7 @@ ML_METHOD("after", MLStringT, MLStringT) {
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		Match += NeedleLength;
 		int Length = HaystackLength - (Match - Haystack);
@@ -2910,10 +2923,11 @@ ML_METHOD("after", MLStringT, MLStringT, MLIntegerT) {
 	int Index = ml_integer_value(Args[2]);
 	if (Index > 0) {
 		for (;;) {
-			const char *Match = strstr(Haystack, Needle);
+			const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 			if (!Match) return MLNil;
 			if (--Index) {
 				Haystack = Match + NeedleLength;
+				HaystackLength = HaystackEnd - Haystack;
 			} else {
 				Match += NeedleLength;
 				int Length = HaystackEnd - Match;
@@ -2945,8 +2959,10 @@ ML_METHOD("before", MLStringT, MLStringT) {
 // Returns the portion of :mini:`String` before the 1st occurence of :mini:`Delimiter`, or :mini:`nil` if no occurence if found.
 //$= "2022/03/08":before("/")
 	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_string(Haystack, Match - Haystack);
 	} else {
@@ -2964,15 +2980,17 @@ ML_METHOD("before", MLStringT, MLStringT, MLIntegerT) {
 // If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *HaystackEnd = Haystack + HaystackLength;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
 	int Index = ml_integer_value(Args[2]);
 	if (Index > 0) {
 		for (;;) {
-			const char *Match = strstr(Haystack, Needle);
+			const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 			if (!Match) return MLNil;
 			if (--Index) {
 				Haystack = Match + NeedleLength;
+				HaystackLength = HaystackEnd - Haystack;
 			} else {
 				const char *Haystack = ml_string_value(Args[0]);
 				return ml_string(Haystack, Match - Haystack);
@@ -3008,12 +3026,12 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	const char *Replace = ml_string_value(Args[2]);
 	int ReplaceLength = ml_string_length(Args[2]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	const char *Find = strstr(Subject, Pattern);
+	const char *Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	while (Find) {
 		if (Find > Subject) ml_stringbuffer_write(Buffer, Subject, Find - Subject);
 		ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 		Subject = Find + PatternLength;
-		Find = strstr(Subject, Pattern);
+		Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	}
 	if (SubjectEnd > Subject) {
 		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
@@ -3083,12 +3101,12 @@ ML_METHOD("replace2", MLStringT, MLStringT, MLStringT) {
 	int ReplaceLength = ml_string_length(Args[2]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	int Total = 0;
-	const char *Find = strstr(Subject, Pattern);
+	const char *Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	while (Find) {
 		if (Find > Subject) ml_stringbuffer_write(Buffer, Subject, Find - Subject);
 		ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 		Subject = Find + PatternLength;
-		Find = strstr(Subject, Pattern);
+		Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 		++Total;
 	}
 	if (SubjectEnd > Subject) {
@@ -3221,7 +3239,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 				}
 				}
 			} else {
-				const char *Find = strstr(Subject, Test->Pattern.String);
+				const char *Find = memmem(Subject, Length, Test->Pattern.String, Test->PatternLength);
 				if (Find) {
 					int Start = Find - Subject;
 					if (Start < MatchStart) {

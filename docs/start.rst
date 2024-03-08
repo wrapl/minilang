@@ -23,9 +23,9 @@ This is the preferred method for building the *Minilang* library and interpreter
    $ cd minilang
    $ rabs -D<build option 1> -D<build option 2> ...
 
-A number of build options can be defined when invoking :command:`rabs` to enable some additional features:
+A number of build options can be defined when invoking ``rabs`` to enable some additional features:
 
-:-DDEFAULTS: Sets a number of typical build options based on the currently detected platform and architecture. This is the recommended build option.
+:-DDEFAULTS: Sets a number of typical build options based on the currently detected platform and architecture. This is the recommended build option. Invoking ``rabs`` without any defining any other options will also automatically enable defaults.
 
 :-DNANBOXING: Uses NaN-boxing techniques to reduce memory usage for numeric values. Provides significant speed improvements but may not be available / fully tested on all platforms. Currently tested on *x64* only.
 
