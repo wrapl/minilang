@@ -86,7 +86,7 @@ function
    Returns a function equivalent to :mini:`fun(Args...) Function()`.
 
 
-:mini:`type function::partial < function, sequence`
+:mini:`type function::partial < (mlfunction, MLSequence`
    *TBD*
 
 

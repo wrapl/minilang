@@ -18,22 +18,22 @@ ast
    * :mini:`:endline(Value: ast::expr): integer`
 
 
-:mini:`type ast::expr::and < ast::expr::parent`
+:mini:`type ast::expr::and < (AstParentExpr`
    An :mini:`and` expression
    
 
 
-:mini:`type ast::expr::assign < ast::expr::parent`
+:mini:`type ast::expr::assign < (AstParentExpr`
    An :mini:`assign` expression
    
 
 
-:mini:`type ast::expr::blank < ast::expr`
+:mini:`type ast::expr::blank < (AstExpr`
    A :mini:`blank` expression
    
 
 
-:mini:`type ast::expr::block < ast::expr`
+:mini:`type ast::expr::block < (AstExpr`
    A :mini:`block` expression
    
    
@@ -49,27 +49,27 @@ ast
    * :mini:`:numdefs(Value: ast::expr::block): integer`
 
 
-:mini:`type ast::expr::call < ast::expr::parent`
+:mini:`type ast::expr::call < (AstParentExpr`
    A :mini:`call` expression
    
 
 
-:mini:`type ast::expr::constcall < ast::expr::parentvalue`
+:mini:`type ast::expr::constcall < (AstParentValueExpr`
    A :mini:`const` :mini:`call` expression
    
 
 
-:mini:`type ast::expr::debug < ast::expr::parent`
+:mini:`type ast::expr::debug < (AstParentExpr`
    A :mini:`debug` expression
    
 
 
-:mini:`type ast::expr::def < ast::expr::local`
+:mini:`type ast::expr::def < (AstLocalExpr`
    A :mini:`def` expression
    
 
 
-:mini:`type ast::expr::default < ast::expr`
+:mini:`type ast::expr::default < (AstExpr`
    A :mini:`default` expression
    
    
@@ -78,37 +78,37 @@ ast
    * :mini:`:flags(Value: ast::expr::default): integer`
 
 
-:mini:`type ast::expr::defin < ast::expr::local`
+:mini:`type ast::expr::defin < (AstLocalExpr`
    A :mini:`def` :mini:`in` expression
    
 
 
-:mini:`type ast::expr::define < ast::expr::ident`
+:mini:`type ast::expr::define < (AstIdentExpr`
    A :mini:`define` expression
    
 
 
-:mini:`type ast::expr::defunpack < ast::expr::local`
+:mini:`type ast::expr::defunpack < (AstLocalExpr`
    A :mini:`def` :mini:`unpack` expression
    
 
 
-:mini:`type ast::expr::delegate < ast::expr::parent`
+:mini:`type ast::expr::delegate < (AstParentExpr`
    A :mini:`delegate` expression
    
 
 
-:mini:`type ast::expr::each < ast::expr::parent`
+:mini:`type ast::expr::each < (AstParentExpr`
    An :mini:`each` expression
    
 
 
-:mini:`type ast::expr::exit < ast::expr::parent`
+:mini:`type ast::expr::exit < (AstParentExpr`
    An :mini:`exit` expression
    
 
 
-:mini:`type ast::expr::for < ast::expr`
+:mini:`type ast::expr::for < (AstExpr`
    A :mini:`for` expression
    
    
@@ -120,7 +120,7 @@ ast
    * :mini:`:unpack(Value: ast::expr::for): integer`
 
 
-:mini:`type ast::expr::fun < ast::expr`
+:mini:`type ast::expr::fun < (AstExpr`
    A :mini:`fun` expression
    
    
@@ -130,19 +130,19 @@ ast
    * :mini:`:returntype(Value: ast::expr::fun): list[ast::expr]`
 
 
-:mini:`type ast::expr::guard < ast::expr::parent`
+:mini:`type ast::expr::guard < (AstParentExpr`
    A :mini:`guard` expression
    
 
 
-:mini:`type ast::expr::ident < ast::expr`
+:mini:`type ast::expr::ident < (AstExpr`
    An :mini:`ident` expression
    
    
    * :mini:`:ident(Value: ast::expr::ident): string`
 
 
-:mini:`type ast::expr::if < ast::expr`
+:mini:`type ast::expr::if < (AstExpr`
    An :mini:`if` expression
    
    
@@ -150,7 +150,7 @@ ast
    * :mini:`:else(Value: ast::expr::if): list[ast::expr]`
 
 
-:mini:`type ast::expr::ifconfig < ast::expr`
+:mini:`type ast::expr::ifconfig < (AstExpr`
    An :mini:`if` :mini:`config` expression
    
    
@@ -158,37 +158,37 @@ ast
    * :mini:`:config(Value: ast::expr::ifconfig): string`
 
 
-:mini:`type ast::expr::inline < ast::expr::parent`
+:mini:`type ast::expr::inline < (AstParentExpr`
    An :mini:`inline` expression
    
 
 
-:mini:`type ast::expr::it < ast::expr`
+:mini:`type ast::expr::it < (AstExpr`
    An :mini:`it` expression
    
 
 
-:mini:`type ast::expr::let < ast::expr::local`
+:mini:`type ast::expr::let < (AstLocalExpr`
    A :mini:`let` expression
    
 
 
-:mini:`type ast::expr::letin < ast::expr::local`
+:mini:`type ast::expr::letin < (AstLocalExpr`
    A :mini:`let` :mini:`in` expression
    
 
 
-:mini:`type ast::expr::letunpack < ast::expr::local`
+:mini:`type ast::expr::letunpack < (AstLocalExpr`
    A :mini:`let` :mini:`unpack` expression
    
 
 
-:mini:`type ast::expr::list < ast::expr::parent`
+:mini:`type ast::expr::list < (AstParentExpr`
    A :mini:`list` expression
    
 
 
-:mini:`type ast::expr::local < ast::expr`
+:mini:`type ast::expr::local < (AstExpr`
    A :mini:`local` expression
    
    
@@ -197,42 +197,42 @@ ast
    * :mini:`:count(Value: ast::expr::local): integer`
 
 
-:mini:`type ast::expr::loop < ast::expr::parent`
+:mini:`type ast::expr::loop < (AstParentExpr`
    A :mini:`loop` expression
    
 
 
-:mini:`type ast::expr::map < ast::expr::parent`
+:mini:`type ast::expr::map < (AstParentExpr`
    A :mini:`map` expression
    
 
 
-:mini:`type ast::expr::next < ast::expr::parent`
+:mini:`type ast::expr::next < (AstParentExpr`
    A :mini:`next` expression
    
 
 
-:mini:`type ast::expr::nil < ast::expr`
+:mini:`type ast::expr::nil < (AstExpr`
    A :mini:`nil` expression
    
 
 
-:mini:`type ast::expr::not < ast::expr::parent`
+:mini:`type ast::expr::not < (AstParentExpr`
    A :mini:`not` expression
    
 
 
-:mini:`type ast::expr::old < ast::expr`
+:mini:`type ast::expr::old < (AstExpr`
    An :mini:`old` expression
    
 
 
-:mini:`type ast::expr::or < ast::expr::parent`
+:mini:`type ast::expr::or < (AstParentExpr`
    An :mini:`or` expression
    
 
 
-:mini:`type ast::expr::parent < ast::expr`
+:mini:`type ast::expr::parent < (AstExpr`
    A :mini:`parent` expression
    
    
@@ -240,7 +240,7 @@ ast
    * :mini:`:name(Value: ast::expr::parent): string`
 
 
-:mini:`type ast::expr::parentvalue < ast::expr`
+:mini:`type ast::expr::parentvalue < (AstExpr`
    A :mini:`parent` :mini:`value` expression
    
    
@@ -248,101 +248,101 @@ ast
    * :mini:`:value(Value: ast::expr::parentvalue): any`
 
 
-:mini:`type ast::expr::ref < ast::expr::local`
+:mini:`type ast::expr::ref < (AstLocalExpr`
    A :mini:`ref` expression
    
 
 
-:mini:`type ast::expr::refin < ast::expr::local`
+:mini:`type ast::expr::refin < (AstLocalExpr`
    A :mini:`ref` :mini:`in` expression
    
 
 
-:mini:`type ast::expr::refunpack < ast::expr::local`
+:mini:`type ast::expr::refunpack < (AstLocalExpr`
    A :mini:`ref` :mini:`unpack` expression
    
 
 
-:mini:`type ast::expr::register < ast::expr`
+:mini:`type ast::expr::register < (AstExpr`
    A :mini:`register` expression
    
 
 
-:mini:`type ast::expr::resolve < ast::expr::parentvalue`
+:mini:`type ast::expr::resolve < (AstParentValueExpr`
    A :mini:`resolve` expression
    
 
 
-:mini:`type ast::expr::return < ast::expr::parent`
+:mini:`type ast::expr::return < (AstParentExpr`
    A :mini:`return` expression
    
 
 
-:mini:`type ast::expr::scoped < ast::expr`
+:mini:`type ast::expr::scoped < (AstExpr`
    A :mini:`scoped` expression
    
 
 
-:mini:`type ast::expr::string < ast::expr`
+:mini:`type ast::expr::string < (AstExpr`
    A :mini:`string` expression
    
    
    * :mini:`:parts(Value: ast::expr::string): list[ast::stringpart]`
 
 
-:mini:`type ast::expr::subst < ast::expr`
+:mini:`type ast::expr::subst < (AstExpr`
    A :mini:`subst` expression
    
 
 
-:mini:`type ast::expr::suspend < ast::expr::parent`
+:mini:`type ast::expr::suspend < (AstParentExpr`
    A :mini:`suspend` expression
    
 
 
-:mini:`type ast::expr::switch < ast::expr::parent`
+:mini:`type ast::expr::switch < (AstParentExpr`
    A :mini:`switch` expression
    
 
 
-:mini:`type ast::expr::tuple < ast::expr::parent`
+:mini:`type ast::expr::tuple < (AstParentExpr`
    A :mini:`tuple` expression
    
 
 
-:mini:`type ast::expr::unknown < ast::expr`
+:mini:`type ast::expr::unknown < (AstExpr`
    An :mini:`unknown` expression
    
 
 
-:mini:`type ast::expr::value < ast::expr`
+:mini:`type ast::expr::value < (AstExpr`
    A :mini:`value` expression
    
    
    * :mini:`:value(Value: ast::expr::value): any`
 
 
-:mini:`type ast::expr::var < ast::expr::local`
+:mini:`type ast::expr::var < (AstLocalExpr`
    A :mini:`var` expression
    
 
 
-:mini:`type ast::expr::varin < ast::expr::local`
+:mini:`type ast::expr::varin < (AstLocalExpr`
    A :mini:`var` :mini:`in` expression
    
 
 
-:mini:`type ast::expr::vartype < ast::expr::local`
+:mini:`type ast::expr::vartype < (AstLocalExpr`
    A :mini:`var` :mini:`type` expression
    
 
 
-:mini:`type ast::expr::varunpack < ast::expr::local`
+:mini:`type ast::expr::varunpack < (AstLocalExpr`
    A :mini:`var` :mini:`unpack` expression
    
 
 
-:mini:`type ast::expr::with < ast::expr::local`
+:mini:`type ast::expr::with < (AstLocalExpr`
    A :mini:`with` expression
    
 
@@ -366,7 +366,7 @@ ast
    * :mini:`:index(Value: ast::local): integer`
 
 
-:mini:`type ast::names < list`
+:mini:`type ast::names < (MLList`
    *TBD*
 
 

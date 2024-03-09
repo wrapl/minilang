@@ -9,7 +9,7 @@ enum
 
 .. rst-class:: mini-api
 
-:mini:`type enum < type, sequence`
+:mini:`type enum < (mltype, MLSequence`
    The base type of enumeration types.
 
 
@@ -49,15 +49,15 @@ enum
    *TBD*
 
 
-:mini:`type enum::cyclic < enum`
+:mini:`type enum::cyclic < (MLEnum`
    *TBD*
 
 
-:mini:`type enum::interval < sequence`
+:mini:`type enum::interval < (MLSequence`
    A interval of enum values.
 
 
-:mini:`type enum::value < integer`
+:mini:`type enum::value < (MLInteger`
    An instance of an enumeration type.
 
 

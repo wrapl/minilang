@@ -9,15 +9,11 @@ tuple
 
 .. rst-class:: mini-api
 
-:mini:`type tuple < function, sequence`
+:mini:`type tuple < (mlfunction, MLSequence`
    An immutable tuple of values.
    
    :mini:`(Tuple: tuple)(Arg₁,  ...,  Argₙ)`
       Returns :mini:`(Tuple[1](Arg₁,  ...,  Argₙ),  ...,  Tuple[k](Arg₁,  ...,  Argₙ))`
-
-
-:mini:`fun tuple(Value₁: any, : ..., Valueₙ: any): tuple`
-   Returns a tuple of values :mini:`Value₁,  ...,  Valueₙ`.
 
 
 :mini:`meth (A: tuple) != (B: tuple): B | nil`

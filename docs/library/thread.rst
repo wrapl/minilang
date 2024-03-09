@@ -9,13 +9,13 @@ thread
 
 .. rst-class:: mini-api
 
-:mini:`fun mlthreadport(Arg₁: any)`
-   *TBD*
-
-
-:mini:`meth (Args...: any):thread(Fn: function, Arg₃: any): thread`
+:mini:`meth (Args..: :any):thread(F: :function, Arg₃: any, ...): thread`
    Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
    All arguments must be thread-safe.
+
+
+:mini:`fun mlthreadport(Arg₁: any)`
+   *TBD*
 
 
 :mini:`fun thread::sleep(Duration: number): nil`
@@ -42,7 +42,7 @@ thread
    Creates a new channel with capacity :mini:`Capacity`.
 
 
-:mini:`meth (Channel₁: thread::channel):recv(: thread::channel, ...): tuple[integer, any]`
+:mini:`meth (Channel₁: thread::channel):recv(: :thread::channel, ...): tuple[integer, any]`
    Gets the next available message on any of :mini:`Channel₁,  ...,  Channelₙ`,  blocking if :mini:`Channel` is empty. Returns :mini:`(Index,  Message)` where :mini:`Index = 1,  ...,  n`.
 
 
@@ -91,7 +91,7 @@ thread
    Unlocks :mini:`Mutex`.
 
 
-:mini:`type thread::port < function`
+:mini:`type thread::port < (MLFunction`
    *TBD*
 
 
@@ -99,7 +99,7 @@ thread
    A thread-safe (protected) wrapper for another value.
 
 
-:mini:`meth (Protected₁: thread::protected):use(: thread::protected, ..., Function: function): any`
+:mini:`meth (Protected₁: thread::protected):use(: :thread::protected, ..., Functio: :function): any`
    Locks :mini:`Protected₁:mutex`,  then calls :mini:`Function(Value₁,  ...,  Valueₙ)` where :mini:`Valueᵢ` is the value protected by :mini:`Protectedᵢ`. All :mini:`Protectedᵢ` must be protected by the same :mini:`thread::mutex`.
 
 

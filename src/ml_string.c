@@ -2384,6 +2384,7 @@ ML_METHOD("find2", MLStringT, MLStringT) {
 	}
 }
 
+/*
 static const char *utf8_skip(const char *S, int P) {
 	for (;;) {
 		if (!*S) break;
@@ -2391,6 +2392,24 @@ static const char *utf8_skip(const char *S, int P) {
 		++S;
 	}
 	return S;
+}
+*/
+
+typedef struct {
+	const char *Chars;
+	size_t Length;
+} subject_t;
+
+static subject_t utf8_skip(ml_value_t *V, int P) {
+	const char *S = ml_string_value(V);
+	size_t L = ml_string_length(V);
+	if (P <= 0) P += utf8_strlen(V) + 1;
+	while (L) {
+		if (!utf8_is_continuation(*S) && (--P == 0)) return (subject_t){S, L};
+		++S;
+		--L;
+	}
+	return (subject_t){"", 0};
 }
 
 ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
@@ -2402,19 +2421,13 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find("s", 1)
 //$= "The cat snored as he slept":find("s", 10)
 //$= "The cat snored as he slept":find("s", -6)
-	const char *Subject = ml_string_value(Args[0]);
-	size_t SubjectLength = utf8_strlen(Args[0]);
+	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
+	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += SubjectLength + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > SubjectLength) return MLNil;
-	const char *Haystack = utf8_skip(Subject, Start);
-	size_t HaystackLength = ml_string_length(Args[0]) - (Haystack - Subject);
-	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
+	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_integer(Start + utf8_position(Haystack, Match));
+		return ml_integer(utf8_position(ml_string_value(Args[0]), Match));
 	} else {
 		return MLNil;
 	}
@@ -2429,19 +2442,13 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	const char *Subject = ml_string_value(Args[0]);
-	size_t SubjectLength = utf8_strlen(Args[0]);
+	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
+	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += SubjectLength + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > SubjectLength) return MLNil;
-	const char *Haystack = utf8_skip(Subject, Start);
-	size_t HaystackLength = ml_string_length(Args[0]) - (Haystack - Subject);
-	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
+	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_tuplev(2, ml_integer(Start + utf8_position(Haystack, Match)), Args[1]);
+		return ml_tuplev(2, ml_integer(utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
 	} else {
 		return MLNil;
 	}
@@ -2551,20 +2558,13 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find(r"s[a-z]+", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
+	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += Length + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
-	const char *Haystack2 = utf8_skip(Haystack, Start);
-	Length -= (Haystack2 - Haystack);
 	regmatch_t Matches[1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack2, Length, 1, Matches, 0)) {
+	switch (regnexec(Regex, Subject.Chars, Subject.Length, 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack2, 1, Matches, 0)) {
+	switch (regexec(Regex, Subject.Chars, 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -2575,7 +2575,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
-	return ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so));
+	return ml_integer(utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so));
 }
 
 ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
@@ -2587,20 +2587,13 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
+	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += Length + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
-	const char *Haystack2 = utf8_skip(Haystack, Start);
-	Length -= (Haystack2 - Haystack);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack2, Length, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regnexec(Regex, Subject.Chars, Subject.Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack2, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regexec(Regex, Subject.Chars, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -2612,12 +2605,12 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
-	ml_tuple_set(Result, 1, ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so)));
+	ml_tuple_set(Result, 1, ml_integer(utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
 	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 		regoff_t Start = Matches[I].rm_so;
 		if (Start >= 0) {
 			size_t Length = Matches[I].rm_eo - Start;
-			ml_tuple_set(Result, I + 2, ml_string(Haystack2 + Start, Length));
+			ml_tuple_set(Result, I + 2, ml_string(Subject.Chars + Start, Length));
 		} else {
 			ml_tuple_set(Result, I + 2, MLNil);
 		}
@@ -2638,19 +2631,13 @@ ML_METHOD("find2", MLStringT, MLStringT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	const char *Subject = ml_string_value(Args[0]);
-	size_t SubjectLength = utf8_strlen(Args[0]);
+	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
+	subject_t Subject = utf8_skip(Args[0], Start);
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
-	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	if (Start <= 0) Start += SubjectLength + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > SubjectLength) return MLNil;
-	const char *Haystack = utf8_skip(Subject, Start);
-	size_t HaystackLength = ml_string_length(Args[0]) - (Haystack - Subject);
-	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
+	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_tuplev(2, ml_integer(Start + utf8_position(Haystack, Match)), Args[1]);
+		return ml_tuplev(2, ml_integer(utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
 	} else {
 		return MLNil;
 	}
@@ -2665,20 +2652,14 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
-	regex_t *Regex = ml_regex_value(Args[1]);
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	if (Start <= 0) Start += Length + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
-	const char *Haystack2 = utf8_skip(Haystack, Start);
-	Length -= (Haystack2 - Haystack);
+	subject_t Subject = utf8_skip(Args[0], Start);
+	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack2, Length, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regnexec(Regex, Subject.Chars, Subject.Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack2, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regexec(Regex, Subject.Chars, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -2690,12 +2671,12 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
-	ml_tuple_set(Result, 1, ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so)));
+	ml_tuple_set(Result, 1, ml_integer(utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
 	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 		regoff_t Start = Matches[I].rm_so;
 		if (Start >= 0) {
 			size_t Length = Matches[I].rm_eo - Start;
-			ml_tuple_set(Result, I + 2, ml_string(Haystack2 + Start, Length));
+			ml_tuple_set(Result, I + 2, ml_string(Subject.Chars + Start, Length));
 		} else {
 			ml_tuple_set(Result, I + 2, MLNil);
 		}

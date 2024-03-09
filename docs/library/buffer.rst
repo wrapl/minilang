@@ -17,7 +17,7 @@ buffer
       buffer("Hello world") :> <11:48656C6C6F20776F726C64>
 
 
-:mini:`type buffer < address`
+:mini:`type buffer < (MLAddress`
    A buffer represents a writable bounded section of memory.
 
 
@@ -83,6 +83,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:A042C65B707F00002C204D4C5461626C>
+      buffer(16) :> <16:20D26532FE7E00006F7749746572542C>
 
 

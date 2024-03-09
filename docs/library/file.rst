@@ -9,7 +9,7 @@ file
 
 .. rst-class:: mini-api
 
-:mini:`type dir < sequence`
+:mini:`type dir < (MLSequence`
    *TBD*
 
 
@@ -21,7 +21,7 @@ file
    *TBD*
 
 
-:mini:`type file < stream`
+:mini:`type file < (MLStream`
    A file handle for reading / writing.
 
 
@@ -83,7 +83,7 @@ file
    *TBD*
 
 
-:mini:`type popen < file`
+:mini:`type popen < (MLFile`
    A file that reads or writes to a running subprocess.
 
 

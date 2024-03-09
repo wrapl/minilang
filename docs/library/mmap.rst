@@ -9,7 +9,7 @@ mmap
 
 .. rst-class:: mini-api
 
-:mini:`type mmap < address`
+:mini:`type mmap < (MLAddress`
    *TBD*
 
 
@@ -17,7 +17,7 @@ mmap
    *TBD*
 
 
-:mini:`type mmap::buffer < mmap, buffer`
+:mini:`type mmap::buffer < (mlmmap, MLBuffer`
    *TBD*
 
 

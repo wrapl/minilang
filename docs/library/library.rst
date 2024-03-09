@@ -13,7 +13,7 @@ library
    *TBD*
 
 
-:mini:`type importer < function`
+:mini:`type importer < (MLFunction`
    *TBD*
 
 

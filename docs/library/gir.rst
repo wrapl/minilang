@@ -13,11 +13,11 @@ gir
    *TBD*
 
 
-:mini:`type gir < sequence`
+:mini:`type gir < (MLSequence`
    A gobject-introspection typelib.
 
 
-:mini:`type gir::baseinfo < type`
+:mini:`type gir::baseinfo < (MLType`
    *TBD*
 
 
@@ -25,7 +25,7 @@ gir
    *TBD*
 
 
-:mini:`type gir::callback < gir::baseinfo`
+:mini:`type gir::callback < (GirBaseInfo`
    A gobject-introspection callback type.
 
 
@@ -37,7 +37,7 @@ gir
    A gobject-introspection callback instance.
 
 
-:mini:`type gir::enum < gir::baseinfo`
+:mini:`type gir::enum < (GirBaseInfo`
    A gobject-instrospection enum type.
 
 
@@ -61,55 +61,55 @@ gir
    *TBD*
 
 
-:mini:`type gir::fieldref-boolean < gir::fieldref`
+:mini:`type gir::fieldref-boolean < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-double < gir::fieldref`
+:mini:`type gir::fieldref-double < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-float < gir::fieldref`
+:mini:`type gir::fieldref-float < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-int16 < gir::fieldref`
+:mini:`type gir::fieldref-int16 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-int32 < gir::fieldref`
+:mini:`type gir::fieldref-int32 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-int64 < gir::fieldref`
+:mini:`type gir::fieldref-int64 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-int8 < gir::fieldref`
+:mini:`type gir::fieldref-int8 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-uint16 < gir::fieldref`
+:mini:`type gir::fieldref-uint16 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-uint32 < gir::fieldref`
+:mini:`type gir::fieldref-uint32 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-uint64 < gir::fieldref`
+:mini:`type gir::fieldref-uint64 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-uint8 < gir::fieldref`
+:mini:`type gir::fieldref-uint8 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::fieldref-utf8 < gir::fieldref`
+:mini:`type gir::fieldref-utf8 < (GirFieldRef`
    *TBD*
 
 
-:mini:`type gir::function < function`
+:mini:`type gir::function < (MLFunction`
    *TBD*
 
 
@@ -129,7 +129,7 @@ gir
    *TBD*
 
 
-:mini:`type gir::object < gir::baseinfo`
+:mini:`type gir::object < (GirBaseInfo`
    A gobject-introspection object type.
 
 
@@ -157,7 +157,7 @@ gir
    *TBD*
 
 
-:mini:`type gir::struct < gir::baseinfo`
+:mini:`type gir::struct < (GirBaseInfo`
    A gobject-introspection struct type.
 
 
@@ -173,7 +173,7 @@ gir
    *TBD*
 
 
-:mini:`type gir::union < gir::baseinfo`
+:mini:`type gir::union < (GirBaseInfo`
    A gobject-introspection struct type.
 
 

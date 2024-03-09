@@ -19,7 +19,7 @@ set
       "D" in S :> nil
 
 
-:mini:`type set < sequence`
+:mini:`type set < (MLSequence`
    A set of values.
    Values can be of any type supporting hashing and comparison.
    By default,  iterating over a set generates the values in the order they were inserted,  however this ordering can be changed.
@@ -222,8 +222,8 @@ set
    .. code-block:: mini
 
       let S := set("cake") :> {c, a, k, e}
-      S:random :> "k"
-      S:random :> "e"
+      S:random :> "a"
+      S:random :> "a"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -242,7 +242,7 @@ set
    Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
 
 
-:mini:`type set::mutable < set`
+:mini:`type set::mutable < (MLSet`
    *TBD*
 
 

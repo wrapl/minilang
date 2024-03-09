@@ -9,11 +9,11 @@ logging
 
 .. rst-class:: mini-api
 
-:mini:`fun logger::level(Level?: string): string`
+:mini:`fun logger::level(Level: :string): string`
    Gets or sets the logging level for default logging. Returns the log level.
 
 
-:mini:`type log::macro < function`
+:mini:`type log::macro < (MLFunction`
    *TBD*
 
 

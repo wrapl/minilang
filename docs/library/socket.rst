@@ -9,7 +9,7 @@ socket
 
 .. rst-class:: mini-api
 
-:mini:`type socket < stream::fd`
+:mini:`type socket < (MLStreamFd`
    *TBD*
 
 
@@ -17,7 +17,7 @@ socket
    *TBD*
 
 
-:mini:`type socket::inet < socket`
+:mini:`type socket::inet < (MLSocket`
    *TBD*
 
 
@@ -37,7 +37,7 @@ socket
    *TBD*
 
 
-:mini:`type socket::local < socket`
+:mini:`type socket::local < (MLSocket`
    *TBD*
 
 

@@ -41,7 +41,7 @@ cbor
    Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
 
 
-:mini:`type cbor::decoder < stream`
+:mini:`type cbor::decoder < (MLStream`
    A CBOR decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
 
 

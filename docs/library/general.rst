@@ -13,15 +13,15 @@ general
    *TBD*
 
 
-:mini:`fun assign(Var: any, Value: any): any`
+:mini:`fun assign(Va: :any, Valu: :any): any`
    Functional equivalent of :mini:`Var := Value`.
 
 
-:mini:`fun call(Fn: any, Arg₁: any, ..., Argₙ: any): any`
+:mini:`fun call(F: :any, Arg₁..: :any, Arg/: :any): any`
    Returns :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
-:mini:`fun cas(Var: any, Old: any, New: any): any`
+:mini:`fun cas(Va: :any, Ol: :any, Ne: :any): any`
    If the value of :mini:`Var` is *identically* equal to :mini:`Old`,  then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
 
    .. code-block:: mini
@@ -33,23 +33,23 @@ general
       X :> 11
 
 
-:mini:`fun copy(Value: any, Fn?: function): any`
+:mini:`fun copy(Valu: :any, Fn: :function): any`
    Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:copy`.
 
 
-:mini:`fun deref(Value: any): any`
+:mini:`fun deref(Valu: :any): any`
    Returns the dereferenced value of :mini:`Value`.
 
 
-:mini:`fun exchange(Var₁: any, ..., Varₙ: any)`
+:mini:`fun exchange(Var₁..: :any, Var/: :any)`
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Var₁`.
 
 
-:mini:`fun findall(Value: any, Filter?: boolean|type): list`
+:mini:`fun findall(Valu: :any, Filter: :boolean|type): list`
    Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 
 
-:mini:`fun isconstant(Value: any): any | nil`
+:mini:`fun isconstant(Valu: :any): any | nil`
    Returns :mini:`some` if it is a constant (i.e. directly immutable and not referencing any mutable values),  otherwise returns :mini:`nil`.
 
    .. code-block:: mini
@@ -63,7 +63,7 @@ general
       isconstant((1, [2], 3)) :> nil
 
 
-:mini:`fun replace(Var₁: any, ..., Varₙ: any, Value: any)`
+:mini:`fun replace(Var₁..: :any, Var/: :any, Valu: :any)`
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
 
 
@@ -71,7 +71,7 @@ general
    Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
 
 
-:mini:`type visitor < function`
+:mini:`type visitor < (MLFunction`
    Used to apply a transformation recursively to values.
    
    :mini:`fun (V: visitor)(Value: any,  Result: any): any`

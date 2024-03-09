@@ -57,7 +57,7 @@ interval
    Returns a interval from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 
 
-:mini:`type integer::interval < sequence`
+:mini:`type integer::interval < (MLSequence`
    *TBD*
 
 
@@ -125,7 +125,7 @@ interval
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`type integer::range < sequence`
+:mini:`type integer::range < (MLSequence`
    *TBD*
 
 
@@ -145,7 +145,7 @@ interval
    *TBD*
 
 
-:mini:`type real::interval < sequence`
+:mini:`type real::interval < (MLSequence`
    *TBD*
 
 
@@ -189,7 +189,7 @@ interval
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`type real::range < sequence`
+:mini:`type real::range < (MLSequence`
    *TBD*
 
 

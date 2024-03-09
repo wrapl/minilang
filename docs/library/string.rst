@@ -18,6 +18,31 @@ Indexing a string starts at :mini:`1`,  with the last character at :mini:`String
 
 When creating a substring,  the first index is inclusive and second index is exclusive. The index :mini:`0` refers to just beyond the last character and can be used to take a substring to the end of a string.
 
+:mini:`fun string::switch(Cases..: :string|regex)`
+   Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
+
+   .. code-block:: mini
+
+      for Pet in ["cat", "dog", "mouse", "fox"] do
+         switch Pet: string
+            case "cat" do
+               print("Meow!\n")
+            case "dog" do
+               print("Woof!\n")
+            case "mouse" do
+               print("Squeak!\n")
+            else
+               print("???!")
+            end
+      end :> nil
+
+   .. code-block:: console
+
+      Meow!
+      Woof!
+      Squeak!
+      ???!
+
 :mini:`meth (N: integer) * (String: string): string`
    Returns :mini:`String` concatentated :mini:`N` times.
 
@@ -30,7 +55,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
 
 
-:mini:`type regex < function`
+:mini:`type regex < (MLFunction`
    A regular expression.
 
 
@@ -125,11 +150,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`type string < address, sequence`
+:mini:`type string < (mladdress, MLSequence`
    A string of characters in UTF-8 encoding.
 
 
-:mini:`fun string(Value: any): string`
+:mini:`fun string(Valu: :any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
    .. code-block:: mini
@@ -140,7 +165,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       string([1, 2, 3]) :> "[1, 2, 3]"
 
 
-:mini:`fun regex::escape(String: string): string`
+:mini:`fun regex::escape(Strin: string): string`
    Escapes characters in :mini:`String` that are treated specially in regular expressions.
 
    .. code-block:: mini
@@ -148,7 +173,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
 
 
-:mini:`fun string::escape(String: string): string`
+:mini:`fun string::escape(Strin: string): string`
    Escapes characters in :mini:`String`.
 
    .. code-block:: mini
@@ -476,9 +501,9 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find(r"s[a-z]+", 1) :> 9
-      "The cat snored as he slept":find(r"s[a-z]+", 10) :> 22
-      "The cat snored as he slept":find(r"s[a-z]+", -6) :> 22
+      "The cat snored as he slept":find(r"s[a-z]+", 1) :> 8
+      "The cat snored as he slept":find(r"s[a-z]+", 10) :> 21
+      "The cat snored as he slept":find(r"s[a-z]+", -6) :> 21
 
 
 :mini:`meth (Haystack: string):find(Needle: string): integer | nil`
@@ -495,9 +520,9 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find("s", 1) :> 9
-      "The cat snored as he slept":find("s", 10) :> 17
-      "The cat snored as he slept":find("s", -6) :> 22
+      "The cat snored as he slept":find("s", 1) :> 8
+      "The cat snored as he slept":find("s", 10) :> 16
+      "The cat snored as he slept":find("s", -6) :> 21
 
 
 :mini:`meth (Haystack: string):find2(Pattern: regex): tuple[integer, string] | nil`
@@ -516,11 +541,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "The cat snored as he slept":find2(r"s[a-z]+", 1)
-      :> (9, snored)
+      :> (8, snored)
       "The cat snored as he slept":find2(r"s[a-z]+", 10)
-      :> (22, slept)
+      :> (21, slept)
       "The cat snored as he slept":find2(r"s[a-z]+", -6)
-      :> (22, slept)
+      :> (21, slept)
 
 
 :mini:`meth (Haystack: string):find2(Pattern: regex, Start: tuple::integer::string): tuple[integer, string] | nil`
@@ -529,11 +554,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "The cat snored as he slept":find2(r"s[a-z]+", 1)
-      :> (9, snored)
+      :> (8, snored)
       "The cat snored as he slept":find2(r"s[a-z]+", 10)
-      :> (22, slept)
+      :> (21, slept)
       "The cat snored as he slept":find2(r"s[a-z]+", -6)
-      :> (22, slept)
+      :> (21, slept)
 
 
 :mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
@@ -550,9 +575,9 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find2("s", 1) :> (9, s)
-      "The cat snored as he slept":find2("s", 10) :> (17, s)
-      "The cat snored as he slept":find2("s", -6) :> (22, s)
+      "The cat snored as he slept":find2("s", 1) :> (8, s)
+      "The cat snored as he slept":find2("s", 10) :> (16, s)
+      "The cat snored as he slept":find2("s", -6) :> (21, s)
 
 
 :mini:`meth (Haystack: string):find2(Needle: string, Start: tuple::integer::string): tuple[integer, string] | nil`
@@ -560,9 +585,9 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find2("s", 1) :> (9, s)
-      "The cat snored as he slept":find2("s", 10) :> (17, s)
-      "The cat snored as he slept":find2("s", -6) :> (22, s)
+      "The cat snored as he slept":find2("s", 1) :> (8, s)
+      "The cat snored as he slept":find2("s", 10) :> (16, s)
+      "The cat snored as he slept":find2("s", -6) :> (21, s)
 
 
 :mini:`meth (String: string):length: integer`
@@ -871,7 +896,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
-:mini:`type string::buffer < stream`
+:mini:`type string::buffer < (MLStream`
    A string buffer that automatically grows and shrinks as required.
 
 
@@ -963,31 +988,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`::NFKC`
    * :mini:`::NFKD`
 
-
-:mini:`fun string::switch(Cases: string|regex, ...)`
-   Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
-
-   .. code-block:: mini
-
-      for Pet in ["cat", "dog", "mouse", "fox"] do
-         switch Pet: string
-            case "cat" do
-               print("Meow!\n")
-            case "dog" do
-               print("Woof!\n")
-            case "mouse" do
-               print("Squeak!\n")
-            else
-               print("???!")
-            end
-      end :> nil
-
-   .. code-block:: console
-
-      Meow!
-      Woof!
-      Squeak!
-      ???!
 
 :mini:`meth (Arg₁: visitor):const(Arg₂: buffer)`
    *TBD*

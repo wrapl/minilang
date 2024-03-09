@@ -29,7 +29,7 @@ macro
    Returns a new list builder.
 
 
-:mini:`fun macro::value(Value: any): expr`
+:mini:`fun macro::value(Valu: :any): expr`
    Returns a new value expression.
 
 
@@ -61,7 +61,7 @@ macro
    An expression value used by the compiler to implement macros.
 
 
-:mini:`fun macro::subst(Expr: expr): macro`
+:mini:`fun macro::subst(Exp: expr): macro`
    Returns a new macro which substitutes its arguments into :mini:`Expr`.
 
 
@@ -109,16 +109,16 @@ macro
    A macro.
 
 
-:mini:`fun macro(Function: function): macro`
+:mini:`fun macro(Functio: :function): macro`
    Returns a new macro which applies :mini:`Function` when compiled.
    :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr,  Expr₂: expr,  ...): expr`.
 
 
-:mini:`fun macro::fun(Params: map, Arg₂: expr): expr`
+:mini:`fun macro::fun(Param: map, Arg₂: expr): expr`
    Returns a new function expression.
 
 
-:mini:`fun macro::ident(Name: string): expr`
+:mini:`fun macro::ident(Nam: string): expr`
    Returns a new identifier expression.
 
 

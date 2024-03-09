@@ -25,11 +25,11 @@ runtime
    Returns the call stack trace (source locations).
 
 
-:mini:`fun atomic(Args: any, ..., Fn: function): any`
+:mini:`fun atomic(Args..: :any, F: :function): any`
    Calls :mini:`Fn(Args)` in a new context without a scheduler and returns the result.
 
 
-:mini:`fun finalize(Value: any, Fn: function)`
+:mini:`fun finalize(Valu: :any, F: :function)`
    Registers :mini:`Fn` as the finalizer for :mini:`Value`.
 
 
@@ -61,11 +61,11 @@ runtime
    *TBD*
 
 
-:mini:`type resumable::state < state`
+:mini:`type resumable::state < (MLState`
    *TBD*
 
 
-:mini:`type state < function`
+:mini:`type state < (MLFunction`
    *TBD*
 
 

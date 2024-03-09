@@ -273,11 +273,11 @@ math
       math::square(10) :> 100
 
 
-:mini:`def math::pi: real`
+:mini:`def math::p: real`
    Pi.
 
 
-:mini:`def math::e: real`
+:mini:`def math::: real`
    Euler's constant.
 
 
@@ -289,7 +289,7 @@ math
       2.3 ^ (1 + 2i) :> -0.218221674358723 + 2.28962427066977i
 
 
-:mini:`type random < function`
+:mini:`type random < (MLFunction`
    *TBD*
 
 
