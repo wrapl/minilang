@@ -54,12 +54,6 @@ hierarchy
       "(MLFunction":e -> "task::queue":w;
       "(MLSequence":e -> "table":w;
       "(MLSequence":e -> "table::row":w;
-      "any":e -> "instance::field":w;
-      "any":e -> "instance":w;
-      "(MLFunction":e -> "struct::getter":w;
-      "(MLFunction":e -> "struct::getter::fast":w;
-      "(MLType":e -> "struct":w;
-      "any":e -> "ref":w;
       "any":e -> "address":w;
       "(MLAddress":e -> "buffer":w;
       "(mladdress":e -> "string":w;

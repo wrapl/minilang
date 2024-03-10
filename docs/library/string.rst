@@ -371,15 +371,17 @@ When creating a substring,  the first index is inclusive and second index is exc
    Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
 
 
-:mini:`meth (String: string)[Interval: integer::range]: string`
-   Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
-
-
-:mini:`meth (String: string)[Index: integer]: string`
+:mini:`meth (String: string)[Index: integer]: string | nil`
    Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 
+   .. code-block:: mini
 
-:mini:`meth (String: string)[Start: integer, End: integer]: string`
+      let S := "λ:😀 → 😺"
+      map(-7 .. 7 => (2, 2 -> S[_]))
+      :> {-7 is "λ", -6 is ":", -5 is "😀", -4 is " ", -3 is "→", -2 is " ", -1 is "😺", 0, 1 is "λ", 2 is ":", 3 is "😀", 4 is " ", 5 is "→", 6 is " ", 7 is "😺"}
+
+
+:mini:`meth (String: string)[Start: integer, End: integer]: string | nil`
    Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 
 
@@ -457,8 +459,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       "Hello world":count :> 11
       "Hello world":size :> 11
-      "λ:😀️ → 😺️":count :> 9
-      "λ:😀️ → 😺️":size :> 22
+      "λ:😀 → 😺":count :> 7
+      "λ:😀 → 😺":size :> 16
 
 
 :mini:`meth (String: string):ctype: string::ctype`
@@ -597,8 +599,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       "Hello world":length :> 11
       "Hello world":size :> 11
-      "λ:😀️ → 😺️":length :> 9
-      "λ:😀️ → 😺️":size :> 22
+      "λ:😀 → 😺":length :> 7
+      "λ:😀 → 😺":size :> 16
 
 
 :mini:`meth (String: string):limit(Length: integer): string`
@@ -670,9 +672,9 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      let S := "λ:😀️ → 😺️"
+      let S := "λ:😀 → 😺"
       list(1 .. S:length, S:offset(_))
-      :> [0, 2, 3, 7, 10, 11, 14, 15, 19]
+      :> [0, 2, 3, 7, 8, 11, 12]
 
 
 :mini:`meth (String: string):precount: integer`
@@ -682,8 +684,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       "Hello world":count :> 11
       "Hello world":size :> 11
-      "λ:😀️ → 😺️":count :> 9
-      "λ:😀️ → 😺️":size :> 22
+      "λ:😀 → 😺":count :> 7
+      "λ:😀 → 😺":size :> 16
 
 
 :mini:`meth (String: string):replace(I: integer, Fn: function): string`

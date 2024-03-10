@@ -416,6 +416,26 @@ ML_METHOD("find", MLAddressT, MLAddressT) {
 	return ml_integer(Find - Address1->Value);
 }
 
+ML_METHOD("find", MLAddressT, MLAddressT, MLIntegerT) {
+//!address
+//<Haystack
+//<Needle
+//<Start
+//>integer|nil
+// Returns the offset of the first occurence of the bytes of :mini:`Needle` in :mini:`Haystack` or :mini:`nil` is no occurence is found.
+//$= let A := address("Hello world!\n")
+//$= A:find("world")
+//$= A:find("other")
+	ml_address_t *Address1 = (ml_address_t *)Args[0];
+	ml_address_t *Address2 = (ml_address_t *)Args[1];
+	long Start = ml_integer_value_fast(Args[2]);
+	if (Start < 0) return ml_error("SizeError", "Offset must be non-negative");
+	if (Start > Address1->Length) return ml_error("SizeError", "Offset larger than buffer");
+	char *Find = memmem(Address1->Value + Start, Address1->Length - Start, Address2->Value, Address2->Length);
+	if (!Find) return MLNil;
+	return ml_integer(Find - Address1->Value);
+}
+
 ML_TYPE(MLBufferT, (MLAddressT), "buffer",
 //!buffer
 // A buffer represents a writable bounded section of memory.
@@ -1120,22 +1140,40 @@ ML_METHOD(MLNumberT, MLStringT) {
 
 typedef struct {
 	ml_type_t *Type;
-	const char *Start, *End;
+	const char *Start, *Next, *End;
 	int Index;
 } ml_string_iterator_t;
 
 ML_TYPE(MLStringIteratorT, (), "string-iterator");
 //!internal
 
+static int utf8_is_multibyte(char C) {
+	return (C & 0xC0) == 0xC0;
+}
+
 static int utf8_is_continuation(char C) {
 	return (C & 0xC0) == 0x80;
 }
 
+static const char *utf8_next(const char *A) {
+	if (utf8_is_multibyte(*A)) {
+		const char *B = A;
+		do ++B; while (utf8_is_continuation(*B));
+		return B;
+	} else {
+		return A + 1;
+	}
+}
+
 static size_t utf8_position(const char *P, const char *Q) {
 	size_t N = 0;
-	while (P != Q) {
-		if (!utf8_is_continuation(*P)) ++N;
-		++P;
+	while (P < Q) {
+		++N;
+		if (utf8_is_multibyte(*P)) {
+			do ++P; while (utf8_is_continuation(*P));
+		} else {
+			++P;
+		}
 	}
 	return N;
 }
@@ -1159,19 +1197,39 @@ static void utf8_expand(const char *S, uint32_t *P) {
 	*P++ = 0;
 }
 
+typedef struct {
+	const char *Chars;
+	size_t Length;
+} subject_t;
+
+static subject_t utf8_index(ml_value_t *V, int P) {
+	const char *S = ml_string_value(V);
+	const char *E = S + ml_string_length(V);
+	if (P <= 0) P += utf8_strlen(V) + 1;
+	while (S <= E) {
+		if (--P == 0) return (subject_t){S, E - S};
+		if (utf8_is_multibyte(*S)) {
+			do ++S; while (utf8_is_continuation(*S));
+		} else {
+			++S;
+		}
+	}
+	return (subject_t){NULL, 0};
+}
+
+
 static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
-	const char *Start = Iter->End;
-	if (!*Start) ML_RETURN(MLNil);
-	const char *End = Start + 1;
-	while (*End && utf8_is_continuation(*End)) ++End;
+	const char *Start = Iter->Next;
+	if (Start >= Iter->End) ML_RETURN(MLNil);
+	const char *Next = utf8_next(Start);
 	Iter->Start = Start;
-	Iter->End = End;
+	Iter->Next = Next;
 	++Iter->Index;
 	ML_RETURN(Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
-	ML_RETURN(ml_string(Iter->Start, Iter->End - Iter->Start));
+	ML_RETURN(ml_string(Iter->Start, Iter->Next - Iter->Start));
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
@@ -1180,14 +1238,15 @@ static void ML_TYPED_FN(ml_iter_key, MLStringIteratorT, ml_state_t *Caller, ml_s
 
 static void ML_TYPED_FN(ml_iterate, MLStringT, ml_state_t *Caller, ml_value_t *String) {
 	const char *Start = ml_string_value(String);
-	if (!*Start) ML_RETURN(MLNil);
-	const char *End = Start + 1;
-	while (*End && utf8_is_continuation(*End)) ++End;
+	size_t Length = ml_string_length(String);
+	if (!Length) ML_RETURN(MLNil);
+	const char *Next = utf8_next(Start);
 	ml_string_iterator_t *Iter = new(ml_string_iterator_t);
 	Iter->Type = MLStringIteratorT;
 	Iter->Index = 1;
 	Iter->Start = Start;
-	Iter->End = End;
+	Iter->Next = Next;
+	Iter->End = Start + Length;
 	ML_RETURN(Iter);
 }
 
@@ -1239,8 +1298,8 @@ ML_METHOD("length", MLStringT) {
 // Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 //$= "Hello world":length
 //$= "Hello world":size
-//$= "λ:😀️ → 😺️":length
-//$= "λ:😀️ → 😺️":size
+//$= "λ:😀 → 😺":length
+//$= "λ:😀 → 😺":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
@@ -1250,8 +1309,8 @@ ML_METHOD("precount", MLStringT) {
 // Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 //$= "Hello world":count
 //$= "Hello world":size
-//$= "λ:😀️ → 😺️":count
-//$= "λ:😀️ → 😺️":size
+//$= "λ:😀 → 😺":count
+//$= "λ:😀 → 😺":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
@@ -1261,8 +1320,8 @@ ML_METHOD("count", MLStringT) {
 // Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 //$= "Hello world":count
 //$= "Hello world":size
-//$= "λ:😀️ → 😺️":count
-//$= "λ:😀️ → 😺️":size
+//$= "λ:😀 → 😺":count
+//$= "λ:😀 → 😺":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
@@ -1496,77 +1555,29 @@ ML_METHOD("ctype", MLStringT) {
 ML_METHOD("[]", MLStringT, MLIntegerT) {
 //<String
 //<Index
-//>string
+//>string|nil
 // Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
+//$- let S := "λ:😀 → 😺"
+//$= map(-7 .. 7 => (2, 2 -> S[_]))
 	int N = ml_integer_value_fast(Args[1]);
-	if (N <= 0) N += Length + 1;
-	if (N <= 0) return MLNil;
-	if (N > Length) return MLNil;
-	for (;;) {
-		if (!utf8_is_continuation(*Start) && (--N == 0)) break;
-		++Start;
-	}
-	const char *End = Start + 1;
-	while (*End && utf8_is_continuation(*End)) ++End;
-	return ml_string(Start, End - Start);
+	subject_t Index = utf8_index(Args[0], N);
+	if (!Index.Length) return MLNil;
+	return ml_string(Index.Chars, utf8_next(Index.Chars) - Index.Chars);
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 //<String
 //<Start
 //<End
-//>string
+//>string|nil
 // Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
-	if (Lo <= 0) Lo += Length + 1;
-	if (Hi <= 0) Hi += Length + 1;
-	if (Lo <= 0) return MLNil;
-	if (Hi > Length + 1) return MLNil;
-	if (Hi < Lo) return MLNil;
-	Hi -= Lo;
-	if (Lo > 0) for (;;) {
-		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
-		++Start;
-	}
-	const char *End = Start;
-	if (++Hi > 0) while (*End) {
-		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
-}
-
-ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
-//<String
-//<Interval
-//>string
-// Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	int Lo = Range->Start, Hi = Range->Limit + 1, Step = Range->Step;
-	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Lo <= 0) Lo += Length + 1;
-	if (Hi <= 0) Hi += Length + 1;
-	if (Lo <= 0) return MLNil;
-	if (Hi > Length + 1) return MLNil;
-	if (Hi < Lo) return MLNil;
-	Hi -= Lo;
-	if (Lo > 0) for (;;) {
-		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
-		++Start;
-	}
-	const char *End = Start;
-	if (++Hi > 0) while (*End) {
-		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
+	subject_t IndexLo = utf8_index(Args[0], Lo);
+	subject_t IndexHi = utf8_index(Args[0], Hi);
+	if (!IndexLo.Chars || !IndexHi.Chars) return MLNil;
+	if (IndexLo.Chars > IndexHi.Chars) return MLNil;
+	return ml_string(IndexLo.Chars, IndexHi.Chars - IndexLo.Chars);
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerIntervalT) {
@@ -1574,27 +1585,13 @@ ML_METHOD("[]", MLStringT, MLIntegerIntervalT) {
 //<Interval
 //>string
 // Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
-	int Lo = Interval->Start, Hi = Interval->Limit + 1, Step = 1;
-	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Lo <= 0) Lo += Length + 1;
-	if (Hi <= 0) Hi += Length + 1;
-	if (Lo <= 0) return MLNil;
-	if (Hi > Length + 1) return MLNil;
-	if (Hi < Lo) return MLNil;
-	Hi -= Lo;
-	if (Lo > 0) for (;;) {
-		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
-		++Start;
-	}
-	const char *End = Start;
-	if (++Hi > 0) while (*End) {
-		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
+	int Lo = Interval->Start, Hi = Interval->Limit + 1;
+	subject_t IndexLo = utf8_index(Args[0], Lo);
+	subject_t IndexHi = utf8_index(Args[0], Hi);
+	if (!IndexLo.Chars || !IndexHi.Chars) return MLNil;
+	if (IndexLo.Chars > IndexHi.Chars) return MLNil;
+	return ml_string(IndexLo.Chars, IndexHi.Chars - IndexLo.Chars);
 }
 
 ML_METHOD("limit", MLStringT, MLIntegerT) {
@@ -1604,18 +1601,11 @@ ML_METHOD("limit", MLStringT, MLIntegerT) {
 // Returns the prefix of :mini:`String` limited to :mini:`Length`.
 //$= "Hello world":limit(5)
 //$= "Cake":limit(5)
-	int Length = utf8_strlen(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
-	if (N < 0) return MLNil;
-	if (N == 0) return ml_cstring("");
-	if (N >= Length) return Args[0];
-	++N;
-	const char *Start = ml_string_value(Args[0]), *End = Start;
-	for (;;) {
-		if (!utf8_is_continuation(*End) && (--N == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
+	subject_t Index = utf8_index(Args[0], N + 1);
+	if (!Index.Length) return Args[0];
+	const char *Start = ml_string_value(Args[0]);
+	return ml_string(Start, Index.Chars - Start);
 }
 
 ML_METHOD("offset", MLStringT, MLIntegerT) {
@@ -1623,20 +1613,13 @@ ML_METHOD("offset", MLStringT, MLIntegerT) {
 //<Index
 //>integer
 // Returns the byte position of the :mini:`Index`-th character of :mini:`String`.
-//$- let S := "λ:😀️ → 😺️"
+//$- let S := "λ:😀 → 😺"
 //$= list(1 .. S:length, S:offset(_))
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
-	if (N <= 0) N += Length + 1;
-	if (N <= 0) return MLNil;
-	if (N > Length) return MLNil;
-	const char *P = Start;
-	for (;;) {
-		if (!utf8_is_continuation(*P) && (--N == 0)) break;
-		++P;
-	}
-	return ml_integer(P - Start);
+	subject_t Index = utf8_index(Args[0], N);
+	if (!Index.Chars) return Args[0];
+	const char *Start = ml_string_value(Args[0]);
+	return ml_integer(Index.Chars - Start);
 }
 
 ML_METHOD("+", MLStringT, MLStringT) {
@@ -2384,34 +2367,6 @@ ML_METHOD("find2", MLStringT, MLStringT) {
 	}
 }
 
-/*
-static const char *utf8_skip(const char *S, int P) {
-	for (;;) {
-		if (!*S) break;
-		if (!utf8_is_continuation(*S) && (--P == 0)) break;
-		++S;
-	}
-	return S;
-}
-*/
-
-typedef struct {
-	const char *Chars;
-	size_t Length;
-} subject_t;
-
-static subject_t utf8_skip(ml_value_t *V, int P) {
-	const char *S = ml_string_value(V);
-	size_t L = ml_string_length(V);
-	if (P <= 0) P += utf8_strlen(V) + 1;
-	while (L) {
-		if (!utf8_is_continuation(*S) && (--P == 0)) return (subject_t){S, L};
-		++S;
-		--L;
-	}
-	return (subject_t){"", 0};
-}
-
 ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //<Haystack
 //<Needle
@@ -2421,7 +2376,7 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find("s", 1)
 //$= "The cat snored as he slept":find("s", 10)
 //$= "The cat snored as he slept":find("s", -6)
-	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
 	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
@@ -2442,7 +2397,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
 	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
@@ -2558,7 +2513,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find(r"s[a-z]+", -6)
-	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
 #ifdef ML_TRE
@@ -2587,7 +2542,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
-	subject_t Subject = utf8_skip(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
@@ -2632,7 +2587,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	subject_t Subject = utf8_skip(Args[0], Start);
+	subject_t Subject = utf8_index(Args[0], Start);
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
 	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
@@ -2653,7 +2608,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	subject_t Subject = utf8_skip(Args[0], Start);
+	subject_t Subject = utf8_index(Args[0], Start);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
@@ -3387,8 +3342,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 		if (!utf8_is_continuation(*A) && (--N == 0)) break;
 		++A;
 	}
-	const char *B = A + 1;
-	while (*B && utf8_is_continuation(*B)) ++B;
+	const char *B = utf8_next(A);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_write(Buffer, Start, A - Start);
 	ml_stringbuffer_write(Buffer, ml_string_value(Args[2]), ml_string_length(Args[2]));
