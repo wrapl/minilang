@@ -696,7 +696,7 @@ static ml_value_t *argument_to_ml(GIArgument *Argument, GITypeInfo *TypeInfo, GI
 		case GI_TYPE_TAG_INT8:
 		case GI_TYPE_TAG_UINT8: {
 			if (g_type_info_is_zero_terminated(TypeInfo)) {
-				return ml_string(Argument->v_string, -1);
+				return ml_address(Argument->v_string, -1);
 			} else {
 				size_t Length;
 				int LengthIndex = g_type_info_get_array_length(TypeInfo);
@@ -706,7 +706,7 @@ static ml_value_t *argument_to_ml(GIArgument *Argument, GITypeInfo *TypeInfo, GI
 					if (!Info) return ml_error("ValueError", "Unsupported situtation");
 					Length = get_output_length(Info, LengthIndex, ArgsOut);
 				}
-				return ml_string(Argument->v_string, Length);
+				return ml_address(Argument->v_string, Length);
 			}
 			break;
 		}
@@ -2983,7 +2983,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 				char *Buffer = snew(Length + 1);
 				memcpy(Buffer, Array, Length);
 				Buffer[Length] = 0;
-				*Result++ = ml_string(Buffer, Length);
+				*Result++ = ml_address(Buffer, Length);
 			} else {
 				*Result++ = MLNil;
 			}

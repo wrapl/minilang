@@ -9,11 +9,11 @@ object
 
 .. rst-class:: mini-api
 
-:mini:`type class < (MLType`
+:mini:`type class < type`
    Type of all object classes.
 
 
-:mini:`fun class(Parents..: :class, Fields..: :method, Exports..: :names): class`
+:mini:`fun class(Parents: class, ..., Fields: method, ..., Exports: names, ...): class`
    Returns a new class inheriting from :mini:`Parents`,  with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 
 
@@ -25,11 +25,11 @@ object
    *TBD*
 
 
-:mini:`def MLFieldWatche: , MLFieldWatcher`
+:mini:`def MLFieldWatcher: field::watcher`
    *TBD*
 
 
-:mini:`type field::mutable < (MLField`
+:mini:`type field::mutable < field`
    *TBD*
 
 
@@ -57,7 +57,7 @@ object
    A value with an associated setter function.
 
 
-:mini:`fun property(Value: any, Se: :function): property`
+:mini:`fun property(Value: any, Set: function): property`
    Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`Set(NewValue)`.
 
 

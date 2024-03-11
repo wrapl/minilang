@@ -138,7 +138,7 @@ ML_METHOD("text", MLXmlTextT) {
 //>string
 // Returns the text content of :mini:`Xml`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	return ml_string(Node->Base.Value, Node->Base.Length);
+	return ml_string_unchecked(Node->Base.Value, Node->Base.Length);
 }
 
 static stringmap_t MLXmlTags[1] = {STRINGMAP_INIT};

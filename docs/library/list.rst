@@ -9,7 +9,7 @@ list
 
 .. rst-class:: mini-api
 
-:mini:`type list < (MLSequence`
+:mini:`type list < sequence`
    A list of elements.
 
 
@@ -171,7 +171,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
+      L:random :> "k"
       L:random :> "k"
 
 
@@ -195,7 +195,7 @@ list
       B:rest :> "1 - 2 - 3 - 4"
 
 
-:mini:`type list::mutable < (MLList`
+:mini:`type list::mutable < list`
    *TBD*
 
 
@@ -292,14 +292,12 @@ list
       L :> [1, 2, 3, 4, 5, 6, 7, 8, 10]
 
 
-:mini:`meth (List: list::mutable):push(Values..: , ...): list`
+:mini:`meth (List: list::mutable):push(Values: any, ...): list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.
-   : Values..: : any
 
 
-:mini:`meth (List: list::mutable):put(Values..: , ...): list`
+:mini:`meth (List: list::mutable):put(Values: any, ...): list`
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
-   : Values..: : any
 
 
 :mini:`meth (List: list::mutable):remove(Filter: function): list`
@@ -355,13 +353,13 @@ list
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::node::mutable < (MLListNode`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::skip < (MLSequence`
+:mini:`type list::skip < sequence`
    *TBD*
 
 

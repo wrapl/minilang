@@ -13,7 +13,7 @@ type
    *TBD*
 
 
-:mini:`type type < (MLFunction`
+:mini:`type type < function`
    Type of all types.
    Every type contains a set of named exports,  which allows them to be used as modules.
 
@@ -104,7 +104,7 @@ type
    *TBD*
 
 
-:mini:`fun weakref(Valu: :any): weakref`
+:mini:`fun weakref(Value: any): weakref`
    *TBD*
 
 

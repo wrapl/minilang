@@ -129,11 +129,11 @@ static void ml_stream_read_run(ml_read_state_t *State, ml_value_t *Value) {
 	size_t Length = ml_integer_value(Value);
 	if (!Length) {
 		Length = State->End - State->String;
-		ML_RETURN(Length ? ml_string(State->String, Length) : MLNil);
+		ML_RETURN(Length ? ml_string_unchecked(State->String, Length) : MLNil);
 	}
 	State->End += Length;
 	size_t Remaining = State->Remaining - Length;
-	if (!Remaining) ML_RETURN(ml_string(State->String, State->End - State->String));
+	if (!Remaining) ML_RETURN(ml_string_unchecked(State->String, State->End - State->String));
 	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, State->End, Remaining);

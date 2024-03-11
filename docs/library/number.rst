@@ -9,25 +9,17 @@ number
 
 .. rst-class:: mini-api
 
-:mini:`fun integer::random(Min: :number, Max: :number): integer`
+:mini:`fun integer::random(Min?: number, Max?: number): integer`
    Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max` :math:`\leq 2^{32} - 1`).
    If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :math:`2^{32} - 1`.
 
 
-:mini:`fun real::random(Min: :number, Max: :number): real`
+:mini:`fun real::random(Min?: number, Max?: number): real`
    Returns a random real between :mini:`Min` and :mini:`Max`.
    If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
 
 
-:mini:`meth (Numbe: :number):isfinite(Arg₂: double): number | nil`
-   Returns :mini:`Number` if it is finite (neither |plusmn|\ |infin| nor ``NaN``),  otherwise returns :mini:`nil`.
-
-
-:mini:`meth (Numbe: :number):isnan(Arg₂: double): number | nil`
-   Returns :mini:`Number` if it is ``NaN``,  otherwise returns :mini:`Number`.
-
-
-:mini:`type complex < (MLNumber`
+:mini:`type complex < number`
    *TBD*
 
 
@@ -111,7 +103,7 @@ number
    Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string for the real and imaginary components.
 
 
-:mini:`type double < (MLReal`
+:mini:`type double < real`
    *TBD*
 
 
@@ -255,7 +247,7 @@ number
    Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 
 
-:mini:`type integer < (mlreal, MLFunction`
+:mini:`type integer < real, function`
    A 64-bit signed integer value.
    
    :mini:`fun (I: integer)(Arg₁,  ...,  Argₙ): any | nil`
@@ -288,11 +280,11 @@ number
    Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 
 
-:mini:`fun integer::random_cycle(Ma: integer): list`
+:mini:`fun integer::random_cycle(Max: integer): list`
    Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
 
 
-:mini:`fun integer::random_permutation(Ma: integer): list`
+:mini:`fun integer::random_permutation(Max: integer): list`
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
@@ -539,16 +531,24 @@ number
    Base type for numbers.
 
 
-:mini:`type real < (MLComplex`
+:mini:`meth (Number: number):isfinite(Arg₂: double): number | nil`
+   Returns :mini:`Number` if it is finite (neither |plusmn|\ |infin| nor ``NaN``),  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (Number: number):isnan(Arg₂: double): number | nil`
+   Returns :mini:`Number` if it is ``NaN``,  otherwise returns :mini:`Number`.
+
+
+:mini:`type real < complex`
    *TBD*
-
-
-:mini:`def real::Inf: real`
-   Positive infinity.
 
 
 :mini:`def real::NaN: real`
    Not a number.
+
+
+:mini:`def real::Inf: real`
+   Positive infinity.
 
 
 :mini:`meth real(String: string): real | error`

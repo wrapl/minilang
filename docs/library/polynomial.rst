@@ -49,7 +49,7 @@ polynomial
    Returns :mini:`A / B`.
 
 
-:mini:`type polynomial < (MLFunction`
+:mini:`type polynomial < function`
    A polynomial with numeric (real or complex) coefficients.
    Calling a polynomial with named arguments returns the result of substituting the named variables with the corresponding values.
 

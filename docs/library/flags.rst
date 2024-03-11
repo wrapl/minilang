@@ -9,7 +9,7 @@ flags
 
 .. rst-class:: mini-api
 
-:mini:`type flags < (MLType`
+:mini:`type flags < type`
    The base type of flag types.
 
 

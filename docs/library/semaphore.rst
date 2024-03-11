@@ -15,7 +15,6 @@ semaphore
 
 :mini:`fun semaphore(Initial?: integer): semaphore`
    Returns a new semaphore with initial value :mini:`Initial` or :mini:`1` if no initial value is specified.
-   :integer Initial?: : integer
 
 
 :mini:`meth (Semaphore: semaphore):signal: integer`

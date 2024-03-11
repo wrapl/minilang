@@ -11,7 +11,7 @@ bytecode
 
 This is a mostly internal module,  subject to change.
 
-:mini:`type closure < (mlfunction, MLSequence`
+:mini:`type closure < function, sequence`
    A Minilang function.
 
 
@@ -47,7 +47,7 @@ This is a mostly internal module,  subject to change.
    Information about a closure.
 
 
-:mini:`type continuation < (mlstate, MLSequence`
+:mini:`type continuation < state, sequence`
    A bytecode function frame which can be resumed.
 
 

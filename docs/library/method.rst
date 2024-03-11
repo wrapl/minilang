@@ -13,11 +13,11 @@ method
    *TBD*
 
 
-:mini:`fun method::isolate(Args: any, ..., F: :function): any`
+:mini:`fun method::isolate(Args: any, ..., Fn: function): any`
    Evaluates :mini:`Fn(Args)` in a new method context and returns the result.
 
 
-:mini:`type method < (MLFunction`
+:mini:`type method < function`
    A map of type signatures to functions. Each type signature consists of a number of types and a flag denoting whether the signature is variadic.
    
    :mini:`(M: method)(Arg₁,  ...,  Argₙ)`
@@ -49,7 +49,7 @@ method
    *TBD*
 
 
-:mini:`meth method::define(Method: method, Types..: :type, ..?: any, Functio: :function, ...): Function`
+:mini:`meth method::define(Method: method, Types: type, ..., ..?: any, Function: function): Function`
    Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 

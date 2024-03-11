@@ -9,15 +9,15 @@ xe
 
 .. rst-class:: mini-api
 
-:mini:`fun xe::parse(Strin: string): xe::node`
+:mini:`fun xe::parse(String: string): xe::node`
    *TBD*
 
 
-:mini:`type xe::node < (MLSequence`
+:mini:`type xe::node < sequence`
    *TBD*
 
 
-:mini:`fun xe::node(Ta: :string): xe::node`
+:mini:`fun xe::node(Tag: string): xe::node`
    *TBD*
 
 

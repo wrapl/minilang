@@ -39,7 +39,7 @@ Provides a specialized encoding of Minilang values to and from JSON with support
    *TBD*
 
 
-:mini:`fun minijs(Valu: :any): minijs`
+:mini:`fun minijs(Value: any): minijs`
    *TBD*
 
 

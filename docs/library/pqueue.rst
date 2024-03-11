@@ -9,7 +9,7 @@ pqueue
 
 .. rst-class:: mini-api
 
-:mini:`type pqueue < (MLSequence`
+:mini:`type pqueue < sequence`
    A priority queue with values and associated priorities.
 
 

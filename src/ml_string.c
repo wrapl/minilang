@@ -380,7 +380,7 @@ ML_METHOD("gets", MLAddressT) {
 	char *String = snew(Length + 1);
 	memcpy(String, Address->Value, Length);
 	String[Length] = 0;
-	return ml_string(String, Length);
+	return ml_string_unchecked(String, Length);
 }
 
 ML_METHOD("gets", MLAddressT, MLIntegerT) {
@@ -397,7 +397,7 @@ ML_METHOD("gets", MLAddressT, MLIntegerT) {
 	char *String = snew(Length + 1);
 	memcpy(String, Address->Value, Length);
 	String[Length] = 0;
-	return ml_string(String, Length);
+	return ml_string_unchecked(String, Length);
 }
 
 ML_METHOD("find", MLAddressT, MLAddressT) {
@@ -694,6 +694,10 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	String->Value = Value;
 	String->Length = Length;
 	return (ml_value_t *)String;
+}
+
+ml_value_t *ml_string_unchecked(const char *Value, int Length) {
+	return ml_string(Value, Length);
 }
 
 ml_value_t *ml_string_copy(const char *Value, int Length) {
@@ -2382,7 +2386,7 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 	size_t NeedleLength = ml_string_length(Args[1]);
 	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_integer(utf8_position(ml_string_value(Args[0]), Match));
+		return ml_integer(1 + utf8_position(ml_string_value(Args[0]), Match));
 	} else {
 		return MLNil;
 	}
@@ -2403,7 +2407,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 	size_t NeedleLength = ml_string_length(Args[1]);
 	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_tuplev(2, ml_integer(utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
+		return ml_tuplev(2, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
 	} else {
 		return MLNil;
 	}
@@ -2530,7 +2534,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
-	return ml_integer(utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so));
+	return ml_integer(1 + utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so));
 }
 
 ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
@@ -2560,7 +2564,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
-	ml_tuple_set(Result, 1, ml_integer(utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
+	ml_tuple_set(Result, 1, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
 	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 		regoff_t Start = Matches[I].rm_so;
 		if (Start >= 0) {
@@ -2592,7 +2596,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLTupleIntegerStringT) {
 	size_t NeedleLength = ml_string_length(Args[1]);
 	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_tuplev(2, ml_integer(utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
+		return ml_tuplev(2, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
 	} else {
 		return MLNil;
 	}
@@ -2626,7 +2630,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
-	ml_tuple_set(Result, 1, ml_integer(utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
+	ml_tuple_set(Result, 1, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
 	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 		regoff_t Start = Matches[I].rm_so;
 		if (Start >= 0) {
@@ -4134,7 +4138,7 @@ ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
 	} else {
 		char *Chars = snew(Length + 1);
 		ml_stringbuffer_finish(Buffer, Chars);
-		return ml_string(Chars, Length);
+		return ml_string_unchecked(Chars, Length);
 	}
 }
 
@@ -4156,7 +4160,7 @@ ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	char *Chars = snew(Length + 1);
 	if (Length) ml_stringbuffer_finish(Buffer, Chars);
-	return ml_string(Chars, Length);
+	return ml_string_unchecked(Chars, Length);
 }
 
 ML_METHOD("rest", MLStringBufferT) {

@@ -9,7 +9,7 @@ symbol
 
 .. rst-class:: mini-api
 
-:mini:`type symbol < (MLFunction`
+:mini:`type symbol < function`
    *TBD*
 
 

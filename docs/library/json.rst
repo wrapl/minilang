@@ -24,11 +24,11 @@ JSON values are mapped to Minilang as follows:
    Encodes :mini:`Value` into JSON,  raising an error if :mini:`Value` cannot be represented as JSON.
 
 
-:mini:`type json < (MLString`
+:mini:`type json < string`
    Contains a JSON encoded value. Primarily used to distinguish strings containing JSON from other strings (e.g. for CBOR encoding).
 
 
-:mini:`fun json(Valu: :any): json`
+:mini:`fun json(Value: any): json`
    Encodes :mini:`Value` into JSON.
 
 
@@ -40,7 +40,7 @@ JSON values are mapped to Minilang as follows:
    Decodes the JSON string in :mini:`Json` into a Minilang value.
 
 
-:mini:`type json::decoder < (MLStream`
+:mini:`type json::decoder < stream`
    A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
 
 

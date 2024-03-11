@@ -81,7 +81,7 @@ stream
    Writes each :mini:`Valueᵢ` in turn to :mini:`Stream`.
 
 
-:mini:`type stream::buffered < (MLStream`
+:mini:`type stream::buffered < stream`
    A stream that buffers reads and writes from another stream.
 
 
@@ -93,7 +93,7 @@ stream
    Writes any bytes in the buffer.
 
 
-:mini:`type stream::fd < (MLStream`
+:mini:`type stream::fd < stream`
    A file-descriptor based stream.
 
 
@@ -105,7 +105,7 @@ stream
    Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
 
 
-:mini:`type stream::parser < (mlfunction, MLSequence`
+:mini:`type stream::parser < function, sequence`
    *TBD*
 
 

@@ -17,11 +17,11 @@ compiler
    *TBD*
 
 
-:mini:`type compiler < (MLState`
+:mini:`type compiler < state`
    *TBD*
 
 
-:mini:`fun compiler(Globa: :function|map): compiler`
+:mini:`fun compiler(Global: function|map): compiler`
    *TBD*
 
 
@@ -65,7 +65,7 @@ compiler
    *TBD*
 
 
-:mini:`type compiler::function < (MLState`
+:mini:`type compiler::function < state`
    *TBD*
 
 
@@ -93,7 +93,7 @@ compiler
    *TBD*
 
 
-:mini:`type function::inline < (MLFunction`
+:mini:`type function::inline < function`
    *TBD*
 
 
@@ -101,7 +101,7 @@ compiler
    *TBD*
 
 
-:mini:`type macro::subst < (MLFunction`
+:mini:`type macro::subst < function`
    *TBD*
 
 
@@ -109,7 +109,7 @@ compiler
    *TBD*
 
 
-:mini:`fun parser(Read: :function): parser`
+:mini:`fun parser(Read?: function): parser`
    *TBD*
 
 
