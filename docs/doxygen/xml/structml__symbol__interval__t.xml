@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__symbol__interval__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_symbol_interval_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__symbol__interval__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_symbol_interval_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1360" column="11" bodyfile="src/ml_types.h" bodystart="1360" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__symbol__interval__t_1a207dca2cc50284a4758381fea6ab1cad" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* First</definition>
+        <argsstring></argsstring>
+        <name>First</name>
+        <qualifiedname>ml_symbol_interval_t::First</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1361" column="12" bodyfile="src/ml_types.h" bodystart="1361" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__symbol__interval__t_1a50f85990a56a7263d638002cbd80d4b3" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char * Last</definition>
+        <argsstring></argsstring>
+        <name>Last</name>
+        <qualifiedname>ml_symbol_interval_t::Last</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1361" column="18" bodyfile="src/ml_types.h" bodystart="1361" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_symbol_interval_t</label>
+        <link refid="structml__symbol__interval__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="1359" column="1" bodyfile="src/ml_types.h" bodystart="1359" bodyend="1362"/>
+    <listofallmembers>
+      <member refid="structml__symbol__interval__t_1a207dca2cc50284a4758381fea6ab1cad" prot="public" virt="non-virtual"><scope>ml_symbol_interval_t</scope><name>First</name></member>
+      <member refid="structml__symbol__interval__t_1a50f85990a56a7263d638002cbd80d4b3" prot="public" virt="non-virtual"><scope>ml_symbol_interval_t</scope><name>Last</name></member>
+      <member refid="structml__symbol__interval__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_symbol_interval_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
