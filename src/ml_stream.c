@@ -11,12 +11,24 @@
 ML_INTERFACE(MLStreamT, (), "stream");
 // Base type of readable and writable byte streams.
 
+ML_METHOD_DECL(ModeMethod, "mode");
 ML_METHOD_DECL(ReadMethod, "read");
 ML_METHOD_DECL(WriteMethod, "write");
 ML_METHOD_DECL(FlushMethod, "flush");
 ML_METHOD_DECL(SeekMethod, "seek");
 ML_METHOD_DECL(TellMethod, "tell");
 ML_METHOD_DECL(CloseMethod, "close");
+
+void ml_stream_mode_method(ml_state_t *Caller, ml_value_t *Value) {
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Value;
+	return ml_call(Caller, ModeMethod, 1, Args);
+}
+
+void ml_stream_mode(ml_state_t *Caller, ml_value_t *Value) {
+	typeof(ml_stream_mode) *function = ml_typed_fn_get(ml_typeof(Value), ml_stream_mode) ?: ml_stream_mode_method;
+	return function(Caller, Value);
+}
 
 void ml_stream_read_method(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	ml_address_t *Buffer = new(ml_address_t);
@@ -104,6 +116,15 @@ void ml_stream_close(ml_state_t *Caller, ml_value_t *Value) {
 	return function(Caller, Value);
 }
 
+ML_METHODX("mode", MLStreamT) {
+//<Stream
+//>mode
+	ml_value_t *Stream = Args[0];
+	typeof(ml_stream_mode) *encoding = ml_typed_fn_get(ml_typeof(Stream), ml_stream_mode);
+	if (!encoding) ML_RETURN(MLStringT);
+	return encoding(Caller, Stream);
+}
+
 ML_METHODX("read", MLStreamT, MLBufferT) {
 //<Stream
 //<Buffer
@@ -118,25 +139,83 @@ ML_METHODX("read", MLStreamT, MLBufferT) {
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Stream;
+	char *Space;
 	typeof(ml_stream_read) *read;
-	char *String, *End;
+	ml_value_t *(*finish)(ml_stringbuffer_t *);
+	ml_stringbuffer_t Buffer[1];
 	size_t Remaining;
+	int UTF8Length;
+	unsigned char Chars[];
 } ml_read_state_t;
+
+#define UTF8_COUNT(CHARS, LENGTH) { \
+	int UTF8Length = State->UTF8Length; \
+	size_t Length0 = LENGTH; \
+	unsigned char *Bytes = (unsigned char *)CHARS; \
+	do { \
+		unsigned char Byte = *Bytes++; \
+		if (UTF8Length) { \
+			if ((Byte & 128) == 128) { \
+				if (--UTF8Length == 0) --Remaining; \
+			} else { \
+				ML_ERROR("ReadError", "Invalid UTF-8 sequence"); \
+			} \
+		} else if ((Byte & 128) == 0) { \
+			--Remaining; \
+		} else if ((Byte & 240) == 240) { \
+			UTF8Length = 3; \
+		} else if ((Byte & 224) == 224) { \
+			UTF8Length = 2; \
+		} else if ((Byte & 192) == 192) { \
+			UTF8Length = 1; \
+		} else { \
+			ML_ERROR("ReadError", "Invalid UTF-8 sequence"); \
+		} \
+	} while (--Length0 > 0); \
+	State->UTF8Length = UTF8Length; \
+}
 
 static void ml_stream_read_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) {
-		Length = State->End - State->String;
-		ML_RETURN(Length ? ml_string_unchecked(State->String, Length) : MLNil);
+	if (!Length) ML_RETURN(State->Buffer->Length ? State->finish(State->Buffer) : MLNil);
+	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
+	size_t Remaining = State->Remaining;
+	if (State->finish == ml_stringbuffer_to_string) {
+		UTF8_COUNT(State->Space, Length);
+	} else {
+		Remaining -= Length;
 	}
-	State->End += Length;
-	size_t Remaining = State->Remaining - Length;
-	if (!Remaining) ML_RETURN(ml_string_unchecked(State->String, State->End - State->String));
+	if (!Remaining) ML_RETURN(State->finish(State->Buffer));
+	State->Space = Space;
 	State->Remaining = Remaining;
-	ml_value_t *Stream = State->Stream;
-	return State->read((ml_state_t *)State, Stream, State->End, Remaining);
+	if (Remaining > State->Buffer->Space) {
+		return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
+	} else {
+		return State->read((ml_state_t *)State, State->Stream, Space, Remaining);
+	}
+}
+
+static void ml_stream_mode_read_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value == (ml_value_t *)MLStringT) {
+		State->finish = ml_stringbuffer_to_string;
+	} else if (Value == (ml_value_t *)MLAddressT) {
+		State->finish = ml_stringbuffer_to_address;
+	} else if (Value == (ml_value_t *)MLBufferT) {
+		State->finish = ml_stringbuffer_to_buffer;
+	} else {
+		ML_ERROR("StreamError", "Invalid mode for stream");
+	}
+	State->Base.run = (ml_state_fn)ml_stream_read_run;
+	char *Space = State->Space = ml_stringbuffer_writer(State->Buffer, 0);
+	if (State->Remaining > State->Buffer->Space) {
+		return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
+	} else {
+		return State->read((ml_state_t *)State, State->Stream, Space, State->Remaining);
+	}
 }
 
 ML_METHODX("read", MLStreamT, MLIntegerT) {
@@ -145,39 +224,51 @@ ML_METHODX("read", MLStreamT, MLIntegerT) {
 //>string|nil
 // Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
-	ml_read_state_t *State = new(ml_read_state_t);
+	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_read_run;
+	State->Base.run = (ml_state_fn)ml_stream_mode_read_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
-	size_t Remaining = State->Remaining = ml_integer_value(Args[1]);
-	State->End = State->String = snew(Remaining + 1);
-	return State->read((ml_state_t *)State, Stream, State->End, Remaining);
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	State->Remaining = ml_integer_value(Args[1]);
+	return ml_stream_mode((ml_state_t *)State, Stream);
 }
 
-typedef struct {
-	ml_state_t Base;
-	ml_value_t *Stream;
-	typeof(ml_stream_read) *read;
-	ml_stringbuffer_t Buffer[1];
-	size_t Remaining;
-	unsigned char Chars[];
-} ml_readu_state_t;
-
-static void ml_stream_readx_run(ml_readu_state_t *State, ml_value_t *Value) {
+static void ml_stream_readx_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(State->Buffer->Length ? State->finish(State->Buffer) : MLNil);
 	unsigned char Char = State->Chars[64];
-	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(State->finish(State->Buffer));
 	ml_stringbuffer_write(State->Buffer, (void *)&State->Chars[64], 1);
-	size_t Remaining = State->Remaining - Length;
-	if (!Remaining) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	size_t Remaining = State->Remaining;
+	if (State->finish == ml_stringbuffer_to_string) {
+		UTF8_COUNT(State->Chars + 64, 1);
+	} else {
+		Remaining -= Length;
+	}
+	if (!Remaining) ML_RETURN(State->finish(State->Buffer));
 	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, &State->Chars[64], 1);
+}
+
+static void ml_stream_mode_readx_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value == (ml_value_t *)MLStringT) {
+		State->finish = ml_stringbuffer_to_string;
+	} else if (Value == (ml_value_t *)MLAddressT) {
+		State->finish = ml_stringbuffer_to_address;
+	} else if (Value == (ml_value_t *)MLBufferT) {
+		State->finish = ml_stringbuffer_to_buffer;
+	} else {
+		ML_ERROR("StreamError", "Invalid mode for stream");
+	}
+	State->Base.run = (ml_state_fn)ml_stream_readx_run;
+	return State->read((ml_state_t *)State, State->Stream, (void *)&State->Chars[64], 1);
 }
 
 ML_METHODX("readx", MLStreamT, MLStringT) {
@@ -186,10 +277,10 @@ ML_METHODX("readx", MLStreamT, MLStringT) {
 //>string|nil
 // Returns the next text from :mini:`Stream`, upto but excluding any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
-	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
+	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_readx_run;
+	State->Base.run = (ml_state_fn)ml_stream_mode_readx_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
@@ -200,7 +291,7 @@ ML_METHODX("readx", MLStreamT, MLStringT) {
 		State->Chars[Char / 8] |= 1 << (Char % 8);
 	}
 	State->Remaining = SIZE_MAX;
-	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
+	return ml_stream_mode((ml_state_t *)State, Stream);
 }
 
 ML_METHODX("readx", MLStreamT, MLStringT, MLIntegerT) {
@@ -210,10 +301,10 @@ ML_METHODX("readx", MLStreamT, MLStringT, MLIntegerT) {
 //>string|nil
 // Returns the next text from :mini:`Stream`, upto but excluding any character in :mini:`Delimiters` or :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
-	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
+	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_readx_run;
+	State->Base.run = (ml_state_fn)ml_stream_mode_readx_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
@@ -224,22 +315,43 @@ ML_METHODX("readx", MLStreamT, MLStringT, MLIntegerT) {
 		State->Chars[Char / 8] |= 1 << (Char % 8);
 	}
 	State->Remaining = ml_integer_value(Args[2]);
-	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
+	return ml_stream_mode((ml_state_t *)State, Stream);
 }
 
-static void ml_stream_readi_run(ml_readu_state_t *State, ml_value_t *Value) {
+static void ml_stream_readi_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(State->Buffer->Length ? State->finish(State->Buffer) : MLNil);
 	ml_stringbuffer_write(State->Buffer, (void *)&State->Chars[64], 1);
 	unsigned char Char = State->Chars[64];
-	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
-	size_t Remaining = State->Remaining - Length;
-	if (!Remaining) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(State->finish(State->Buffer));
+	size_t Remaining = State->Remaining;
+	if (State->finish == ml_stringbuffer_to_string) {
+		UTF8_COUNT(State->Chars + 64, 1);
+	} else {
+		Remaining -= Length;
+	}
+	if (!Remaining) ML_RETURN(State->finish(State->Buffer));
 	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, &State->Chars[64], 1);
+}
+
+static void ml_stream_mode_readi_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value == (ml_value_t *)MLStringT) {
+		State->finish = ml_stringbuffer_to_string;
+	} else if (Value == (ml_value_t *)MLAddressT) {
+		State->finish = ml_stringbuffer_to_address;
+	} else if (Value == (ml_value_t *)MLBufferT) {
+		State->finish = ml_stringbuffer_to_buffer;
+	} else {
+		ML_ERROR("StreamError", "Invalid mode for stream");
+	}
+	State->Base.run = (ml_state_fn)ml_stream_readi_run;
+	return State->read((ml_state_t *)State, State->Stream, (void *)&State->Chars[64], 1);
 }
 
 ML_METHODX("readi", MLStreamT, MLStringT) {
@@ -248,10 +360,10 @@ ML_METHODX("readi", MLStreamT, MLStringT) {
 //>string|nil
 // Returns the next text from :mini:`Stream`, upto and including any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
-	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
+	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_readi_run;
+	State->Base.run = (ml_state_fn)ml_stream_mode_readi_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
@@ -262,7 +374,7 @@ ML_METHODX("readi", MLStreamT, MLStringT) {
 		State->Chars[Char / 8] |= 1 << (Char % 8);
 	}
 	State->Remaining = SIZE_MAX;
-	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
+	return ml_stream_mode((ml_state_t *)State, Stream);
 }
 
 ML_METHODX("readi", MLStreamT, MLStringT, MLIntegerT) {
@@ -272,10 +384,10 @@ ML_METHODX("readi", MLStreamT, MLStringT, MLIntegerT) {
 //>string|nil
 // Returns the next text from :mini:`Stream`, upto and including any character in :mini:`Delimiters` or :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
-	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
+	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_readi_run;
+	State->Base.run = (ml_state_fn)ml_stream_mode_readi_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
@@ -286,7 +398,7 @@ ML_METHODX("readi", MLStreamT, MLStringT, MLIntegerT) {
 		State->Chars[Char / 8] |= 1 << (Char % 8);
 	}
 	State->Remaining = ml_integer_value(Args[2]);
-	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
+	return ml_stream_mode((ml_state_t *)State, Stream);
 }
 
 ML_METHODX("read", MLStreamT) {
@@ -294,26 +406,43 @@ ML_METHODX("read", MLStreamT) {
 //>string|nil
 // Equivalent to :mini:`Stream:readi(SIZE_MAX, '\n')`.
 	ml_value_t *Stream = Args[0];
-	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
+	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_readi_run;
+	State->Base.run = (ml_state_fn)ml_stream_mode_readi_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
 	State->Remaining = SIZE_MAX;
 	State->Chars['\n' / 8] |= 1 << ('\n' % 8);
-	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
+	return ml_stream_mode((ml_state_t *)State, Stream);
 }
 
-static void ml_stream_rest_run(ml_readu_state_t *State, ml_value_t *Value) {
+static void ml_stream_rest_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : ml_cstring(""));
+	if (!Length) ML_RETURN(State->Buffer->Length ? State->finish(State->Buffer) : ml_cstring(""));
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+}
+
+static void ml_stream_mode_rest_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value == (ml_value_t *)MLStringT) {
+		State->finish = ml_stringbuffer_to_string;
+	} else if (Value == (ml_value_t *)MLAddressT) {
+		State->finish = ml_stringbuffer_to_address;
+	} else if (Value == (ml_value_t *)MLBufferT) {
+		State->finish = ml_stringbuffer_to_buffer;
+	} else {
+		ML_ERROR("StreamError", "Invalid mode for stream");
+	}
+	State->Base.run = (ml_state_fn)ml_stream_rest_run;
+	char *Space = ml_stringbuffer_writer(State->Buffer, 0);
+	return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
 }
 
 ML_METHODX("rest", MLStreamT) {
@@ -321,15 +450,14 @@ ML_METHODX("rest", MLStreamT) {
 //>string|nil
 // Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
-	ml_readu_state_t *State = xnew(ml_readu_state_t, 0, char);
+	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_rest_run;
+	State->Base.run = (ml_state_fn)ml_stream_mode_rest_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
-	char *Space = ml_stringbuffer_writer(State->Buffer, 0);
-	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+	return ml_stream_mode((ml_state_t *)State, Stream);
 }
 
 ML_METHODX("write", MLStreamT, MLAddressT) {

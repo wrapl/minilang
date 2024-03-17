@@ -136,14 +136,18 @@
         </inbodydescription>
         <location file="src/ml_file.h" line="13" column="6" declfile="src/ml_file.h" declline="13" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__file_8h_1a58f7a5abd7549c38e2997a0bc2943fff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__file_8h_1a4811ba0039c75c6b0682194c5886af31" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
         <definition>ml_value_t * ml_file</definition>
-        <argsstring>(FILE *File)</argsstring>
+        <argsstring>(FILE *File, ml_value_t *Mode)</argsstring>
         <name>ml_file</name>
         <param>
           <type>FILE *</type>
           <declname>File</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Mode</declname>
         </param>
         <briefdescription>
         </briefdescription>
@@ -190,7 +194,7 @@
 <codeline lineno="12"><highlight class="normal"></highlight></codeline>
 <codeline lineno="13"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_file_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="14"><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_file(FILE<sp/>*File);</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_file(FILE<sp/>*File,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Mode);</highlight></codeline>
 <codeline lineno="16"><highlight class="normal"></highlight></codeline>
 <codeline lineno="17"><highlight class="normal">FILE<sp/>*ml_file_handle(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>__attribute__((pure));</highlight></codeline>
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>

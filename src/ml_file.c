@@ -16,6 +16,7 @@
 typedef struct ml_file_t {
 	ml_type_t *Type;
 	FILE *Handle;
+	ml_value_t *Mode;
 } ml_file_t;
 
 static void ml_file_finalize(ml_file_t *File, void *Data) {
@@ -46,6 +47,11 @@ ML_FUNCTION(MLFileOpen) {
 	ml_file_t *File = new(ml_file_t);
 	File->Type = MLFileT;
 	File->Handle = Handle;
+	if (strchr(Mode, 'b')) {
+		File->Mode = (ml_value_t *)MLAddressT;
+	} else {
+		File->Mode = Count > 2 ? Args[2] : (ml_value_t *)MLStringT;
+	}
 	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
 }
@@ -83,6 +89,10 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 	}
 }
 #endif
+
+static void ML_TYPED_FN(ml_stream_mode, MLFileT, ml_state_t *Caller, ml_file_t *File) {
+	ML_RETURN(File->Mode);
+}
 
 static void ML_TYPED_FN(ml_stream_read, MLFileT, ml_state_t *Caller, ml_file_t *File, void *Address, int Count) {
 	if (!File->Handle) ML_ERROR("FileError", "reading from closed file");
@@ -136,10 +146,11 @@ ML_METHOD("close", MLFileT) {
 	return MLNil;
 }
 
-ml_value_t *ml_file(FILE *Handle) {
+ml_value_t *ml_file(FILE *Handle, ml_value_t *Mode) {
 	ml_file_t *File = new(ml_file_t);
 	File->Type = MLFileT;
 	File->Handle = Handle;
+	File->Mode = Mode;
 	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
 }
@@ -382,6 +393,11 @@ ML_FUNCTION(MLPOpen) {
 	ml_file_t *File = new(ml_file_t);
 	File->Type = MLPOpenT;
 	File->Handle = Handle;
+	if (strchr(Mode, 'b')) {
+		File->Mode = (ml_value_t *)MLAddressT;
+	} else {
+		File->Mode = Count > 2 ? Args[2] : (ml_value_t *)MLStringT;
+	}
 	GC_register_finalizer(File, (void *)ml_popen_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
 }

@@ -29,6 +29,10 @@ stream
    Flushes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
+:mini:`meth (Stream: stream):mode: mode`
+   *TBD*
+
+
 :mini:`meth (Arg₁: stream):parse(Arg₂: function)`
    *TBD*
 

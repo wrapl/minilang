@@ -3996,7 +3996,12 @@ size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 }
 
 char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
-	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	ml_stringbuffer_node_t *Node = Buffer->Tail;
+	if (!Node) {
+		Node = Buffer->Head = Buffer->Tail = ml_stringbuffer_node();
+		Buffer->Start = 0;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+	}
 	Buffer->Length += Length;
 	Buffer->Space -= Length;
 	if (!Buffer->Space) {

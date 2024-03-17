@@ -14,7 +14,7 @@ A :mini:`must`-declaration can be used to ensure that particular code is guarant
    In order to guarantee a valid state when each :mini:`must`-expression is executed, each :mini:`must`-declaration implicitly creates a new block around the code that follows it. Given code like:
 
    .. code-block:: mini
-   :linenos:
+      :linenos:
 
       decls
       code
@@ -25,7 +25,7 @@ A :mini:`must`-declaration can be used to ensure that particular code is guarant
    the compiler treats it internally as similar to:
 
    .. code-block:: mini
-   :linenos:
+      :linenos:
 
       decls
       code
