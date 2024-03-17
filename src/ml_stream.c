@@ -190,6 +190,7 @@ static void ml_stream_read_run(ml_read_state_t *State, ml_value_t *Value) {
 	if (!Remaining) ML_RETURN(State->finish(State->Buffer));
 	State->Space = Space;
 	State->Remaining = Remaining;
+	if (State->UTF8Length > 1) Remaining += (State->UTF8Length - 1);
 	if (Remaining > State->Buffer->Space) {
 		return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
 	} else {
