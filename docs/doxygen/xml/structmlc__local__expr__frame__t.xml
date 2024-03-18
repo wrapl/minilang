@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__local__expr__frame__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_local_expr_frame_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__local__expr__frame__t_1a7fdccd902c96157f2a75399496a173b9" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__expr__t" kindref="compound">mlc_local_expr_t</ref> *</type>
+        <definition>mlc_local_expr_t* mlc_local_expr_frame_t::Expr</definition>
+        <argsstring></argsstring>
+        <name>Expr</name>
+        <qualifiedname>mlc_local_expr_frame_t::Expr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="1121" column="18" bodyfile="src/ml_compiler.c" bodystart="1121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__local__expr__frame__t_1a40b3f487c6461823bd3e053cc43da4ba" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int mlc_local_expr_frame_t::Flags</definition>
+        <argsstring></argsstring>
+        <name>Flags</name>
+        <qualifiedname>mlc_local_expr_frame_t::Flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="1122" column="5" bodyfile="src/ml_compiler.c" bodystart="1122" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="7">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="5">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_local_expr_frame_t</label>
+        <link refid="structmlc__local__expr__frame__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_local_expr_t</label>
+        <link refid="structmlc__local__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Local</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Child</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>mlc_local_t</label>
+        <link refid="structmlc__local__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="1120" column="1" bodyfile="src/ml_compiler.c" bodystart="1120" bodyend="1123"/>
+    <listofallmembers>
+      <member refid="structmlc__local__expr__frame__t_1a7fdccd902c96157f2a75399496a173b9" prot="public" virt="non-virtual"><scope>mlc_local_expr_frame_t</scope><name>Expr</name></member>
+      <member refid="structmlc__local__expr__frame__t_1a40b3f487c6461823bd3e053cc43da4ba" prot="public" virt="non-virtual"><scope>mlc_local_expr_frame_t</scope><name>Flags</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__library__loader__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_library_loader_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__library__loader__t_1ab4457b0c60369a90139db240ed601d5c" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__library__loader__t" kindref="compound">ml_library_loader_t</ref> *</type>
+        <definition>ml_library_loader_t* ml_library_loader_t::Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>ml_library_loader_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.c" line="31" column="21" bodyfile="src/ml_library.c" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__library__loader__t_1af3038e546e2285f43c03fbeb161c4070" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* ml_library_loader_t::Extension</definition>
+        <argsstring></argsstring>
+        <name>Extension</name>
+        <qualifiedname>ml_library_loader_t::Extension</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.c" line="32" column="12" bodyfile="src/ml_library.c" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__library__loader__t_1adfdb53d20c58b931198028cc41fb9cbd" prot="public" static="no" mutable="no">
+        <type>int(*</type>
+        <definition>int(* ml_library_loader_t::test) (const char *FileName)</definition>
+        <argsstring>)(const char *FileName)</argsstring>
+        <name>test</name>
+        <qualifiedname>ml_library_loader_t::test</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.c" line="33" column="1" bodyfile="src/ml_library.c" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__library__loader__t_1a353172b6bccd84f5a48d81747e3ea576" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* ml_library_loader_t::load) (ml_state_t *Caller, const char *FileName, ml_value_t **Slot)</definition>
+        <argsstring>)(ml_state_t *Caller, const char *FileName, ml_value_t **Slot)</argsstring>
+        <name>load</name>
+        <qualifiedname>ml_library_loader_t::load</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.c" line="34" column="1" bodyfile="src/ml_library.c" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__library__loader__t_1a3248b97703ecd3ae8b89722a1244fb0d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*</type>
+        <definition>ml_value_t *(* ml_library_loader_t::load0) (const char *FileName, ml_value_t **Slot)</definition>
+        <argsstring>)(const char *FileName, ml_value_t **Slot)</argsstring>
+        <name>load0</name>
+        <qualifiedname>ml_library_loader_t::load0</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.c" line="35" column="1" bodyfile="src/ml_library.c" bodystart="35" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_library_loader_t</label>
+        <link refid="structml__library__loader__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>load0</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_library.c" line="30" column="1" bodyfile="src/ml_library.c" bodystart="30" bodyend="36"/>
+    <listofallmembers>
+      <member refid="structml__library__loader__t_1af3038e546e2285f43c03fbeb161c4070" prot="public" virt="non-virtual"><scope>ml_library_loader_t</scope><name>Extension</name></member>
+      <member refid="structml__library__loader__t_1a353172b6bccd84f5a48d81747e3ea576" prot="public" virt="non-virtual"><scope>ml_library_loader_t</scope><name>load</name></member>
+      <member refid="structml__library__loader__t_1a3248b97703ecd3ae8b89722a1244fb0d" prot="public" virt="non-virtual"><scope>ml_library_loader_t</scope><name>load0</name></member>
+      <member refid="structml__library__loader__t_1ab4457b0c60369a90139db240ed601d5c" prot="public" virt="non-virtual"><scope>ml_library_loader_t</scope><name>Next</name></member>
+      <member refid="structml__library__loader__t_1adfdb53d20c58b931198028cc41fb9cbd" prot="public" virt="non-virtual"><scope>ml_library_loader_t</scope><name>test</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

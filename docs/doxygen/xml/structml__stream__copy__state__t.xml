@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__stream__copy__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_stream_copy_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__stream__copy__state__t_1a7a5e60c720e98e847db9cf508260f6ce" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_stream_copy_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_stream_copy_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="396" column="12" bodyfile="src/ml_stream.c" bodystart="396" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__stream__copy__state__t_1a98807c4e78c3f7d5baef3bb3052f7f97" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_stream_copy_state_t::Source</definition>
+        <argsstring></argsstring>
+        <name>Source</name>
+        <qualifiedname>ml_stream_copy_state_t::Source</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="397" column="12" bodyfile="src/ml_stream.c" bodystart="397" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__stream__copy__state__t_1a352262ae1086c3b509f0770eb2590569" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stream_copy_state_t::Destination</definition>
+        <argsstring></argsstring>
+        <name>Destination</name>
+        <qualifiedname>ml_stream_copy_state_t::Destination</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="397" column="19" bodyfile="src/ml_stream.c" bodystart="397" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_stream_copy_state_t</label>
+        <link refid="structml__stream__copy__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Destination</edgelabel>
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_stream.c" line="395" column="1" bodyfile="src/ml_stream.c" bodystart="395" bodyend="402"/>
+    <listofallmembers>
+      <member refid="structml__stream__copy__state__t_1a7a5e60c720e98e847db9cf508260f6ce" prot="public" virt="non-virtual"><scope>ml_stream_copy_state_t</scope><name>Base</name></member>
+      <member refid="structml__stream__copy__state__t_1a352262ae1086c3b509f0770eb2590569" prot="public" virt="non-virtual"><scope>ml_stream_copy_state_t</scope><name>Destination</name></member>
+      <member refid="structml__stream__copy__state__t_1a98807c4e78c3f7d5baef3bb3052f7f97" prot="public" virt="non-virtual"><scope>ml_stream_copy_state_t</scope><name>Source</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

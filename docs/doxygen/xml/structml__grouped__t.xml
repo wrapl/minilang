@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__grouped__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_grouped_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__grouped__t_1a3672400623abae21aea7ec9c178fcbb7" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_grouped_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_grouped_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3515" column="11" bodyfile="src/ml_sequence.c" bodystart="3515" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__grouped__t_1a7a0cfda3f436c82f42b1f9be43aea2ca" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_grouped_t::Seq</definition>
+        <argsstring></argsstring>
+        <name>Seq</name>
+        <qualifiedname>ml_grouped_t::Seq</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3516" column="12" bodyfile="src/ml_sequence.c" bodystart="3516" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__grouped__t_1a4fef689761a6b3364b41d2cff5655885" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_grouped_t::Fn</definition>
+        <argsstring></argsstring>
+        <name>Fn</name>
+        <qualifiedname>ml_grouped_t::Fn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3516" column="16" bodyfile="src/ml_sequence.c" bodystart="3516" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_grouped_t</label>
+        <link refid="structml__grouped__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Fn</edgelabel>
+          <edgelabel>Seq</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_sequence.c" line="3514" column="1" bodyfile="src/ml_sequence.c" bodystart="3514" bodyend="3517"/>
+    <listofallmembers>
+      <member refid="structml__grouped__t_1a4fef689761a6b3364b41d2cff5655885" prot="public" virt="non-virtual"><scope>ml_grouped_t</scope><name>Fn</name></member>
+      <member refid="structml__grouped__t_1a7a0cfda3f436c82f42b1f9be43aea2ca" prot="public" virt="non-virtual"><scope>ml_grouped_t</scope><name>Seq</name></member>
+      <member refid="structml__grouped__t_1a3672400623abae21aea7ec9c178fcbb7" prot="public" virt="non-virtual"><scope>ml_grouped_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

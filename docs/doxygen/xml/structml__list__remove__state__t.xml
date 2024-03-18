@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__list__remove__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_list_remove_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__list__remove__state__t_1a48945da51536d8048735acd6902b5886" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_list_remove_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_list_remove_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1592" column="12" bodyfile="src/ml_list.c" bodystart="1592" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__remove__state__t_1a3c5e7dcd57e41d73f3d76ddcfcd22917" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__t" kindref="compound">ml_list_t</ref> *</type>
+        <definition>ml_list_t* ml_list_remove_state_t::List</definition>
+        <argsstring></argsstring>
+        <name>List</name>
+        <qualifiedname>ml_list_remove_state_t::List</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1593" column="11" bodyfile="src/ml_list.c" bodystart="1593" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__remove__state__t_1a395850c8a0919eb8b8543b4bcbc3832a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* ml_list_remove_state_t::Node</definition>
+        <argsstring></argsstring>
+        <name>Node</name>
+        <qualifiedname>ml_list_remove_state_t::Node</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1594" column="16" bodyfile="src/ml_list.c" bodystart="1594" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__remove__state__t_1aafabe96abf4c0eaff69daf0f23654f99" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_list_remove_state_t::Fn</definition>
+        <argsstring></argsstring>
+        <name>Fn</name>
+        <qualifiedname>ml_list_remove_state_t::Fn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1595" column="12" bodyfile="src/ml_list.c" bodystart="1595" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__remove__state__t_1ada77b279738c1bc56a9303a1fa97c4d4" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_list_remove_state_t::Args[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_list_remove_state_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1596" column="12" bodyfile="src/ml_list.c" bodystart="1596" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_list_node_t</label>
+        <link refid="structml__list__node__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_list_remove_state_t</label>
+        <link refid="structml__list__remove__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>List</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Node</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Fn</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_list_t</label>
+        <link refid="structml__list__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>CachedNode</edgelabel>
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_list.c" line="1591" column="1" bodyfile="src/ml_list.c" bodystart="1591" bodyend="1597"/>
+    <listofallmembers>
+      <member refid="structml__list__remove__state__t_1ada77b279738c1bc56a9303a1fa97c4d4" prot="public" virt="non-virtual"><scope>ml_list_remove_state_t</scope><name>Args</name></member>
+      <member refid="structml__list__remove__state__t_1a48945da51536d8048735acd6902b5886" prot="public" virt="non-virtual"><scope>ml_list_remove_state_t</scope><name>Base</name></member>
+      <member refid="structml__list__remove__state__t_1aafabe96abf4c0eaff69daf0f23654f99" prot="public" virt="non-virtual"><scope>ml_list_remove_state_t</scope><name>Fn</name></member>
+      <member refid="structml__list__remove__state__t_1a3c5e7dcd57e41d73f3d76ddcfcd22917" prot="public" virt="non-virtual"><scope>ml_list_remove_state_t</scope><name>List</name></member>
+      <member refid="structml__list__remove__state__t_1a395850c8a0919eb8b8543b4bcbc3832a" prot="public" virt="non-virtual"><scope>ml_list_remove_state_t</scope><name>Node</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

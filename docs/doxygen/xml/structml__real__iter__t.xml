@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__real__iter__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_real_iter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__real__iter__t_1a2fdb203ead2afa5a296ac7925243eb39" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>const ml_type_t* ml_real_iter_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_real_iter_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_number.c" line="1546" column="17" bodyfile="src/ml_number.c" bodystart="1546" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__real__iter__t_1ac09bf4d15d70235bf18658cb68d1a7f0" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double ml_real_iter_t::Current</definition>
+        <argsstring></argsstring>
+        <name>Current</name>
+        <qualifiedname>ml_real_iter_t::Current</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_number.c" line="1547" column="8" bodyfile="src/ml_number.c" bodystart="1547" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__real__iter__t_1a5f9e2c9d4009fbc4317a788d0abd8054" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double ml_real_iter_t::Step</definition>
+        <argsstring></argsstring>
+        <name>Step</name>
+        <qualifiedname>ml_real_iter_t::Step</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_number.c" line="1547" column="16" bodyfile="src/ml_number.c" bodystart="1547" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__real__iter__t_1a8e988d0f32c99920aa84866d5a634091" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double ml_real_iter_t::Limit</definition>
+        <argsstring></argsstring>
+        <name>Limit</name>
+        <qualifiedname>ml_real_iter_t::Limit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_number.c" line="1547" column="21" bodyfile="src/ml_number.c" bodystart="1547" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__real__iter__t_1a752291f3c3ebb6f85a36cb9372fec2b1" prot="public" static="no" mutable="no">
+        <type>long</type>
+        <definition>long ml_real_iter_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_real_iter_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_number.c" line="1548" column="6" bodyfile="src/ml_number.c" bodystart="1548" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_real_iter_t</label>
+        <link refid="structml__real__iter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_number.c" line="1545" column="1" bodyfile="src/ml_number.c" bodystart="1545" bodyend="1549"/>
+    <listofallmembers>
+      <member refid="structml__real__iter__t_1ac09bf4d15d70235bf18658cb68d1a7f0" prot="public" virt="non-virtual"><scope>ml_real_iter_t</scope><name>Current</name></member>
+      <member refid="structml__real__iter__t_1a752291f3c3ebb6f85a36cb9372fec2b1" prot="public" virt="non-virtual"><scope>ml_real_iter_t</scope><name>Index</name></member>
+      <member refid="structml__real__iter__t_1a8e988d0f32c99920aa84866d5a634091" prot="public" virt="non-virtual"><scope>ml_real_iter_t</scope><name>Limit</name></member>
+      <member refid="structml__real__iter__t_1a5f9e2c9d4009fbc4317a788d0abd8054" prot="public" virt="non-virtual"><scope>ml_real_iter_t</scope><name>Step</name></member>
+      <member refid="structml__real__iter__t_1a2fdb203ead2afa5a296ac7925243eb39" prot="public" virt="non-virtual"><scope>ml_real_iter_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

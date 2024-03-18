@@ -1,0 +1,239 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structxml__parser__t" kind="struct" language="C++" prot="public">
+    <compoundname>xml_parser_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxml__parser__t_1a825b76ce8052626c471d8473353235d1" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* xml_parser_t::Callback) (void *Data, ml_value_t *Value)</definition>
+        <argsstring>)(void *Data, ml_value_t *Value)</argsstring>
+        <name>Callback</name>
+        <qualifiedname>xml_parser_t::Callback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="1357" column="1" bodyfile="src/ml_xml.c" bodystart="1357" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxml__parser__t_1a521528127ccd223d7bbabb20330fe0ae" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* xml_parser_t::Data</definition>
+        <argsstring></argsstring>
+        <name>Data</name>
+        <qualifiedname>xml_parser_t::Data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="1358" column="6" bodyfile="src/ml_xml.c" bodystart="1358" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxml__parser__t_1a2ec18634b2216aa28349897db01c481e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__xml__element__t" kindref="compound">ml_xml_element_t</ref> *</type>
+        <definition>ml_xml_element_t* xml_parser_t::Element</definition>
+        <argsstring></argsstring>
+        <name>Element</name>
+        <qualifiedname>xml_parser_t::Element</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="1359" column="18" bodyfile="src/ml_xml.c" bodystart="1359" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxml__parser__t_1ac239cf4c01f727f9fc7f224f33b7f0b7" prot="public" static="no" mutable="no">
+        <type><ref refid="structxml__stack__t" kindref="compound">xml_stack_t</ref> *</type>
+        <definition>xml_stack_t* xml_parser_t::Stack</definition>
+        <argsstring></argsstring>
+        <name>Stack</name>
+        <qualifiedname>xml_parser_t::Stack</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="1360" column="13" bodyfile="src/ml_xml.c" bodystart="1360" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxml__parser__t_1a733ba8a2979a0983b5a51da4affc386e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref></type>
+        <definition>ml_stringbuffer_t xml_parser_t::Buffer[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Buffer</name>
+        <qualifiedname>xml_parser_t::Buffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="1361" column="19" bodyfile="src/ml_xml.c" bodystart="1361" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxml__parser__t_1ac1314d70f16d7d8568ad972ca730b73c" prot="public" static="no" mutable="no">
+        <type><ref refid="structxml__stack__t" kindref="compound">xml_stack_t</ref></type>
+        <definition>xml_stack_t xml_parser_t::Stack0</definition>
+        <argsstring></argsstring>
+        <name>Stack0</name>
+        <qualifiedname>xml_parser_t::Stack0</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="1362" column="13" bodyfile="src/ml_xml.c" bodystart="1362" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="7">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="13">
+        <label>ml_hash_chain_t</label>
+        <link refid="structml__hash__chain__t"/>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Previous</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_string_t</label>
+        <link refid="structml__string__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>ml_stringbuffer_node_t</label>
+        <link refid="structml__stringbuffer__node__t"/>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>ml_stringbuffer_t</label>
+        <link refid="structml__stringbuffer__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Chain</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_xml_element_t</label>
+        <link refid="structml__xml__element__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Base</edgelabel>
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Attributes</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_xml_node_t</label>
+        <link refid="structml__xml__node__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>xml_parser_t</label>
+        <link refid="structxml__parser__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Element</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Stack</edgelabel>
+          <edgelabel>Stack0</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Buffer</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>xml_stack_t</label>
+        <link refid="structxml__stack__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Nodes</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_xml.c" line="1356" column="1" bodyfile="src/ml_xml.c" bodystart="1356" bodyend="1363"/>
+    <listofallmembers>
+      <member refid="structxml__parser__t_1a733ba8a2979a0983b5a51da4affc386e" prot="public" virt="non-virtual"><scope>xml_parser_t</scope><name>Buffer</name></member>
+      <member refid="structxml__parser__t_1a825b76ce8052626c471d8473353235d1" prot="public" virt="non-virtual"><scope>xml_parser_t</scope><name>Callback</name></member>
+      <member refid="structxml__parser__t_1a521528127ccd223d7bbabb20330fe0ae" prot="public" virt="non-virtual"><scope>xml_parser_t</scope><name>Data</name></member>
+      <member refid="structxml__parser__t_1a2ec18634b2216aa28349897db01c481e" prot="public" virt="non-virtual"><scope>xml_parser_t</scope><name>Element</name></member>
+      <member refid="structxml__parser__t_1ac239cf4c01f727f9fc7f224f33b7f0b7" prot="public" virt="non-virtual"><scope>xml_parser_t</scope><name>Stack</name></member>
+      <member refid="structxml__parser__t_1ac1314d70f16d7d8568ad972ca730b73c" prot="public" virt="non-virtual"><scope>xml_parser_t</scope><name>Stack0</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

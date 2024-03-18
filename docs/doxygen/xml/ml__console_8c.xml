@@ -1,0 +1,515 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__console_8c" kind="file" language="C++">
+    <compoundname>ml_console.c</compoundname>
+    <includes refid="ml__console_8h" local="yes">ml_console.h</includes>
+    <includes refid="ml__runtime_8h" local="yes">ml_runtime.h</includes>
+    <includes refid="ml__debugger_8h" local="yes">ml_debugger.h</includes>
+    <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <includes refid="ml__macros_8h" local="yes">ml_macros.h</includes>
+    <includes refid="ml__compiler_8h" local="yes">ml_compiler.h</includes>
+    <includes refid="stringmap_8h" local="yes">stringmap.h</includes>
+    <includes refid="linenoise_8h" local="yes">linenoise.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes local="no">string.h</includes>
+    <incdepgraph>
+      <node id="14">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="21">
+        <label>linenoise.h</label>
+        <link refid="linenoise_8h_source"/>
+      </node>
+      <node id="3">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_console.c</label>
+        <link refid="ml__console_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_console.h</label>
+        <link refid="ml__console_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>ml_debugger.h</label>
+        <link refid="ml__debugger_8h_source"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="19">
+        <label>ml_macros.h</label>
+        <link refid="ml__macros_8h_source"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="20">
+        <label>gc/gc.h</label>
+      </node>
+      <node id="17">
+        <label>limits.h</label>
+      </node>
+      <node id="16">
+        <label>ml_config.h</label>
+      </node>
+      <node id="7">
+        <label>setjmp.h</label>
+      </node>
+      <node id="12">
+        <label>stdarg.h</label>
+      </node>
+      <node id="15">
+        <label>stdint.h</label>
+      </node>
+      <node id="10">
+        <label>stdio.h</label>
+      </node>
+      <node id="4">
+        <label>stdlib.h</label>
+      </node>
+      <node id="11">
+        <label>string.h</label>
+      </node>
+      <node id="5">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structml__console__t" prot="public">ml_console_t</innerclass>
+    <innerclass refid="structml__console__debugger__t" prot="public">ml_console_debugger_t</innerclass>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__console_8c_1a9101f77e9117812ee422413458da95dd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>static const char * ml_console_line_read</definition>
+        <argsstring>(ml_console_t *Console)</argsstring>
+        <name>ml_console_line_read</name>
+        <param>
+          <type><ref refid="structml__console__t" kindref="compound">ml_console_t</ref> *</type>
+          <declname>Console</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="40" column="19" bodyfile="src/ml_console.c" bodystart="40" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__console_8c_1a5c65a42378e0787beb12b760104c0546" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_stringbuffer_print</definition>
+        <argsstring>(FILE *File, const char *String, size_t Length)</argsstring>
+        <name>ml_stringbuffer_print</name>
+        <param>
+          <type>FILE *</type>
+          <declname>File</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>String</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="59" column="12" bodyfile="src/ml_console.c" bodystart="59" bodyend="62"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__console_8c_1afe48135b1b43bae6acba045f4f070a17" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_console_log</definition>
+        <argsstring>(void *Data, ml_value_t *Value)</argsstring>
+        <name>ml_console_log</name>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="64" column="13" bodyfile="src/ml_console.c" bodystart="64" bodyend="81"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__console_8c_1a68edb44eef211d10effd4369deeed8e2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_console_repl_run</definition>
+        <argsstring>(ml_console_t *Console, ml_value_t *Result)</argsstring>
+        <name>ml_console_repl_run</name>
+        <param>
+          <type><ref refid="structml__console__t" kindref="compound">ml_console_t</ref> *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="83" column="13" bodyfile="src/ml_console.c" bodystart="83" bodyend="90"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__console_8c_1a16e5e97bbac44960a38b7ab2c1e7ce0b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_console_debugger_get</definition>
+        <argsstring>(ml_console_debugger_t *ConsoleDebugger, const char *Name, const char *Source, int Line, int Eval)</argsstring>
+        <name>ml_console_debugger_get</name>
+        <param>
+          <type><ref refid="structml__console__debugger__t" kindref="compound">ml_console_debugger_t</ref> *</type>
+          <declname>ConsoleDebugger</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Source</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Line</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Eval</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="97" column="19" bodyfile="src/ml_console.c" bodystart="97" bodyend="101"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__console_8c_1a7922fbbb82b2b7e09765d5a22fe34bc1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_console_debug_enter</definition>
+        <argsstring>(ml_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index)</argsstring>
+        <name>ml_console_debug_enter</name>
+        <param>
+          <type><ref refid="structml__console__t" kindref="compound">ml_console_t</ref> *</type>
+          <declname>Console</declname>
+        </param>
+        <param>
+          <type><ref refid="structinteractive__debugger__t" kindref="compound">interactive_debugger_t</ref> *</type>
+          <declname>Debugger</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
+          <declname>Source</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="103" column="13" bodyfile="src/ml_console.c" bodystart="103" bodyend="110"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__console_8c_1a62aebad0ccaaa3cd91215eb29e4709b5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_console_debug_exit</definition>
+        <argsstring>(void *Data, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index)</argsstring>
+        <name>ml_console_debug_exit</name>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type><ref refid="structinteractive__debugger__t" kindref="compound">interactive_debugger_t</ref> *</type>
+          <declname>Debugger</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="112" column="13" bodyfile="src/ml_console.c" bodystart="112" bodyend="114"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__console_8c_1adba2de47cca2c7641d00e01cb879eef9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_console</definition>
+        <argsstring>(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt)</argsstring>
+        <name>ml_console</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type>ml_getter_t</type>
+          <declname>GlobalGet</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Globals</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>DefaultPrompt</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>ContinuePrompt</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="116" column="6" bodyfile="src/ml_console.c" bodystart="116" bodyend="138"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;ml_console.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_runtime.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_debugger.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_macros.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_compiler.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;stringmap.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__MINGW32__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;linenoise.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14" refid="structml__console__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>Base;</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref><sp/>*Parser;</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__compiler__t" kindref="compound">ml_compiler_t</ref><sp/>*Compiler;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Prompt;</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*DefaultPrompt,<sp/>*ContinuePrompt;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__debugger__t" kindref="compound">ml_debugger_t</ref><sp/>*Debugger;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal">}<sp/><ref refid="structml__console__t" kindref="compound">ml_console_t</ref>;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__MINGW32__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>ssize_t<sp/>ml_read_line(FILE<sp/>*File,<sp/>ssize_t<sp/>Offset,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**Result)<sp/>{</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>Buffer[129];</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(fgets(Buffer,<sp/>129,<sp/>File)<sp/>==<sp/>NULL)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length<sp/>=<sp/>strlen(Buffer);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Length<sp/>==<sp/>128)<sp/>{</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ssize_t<sp/>Total<sp/>=<sp/>ml_read_line(File,<sp/>Offset<sp/>+<sp/>128,<sp/>Result);</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>memcpy(*Result<sp/>+<sp/>Offset,<sp/>Buffer,<sp/>128);</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Total;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*Result<sp/>=<sp/>snew(Offset<sp/>+<sp/>Length<sp/>+<sp/>1);</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>strcpy(*Result<sp/>+<sp/>Offset,<sp/>Buffer);</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Offset<sp/>+<sp/>Length;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="37"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_console_line_read(<ref refid="structml__console__t" kindref="compound">ml_console_t</ref><sp/>*Console)<sp/>{</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__MINGW32__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>fputs(Console-&gt;Prompt,<sp/>stdout);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Line;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!ml_read_line(stdin,<sp/>0,<sp/>&amp;Line))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Line<sp/>=<sp/>linenoise(Console-&gt;Prompt);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Line)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>linenoiseHistoryAdd(Line);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length<sp/>=<sp/>strlen(Line);</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Buffer<sp/>=<sp/>snew(Length<sp/>+<sp/>2);</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>memcpy(Buffer,<sp/>Line,<sp/>Length);</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>Buffer[Length]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\n&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>Buffer[Length<sp/>+<sp/>1]<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Prompt<sp/>=<sp/>Console-&gt;ContinuePrompt;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Buffer;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_stringbuffer_print(FILE<sp/>*File,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*String,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length)<sp/>{</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>fwrite(String,<sp/>1,<sp/>Length,<sp/>File);</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_console_log(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is_error(Value))<sp/>{</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>error:</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;%s:<sp/>%s\n&quot;</highlight><highlight class="normal">,<sp/>ml_error_type(Value),<sp/>ml_error_message(Value));</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>Source;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Level<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(ml_error_source(Value,<sp/>Level++,<sp/>&amp;Source))<sp/>{</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;\t%s:%d\n&quot;</highlight><highlight class="normal">,<sp/>Source.Name,<sp/>Source.Line);</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref><sp/>Buffer[1]<sp/>=<sp/>{ML_STRINGBUFFER_INIT};</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Value<sp/>=<sp/>ml_stringbuffer_simple_append(Buffer,<sp/>Value);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is_error(Value))<sp/></highlight><highlight class="keywordflow">goto</highlight><highlight class="normal"><sp/>error;</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_stringbuffer_drain(Buffer,<sp/>stdout,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_stringbuffer_print);</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>puts(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fflush(stdout);</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="81"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_console_repl_run(<ref refid="structml__console__t" kindref="compound">ml_console_t</ref><sp/>*Console,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Result)<sp/>{</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Result<sp/>==<sp/>MLEndOfInput)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Prompt<sp/>=<sp/>Console-&gt;DefaultPrompt;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>Result<sp/>=<sp/>ml_deref(Result);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_console_log(NULL,<sp/>Result);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is_error(Result))<sp/><ref refid="group__compiler_1ga80d3e6fba963ca8b9e7638e278420df0" kindref="member">ml_parser_reset</ref>(Console-&gt;Parser);</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_command_evaluate((<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*)Console,<sp/>Console-&gt;Parser,<sp/>Console-&gt;Compiler);</highlight></codeline>
+<codeline lineno="90"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92" refid="structml__console__debugger__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__console__t" kindref="compound">ml_console_t</ref><sp/>*Console;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structinteractive__debugger__t" kindref="compound">interactive_debugger_t</ref><sp/>*Debugger;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal">}<sp/><ref refid="structml__console__debugger__t" kindref="compound">ml_console_debugger_t</ref>;</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_console_debugger_get(<ref refid="structml__console__debugger__t" kindref="compound">ml_console_debugger_t</ref><sp/>*ConsoleDebugger,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Eval)<sp/>{</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value<sp/>=<sp/>interactive_debugger_get(ConsoleDebugger-&gt;Debugger,<sp/>Name);</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Value)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Value;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_compiler_lookup(ConsoleDebugger-&gt;Console-&gt;Compiler,<sp/>Name,<sp/>Source,<sp/>Line,<sp/>Eval);</highlight></codeline>
+<codeline lineno="101"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_console_debug_enter(<ref refid="structml__console__t" kindref="compound">ml_console_t</ref><sp/>*Console,<sp/><ref refid="structinteractive__debugger__t" kindref="compound">interactive_debugger_t</ref><sp/>*Debugger,<sp/><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>{</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__console__debugger__t" kindref="compound">ml_console_debugger_t</ref><sp/>*ConsoleDebugger<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal">(<ref refid="structml__console__debugger__t" kindref="compound">ml_console_debugger_t</ref>);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>ConsoleDebugger-&gt;Console<sp/>=<sp/>Console;</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/>ConsoleDebugger-&gt;Debugger<sp/>=<sp/>Debugger;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;Debug<sp/>break<sp/>[%d]:<sp/>%s:%d\n&quot;</highlight><highlight class="normal">,<sp/>Index,<sp/>Source.Name,<sp/>Source.Line);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_console(Console-&gt;Base.Context,<sp/>(ml_getter_t)ml_console_debugger_get,<sp/>ConsoleDebugger,<sp/></highlight><highlight class="stringliteral">&quot;\e[34m&gt;&gt;&gt;\e[0m<sp/>&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;\e[34m...\e[0m<sp/>&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/>interactive_debugger_resume(Debugger,<sp/>Index);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_console_debug_exit(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/><ref refid="structinteractive__debugger__t" kindref="compound">interactive_debugger_t</ref><sp/>*Debugger,<sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>{</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_RETURN(MLEndOfInput);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_console(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/>ml_getter_t<sp/>GlobalGet,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Globals,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*DefaultPrompt,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ContinuePrompt)<sp/>{</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__console__t" kindref="compound">ml_console_t</ref><sp/>*Console<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal">(<ref refid="structml__console__t" kindref="compound">ml_console_t</ref>);</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Base.run<sp/>=<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_console_repl_run;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Base.Context<sp/>=<sp/>Context;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Prompt<sp/>=<sp/>Console-&gt;DefaultPrompt<sp/>=<sp/>DefaultPrompt;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;ContinuePrompt<sp/>=<sp/>ContinuePrompt;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Debugger<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref><sp/>*Parser<sp/>=<sp/><ref refid="group__compiler_1gab31c0e27d21db6f748c137bf13bd7e28" kindref="member">ml_parser</ref>((</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_console_line_read,<sp/>Console);</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__compiler__t" kindref="compound">ml_compiler_t</ref><sp/>*Compiler<sp/>=<sp/>ml_compiler(GlobalGet,<sp/>Globals);</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_compiler_define(Compiler,<sp/></highlight><highlight class="stringliteral">&quot;idebug&quot;</highlight><highlight class="normal">,<sp/>interactive_debugger(</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_console_debug_enter,</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_console_debug_exit,</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_console_log,</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Console,</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>GlobalGet,</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Globals</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>));</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_parser_source(Parser,<sp/>(<ref refid="structml__source__t" kindref="compound">ml_source_t</ref>){</highlight><highlight class="stringliteral">&quot;&lt;console&gt;&quot;</highlight><highlight class="normal">,<sp/>1});</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Parser<sp/>=<sp/>Parser;</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>Console-&gt;Compiler<sp/>=<sp/>Compiler;</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_command_evaluate((<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*)Console,<sp/>Parser,<sp/>Compiler);</highlight></codeline>
+<codeline lineno="138"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_console.c"/>
+  </compounddef>
+</doxygen>

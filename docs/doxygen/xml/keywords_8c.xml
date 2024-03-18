@@ -1,0 +1,303 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="keywords_8c" kind="file" language="C++">
+    <compoundname>keywords.c</compoundname>
+    <includedby refid="ml__compiler_8c" local="yes">src/ml_compiler.c</includedby>
+    <innerclass refid="structkeyword__t" prot="public">keyword_t</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="keywords_8c_1a120c1ed986c6271250e689887e765840" prot="public" static="no">
+        <name>TOTAL_KEYWORDS</name>
+        <initializer>39</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/keywords.c" line="35" column="9" bodyfile="src/keywords.c" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="keywords_8c_1a7073af2fa16b860b734ab4554eacf3c3" prot="public" static="no">
+        <name>MIN_WORD_LENGTH</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/keywords.c" line="36" column="9" bodyfile="src/keywords.c" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="keywords_8c_1aec7b4994021c554c1761ea31d016b680" prot="public" static="no">
+        <name>MAX_WORD_LENGTH</name>
+        <initializer>8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/keywords.c" line="37" column="9" bodyfile="src/keywords.c" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="keywords_8c_1a18a21935276b7118f4116df1ee70e3c9" prot="public" static="no">
+        <name>MIN_HASH_VALUE</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/keywords.c" line="38" column="9" bodyfile="src/keywords.c" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="keywords_8c_1adcb5e53d22730cfbca1e27236cd11aff" prot="public" static="no">
+        <name>MAX_HASH_VALUE</name>
+        <initializer>45</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/keywords.c" line="39" column="9" bodyfile="src/keywords.c" bodystart="39" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="keywords_8c_1a8fcf8a50238ec8ef824a55e4cf03c757" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>unsigned int</type>
+        <definition>static unsigned int hash</definition>
+        <argsstring>(register const char *str, register size_t len)</argsstring>
+        <name>hash</name>
+        <param>
+          <type>register const char *</type>
+          <declname>str</declname>
+        </param>
+        <param>
+          <type>register size_t</type>
+          <declname>len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/keywords.c" line="50" column="1" bodyfile="src/keywords.c" bodystart="50" bodyend="82"/>
+      </memberdef>
+      <memberdef kind="function" id="keywords_8c_1aa1bb1cd3ac38ed1998fc226b19d1dd88" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const struct <ref refid="structkeyword__t" kindref="compound">keyword_t</ref> *</type>
+        <definition>const struct keyword_t * lookup</definition>
+        <argsstring>(register const char *str, register size_t len)</argsstring>
+        <name>lookup</name>
+        <param>
+          <type>register const char *</type>
+          <declname>str</declname>
+        </param>
+        <param>
+          <type>register size_t</type>
+          <declname>len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/keywords.c" line="85" column="1" bodyfile="src/keywords.c" bodystart="85" bodyend="187"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>ANSI-C<sp/>code<sp/>produced<sp/>by<sp/>gperf<sp/>version<sp/>3.1<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Command-line:<sp/>gperf<sp/>-LANSI-C<sp/>-C<sp/>-c<sp/>-t<sp/>-KName<sp/>-Zkeyword<sp/>-Hhash<sp/>-Nlookup<sp/>-m<sp/>100<sp/>keywords.lst<sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Computed<sp/>positions:<sp/>-k&apos;1,$&apos;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>!((&apos;<sp/>&apos;<sp/>==<sp/>32)<sp/>&amp;&amp;<sp/>(&apos;!&apos;<sp/>==<sp/>33)<sp/>&amp;&amp;<sp/>(&apos;&quot;&apos;<sp/>==<sp/>34)<sp/>&amp;&amp;<sp/>(&apos;#&apos;<sp/>==<sp/>35)<sp/>\</highlight></codeline>
+<codeline lineno="6"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;%&apos;<sp/>==<sp/>37)<sp/>&amp;&amp;<sp/>(&apos;&amp;&apos;<sp/>==<sp/>38)<sp/>&amp;&amp;<sp/>(&apos;\&apos;&apos;<sp/>==<sp/>39)<sp/>&amp;&amp;<sp/>(&apos;(&apos;<sp/>==<sp/>40)<sp/>\</highlight></codeline>
+<codeline lineno="7"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;)&apos;<sp/>==<sp/>41)<sp/>&amp;&amp;<sp/>(&apos;*&apos;<sp/>==<sp/>42)<sp/>&amp;&amp;<sp/>(&apos;+&apos;<sp/>==<sp/>43)<sp/>&amp;&amp;<sp/>(&apos;,&apos;<sp/>==<sp/>44)<sp/>\</highlight></codeline>
+<codeline lineno="8"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;-&apos;<sp/>==<sp/>45)<sp/>&amp;&amp;<sp/>(&apos;.&apos;<sp/>==<sp/>46)<sp/>&amp;&amp;<sp/>(&apos;/&apos;<sp/>==<sp/>47)<sp/>&amp;&amp;<sp/>(&apos;0&apos;<sp/>==<sp/>48)<sp/>\</highlight></codeline>
+<codeline lineno="9"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;1&apos;<sp/>==<sp/>49)<sp/>&amp;&amp;<sp/>(&apos;2&apos;<sp/>==<sp/>50)<sp/>&amp;&amp;<sp/>(&apos;3&apos;<sp/>==<sp/>51)<sp/>&amp;&amp;<sp/>(&apos;4&apos;<sp/>==<sp/>52)<sp/>\</highlight></codeline>
+<codeline lineno="10"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;5&apos;<sp/>==<sp/>53)<sp/>&amp;&amp;<sp/>(&apos;6&apos;<sp/>==<sp/>54)<sp/>&amp;&amp;<sp/>(&apos;7&apos;<sp/>==<sp/>55)<sp/>&amp;&amp;<sp/>(&apos;8&apos;<sp/>==<sp/>56)<sp/>\</highlight></codeline>
+<codeline lineno="11"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;9&apos;<sp/>==<sp/>57)<sp/>&amp;&amp;<sp/>(&apos;:&apos;<sp/>==<sp/>58)<sp/>&amp;&amp;<sp/>(&apos;;&apos;<sp/>==<sp/>59)<sp/>&amp;&amp;<sp/>(&apos;&lt;&apos;<sp/>==<sp/>60)<sp/>\</highlight></codeline>
+<codeline lineno="12"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;=&apos;<sp/>==<sp/>61)<sp/>&amp;&amp;<sp/>(&apos;&gt;&apos;<sp/>==<sp/>62)<sp/>&amp;&amp;<sp/>(&apos;?&apos;<sp/>==<sp/>63)<sp/>&amp;&amp;<sp/>(&apos;A&apos;<sp/>==<sp/>65)<sp/>\</highlight></codeline>
+<codeline lineno="13"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;B&apos;<sp/>==<sp/>66)<sp/>&amp;&amp;<sp/>(&apos;C&apos;<sp/>==<sp/>67)<sp/>&amp;&amp;<sp/>(&apos;D&apos;<sp/>==<sp/>68)<sp/>&amp;&amp;<sp/>(&apos;E&apos;<sp/>==<sp/>69)<sp/>\</highlight></codeline>
+<codeline lineno="14"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;F&apos;<sp/>==<sp/>70)<sp/>&amp;&amp;<sp/>(&apos;G&apos;<sp/>==<sp/>71)<sp/>&amp;&amp;<sp/>(&apos;H&apos;<sp/>==<sp/>72)<sp/>&amp;&amp;<sp/>(&apos;I&apos;<sp/>==<sp/>73)<sp/>\</highlight></codeline>
+<codeline lineno="15"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;J&apos;<sp/>==<sp/>74)<sp/>&amp;&amp;<sp/>(&apos;K&apos;<sp/>==<sp/>75)<sp/>&amp;&amp;<sp/>(&apos;L&apos;<sp/>==<sp/>76)<sp/>&amp;&amp;<sp/>(&apos;M&apos;<sp/>==<sp/>77)<sp/>\</highlight></codeline>
+<codeline lineno="16"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;N&apos;<sp/>==<sp/>78)<sp/>&amp;&amp;<sp/>(&apos;O&apos;<sp/>==<sp/>79)<sp/>&amp;&amp;<sp/>(&apos;P&apos;<sp/>==<sp/>80)<sp/>&amp;&amp;<sp/>(&apos;Q&apos;<sp/>==<sp/>81)<sp/>\</highlight></codeline>
+<codeline lineno="17"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;R&apos;<sp/>==<sp/>82)<sp/>&amp;&amp;<sp/>(&apos;S&apos;<sp/>==<sp/>83)<sp/>&amp;&amp;<sp/>(&apos;T&apos;<sp/>==<sp/>84)<sp/>&amp;&amp;<sp/>(&apos;U&apos;<sp/>==<sp/>85)<sp/>\</highlight></codeline>
+<codeline lineno="18"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;V&apos;<sp/>==<sp/>86)<sp/>&amp;&amp;<sp/>(&apos;W&apos;<sp/>==<sp/>87)<sp/>&amp;&amp;<sp/>(&apos;X&apos;<sp/>==<sp/>88)<sp/>&amp;&amp;<sp/>(&apos;Y&apos;<sp/>==<sp/>89)<sp/>\</highlight></codeline>
+<codeline lineno="19"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;Z&apos;<sp/>==<sp/>90)<sp/>&amp;&amp;<sp/>(&apos;[&apos;<sp/>==<sp/>91)<sp/>&amp;&amp;<sp/>(&apos;\\&apos;<sp/>==<sp/>92)<sp/>&amp;&amp;<sp/>(&apos;]&apos;<sp/>==<sp/>93)<sp/>\</highlight></codeline>
+<codeline lineno="20"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;^&apos;<sp/>==<sp/>94)<sp/>&amp;&amp;<sp/>(&apos;_&apos;<sp/>==<sp/>95)<sp/>&amp;&amp;<sp/>(&apos;a&apos;<sp/>==<sp/>97)<sp/>&amp;&amp;<sp/>(&apos;b&apos;<sp/>==<sp/>98)<sp/>\</highlight></codeline>
+<codeline lineno="21"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;c&apos;<sp/>==<sp/>99)<sp/>&amp;&amp;<sp/>(&apos;d&apos;<sp/>==<sp/>100)<sp/>&amp;&amp;<sp/>(&apos;e&apos;<sp/>==<sp/>101)<sp/>&amp;&amp;<sp/>(&apos;f&apos;<sp/>==<sp/>102)<sp/>\</highlight></codeline>
+<codeline lineno="22"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;g&apos;<sp/>==<sp/>103)<sp/>&amp;&amp;<sp/>(&apos;h&apos;<sp/>==<sp/>104)<sp/>&amp;&amp;<sp/>(&apos;i&apos;<sp/>==<sp/>105)<sp/>&amp;&amp;<sp/>(&apos;j&apos;<sp/>==<sp/>106)<sp/>\</highlight></codeline>
+<codeline lineno="23"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;k&apos;<sp/>==<sp/>107)<sp/>&amp;&amp;<sp/>(&apos;l&apos;<sp/>==<sp/>108)<sp/>&amp;&amp;<sp/>(&apos;m&apos;<sp/>==<sp/>109)<sp/>&amp;&amp;<sp/>(&apos;n&apos;<sp/>==<sp/>110)<sp/>\</highlight></codeline>
+<codeline lineno="24"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;o&apos;<sp/>==<sp/>111)<sp/>&amp;&amp;<sp/>(&apos;p&apos;<sp/>==<sp/>112)<sp/>&amp;&amp;<sp/>(&apos;q&apos;<sp/>==<sp/>113)<sp/>&amp;&amp;<sp/>(&apos;r&apos;<sp/>==<sp/>114)<sp/>\</highlight></codeline>
+<codeline lineno="25"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;s&apos;<sp/>==<sp/>115)<sp/>&amp;&amp;<sp/>(&apos;t&apos;<sp/>==<sp/>116)<sp/>&amp;&amp;<sp/>(&apos;u&apos;<sp/>==<sp/>117)<sp/>&amp;&amp;<sp/>(&apos;v&apos;<sp/>==<sp/>118)<sp/>\</highlight></codeline>
+<codeline lineno="26"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;w&apos;<sp/>==<sp/>119)<sp/>&amp;&amp;<sp/>(&apos;x&apos;<sp/>==<sp/>120)<sp/>&amp;&amp;<sp/>(&apos;y&apos;<sp/>==<sp/>121)<sp/>&amp;&amp;<sp/>(&apos;z&apos;<sp/>==<sp/>122)<sp/>\</highlight></codeline>
+<codeline lineno="27"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>&amp;&amp;<sp/>(&apos;{&apos;<sp/>==<sp/>123)<sp/>&amp;&amp;<sp/>(&apos;|&apos;<sp/>==<sp/>124)<sp/>&amp;&amp;<sp/>(&apos;}&apos;<sp/>==<sp/>125)<sp/>&amp;&amp;<sp/>(&apos;~&apos;<sp/>==<sp/>126))</highlight></codeline>
+<codeline lineno="28"><highlight class="preprocessor">/*<sp/>The<sp/>character<sp/>set<sp/>is<sp/>not<sp/>based<sp/>on<sp/>ISO-646.<sp/><sp/>*/</highlight></codeline>
+<codeline lineno="29"><highlight class="preprocessor">#error<sp/>&quot;gperf<sp/>generated<sp/>tables<sp/>don&apos;t<sp/>work<sp/>with<sp/>this<sp/>execution<sp/>character<sp/>set.<sp/>Please<sp/>report<sp/>a<sp/>bug<sp/>to<sp/>&lt;bug-gperf@gnu.org&gt;.&quot;</highlight></codeline>
+<codeline lineno="30"><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="31"><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="32"><highlight class="preprocessor">#line<sp/>1<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="33" refid="structkeyword__t" refkind="compound"><highlight class="preprocessor">struct<sp/>keyword_t<sp/>{const<sp/>char<sp/>*Name;<sp/>int<sp/>Token;};</highlight></codeline>
+<codeline lineno="34"><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="35"><highlight class="preprocessor">#define<sp/>TOTAL_KEYWORDS<sp/>39</highlight></codeline>
+<codeline lineno="36"><highlight class="preprocessor">#define<sp/>MIN_WORD_LENGTH<sp/>1</highlight></codeline>
+<codeline lineno="37"><highlight class="preprocessor">#define<sp/>MAX_WORD_LENGTH<sp/>8</highlight></codeline>
+<codeline lineno="38"><highlight class="preprocessor">#define<sp/>MIN_HASH_VALUE<sp/>1</highlight></codeline>
+<codeline lineno="39"><highlight class="preprocessor">#define<sp/>MAX_HASH_VALUE<sp/>45</highlight></codeline>
+<codeline lineno="40"><highlight class="preprocessor">/*<sp/>maximum<sp/>key<sp/>range<sp/>=<sp/>45,<sp/>duplicates<sp/>=<sp/>0<sp/>*/</highlight></codeline>
+<codeline lineno="41"><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="42"><highlight class="preprocessor">#ifdef<sp/>__GNUC__</highlight></codeline>
+<codeline lineno="43"><highlight class="preprocessor">__inline</highlight></codeline>
+<codeline lineno="44"><highlight class="preprocessor">#else</highlight></codeline>
+<codeline lineno="45"><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight></codeline>
+<codeline lineno="46"><highlight class="preprocessor">inline</highlight></codeline>
+<codeline lineno="47"><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="48"><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="49"><highlight class="preprocessor">static<sp/>unsigned<sp/>int</highlight></codeline>
+<codeline lineno="50"><highlight class="preprocessor">hash<sp/>(register<sp/>const<sp/>char<sp/>*str,<sp/>register<sp/>size_t<sp/>len)</highlight></codeline>
+<codeline lineno="51"><highlight class="preprocessor">{</highlight></codeline>
+<codeline lineno="52"><highlight class="preprocessor"><sp/><sp/>static<sp/>const<sp/>unsigned<sp/>char<sp/>asso_values[]<sp/>=</highlight></codeline>
+<codeline lineno="53"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="54"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="55"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="56"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="57"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="58"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="59"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="60"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="61"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="62"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="63"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/><sp/>0,<sp/><sp/>0,<sp/>46,<sp/>27,<sp/>46,</highlight></codeline>
+<codeline lineno="64"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>12,<sp/>15,<sp/><sp/>3,<sp/>21,<sp/><sp/>9,<sp/>46,<sp/><sp/>0,<sp/>46,<sp/><sp/>6,<sp/><sp/>3,</highlight></codeline>
+<codeline lineno="65"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>6,<sp/><sp/>0,<sp/>30,<sp/>36,<sp/><sp/>9,<sp/>21,<sp/><sp/>0,<sp/>30,<sp/><sp/>0,<sp/>24,</highlight></codeline>
+<codeline lineno="66"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>15,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="67"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="68"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="69"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="70"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="71"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="72"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="73"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="74"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="75"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="76"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="77"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="78"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,</highlight></codeline>
+<codeline lineno="79"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46,<sp/>46</highlight></codeline>
+<codeline lineno="80"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="81"><highlight class="preprocessor"><sp/><sp/>return<sp/>len<sp/>+<sp/>asso_values[(unsigned<sp/>char)str[len<sp/>-<sp/>1]]<sp/>+<sp/>asso_values[(unsigned<sp/>char)str[0]+1];</highlight></codeline>
+<codeline lineno="82"><highlight class="preprocessor">}</highlight></codeline>
+<codeline lineno="83"><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="84"><highlight class="preprocessor">const<sp/>struct<sp/>keyword_t<sp/>*</highlight></codeline>
+<codeline lineno="85"><highlight class="preprocessor">lookup<sp/>(register<sp/>const<sp/>char<sp/>*str,<sp/>register<sp/>size_t<sp/>len)</highlight></codeline>
+<codeline lineno="86"><highlight class="preprocessor">{</highlight></codeline>
+<codeline lineno="87"><highlight class="preprocessor"><sp/><sp/>static<sp/>const<sp/>struct<sp/>keyword_t<sp/>wordlist[]<sp/>=</highlight></codeline>
+<codeline lineno="88"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="89"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;&quot;},</highlight></codeline>
+<codeline lineno="90"><highlight class="preprocessor">#line<sp/>3<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="91"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;_&quot;,<sp/>MLT_BLANK},</highlight></codeline>
+<codeline lineno="92"><highlight class="preprocessor">#line<sp/>19<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="93"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;it&quot;,<sp/>MLT_IT},</highlight></codeline>
+<codeline lineno="94"><highlight class="preprocessor">#line<sp/>26<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="95"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;not&quot;,<sp/>MLT_NOT},</highlight></codeline>
+<codeline lineno="96"><highlight class="preprocessor">#line<sp/>24<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="97"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;next&quot;,<sp/>MLT_NEXT},</highlight></codeline>
+<codeline lineno="98"><highlight class="preprocessor">#line<sp/>15<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="99"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;if&quot;,<sp/>MLT_IF},</highlight></codeline>
+<codeline lineno="100"><highlight class="preprocessor">#line<sp/>20<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="101"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;let&quot;,<sp/>MLT_LET},</highlight></codeline>
+<codeline lineno="102"><highlight class="preprocessor">#line<sp/>12<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="103"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;exit&quot;,<sp/>MLT_EXIT},</highlight></codeline>
+<codeline lineno="104"><highlight class="preprocessor">#line<sp/>17<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="105"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;in&quot;,<sp/>MLT_IN},</highlight></codeline>
+<codeline lineno="106"><highlight class="preprocessor">#line<sp/>25<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="107"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;nil&quot;,<sp/>MLT_NIL},</highlight></codeline>
+<codeline lineno="108"><highlight class="preprocessor">#line<sp/>23<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="109"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;must&quot;,<sp/>MLT_MUST},</highlight></codeline>
+<codeline lineno="110"><highlight class="preprocessor">#line<sp/>37<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="111"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;until&quot;,<sp/>MLT_UNTIL},</highlight></codeline>
+<codeline lineno="112"><highlight class="preprocessor">#line<sp/>10<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="113"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;elseif&quot;,<sp/>MLT_ELSEIF},</highlight></codeline>
+<codeline lineno="114"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;&quot;},<sp/>{&quot;&quot;},</highlight></codeline>
+<codeline lineno="115"><highlight class="preprocessor">#line<sp/>34<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="116"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;switch&quot;,<sp/>MLT_SWITCH},</highlight></codeline>
+<codeline lineno="117"><highlight class="preprocessor">#line<sp/>8<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="118"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;each&quot;,<sp/>MLT_EACH},</highlight></codeline>
+<codeline lineno="119"><highlight class="preprocessor">#line<sp/>7<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="120"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;do&quot;,<sp/>MLT_DO},</highlight></codeline>
+<codeline lineno="121"><highlight class="preprocessor">#line<sp/>11<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="122"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;end&quot;,<sp/>MLT_END},</highlight></codeline>
+<codeline lineno="123"><highlight class="preprocessor">#line<sp/>22<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="124"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;meth&quot;,<sp/>MLT_METH},</highlight></codeline>
+<codeline lineno="125"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;&quot;},</highlight></codeline>
+<codeline lineno="126"><highlight class="preprocessor">#line<sp/>6<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="127"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;def&quot;,<sp/>MLT_DEF},</highlight></codeline>
+<codeline lineno="128"><highlight class="preprocessor">#line<sp/>9<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="129"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;else&quot;,<sp/>MLT_ELSE},</highlight></codeline>
+<codeline lineno="130"><highlight class="preprocessor">#line<sp/>18<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="131"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;is&quot;,<sp/>MLT_IS},</highlight></codeline>
+<codeline lineno="132"><highlight class="preprocessor">#line<sp/>31<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="133"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;ret&quot;,<sp/>MLT_RET},</highlight></codeline>
+<codeline lineno="134"><highlight class="preprocessor">#line<sp/>39<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="135"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;when&quot;,<sp/>MLT_WHEN},</highlight></codeline>
+<codeline lineno="136"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;&quot;},</highlight></codeline>
+<codeline lineno="137"><highlight class="preprocessor">#line<sp/>30<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="138"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;ref&quot;,<sp/>MLT_REF},</highlight></codeline>
+<codeline lineno="139"><highlight class="preprocessor">#line<sp/>41<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="140"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;with&quot;,<sp/>MLT_WITH},</highlight></codeline>
+<codeline lineno="141"><highlight class="preprocessor">#line<sp/>16<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="142"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;ifConfig&quot;,<sp/>MLT_IF_CONFIG},</highlight></codeline>
+<codeline lineno="143"><highlight class="preprocessor">#line<sp/>14<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="144"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;fun&quot;,<sp/>MLT_FUN},</highlight></codeline>
+<codeline lineno="145"><highlight class="preprocessor">#line<sp/>5<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="146"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;case&quot;,<sp/>MLT_CASE},</highlight></codeline>
+<codeline lineno="147"><highlight class="preprocessor">#line<sp/>36<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="148"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;to&quot;,<sp/>MLT_TO},</highlight></codeline>
+<codeline lineno="149"><highlight class="preprocessor">#line<sp/>13<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="150"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;for&quot;,<sp/>MLT_FOR},</highlight></codeline>
+<codeline lineno="151"><highlight class="preprocessor">#line<sp/>33<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="152"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;susp&quot;,<sp/>MLT_SUSP},</highlight></codeline>
+<codeline lineno="153"><highlight class="preprocessor">#line<sp/>40<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="154"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;while&quot;,<sp/>MLT_WHILE},</highlight></codeline>
+<codeline lineno="155"><highlight class="preprocessor">#line<sp/>38<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="156"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;var&quot;,<sp/>MLT_VAR},</highlight></codeline>
+<codeline lineno="157"><highlight class="preprocessor">#line<sp/>21<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="158"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;loop&quot;,<sp/>MLT_LOOP},</highlight></codeline>
+<codeline lineno="159"><highlight class="preprocessor">#line<sp/>28<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="160"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;on&quot;,<sp/>MLT_ON},</highlight></codeline>
+<codeline lineno="161"><highlight class="preprocessor">#line<sp/>32<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="162"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;seq&quot;,<sp/>MLT_SEQ},</highlight></codeline>
+<codeline lineno="163"><highlight class="preprocessor">#line<sp/>35<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="164"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;then&quot;,<sp/>MLT_THEN},</highlight></codeline>
+<codeline lineno="165"><highlight class="preprocessor">#line<sp/>29<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="166"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;or&quot;,<sp/>MLT_OR},</highlight></codeline>
+<codeline lineno="167"><highlight class="preprocessor">#line<sp/>4<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="168"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;and&quot;,<sp/>MLT_AND},</highlight></codeline>
+<codeline lineno="169"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;&quot;},<sp/>{&quot;&quot;},</highlight></codeline>
+<codeline lineno="170"><highlight class="preprocessor">#line<sp/>27<sp/>&quot;keywords.lst&quot;</highlight></codeline>
+<codeline lineno="171"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>{&quot;old&quot;,<sp/>MLT_OLD}</highlight></codeline>
+<codeline lineno="172"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="173"><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="174"><highlight class="preprocessor"><sp/><sp/>if<sp/>(len<sp/>&lt;=<sp/>MAX_WORD_LENGTH<sp/>&amp;&amp;<sp/>len<sp/>&gt;=<sp/>MIN_WORD_LENGTH)</highlight></codeline>
+<codeline lineno="175"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="176"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>register<sp/>unsigned<sp/>int<sp/>key<sp/>=<sp/>hash<sp/>(str,<sp/>len);</highlight></codeline>
+<codeline lineno="177"><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="178"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(key<sp/>&lt;=<sp/>MAX_HASH_VALUE)</highlight></codeline>
+<codeline lineno="179"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="180"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>register<sp/>const<sp/>char<sp/>*s<sp/>=<sp/>wordlist[key].Name;</highlight></codeline>
+<codeline lineno="181"><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="182"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(*str<sp/>==<sp/>*s<sp/>&amp;&amp;<sp/>!strncmp<sp/>(str<sp/>+<sp/>1,<sp/>s<sp/>+<sp/>1,<sp/>len<sp/>-<sp/>1)<sp/>&amp;&amp;<sp/>s[len]<sp/>==<sp/>&apos;\0&apos;)</highlight></codeline>
+<codeline lineno="183"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>&amp;wordlist[key];</highlight></codeline>
+<codeline lineno="184"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="185"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="186"><highlight class="preprocessor"><sp/><sp/>return<sp/>0;</highlight></codeline>
+<codeline lineno="187"><highlight class="preprocessor">}</highlight></codeline>
+    </programlisting>
+    <location file="src/keywords.c"/>
+  </compounddef>
+</doxygen>

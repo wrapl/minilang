@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__buffered__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_buffered_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__buffered__t_1aef2f97974c45cd6671461c20867c3ee1" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_buffered_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_buffered_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="478" column="11" bodyfile="src/ml_tasks.c" bodystart="478" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__t_1a9d12b11c89725ac85c52aaa2b643473e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_buffered_t::Iter</definition>
+        <argsstring></argsstring>
+        <name>Iter</name>
+        <qualifiedname>ml_buffered_t::Iter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="479" column="12" bodyfile="src/ml_tasks.c" bodystart="479" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__t_1a1475ab666d3b91704b8a2c9aa41ce923" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_buffered_t::Fn</definition>
+        <argsstring></argsstring>
+        <name>Fn</name>
+        <qualifiedname>ml_buffered_t::Fn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="479" column="17" bodyfile="src/ml_tasks.c" bodystart="479" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__t_1acefd038a827eee9bd237aacfbea26ad3" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_buffered_t::Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_buffered_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="480" column="5" bodyfile="src/ml_tasks.c" bodystart="480" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_buffered_t</label>
+        <link refid="structml__buffered__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Fn</edgelabel>
+          <edgelabel>Iter</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_tasks.c" line="477" column="1" bodyfile="src/ml_tasks.c" bodystart="477" bodyend="481"/>
+    <listofallmembers>
+      <member refid="structml__buffered__t_1a1475ab666d3b91704b8a2c9aa41ce923" prot="public" virt="non-virtual"><scope>ml_buffered_t</scope><name>Fn</name></member>
+      <member refid="structml__buffered__t_1a9d12b11c89725ac85c52aaa2b643473e" prot="public" virt="non-virtual"><scope>ml_buffered_t</scope><name>Iter</name></member>
+      <member refid="structml__buffered__t_1acefd038a827eee9bd237aacfbea26ad3" prot="public" virt="non-virtual"><scope>ml_buffered_t</scope><name>Size</name></member>
+      <member refid="structml__buffered__t_1aef2f97974c45cd6671461c20867c3ee1" prot="public" virt="non-virtual"><scope>ml_buffered_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

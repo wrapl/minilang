@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structbaseinfo__t" kind="struct" language="C++" prot="public">
+    <compoundname>baseinfo_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structbaseinfo__t_1a4ab87aa85f31a0de4c6587eac23478fb" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t baseinfo_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>baseinfo_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="77" column="11" bodyfile="src/ml_gir.c" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structbaseinfo__t_1ab14c57aab0efd758c35ec48105dc077d" prot="public" static="no" mutable="no">
+        <type>GIBaseInfo *</type>
+        <definition>GIBaseInfo* baseinfo_t::Info</definition>
+        <argsstring></argsstring>
+        <name>Info</name>
+        <qualifiedname>baseinfo_t::Info</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="78" column="12" bodyfile="src/ml_gir.c" bodystart="78" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>baseinfo_t</label>
+        <link refid="structbaseinfo__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="76" column="1" bodyfile="src/ml_gir.c" bodystart="76" bodyend="79"/>
+    <listofallmembers>
+      <member refid="structbaseinfo__t_1ab14c57aab0efd758c35ec48105dc077d" prot="public" virt="non-virtual"><scope>baseinfo_t</scope><name>Info</name></member>
+      <member refid="structbaseinfo__t_1a4ab87aa85f31a0de4c6587eac23478fb" prot="public" virt="non-virtual"><scope>baseinfo_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

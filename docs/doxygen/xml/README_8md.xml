@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="README_8md" kind="file" language="Markdown">
+    <compoundname>README.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Minilang<sp/>is<sp/>a<sp/>small<sp/>extensible<sp/>scripting<sp/>language<sp/>for<sp/>embedding<sp/>in<sp/>C/C++<sp/>applications</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Minilang<sp/>is<sp/>a<sp/>simple<sp/>language<sp/>designed<sp/>to<sp/>be<sp/>embedded<sp/>into<sp/>C/C++<sp/>applications<sp/>with<sp/>minimal<sp/>fuss<sp/>and<sp/>maximum<sp/>effect.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Key<sp/>Features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Minilang<sp/>was<sp/>designed<sp/>from<sp/>the<sp/>ground<sp/>up<sp/>to<sp/>be<sp/>embedded<sp/>into<sp/>C/C++<sp/>applications.<sp/>As<sp/>a<sp/>result,<sp/>it<sp/>has<sp/>a<sp/>rich<sp/>API<sp/>for<sp/>embedding<sp/>that<sp/>support<sp/>a<sp/>wide<sp/>range<sp/>of<sp/>use<sp/>cases.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Minimal<sp/>Dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Minilang<sp/>only<sp/>has<sp/>one<sp/>required<sp/>dependency,<sp/>the<sp/>[Hans-Boehm<sp/>conservative<sp/>garbage<sp/>collector](https://github.com/ivmai/bdwgc),<sp/>which<sp/>is<sp/>commonly<sp/>available<sp/>in<sp/>the<sp/>standard<sp/>repositories<sp/>of<sp/>most<sp/>Linux<sp/>distributions,<sp/>in<sp/>Homebrew<sp/>on<sp/>macOS<sp/>and<sp/>easily<sp/>built<sp/>from<sp/>source.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Code<sp/>Safety</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Minilang&apos;s<sp/>VM<sp/>is<sp/>safe,<sp/>there<sp/>is<sp/>no<sp/>way<sp/>to<sp/>access<sp/>raw<sp/>memory<sp/>to<sp/>perform<sp/>unsafe<sp/>type-casting,<sp/>indexing<sp/>operations<sp/>are<sp/>bounds<sp/>checked,<sp/>arguments<sp/>to<sp/>internal<sp/>functions<sp/>are<sp/>type-checked,<sp/>etc.<sp/>Minilang<sp/>only<sp/>provides<sp/>core<sp/>functionality<sp/>by<sp/>default,<sp/>and<sp/>does<sp/>not<sp/>provide<sp/>file<sp/>or<sp/>network<sp/>functions,<sp/>module<sp/>loading,<sp/>or<sp/>any<sp/>other<sp/>potentially<sp/>unsafe<sp/>functions.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Extensible</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Although<sp/>Minilang&apos;s<sp/>core<sp/>functionality<sp/>is<sp/>intentionally<sp/>restricted,<sp/>functionality<sp/>can<sp/>be<sp/>easily<sp/>added<sp/>by<sp/>the<sp/>host<sp/>application,<sp/>either<sp/>globally<sp/>or<sp/>each<sp/>time<sp/>Minilang<sp/>code<sp/>is<sp/>loaded.<sp/>For<sp/>example,<sp/>there<sp/>is<sp/>no<sp/>built-in<sp/>`print()`<sp/>function,<sp/>one<sp/>must<sp/>be<sp/>added<sp/>by<sp/>the<sp/>host<sp/>application.<sp/>This<sp/>extra<sp/>step<sp/>means<sp/>that<sp/>the<sp/>`print()`<sp/>function<sp/>can<sp/>write<sp/>to<sp/>a<sp/>file<sp/>or<sp/>log<sp/>instead<sp/>if<sp/>desired,<sp/>or<sp/>even<sp/>send<sp/>text<sp/>across<sp/>a<sp/>websocket<sp/>to<sp/>display<sp/>in<sp/>a<sp/>browser.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Flexible<sp/>Code<sp/>Loading</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>C<sp/>API<sp/>provides<sp/>functions<sp/>for<sp/>incremental<sp/>source<sp/>code<sp/>loading,<sp/>allowing<sp/>Minilang<sp/>to<sp/>be<sp/>used<sp/>for<sp/>interactive<sp/>sessions<sp/>such<sp/>as<sp/>REPL<sp/>shells<sp/>and<sp/>notebooks<sp/>as<sp/>well<sp/>as<sp/>loading<sp/>complete<sp/>Minilang<sp/>code<sp/>from<sp/>files,<sp/>databases,<sp/>etc.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Source<sp/>Level<sp/>Debugging</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>C<sp/>API<sp/>also<sp/>provides<sp/>features<sp/>for<sp/>source<sp/>level<sp/>debugging<sp/>of<sp/>Minilang<sp/>code.<sp/>The<sp/>host<sp/>application<sp/>can<sp/>specify<sp/>a<sp/>debugger<sp/>when<sp/>running<sp/>any<sp/>function<sp/>and<sp/>the<sp/>VM<sp/>will<sp/>invoke<sp/>the<sp/>debugger<sp/>at<sp/>breakpoints,<sp/>errors,<sp/>etc.<sp/>The<sp/>debugger<sp/>API<sp/>is<sp/>flexible,<sp/>debugging<sp/>can<sp/>be<sp/>implementing<sp/>in<sp/>a<sp/>console,<sp/>desktop<sp/>GUI<sp/>or<sp/>even<sp/>across<sp/>a<sp/>network.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Stackless<sp/>Execution<sp/>and<sp/>One-Shot<sp/>Continuations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Minilang<sp/>uses<sp/>a<sp/>stackless<sp/>VM<sp/>for<sp/>execution.<sp/>Moreover,<sp/>every<sp/>function<sp/>call<sp/>passes<sp/>the<sp/>calling<sp/>state<sp/>to<sp/>the<sp/>called<sp/>function,<sp/>returns<sp/>are<sp/>implemented<sp/>by<sp/>resuming<sp/>the<sp/>calling<sp/>state.<sp/>This<sp/>provides<sp/>a<sp/>number<sp/>of<sp/>additional<sp/>features:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">*<sp/>**Inline<sp/>Asynchronous<sp/>Calls**<sp/>Any<sp/>Minilang<sp/>function<sp/>call<sp/>can<sp/>be<sp/>asynchronous<sp/>without<sp/>any<sp/>change<sp/>in<sp/>the<sp/>calling<sp/>code.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Parallel<sp/>Asynchronous<sp/>Calls**<sp/>Multiple<sp/>asynchronous<sp/>calls<sp/>can<sp/>also<sp/>be<sp/>launched<sp/>in<sp/>parallel,<sp/>with<sp/>the<sp/>calling<sp/>state<sp/>resumed<sp/>automatically<sp/>when<sp/>all<sp/>the<sp/>calls<sp/>have<sp/>completed.<sp/>Minilang<sp/>is<sp/>thus<sp/>suitable<sp/>for<sp/>scripting<sp/>complex<sp/>workflows<sp/>in<sp/>distributed<sp/>applications.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Preemptive<sp/>Multitasking**<sp/>Minilang<sp/>can<sp/>optionally<sp/>use<sp/>a<sp/>scheduler<sp/>to<sp/>swap<sp/>the<sp/>running<sp/>VM<sp/>state.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Per-Context<sp/>Settings</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Every<sp/>Minilang<sp/>state<sp/>has<sp/>an<sp/>associated<sp/>context<sp/>which<sp/>is<sp/>inherited<sp/>by<sp/>default<sp/>from<sp/>the<sp/>calling<sp/>state<sp/>but<sp/>can<sp/>be<sp/>explicitly<sp/>set<sp/>by<sp/>the<sp/>host<sp/>application.<sp/>The<sp/>context<sp/>stores<sp/>local<sp/>settings<sp/>such<sp/>as<sp/>the<sp/>current<sp/>debugger,<sp/>preemptive<sp/>scheduler,<sp/>etc.<sp/>The<sp/>host<sp/>application<sp/>can<sp/>register<sp/>additional<sp/>context<sp/>settings.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Multi-tenant<sp/>Support</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Combining<sp/>all<sp/>of<sp/>the<sp/>above<sp/>features,<sp/>Minilang<sp/>is<sp/>ideal<sp/>for<sp/>multi-tenant<sp/>distributed<sp/>applications.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>History</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Minilang<sp/>was<sp/>originally<sp/>designed<sp/>for<sp/>[Rabs](https://github.com/wrapl/rabs),<sp/>an<sp/>imperative<sp/></highlight></codeline>
+<codeline><highlight class="normal">parallel<sp/>build<sp/>system.<sp/>As<sp/>result,<sp/>it<sp/>was<sp/>designed<sp/>with<sp/>the<sp/>following<sp/>requirements:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">*<sp/>**Minimal<sp/>dependencies:**<sp/>Minilang<sp/>only<sp/>has<sp/>one<sp/>required<sp/>dependency,<sp/>the<sp/>[Hans-Boehm<sp/>conservative<sp/>garbage<sp/>collector](https://github.com/ivmai/bdwgc),<sp/>which<sp/>is<sp/>commonly<sp/>available<sp/>in<sp/>the<sp/>standard<sp/>repositories<sp/>of<sp/>most<sp/>Linux<sp/>distributions,<sp/>in<sp/>Homebrew<sp/>on<sp/>macOS<sp/>and<sp/>easily<sp/>built<sp/>from<sp/>source.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Allow<sp/>callbacks<sp/>for<sp/>identifier<sp/>lookups:**<sp/>This<sp/>allows<sp/>build<sp/>functions<sp/>in<sp/>Rabs<sp/>to<sp/>use<sp/>dynamic<sp/>(context<sp/>aware)<sp/>scoping.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Easy<sp/>to<sp/>add<sp/>functions<sp/>in<sp/>C:**<sp/>It<sp/>is<sp/>easy<sp/>to<sp/>add<sp/>new<sp/>functions<sp/>to<sp/>Minilang<sp/>as<sp/>required.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Easy<sp/>to<sp/>store<sp/>Minilang<sp/>objects<sp/>in<sp/>C:**<sp/>References<sp/>to<sp/>build<sp/>functions<sp/>can<sp/>be<sp/>easily<sp/>stored<sp/>and<sp/>called<sp/>when<sp/>required.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Full<sp/>support<sp/>for<sp/>closures:**<sp/>Closures<sp/>(functions<sp/>which<sp/>capture<sp/>their<sp/>surrounding<sp/>scope)<sp/>make<sp/>complex<sp/>build<sp/>functions<sp/>simpler<sp/>to<sp/>write<sp/>and<sp/>store.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Closures<sp/>are<sp/>hashable:**<sp/>Checksums<sp/>can<sp/>be<sp/>computed<sp/>for<sp/>Minilang<sp/>functions<sp/>(using<sp/>SHA256)<sp/>in<sp/>order<sp/>to<sp/>check<sp/>if<sp/>a<sp/>target<sp/>needs<sp/>to<sp/>be<sp/>rebuilt.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Additional<sp/>features<sp/>have<sp/>been<sp/>added<sp/>since<sp/>the<sp/>original<sp/>use<sp/>in<sp/>Rabs.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">*<sp/>**Configurable<sp/>builds**<sp/>Minilang<sp/>can<sp/>be<sp/>built<sp/>with<sp/>Rabs<sp/>(as<sp/>well<sp/>as<sp/>Make)<sp/>enabling<sp/>several<sp/>optional<sp/>features<sp/>as<sp/>desired.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Module<sp/>system**<sp/>Minilang<sp/>files<sp/>can<sp/>be<sp/>loaded<sp/>as<sp/>modules,<sp/>with<sp/>imports<sp/>and<sp/>exports.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Gnome<sp/>introspection<sp/>suppport**<sp/>Minilang<sp/>can<sp/>be<sp/>built<sp/>with<sp/>support<sp/>for<sp/>Gnome<sp/>introspection,<sp/>providing<sp/>automatic<sp/>bindings<sp/>for<sp/>a<sp/>wide<sp/>range<sp/>of<sp/>libraries<sp/>including<sp/>GUI,<sp/>networking,<sp/>etc.</highlight></codeline>
+<codeline><highlight class="normal">*<sp/>**Continuation<sp/>based<sp/>implementation**<sp/>Function<sp/>calls<sp/>are<sp/>implemented<sp/>using<sp/>one-short<sp/>continuation<sp/>based<sp/>approach.<sp/>This<sp/>adds<sp/>(optional)<sp/>support<sp/>for<sp/>the<sp/>following:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Asynchronous<sp/>calls**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Cooperative<sp/>multitasking**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Preemptive<sp/>multitasking**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Simple<sp/>example</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>example1.c</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```c</highlight></codeline>
+<codeline><highlight class="normal">#include<sp/>&lt;stdio.h&gt;</highlight></codeline>
+<codeline><highlight class="normal">#include<sp/>&lt;minilang/minilang.h&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">static<sp/>ml_value_t<sp/>*print(void<sp/>*Data,<sp/>int<sp/>Count,<sp/>ml_value_t<sp/>**Args)<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ml_value_t<sp/>*StringMethod<sp/>=<sp/>ml_method(&quot;string&quot;);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Count;<sp/>++I)<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>*Result<sp/>=<sp/>Args[I];</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(Result-&gt;Type<sp/>!=<sp/>MLStringT)<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Result<sp/>=<sp/>ml_simple_call(StringMethod,<sp/>1,<sp/>&amp;Result);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(Result-&gt;Type<sp/>==<sp/>MLErrorT)<sp/>return<sp/>Result;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(Result-&gt;Type<sp/>!=<sp/>MLStringT)<sp/>return<sp/>ml_error(&quot;ResultError&quot;,<sp/>&quot;string<sp/>method<sp/>did<sp/>not<sp/>return<sp/>string&quot;);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fwrite(ml_string_value(Result),<sp/>1,<sp/>ml_string_length(Result),<sp/>stdout);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fflush(stdout);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>MLNil;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">int<sp/>main(int<sp/>Argc,<sp/>char<sp/>**Argv)<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ml_init();</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_t<sp/>*Globals<sp/>=<sp/>stringmap_new();</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/>&quot;print&quot;,<sp/>ml_cfunction(NULL,<sp/>print));</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ml_value_state_t<sp/>*State<sp/>=<sp/>ml_value_state_new(NULL);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ml_load_file((ml_state_t<sp/>*)State,<sp/>(ml_getter_t)stringmap_search,<sp/>Globals,<sp/>&quot;example1.mini&quot;,<sp/>NULL);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>(State-&gt;Value-&gt;Type<sp/>==<sp/>MLErrorT)<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_error_print(State-&gt;Value);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(1);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ml_call((ml_state_t<sp/>*)State,<sp/>State-&gt;Value,<sp/>0,<sp/>NULL);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>(State-&gt;Value-&gt;Type<sp/>==<sp/>MLErrorT)<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_error_print(State-&gt;Value);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(1);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>example1.mini</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```lua</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>X<sp/>in<sp/>1<sp/>..<sp/>10<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(&apos;{X}<sp/>&apos;)</highlight></codeline>
+<codeline><highlight class="normal">end</highlight></codeline>
+<codeline><highlight class="normal">print(&apos;done.\n&apos;)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">```sh</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>gcc<sp/>-o<sp/>example1<sp/>example1.c<sp/>-lminilang<sp/>-lgc</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>./example1</highlight></codeline>
+<codeline><highlight class="normal">1<sp/>2<sp/>3<sp/>4<sp/>5<sp/>6<sp/>7<sp/>8<sp/>9<sp/>10<sp/>done.</highlight></codeline>
+<codeline><highlight class="normal">$</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Building</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Using<sp/>make</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```console</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>git<sp/>clone<sp/>https://github.com/wrapl/minilang</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>cd<sp/>minilang</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>make<sp/>-j4</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>make<sp/>install<sp/>PREFIX=/usr/local</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>will<sp/>build<sp/>and<sp/>install<sp/>a<sp/>vanilla<sp/>version<sp/>of<sp/>Minilang<sp/>in<sp/>`PREFIX`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Using<sp/>Rabs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```console</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>git<sp/>clone<sp/>https://github.com/wrapl/minilang</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>cd<sp/>minilang</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>rabs<sp/>-p4<sp/>-DPREFIX=/usr/local<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>will<sp/>build<sp/>and<sp/>install<sp/>a<sp/>vanilla<sp/>version<sp/>of<sp/>Minilang<sp/>in<sp/>`PREFIX`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Additional<sp/>options<sp/>can<sp/>be<sp/>enabled<sp/>when<sp/>building<sp/>Minilang<sp/>with<sp/>Rabs.<sp/>For<sp/>example,<sp/>to<sp/>enable<sp/>GTK+<sp/>support,<sp/>pass<sp/>`-DGTK`<sp/>when<sp/>building.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```console</highlight></codeline>
+<codeline><highlight class="normal">$<sp/>rabs<sp/>-p4<sp/>-DPREFIX=/usr/local<sp/>-DGTK<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Currently<sp/>the<sp/>following<sp/>optional<sp/>features<sp/>are<sp/>available:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Build<sp/>Flags<sp/>|<sp/>Description<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>---<sp/>|<sp/>---<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DMATH`<sp/>|<sp/>Adds<sp/>additional<sp/>maths<sp/>functions,<sp/>including<sp/>multi-dimensional<sp/>numeric<sp/>arrays<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DGTK`<sp/>|<sp/>Adds<sp/>Gnome<sp/>introspection<sp/>support<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DCBOR`<sp/>|<sp/>Adds<sp/>support<sp/>for<sp/>serializing<sp/>and<sp/>deserializing<sp/>Minilang<sp/>values<sp/>to/from<sp/>CBOR<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DSCHEDULER`<sp/>|<sp/>Adds<sp/>support<sp/>for<sp/>preemptive<sp/>multitasking<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DMODULES`<sp/>|<sp/>Adds<sp/>support<sp/>for<sp/>loading<sp/>Minilang<sp/>files<sp/>as<sp/>modules.<sp/>Enables<sp/>`-DSCHEDULER`<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DASM`<sp/>|<sp/>Uses<sp/>assembly<sp/>code<sp/>implementations<sp/>for<sp/>certain<sp/>features<sp/>on<sp/>supported<sp/>platforms<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DTABLES`<sp/>|<sp/>Adds<sp/>a<sp/>table<sp/>type<sp/>(similar<sp/>to<sp/>a<sp/>dataframe,<sp/>datatable,<sp/>etc).<sp/>Enables<sp/>`-DMATH`<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>`-DQUEUES`<sp/>|<sp/>Adds<sp/>a<sp/>priority<sp/>queue<sp/>type<sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Full<sp/>documentation<sp/>can<sp/>be<sp/>found<sp/>[here](https://minilang.readthedocs.io).</highlight></codeline>
+    </programlisting>
+    <location file="README.md"/>
+  </compounddef>
+</doxygen>

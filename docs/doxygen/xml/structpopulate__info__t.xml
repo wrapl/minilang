@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structpopulate__info__t" kind="struct" language="C++" prot="public">
+    <compoundname>populate_info_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structpopulate__info__t_1aa9f37d1929b208a881be01bddd0003f8" prot="public" static="no" mutable="no">
+        <type>gchar *</type>
+        <definition>gchar* populate_info_t::Prefix</definition>
+        <argsstring></argsstring>
+        <name>Prefix</name>
+        <qualifiedname>populate_info_t::Prefix</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console_completion.c" line="41" column="7" bodyfile="src/gtk_console_completion.c" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structpopulate__info__t_1ace3c0f823c6fb5d646dbd64f416a3f28" prot="public" static="no" mutable="no">
+        <type>GList *</type>
+        <definition>GList* populate_info_t::Proposals</definition>
+        <argsstring></argsstring>
+        <name>Proposals</name>
+        <qualifiedname>populate_info_t::Proposals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console_completion.c" line="42" column="7" bodyfile="src/gtk_console_completion.c" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structpopulate__info__t_1ae21021936cdf9be012ea68916e3568a6" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int populate_info_t::PrefixLength</definition>
+        <argsstring></argsstring>
+        <name>PrefixLength</name>
+        <qualifiedname>populate_info_t::PrefixLength</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console_completion.c" line="43" column="5" bodyfile="src/gtk_console_completion.c" bodystart="43" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/gtk_console_completion.c" line="40" column="1" bodyfile="src/gtk_console_completion.c" bodystart="40" bodyend="44"/>
+    <listofallmembers>
+      <member refid="structpopulate__info__t_1aa9f37d1929b208a881be01bddd0003f8" prot="public" virt="non-virtual"><scope>populate_info_t</scope><name>Prefix</name></member>
+      <member refid="structpopulate__info__t_1ae21021936cdf9be012ea68916e3568a6" prot="public" virt="non-virtual"><scope>populate_info_t</scope><name>PrefixLength</name></member>
+      <member refid="structpopulate__info__t_1ace3c0f823c6fb5d646dbd64f416a3f28" prot="public" virt="non-virtual"><scope>populate_info_t</scope><name>Proposals</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

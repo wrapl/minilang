@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structconsole__show__field__t" kind="struct" language="C++" prot="public">
+    <compoundname>console_show_field_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structconsole__show__field__t_1a7f2bbfd0c8f82249366e5c3d00c63119" prot="public" static="no" mutable="no">
+        <type>GtkTreeStore *</type>
+        <definition>GtkTreeStore* console_show_field_t::Store</definition>
+        <argsstring></argsstring>
+        <name>Store</name>
+        <qualifiedname>console_show_field_t::Store</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.c" line="370" column="14" bodyfile="src/gtk_console.c" bodystart="370" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structconsole__show__field__t_1a787efedff342387802cca6a1fa525391" prot="public" static="no" mutable="no">
+        <type>GtkTreeIter *</type>
+        <definition>GtkTreeIter* console_show_field_t::Child</definition>
+        <argsstring></argsstring>
+        <name>Child</name>
+        <qualifiedname>console_show_field_t::Child</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console.c" line="371" column="13" bodyfile="src/gtk_console.c" bodystart="371" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/gtk_console.c" line="369" column="1" bodyfile="src/gtk_console.c" bodystart="369" bodyend="372"/>
+    <listofallmembers>
+      <member refid="structconsole__show__field__t_1a787efedff342387802cca6a1fa525391" prot="public" virt="non-virtual"><scope>console_show_field_t</scope><name>Child</name></member>
+      <member refid="structconsole__show__field__t_1a7f2bbfd0c8f82249366e5c3d00c63119" prot="public" virt="non-virtual"><scope>console_show_field_t</scope><name>Store</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__task__composed__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_task_composed_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__task__composed__t_1a8deabd418a66a7b99f5c3363812cbcd1" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__task__t" kindref="compound">ml_task_t</ref></type>
+        <definition>ml_task_t ml_task_composed_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_task_composed_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="210" column="11" bodyfile="src/ml_tasks.c" bodystart="210" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__task__composed__t_1ab6d65dd58125ab0a49255b9e40dd7dcd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_task_composed_t::Then</definition>
+        <argsstring></argsstring>
+        <name>Then</name>
+        <qualifiedname>ml_task_composed_t::Then</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="211" column="12" bodyfile="src/ml_tasks.c" bodystart="211" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__task__composed__t_1aa5f3eaaf0a23c5e6f19602ae502ffe46" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_task_composed_t::Else</definition>
+        <argsstring></argsstring>
+        <name>Else</name>
+        <qualifiedname>ml_task_composed_t::Else</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="211" column="17" bodyfile="src/ml_tasks.c" bodystart="211" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__task__composed__t_1a0756ce247508effd5c93250c849faf6d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_task_composed_t::On</definition>
+        <argsstring></argsstring>
+        <name>On</name>
+        <qualifiedname>ml_task_composed_t::On</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="211" column="22" bodyfile="src/ml_tasks.c" bodystart="211" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__task__composed__t_1a2e97eebda2d171b1b292a6934a94d65e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_task_composed_t::Args[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_task_composed_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="212" column="12" bodyfile="src/ml_tasks.c" bodystart="212" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="9">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_task_composed_t</label>
+        <link refid="structml__task__composed__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Else</edgelabel>
+          <edgelabel>On</edgelabel>
+          <edgelabel>Then</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_task_t</label>
+        <link refid="structml__task__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Waiters</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_waiter_t</label>
+        <link refid="structml__waiter__t"/>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>State</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_tasks.c" line="209" column="1" bodyfile="src/ml_tasks.c" bodystart="209" bodyend="213"/>
+    <listofallmembers>
+      <member refid="structml__task__composed__t_1a2e97eebda2d171b1b292a6934a94d65e" prot="public" virt="non-virtual"><scope>ml_task_composed_t</scope><name>Args</name></member>
+      <member refid="structml__task__composed__t_1a8deabd418a66a7b99f5c3363812cbcd1" prot="public" virt="non-virtual"><scope>ml_task_composed_t</scope><name>Base</name></member>
+      <member refid="structml__task__composed__t_1aa5f3eaaf0a23c5e6f19602ae502ffe46" prot="public" virt="non-virtual"><scope>ml_task_composed_t</scope><name>Else</name></member>
+      <member refid="structml__task__composed__t_1a0756ce247508effd5c93250c849faf6d" prot="public" virt="non-virtual"><scope>ml_task_composed_t</scope><name>On</name></member>
+      <member refid="structml__task__composed__t_1ab6d65dd58125ab0a49255b9e40dd7dcd" prot="public" virt="non-virtual"><scope>ml_task_composed_t</scope><name>Then</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

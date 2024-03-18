@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__class__field__find__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_class_field_find_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__class__field__find__t_1a1f79d8d577b61f1933711e8686a7a99d" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* ml_class_field_find_t::Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>ml_class_field_find_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="613" column="12" bodyfile="src/ml_object.c" bodystart="613" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__class__field__find__t_1ac65467529d73830811307b230daa275c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_class_field_find_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_class_field_find_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="614" column="5" bodyfile="src/ml_object.c" bodystart="614" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/ml_object.c" line="612" column="1" bodyfile="src/ml_object.c" bodystart="612" bodyend="615"/>
+    <listofallmembers>
+      <member refid="structml__class__field__find__t_1ac65467529d73830811307b230daa275c" prot="public" virt="non-virtual"><scope>ml_class_field_find_t</scope><name>Index</name></member>
+      <member refid="structml__class__field__find__t_1a1f79d8d577b61f1933711e8686a7a99d" prot="public" virt="non-virtual"><scope>ml_class_field_find_t</scope><name>Name</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

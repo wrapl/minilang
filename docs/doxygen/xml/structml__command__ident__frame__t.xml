@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__command__ident__frame__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_command_ident_frame_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__command__ident__frame__t_1ab8d762b9b36a416339246b8dfd099ac7" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__global__t" kindref="compound">ml_global_t</ref> *</type>
+        <definition>ml_global_t* ml_command_ident_frame_t::Global</definition>
+        <argsstring></argsstring>
+        <name>Global</name>
+        <qualifiedname>ml_command_ident_frame_t::Global</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="6834" column="13" bodyfile="src/ml_compiler.c" bodystart="6834" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__command__ident__frame__t_1a2ff8b6b2b0720f933cacf4f95c79bed5" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* ml_command_ident_frame_t::VarType</definition>
+        <argsstring></argsstring>
+        <name>VarType</name>
+        <qualifiedname>ml_command_ident_frame_t::VarType</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="6835" column="12" bodyfile="src/ml_compiler.c" bodystart="6835" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__command__ident__frame__t_1afaf6f3706d9dd82243e81c61fd3e48d1" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_command_ident_frame_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_command_ident_frame_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="6836" column="12" bodyfile="src/ml_compiler.c" bodystart="6836" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__command__ident__frame__t_1a7bbbdfd980e79c3a198520e9e344d723" prot="public" static="no" mutable="no">
+        <type>ml_token_t</type>
+        <definition>ml_token_t ml_command_ident_frame_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_command_ident_frame_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="6837" column="12" bodyfile="src/ml_compiler.c" bodystart="6837" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_command_ident_frame_t</label>
+        <link refid="structml__command__ident__frame__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Global</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>VarType</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_global_t</label>
+        <link refid="structml__global__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="6833" column="1" bodyfile="src/ml_compiler.c" bodystart="6833" bodyend="6838"/>
+    <listofallmembers>
+      <member refid="structml__command__ident__frame__t_1ab8d762b9b36a416339246b8dfd099ac7" prot="public" virt="non-virtual"><scope>ml_command_ident_frame_t</scope><name>Global</name></member>
+      <member refid="structml__command__ident__frame__t_1a7bbbdfd980e79c3a198520e9e344d723" prot="public" virt="non-virtual"><scope>ml_command_ident_frame_t</scope><name>Type</name></member>
+      <member refid="structml__command__ident__frame__t_1afaf6f3706d9dd82243e81c61fd3e48d1" prot="public" virt="non-virtual"><scope>ml_command_ident_frame_t</scope><name>Value</name></member>
+      <member refid="structml__command__ident__frame__t_1a2ff8b6b2b0720f933cacf4f95c79bed5" prot="public" virt="non-virtual"><scope>ml_command_ident_frame_t</scope><name>VarType</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

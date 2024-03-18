@@ -83,6 +83,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:E052C98A047F0000737472756374207B>
+      buffer(16) :> <16:40750501B17F0000202E2E2E2C205661>
 
 

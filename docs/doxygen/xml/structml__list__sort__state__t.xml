@@ -1,0 +1,323 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__list__sort__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_list_sort_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a49ec50c8e4b781d4a1f2e2e7399cb878" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_list_sort_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_list_sort_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1383" column="12" bodyfile="src/ml_list.c" bodystart="1383" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a2f5202ea07bce69f35c629a5a981c8c0" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__t" kindref="compound">ml_list_t</ref> *</type>
+        <definition>ml_list_t* ml_list_sort_state_t::List</definition>
+        <argsstring></argsstring>
+        <name>List</name>
+        <qualifiedname>ml_list_sort_state_t::List</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1384" column="11" bodyfile="src/ml_list.c" bodystart="1384" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1aedd12ca1d051affd5d27e349a8290bf3" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_list_sort_state_t::Compare</definition>
+        <argsstring></argsstring>
+        <name>Compare</name>
+        <qualifiedname>ml_list_sort_state_t::Compare</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1385" column="12" bodyfile="src/ml_list.c" bodystart="1385" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a32526533fe70484999c585edf6e2ad7f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_list_sort_state_t::Args[2]</definition>
+        <argsstring>[2]</argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_list_sort_state_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1386" column="12" bodyfile="src/ml_list.c" bodystart="1386" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a300db832f04a01bd92f61fb0099183c7" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* ml_list_sort_state_t::Head</definition>
+        <argsstring></argsstring>
+        <name>Head</name>
+        <qualifiedname>ml_list_sort_state_t::Head</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1387" column="16" bodyfile="src/ml_list.c" bodystart="1387" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a0177286e6a0043a789b125fc6fec1d8a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t * ml_list_sort_state_t::Tail</definition>
+        <argsstring></argsstring>
+        <name>Tail</name>
+        <qualifiedname>ml_list_sort_state_t::Tail</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1387" column="21" bodyfile="src/ml_list.c" bodystart="1387" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a685c2205450faf9bde8657dc4f693b5b" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* ml_list_sort_state_t::P</definition>
+        <argsstring></argsstring>
+        <name>P</name>
+        <qualifiedname>ml_list_sort_state_t::P</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1388" column="16" bodyfile="src/ml_list.c" bodystart="1388" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a859073cbbd45243ac76cee2d35b8a02d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t * ml_list_sort_state_t::Q</definition>
+        <argsstring></argsstring>
+        <name>Q</name>
+        <qualifiedname>ml_list_sort_state_t::Q</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1388" column="18" bodyfile="src/ml_list.c" bodystart="1388" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a42d009837bbb89997026639437b2b425" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_list_sort_state_t::Length</definition>
+        <argsstring></argsstring>
+        <name>Length</name>
+        <qualifiedname>ml_list_sort_state_t::Length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1389" column="5" bodyfile="src/ml_list.c" bodystart="1389" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a8c8e6ee21b17896e14d841869325b457" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_list_sort_state_t::InSize</definition>
+        <argsstring></argsstring>
+        <name>InSize</name>
+        <qualifiedname>ml_list_sort_state_t::InSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1390" column="5" bodyfile="src/ml_list.c" bodystart="1390" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1ab76e3101af996174f5f793195874d286" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_list_sort_state_t::NMerges</definition>
+        <argsstring></argsstring>
+        <name>NMerges</name>
+        <qualifiedname>ml_list_sort_state_t::NMerges</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1390" column="12" bodyfile="src/ml_list.c" bodystart="1390" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1a2527e6a69d92b547788591c99f93394b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_list_sort_state_t::PSize</definition>
+        <argsstring></argsstring>
+        <name>PSize</name>
+        <qualifiedname>ml_list_sort_state_t::PSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1391" column="5" bodyfile="src/ml_list.c" bodystart="1391" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__sort__state__t_1ae354781eefd537edfb870c05f4753821" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_list_sort_state_t::QSize</definition>
+        <argsstring></argsstring>
+        <name>QSize</name>
+        <qualifiedname>ml_list_sort_state_t::QSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1391" column="11" bodyfile="src/ml_list.c" bodystart="1391" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_list_node_t</label>
+        <link refid="structml__list__node__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_list_sort_state_t</label>
+        <link refid="structml__list__sort__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>List</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Compare</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Head</edgelabel>
+          <edgelabel>P</edgelabel>
+          <edgelabel>Q</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_list_t</label>
+        <link refid="structml__list__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>CachedNode</edgelabel>
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_list.c" line="1382" column="1" bodyfile="src/ml_list.c" bodystart="1382" bodyend="1392"/>
+    <listofallmembers>
+      <member refid="structml__list__sort__state__t_1a32526533fe70484999c585edf6e2ad7f" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>Args</name></member>
+      <member refid="structml__list__sort__state__t_1a49ec50c8e4b781d4a1f2e2e7399cb878" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>Base</name></member>
+      <member refid="structml__list__sort__state__t_1aedd12ca1d051affd5d27e349a8290bf3" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>Compare</name></member>
+      <member refid="structml__list__sort__state__t_1a300db832f04a01bd92f61fb0099183c7" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>Head</name></member>
+      <member refid="structml__list__sort__state__t_1a8c8e6ee21b17896e14d841869325b457" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>InSize</name></member>
+      <member refid="structml__list__sort__state__t_1a42d009837bbb89997026639437b2b425" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>Length</name></member>
+      <member refid="structml__list__sort__state__t_1a2f5202ea07bce69f35c629a5a981c8c0" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>List</name></member>
+      <member refid="structml__list__sort__state__t_1ab76e3101af996174f5f793195874d286" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>NMerges</name></member>
+      <member refid="structml__list__sort__state__t_1a685c2205450faf9bde8657dc4f693b5b" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>P</name></member>
+      <member refid="structml__list__sort__state__t_1a2527e6a69d92b547788591c99f93394b" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>PSize</name></member>
+      <member refid="structml__list__sort__state__t_1a859073cbbd45243ac76cee2d35b8a02d" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>Q</name></member>
+      <member refid="structml__list__sort__state__t_1ae354781eefd537edfb870c05f4753821" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>QSize</name></member>
+      <member refid="structml__list__sort__state__t_1a0177286e6a0043a789b125fc6fec1d8a" prot="public" virt="non-virtual"><scope>ml_list_sort_state_t</scope><name>Tail</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

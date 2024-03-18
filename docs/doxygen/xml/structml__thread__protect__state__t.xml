@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__thread__protect__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_thread_protect_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__thread__protect__state__t_1aa1266c51f3bac9436e4cad86ac37407f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_thread_protect_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_thread_protect_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="479" column="12" bodyfile="src/ml_thread.c" bodystart="479" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__protect__state__t_1a1e0c190685ca3d4fbb3d24b4e0dfda45" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__thread__mutex__t" kindref="compound">ml_thread_mutex_t</ref> *</type>
+        <definition>ml_thread_mutex_t* ml_thread_protect_state_t::Mutex</definition>
+        <argsstring></argsstring>
+        <name>Mutex</name>
+        <qualifiedname>ml_thread_protect_state_t::Mutex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="480" column="19" bodyfile="src/ml_thread.c" bodystart="480" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__protect__state__t_1a7a9fedce7c28a4853c7880b9f259ba88" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_thread_protect_state_t::Args[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_thread_protect_state_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="481" column="12" bodyfile="src/ml_thread.c" bodystart="481" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_thread_mutex_t</label>
+        <link refid="structml__thread__mutex__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_thread_protect_state_t</label>
+        <link refid="structml__thread__protect__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Mutex</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Args</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_thread.c" line="478" column="1" bodyfile="src/ml_thread.c" bodystart="478" bodyend="482"/>
+    <listofallmembers>
+      <member refid="structml__thread__protect__state__t_1a7a9fedce7c28a4853c7880b9f259ba88" prot="public" virt="non-virtual"><scope>ml_thread_protect_state_t</scope><name>Args</name></member>
+      <member refid="structml__thread__protect__state__t_1aa1266c51f3bac9436e4cad86ac37407f" prot="public" virt="non-virtual"><scope>ml_thread_protect_state_t</scope><name>Base</name></member>
+      <member refid="structml__thread__protect__state__t_1a1e0c190685ca3d4fbb3d24b4e0dfda45" prot="public" virt="non-virtual"><scope>ml_thread_protect_state_t</scope><name>Mutex</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

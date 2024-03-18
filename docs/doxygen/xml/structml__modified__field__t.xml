@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__modified__field__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_modified_field_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__modified__field__t_1abf92c42f8649b661180d91029e40094a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_modified_field_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_modified_field_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="478" column="11" bodyfile="src/ml_object.c" bodystart="478" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__modified__field__t_1af9623bc6776cb1f2a150c88673c56038" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_modified_field_t::Field</definition>
+        <argsstring></argsstring>
+        <name>Field</name>
+        <qualifiedname>ml_modified_field_t::Field</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="479" column="12" bodyfile="src/ml_object.c" bodystart="479" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__modified__field__t_1abe957e8de723900cb907c2f482576925" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_modified_field_t::FieldType</definition>
+        <argsstring></argsstring>
+        <name>FieldType</name>
+        <qualifiedname>ml_modified_field_t::FieldType</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="480" column="11" bodyfile="src/ml_object.c" bodystart="480" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_modified_field_t</label>
+        <link refid="structml__modified__field__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>FieldType</edgelabel>
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Field</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_object.c" line="477" column="1" bodyfile="src/ml_object.c" bodystart="477" bodyend="481"/>
+    <listofallmembers>
+      <member refid="structml__modified__field__t_1af9623bc6776cb1f2a150c88673c56038" prot="public" virt="non-virtual"><scope>ml_modified_field_t</scope><name>Field</name></member>
+      <member refid="structml__modified__field__t_1abe957e8de723900cb907c2f482576925" prot="public" virt="non-virtual"><scope>ml_modified_field_t</scope><name>FieldType</name></member>
+      <member refid="structml__modified__field__t_1abf92c42f8649b661180d91029e40094a" prot="public" virt="non-virtual"><scope>ml_modified_field_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

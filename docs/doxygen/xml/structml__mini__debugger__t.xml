@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__mini__debugger__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_mini_debugger_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__mini__debugger__t_1a8d3ec6d5ca6b14056e3f29a0e3976a3d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_mini_debugger_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_mini_debugger_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.c" line="721" column="12" bodyfile="src/ml_runtime.c" bodystart="721" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__mini__debugger__t_1af8afa8ca06942af0df8ecc58ac89bf98" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__debugger__t" kindref="compound">ml_debugger_t</ref></type>
+        <definition>ml_debugger_t ml_mini_debugger_t::Debug</definition>
+        <argsstring></argsstring>
+        <name>Debug</name>
+        <qualifiedname>ml_mini_debugger_t::Debug</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.c" line="722" column="15" bodyfile="src/ml_runtime.c" bodystart="722" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__mini__debugger__t_1a4b91c64bdd0969c13b98620442bf9d78" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_mini_debugger_t::Run</definition>
+        <argsstring></argsstring>
+        <name>Run</name>
+        <qualifiedname>ml_mini_debugger_t::Run</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.c" line="723" column="12" bodyfile="src/ml_runtime.c" bodystart="723" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__mini__debugger__t_1a944de469a22a2fac6d426843dbe7afaf" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t ml_mini_debugger_t::Modules[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Modules</name>
+        <qualifiedname>ml_mini_debugger_t::Modules</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.c" line="724" column="13" bodyfile="src/ml_runtime.c" bodystart="724" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_debugger_t</label>
+        <link refid="structml__debugger__t"/>
+      </node>
+      <node id="1">
+        <label>ml_mini_debugger_t</label>
+        <link refid="structml__mini__debugger__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Debug</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Run</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Modules</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_runtime.c" line="720" column="1" bodyfile="src/ml_runtime.c" bodystart="720" bodyend="725"/>
+    <listofallmembers>
+      <member refid="structml__mini__debugger__t_1a8d3ec6d5ca6b14056e3f29a0e3976a3d" prot="public" virt="non-virtual"><scope>ml_mini_debugger_t</scope><name>Base</name></member>
+      <member refid="structml__mini__debugger__t_1af8afa8ca06942af0df8ecc58ac89bf98" prot="public" virt="non-virtual"><scope>ml_mini_debugger_t</scope><name>Debug</name></member>
+      <member refid="structml__mini__debugger__t_1a944de469a22a2fac6d426843dbe7afaf" prot="public" virt="non-virtual"><scope>ml_mini_debugger_t</scope><name>Modules</name></member>
+      <member refid="structml__mini__debugger__t_1a4b91c64bdd0969c13b98620442bf9d78" prot="public" virt="non-virtual"><scope>ml_mini_debugger_t</scope><name>Run</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

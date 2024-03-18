@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structweakmap__node__t" kind="struct" language="C++" prot="public">
+    <compoundname>weakmap_node_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structweakmap__node__t_1aa8a3e152165a29be842d4e92a81283c2" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* weakmap_node_t::Key</definition>
+        <argsstring></argsstring>
+        <name>Key</name>
+        <qualifiedname>weakmap_node_t::Key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.c" line="8" column="12" bodyfile="src/weakmap.c" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structweakmap__node__t_1a5a3a6edd8a4cb88bd2fbda77c889f706" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* weakmap_node_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>weakmap_node_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.c" line="9" column="6" bodyfile="src/weakmap.c" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structweakmap__node__t_1a3bb33e233ef94ff68900ca5a4657b02b" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t weakmap_node_t::Hash</definition>
+        <argsstring></argsstring>
+        <name>Hash</name>
+        <qualifiedname>weakmap_node_t::Hash</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.c" line="10" column="8" bodyfile="src/weakmap.c" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structweakmap__node__t_1ab68ff2cfb659cea75e290e83eea7f90d" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t weakmap_node_t::Offset</definition>
+        <argsstring></argsstring>
+        <name>Offset</name>
+        <qualifiedname>weakmap_node_t::Offset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.c" line="10" column="13" bodyfile="src/weakmap.c" bodystart="10" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/weakmap.c" line="7" column="1" bodyfile="src/weakmap.c" bodystart="7" bodyend="11"/>
+    <listofallmembers>
+      <member refid="structweakmap__node__t_1a3bb33e233ef94ff68900ca5a4657b02b" prot="public" virt="non-virtual"><scope>weakmap_node_t</scope><name>Hash</name></member>
+      <member refid="structweakmap__node__t_1aa8a3e152165a29be842d4e92a81283c2" prot="public" virt="non-virtual"><scope>weakmap_node_t</scope><name>Key</name></member>
+      <member refid="structweakmap__node__t_1ab68ff2cfb659cea75e290e83eea7f90d" prot="public" virt="non-virtual"><scope>weakmap_node_t</scope><name>Offset</name></member>
+      <member refid="structweakmap__node__t_1a5a3a6edd8a4cb88bd2fbda77c889f706" prot="public" virt="non-virtual"><scope>weakmap_node_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

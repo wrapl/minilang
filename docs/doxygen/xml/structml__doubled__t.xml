@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__doubled__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_doubled_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__doubled__t_1ac66826c43334ecf731e876588ed469b7" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_doubled_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_doubled_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="639" column="11" bodyfile="src/ml_sequence.c" bodystart="639" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__doubled__t_1af859427a04717b6e15fa169859b4aa30" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_doubled_t::Sequence</definition>
+        <argsstring></argsstring>
+        <name>Sequence</name>
+        <qualifiedname>ml_doubled_t::Sequence</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="640" column="12" bodyfile="src/ml_sequence.c" bodystart="640" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__doubled__t_1a91e2ffeae0f76d0fdf47e40ef21f9152" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_doubled_t::ValueFn</definition>
+        <argsstring></argsstring>
+        <name>ValueFn</name>
+        <qualifiedname>ml_doubled_t::ValueFn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="640" column="21" bodyfile="src/ml_sequence.c" bodystart="640" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_doubled_t</label>
+        <link refid="structml__doubled__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Sequence</edgelabel>
+          <edgelabel>ValueFn</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_sequence.c" line="638" column="1" bodyfile="src/ml_sequence.c" bodystart="638" bodyend="641"/>
+    <listofallmembers>
+      <member refid="structml__doubled__t_1af859427a04717b6e15fa169859b4aa30" prot="public" virt="non-virtual"><scope>ml_doubled_t</scope><name>Sequence</name></member>
+      <member refid="structml__doubled__t_1ac66826c43334ecf731e876588ed469b7" prot="public" virt="non-virtual"><scope>ml_doubled_t</scope><name>Type</name></member>
+      <member refid="structml__doubled__t_1a91e2ffeae0f76d0fdf47e40ef21f9152" prot="public" virt="non-virtual"><scope>ml_doubled_t</scope><name>ValueFn</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

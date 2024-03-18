@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__pqueue__iter__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_pqueue_iter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__pqueue__iter__t_1a102fb56954b46aa7fdfc524da1a3434b" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_pqueue_iter_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_pqueue_iter_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_pqueue.c" line="443" column="11" bodyfile="src/ml_pqueue.c" bodystart="443" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__pqueue__iter__t_1ac431fdf30a685fe62641243d98ccad95" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__pqueue__entry__t" kindref="compound">ml_pqueue_entry_t</ref> **</type>
+        <definition>ml_pqueue_entry_t** ml_pqueue_iter_t::Entries</definition>
+        <argsstring></argsstring>
+        <name>Entries</name>
+        <qualifiedname>ml_pqueue_iter_t::Entries</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_pqueue.c" line="444" column="19" bodyfile="src/ml_pqueue.c" bodystart="444" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__pqueue__iter__t_1a52aba0bd6d4df0114c31f6707a4106ab" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_pqueue_iter_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_pqueue_iter_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_pqueue.c" line="445" column="5" bodyfile="src/ml_pqueue.c" bodystart="445" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__pqueue__iter__t_1a02a3c51ff44917db4cfded888acd1fb0" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_pqueue_iter_t::Count</definition>
+        <argsstring></argsstring>
+        <name>Count</name>
+        <qualifiedname>ml_pqueue_iter_t::Count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_pqueue.c" line="445" column="11" bodyfile="src/ml_pqueue.c" bodystart="445" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="10">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_pqueue_entry_t</label>
+        <link refid="structml__pqueue__entry__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Queue</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Priority</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_pqueue_iter_t</label>
+        <link refid="structml__pqueue__iter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Entries</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_pqueue_t</label>
+        <link refid="structml__pqueue__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Compare</edgelabel>
+          <edgelabel>Priority</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Entries</edgelabel>
+          <edgelabel>Entry</edgelabel>
+          <edgelabel>Parent</edgelabel>
+          <edgelabel>Test</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_pqueue.c" line="442" column="1" bodyfile="src/ml_pqueue.c" bodystart="442" bodyend="446"/>
+    <listofallmembers>
+      <member refid="structml__pqueue__iter__t_1a02a3c51ff44917db4cfded888acd1fb0" prot="public" virt="non-virtual"><scope>ml_pqueue_iter_t</scope><name>Count</name></member>
+      <member refid="structml__pqueue__iter__t_1ac431fdf30a685fe62641243d98ccad95" prot="public" virt="non-virtual"><scope>ml_pqueue_iter_t</scope><name>Entries</name></member>
+      <member refid="structml__pqueue__iter__t_1a52aba0bd6d4df0114c31f6707a4106ab" prot="public" virt="non-virtual"><scope>ml_pqueue_iter_t</scope><name>Index</name></member>
+      <member refid="structml__pqueue__iter__t_1a102fb56954b46aa7fdfc524da1a3434b" prot="public" virt="non-virtual"><scope>ml_pqueue_iter_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

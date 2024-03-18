@@ -153,6 +153,17 @@ typedef struct {
 	State->UTF8Length = UTF8Length; \
 }
 
+#define SET_STATE_RUN(TYPE, PREFIX) \
+	if (TYPE == (ml_value_t *)MLStringT) { \
+		State->Base.run = (ml_state_fn)ml_stream_ ## PREFIX ## _string_run; \
+	} else if (TYPE == (ml_value_t *)MLAddressT) { \
+		State->Base.run = (ml_state_fn)ml_stream_ ## PREFIX ## _address_run; \
+	} else if (TYPE == (ml_value_t *)MLBufferT) { \
+		State->Base.run = (ml_state_fn)ml_stream_ ## PREFIX ## _buffer_run; \
+	} else { \
+		ML_ERROR("ValueError", "Unsupported type for result"); \
+	}
+
 static void ml_stream_read_address_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
@@ -162,6 +173,24 @@ static void ml_stream_read_address_run(ml_read_state_t *State, ml_value_t *Value
 	size_t Remaining = State->Remaining;
 	Remaining -= Length;
 	if (!Remaining) ML_RETURN(ml_stringbuffer_to_address(State->Buffer));
+	State->Space = Space;
+	State->Remaining = Remaining;
+	if (Remaining > State->Buffer->Space) {
+		return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
+	} else {
+		return State->read((ml_state_t *)State, State->Stream, Space, Remaining);
+	}
+}
+
+static void ml_stream_read_buffer_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
+	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
+	size_t Remaining = State->Remaining;
+	Remaining -= Length;
+	if (!Remaining) ML_RETURN(ml_stringbuffer_to_buffer(State->Buffer));
 	State->Space = Space;
 	State->Remaining = Remaining;
 	if (Remaining > State->Buffer->Space) {
@@ -187,6 +216,29 @@ static void ml_stream_read_string_run(ml_read_state_t *State, ml_value_t *Value)
 		return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
 	} else {
 		return State->read((ml_state_t *)State, State->Stream, Space, Remaining);
+	}
+}
+
+ML_METHODX("read", MLStreamT, MLTypeT, MLIntegerT) {
+//<Stream
+//<Type
+//<Count
+//>Type|nil
+// Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	SET_STATE_RUN(Args[1], read);
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	State->Remaining = ml_integer_value(Args[2]);
+	char *Space = State->Space = ml_stringbuffer_writer(State->Buffer, 0);
+	if (State->Remaining > State->Buffer->Space) {
+		return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
+	} else {
+		return State->read((ml_state_t *)State, State->Stream, Space, State->Remaining);
 	}
 }
 
@@ -228,6 +280,22 @@ static void ml_stream_readx_address_run(ml_read_state_t *State, ml_value_t *Valu
 	return State->read((ml_state_t *)State, Stream, State->Chars + 64, 1);
 }
 
+static void ml_stream_readx_buffer_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
+	unsigned char Char = State->Chars[64];
+	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_buffer(State->Buffer));
+	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
+	size_t Remaining = State->Remaining;
+	Remaining -= Length;
+	if (!Remaining) ML_RETURN(ml_stringbuffer_to_buffer(State->Buffer));
+	State->Remaining = Remaining;
+	ml_value_t *Stream = State->Stream;
+	return State->read((ml_state_t *)State, Stream, State->Chars + 64, 1);
+}
+
 static void ml_stream_readx_string_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
@@ -242,6 +310,55 @@ static void ml_stream_readx_string_run(ml_read_state_t *State, ml_value_t *Value
 	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, State->Chars + 64, State->UTF8Length ?: 1);
+}
+
+ML_METHODX("readx", MLStreamT, MLTypeT, MLStringT) {
+//<Stream
+//<Type
+//<Delimiters
+//>Type|nil
+// Returns the next text from :mini:`Stream`, upto but excluding any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 68, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	SET_STATE_RUN(Args[1], readx);
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	const unsigned char *Terms = (const unsigned char *)ml_string_value(Args[2]);
+	int TermsLength = ml_string_length(Args[1]);
+	for (int I = 0; I < TermsLength; ++I) {
+		unsigned char Char = Terms[I];
+		State->Chars[Char / 8] |= 1 << (Char % 8);
+	}
+	State->Remaining = SIZE_MAX;
+	return State->read((ml_state_t *)State, State->Stream, State->Chars + 64, 1);
+}
+
+ML_METHODX("readx", MLStreamT, MLTypeT, MLStringT, MLIntegerT) {
+//<Stream
+//<Type
+//<Delimiters
+//<Count
+//>Type|nil
+// Returns the next text from :mini:`Stream`, upto but excluding any character in :mini:`Delimiters` or :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 68, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	SET_STATE_RUN(Args[1], readx);
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	const unsigned char *Terms = (const unsigned char *)ml_string_value(Args[2]);
+	int TermsLength = ml_string_length(Args[1]);
+	for (int I = 0; I < TermsLength; ++I) {
+		unsigned char Char = Terms[I];
+		State->Chars[Char / 8] |= 1 << (Char % 8);
+	}
+	State->Remaining = ml_integer_value(Args[3]);
+	return State->read((ml_state_t *)State, State->Stream, State->Chars + 64, 1);
 }
 
 ML_METHODX("readx", MLStreamT, MLStringT) {
@@ -307,6 +424,22 @@ static void ml_stream_readi_address_run(ml_read_state_t *State, ml_value_t *Valu
 	return State->read((ml_state_t *)State, Stream, State->Chars + 64, 1);
 }
 
+static void ml_stream_readi_buffer_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
+	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
+	unsigned char Char = State->Chars[64];
+	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_buffer(State->Buffer));
+	size_t Remaining = State->Remaining;
+	Remaining -= Length;
+	if (!Remaining) ML_RETURN(ml_stringbuffer_to_buffer(State->Buffer));
+	State->Remaining = Remaining;
+	ml_value_t *Stream = State->Stream;
+	return State->read((ml_state_t *)State, Stream, State->Chars + 64, 1);
+}
+
 static void ml_stream_readi_string_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
@@ -321,6 +454,55 @@ static void ml_stream_readi_string_run(ml_read_state_t *State, ml_value_t *Value
 	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, State->Chars + 64, State->UTF8Length ?: 1);
+}
+
+ML_METHODX("readi", MLStreamT, MLTypeT, MLStringT) {
+//<Stream
+//<Type
+//<Delimiters
+//>Type|nil
+// Returns the next text from :mini:`Stream`, upto and including any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 68, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	SET_STATE_RUN(Args[1], readi);
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	const unsigned char *Terms = (const unsigned char *)ml_string_value(Args[1]);
+	int TermsLength = ml_string_length(Args[2]);
+	for (int I = 0; I < TermsLength; ++I) {
+		unsigned char Char = Terms[I];
+		State->Chars[Char / 8] |= 1 << (Char % 8);
+	}
+	State->Remaining = SIZE_MAX;
+	return State->read((ml_state_t *)State, State->Stream, State->Chars + 64, 1);
+}
+
+ML_METHODX("readi", MLStreamT, MLTypeT, MLStringT, MLIntegerT) {
+//<Stream
+//<Type
+//<Delimiters
+//<Count
+//>Type|nil
+// Returns the next text from :mini:`Stream`, upto and including any character in :mini:`Delimiters` or :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 68, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	SET_STATE_RUN(Args[1], readi);
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	const unsigned char *Terms = (const unsigned char *)ml_string_value(Args[2]);
+	int TermsLength = ml_string_length(Args[3]);
+	for (int I = 0; I < TermsLength; ++I) {
+		unsigned char Char = Terms[I];
+		State->Chars[Char / 8] |= 1 << (Char % 8);
+	}
+	State->Remaining = ml_integer_value(Args[2]);
+	return State->read((ml_state_t *)State, State->Stream, State->Chars + 64, 1);
 }
 
 ML_METHODX("readi", MLStreamT, MLStringT) {
@@ -397,6 +579,16 @@ static void ml_stream_rest_address_run(ml_read_state_t *State, ml_value_t *Value
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
 }
 
+static void ml_stream_rest_buffer_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : ml_cstring(""));
+	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
+	ml_value_t *Stream = State->Stream;
+	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+}
+
 static void ml_stream_rest_string_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
@@ -405,6 +597,23 @@ static void ml_stream_rest_string_run(ml_read_state_t *State, ml_value_t *Value)
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+}
+
+ML_METHODX("rest", MLStreamT, MLTypeT) {
+//<Stream
+//<Type
+//>Type|nil
+// Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	SET_STATE_RUN(Args[1], rest);
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	char *Space = ml_stringbuffer_writer(State->Buffer, 0);
+	return State->read((ml_state_t *)State, State->Stream, Space, State->Buffer->Space);
 }
 
 ML_METHODX("rest", MLStreamT) {

@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structtypelib__iter__t" kind="struct" language="C++" prot="public">
+    <compoundname>typelib_iter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structtypelib__iter__t_1a8c6c64e2b9d84ac16932dea171106e41" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* typelib_iter_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>typelib_iter_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="69" column="11" bodyfile="src/ml_gir.c" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtypelib__iter__t_1a8294d847678acb80a0b03a1196930216" prot="public" static="no" mutable="no">
+        <type>GITypelib *</type>
+        <definition>GITypelib* typelib_iter_t::Handle</definition>
+        <argsstring></argsstring>
+        <name>Handle</name>
+        <qualifiedname>typelib_iter_t::Handle</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="70" column="11" bodyfile="src/ml_gir.c" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtypelib__iter__t_1a43d69d1ea368b0914ee408c8a9fbd679" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* typelib_iter_t::Namespace</definition>
+        <argsstring></argsstring>
+        <name>Namespace</name>
+        <qualifiedname>typelib_iter_t::Namespace</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="71" column="12" bodyfile="src/ml_gir.c" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtypelib__iter__t_1a1dd092dc215650fac0c95f26bef63a78" prot="public" static="no" mutable="no">
+        <type>GIBaseInfo *</type>
+        <definition>GIBaseInfo* typelib_iter_t::Current</definition>
+        <argsstring></argsstring>
+        <name>Current</name>
+        <qualifiedname>typelib_iter_t::Current</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="72" column="12" bodyfile="src/ml_gir.c" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtypelib__iter__t_1a49baddb4648f0a94b41b75972a76140e" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int typelib_iter_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>typelib_iter_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="73" column="5" bodyfile="src/ml_gir.c" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtypelib__iter__t_1a5b7d183b640022c2ac52b3e206699b0b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int typelib_iter_t::Total</definition>
+        <argsstring></argsstring>
+        <name>Total</name>
+        <qualifiedname>typelib_iter_t::Total</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="73" column="11" bodyfile="src/ml_gir.c" bodystart="73" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>typelib_iter_t</label>
+        <link refid="structtypelib__iter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="68" column="1" bodyfile="src/ml_gir.c" bodystart="68" bodyend="74"/>
+    <listofallmembers>
+      <member refid="structtypelib__iter__t_1a1dd092dc215650fac0c95f26bef63a78" prot="public" virt="non-virtual"><scope>typelib_iter_t</scope><name>Current</name></member>
+      <member refid="structtypelib__iter__t_1a8294d847678acb80a0b03a1196930216" prot="public" virt="non-virtual"><scope>typelib_iter_t</scope><name>Handle</name></member>
+      <member refid="structtypelib__iter__t_1a49baddb4648f0a94b41b75972a76140e" prot="public" virt="non-virtual"><scope>typelib_iter_t</scope><name>Index</name></member>
+      <member refid="structtypelib__iter__t_1a43d69d1ea368b0914ee408c8a9fbd679" prot="public" virt="non-virtual"><scope>typelib_iter_t</scope><name>Namespace</name></member>
+      <member refid="structtypelib__iter__t_1a5b7d183b640022c2ac52b3e206699b0b" prot="public" virt="non-virtual"><scope>typelib_iter_t</scope><name>Total</name></member>
+      <member refid="structtypelib__iter__t_1a8c6c64e2b9d84ac16932dea171106e41" prot="public" virt="non-virtual"><scope>typelib_iter_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

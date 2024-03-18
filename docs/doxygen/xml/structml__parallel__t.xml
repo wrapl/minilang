@@ -1,0 +1,263 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__parallel__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_parallel_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__parallel__t_1af9ef368862b1922a7ae122c56340c578" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_parallel_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_parallel_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="373" column="12" bodyfile="src/ml_tasks.c" bodystart="373" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1a0efd085a4255ef60c81e5ae2b23d0505" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_parallel_t::NextState[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>NextState</name>
+        <qualifiedname>ml_parallel_t::NextState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="374" column="12" bodyfile="src/ml_tasks.c" bodystart="374" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1a89e81c1acbd929a00c271ba65b0784be" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_parallel_t::KeyState[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>KeyState</name>
+        <qualifiedname>ml_parallel_t::KeyState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="375" column="12" bodyfile="src/ml_tasks.c" bodystart="375" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1a1d245ae22fa8202517ca8d9a377caa47" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_parallel_t::ValueState[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>ValueState</name>
+        <qualifiedname>ml_parallel_t::ValueState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="376" column="12" bodyfile="src/ml_tasks.c" bodystart="376" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1abc982d59426811449069a07e47c3d1be" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_parallel_t::Iter</definition>
+        <argsstring></argsstring>
+        <name>Iter</name>
+        <qualifiedname>ml_parallel_t::Iter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="377" column="12" bodyfile="src/ml_tasks.c" bodystart="377" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1a08584f82ca6e41572b2f943305a61a4c" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_parallel_t::Fn</definition>
+        <argsstring></argsstring>
+        <name>Fn</name>
+        <qualifiedname>ml_parallel_t::Fn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="377" column="17" bodyfile="src/ml_tasks.c" bodystart="377" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1ab38afac90ed50e8709faa431c5bd2282" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_parallel_t::Error</definition>
+        <argsstring></argsstring>
+        <name>Error</name>
+        <qualifiedname>ml_parallel_t::Error</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="377" column="20" bodyfile="src/ml_tasks.c" bodystart="377" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1a8c675a3856b70479a18a2f91813e75fd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_parallel_t::Args[2]</definition>
+        <argsstring>[2]</argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_parallel_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="378" column="12" bodyfile="src/ml_tasks.c" bodystart="378" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1adf95e8e4498525eff4e55c65da392367" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ml_parallel_t::NumRunning</definition>
+        <argsstring></argsstring>
+        <name>NumRunning</name>
+        <qualifiedname>ml_parallel_t::NumRunning</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="379" column="8" bodyfile="src/ml_tasks.c" bodystart="379" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1ac48d970cc8f2bd7e3e6cddbc8d849ec0" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ml_parallel_t::MaxRunning</definition>
+        <argsstring></argsstring>
+        <name>MaxRunning</name>
+        <qualifiedname>ml_parallel_t::MaxRunning</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="379" column="19" bodyfile="src/ml_tasks.c" bodystart="379" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__parallel__t_1a80235ef81a351ebce8e6c24a9419224f" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ml_parallel_t::Burst</definition>
+        <argsstring></argsstring>
+        <name>Burst</name>
+        <qualifiedname>ml_parallel_t::Burst</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="379" column="30" bodyfile="src/ml_tasks.c" bodystart="379" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_parallel_t</label>
+        <link refid="structml__parallel__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+          <edgelabel>KeyState</edgelabel>
+          <edgelabel>NextState</edgelabel>
+          <edgelabel>ValueState</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Error</edgelabel>
+          <edgelabel>Fn</edgelabel>
+          <edgelabel>Iter</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_tasks.c" line="372" column="1" bodyfile="src/ml_tasks.c" bodystart="372" bodyend="380"/>
+    <listofallmembers>
+      <member refid="structml__parallel__t_1a8c675a3856b70479a18a2f91813e75fd" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>Args</name></member>
+      <member refid="structml__parallel__t_1af9ef368862b1922a7ae122c56340c578" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>Base</name></member>
+      <member refid="structml__parallel__t_1a80235ef81a351ebce8e6c24a9419224f" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>Burst</name></member>
+      <member refid="structml__parallel__t_1ab38afac90ed50e8709faa431c5bd2282" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>Error</name></member>
+      <member refid="structml__parallel__t_1a08584f82ca6e41572b2f943305a61a4c" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>Fn</name></member>
+      <member refid="structml__parallel__t_1abc982d59426811449069a07e47c3d1be" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>Iter</name></member>
+      <member refid="structml__parallel__t_1a89e81c1acbd929a00c271ba65b0784be" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>KeyState</name></member>
+      <member refid="structml__parallel__t_1ac48d970cc8f2bd7e3e6cddbc8d849ec0" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>MaxRunning</name></member>
+      <member refid="structml__parallel__t_1a0efd085a4255ef60c81e5ae2b23d0505" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>NextState</name></member>
+      <member refid="structml__parallel__t_1adf95e8e4498525eff4e55c65da392367" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>NumRunning</name></member>
+      <member refid="structml__parallel__t_1a1d245ae22fa8202517ca8d9a377caa47" prot="public" virt="non-virtual"><scope>ml_parallel_t</scope><name>ValueState</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

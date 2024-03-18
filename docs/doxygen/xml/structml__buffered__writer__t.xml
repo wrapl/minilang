@@ -1,0 +1,172 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__buffered__writer__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_buffered_writer_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__buffered__writer__t_1a555c9f9de86ead850732c919b0799970" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_buffered_writer_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_buffered_writer_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="708" column="12" bodyfile="src/ml_stream.c" bodystart="708" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__writer__t_1a6e3a0d873b011ae29ba468af407e1bf2" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_buffered_writer_t::Stream</definition>
+        <argsstring></argsstring>
+        <name>Stream</name>
+        <qualifiedname>ml_buffered_writer_t::Stream</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="709" column="12" bodyfile="src/ml_stream.c" bodystart="709" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__writer__t_1acb0627180031a78b606aed6b10bf9a7f" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>ml_buffered_writer_t::Request</definition>
+        <argsstring></argsstring>
+        <name>Request</name>
+        <qualifiedname>ml_buffered_writer_t::Request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="716" column="2" bodyfile="src/ml_stream.c" bodystart="716" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__writer__t_1a5341223d905484f9577c3434255591ff" prot="public" static="no" mutable="no">
+        <type>char</type>
+        <definition>char ml_buffered_writer_t::Chars[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Chars</name>
+        <qualifiedname>ml_buffered_writer_t::Chars</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="717" column="6" bodyfile="src/ml_stream.c" bodystart="717" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structml__buffered__writer__t_1a9efd8dfdd27b56811fc8da2b53e97534" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ml_buffered_writer_t::typeof</definition>
+        <argsstring>(ml_stream_write)</argsstring>
+        <name>typeof</name>
+        <qualifiedname>ml_buffered_writer_t::typeof</qualifiedname>
+        <param>
+          <type>ml_stream_write</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.c" line="710" column="1" bodyfile="src/ml_stream.c" bodystart="710" bodyend="716"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_buffered_writer_t</label>
+        <link refid="structml__buffered__writer__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Stream</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_stream.c" line="707" column="1" bodyfile="src/ml_stream.c" bodystart="707" bodyend="718"/>
+    <listofallmembers>
+      <member refid="structml__buffered__writer__t_1a555c9f9de86ead850732c919b0799970" prot="public" virt="non-virtual"><scope>ml_buffered_writer_t</scope><name>Base</name></member>
+      <member refid="structml__buffered__writer__t_1a5341223d905484f9577c3434255591ff" prot="public" virt="non-virtual"><scope>ml_buffered_writer_t</scope><name>Chars</name></member>
+      <member refid="structml__buffered__writer__t_1acb0627180031a78b606aed6b10bf9a7f" prot="public" virt="non-virtual"><scope>ml_buffered_writer_t</scope><name>Request</name></member>
+      <member refid="structml__buffered__writer__t_1a6e3a0d873b011ae29ba468af407e1bf2" prot="public" virt="non-virtual"><scope>ml_buffered_writer_t</scope><name>Stream</name></member>
+      <member refid="structml__buffered__writer__t_1a9efd8dfdd27b56811fc8da2b53e97534" prot="public" virt="non-virtual"><scope>ml_buffered_writer_t</scope><name>typeof</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

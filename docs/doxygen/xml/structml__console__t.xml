@@ -1,0 +1,263 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__console__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_console_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__console__t_1aad5d90336e2b9ba09693de822b25d10f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_console_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_console_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="15" column="12" bodyfile="src/ml_console.c" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__console__t_1a9567267f599583223b35f8db1099bc6a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref> *</type>
+        <definition>ml_parser_t* ml_console_t::Parser</definition>
+        <argsstring></argsstring>
+        <name>Parser</name>
+        <qualifiedname>ml_console_t::Parser</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="16" column="13" bodyfile="src/ml_console.c" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__console__t_1acc2fde6f4bf107bc5d8b1b8bfff34380" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__compiler__t" kindref="compound">ml_compiler_t</ref> *</type>
+        <definition>ml_compiler_t* ml_console_t::Compiler</definition>
+        <argsstring></argsstring>
+        <name>Compiler</name>
+        <qualifiedname>ml_console_t::Compiler</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="17" column="15" bodyfile="src/ml_console.c" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__console__t_1a796b17da0e5a4719dcf06fd8c5d40670" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* ml_console_t::Prompt</definition>
+        <argsstring></argsstring>
+        <name>Prompt</name>
+        <qualifiedname>ml_console_t::Prompt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="18" column="12" bodyfile="src/ml_console.c" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__console__t_1a80c39065666bd2decdeffd64b4c690a0" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* ml_console_t::DefaultPrompt</definition>
+        <argsstring></argsstring>
+        <name>DefaultPrompt</name>
+        <qualifiedname>ml_console_t::DefaultPrompt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="19" column="12" bodyfile="src/ml_console.c" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__console__t_1a11a9155a4d065790d4e8db54870f6e8c" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char * ml_console_t::ContinuePrompt</definition>
+        <argsstring></argsstring>
+        <name>ContinuePrompt</name>
+        <qualifiedname>ml_console_t::ContinuePrompt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="19" column="26" bodyfile="src/ml_console.c" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__console__t_1a34abd7d3b83082acc367932eec8279ed" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__debugger__t" kindref="compound">ml_debugger_t</ref> *</type>
+        <definition>ml_debugger_t* ml_console_t::Debugger</definition>
+        <argsstring></argsstring>
+        <name>Debugger</name>
+        <qualifiedname>ml_console_t::Debugger</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_console.c" line="20" column="15" bodyfile="src/ml_console.c" bodystart="20" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="13">
+        <label>ml_compiler_t</label>
+        <link refid="structml__compiler__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>GlobalGet</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Vars</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_console_t</label>
+        <link refid="structml__console__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Parser</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Compiler</edgelabel>
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>Debugger</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="14">
+        <label>ml_debugger_t</label>
+        <link refid="structml__debugger__t"/>
+      </node>
+      <node id="9">
+        <label>ml_parser_t</label>
+        <link refid="structml__parser__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Escape</edgelabel>
+          <edgelabel>Special</edgelabel>
+          <edgelabel>Value</edgelabel>
+          <edgelabel>Warnings</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>ExpectedDelimiter</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>mlc_expected_delimiter_t</label>
+        <link refid="structmlc__expected__delimiter__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_console.c" line="14" column="1" bodyfile="src/ml_console.c" bodystart="14" bodyend="21"/>
+    <listofallmembers>
+      <member refid="structml__console__t_1aad5d90336e2b9ba09693de822b25d10f" prot="public" virt="non-virtual"><scope>ml_console_t</scope><name>Base</name></member>
+      <member refid="structml__console__t_1acc2fde6f4bf107bc5d8b1b8bfff34380" prot="public" virt="non-virtual"><scope>ml_console_t</scope><name>Compiler</name></member>
+      <member refid="structml__console__t_1a11a9155a4d065790d4e8db54870f6e8c" prot="public" virt="non-virtual"><scope>ml_console_t</scope><name>ContinuePrompt</name></member>
+      <member refid="structml__console__t_1a34abd7d3b83082acc367932eec8279ed" prot="public" virt="non-virtual"><scope>ml_console_t</scope><name>Debugger</name></member>
+      <member refid="structml__console__t_1a80c39065666bd2decdeffd64b4c690a0" prot="public" virt="non-virtual"><scope>ml_console_t</scope><name>DefaultPrompt</name></member>
+      <member refid="structml__console__t_1a9567267f599583223b35f8db1099bc6a" prot="public" virt="non-virtual"><scope>ml_console_t</scope><name>Parser</name></member>
+      <member refid="structml__console__t_1a796b17da0e5a4719dcf06fd8c5d40670" prot="public" virt="non-virtual"><scope>ml_console_t</scope><name>Prompt</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

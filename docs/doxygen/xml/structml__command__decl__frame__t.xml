@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__command__decl__frame__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_command_decl_frame_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__command__decl__frame__t_1a9c110ff0e07d933d6e6015faecb786ce" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref> *</type>
+        <definition>ml_parser_t* ml_command_decl_frame_t::Parser</definition>
+        <argsstring></argsstring>
+        <name>Parser</name>
+        <qualifiedname>ml_command_decl_frame_t::Parser</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="6925" column="13" bodyfile="src/ml_compiler.c" bodystart="6925" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__command__decl__frame__t_1acd022081fea963072c666df74347e471" prot="public" static="no" mutable="no">
+        <type>ml_token_t</type>
+        <definition>ml_token_t ml_command_decl_frame_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_command_decl_frame_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="6926" column="12" bodyfile="src/ml_compiler.c" bodystart="6926" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_command_decl_frame_t</label>
+        <link refid="structml__command__decl__frame__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Parser</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_parser_t</label>
+        <link refid="structml__parser__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Escape</edgelabel>
+          <edgelabel>Special</edgelabel>
+          <edgelabel>Value</edgelabel>
+          <edgelabel>Warnings</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>ExpectedDelimiter</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>mlc_expected_delimiter_t</label>
+        <link refid="structmlc__expected__delimiter__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="6924" column="1" bodyfile="src/ml_compiler.c" bodystart="6924" bodyend="6927"/>
+    <listofallmembers>
+      <member refid="structml__command__decl__frame__t_1a9c110ff0e07d933d6e6015faecb786ce" prot="public" virt="non-virtual"><scope>ml_command_decl_frame_t</scope><name>Parser</name></member>
+      <member refid="structml__command__decl__frame__t_1acd022081fea963072c666df74347e471" prot="public" virt="non-virtual"><scope>ml_command_decl_frame_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

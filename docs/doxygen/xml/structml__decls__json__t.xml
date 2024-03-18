@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__decls__json__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_decls_json_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__decls__json__t_1abe979480cc48b18d7b8b8d7a7b7f86f3" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_decls_json_t::Json</definition>
+        <argsstring></argsstring>
+        <name>Json</name>
+        <qualifiedname>ml_decls_json_t::Json</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_minijs.c" line="354" column="12" bodyfile="src/ml_minijs.c" bodystart="354" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__decls__json__t_1ac3eb90adb8038e3574b4d64ae6300a64" prot="public" static="no" mutable="no">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
+        <definition>inthash_t ml_decls_json_t::Cache[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Cache</name>
+        <qualifiedname>ml_decls_json_t::Cache</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_minijs.c" line="355" column="11" bodyfile="src/ml_minijs.c" bodystart="355" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_decls_json_t</label>
+        <link refid="structml__decls__json__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Json</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Cache</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_minijs.c" line="353" column="1" bodyfile="src/ml_minijs.c" bodystart="353" bodyend="356"/>
+    <listofallmembers>
+      <member refid="structml__decls__json__t_1ac3eb90adb8038e3574b4d64ae6300a64" prot="public" virt="non-virtual"><scope>ml_decls_json_t</scope><name>Cache</name></member>
+      <member refid="structml__decls__json__t_1abe979480cc48b18d7b8b8d7a7b7f86f3" prot="public" virt="non-virtual"><scope>ml_decls_json_t</scope><name>Json</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__block__builder__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_block_builder_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__block__builder__t_1af24be51d16ee65bf15d71f12680c1f1f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* mlc_block_builder_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>mlc_block_builder_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3387" column="11" bodyfile="src/ml_compiler.c" bodystart="3387" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__builder__t_1a0814429e8c8b1fb9b494b5e7d32ba781" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__block__expr__t" kindref="compound">mlc_block_expr_t</ref> *</type>
+        <definition>mlc_block_expr_t* mlc_block_builder_t::Expr</definition>
+        <argsstring></argsstring>
+        <name>Expr</name>
+        <qualifiedname>mlc_block_builder_t::Expr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3388" column="18" bodyfile="src/ml_compiler.c" bodystart="3388" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__builder__t_1abd419cc1689e031e6afe867d7e6b5c12" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> **</type>
+        <definition>mlc_expr_t** mlc_block_builder_t::ExprSlot</definition>
+        <argsstring></argsstring>
+        <name>ExprSlot</name>
+        <qualifiedname>mlc_block_builder_t::ExprSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3389" column="12" bodyfile="src/ml_compiler.c" bodystart="3389" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__builder__t_1a685f1168219dcd6c897e18362dc0364a" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> **</type>
+        <definition>mlc_local_t** mlc_block_builder_t::VarsSlot</definition>
+        <argsstring></argsstring>
+        <name>VarsSlot</name>
+        <qualifiedname>mlc_block_builder_t::VarsSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3390" column="13" bodyfile="src/ml_compiler.c" bodystart="3390" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__builder__t_1a596f167ca850f6190bc1c376adf3d597" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> **</type>
+        <definition>mlc_local_t** mlc_block_builder_t::LetsSlot</definition>
+        <argsstring></argsstring>
+        <name>LetsSlot</name>
+        <qualifiedname>mlc_block_builder_t::LetsSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3391" column="13" bodyfile="src/ml_compiler.c" bodystart="3391" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__block__builder__t_1af5eb2741b90c88a2f378809a1928f9db" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> **</type>
+        <definition>mlc_local_t** mlc_block_builder_t::DefsSlot</definition>
+        <argsstring></argsstring>
+        <name>DefsSlot</name>
+        <qualifiedname>mlc_block_builder_t::DefsSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3392" column="13" bodyfile="src/ml_compiler.c" bodystart="3392" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_block_builder_t</label>
+        <link refid="structmlc__block__builder__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>ExprSlot</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>DefsSlot</edgelabel>
+          <edgelabel>LetsSlot</edgelabel>
+          <edgelabel>VarsSlot</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>mlc_block_expr_t</label>
+        <link refid="structmlc__block__expr__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Defs</edgelabel>
+          <edgelabel>Lets</edgelabel>
+          <edgelabel>Vars</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>CatchBody</edgelabel>
+          <edgelabel>Child</edgelabel>
+          <edgelabel>Must</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>mlc_local_t</label>
+        <link refid="structmlc__local__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="3386" column="1" bodyfile="src/ml_compiler.c" bodystart="3386" bodyend="3393"/>
+    <listofallmembers>
+      <member refid="structmlc__block__builder__t_1af5eb2741b90c88a2f378809a1928f9db" prot="public" virt="non-virtual"><scope>mlc_block_builder_t</scope><name>DefsSlot</name></member>
+      <member refid="structmlc__block__builder__t_1a0814429e8c8b1fb9b494b5e7d32ba781" prot="public" virt="non-virtual"><scope>mlc_block_builder_t</scope><name>Expr</name></member>
+      <member refid="structmlc__block__builder__t_1abd419cc1689e031e6afe867d7e6b5c12" prot="public" virt="non-virtual"><scope>mlc_block_builder_t</scope><name>ExprSlot</name></member>
+      <member refid="structmlc__block__builder__t_1a596f167ca850f6190bc1c376adf3d597" prot="public" virt="non-virtual"><scope>mlc_block_builder_t</scope><name>LetsSlot</name></member>
+      <member refid="structmlc__block__builder__t_1af24be51d16ee65bf15d71f12680c1f1f" prot="public" virt="non-virtual"><scope>mlc_block_builder_t</scope><name>Type</name></member>
+      <member refid="structmlc__block__builder__t_1a685f1168219dcd6c897e18362dc0364a" prot="public" virt="non-virtual"><scope>mlc_block_builder_t</scope><name>VarsSlot</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

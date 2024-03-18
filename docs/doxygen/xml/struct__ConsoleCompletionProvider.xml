@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="struct__ConsoleCompletionProvider" kind="struct" language="C++" prot="public">
+    <compoundname>_ConsoleCompletionProvider</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct__ConsoleCompletionProvider_1a8b47d8997142c7797235ad673364c23b" prot="public" static="no" mutable="no">
+        <type>GObject</type>
+        <definition>GObject _ConsoleCompletionProvider::parent_instance</definition>
+        <argsstring></argsstring>
+        <name>parent_instance</name>
+        <qualifiedname>_ConsoleCompletionProvider::parent_instance</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console_completion.c" line="5" column="9" bodyfile="src/gtk_console_completion.c" bodystart="5" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct__ConsoleCompletionProvider_1a2521abce391510d9c608b2efc63d6793" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__compiler__t" kindref="compound">ml_compiler_t</ref> *</type>
+        <definition>ml_compiler_t* _ConsoleCompletionProvider::Compiler</definition>
+        <argsstring></argsstring>
+        <name>Compiler</name>
+        <qualifiedname>_ConsoleCompletionProvider::Compiler</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/gtk_console_completion.c" line="6" column="15" bodyfile="src/gtk_console_completion.c" bodystart="6" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>_ConsoleCompletionProvider</label>
+        <link refid="struct__ConsoleCompletionProvider"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Compiler</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_compiler_t</label>
+        <link refid="structml__compiler__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>GlobalGet</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Vars</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/gtk_console_completion.c" line="4" column="1" bodyfile="src/gtk_console_completion.c" bodystart="4" bodyend="7"/>
+    <listofallmembers>
+      <member refid="struct__ConsoleCompletionProvider_1a2521abce391510d9c608b2efc63d6793" prot="public" virt="non-virtual"><scope>_ConsoleCompletionProvider</scope><name>Compiler</name></member>
+      <member refid="struct__ConsoleCompletionProvider_1a8b47d8997142c7797235ad673364c23b" prot="public" virt="non-virtual"><scope>_ConsoleCompletionProvider</scope><name>parent_instance</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

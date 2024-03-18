@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structgir__closure__info__t" kind="struct" language="C++" prot="public">
+    <compoundname>gir_closure_info_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structgir__closure__info__t_1a5435295924eefa288ebbc9f2930ad485" prot="public" static="no" mutable="no">
+        <type><ref refid="structobject__instance__t" kindref="compound">object_instance_t</ref> *</type>
+        <definition>object_instance_t* gir_closure_info_t::Instance</definition>
+        <argsstring></argsstring>
+        <name>Instance</name>
+        <qualifiedname>gir_closure_info_t::Instance</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1354" column="19" bodyfile="src/ml_gir.c" bodystart="1354" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structgir__closure__info__t_1a854c6fa8267ea78b17f276fcc6559596" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+        <definition>ml_context_t* gir_closure_info_t::Context</definition>
+        <argsstring></argsstring>
+        <name>Context</name>
+        <qualifiedname>gir_closure_info_t::Context</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1355" column="14" bodyfile="src/ml_gir.c" bodystart="1355" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structgir__closure__info__t_1abe5a68c2f69f61350d49558d264b6c56" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* gir_closure_info_t::Function</definition>
+        <argsstring></argsstring>
+        <name>Function</name>
+        <qualifiedname>gir_closure_info_t::Function</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1356" column="12" bodyfile="src/ml_gir.c" bodystart="1356" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structgir__closure__info__t_1acd8f94edd13d3a769c826ec3d35ba005" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int gir_closure_info_t::NumArgs</definition>
+        <argsstring></argsstring>
+        <name>NumArgs</name>
+        <qualifiedname>gir_closure_info_t::NumArgs</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1357" column="5" bodyfile="src/ml_gir.c" bodystart="1357" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structgir__closure__info__t_1ae3f4867272bdcd40c38c9cd76c71ca55" prot="public" static="no" mutable="no">
+        <type>GIBaseInfo *</type>
+        <definition>GIBaseInfo* gir_closure_info_t::Args[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Args</name>
+        <qualifiedname>gir_closure_info_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1358" column="12" bodyfile="src/ml_gir.c" bodystart="1358" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>gir_closure_info_t</label>
+        <link refid="structgir__closure__info__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Instance</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Function</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="10">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>object_instance_t</label>
+        <link refid="structobject__instance__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Handlers</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>object_t</label>
+        <link refid="structobject__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Signals</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ptrset_t</label>
+        <link refid="structptrset__t"/>
+      </node>
+      <node id="8">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="1353" column="1" bodyfile="src/ml_gir.c" bodystart="1353" bodyend="1359"/>
+    <listofallmembers>
+      <member refid="structgir__closure__info__t_1ae3f4867272bdcd40c38c9cd76c71ca55" prot="public" virt="non-virtual"><scope>gir_closure_info_t</scope><name>Args</name></member>
+      <member refid="structgir__closure__info__t_1a854c6fa8267ea78b17f276fcc6559596" prot="public" virt="non-virtual"><scope>gir_closure_info_t</scope><name>Context</name></member>
+      <member refid="structgir__closure__info__t_1abe5a68c2f69f61350d49558d264b6c56" prot="public" virt="non-virtual"><scope>gir_closure_info_t</scope><name>Function</name></member>
+      <member refid="structgir__closure__info__t_1a5435295924eefa288ebbc9f2930ad485" prot="public" virt="non-virtual"><scope>gir_closure_info_t</scope><name>Instance</name></member>
+      <member refid="structgir__closure__info__t_1acd8f94edd13d3a769c826ec3d35ba005" prot="public" virt="non-virtual"><scope>gir_closure_info_t</scope><name>NumArgs</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

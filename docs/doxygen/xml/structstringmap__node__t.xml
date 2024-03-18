@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structstringmap__node__t" kind="struct" language="C++" prot="public">
+    <compoundname>stringmap_node_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structstringmap__node__t_1a0ae8e89a1fe2f8c099dbfe654ad5744d" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__node__t" kindref="compound">stringmap_node_t</ref> *</type>
+        <definition>stringmap_node_t* stringmap_node_t::Left</definition>
+        <argsstring></argsstring>
+        <name>Left</name>
+        <qualifiedname>stringmap_node_t::Left</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.c" line="6" column="18" bodyfile="src/stringmap.c" bodystart="6" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringmap__node__t_1ab99b45df5aff5e985d9d53a385f883a1" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__node__t" kindref="compound">stringmap_node_t</ref> *</type>
+        <definition>stringmap_node_t * stringmap_node_t::Right</definition>
+        <argsstring></argsstring>
+        <name>Right</name>
+        <qualifiedname>stringmap_node_t::Right</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.c" line="6" column="23" bodyfile="src/stringmap.c" bodystart="6" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringmap__node__t_1a8abc3e266e36a81afa6a5e9c2d010b41" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* stringmap_node_t::Key</definition>
+        <argsstring></argsstring>
+        <name>Key</name>
+        <qualifiedname>stringmap_node_t::Key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.c" line="7" column="12" bodyfile="src/stringmap.c" bodystart="7" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringmap__node__t_1afebc0dd94bc8346ada601f031ab16b58" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* stringmap_node_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>stringmap_node_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.c" line="8" column="6" bodyfile="src/stringmap.c" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringmap__node__t_1a6e97d4198f65e24c6e0ab5d65c7cd5ed" prot="public" static="no" mutable="no">
+        <type>long</type>
+        <definition>long stringmap_node_t::Hash</definition>
+        <argsstring></argsstring>
+        <name>Hash</name>
+        <qualifiedname>stringmap_node_t::Hash</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.c" line="9" column="6" bodyfile="src/stringmap.c" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringmap__node__t_1a33642015999878d56cdc5aba69cfdb68" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int stringmap_node_t::Depth</definition>
+        <argsstring></argsstring>
+        <name>Depth</name>
+        <qualifiedname>stringmap_node_t::Depth</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.c" line="10" column="5" bodyfile="src/stringmap.c" bodystart="10" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/stringmap.c" line="5" column="1" bodyfile="src/stringmap.c" bodystart="5" bodyend="11"/>
+    <listofallmembers>
+      <member refid="structstringmap__node__t_1a33642015999878d56cdc5aba69cfdb68" prot="public" virt="non-virtual"><scope>stringmap_node_t</scope><name>Depth</name></member>
+      <member refid="structstringmap__node__t_1a6e97d4198f65e24c6e0ab5d65c7cd5ed" prot="public" virt="non-virtual"><scope>stringmap_node_t</scope><name>Hash</name></member>
+      <member refid="structstringmap__node__t_1a8abc3e266e36a81afa6a5e9c2d010b41" prot="public" virt="non-virtual"><scope>stringmap_node_t</scope><name>Key</name></member>
+      <member refid="structstringmap__node__t_1a0ae8e89a1fe2f8c099dbfe654ad5744d" prot="public" virt="non-virtual"><scope>stringmap_node_t</scope><name>Left</name></member>
+      <member refid="structstringmap__node__t_1ab99b45df5aff5e985d9d53a385f883a1" prot="public" virt="non-virtual"><scope>stringmap_node_t</scope><name>Right</name></member>
+      <member refid="structstringmap__node__t_1afebc0dd94bc8346ada601f031ab16b58" prot="public" virt="non-virtual"><scope>stringmap_node_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

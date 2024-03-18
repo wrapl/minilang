@@ -1,0 +1,279 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__list__filter__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_list_filter_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__list__filter__state__t_1a5d41bb9338da229d80f85d5353abcaa0" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_list_filter_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_list_filter_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="372" column="12" bodyfile="src/ml_list.c" bodystart="372" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1a7e4b4c2f610eacb4d54ffb0b55d0d921" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_list_filter_state_t::Filter</definition>
+        <argsstring></argsstring>
+        <name>Filter</name>
+        <qualifiedname>ml_list_filter_state_t::Filter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="373" column="12" bodyfile="src/ml_list.c" bodystart="373" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1afc39386889b00cd46965c2243fccce4a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__t" kindref="compound">ml_list_t</ref> *</type>
+        <definition>ml_list_t* ml_list_filter_state_t::List</definition>
+        <argsstring></argsstring>
+        <name>List</name>
+        <qualifiedname>ml_list_filter_state_t::List</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="374" column="11" bodyfile="src/ml_list.c" bodystart="374" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1aa3c7b712b53a3977321e9d4da92e567d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__t" kindref="compound">ml_list_t</ref> *</type>
+        <definition>ml_list_t * ml_list_filter_state_t::Drop</definition>
+        <argsstring></argsstring>
+        <name>Drop</name>
+        <qualifiedname>ml_list_filter_state_t::Drop</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="374" column="16" bodyfile="src/ml_list.c" bodystart="374" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1aca55f2b1c99d27b886dec3bcf2528fbb" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* ml_list_filter_state_t::Node</definition>
+        <argsstring></argsstring>
+        <name>Node</name>
+        <qualifiedname>ml_list_filter_state_t::Node</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="375" column="16" bodyfile="src/ml_list.c" bodystart="375" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1a8838d65b422193cdc00e9b31996e0ad9" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> **</type>
+        <definition>ml_list_node_t** ml_list_filter_state_t::KeepSlot</definition>
+        <argsstring></argsstring>
+        <name>KeepSlot</name>
+        <qualifiedname>ml_list_filter_state_t::KeepSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="376" column="16" bodyfile="src/ml_list.c" bodystart="376" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1a2e97150daafaf0fb64ef27c881f7f661" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* ml_list_filter_state_t::KeepTail</definition>
+        <argsstring></argsstring>
+        <name>KeepTail</name>
+        <qualifiedname>ml_list_filter_state_t::KeepTail</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="377" column="16" bodyfile="src/ml_list.c" bodystart="377" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1a0f067b5c48135addff91cc515e95f0b3" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> **</type>
+        <definition>ml_list_node_t** ml_list_filter_state_t::DropSlot</definition>
+        <argsstring></argsstring>
+        <name>DropSlot</name>
+        <qualifiedname>ml_list_filter_state_t::DropSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="378" column="16" bodyfile="src/ml_list.c" bodystart="378" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1aca99758299da34da6b998a5118e8d9a0" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> *</type>
+        <definition>ml_list_node_t* ml_list_filter_state_t::DropTail</definition>
+        <argsstring></argsstring>
+        <name>DropTail</name>
+        <qualifiedname>ml_list_filter_state_t::DropTail</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="379" column="16" bodyfile="src/ml_list.c" bodystart="379" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__list__filter__state__t_1a362590ede02a5a23b9d866829ad311ee" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_list_filter_state_t::Length</definition>
+        <argsstring></argsstring>
+        <name>Length</name>
+        <qualifiedname>ml_list_filter_state_t::Length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="380" column="5" bodyfile="src/ml_list.c" bodystart="380" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_list_filter_state_t</label>
+        <link refid="structml__list__filter__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Filter</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Drop</edgelabel>
+          <edgelabel>List</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>DropSlot</edgelabel>
+          <edgelabel>DropTail</edgelabel>
+          <edgelabel>KeepSlot</edgelabel>
+          <edgelabel>KeepTail</edgelabel>
+          <edgelabel>Node</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_list_node_t</label>
+        <link refid="structml__list__node__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_list_t</label>
+        <link refid="structml__list__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>CachedNode</edgelabel>
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_list.c" line="371" column="1" bodyfile="src/ml_list.c" bodystart="371" bodyend="381"/>
+    <listofallmembers>
+      <member refid="structml__list__filter__state__t_1a5d41bb9338da229d80f85d5353abcaa0" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>Base</name></member>
+      <member refid="structml__list__filter__state__t_1aa3c7b712b53a3977321e9d4da92e567d" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>Drop</name></member>
+      <member refid="structml__list__filter__state__t_1a0f067b5c48135addff91cc515e95f0b3" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>DropSlot</name></member>
+      <member refid="structml__list__filter__state__t_1aca99758299da34da6b998a5118e8d9a0" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>DropTail</name></member>
+      <member refid="structml__list__filter__state__t_1a7e4b4c2f610eacb4d54ffb0b55d0d921" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>Filter</name></member>
+      <member refid="structml__list__filter__state__t_1a8838d65b422193cdc00e9b31996e0ad9" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>KeepSlot</name></member>
+      <member refid="structml__list__filter__state__t_1a2e97150daafaf0fb64ef27c881f7f661" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>KeepTail</name></member>
+      <member refid="structml__list__filter__state__t_1a362590ede02a5a23b9d866829ad311ee" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>Length</name></member>
+      <member refid="structml__list__filter__state__t_1afc39386889b00cd46965c2243fccce4a" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>List</name></member>
+      <member refid="structml__list__filter__state__t_1aca55f2b1c99d27b886dec3bcf2528fbb" prot="public" virt="non-virtual"><scope>ml_list_filter_state_t</scope><name>Node</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

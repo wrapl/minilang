@@ -26,20 +26,6 @@
     <member refid="structdasm__State_1a6e27f49150e9a14580fb313cc2777e00" kind="variable"><name>status</name></member>
     <member refid="structdasm__State_1aeab1e51ba49feab1ed376b9ae570ba76" kind="variable"><name>sections</name></member>
   </compound>
-  <compound refid="structinthash2__node__t" kind="struct"><name>inthash2_node_t</name>
-    <member refid="structinthash2__node__t_1a4098168278c6e0666eedbfb6805c5f02" kind="variable"><name>Key</name></member>
-    <member refid="structinthash2__node__t_1a63a2e91d18fabd71e0759c2406145574" kind="variable"><name>Offset</name></member>
-  </compound>
-  <compound refid="structinthash2__result__t" kind="struct"><name>inthash2_result_t</name>
-    <member refid="structinthash2__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
-    <member refid="structinthash2__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
-  </compound>
-  <compound refid="structinthash2__t" kind="struct"><name>inthash2_t</name>
-    <member refid="structinthash2__t_1a8f351070e1bb0035edf33c1baaddd13e" kind="variable"><name>Nodes</name></member>
-    <member refid="structinthash2__t_1a93b817b8cb9e5be468df90c8a277e5bc" kind="variable"><name>Values</name></member>
-    <member refid="structinthash2__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
-    <member refid="structinthash2__t_1adbeb0cbccc7ac4e39443f6cf8049b260" kind="variable"><name>Space</name></member>
-  </compound>
   <compound refid="structinthash__result__t" kind="struct"><name>inthash_result_t</name>
     <member refid="structinthash__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
     <member refid="structinthash__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
@@ -758,8 +744,6 @@
     <member refid="coro_8h_1af889af911dcc4afc6014c9402b77b2e5" kind="function"><name>coro_stack_alloc</name></member>
     <member refid="coro_8h_1a2b0db6ba1253ca9fb7753fef48c406f7" kind="function"><name>coro_stack_free</name></member>
   </compound>
-  <compound refid="dap_8h" kind="file"><name>dap.h</name>
-  </compound>
   <compound refid="dasm__arm_8h" kind="file"><name>dasm_arm.h</name>
     <member refid="dasm__arm_8h_1a10cc6c8dc6fece8ec10c7842c51d83c1" kind="define"><name>DASM_ARCH</name></member>
     <member refid="dasm__arm_8h_1abd28deb7b2d8fa748f81e63e132c6784" kind="define"><name>DASM_EXTERN</name></member>
@@ -1020,19 +1004,6 @@
     <member refid="inthash_8h_1adc81ecd4ba4a3bc61c95fd9099b71e60" kind="function"><name>inthash_contains_inline</name></member>
     <member refid="inthash_8h_1af28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
     <member refid="inthash_8h_1a6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
-  </compound>
-  <compound refid="inthash2_8h" kind="file"><name>inthash2.h</name>
-    <member refid="inthash2_8h_1ab6c05145f6e02872f65710b571dc7f12" kind="define"><name>INTHASH2_INDEX_SHIFT</name></member>
-    <member refid="inthash2_8h_1a0ed0865aee51b153806b21426a16d321" kind="define"><name>INTHASH2_INCR_SHIFT</name></member>
-    <member refid="inthash2_8h_1af2c0a9bf050afa4815d2c1c1aade99e6" kind="define"><name>INTHASH2_INIT</name></member>
-    <member refid="inthash2_8h_1ae916a2db26a51c6dbde5c46abbadadb2" kind="typedef"><name>inthash2_t</name></member>
-    <member refid="inthash2_8h_1a7cdb71feb5a0fe19667f82e2e676b36c" kind="function"><name>inthash2_new</name></member>
-    <member refid="inthash2_8h_1aa0e31570ddccb7de88a470257f8844aa" kind="function"><name>inthash2_search</name></member>
-    <member refid="inthash2_8h_1a82565f4aadc4818d019811dfce15bedf" kind="function"><name>inthash2_insert</name></member>
-    <member refid="inthash2_8h_1a8b64f716274ccb7e4e7fcc31ee61407b" kind="function"><name>inthash2_search_inline</name></member>
-    <member refid="inthash2_8h_1a089f5efb7d0b91774b589b61d3a8bde2" kind="function"><name>inthash2_foreach</name></member>
-    <member refid="inthash2_8h_1a289cc7841657f0ce2d8d7bccbae48a5e" kind="function"><name>inthash2_search2</name></member>
-    <member refid="inthash2_8h_1a53ec8f101c5f2e99efb769065156bc7b" kind="function"><name>inthash2_search2_inline</name></member>
   </compound>
   <compound refid="linenoise_8h" kind="file"><name>linenoise.h</name>
     <member refid="linenoise_8h_1ac910792e203989883a76044651a4f99b" kind="typedef"><name>linenoiseCompletions</name></member>
@@ -1458,7 +1429,7 @@
   <compound refid="ml__file_8h" kind="file"><name>ml_file.h</name>
     <member refid="ml__file_8h_1a5d3a6fc7293d873a8e57e0979748f316" kind="variable"><name>MLFileT</name></member>
     <member refid="ml__file_8h_1a685dc39423dbf4ef9f8bbb5112a9cc80" kind="function"><name>ml_file_init</name></member>
-    <member refid="ml__file_8h_1a4811ba0039c75c6b0682194c5886af31" kind="function"><name>ml_file</name></member>
+    <member refid="ml__file_8h_1a58f7a5abd7549c38e2997a0bc2943fff" kind="function"><name>ml_file</name></member>
     <member refid="ml__file_8h_1a1f1607ac2a3f1d11f66409b5a441f689" kind="function"><name>ml_file_handle</name></member>
   </compound>
   <compound refid="ml__gir_8h" kind="file"><name>ml_gir.h</name>
@@ -1855,7 +1826,6 @@
     <member refid="ml__stream_8h_1a206579eb6453064f0b112505224890c2" kind="variable"><name>MLStreamT</name></member>
     <member refid="ml__stream_8h_1a2ef17055aaff824267bc3c728ca1e354" kind="variable"><name>MLStreamFdT</name></member>
     <member refid="ml__stream_8h_1a4202d8e8a2dc2115e288d5cb2c1b9924" kind="function"><name>ml_stream_init</name></member>
-    <member refid="ml__stream_8h_1a678020c0b6178c4e7035b331a0406920" kind="function"><name>ml_stream_mode</name></member>
     <member refid="ml__stream_8h_1a48fb874e1b08e92bed3348ee8208d486" kind="function"><name>ml_stream_read</name></member>
     <member refid="ml__stream_8h_1a44ae58e09771a5373f7b6f8f088c7b41" kind="function"><name>ml_stream_write</name></member>
     <member refid="ml__stream_8h_1a4706857fc377632c07e75ebc4177b8b5" kind="function"><name>ml_stream_flush</name></member>
@@ -1872,9 +1842,6 @@
   </compound>
   <compound refid="ml__string_8h" kind="file"><name>ml_string.h</name>
     <member refid="ml__string_8h_1a12e8e8945dc82c8478f85df5daa01cc9" kind="function"><name>ml_string_init</name></member>
-  </compound>
-  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
-    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
   </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
@@ -2115,6 +2082,7 @@
     <member refid="group__strings_1gaaddd0ff7078b0f1c4e35041865b982e4" kind="function"><name>ml_buffer_value</name></member>
     <member refid="group__strings_1gad30be565c10094190786beeea7a2e0f0" kind="function"><name>ml_buffer_length</name></member>
     <member refid="group__strings_1ga54b4fdb7f890f70891d399204856977a" kind="function"><name>ml_string</name></member>
+    <member refid="group__strings_1ga2909df5489b91145f91143ed323680d9" kind="function"><name>ml_string_checked</name></member>
     <member refid="group__strings_1gaf172d89c2bbba1a56223df0d5bdd2c47" kind="function"><name>ml_string_unchecked</name></member>
     <member refid="group__strings_1ga77b8d59293a7046704492c8d5c5b56c1" kind="function"><name>ml_string_copy</name></member>
     <member refid="group__strings_1ga3d992fd41e41546701b305ec0c2cf626" kind="function"><name>ml_string_format</name></member>
@@ -2770,6 +2738,7 @@
     <member refid="group__strings_1gaaddd0ff7078b0f1c4e35041865b982e4" kind="function"><name>ml_buffer_value</name></member>
     <member refid="group__strings_1gad30be565c10094190786beeea7a2e0f0" kind="function"><name>ml_buffer_length</name></member>
     <member refid="group__strings_1ga54b4fdb7f890f70891d399204856977a" kind="function"><name>ml_string</name></member>
+    <member refid="group__strings_1ga2909df5489b91145f91143ed323680d9" kind="function"><name>ml_string_checked</name></member>
     <member refid="group__strings_1gaf172d89c2bbba1a56223df0d5bdd2c47" kind="function"><name>ml_string_unchecked</name></member>
     <member refid="group__strings_1ga77b8d59293a7046704492c8d5c5b56c1" kind="function"><name>ml_string_copy</name></member>
     <member refid="group__strings_1ga3d992fd41e41546701b305ec0c2cf626" kind="function"><name>ml_string_format</name></member>

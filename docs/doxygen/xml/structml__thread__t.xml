@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__thread__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_thread_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__thread__t_1a1e4aedc13e77cf4ae7c50dac618bd73e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_thread_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_thread_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="7" column="12" bodyfile="src/ml_thread.c" bodystart="7" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__t_1a0deaacbb3bba496a414f2e9d7cf6733e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+        <definition>ml_value_t** ml_thread_t::Args</definition>
+        <argsstring></argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_thread_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="9" column="12" bodyfile="src/ml_thread.c" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__t_1abfb73febf24c4a861bbccb7b848d4e88" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_thread_t::Result</definition>
+        <argsstring></argsstring>
+        <name>Result</name>
+        <qualifiedname>ml_thread_t::Result</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="10" column="12" bodyfile="src/ml_thread.c" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__t_1ad33665486b51978639de62cceda690a1" prot="public" static="no" mutable="no">
+        <type>union <ref refid="structml__thread__t" kindref="compound">ml_thread_t</ref></type>
+        <definition>union ml_thread_t ml_thread_t</definition>
+        <argsstring></argsstring>
+        <name></name>
+        <qualifiedname>ml_thread_t</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="11" column="1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__t_1aa4006a0c98f40ac0e6e02256739a7af5" prot="public" static="no" mutable="no">
+        <type>pthread_t</type>
+        <definition>pthread_t ml_thread_t::Handle</definition>
+        <argsstring></argsstring>
+        <name>Handle</name>
+        <qualifiedname>ml_thread_t::Handle</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="12" column="11" bodyfile="src/ml_thread.c" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__t_1a6a8787d7a5929a5c0df9ee47123e9a19" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_thread_t::Count</definition>
+        <argsstring></argsstring>
+        <name>Count</name>
+        <qualifiedname>ml_thread_t::Count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="13" column="5" bodyfile="src/ml_thread.c" bodystart="13" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_thread_t</label>
+        <link refid="structml__thread__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Result</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_thread.c" line="6" column="1" bodyfile="src/ml_thread.c" bodystart="6" bodyend="14"/>
+    <listofallmembers>
+      <member refid="structml__thread__t_1a0deaacbb3bba496a414f2e9d7cf6733e" prot="public" virt="non-virtual"><scope>ml_thread_t</scope><name>Args</name></member>
+      <member refid="structml__thread__t_1a1e4aedc13e77cf4ae7c50dac618bd73e" prot="public" virt="non-virtual"><scope>ml_thread_t</scope><name>Base</name></member>
+      <member refid="structml__thread__t_1a6a8787d7a5929a5c0df9ee47123e9a19" prot="public" virt="non-virtual"><scope>ml_thread_t</scope><name>Count</name></member>
+      <member refid="structml__thread__t_1aa4006a0c98f40ac0e6e02256739a7af5" prot="public" virt="non-virtual"><scope>ml_thread_t</scope><name>Handle</name></member>
+      <member refid="structml__thread__t_1abfb73febf24c4a861bbccb7b848d4e88" prot="public" virt="non-virtual"><scope>ml_thread_t</scope><name>Result</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

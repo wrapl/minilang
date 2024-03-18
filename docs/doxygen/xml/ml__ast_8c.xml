@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__ast_8c" kind="file" language="C++">
+    <compoundname>ml_ast.c</compoundname>
+    <includes refid="ml__compiler2_8h" local="yes">ml_compiler2.h</includes>
+    <includes refid="ml__object_8h" local="yes">ml_object.h</includes>
+    <includes local="no">string.h</includes>
+    <includes refid="ml__ast__types_8c" local="yes">ml_ast_types.c</includes>
+    <includes local="yes">ml_ast_init.c</includes>
+    <incdepgraph>
+      <node id="12">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_ast.c</label>
+        <link refid="ml__ast_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+      </node>
+      <node id="21">
+        <label>ml_ast_types.c</label>
+        <link refid="ml__ast__types_8c_source"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+      </node>
+      <node id="19">
+        <label>ml_expr_types.h</label>
+        <link refid="ml__expr__types_8h_source"/>
+      </node>
+      <node id="20">
+        <label>ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>ml_opcodes.h</label>
+        <link refid="ml__opcodes_8h_source"/>
+      </node>
+      <node id="5">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="16">
+        <label>limits.h</label>
+      </node>
+      <node id="22">
+        <label>ml_ast_init.c</label>
+      </node>
+      <node id="15">
+        <label>ml_config.h</label>
+      </node>
+      <node id="4">
+        <label>setjmp.h</label>
+      </node>
+      <node id="9">
+        <label>stdarg.h</label>
+      </node>
+      <node id="14">
+        <label>stdint.h</label>
+      </node>
+      <node id="7">
+        <label>stdio.h</label>
+      </node>
+      <node id="13">
+        <label>stdlib.h</label>
+      </node>
+      <node id="8">
+        <label>string.h</label>
+      </node>
+      <node id="10">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__ast_8c_1a2ee514ce768d3a5765652fb99cd01308" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * mlc_expr_describe</definition>
+        <argsstring>(mlc_expr_t *Expr)</argsstring>
+        <name>mlc_expr_describe</name>
+        <param>
+          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <declname>Expr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_ast.c" line="5" column="12" bodyfile="src/ml_ast_types.c" bodystart="788" bodyend="846" declfile="src/ml_ast.c" declline="5" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__ast_8c_1addbecaccd28bdf4072dafa19cf72ebb8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ENUM2</definition>
+        <argsstring>(ParamKindT, &quot;param-kind&quot;, &quot;Default&quot;, ML_PARAM_DEFAULT, &quot;Extra&quot;, ML_PARAM_EXTRA, &quot;Named&quot;, ML_PARAM_NAMED, &quot;ByRef&quot;, ML_PARAM_BYREF, &quot;AsVar&quot;, ML_PARAM_ASVAR)</argsstring>
+        <name>ML_ENUM2</name>
+        <param>
+          <type>ParamKindT</type>
+        </param>
+        <param>
+          <type>&quot;param-kind&quot;</type>
+        </param>
+        <param>
+          <type>&quot;Default&quot;</type>
+        </param>
+        <param>
+          <type>ML_PARAM_DEFAULT</type>
+        </param>
+        <param>
+          <type>&quot;Extra&quot;</type>
+        </param>
+        <param>
+          <type>ML_PARAM_EXTRA</type>
+        </param>
+        <param>
+          <type>&quot;Named&quot;</type>
+        </param>
+        <param>
+          <type>ML_PARAM_NAMED</type>
+        </param>
+        <param>
+          <type>&quot;ByRef&quot;</type>
+        </param>
+        <param>
+          <type>ML_PARAM_BYREF</type>
+        </param>
+        <param>
+          <type>&quot;AsVar&quot;</type>
+        </param>
+        <param>
+          <type>ML_PARAM_ASVAR</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_ast.c" line="7" column="1" declfile="src/ml_ast.c" declline="7" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__ast_8c_1aa70275ac0505d0fc95e66d9a87a1243c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_TYPE</definition>
+        <argsstring>(AstNamesT,(MLListT), &quot;ast::names&quot;)</argsstring>
+        <name>ML_TYPE</name>
+        <param>
+          <type>AstNamesT</type>
+        </param>
+        <param>
+          <type>(MLListT)</type>
+        </param>
+        <param>
+          <type>&quot;ast::names&quot;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_ast.c" line="15" column="1" declfile="src/ml_ast.c" declline="15" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__ast_8c_1ae70ee3ccc4f5ac07411f558ec5abc25b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_ast_names</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_ast_names</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_ast.c" line="17" column="19" bodyfile="src/ml_ast.c" bodystart="17" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__ast_8c_1af5606f429322a475add8e24dacb74bf7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;ast&quot;, MLExprT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;ast&quot;</type>
+        </param>
+        <param>
+          <type>MLExprT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_ast.c" line="30" column="1" bodyfile="src/ml_ast.c" bodystart="30" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__ast_8c_1abe80c5dc54dafe96fa3647cfecc3ed35" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_ast_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_ast_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_ast.c" line="37" column="6" bodyfile="src/ml_ast.c" bodystart="37" bodyend="44"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;ml_compiler2.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_object.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*mlc_expr_describe(<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr);</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal">ML_ENUM2(ParamKindT,<sp/></highlight><highlight class="stringliteral">&quot;param-kind&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;Default&quot;</highlight><highlight class="normal">,<sp/>ML_PARAM_DEFAULT,</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;Extra&quot;</highlight><highlight class="normal">,<sp/>ML_PARAM_EXTRA,</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;Named&quot;</highlight><highlight class="normal">,<sp/>ML_PARAM_NAMED,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;ByRef&quot;</highlight><highlight class="normal">,<sp/>ML_PARAM_BYREF,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;AsVar&quot;</highlight><highlight class="normal">,<sp/>ML_PARAM_ASVAR</highlight></codeline>
+<codeline lineno="13"><highlight class="normal">);</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal">ML_TYPE(AstNamesT,<sp/>(MLListT),<sp/></highlight><highlight class="stringliteral">&quot;ast::names&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_ast_names(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_typeof(Value)<sp/>==<sp/>MLNamesT)<sp/>{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*List<sp/>=<sp/>ml_list();</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ML_NAMES_FOREACH(Value,<sp/>Iter)<sp/>ml_list_put(List,<sp/>Iter-&gt;Value);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>List-&gt;Type<sp/>=<sp/>AstNamesT;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>List;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Value;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="26"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_ast_types.c&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;ast&quot;</highlight><highlight class="normal">,<sp/>MLExprT)<sp/>{</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="comment">//&lt;Expr</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="comment">//&gt;ast::expr</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Returns<sp/>a<sp/>tuple<sp/>describing<sp/>the<sp/>expression<sp/>:mini:`Expr`.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>mlc_expr_describe((<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*)Args[0]);</highlight></codeline>
+<codeline lineno="35"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_ast_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals)<sp/>{</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_ast_init.c&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_ast_types_init();</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Ast-&gt;Exports,<sp/></highlight><highlight class="stringliteral">&quot;names&quot;</highlight><highlight class="normal">,<sp/>AstNamesT);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Globals)<sp/>{</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;ast&quot;</highlight><highlight class="normal">,<sp/>Ast);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="44"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_ast.c"/>
+  </compounddef>
+</doxygen>

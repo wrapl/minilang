@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__uninitialized__slot__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_uninitialized_slot_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__uninitialized__slot__t_1a13be0538282ad672b7aaa14f508d8a7a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__uninitialized__slot__t" kindref="compound">ml_uninitialized_slot_t</ref> *</type>
+        <definition>ml_uninitialized_slot_t* ml_uninitialized_slot_t::Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>ml_uninitialized_slot_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.c" line="311" column="25" bodyfile="src/ml_runtime.c" bodystart="311" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__uninitialized__slot__t_1a6a916d465838ace91a5de79a6d88ae72" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+        <definition>ml_value_t** ml_uninitialized_slot_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_uninitialized_slot_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.c" line="312" column="12" bodyfile="src/ml_runtime.c" bodystart="312" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_uninitialized_slot_t</label>
+        <link refid="structml__uninitialized__slot__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_runtime.c" line="310" column="1" bodyfile="src/ml_runtime.c" bodystart="310" bodyend="313"/>
+    <listofallmembers>
+      <member refid="structml__uninitialized__slot__t_1a13be0538282ad672b7aaa14f508d8a7a" prot="public" virt="non-virtual"><scope>ml_uninitialized_slot_t</scope><name>Next</name></member>
+      <member refid="structml__uninitialized__slot__t_1a6a916d465838ace91a5de79a6d88ae72" prot="public" virt="non-virtual"><scope>ml_uninitialized_slot_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
