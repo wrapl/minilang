@@ -12,7 +12,7 @@ extern ml_type_t MLFileT[];
 
 void ml_file_init(stringmap_t *Globals);
 
-ml_value_t *ml_file(FILE *File, ml_value_t *Mode);
+ml_value_t *ml_file(FILE *File);
 
 FILE *ml_file_handle(ml_value_t *Value) __attribute__((pure));
 

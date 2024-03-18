@@ -1839,7 +1839,7 @@ ML_METHOD("list", MLClosureT) {
 		ml_closure_value_list(UpValue, Buffer);
 		ml_stringbuffer_put(Buffer, '\n');
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 #ifdef ML_JIT

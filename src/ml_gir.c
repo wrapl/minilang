@@ -574,7 +574,7 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 			ml_stringbuffer_write(Buffer, Name, Length);
 		}
 	}
-	Enum->Name = ml_stringbuffer_get_value(Buffer);
+	Enum->Name = ml_stringbuffer_to_string(Buffer);
 	return (ml_value_t *)Enum;
 }
 

@@ -380,7 +380,7 @@ ML_METHOD("gets", MLAddressT) {
 	char *String = snew(Length + 1);
 	memcpy(String, Address->Value, Length);
 	String[Length] = 0;
-	return ml_string_unchecked(String, Length);
+	return ml_string_checked(String, Length);
 }
 
 ML_METHOD("gets", MLAddressT, MLIntegerT) {
@@ -397,7 +397,7 @@ ML_METHOD("gets", MLAddressT, MLIntegerT) {
 	char *String = snew(Length + 1);
 	memcpy(String, Address->Value, Length);
 	String[Length] = 0;
-	return ml_string_unchecked(String, Length);
+	return ml_string_checked(String, Length);
 }
 
 ML_METHOD("find", MLAddressT, MLAddressT) {
@@ -615,7 +615,7 @@ static void ml_string_state_run(ml_string_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
-	ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
 }
 
 ML_FUNCTIONX(MLString) {
@@ -697,6 +697,33 @@ ml_value_t *ml_string(const char *Value, int Length) {
 }
 
 ml_value_t *ml_string_unchecked(const char *Value, int Length) {
+	return ml_string(Value, Length);
+}
+
+ml_value_t *ml_string_checked(const char *Value, int Length) {
+	int UTF8Length = 0;
+	size_t Length0 = Length;
+	unsigned char *Bytes = (unsigned char *)Value;
+	do {
+		unsigned char Byte = *Bytes++;
+		if (UTF8Length) {
+			if ((Byte & 128) == 128) {
+				--UTF8Length;
+			} else {
+				return ml_error("StringError", "Invalid UTF-8 sequence");
+			}
+		} else if ((Byte & 128) == 0) {
+		} else if ((Byte & 240) == 240) {
+			UTF8Length = 3;
+		} else if ((Byte & 224) == 224) {
+			UTF8Length = 2;
+		} else if ((Byte & 192) == 192) {
+			UTF8Length = 1;
+		} else {
+			return ml_error("StringError", "Invalid UTF-8 sequence");
+		}
+	} while (--Length0 > 0);
+	if (UTF8Length) return ml_error("StringError", "Invalid UTF-8 sequence");
 	return ml_string(Value, Length);
 }
 
@@ -1653,7 +1680,7 @@ ML_METHOD("*", MLIntegerT, MLStringT) {
 	int Length = ml_string_length(Args[1]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < N; ++I) ml_stringbuffer_write(Buffer, Chars, Length);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("trim", MLStringT) {
@@ -2316,7 +2343,7 @@ ML_METHOD("escape", MLStringT) {
 		}
 	}
 	ml_stringbuffer_write(Buffer, Start, End - Start);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("contains", MLStringT, MLStringT) {
@@ -2976,7 +3003,7 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	if (SubjectEnd > Subject) {
 		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
@@ -3003,7 +3030,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 #endif
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
-			return ml_stringbuffer_get_value(Buffer);
+			return ml_stringbuffer_to_string(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -3052,7 +3079,7 @@ ML_METHOD("replace2", MLStringT, MLStringT, MLStringT) {
 	if (SubjectEnd > Subject) {
 		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
 	}
-	return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+	return ml_tuplev(2, ml_stringbuffer_to_string(Buffer), ml_integer(Total));
 }
 
 ML_METHOD("replace2", MLStringT, MLRegexT, MLStringT) {
@@ -3079,7 +3106,7 @@ ML_METHOD("replace2", MLStringT, MLRegexT, MLStringT) {
 #endif
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
-			return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+			return ml_tuplev(2, ml_stringbuffer_to_string(Buffer), ml_integer(Total));
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -3210,9 +3237,9 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 	}
 	if (State->Length) ml_stringbuffer_write(Buffer, Subject, Length);
 	if (State->Tuple) {
-		ML_RETURN(ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(State->Total)));
+		ML_RETURN(ml_tuplev(2, ml_stringbuffer_to_string(Buffer), ml_integer(State->Total)));
 	} else {
-		ML_RETURN(ml_stringbuffer_get_value(Buffer));
+		ML_RETURN(ml_stringbuffer_to_string(Buffer));
 	}
 }
 
@@ -3351,7 +3378,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 	ml_stringbuffer_write(Buffer, Start, A - Start);
 	ml_stringbuffer_write(Buffer, ml_string_value(Args[2]), ml_string_length(Args[2]));
 	ml_stringbuffer_write(Buffer, B, End - B);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
@@ -3388,7 +3415,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
 	ml_stringbuffer_write(Buffer, Start, A - Start);
 	ml_stringbuffer_write(Buffer, ml_string_value(Args[3]), ml_string_length(Args[3]));
 	ml_stringbuffer_write(Buffer, B, End - B);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 typedef struct {
@@ -3402,7 +3429,7 @@ static void ml_fn_replace_run(ml_fn_replace_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	ml_stringbuffer_write(State->Buffer, State->Rest, State->Length);
-	ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
 }
 
 static void ml_fn_replace_func(ml_fn_replace_state_t *State, ml_value_t *Value) {
@@ -3533,7 +3560,7 @@ ML_FUNCTION(MLStringEscape) {
 			break;
 		}
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
@@ -3771,7 +3798,7 @@ ML_FUNCTION(MLRegexEscape) {
 			break;
 		}
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 typedef struct {
@@ -4165,7 +4192,7 @@ ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	char *Chars = snew(Length + 1);
 	if (Length) ml_stringbuffer_finish(Buffer, Chars);
-	return ml_string_unchecked(Chars, Length);
+	return ml_string(Chars, Length);
 }
 
 ML_METHOD("rest", MLStringBufferT) {

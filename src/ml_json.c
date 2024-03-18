@@ -799,7 +799,7 @@ ML_METHOD(JsonEncode, MLAnyT) {
 // Encodes :mini:`Value` into JSON, raising an error if :mini:`Value` cannot be represented as JSON.
 	ML_CHECK_ARG_COUNT(1);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_get_value(Buffer);
+	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_to_string(Buffer);
 }
 
 ML_FUNCTION(MLJson) {

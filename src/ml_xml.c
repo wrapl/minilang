@@ -107,7 +107,7 @@ ML_FUNCTION(MLXmlEscape) {
 			break;
 		}
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_TYPE(MLXmlTextT, (MLXmlT, MLStringT), "xml::text");
