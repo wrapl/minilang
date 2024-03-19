@@ -523,6 +523,50 @@ ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
 
 typedef struct {
 	ml_state_t Base;
+	ml_value_t *Stream;
+	typeof(ml_stream_read) *read;
+	ml_cbor_reader_t Reader[1];
+	unsigned char Chars[256];
+} ml_cbor_decode_stream_t;
+
+static void ml_cbor_decode_stream_run(ml_cbor_decode_stream_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_ERROR("CBORError", "Incomplete CBOR object");
+	minicbor_read(State->Reader->Reader, State->Chars, Length);
+	if (State->Reader->Value) ML_RETURN(State->Reader->Value);
+	size_t Required = State->Reader->Reader->Required;
+	if (Required > 256) {
+		return State->read((ml_state_t *)State, State->Stream, State->Chars, 256);
+	} else if (Required > 0) {
+		return State->read((ml_state_t *)State, State->Stream, State->Chars, Required);
+	} else {
+		return State->read((ml_state_t *)State, State->Stream, State->Chars, 1);
+	}
+}
+
+ML_METHODX(CborDecode, MLStreamT) {
+//@cbor::decode
+//<Stream
+//>any|error
+	ml_value_t *Stream = Args[0];
+	ml_cbor_decode_stream_t *State = new(ml_cbor_decode_stream_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Reader->TagFns = DefaultTagFns;
+	State->Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
+	State->Reader->Globals = Args[1];
+	State->Reader->Reused = NULL;
+	minicbor_reader_init(State->Reader->Reader);
+	State->Reader->Reader->UserData = State->Reader;
+	return State->read((ml_state_t *)State, State->Stream, State->Chars, 1);
+}
+
+typedef struct {
+	ml_state_t Base;
 	ml_value_t *Values, *Callback, *Result;
 	ml_value_t *Args[1];
 	ml_cbor_reader_t Reader[1];
