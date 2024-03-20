@@ -24,16 +24,16 @@ struct ml_xml_node_t {
 ML_TYPE(MLXmlT, (), "xml");
 // An XML node.
 
-ml_value_t *ml_xml_node_parent(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_node_t *)Value)->Parent;
+ml_xml_element_t *ml_xml_node_parent(ml_xml_node_t *Value) {
+	return Value->Parent;
 }
 
-ml_value_t *ml_xml_node_next(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_node_t *)Value)->Next;
+ml_xml_node_t *ml_xml_node_next(ml_xml_node_t *Value) {
+	return Value->Next;
 }
 
-ml_value_t *ml_xml_node_prev(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_node_t *)Value)->Prev;
+ml_xml_node_t *ml_xml_node_prev(ml_xml_node_t *Value) {
+	return Value->Prev;
 }
 
 ML_METHOD("parent", MLXmlT) {

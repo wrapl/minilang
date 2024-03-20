@@ -112,7 +112,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="25" column="28" bodyfile="src/ml_xml.h" bodystart="25" bodyend="-1"/>
+        <location file="src/ml_xml.h" line="16" column="28" bodyfile="src/ml_xml.h" bodystart="16" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="ml__xml_8h_1a123ddfd339dae5fa6aa82c0be4359add" prot="public" static="no">
         <type>struct ml_xml_element_t</type>
@@ -125,7 +125,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="26" column="31" bodyfile="src/ml_xml.h" bodystart="26" bodyend="-1"/>
+        <location file="src/ml_xml.h" line="17" column="31" bodyfile="src/ml_xml.h" bodystart="17" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="var">
@@ -187,13 +187,13 @@
         </inbodydescription>
         <location file="src/ml_xml.h" line="10" column="6" declfile="src/ml_xml.h" declline="10" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__xml_8h_1a07c6efe0e12fff645a11d211b4320d32" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t * ml_xml_node_parent</definition>
-        <argsstring>(ml_value_t *Value)</argsstring>
+      <memberdef kind="function" id="ml__xml_8h_1aba784fba580bd7881996390dd32f02ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_xml_element_t *</type>
+        <definition>ml_xml_element_t * ml_xml_node_parent</definition>
+        <argsstring>(ml_xml_node_t *Value)</argsstring>
         <name>ml_xml_node_parent</name>
         <param>
-          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <type>ml_xml_node_t *</type>
           <declname>Value</declname>
         </param>
         <briefdescription>
@@ -202,15 +202,15 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="16" column="12" declfile="src/ml_xml.h" declline="16" declcolumn="12"/>
+        <location file="src/ml_xml.h" line="19" column="18" declfile="src/ml_xml.h" declline="19" declcolumn="18"/>
       </memberdef>
-      <memberdef kind="function" id="ml__xml_8h_1afebed035e291d888c7de9e2e560c0b23" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t * ml_xml_node_next</definition>
-        <argsstring>(ml_value_t *Value)</argsstring>
+      <memberdef kind="function" id="ml__xml_8h_1ab467633362d8ef4fdedf2eddfa3eb805" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_xml_node_t *</type>
+        <definition>ml_xml_node_t * ml_xml_node_next</definition>
+        <argsstring>(ml_xml_node_t *Value)</argsstring>
         <name>ml_xml_node_next</name>
         <param>
-          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <type>ml_xml_node_t *</type>
           <declname>Value</declname>
         </param>
         <briefdescription>
@@ -219,15 +219,15 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="17" column="12" declfile="src/ml_xml.h" declline="17" declcolumn="12"/>
+        <location file="src/ml_xml.h" line="20" column="15" declfile="src/ml_xml.h" declline="20" declcolumn="15"/>
       </memberdef>
-      <memberdef kind="function" id="ml__xml_8h_1acb350762cd9cfc2efcbdd81e8fed2172" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t * ml_xml_node_prev</definition>
-        <argsstring>(ml_value_t *Value)</argsstring>
+      <memberdef kind="function" id="ml__xml_8h_1ab644d60c6c078a985db42916dc40260c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_xml_node_t *</type>
+        <definition>ml_xml_node_t * ml_xml_node_prev</definition>
+        <argsstring>(ml_xml_node_t *Value)</argsstring>
         <name>ml_xml_node_prev</name>
         <param>
-          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <type>ml_xml_node_t *</type>
           <declname>Value</declname>
         </param>
         <briefdescription>
@@ -236,7 +236,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="18" column="12" declfile="src/ml_xml.h" declline="18" declcolumn="12"/>
+        <location file="src/ml_xml.h" line="21" column="15" declfile="src/ml_xml.h" declline="21" declcolumn="15"/>
       </memberdef>
       <memberdef kind="function" id="ml__xml_8h_1a7da987bac8d1b6b0b7660dfba2948ab0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -253,7 +253,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="20" column="12" declfile="src/ml_xml.h" declline="20" declcolumn="12"/>
+        <location file="src/ml_xml.h" line="23" column="12" declfile="src/ml_xml.h" declline="23" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="ml__xml_8h_1a990827bb7ee78e22409c0af248121f98" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -270,7 +270,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="21" column="12" declfile="src/ml_xml.h" declline="21" declcolumn="12"/>
+        <location file="src/ml_xml.h" line="24" column="12" declfile="src/ml_xml.h" declline="24" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="ml__xml_8h_1aad248719561e0d36b6891027197dbd13" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>size_t</type>
@@ -287,7 +287,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="22" column="8" declfile="src/ml_xml.h" declline="22" declcolumn="8"/>
+        <location file="src/ml_xml.h" line="25" column="8" declfile="src/ml_xml.h" declline="25" declcolumn="8"/>
       </memberdef>
       <memberdef kind="function" id="ml__xml_8h_1a79dc716ff2fd6e05b2579e11a2f4f4da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -304,7 +304,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="23" column="12" declfile="src/ml_xml.h" declline="23" declcolumn="12"/>
+        <location file="src/ml_xml.h" line="26" column="12" declfile="src/ml_xml.h" declline="26" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="ml__xml_8h_1ab785039b88fb30c43f3bf829098bd7c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>ml_xml_element_t *</type>
@@ -386,17 +386,17 @@
 <codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLXmlTextT[];</highlight></codeline>
 <codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLXmlElementT[];</highlight></codeline>
 <codeline lineno="15"><highlight class="normal"></highlight></codeline>
-<codeline lineno="16"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_node_parent(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="17"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_node_next(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="18"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_node_prev(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_element_tag(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="21"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_element_attributes(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_xml_element_length(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_element_head(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="24"><highlight class="normal"></highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_xml_node_t<sp/>ml_xml_node_t;</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_xml_element_t<sp/>ml_xml_element_t;</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_xml_node_t<sp/>ml_xml_node_t;</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_xml_element_t<sp/>ml_xml_element_t;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal">ml_xml_element_t<sp/>*ml_xml_node_parent(ml_xml_node_t<sp/>*Value);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal">ml_xml_node_t<sp/>*ml_xml_node_next(ml_xml_node_t<sp/>*Value);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal">ml_xml_node_t<sp/>*ml_xml_node_prev(ml_xml_node_t<sp/>*Value);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_element_tag(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_element_attributes(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_xml_element_length(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_element_head(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
 <codeline lineno="27"><highlight class="normal"></highlight></codeline>
 <codeline lineno="28"><highlight class="normal">ml_xml_element_t<sp/>*ml_xml_element(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Tag);</highlight></codeline>
 <codeline lineno="29"><highlight class="normal">ml_xml_node_t<sp/>*ml_xml_text(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Content,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>

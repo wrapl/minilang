@@ -57,3 +57,7 @@ cbor
    *TBD*
 
 
+:mini:`meth cbor::decode(Stream: stream): any | error`
+   *TBD*
+
+
