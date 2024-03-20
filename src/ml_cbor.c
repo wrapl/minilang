@@ -554,6 +554,7 @@ ML_METHODX(CborDecode, MLStreamT) {
 	ml_cbor_decode_stream_t *State = new(ml_cbor_decode_stream_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_cbor_decode_stream_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Reader->TagFns = DefaultTagFns;
