@@ -162,20 +162,20 @@ ml_xml_element_t *ml_xml_element(const char *Tag) {
 	return Element;
 }
 
-ml_value_t *ml_xml_element_tag(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_element_t *)Value)->Base.Base.Value;
+ml_value_t *ml_xml_element_tag(ml_xml_element_t *Value) {
+	return (ml_value_t *)Value->Base.Base.Value;
 }
 
-ml_value_t *ml_xml_element_attributes(ml_value_t *Value) {
-	return ((ml_xml_element_t *)Value)->Attributes;
+ml_value_t *ml_xml_element_attributes(ml_xml_element_t *Value) {
+	return Value->Attributes;
 }
 
-size_t ml_xml_element_length(ml_value_t *Value) {
-	return ((ml_xml_element_t *)Value)->Base.Base.Length;
+size_t ml_xml_element_length(ml_xml_element_t *Value) {
+	return Value->Base.Base.Length;
 }
 
-ml_value_t *ml_xml_element_head(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_element_t *)Value)->Head;
+ml_xml_node_t *ml_xml_element_head(ml_xml_element_t *Value) {
+	return Value->Head;
 }
 
 void ml_xml_node_remove(ml_xml_node_t *Child) {
