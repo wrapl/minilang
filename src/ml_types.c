@@ -695,6 +695,7 @@ int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args
 
 static int ml_is_generic_subtype1(int TNumArgs, ml_type_t **TArgs, ml_type_t *U) {
 	if (TArgs[0] == U) return 1;
+	if (inthash_search(TArgs[0]->Parents, (uintptr_t)U)) return 1;
 	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
@@ -740,12 +741,13 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 #ifdef ML_GENERICS
 	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
-		if (GenericT->Args[0] == U) {
+		/*if (GenericT->Args[0] == U) {
 			return 1;
-		} else if (U->Type == MLTypeGenericT) {
+		} else*/ if (U->Type == MLTypeGenericT) {
 			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
 			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, GenericU->NumArgs, GenericU->Args);
 		}
+		//if (inthash_search(GenericT->Args[0]->Parents, (uintptr_t)U)) return 1;
 		return ml_is_generic_subtype1(GenericT->NumArgs, GenericT->Args, U);
 	} else if (U->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericU = (ml_generic_type_t *)U;

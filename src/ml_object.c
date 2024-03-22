@@ -419,8 +419,13 @@ ML_FUNCTIONZ(MLClass) {
 		ML_RETURN(Class);
 	} else {
 		ml_class_t *Class = new(ml_class_t);
-		Class->Base.Type = MLClassT;
 		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
+#ifdef ML_GENERICS
+		ml_type_t *TypeArgs[2] = {MLClassT, (ml_type_t *)Class};
+		Class->Base.Type = ml_generic_type(2, TypeArgs);
+#else
+		Class->Base.Type = MLClassT;
+#endif
 		Class->Base.hash = ml_default_hash;
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
@@ -471,6 +476,7 @@ static void ML_TYPED_FN(ml_value_set_name, MLNamedTypeT, ml_named_type_t *Class,
 
 static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const char *Name) {
 	Class->Base.Name = Name;
+	GC_asprintf((char **)&Class->Base.Type->Name, "class[%s]", Name);
 	stringmap_foreach(Class->Base.Exports, (void *)Name, (void *)ml_class_set_name_fn);
 }
 
