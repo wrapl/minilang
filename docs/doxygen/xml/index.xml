@@ -2241,10 +2241,10 @@
     <member refid="ml__xml_8h_1aba784fba580bd7881996390dd32f02ee" kind="function"><name>ml_xml_node_parent</name></member>
     <member refid="ml__xml_8h_1ab467633362d8ef4fdedf2eddfa3eb805" kind="function"><name>ml_xml_node_next</name></member>
     <member refid="ml__xml_8h_1ab644d60c6c078a985db42916dc40260c" kind="function"><name>ml_xml_node_prev</name></member>
-    <member refid="ml__xml_8h_1a7da987bac8d1b6b0b7660dfba2948ab0" kind="function"><name>ml_xml_element_tag</name></member>
-    <member refid="ml__xml_8h_1a990827bb7ee78e22409c0af248121f98" kind="function"><name>ml_xml_element_attributes</name></member>
-    <member refid="ml__xml_8h_1aad248719561e0d36b6891027197dbd13" kind="function"><name>ml_xml_element_length</name></member>
-    <member refid="ml__xml_8h_1a79dc716ff2fd6e05b2579e11a2f4f4da" kind="function"><name>ml_xml_element_head</name></member>
+    <member refid="ml__xml_8h_1a578a4fbca5d791e2c35ef2c9a88fc97c" kind="function"><name>ml_xml_element_tag</name></member>
+    <member refid="ml__xml_8h_1aec8dc9531fb6212a4dee3a70ab35a44b" kind="function"><name>ml_xml_element_attributes</name></member>
+    <member refid="ml__xml_8h_1a2a51e5fb3ee131b6ab6f5fe237dd75a6" kind="function"><name>ml_xml_element_length</name></member>
+    <member refid="ml__xml_8h_1a7ac93cf6108efd33efdc52feefdd1f97" kind="function"><name>ml_xml_element_head</name></member>
     <member refid="ml__xml_8h_1ab785039b88fb30c43f3bf829098bd7c7" kind="function"><name>ml_xml_element</name></member>
     <member refid="ml__xml_8h_1ac4a9b8c517d33a5c66193264883c496b" kind="function"><name>ml_xml_text</name></member>
     <member refid="ml__xml_8h_1aeccd3fb4ca5a7b9c6a242feb68c0da23" kind="function"><name>ml_xml_element_put</name></member>
