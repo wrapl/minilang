@@ -1217,7 +1217,7 @@ static void ml_missing_state_run(ml_map_node_state_t *State, ml_value_t *Value) 
 	if (ml_is_error(Value)) {
 		ML_CONTINUE(State->Base.Caller, Value);
 	} else {
-		State->Node->Value = Value;
+		State->Node->Value = ml_deref(Value);
 		ML_CONTINUE(State->Base.Caller, MLSome);
 	}
 }
