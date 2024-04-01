@@ -1138,7 +1138,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_cbor_writer_t *Writer, ml_
 	minicbor_write_string(Writer, 1);
 	Writer->WriteFn(Writer->Data, (unsigned char *)"*", 1);
 	ml_cbor_write(Writer, (ml_value_t *)Info);
-	for (int I = 0; I < Info->NumUpValues; ++I) ml_cbor_write(Writer, Closure->UpValues[I]);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_cbor_write(Writer, Closure->UpValues[I + 1]);
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Global) {
@@ -1643,7 +1643,13 @@ ML_FUNCTION(DecodeClosure) {
 	ml_closure_info_t *Info = (ml_closure_info_t *)Args[0];
 	ml_closure_t *Closure = (ml_closure_t *)ml_closure(Info);
 	ML_CHECK_ARG_COUNT(Info->NumUpValues + 1);
-	for (int I = 0; I < Info->NumUpValues; ++I) Closure->UpValues[I] = Args[I + 1];
+	for (int I = 0; I < Info->NumUpValues; ++I) {
+		ml_value_t *Value = Args[I + 1];
+		if (ml_typeof(Value) == MLUninitializedT) {
+			ml_uninitialized_use(Value, &Closure->UpValues[I + 1]);
+		}
+		Closure->UpValues[I + 1] = Value;
+	}
 	return (ml_value_t *)Closure;
 }
 

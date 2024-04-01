@@ -27,6 +27,7 @@ not, MLT_NOT
 old, MLT_OLD
 on, MLT_ON
 or, MLT_OR
+recur, MLT_RECUR
 ref, MLT_REF
 ret, MLT_RET
 seq, MLT_SEQ

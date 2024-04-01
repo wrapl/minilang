@@ -1817,6 +1817,16 @@ static void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int 
 	MLC_RETURN(NULL);
 }
 
+static void ml_recur_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_UPVALUE, 1);
+	LocalInst[1].Count = 0;
+	if (Flags & MLCF_PUSH) {
+		MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
+		mlc_inc_top(Function);
+	}
+	MLC_RETURN(NULL);
+}
+
 static void ml_it_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
 	if (Function->It < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "It must be used in guard expression"));
 	if (Flags & MLCF_PUSH) {
@@ -3142,7 +3152,7 @@ static void ml_default_expr_compile(mlc_function_t *Function, mlc_default_expr_t
 static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_function_t *Origin, int Line) {
 	if (Function == Origin) return Decl->Index;
 	mlc_upvalue_t **UpValueSlot = &Function->UpValues;
-	int Index = 0;
+	int Index = 1;
 	while (UpValueSlot[0]) {
 		if (UpValueSlot[0]->Decl == Decl) return ~Index;
 		UpValueSlot = &UpValueSlot[0]->Next;
@@ -3664,6 +3674,7 @@ const char *MLTokens[] = {
 	"old", // MLT_OLD,
 	"on", // MLT_ON,
 	"or", // MLT_OR,
+	"recur", // MLT_RECUR,
 	"ref", // MLT_REF,
 	"ret", // MLT_RET,
 	"seq", // MLT_SEQ,
@@ -5230,6 +5241,7 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		[MLT_NIL] = ml_nil_expr_compile,
 		[MLT_BLANK] = ml_blank_expr_compile,
 		[MLT_OLD] = ml_old_expr_compile,
+		[MLT_RECUR] = ml_recur_expr_compile,
 		[MLT_IT] = ml_it_expr_compile
 	};
 	const char *ExprName = NULL;
@@ -5301,6 +5313,7 @@ with_name:
 	case MLT_BLANK:
 	case MLT_OLD:
 	case MLT_IT:
+	case MLT_RECUR:
 	{
 		mlc_expr_t *Expr = new(mlc_expr_t);
 		Expr->compile = CompileFns[Parser->Token];

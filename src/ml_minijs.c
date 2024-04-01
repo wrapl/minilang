@@ -524,7 +524,7 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLClosureT, ml_minijs_encoder_t
 	ml_closure_info_t *Info = Value->Info;
 	ml_list_put(Json, ml_closure_info_encode(Info, Encoder));
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		ml_list_put(Json, ml_minijs_encode(Encoder, Value->UpValues[I]));
+		ml_list_put(Json, ml_minijs_encode(Encoder, Value->UpValues[I + 1]));
 	}
 	return Json;
 }
@@ -989,14 +989,15 @@ static ml_value_t *ml_minijs_decode_closure(ml_minijs_decoder_t *Decoder, ml_lis
 	Node = Node->Next;
 	if (!ml_is(InfoJson, MLListT)) return ml_error("TypeError", "Closure info requires list");
 	int NumUpValues = ml_integer_value(ml_list_get(InfoJson, 7));
-	ml_closure_t *Closure = xnew(ml_closure_t, NumUpValues, ml_value_t *);
+	ml_closure_t *Closure = xnew(ml_closure_t, NumUpValues + 1, ml_value_t *);
 	Closure->Type = MLClosureT;
+	Closure->UpValues[0] = (ml_value_t *)Closure;
 	if (Index >= 0) inthash_insert(Decoder->Cached, Index, Closure);
 	Closure->Info = ml_minijs_decode_closure_info(Decoder, InfoJson);
 	if (!Closure->Info) return ml_error("MinijsError", "Invalid closure information");
 	for (int I = 0; I < NumUpValues; ++I) {
 		if (!Node) return ml_error("TypeError", "Closure requires additional fields");
-		Closure->UpValues[I] = ml_minijs_decode(Decoder, Node->Value);
+		Closure->UpValues[I + 1] = ml_minijs_decode(Decoder, Node->Value);
 		Node = Node->Next;
 	}
 	return (ml_value_t *)Closure;
