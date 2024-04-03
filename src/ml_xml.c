@@ -1627,7 +1627,7 @@ extern ml_type_t MLXmlParserT[];
 
 static void ml_xml_decode_callback(ml_xml_parser_t *Parser, ml_value_t *Value) {
 	Parser->Args[0] = Value;
-	ml_call((ml_state_t *)Parser, Parser->Callback, 1, Parser->Args);
+	return ml_call((ml_state_t *)Parser, Parser->Callback, 1, Parser->Args);
 }
 
 static void ml_xml_parser_run(ml_state_t *State, ml_value_t *Value) {

@@ -3159,7 +3159,7 @@ static void ml_str_replacement_func(ml_str_replacement_state_t *State, ml_value_
 	ml_value_t **Args = ml_alloc_args(2);
 	Args[0] = (ml_value_t *)State->Buffer;
 	Args[1] = Value;
-	ml_call(State, AppendMethod, 2, Args);
+	return ml_call(State, AppendMethod, 2, Args);
 }
 
 static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_t *Value) {

@@ -231,8 +231,8 @@ void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_
 	ml_value_t *Deref = ml_deref(Value);
 	if (Deref != Value) return ml_call(Caller, Deref, Count, Args);
 	ml_value_t **Args2 = ml_alloc_args(Count + 1);
-	Args2[0] = Value;
 	for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
+	Args2[0] = Value;
 	return ml_call(Caller, CallMethod, Count + 1, Args2);
 }
 

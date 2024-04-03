@@ -213,7 +213,7 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	MLC_POP();
-	ml_call(Caller, ml_closure(Info), 0, NULL);
+	return ml_call(Caller, ml_closure(Info), 0, NULL);
 }
 
 static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
@@ -2140,7 +2140,7 @@ static void mlc_inline_call_expr_compile3(mlc_function_t *Function, ml_value_t *
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	MLC_POP();
-	ml_call(Caller, ml_closure(Info), 0, NULL);
+	return ml_call(Caller, ml_closure(Info), 0, NULL);
 }
 
 static void mlc_inline_call_expr_compile2(mlc_function_t *Parent, ml_value_t *Value, mlc_expr_t *Expr, mlc_expr_t *Child) {
