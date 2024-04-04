@@ -911,7 +911,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_UPVALUE: {
-		int Index = Inst[1].Count;
+		int Index = Inst[1].Count + 1;
 		Result = Frame->UpValues[Index];
 		ADVANCE(Inst + 2);
 	}

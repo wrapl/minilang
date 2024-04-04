@@ -1819,7 +1819,7 @@ static void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int 
 
 static void ml_recur_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
 	ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_UPVALUE, 1);
-	LocalInst[1].Count = 0;
+	LocalInst[1].Count = -1;
 	if (Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
@@ -3152,7 +3152,7 @@ static void ml_default_expr_compile(mlc_function_t *Function, mlc_default_expr_t
 static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_function_t *Origin, int Line) {
 	if (Function == Origin) return Decl->Index;
 	mlc_upvalue_t **UpValueSlot = &Function->UpValues;
-	int Index = 1;
+	int Index = 0;
 	while (UpValueSlot[0]) {
 		if (UpValueSlot[0]->Decl == Decl) return ~Index;
 		UpValueSlot = &UpValueSlot[0]->Next;
