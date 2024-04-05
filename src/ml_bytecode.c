@@ -956,7 +956,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Closure->UpValues[0] = (ml_value_t *)Closure;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst[2 + I].Count;
-			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
+			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index + 1] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
 			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>", (ml_source_t){Frame->Source, Inst->Line});
 			if (ml_typeof(Value) == MLUninitializedT) {
@@ -982,7 +982,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Closure->UpValues[0] = (ml_value_t *)Closure;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst[2 + I].Count;
-			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
+			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index + 1] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
 			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>", (ml_source_t){Frame->Source, Inst->Line});
 			if (ml_typeof(Value) == MLUninitializedT) {
