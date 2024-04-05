@@ -1351,6 +1351,8 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	}
 }
 
+static GMainLoop *MainLoop = NULL;
+
 typedef struct {
 	object_instance_t *Instance;
 	ml_context_t *Context;
@@ -1366,7 +1368,7 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 	for (guint I = 1; I < NumArgs; ++I) MLArgs[I] = _value_to_ml(Args + I, Info->Args[I]);
 	ml_result_state_t *State = ml_result_state(Info->Context);
 	ml_call(State, Info->Function, NumArgs, MLArgs);
-	GMainContext *MainContext = g_main_context_default();
+	GMainContext *MainContext = g_main_loop_get_context(MainLoop);
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Value = State->Value;
 	if (ml_is_error(Value)) {
@@ -1620,8 +1622,6 @@ typedef struct ml_gir_value_t ml_gir_value_t;
 struct ml_gir_value_t {
 
 };
-
-static GMainLoop *MainLoop = NULL;
 
 void ml_gir_loop_init(ml_context_t *Context) {
 	MainLoop = g_main_loop_new(NULL, TRUE);
@@ -2110,7 +2110,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	}
 	ml_result_state_t *State = ml_result_state(Instance->Context);
 	ml_call(State, Instance->Function, Arg - Args, Args);
-	GMainContext *MainContext = g_main_context_default();
+	GMainContext *MainContext = g_main_loop_get_context(MainLoop);
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Result = State->Value;
 	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
