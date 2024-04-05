@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structobject__t" kind="struct" language="C++" prot="public">
+    <compoundname>object_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structobject__t_1ae4680a990c81bdb26964f1885b59e3aa" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t object_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>object_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="146" column="11" bodyfile="src/ml_gir.c" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structobject__t_1a4577c181a25d259fc4afd7edb8526167" prot="public" static="no" mutable="no">
+        <type>GIObjectInfo *</type>
+        <definition>GIObjectInfo* object_t::Info</definition>
+        <argsstring></argsstring>
+        <name>Info</name>
+        <qualifiedname>object_t::Info</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="147" column="14" bodyfile="src/ml_gir.c" bodystart="147" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structobject__t_1ae8b6db45ac6ae31d418eca55aa6bf1a4" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t object_t::Signals[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Signals</name>
+        <qualifiedname>object_t::Signals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="148" column="13" bodyfile="src/ml_gir.c" bodystart="148" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>object_t</label>
+        <link refid="structobject__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Signals</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="145" column="1" bodyfile="src/ml_gir.c" bodystart="145" bodyend="149"/>
+    <listofallmembers>
+      <member refid="structobject__t_1ae4680a990c81bdb26964f1885b59e3aa" prot="public" virt="non-virtual"><scope>object_t</scope><name>Base</name></member>
+      <member refid="structobject__t_1a4577c181a25d259fc4afd7edb8526167" prot="public" virt="non-virtual"><scope>object_t</scope><name>Info</name></member>
+      <member refid="structobject__t_1ae8b6db45ac6ae31d418eca55aa6bf1a4" prot="public" virt="non-virtual"><scope>object_t</scope><name>Signals</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

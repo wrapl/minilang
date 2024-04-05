@@ -24,16 +24,16 @@ struct ml_xml_node_t {
 ML_TYPE(MLXmlT, (), "xml");
 // An XML node.
 
-ml_value_t *ml_xml_node_parent(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_node_t *)Value)->Parent;
+ml_xml_element_t *ml_xml_node_parent(ml_xml_node_t *Value) {
+	return Value->Parent;
 }
 
-ml_value_t *ml_xml_node_next(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_node_t *)Value)->Next;
+ml_xml_node_t *ml_xml_node_next(ml_xml_node_t *Value) {
+	return Value->Next;
 }
 
-ml_value_t *ml_xml_node_prev(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_node_t *)Value)->Prev;
+ml_xml_node_t *ml_xml_node_prev(ml_xml_node_t *Value) {
+	return Value->Prev;
 }
 
 ML_METHOD("parent", MLXmlT) {
@@ -107,7 +107,7 @@ ML_FUNCTION(MLXmlEscape) {
 			break;
 		}
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_TYPE(MLXmlTextT, (MLXmlT, MLStringT), "xml::text");
@@ -138,7 +138,7 @@ ML_METHOD("text", MLXmlTextT) {
 //>string
 // Returns the text content of :mini:`Xml`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	return ml_string(Node->Base.Value, Node->Base.Length);
+	return ml_string_unchecked(Node->Base.Value, Node->Base.Length);
 }
 
 static stringmap_t MLXmlTags[1] = {STRINGMAP_INIT};
@@ -162,20 +162,20 @@ ml_xml_element_t *ml_xml_element(const char *Tag) {
 	return Element;
 }
 
-ml_value_t *ml_xml_element_tag(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_element_t *)Value)->Base.Base.Value;
+ml_value_t *ml_xml_element_tag(ml_xml_element_t *Value) {
+	return (ml_value_t *)Value->Base.Base.Value;
 }
 
-ml_value_t *ml_xml_element_attributes(ml_value_t *Value) {
-	return ((ml_xml_element_t *)Value)->Attributes;
+ml_value_t *ml_xml_element_attributes(ml_xml_element_t *Value) {
+	return Value->Attributes;
 }
 
-size_t ml_xml_element_length(ml_value_t *Value) {
-	return ((ml_xml_element_t *)Value)->Base.Base.Length;
+size_t ml_xml_element_length(ml_xml_element_t *Value) {
+	return Value->Base.Base.Length;
 }
 
-ml_value_t *ml_xml_element_head(ml_value_t *Value) {
-	return (ml_value_t *)((ml_xml_element_t *)Value)->Head;
+ml_xml_node_t *ml_xml_element_head(ml_xml_element_t *Value) {
+	return Value->Head;
 }
 
 void ml_xml_node_remove(ml_xml_node_t *Child) {
@@ -1627,7 +1627,7 @@ extern ml_type_t MLXmlParserT[];
 
 static void ml_xml_decode_callback(ml_xml_parser_t *Parser, ml_value_t *Value) {
 	Parser->Args[0] = Value;
-	ml_call((ml_state_t *)Parser, Parser->Callback, 1, Parser->Args);
+	return ml_call((ml_state_t *)Parser, Parser->Callback, 1, Parser->Args);
 }
 
 static void ml_xml_parser_run(ml_state_t *State, ml_value_t *Value) {

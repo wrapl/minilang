@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__double__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_double_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__double__state__t_1adb72d01d257ba16d9478d3e1365af20b" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_double_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_double_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="647" column="12" bodyfile="src/ml_sequence.c" bodystart="647" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__double__state__t_1a61a0ee887a1be4cf5c6ae252220955f0" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_double_state_t::Iterator1</definition>
+        <argsstring></argsstring>
+        <name>Iterator1</name>
+        <qualifiedname>ml_double_state_t::Iterator1</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="648" column="12" bodyfile="src/ml_sequence.c" bodystart="648" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__double__state__t_1ac48b623cec8a8fd696affd74c5cad610" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_double_state_t::Iterator2</definition>
+        <argsstring></argsstring>
+        <name>Iterator2</name>
+        <qualifiedname>ml_double_state_t::Iterator2</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="649" column="12" bodyfile="src/ml_sequence.c" bodystart="649" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__double__state__t_1a09a7843c27d42a61936a25fb6d99bf95" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_double_state_t::Function</definition>
+        <argsstring></argsstring>
+        <name>Function</name>
+        <qualifiedname>ml_double_state_t::Function</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="650" column="12" bodyfile="src/ml_sequence.c" bodystart="650" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__double__state__t_1adf08cc32175a70824faa6da38a8da577" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_double_state_t::Args[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_double_state_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="651" column="12" bodyfile="src/ml_sequence.c" bodystart="651" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>internal </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_double_state_t</label>
+        <link refid="structml__double__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Function</edgelabel>
+          <edgelabel>Iterator1</edgelabel>
+          <edgelabel>Iterator2</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_sequence.c" line="646" column="1" bodyfile="src/ml_sequence.c" bodystart="646" bodyend="652"/>
+    <listofallmembers>
+      <member refid="structml__double__state__t_1adf08cc32175a70824faa6da38a8da577" prot="public" virt="non-virtual"><scope>ml_double_state_t</scope><name>Args</name></member>
+      <member refid="structml__double__state__t_1adb72d01d257ba16d9478d3e1365af20b" prot="public" virt="non-virtual"><scope>ml_double_state_t</scope><name>Base</name></member>
+      <member refid="structml__double__state__t_1a09a7843c27d42a61936a25fb6d99bf95" prot="public" virt="non-virtual"><scope>ml_double_state_t</scope><name>Function</name></member>
+      <member refid="structml__double__state__t_1a61a0ee887a1be4cf5c6ae252220955f0" prot="public" virt="non-virtual"><scope>ml_double_state_t</scope><name>Iterator1</name></member>
+      <member refid="structml__double__state__t_1ac48b623cec8a8fd696affd74c5cad610" prot="public" virt="non-virtual"><scope>ml_double_state_t</scope><name>Iterator2</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

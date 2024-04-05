@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structinteger__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>integer_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structinteger__state__t_1aef846e3de36e0c0d1875be602e82635e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t integer_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>integer_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="2108" column="12" bodyfile="src/ml_sequence.c" bodystart="2108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteger__state__t_1aafb8e4d14439cc3dd952e0031cfb1d04" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int integer_state_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>integer_state_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="2109" column="5" bodyfile="src/ml_sequence.c" bodystart="2109" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>integer_state_t</label>
+        <link refid="structinteger__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_sequence.c" line="2107" column="1" bodyfile="src/ml_sequence.c" bodystart="2107" bodyend="2110"/>
+    <listofallmembers>
+      <member refid="structinteger__state__t_1aef846e3de36e0c0d1875be602e82635e" prot="public" virt="non-virtual"><scope>integer_state_t</scope><name>Base</name></member>
+      <member refid="structinteger__state__t_1aafb8e4d14439cc3dd952e0031cfb1d04" prot="public" virt="non-virtual"><scope>integer_state_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

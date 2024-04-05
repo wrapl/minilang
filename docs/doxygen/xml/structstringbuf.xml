@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structstringbuf" kind="struct" language="C++" prot="public">
+    <compoundname>stringbuf</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structstringbuf_1a497e8420704509d654c37aaadb63211b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int stringbuf::remaining</definition>
+        <argsstring></argsstring>
+        <name>remaining</name>
+        <qualifiedname>stringbuf::remaining</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Allocated, but unused space </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/linenoise.c" line="412" column="5" bodyfile="src/linenoise.c" bodystart="412" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringbuf_1a8e09406f618ff60560f8c5df97d5be87" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int stringbuf::last</definition>
+        <argsstring></argsstring>
+        <name>last</name>
+        <qualifiedname>stringbuf::last</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Index of the null terminator (and thus the length of the string) </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/linenoise.c" line="413" column="5" bodyfile="src/linenoise.c" bodystart="413" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstringbuf_1a12dbedf2dfa7511d23cf67cf94677094" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* stringbuf::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>stringbuf::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Allocated memory containing the string or NULL for empty </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/linenoise.c" line="417" column="6" bodyfile="src/linenoise.c" bodystart="417" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>The stringbuf structure should not be accessed directly. Use the functions below. </para>
+    </detaileddescription>
+    <location file="src/linenoise.c" line="411" column="1" bodyfile="src/linenoise.c" bodystart="411" bodyend="418"/>
+    <listofallmembers>
+      <member refid="structstringbuf_1a12dbedf2dfa7511d23cf67cf94677094" prot="public" virt="non-virtual"><scope>stringbuf</scope><name>data</name></member>
+      <member refid="structstringbuf_1a8e09406f618ff60560f8c5df97d5be87" prot="public" virt="non-virtual"><scope>stringbuf</scope><name>last</name></member>
+      <member refid="structstringbuf_1a497e8420704509d654c37aaadb63211b" prot="public" virt="non-virtual"><scope>stringbuf</scope><name>remaining</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

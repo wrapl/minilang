@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__opcodes_8c" kind="file" language="C++">
+    <compoundname>ml_opcodes.c</compoundname>
+    <includes refid="ml__opcodes_8h" local="yes">ml_opcodes.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>src/ml_opcodes.c</label>
+        <link refid="ml__opcodes_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_opcodes.h</label>
+        <link refid="ml__opcodes_8h_source"/>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ml__opcodes_8c_1a89f08561dfd634d485c4a5a39b835b19" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* MLInstNames[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLInstNames</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_opcodes.c" line="3" column="12" bodyfile="src/ml_opcodes.c" bodystart="3" bodyend="74"/>
+      </memberdef>
+      <memberdef kind="variable" id="ml__opcodes_8c_1a185fc2908eb418e09f0892b770d9e181" prot="public" static="no" mutable="no">
+        <type>const ml_inst_type_t</type>
+        <definition>const ml_inst_type_t MLInstTypes[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLInstTypes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_opcodes.c" line="76" column="22" bodyfile="src/ml_opcodes.c" bodystart="76" bodyend="147"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;ml_opcodes.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*MLInstNames[]<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="4"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_AND]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;and&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_AND_POP]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;and_pop&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ASSIGN]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;assign&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ASSIGN_LOCAL]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;assign_local&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CALL]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;call&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CALL_CONST]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;call_const&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CALL_METHOD]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;call_method&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CATCH]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;catch&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CATCHX]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;catchx&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CLOSURE]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;closure&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CLOSURE_TYPED]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;closure_typed&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ENTER]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;enter&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_EXIT]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;exit&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_FOR]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;for&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_GOTO]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;goto&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_IF_CONFIG]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;if_config&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ITER]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;iter&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_KEY]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;key&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LET]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;let&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LETI]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;leti&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LETX]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;letx&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LINK]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;link&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LIST_APPEND]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;list_append&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LIST_NEW]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;list_new&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOAD]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;load&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOAD_PUSH]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;load_push&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOAD_VAR]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;load_var&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOCAL]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;local&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOCALI]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;locali&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOCAL_PUSH]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;local_push&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_MAP_INSERT]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;map_insert&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_MAP_NEW]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;map_new&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NEXT]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;next&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NIL]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;nil&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NIL_PUSH]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;nil_push&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NOT]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;not&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_OR]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;or&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PARAM_TYPE]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;param_type&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PARTIAL_NEW]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;partial_new&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PARTIAL_SET]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;partial_set&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_POP]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;pop&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PUSH]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;push&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_REF]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;ref&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_REFI]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;refi&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_REFX]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;refx&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RESOLVE]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;resolve&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RESUME]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;resume&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RETRY]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;retry&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RETURN]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;return&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_ADD]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;string_add&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_ADDS]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;string_adds&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_ADD_1]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;string_add_1&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_END]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;string_end&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_NEW]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;string_new&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_POP]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;string_pop&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_SUSPEND]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;suspend&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_SWITCH]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;switch&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TAIL_CALL]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;tail_call&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TAIL_CALL_CONST]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;tail_call_const&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TAIL_CALL_METHOD]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;tail_call_method&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TRY]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;try&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TUPLE_NEW]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;tuple_new&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_UPVALUE]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;upvalue&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VALUE_1]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;value_1&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VALUE_2]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;value_2&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VAR]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;var&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VARX]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;varx&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VAR_TYPE]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;var_type&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_WITH]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;with&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_WITHX]<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;withx&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>ml_inst_type_t<sp/>MLInstTypes[]<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_AND]<sp/>=<sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_AND_POP]<sp/>=<sp/>MLIT_INST_COUNT,</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ASSIGN]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ASSIGN_LOCAL]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CALL]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CALL_CONST]<sp/>=<sp/>MLIT_VALUE_COUNT,</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CALL_METHOD]<sp/>=<sp/>MLIT_VALUE_COUNT_DATA,</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CATCH]<sp/>=<sp/>MLIT_INST_COUNT_DECL,</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CATCHX]<sp/>=<sp/>MLIT_INST_COUNT_DECL,</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CLOSURE]<sp/>=<sp/>MLIT_CLOSURE,</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_CLOSURE_TYPED]<sp/>=<sp/>MLIT_CLOSURE,</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ENTER]<sp/>=<sp/>MLIT_COUNT_COUNT_DECL,</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_EXIT]<sp/>=<sp/>MLIT_COUNT_DECL,</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_FOR]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_GOTO]<sp/>=<sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_IF_CONFIG]<sp/>=<sp/>MLIT_INST_CONFIG,</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_ITER]<sp/>=<sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_KEY]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LET]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LETI]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LETX]<sp/>=<sp/>MLIT_COUNT_COUNT,</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LINK]<sp/>=<sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LIST_APPEND]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LIST_NEW]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOAD]<sp/>=<sp/>MLIT_VALUE,</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOAD_PUSH]<sp/>=<sp/>MLIT_VALUE,</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOAD_VAR]<sp/>=<sp/>MLIT_VALUE_COUNT,</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOCAL]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOCALI]<sp/>=<sp/>MLIT_COUNT_CHARS,</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_LOCAL_PUSH]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_MAP_INSERT]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_MAP_NEW]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NEXT]<sp/>=<sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NIL]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NIL_PUSH]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_NOT]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_OR]<sp/>=<sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PARAM_TYPE]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PARTIAL_NEW]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PARTIAL_SET]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_POP]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_PUSH]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_REF]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_REFI]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_REFX]<sp/>=<sp/>MLIT_COUNT_COUNT,</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RESOLVE]<sp/>=<sp/>MLIT_VALUE,</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RESUME]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RETRY]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_RETURN]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_ADD]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_ADDS]<sp/>=<sp/>MLIT_COUNT_CHARS,</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_ADD_1]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_END]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_NEW]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_STRING_POP]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_SUSPEND]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_SWITCH]<sp/>=<sp/>MLIT_SWITCH,</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TAIL_CALL]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TAIL_CALL_CONST]<sp/>=<sp/>MLIT_VALUE_COUNT,</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TAIL_CALL_METHOD]<sp/>=<sp/>MLIT_VALUE_COUNT_DATA,</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TRY]<sp/>=<sp/>MLIT_INST,</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_TUPLE_NEW]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_UPVALUE]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VALUE_1]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VALUE_2]<sp/>=<sp/>MLIT_NONE,</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VAR]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VARX]<sp/>=<sp/>MLIT_COUNT_COUNT,</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_VAR_TYPE]<sp/>=<sp/>MLIT_COUNT,</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_WITH]<sp/>=<sp/>MLIT_DECL,</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/>[MLI_WITHX]<sp/>=<sp/>MLIT_COUNT_DECL,</highlight></codeline>
+<codeline lineno="147"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="src/ml_opcodes.c"/>
+  </compounddef>
+</doxygen>

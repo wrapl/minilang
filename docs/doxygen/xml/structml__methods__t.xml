@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__methods__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_methods_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__methods__t_1abd1ef2de33d81db471e0cd142202b979" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_methods_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_methods_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_method.c" line="24" column="11" bodyfile="src/ml_method.c" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__methods__t_1a87cf5c904cd80ab3990e4dbf198672c0" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__methods__t" kindref="compound">ml_methods_t</ref> *</type>
+        <definition>ml_methods_t* ml_methods_t::Parent</definition>
+        <argsstring></argsstring>
+        <name>Parent</name>
+        <qualifiedname>ml_methods_t::Parent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_method.c" line="25" column="14" bodyfile="src/ml_method.c" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__methods__t_1a438a2d7bc73e8cac4e5410144997d3ca" prot="public" static="no" mutable="no">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
+        <definition>inthash_t ml_methods_t::Cache[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Cache</name>
+        <qualifiedname>ml_methods_t::Cache</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_method.c" line="26" column="11" bodyfile="src/ml_method.c" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__methods__t_1aa9b0e48cc333dd5a60e4b6d80e6e6362" prot="public" static="no" mutable="no">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
+        <definition>inthash_t ml_methods_t::Definitions[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Definitions</name>
+        <qualifiedname>ml_methods_t::Definitions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_method.c" line="27" column="11" bodyfile="src/ml_method.c" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__methods__t_1a5ebf3430a2a319ef6e094605f9efb055" prot="public" static="no" mutable="no">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
+        <definition>inthash_t ml_methods_t::Methods[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Methods</name>
+        <qualifiedname>ml_methods_t::Methods</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_method.c" line="28" column="11" bodyfile="src/ml_method.c" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__methods__t_1a687c65ad70b4f65da7666cd18b42d22c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_methods_t::PreventChanges</definition>
+        <argsstring></argsstring>
+        <name>PreventChanges</name>
+        <qualifiedname>ml_methods_t::PreventChanges</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_method.c" line="32" column="5" bodyfile="src/ml_method.c" bodystart="32" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_methods_t</label>
+        <link refid="structml__methods__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Cache</edgelabel>
+          <edgelabel>Definitions</edgelabel>
+          <edgelabel>Methods</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_method.c" line="23" column="1" bodyfile="src/ml_method.c" bodystart="23" bodyend="33"/>
+    <listofallmembers>
+      <member refid="structml__methods__t_1a438a2d7bc73e8cac4e5410144997d3ca" prot="public" virt="non-virtual"><scope>ml_methods_t</scope><name>Cache</name></member>
+      <member refid="structml__methods__t_1aa9b0e48cc333dd5a60e4b6d80e6e6362" prot="public" virt="non-virtual"><scope>ml_methods_t</scope><name>Definitions</name></member>
+      <member refid="structml__methods__t_1a5ebf3430a2a319ef6e094605f9efb055" prot="public" virt="non-virtual"><scope>ml_methods_t</scope><name>Methods</name></member>
+      <member refid="structml__methods__t_1a87cf5c904cd80ab3990e4dbf198672c0" prot="public" virt="non-virtual"><scope>ml_methods_t</scope><name>Parent</name></member>
+      <member refid="structml__methods__t_1a687c65ad70b4f65da7666cd18b42d22c" prot="public" virt="non-virtual"><scope>ml_methods_t</scope><name>PreventChanges</name></member>
+      <member refid="structml__methods__t_1abd1ef2de33d81db471e0cd142202b979" prot="public" virt="non-virtual"><scope>ml_methods_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

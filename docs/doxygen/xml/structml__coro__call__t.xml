@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__coro__call__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_coro_call_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__coro__call__t_1a9cd63cc19e06a76f9acf53e93803dd47" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_coro_call_t::Function</definition>
+        <argsstring></argsstring>
+        <name>Function</name>
+        <qualifiedname>ml_coro_call_t::Function</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.c" line="46" column="12" bodyfile="src/ml_coroutine.c" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__coro__call__t_1a78bd043073837ebc75b1e77329e0eb30" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+        <definition>ml_value_t ** ml_coro_call_t::Args</definition>
+        <argsstring></argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_coro_call_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.c" line="46" column="21" bodyfile="src/ml_coroutine.c" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__coro__call__t_1a69f85a881e6bf953fb56140b4c42fcfe" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_coro_call_t::Count</definition>
+        <argsstring></argsstring>
+        <name>Count</name>
+        <qualifiedname>ml_coro_call_t::Count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_coroutine.c" line="47" column="5" bodyfile="src/ml_coroutine.c" bodystart="47" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_coro_call_t</label>
+        <link refid="structml__coro__call__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Function</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_coroutine.c" line="45" column="1" bodyfile="src/ml_coroutine.c" bodystart="45" bodyend="48"/>
+    <listofallmembers>
+      <member refid="structml__coro__call__t_1a78bd043073837ebc75b1e77329e0eb30" prot="public" virt="non-virtual"><scope>ml_coro_call_t</scope><name>Args</name></member>
+      <member refid="structml__coro__call__t_1a69f85a881e6bf953fb56140b4c42fcfe" prot="public" virt="non-virtual"><scope>ml_coro_call_t</scope><name>Count</name></member>
+      <member refid="structml__coro__call__t_1a9cd63cc19e06a76f9acf53e93803dd47" prot="public" virt="non-virtual"><scope>ml_coro_call_t</scope><name>Function</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

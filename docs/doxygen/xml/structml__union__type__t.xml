@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__union__type__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_union_type_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__union__type__t_1ac019da7c9224bea24f4a671dcd21d5ec" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t ml_union_type_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_union_type_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.c" line="349" column="11" bodyfile="src/ml_types.c" bodystart="349" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__union__type__t_1a47eaa2266b0fafe52ce2f5f611ede4a7" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_union_type_t::NumTypes</definition>
+        <argsstring></argsstring>
+        <name>NumTypes</name>
+        <qualifiedname>ml_union_type_t::NumTypes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.c" line="350" column="5" bodyfile="src/ml_types.c" bodystart="350" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__union__type__t_1aef0010a84d787e34bd2b077554b71395" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_union_type_t::Types[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Types</name>
+        <qualifiedname>ml_union_type_t::Types</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.c" line="351" column="11" bodyfile="src/ml_types.c" bodystart="351" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_union_type_t</label>
+        <link refid="structml__union__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+          <edgelabel>Types</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.c" line="348" column="1" bodyfile="src/ml_types.c" bodystart="348" bodyend="352"/>
+    <listofallmembers>
+      <member refid="structml__union__type__t_1ac019da7c9224bea24f4a671dcd21d5ec" prot="public" virt="non-virtual"><scope>ml_union_type_t</scope><name>Base</name></member>
+      <member refid="structml__union__type__t_1a47eaa2266b0fafe52ce2f5f611ede4a7" prot="public" virt="non-virtual"><scope>ml_union_type_t</scope><name>NumTypes</name></member>
+      <member refid="structml__union__type__t_1aef0010a84d787e34bd2b077554b71395" prot="public" virt="non-virtual"><scope>ml_union_type_t</scope><name>Types</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

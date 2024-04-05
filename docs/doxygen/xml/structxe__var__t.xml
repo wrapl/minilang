@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structxe__var__t" kind="struct" language="C++" prot="public">
+    <compoundname>xe_var_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxe__var__t_1a07f8cf2c149b838b14dba8315321cd20" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>const ml_type_t* xe_var_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>xe_var_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xe.c" line="55" column="17" bodyfile="src/ml_xe.c" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxe__var__t_1a6ed4a265b0f814380196e601297b2245" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* xe_var_t::Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>xe_var_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xe.c" line="56" column="12" bodyfile="src/ml_xe.c" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxe__var__t_1a4b91fe4fc0f8d3d433de66adb352c4b5" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * xe_var_t::Indices</definition>
+        <argsstring></argsstring>
+        <name>Indices</name>
+        <qualifiedname>xe_var_t::Indices</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xe.c" line="56" column="17" bodyfile="src/ml_xe.c" bodystart="56" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>xe_var_t</label>
+        <link refid="structxe__var__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Indices</edgelabel>
+          <edgelabel>Name</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_xe.c" line="54" column="1" bodyfile="src/ml_xe.c" bodystart="54" bodyend="57"/>
+    <listofallmembers>
+      <member refid="structxe__var__t_1a4b91fe4fc0f8d3d433de66adb352c4b5" prot="public" virt="non-virtual"><scope>xe_var_t</scope><name>Indices</name></member>
+      <member refid="structxe__var__t_1a6ed4a265b0f814380196e601297b2245" prot="public" virt="non-virtual"><scope>xe_var_t</scope><name>Name</name></member>
+      <member refid="structxe__var__t_1a07f8cf2c149b838b14dba8315321cd20" prot="public" virt="non-virtual"><scope>xe_var_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

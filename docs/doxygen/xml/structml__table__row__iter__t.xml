@@ -1,0 +1,237 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__table__row__iter__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_table_row_iter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__table__row__iter__t_1a315edb5779c4ffe2a89ba6309a3da4b9" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_table_row_iter_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_table_row_iter_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_table.c" line="397" column="11" bodyfile="src/ml_table.c" bodystart="397" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__table__row__iter__t_1afc2d40e648de82ec2ce7b781fcd76ed2" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref> *</type>
+        <definition>ml_map_node_t* ml_table_row_iter_t::Node</definition>
+        <argsstring></argsstring>
+        <name>Node</name>
+        <qualifiedname>ml_table_row_iter_t::Node</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_table.c" line="398" column="15" bodyfile="src/ml_table.c" bodystart="398" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__table__row__iter__t_1a9a58230aa1e6447e177d9ec9192988d6" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__table__row__t" kindref="compound">ml_table_row_t</ref> *</type>
+        <definition>ml_table_row_t* ml_table_row_iter_t::Row</definition>
+        <argsstring></argsstring>
+        <name>Row</name>
+        <qualifiedname>ml_table_row_iter_t::Row</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_table.c" line="399" column="16" bodyfile="src/ml_table.c" bodystart="399" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__table__row__iter__t_1ac08ee82ec9293d9af0057744d48b85c5" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_table_row_iter_t::Indices[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Indices</name>
+        <qualifiedname>ml_table_row_iter_t::Indices</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_table.c" line="400" column="12" bodyfile="src/ml_table.c" bodystart="400" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="7">
+        <label>ml_map_node_t</label>
+        <link refid="structml__map__node__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Key</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Map</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_map_t</label>
+        <link refid="structml__map__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Root</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Cached</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_method_cached_t</label>
+        <link refid="structml__method__cached__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>MethodNext</edgelabel>
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Methods</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Method</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Callback</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Types</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>ml_method_t</label>
+        <link refid="structml__method__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_methods_t</label>
+        <link refid="structml__methods__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Cache</edgelabel>
+          <edgelabel>Definitions</edgelabel>
+          <edgelabel>Methods</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_table_row_iter_t</label>
+        <link refid="structml__table__row__iter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Node</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Row</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Indices</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>ml_table_row_t</label>
+        <link refid="structml__table__row__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>Table</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>ml_table_t</label>
+        <link refid="structml__table__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Columns</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Rows</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_table.c" line="396" column="1" bodyfile="src/ml_table.c" bodystart="396" bodyend="401"/>
+    <listofallmembers>
+      <member refid="structml__table__row__iter__t_1ac08ee82ec9293d9af0057744d48b85c5" prot="public" virt="non-virtual"><scope>ml_table_row_iter_t</scope><name>Indices</name></member>
+      <member refid="structml__table__row__iter__t_1afc2d40e648de82ec2ce7b781fcd76ed2" prot="public" virt="non-virtual"><scope>ml_table_row_iter_t</scope><name>Node</name></member>
+      <member refid="structml__table__row__iter__t_1a9a58230aa1e6447e177d9ec9192988d6" prot="public" virt="non-virtual"><scope>ml_table_row_iter_t</scope><name>Row</name></member>
+      <member refid="structml__table__row__iter__t_1a315edb5779c4ffe2a89ba6309a3da4b9" prot="public" virt="non-virtual"><scope>ml_table_row_iter_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

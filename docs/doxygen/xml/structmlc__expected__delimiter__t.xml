@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__expected__delimiter__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_expected_delimiter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__expected__delimiter__t_1aaf55b1efbce180455ffc5805610c970a" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expected__delimiter__t" kindref="compound">mlc_expected_delimiter_t</ref> *</type>
+        <definition>mlc_expected_delimiter_t* mlc_expected_delimiter_t::Prev</definition>
+        <argsstring></argsstring>
+        <name>Prev</name>
+        <qualifiedname>mlc_expected_delimiter_t::Prev</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="47" column="26" bodyfile="src/ml_compiler.c" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__expected__delimiter__t_1a6c294de3774f9eca0bcae70390fb2d87" prot="public" static="no" mutable="no">
+        <type>ml_token_t</type>
+        <definition>ml_token_t mlc_expected_delimiter_t::Token</definition>
+        <argsstring></argsstring>
+        <name>Token</name>
+        <qualifiedname>mlc_expected_delimiter_t::Token</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="48" column="12" bodyfile="src/ml_compiler.c" bodystart="48" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>mlc_expected_delimiter_t</label>
+        <link refid="structmlc__expected__delimiter__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="46" column="1" bodyfile="src/ml_compiler.c" bodystart="46" bodyend="49"/>
+    <listofallmembers>
+      <member refid="structmlc__expected__delimiter__t_1aaf55b1efbce180455ffc5805610c970a" prot="public" virt="non-virtual"><scope>mlc_expected_delimiter_t</scope><name>Prev</name></member>
+      <member refid="structmlc__expected__delimiter__t_1a6c294de3774f9eca0bcae70390fb2d87" prot="public" virt="non-virtual"><scope>mlc_expected_delimiter_t</scope><name>Token</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

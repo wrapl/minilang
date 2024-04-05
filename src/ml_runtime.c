@@ -141,7 +141,7 @@ static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		ML_CONTINUE(State->Base.Caller, Value);
 	} else {
-		ml_call(State->Base.Caller, Value, State->Count, State->Args);
+		return ml_call(State->Base.Caller, Value, State->Count, State->Args);
 	}
 }
 
@@ -1221,7 +1221,7 @@ typedef struct {
 static void ml_finalize(void *Value, ml_finalizer_t *Finalizer) {
 	ml_state_t *State = ml_state(Finalizer->Caller);
 	State->run = ml_end_state_run;
-	ml_call(State, Finalizer->Fn, 0, NULL);
+	return ml_call(State, Finalizer->Fn, 0, NULL);
 }
 
 ML_FUNCTIONX(MLFinalizer) {

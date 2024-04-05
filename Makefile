@@ -96,6 +96,11 @@ ifeq ($(PLATFORM), Linux)
 	override LDFLAGS += -lgc
 endif
 
+ifeq ($(PLATFORM), Android)
+	platform_objects += obj/linenoise.o
+	override LDFLAGS += -lgc
+endif
+
 ifeq ($(PLATFORM), FreeBSD)
 	platform_objects += obj/linenoise.o
 	override CFLAGS += -I/usr/local/include

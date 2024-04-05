@@ -213,7 +213,7 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	MLC_POP();
-	ml_call(Caller, ml_closure(Info), 0, NULL);
+	return ml_call(Caller, ml_closure(Info), 0, NULL);
 }
 
 static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
@@ -1817,6 +1817,16 @@ static void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int 
 	MLC_RETURN(NULL);
 }
 
+static void ml_recur_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_UPVALUE, 1);
+	LocalInst[1].Count = -1;
+	if (Flags & MLCF_PUSH) {
+		MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
+		mlc_inc_top(Function);
+	}
+	MLC_RETURN(NULL);
+}
+
 static void ml_it_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
 	if (Function->It < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "It must be used in guard expression"));
 	if (Flags & MLCF_PUSH) {
@@ -2130,7 +2140,7 @@ static void mlc_inline_call_expr_compile3(mlc_function_t *Function, ml_value_t *
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	MLC_POP();
-	ml_call(Caller, ml_closure(Info), 0, NULL);
+	return ml_call(Caller, ml_closure(Info), 0, NULL);
 }
 
 static void mlc_inline_call_expr_compile2(mlc_function_t *Parent, ml_value_t *Value, mlc_expr_t *Expr, mlc_expr_t *Child) {
@@ -3664,6 +3674,7 @@ const char *MLTokens[] = {
 	"old", // MLT_OLD,
 	"on", // MLT_ON,
 	"or", // MLT_OR,
+	"recur", // MLT_RECUR,
 	"ref", // MLT_REF,
 	"ret", // MLT_RET,
 	"seq", // MLT_SEQ,
@@ -5230,6 +5241,7 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		[MLT_NIL] = ml_nil_expr_compile,
 		[MLT_BLANK] = ml_blank_expr_compile,
 		[MLT_OLD] = ml_old_expr_compile,
+		[MLT_RECUR] = ml_recur_expr_compile,
 		[MLT_IT] = ml_it_expr_compile
 	};
 	const char *ExprName = NULL;
@@ -5301,6 +5313,7 @@ with_name:
 	case MLT_BLANK:
 	case MLT_OLD:
 	case MLT_IT:
+	case MLT_RECUR:
 	{
 		mlc_expr_t *Expr = new(mlc_expr_t);
 		Expr->compile = CompileFns[Parser->Token];

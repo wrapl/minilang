@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structcallback__instance__t" kind="struct" language="C++" prot="public">
+    <compoundname>callback_instance_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcallback__instance__t_1a5c10b833360c91a688fc0c4727c57d6a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* callback_instance_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>callback_instance_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1883" column="11" bodyfile="src/ml_gir.c" bodystart="1883" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__instance__t_1afe8064e71ffbbe77737a2e463463d639" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+        <definition>ml_context_t* callback_instance_t::Context</definition>
+        <argsstring></argsstring>
+        <name>Context</name>
+        <qualifiedname>callback_instance_t::Context</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1884" column="14" bodyfile="src/ml_gir.c" bodystart="1884" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__instance__t_1a192caa7e7ddad5e56430d94f7534da8c" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* callback_instance_t::Function</definition>
+        <argsstring></argsstring>
+        <name>Function</name>
+        <qualifiedname>callback_instance_t::Function</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1885" column="12" bodyfile="src/ml_gir.c" bodystart="1885" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__instance__t_1afe097c7b564e9672a111e841aa71ab47" prot="public" static="no" mutable="no">
+        <type>ffi_cif</type>
+        <definition>ffi_cif callback_instance_t::Cif[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Cif</name>
+        <qualifiedname>callback_instance_t::Cif</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1886" column="9" bodyfile="src/ml_gir.c" bodystart="1886" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>callback_instance_t</label>
+        <link refid="structcallback__instance__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Function</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="7">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="1882" column="1" bodyfile="src/ml_gir.c" bodystart="1882" bodyend="1887"/>
+    <listofallmembers>
+      <member refid="structcallback__instance__t_1afe097c7b564e9672a111e841aa71ab47" prot="public" virt="non-virtual"><scope>callback_instance_t</scope><name>Cif</name></member>
+      <member refid="structcallback__instance__t_1afe8064e71ffbbe77737a2e463463d639" prot="public" virt="non-virtual"><scope>callback_instance_t</scope><name>Context</name></member>
+      <member refid="structcallback__instance__t_1a192caa7e7ddad5e56430d94f7534da8c" prot="public" virt="non-virtual"><scope>callback_instance_t</scope><name>Function</name></member>
+      <member refid="structcallback__instance__t_1a5c10b833360c91a688fc0c4727c57d6a" prot="public" virt="non-virtual"><scope>callback_instance_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

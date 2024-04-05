@@ -1,0 +1,750 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="ml__socket_8c" kind="file" language="C++">
+    <compoundname>ml_socket.c</compoundname>
+    <includes refid="ml__socket_8h" local="yes">ml_socket.h</includes>
+    <includes refid="ml__object_8h" local="yes">ml_object.h</includes>
+    <includes refid="ml__stream_8h" local="yes">ml_stream.h</includes>
+    <includes refid="ml__macros_8h" local="yes">ml_macros.h</includes>
+    <includes local="no">sys/socket.h</includes>
+    <includes local="no">sys/un.h</includes>
+    <includes local="no">netinet/in.h</includes>
+    <includes local="no">netdb.h</includes>
+    <includes local="no">errno.h</includes>
+    <includes local="no">string.h</includes>
+    <includes local="yes">ml_socket_init.c</includes>
+    <incdepgraph>
+      <node id="14">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>ml_macros.h</label>
+        <link refid="ml__macros_8h_source"/>
+        <childnode refid="21" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/ml_socket.c</label>
+        <link refid="ml__socket_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_socket.h</label>
+        <link refid="ml__socket_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="19">
+        <label>ml_stream.h</label>
+        <link refid="ml__stream_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="26">
+        <label>errno.h</label>
+      </node>
+      <node id="21">
+        <label>gc/gc.h</label>
+      </node>
+      <node id="17">
+        <label>limits.h</label>
+      </node>
+      <node id="16">
+        <label>ml_config.h</label>
+      </node>
+      <node id="27">
+        <label>ml_socket_init.c</label>
+      </node>
+      <node id="25">
+        <label>netdb.h</label>
+      </node>
+      <node id="24">
+        <label>netinet/in.h</label>
+      </node>
+      <node id="8">
+        <label>setjmp.h</label>
+      </node>
+      <node id="12">
+        <label>stdarg.h</label>
+      </node>
+      <node id="15">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stdio.h</label>
+      </node>
+      <node id="5">
+        <label>stdlib.h</label>
+      </node>
+      <node id="11">
+        <label>string.h</label>
+      </node>
+      <node id="22">
+        <label>sys/socket.h</label>
+      </node>
+      <node id="23">
+        <label>sys/un.h</label>
+      </node>
+      <node id="6">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ml__socket_8c_1a4ec3b5200849d85a81f80ebe11cece9d" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSocketLocalT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSocketLocalT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="28" column="18" declfile="src/ml_socket.c" declline="28" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="ml__socket_8c_1a5ef337a38f75b5b1f5bcbbed8d89e3c5" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSocketInetT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSocketInetT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="79" column="18" declfile="src/ml_socket.c" declline="79" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ml__socket_8c_1ab1f466968e2b6fafa7ed3ab8cf769216" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_ENUM2</definition>
+        <argsstring>(MLSocketTypeT, &quot;socket::type&quot;, &quot;Stream&quot;, SOCK_STREAM, &quot;DGram&quot;, SOCK_DGRAM, &quot;Raw&quot;, SOCK_RAW)</argsstring>
+        <name>ML_ENUM2</name>
+        <param>
+          <type>MLSocketTypeT</type>
+        </param>
+        <param>
+          <type>&quot;socket::type&quot;</type>
+        </param>
+        <param>
+          <type>&quot;Stream&quot;</type>
+        </param>
+        <param>
+          <type>SOCK_STREAM</type>
+        </param>
+        <param>
+          <type>&quot;DGram&quot;</type>
+        </param>
+        <param>
+          <type>SOCK_DGRAM</type>
+        </param>
+        <param>
+          <type>&quot;Raw&quot;</type>
+        </param>
+        <param>
+          <type>SOCK_RAW</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="12" column="1" declfile="src/ml_socket.c" declline="12" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1ae81ef29c23bf3e3a538189cc320ca8fd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_TYPE</definition>
+        <argsstring>(MLSocketT,(MLStreamFdT), &quot;socket&quot;)</argsstring>
+        <name>ML_TYPE</name>
+        <param>
+          <type>MLSocketT</type>
+        </param>
+        <param>
+          <type>(MLStreamFdT)</type>
+        </param>
+        <param>
+          <type>&quot;socket&quot;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="18" column="1" declfile="src/ml_socket.c" declline="18" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a6ee1ed6a494b1ac69c63d58952b5e4f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;listen&quot;, MLSocketT, MLIntegerT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;listen&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketT</type>
+        </param>
+        <param>
+          <type>MLIntegerT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="20" column="1" bodyfile="src/ml_socket.c" bodystart="20" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a9b042bf5af70ae60e4f3808a79c6127d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_FUNCTION</definition>
+        <argsstring>(MLSocketLocal)</argsstring>
+        <name>ML_FUNCTION</name>
+        <param>
+          <type>MLSocketLocal</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="30" column="1" bodyfile="src/ml_socket.c" bodystart="30" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1ae42a06743c08b364056c3074d11820d1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_TYPE</definition>
+        <argsstring>(MLSocketLocalT,(MLSocketT), &quot;socket::local&quot;,.Constructor=(ml_value_t *) MLSocketLocal)</argsstring>
+        <name>ML_TYPE</name>
+        <param>
+          <type>MLSocketLocalT</type>
+        </param>
+        <param>
+          <type>(MLSocketT)</type>
+        </param>
+        <param>
+          <type>&quot;socket::local&quot;</type>
+        </param>
+        <param>
+          <type>.</type>
+          <declname>Constructor</declname>
+          <defval>(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *) MLSocketLocal</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="40" column="1" declfile="src/ml_socket.c" declline="40" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1aa089bcb139237fbe7926f1d6e8c78c00" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;bind&quot;, MLSocketLocalT, MLStringT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;bind&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketLocalT</type>
+        </param>
+        <param>
+          <type>MLStringT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="44" column="1" bodyfile="src/ml_socket.c" bodystart="44" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a2e6e836eafe1644f6b5140f09abe9836" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;connect&quot;, MLSocketLocalT, MLStringT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;connect&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketLocalT</type>
+        </param>
+        <param>
+          <type>MLStringT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="56" column="1" bodyfile="src/ml_socket.c" bodystart="56" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a02ed93cc2ca912dbd05563590af70f0b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;accept&quot;, MLSocketLocalT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;accept&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketLocalT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="68" column="1" bodyfile="src/ml_socket.c" bodystart="68" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a6e2abbdd125f66d1da74a5a0c507f261" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_FUNCTION</definition>
+        <argsstring>(MLSocketInet)</argsstring>
+        <name>ML_FUNCTION</name>
+        <param>
+          <type>MLSocketInet</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="81" column="1" bodyfile="src/ml_socket.c" bodystart="81" bodyend="89"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a9243abcdd09a5a8869a3bc2a3b1d41ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_TYPE</definition>
+        <argsstring>(MLSocketInetT,(MLSocketT), &quot;socket::inet&quot;,.Constructor=(ml_value_t *) MLSocketInet)</argsstring>
+        <name>ML_TYPE</name>
+        <param>
+          <type>MLSocketInetT</type>
+        </param>
+        <param>
+          <type>(MLSocketT)</type>
+        </param>
+        <param>
+          <type>&quot;socket::inet&quot;</type>
+        </param>
+        <param>
+          <type>.</type>
+          <declname>Constructor</declname>
+          <defval>(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *) MLSocketInet</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="91" column="1" declfile="src/ml_socket.c" declline="91" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1ab01729de80e480aca66d7a1d1f502bac" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * host_address</definition>
+        <argsstring>(const char *Name, struct in_addr *Address)</argsstring>
+        <name>host_address</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>struct in_addr *</type>
+          <declname>Address</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="95" column="19" bodyfile="src/ml_socket.c" bodystart="95" bodyend="112"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a20fa13049f7e1154e95741acdc9be009" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;bind&quot;, MLSocketInetT, MLIntegerT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;bind&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketInetT</type>
+        </param>
+        <param>
+          <type>MLIntegerT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="114" column="1" bodyfile="src/ml_socket.c" bodystart="114" bodyend="124"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1ab3fd5b39327e29596618ef7f1491b407" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;bind&quot;, MLSocketInetT, MLStringT, MLIntegerT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;bind&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketInetT</type>
+        </param>
+        <param>
+          <type>MLStringT</type>
+        </param>
+        <param>
+          <type>MLIntegerT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="126" column="1" bodyfile="src/ml_socket.c" bodystart="126" bodyend="137"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1acf38535122f4265430cb2879abe56c9b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;connect&quot;, MLSocketInetT, MLStringT, MLIntegerT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;connect&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketInetT</type>
+        </param>
+        <param>
+          <type>MLStringT</type>
+        </param>
+        <param>
+          <type>MLIntegerT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="139" column="1" bodyfile="src/ml_socket.c" bodystart="139" bodyend="150"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1a7e6670d902b7214be17ce7c60001ff35" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ML_METHOD</definition>
+        <argsstring>(&quot;accept&quot;, MLSocketInetT)</argsstring>
+        <name>ML_METHOD</name>
+        <param>
+          <type>&quot;accept&quot;</type>
+        </param>
+        <param>
+          <type>MLSocketInetT</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="152" column="1" bodyfile="src/ml_socket.c" bodystart="152" bodyend="161"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__socket_8c_1af3e565f784a0ec99e1503cad4b3280a3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_socket_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_socket_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_socket.c" line="163" column="6" bodyfile="src/ml_socket.c" bodystart="163" bodyend="171"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;ml_socket.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_object.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_stream.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_macros.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;sys/socket.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;sys/un.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;netinet/in.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;netdb.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;errno.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal">ML_ENUM2(MLSocketTypeT,<sp/></highlight><highlight class="stringliteral">&quot;socket::type&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;Stream&quot;</highlight><highlight class="normal">,<sp/>SOCK_STREAM,</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;DGram&quot;</highlight><highlight class="normal">,<sp/>SOCK_DGRAM,</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;Raw&quot;</highlight><highlight class="normal">,<sp/>SOCK_RAW</highlight></codeline>
+<codeline lineno="16"><highlight class="normal">);</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal">ML_TYPE(MLSocketT,<sp/>(MLStreamFdT),<sp/></highlight><highlight class="stringliteral">&quot;socket&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;listen&quot;</highlight><highlight class="normal">,<sp/>MLSocketT,<sp/>MLIntegerT)<sp/>{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(listen(Socket,<sp/>ml_integer_value(Args[1]))<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>listening<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Args[0];</highlight></codeline>
+<codeline lineno="26"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSocketLocalT[];</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal">ML_FUNCTION(MLSocketLocal)<sp/>{</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_CHECK_ARG_COUNT(1);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_CHECK_ARG_TYPE(0,<sp/>MLSocketTypeT);</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>socket(PF_LOCAL,<sp/>ml_enum_value_value(Args[0]),<sp/>0);</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Socket<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>creating<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_fd_stream(MLSocketLocalT,<sp/>Socket);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal">ML_TYPE(MLSocketLocalT,<sp/>(MLSocketT),<sp/></highlight><highlight class="stringliteral">&quot;socket::local&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>.Constructor<sp/>=<sp/>(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*)MLSocketLocal</highlight></codeline>
+<codeline lineno="42"><highlight class="normal">);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;bind&quot;</highlight><highlight class="normal">,<sp/>MLSocketLocalT,<sp/>MLStringT)<sp/>{</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">sockaddr_un<sp/>Name;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sun_family<sp/>=<sp/>AF_LOCAL;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>strncpy(Name.sun_path,<sp/>ml_string_value(Args[1]),<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Name.sun_path));</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sun_path[</highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Name.sun_path)<sp/>-<sp/>1]<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bind(Socket,<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>sockaddr<sp/>*)&amp;Name,<sp/>SUN_LEN(&amp;Name))<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>binding<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Args[0];</highlight></codeline>
+<codeline lineno="54"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;connect&quot;</highlight><highlight class="normal">,<sp/>MLSocketLocalT,<sp/>MLStringT)<sp/>{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">sockaddr_un<sp/>Name;</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sun_family<sp/>=<sp/>AF_LOCAL;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>strncpy(Name.sun_path,<sp/>ml_string_value(Args[1]),<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Name.sun_path));</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sun_path[</highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Name.sun_path)<sp/>-<sp/>1]<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(connect(Socket,<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>sockaddr<sp/>*)&amp;Name,<sp/>SUN_LEN(&amp;Name))<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>connecting<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Args[0];</highlight></codeline>
+<codeline lineno="66"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;accept&quot;</highlight><highlight class="normal">,<sp/>MLSocketLocalT)<sp/>{</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">sockaddr_un<sp/>Name;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>socklen_t<sp/>Length;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Client<sp/>=<sp/>accept(Socket,<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>sockaddr<sp/>*)&amp;Name,<sp/>&amp;Length);</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Client<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>accepting<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_fd_stream(MLSocketLocalT,<sp/>Client);</highlight></codeline>
+<codeline lineno="77"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSocketInetT[];</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal">ML_FUNCTION(MLSocketInet)<sp/>{</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_CHECK_ARG_COUNT(1);</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_CHECK_ARG_TYPE(0,<sp/>MLSocketTypeT);</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>socket(PF_INET,<sp/>ml_enum_value_value(Args[0]),<sp/>0);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Socket<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>creating<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_fd_stream(MLSocketInetT,<sp/>Socket);</highlight></codeline>
+<codeline lineno="89"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal">ML_TYPE(MLSocketInetT,<sp/>(MLSocketT),<sp/></highlight><highlight class="stringliteral">&quot;socket::inet&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/>.Constructor<sp/>=<sp/>(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*)MLSocketInet</highlight></codeline>
+<codeline lineno="93"><highlight class="normal">);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*host_address(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>in_addr<sp/>*Address)<sp/>{</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">hostent<sp/>Host,<sp/>*Result;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>BufferSize<sp/>=<sp/>1024;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Buffer<sp/>=<sp/>malloc(BufferSize);</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Status,<sp/>Error;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>((Status<sp/>=<sp/>gethostbyname_r(Name,<sp/>&amp;Host,<sp/>Buffer,<sp/>BufferSize,<sp/>&amp;Result,<sp/>&amp;Error))<sp/>==<sp/>ERANGE)<sp/>{</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>BufferSize<sp/>*=<sp/>2;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>=<sp/>realloc(Buffer,<sp/>BufferSize);</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Status<sp/>||<sp/>!Result)<sp/>{</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>free(Buffer);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;HostnameError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>looking<sp/>up<sp/>hostname<sp/>%s:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>Name,<sp/>strerror(Error));</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*Address<sp/>=<sp/>*(</highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">in_addr<sp/>*)Result-&gt;h_addr;</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>free(Buffer);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="112"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;bind&quot;</highlight><highlight class="normal">,<sp/>MLSocketInetT,<sp/>MLIntegerT)<sp/>{</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">sockaddr_in<sp/>Name;</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sin_family<sp/>=<sp/>AF_INET;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sin_port<sp/>=<sp/>htons(ml_integer_value(Args[1]));</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sin_addr.s_addr<sp/>=<sp/>htonl(INADDR_ANY);</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bind(Socket,<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>sockaddr<sp/>*)&amp;Name,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Name))<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>binding<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Args[0];</highlight></codeline>
+<codeline lineno="124"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;bind&quot;</highlight><highlight class="normal">,<sp/>MLSocketInetT,<sp/>MLStringT,<sp/>MLIntegerT)<sp/>{</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">sockaddr_in<sp/>Name;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sin_family<sp/>=<sp/>AF_INET;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sin_port<sp/>=<sp/>htons(ml_integer_value(Args[2]));</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Error<sp/>=<sp/>host_address(ml_string_value(Args[1]),<sp/>&amp;Name.sin_addr);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Error)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Error;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bind(Socket,<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>sockaddr<sp/>*)&amp;Name,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Name))<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>binding<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Args[0];</highlight></codeline>
+<codeline lineno="137"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;connect&quot;</highlight><highlight class="normal">,<sp/>MLSocketInetT,<sp/>MLStringT,<sp/>MLIntegerT)<sp/>{</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">sockaddr_in<sp/>Name;</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sin_family<sp/>=<sp/>AF_INET;</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/>Name.sin_port<sp/>=<sp/>htons(ml_integer_value(Args[2]));</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Error<sp/>=<sp/>host_address(ml_string_value(Args[1]),<sp/>&amp;Name.sin_addr);</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Error)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Error;</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(connect(Socket,<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>sockaddr<sp/>*)&amp;Name,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Name))<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>connecting<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Args[0];</highlight></codeline>
+<codeline lineno="150"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal">ML_METHOD(</highlight><highlight class="stringliteral">&quot;accept&quot;</highlight><highlight class="normal">,<sp/>MLSocketInetT)<sp/>{</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Socket<sp/>=<sp/>ml_fd_stream_fd(Args[0]);</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">sockaddr_in<sp/>Name;</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/>socklen_t<sp/>Length;</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Client<sp/>=<sp/>accept(Socket,<sp/>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/>sockaddr<sp/>*)&amp;Name,<sp/>&amp;Length);</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Client<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;SocketError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Error<sp/>accepting<sp/>socket:<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>strerror(errno));</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_fd_stream(MLSocketInetT,<sp/>Client);</highlight></codeline>
+<codeline lineno="161"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_socket_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals)<sp/>{</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_socket_init.c&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(MLSocketT-&gt;Exports,<sp/></highlight><highlight class="stringliteral">&quot;local&quot;</highlight><highlight class="normal">,<sp/>MLSocketLocalT);</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(MLSocketT-&gt;Exports,<sp/></highlight><highlight class="stringliteral">&quot;inet&quot;</highlight><highlight class="normal">,<sp/>MLSocketInetT);</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(MLSocketT-&gt;Exports,<sp/></highlight><highlight class="stringliteral">&quot;type&quot;</highlight><highlight class="normal">,<sp/>MLSocketTypeT);</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Globals)<sp/>{</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;socket&quot;</highlight><highlight class="normal">,<sp/>MLSocketT);</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="171"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="src/ml_socket.c"/>
+  </compounddef>
+</doxygen>

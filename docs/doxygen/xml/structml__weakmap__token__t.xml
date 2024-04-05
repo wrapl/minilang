@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__weakmap__token__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_weakmap_token_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__weakmap__token__t_1ae634cb72c12b96b623e51d02d20a2aec" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_weakmap_token_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_weakmap_token_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.c" line="148" column="11" bodyfile="src/weakmap.c" bodystart="148" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__weakmap__token__t_1aed9093a579d08fb5679598e60f8f0dbf" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* ml_weakmap_token_t::Name</definition>
+        <argsstring></argsstring>
+        <name>Name</name>
+        <qualifiedname>ml_weakmap_token_t::Name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.c" line="149" column="12" bodyfile="src/weakmap.c" bodystart="149" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__weakmap__token__t_1a8eaa25d9a6a916c6e89f2359d0cfda69" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ml_weakmap_token_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_weakmap_token_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.c" line="150" column="8" bodyfile="src/weakmap.c" bodystart="150" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_weakmap_token_t</label>
+        <link refid="structml__weakmap__token__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/weakmap.c" line="147" column="1" bodyfile="src/weakmap.c" bodystart="147" bodyend="151"/>
+    <listofallmembers>
+      <member refid="structml__weakmap__token__t_1aed9093a579d08fb5679598e60f8f0dbf" prot="public" virt="non-virtual"><scope>ml_weakmap_token_t</scope><name>Name</name></member>
+      <member refid="structml__weakmap__token__t_1ae634cb72c12b96b623e51d02d20a2aec" prot="public" virt="non-virtual"><scope>ml_weakmap_token_t</scope><name>Type</name></member>
+      <member refid="structml__weakmap__token__t_1a8eaa25d9a6a916c6e89f2359d0cfda69" prot="public" virt="non-virtual"><scope>ml_weakmap_token_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

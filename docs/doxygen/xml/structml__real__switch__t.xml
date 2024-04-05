@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__real__switch__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_real_switch_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__real__switch__t_1a8955034c1918e790b14e6a08474f046e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_real_switch_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_real_switch_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_number.c" line="2064" column="11" bodyfile="src/ml_number.c" bodystart="2064" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__real__switch__t_1ae35b178c360c33809a87942db253ea85" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__real__case__t" kindref="compound">ml_real_case_t</ref></type>
+        <definition>ml_real_case_t ml_real_switch_t::Cases[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Cases</name>
+        <qualifiedname>ml_real_switch_t::Cases</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_number.c" line="2065" column="16" bodyfile="src/ml_number.c" bodystart="2065" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="7">
+        <label>ml_real_case_t</label>
+        <link refid="structml__real__case__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Index</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_real_switch_t</label>
+        <link refid="structml__real__switch__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Cases</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_number.c" line="2063" column="1" bodyfile="src/ml_number.c" bodystart="2063" bodyend="2066"/>
+    <listofallmembers>
+      <member refid="structml__real__switch__t_1ae35b178c360c33809a87942db253ea85" prot="public" virt="non-virtual"><scope>ml_real_switch_t</scope><name>Cases</name></member>
+      <member refid="structml__real__switch__t_1a8955034c1918e790b14e6a08474f046e" prot="public" virt="non-virtual"><scope>ml_real_switch_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

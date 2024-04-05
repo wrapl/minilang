@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__flags__value__append__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_flags_value_append_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__flags__value__append__t_1af679e631c817a66c92ca2d7950320d4b" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
+        <definition>ml_stringbuffer_t* ml_flags_value_append_t::Buffer</definition>
+        <argsstring></argsstring>
+        <name>Buffer</name>
+        <qualifiedname>ml_flags_value_append_t::Buffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="1393" column="19" bodyfile="src/ml_object.c" bodystart="1393" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__flags__value__append__t_1a565694c4f6f14f0eaeb3e6d044898c11" prot="public" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>uint64_t ml_flags_value_append_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_flags_value_append_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="1394" column="10" bodyfile="src/ml_object.c" bodystart="1394" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__flags__value__append__t_1a91f98da29df6c007f18894c6c48bbe3f" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_flags_value_append_t::Length</definition>
+        <argsstring></argsstring>
+        <name>Length</name>
+        <qualifiedname>ml_flags_value_append_t::Length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.c" line="1395" column="5" bodyfile="src/ml_object.c" bodystart="1395" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_flags_value_append_t</label>
+        <link refid="structml__flags__value__append__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Buffer</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_hash_chain_t</label>
+        <link refid="structml__hash__chain__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Previous</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_stringbuffer_node_t</label>
+        <link refid="structml__stringbuffer__node__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_stringbuffer_t</label>
+        <link refid="structml__stringbuffer__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Chain</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_object.c" line="1392" column="1" bodyfile="src/ml_object.c" bodystart="1392" bodyend="1396"/>
+    <listofallmembers>
+      <member refid="structml__flags__value__append__t_1af679e631c817a66c92ca2d7950320d4b" prot="public" virt="non-virtual"><scope>ml_flags_value_append_t</scope><name>Buffer</name></member>
+      <member refid="structml__flags__value__append__t_1a91f98da29df6c007f18894c6c48bbe3f" prot="public" virt="non-virtual"><scope>ml_flags_value_append_t</scope><name>Length</name></member>
+      <member refid="structml__flags__value__append__t_1a565694c4f6f14f0eaeb3e6d044898c11" prot="public" virt="non-virtual"><scope>ml_flags_value_append_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

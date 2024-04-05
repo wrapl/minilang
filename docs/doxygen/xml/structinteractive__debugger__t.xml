@@ -1,0 +1,242 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structinteractive__debugger__t" kind="struct" language="C++" prot="public">
+    <compoundname>interactive_debugger_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structinteractive__debugger__t_1a72a2f4d231bcf5827b0986192fc2e38d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__debugger__t" kindref="compound">ml_debugger_t</ref></type>
+        <definition>ml_debugger_t interactive_debugger_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>interactive_debugger_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="29" column="15" bodyfile="src/ml_debugger.c" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteractive__debugger__t_1ac3d5ee8696a78583b767291c1e91c324" prot="public" static="no" mutable="no">
+        <type><ref refid="structinteractive__debugger__info__t" kindref="compound">interactive_debugger_info_t</ref> *</type>
+        <definition>interactive_debugger_info_t* interactive_debugger_t::Info</definition>
+        <argsstring></argsstring>
+        <name>Info</name>
+        <qualifiedname>interactive_debugger_t::Info</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="30" column="29" bodyfile="src/ml_debugger.c" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteractive__debugger__t_1ab09ab02b74970991a931b327f6e55a1d" prot="public" static="no" mutable="no">
+        <type><ref refid="structdebug__thread__t" kindref="compound">debug_thread_t</ref> *</type>
+        <definition>debug_thread_t* interactive_debugger_t::Threads</definition>
+        <argsstring></argsstring>
+        <name>Threads</name>
+        <qualifiedname>interactive_debugger_t::Threads</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="31" column="16" bodyfile="src/ml_debugger.c" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteractive__debugger__t_1a3fe6e2a60cdb993548e8cc044ecc2438" prot="public" static="no" mutable="no">
+        <type><ref refid="structdebug__thread__t" kindref="compound">debug_thread_t</ref> *</type>
+        <definition>debug_thread_t* interactive_debugger_t::ActiveThread</definition>
+        <argsstring></argsstring>
+        <name>ActiveThread</name>
+        <qualifiedname>interactive_debugger_t::ActiveThread</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="32" column="16" bodyfile="src/ml_debugger.c" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteractive__debugger__t_1a21e0380745cadc2a8d7543a86e5c3db2" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t interactive_debugger_t::Globals[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Globals</name>
+        <qualifiedname>interactive_debugger_t::Globals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="33" column="13" bodyfile="src/ml_debugger.c" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteractive__debugger__t_1a3b98d6994027eddd9ba75302b59b9cf1" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t interactive_debugger_t::Modules[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Modules</name>
+        <qualifiedname>interactive_debugger_t::Modules</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="34" column="13" bodyfile="src/ml_debugger.c" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteractive__debugger__t_1add12e1754c1a5ec1ee710058f7df7bd8" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int interactive_debugger_t::MaxThreads</definition>
+        <argsstring></argsstring>
+        <name>MaxThreads</name>
+        <qualifiedname>interactive_debugger_t::MaxThreads</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="35" column="5" bodyfile="src/ml_debugger.c" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structinteractive__debugger__t_1a2018a99a02b8939830d316d76ebe64e6" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int interactive_debugger_t::NumThreads</definition>
+        <argsstring></argsstring>
+        <name>NumThreads</name>
+        <qualifiedname>interactive_debugger_t::NumThreads</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.c" line="35" column="16" bodyfile="src/ml_debugger.c" bodystart="35" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="9">
+        <label>debug_thread_t</label>
+        <link refid="structdebug__thread__t"/>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Active</edgelabel>
+          <edgelabel>State</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>interactive_debugger_info_t</label>
+        <link refid="structinteractive__debugger__info__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>GlobalGet</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>interactive_debugger_t</label>
+        <link refid="structinteractive__debugger__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Info</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>ActiveThread</edgelabel>
+          <edgelabel>Threads</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Globals</edgelabel>
+          <edgelabel>Modules</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="11">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_debugger_t</label>
+        <link refid="structml__debugger__t"/>
+      </node>
+      <node id="10">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_debugger.c" line="28" column="1" bodyfile="src/ml_debugger.c" bodystart="28" bodyend="36"/>
+    <listofallmembers>
+      <member refid="structinteractive__debugger__t_1a3fe6e2a60cdb993548e8cc044ecc2438" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>ActiveThread</name></member>
+      <member refid="structinteractive__debugger__t_1a72a2f4d231bcf5827b0986192fc2e38d" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>Base</name></member>
+      <member refid="structinteractive__debugger__t_1a21e0380745cadc2a8d7543a86e5c3db2" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>Globals</name></member>
+      <member refid="structinteractive__debugger__t_1ac3d5ee8696a78583b767291c1e91c324" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>Info</name></member>
+      <member refid="structinteractive__debugger__t_1add12e1754c1a5ec1ee710058f7df7bd8" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>MaxThreads</name></member>
+      <member refid="structinteractive__debugger__t_1a3b98d6994027eddd9ba75302b59b9cf1" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>Modules</name></member>
+      <member refid="structinteractive__debugger__t_1a2018a99a02b8939830d316d76ebe64e6" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>NumThreads</name></member>
+      <member refid="structinteractive__debugger__t_1ab09ab02b74970991a931b327f6e55a1d" prot="public" virt="non-virtual"><scope>interactive_debugger_t</scope><name>Threads</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

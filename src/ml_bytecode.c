@@ -911,7 +911,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_UPVALUE: {
-		int Index = Inst[1].Count;
+		int Index = Inst[1].Count + 1;
 		Result = Frame->UpValues[Index];
 		ADVANCE(Inst + 2);
 	}
@@ -950,18 +950,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_CLOSURE: {
 		// closure <info> <upvalue_1> ...
 		ml_closure_info_t *Info = Inst[1].ClosureInfo;
-		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues + 1, ml_value_t *);
 		Closure->Type = MLClosureT;
 		Closure->Info = Info;
+		Closure->UpValues[0] = (ml_value_t *)Closure;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst[2 + I].Count;
-			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
+			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index + 1] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
 			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>", (ml_source_t){Frame->Source, Inst->Line});
 			if (ml_typeof(Value) == MLUninitializedT) {
-				ml_uninitialized_use(Value, &Closure->UpValues[I]);
+				ml_uninitialized_use(Value, &Closure->UpValues[I + 1]);
 			}
-			Closure->UpValues[I] = Value;
+			Closure->UpValues[I + 1] = Value;
 		}
 		Result = (ml_value_t *)Closure;
 		ADVANCE(Inst + Info->NumUpValues + 2);
@@ -975,18 +976,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ERROR();
 		}
 		ml_closure_info_t *Info = Inst[1].ClosureInfo;
-		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues + 1, ml_value_t *);
 		Closure->Type = ({ml_generic_type(2, (ml_type_t *[]){MLClosureT, (ml_type_t *)Result});});
 		Closure->Info = Info;
+		Closure->UpValues[0] = (ml_value_t *)Closure;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst[2 + I].Count;
-			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
+			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index + 1] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
 			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>", (ml_source_t){Frame->Source, Inst->Line});
 			if (ml_typeof(Value) == MLUninitializedT) {
-				ml_uninitialized_use(Value, &Closure->UpValues[I]);
+				ml_uninitialized_use(Value, &Closure->UpValues[I + 1]);
 			}
-			Closure->UpValues[I] = Value;
+			Closure->UpValues[I + 1] = Value;
 		}
 		Result = (ml_value_t *)Closure;
 		ADVANCE(Inst + Info->NumUpValues + 2);
@@ -1448,7 +1450,7 @@ void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE])
 	ml_closure_info_hash(Info);
 	memcpy(Hash, Info->Hash, SHA256_BLOCK_SIZE);
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		long ValueHash = ml_hash(Closure->UpValues[I]);
+		long ValueHash = ml_hash(Closure->UpValues[I + 1]);
 		*(long *)(Hash + (I % 16)) ^= ValueHash;
 	}
 }
@@ -1462,7 +1464,7 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	long *Q = (long *)(Info->Hash + SHA256_BLOCK_SIZE);
 	while (P < Q) Hash ^= *P++;
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		Hash ^= ml_hash_chain(Closure->UpValues[I], Chain) << I;
+		Hash ^= ml_hash_chain(Closure->UpValues[I + 1], Chain) << I;
 	}
 	return Hash;
 }
@@ -1476,11 +1478,12 @@ ML_FUNCTION(MLClosure) {
 	ML_CHECK_ARG_TYPE(0, MLClosureT);
 	ml_closure_t *Original = (ml_closure_t *)Args[0];
 	ml_closure_info_t *Info = Original->Info;
-	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues + 1, ml_value_t *);
 	Closure->Type = MLClosureT;
 	Closure->Info = Info;
+	Closure->UpValues[0] = (ml_value_t *)Closure;
 	Closure->ParamTypes = Original->ParamTypes;
-	memcpy(Closure->UpValues, Original->UpValues, Info->NumUpValues * sizeof(ml_value_t *));
+	memcpy(Closure->UpValues + 1, Original->UpValues + 1, Info->NumUpValues * sizeof(ml_value_t *));
 	return (ml_value_t *)Closure;
 }
 
@@ -1500,13 +1503,13 @@ static void ML_TYPED_FN(ml_value_find_all, MLClosureT, ml_closure_t *Closure, vo
 	ml_closure_info_t *Info = Closure->Info;
 	Info->Type = MLClosureInfoT;
 	ml_value_find_all((ml_value_t *)Info, Data, RefFn);
-	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_all(Closure->UpValues[I], Data, RefFn);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_all(Closure->UpValues[I + 1], Data, RefFn);
 }
 
 static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) {
 	ml_closure_info_t *Info = Closure->Info;
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		if (!ml_value_is_constant(Closure->UpValues[I])) return 0;
+		if (!ml_value_is_constant(Closure->UpValues[I + 1])) return 0;
 	}
 	return 1;
 }
@@ -1582,9 +1585,10 @@ static void ML_TYPED_FN(ml_value_find_all, MLClosureInfoT, ml_closure_info_t *In
 }
 
 ml_value_t *ml_closure(ml_closure_info_t *Info) {
-	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues + 1, ml_value_t *);
 	Closure->Type = MLClosureT;
 	Closure->Info = Info;
+	Closure->UpValues[0] = (ml_value_t *)Closure;
 	return (ml_value_t *)Closure;
 }
 
@@ -1807,7 +1811,7 @@ ML_METHOD("values", MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_closure_info_t *Info = Closure->Info;
 	ml_value_t *Result = ml_list();
-	for (int I = 0; I < Info->NumUpValues; ++I) ml_list_put(Result, Closure->UpValues[I]);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_list_put(Result, Closure->UpValues[I + 1]);
 	return Result;
 }
 
@@ -1834,12 +1838,12 @@ ML_METHOD("list", MLClosureT) {
 	ml_closure_info_list(Buffer, Info);
 	ml_stringbuffer_put(Buffer, '\n');
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		ml_value_t *UpValue = Closure->UpValues[I];
+		ml_value_t *UpValue = Closure->UpValues[I + 1];
 		ml_stringbuffer_printf(Buffer, "Upvalues %d:", I);
 		ml_closure_value_list(UpValue, Buffer);
 		ml_stringbuffer_put(Buffer, '\n');
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 #ifdef ML_JIT

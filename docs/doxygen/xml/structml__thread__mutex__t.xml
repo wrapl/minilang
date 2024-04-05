@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__thread__mutex__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_thread_mutex_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__thread__mutex__t_1ad20eef6560d1b1f06b2228375ca79cf1" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_thread_mutex_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_thread_mutex_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="410" column="11" bodyfile="src/ml_thread.c" bodystart="410" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__mutex__t_1aaeaaa6565977b1c35e1223f1925c4aed" prot="public" static="no" mutable="no">
+        <type>pthread_mutex_t</type>
+        <definition>pthread_mutex_t ml_thread_mutex_t::Handle[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Handle</name>
+        <qualifiedname>ml_thread_mutex_t::Handle</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="411" column="17" bodyfile="src/ml_thread.c" bodystart="411" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_thread_mutex_t</label>
+        <link refid="structml__thread__mutex__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_thread.c" line="409" column="1" bodyfile="src/ml_thread.c" bodystart="409" bodyend="412"/>
+    <listofallmembers>
+      <member refid="structml__thread__mutex__t_1aaeaaa6565977b1c35e1223f1925c4aed" prot="public" virt="non-virtual"><scope>ml_thread_mutex_t</scope><name>Handle</name></member>
+      <member refid="structml__thread__mutex__t_1ad20eef6560d1b1f06b2228375ca79cf1" prot="public" virt="non-virtual"><scope>ml_thread_mutex_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

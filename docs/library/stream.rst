@@ -45,11 +45,23 @@ stream
    Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
+:mini:`meth (Stream: stream):read(Type: type, Count: integer): Type | nil`
+   Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
 :mini:`meth (Stream: stream):readi(Delimiters: string): string | nil`
    Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
 :mini:`meth (Stream: stream):readi(Delimiters: string, Count: integer): string | nil`
+   Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):readi(Type: type, Delimiters: string): Type | nil`
+   Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):readi(Type: type, Delimiters: string, Count: integer): Type | nil`
    Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
@@ -61,7 +73,19 @@ stream
    Returns the next text from :mini:`Stream`,  upto but excluding any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
+:mini:`meth (Stream: stream):readx(Type: type, Delimiters: string): Type | nil`
+   Returns the next text from :mini:`Stream`,  upto but excluding any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):readx(Type: type, Delimiters: string, Count: integer): Type | nil`
+   Returns the next text from :mini:`Stream`,  upto but excluding any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
 :mini:`meth (Stream: stream):rest: string | nil`
+   Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):rest(Type: type): Type | nil`
    Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
 
 

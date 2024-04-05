@@ -1,0 +1,231 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__batched__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_batched_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__batched__state__t_1a379330be8ecd122caba767ccf105b87f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_batched_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_batched_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3191" column="12" bodyfile="src/ml_sequence.c" bodystart="3191" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1ace0b5b96b2599147ebcaa3acfa91d47f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_batched_state_t::Iter</definition>
+        <argsstring></argsstring>
+        <name>Iter</name>
+        <qualifiedname>ml_batched_state_t::Iter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3192" column="12" bodyfile="src/ml_sequence.c" bodystart="3192" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1a65178389adbf1f76b6b89455d300ab40" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_batched_state_t::Function</definition>
+        <argsstring></argsstring>
+        <name>Function</name>
+        <qualifiedname>ml_batched_state_t::Function</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3192" column="17" bodyfile="src/ml_sequence.c" bodystart="3192" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1a14de085e67e0e7b0cc7025530c74303e" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_batched_state_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_batched_state_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3192" column="26" bodyfile="src/ml_sequence.c" bodystart="3192" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1a539a01bf8109599dadb56bc887171d46" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_batched_state_t::Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_batched_state_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3193" column="5" bodyfile="src/ml_sequence.c" bodystart="3193" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1ae6b0e8af7e37ca4ee3bf0fa333960b2b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_batched_state_t::Shift</definition>
+        <argsstring></argsstring>
+        <name>Shift</name>
+        <qualifiedname>ml_batched_state_t::Shift</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3193" column="10" bodyfile="src/ml_sequence.c" bodystart="3193" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1ae71b36a974d19250604c40ac3669bd70" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_batched_state_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_batched_state_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3193" column="16" bodyfile="src/ml_sequence.c" bodystart="3193" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1a33498fee403cb898e4a4cd4506f21819" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_batched_state_t::Iteration</definition>
+        <argsstring></argsstring>
+        <name>Iteration</name>
+        <qualifiedname>ml_batched_state_t::Iteration</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3193" column="22" bodyfile="src/ml_sequence.c" bodystart="3193" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__batched__state__t_1a70f265119daf40f45ac0949664d47a4a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_batched_state_t::Args[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Args</name>
+        <qualifiedname>ml_batched_state_t::Args</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="3194" column="12" bodyfile="src/ml_sequence.c" bodystart="3194" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>internal </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_batched_state_t</label>
+        <link refid="structml__batched__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Args</edgelabel>
+          <edgelabel>Function</edgelabel>
+          <edgelabel>Iter</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_sequence.c" line="3190" column="1" bodyfile="src/ml_sequence.c" bodystart="3190" bodyend="3195"/>
+    <listofallmembers>
+      <member refid="structml__batched__state__t_1a70f265119daf40f45ac0949664d47a4a" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Args</name></member>
+      <member refid="structml__batched__state__t_1a379330be8ecd122caba767ccf105b87f" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Base</name></member>
+      <member refid="structml__batched__state__t_1a65178389adbf1f76b6b89455d300ab40" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Function</name></member>
+      <member refid="structml__batched__state__t_1ae71b36a974d19250604c40ac3669bd70" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Index</name></member>
+      <member refid="structml__batched__state__t_1ace0b5b96b2599147ebcaa3acfa91d47f" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Iter</name></member>
+      <member refid="structml__batched__state__t_1a33498fee403cb898e4a4cd4506f21819" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Iteration</name></member>
+      <member refid="structml__batched__state__t_1ae6b0e8af7e37ca4ee3bf0fa333960b2b" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Shift</name></member>
+      <member refid="structml__batched__state__t_1a539a01bf8109599dadb56bc887171d46" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Size</name></member>
+      <member refid="structml__batched__state__t_1a14de085e67e0e7b0cc7025530c74303e" prot="public" virt="non-virtual"><scope>ml_batched_state_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

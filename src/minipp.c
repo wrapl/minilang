@@ -104,7 +104,7 @@ static ml_value_t *ml_preprocessor_file_read(FILE *File, int Count, ml_value_t *
 		fclose(File);
 		return MLNil;
 	}
-	return ml_string(Line, Length);
+	return ml_string_unchecked(Line, Length);
 }
 
 static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Args) {
@@ -182,7 +182,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 		}
 		const char *Escape = strchr(Line, '\\');
 		if (Escape) {
-			if (Line < Escape) ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string(Line, Escape - Line));
+			if (Line < Escape) ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string_unchecked(Line, Escape - Line));
 			if (Escape[1] == ';') {
 				Input->Line = Escape + 2;
 				ml_simple_inline(Preprocessor->Output->Writer, 1, BackSlash);
@@ -208,7 +208,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				Input->Line = ml_parser_clear(Parser);
 			}
 		} else {
-			if (Line[0] && Line[0] != '\n') ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));
+			if (Line[0] && Line[0] != '\n') ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string_unchecked(Line, strlen(Line)));
 		}
 	}
 }

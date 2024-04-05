@@ -34,6 +34,7 @@ typedef enum {
 	MLT_OLD,
 	MLT_ON,
 	MLT_OR,
+	MLT_RECUR,
 	MLT_REF,
 	MLT_RET,
 	MLT_SEQ,

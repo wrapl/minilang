@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__tuple__iter__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_tuple_iter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__tuple__iter__t_1af0656c37115e85136ab7d16ec88309e9" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_tuple_iter_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_tuple_iter_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.c" line="2271" column="11" bodyfile="src/ml_types.c" bodystart="2271" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__tuple__iter__t_1a243dca9d73c42dd96d450508974ac0cc" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+        <definition>ml_value_t** ml_tuple_iter_t::Values</definition>
+        <argsstring></argsstring>
+        <name>Values</name>
+        <qualifiedname>ml_tuple_iter_t::Values</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.c" line="2272" column="12" bodyfile="src/ml_types.c" bodystart="2272" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__tuple__iter__t_1a4da2949d91f9ee8a851813fe7896856b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_tuple_iter_t::Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_tuple_iter_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.c" line="2273" column="5" bodyfile="src/ml_types.c" bodystart="2273" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__tuple__iter__t_1a20d4f5fe892dc10fb543ddb4b300c3e3" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_tuple_iter_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_tuple_iter_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.c" line="2273" column="10" bodyfile="src/ml_types.c" bodystart="2273" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_tuple_iter_t</label>
+        <link refid="structml__tuple__iter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Values</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.c" line="2270" column="1" bodyfile="src/ml_types.c" bodystart="2270" bodyend="2274"/>
+    <listofallmembers>
+      <member refid="structml__tuple__iter__t_1a20d4f5fe892dc10fb543ddb4b300c3e3" prot="public" virt="non-virtual"><scope>ml_tuple_iter_t</scope><name>Index</name></member>
+      <member refid="structml__tuple__iter__t_1a4da2949d91f9ee8a851813fe7896856b" prot="public" virt="non-virtual"><scope>ml_tuple_iter_t</scope><name>Size</name></member>
+      <member refid="structml__tuple__iter__t_1af0656c37115e85136ab7d16ec88309e9" prot="public" virt="non-virtual"><scope>ml_tuple_iter_t</scope><name>Type</name></member>
+      <member refid="structml__tuple__iter__t_1a243dca9d73c42dd96d450508974ac0cc" prot="public" virt="non-virtual"><scope>ml_tuple_iter_t</scope><name>Values</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

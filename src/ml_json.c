@@ -609,7 +609,7 @@ typedef struct {
 	typeof(ml_stream_read) *read;
 	ml_value_t *Result;
 	json_decoder_t Decoder[1];
-	char Text[ML_STRINGBUFFER_NODE_SIZE];
+	char Text[1];
 } ml_json_stream_state_t;
 
 static void ml_json_stream_state_run(ml_json_stream_state_t *State, ml_value_t *Result) {
@@ -619,7 +619,8 @@ static void ml_json_stream_state_run(ml_json_stream_state_t *State, ml_value_t *
 	if (Length) {
 		ml_value_t *Error = json_decoder_parse(State->Decoder, State->Text, Length);
 		if (Error) ML_RETURN(Error);
-		return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
+		if (State->Result) ML_RETURN(State->Result);
+		return State->read((ml_state_t *)State, State->Stream, State->Text, 1);
 	} else {
 		ml_value_t *Error = json_decoder_finish(State->Decoder);
 		if (Error) ML_RETURN(Error);
@@ -639,7 +640,7 @@ ML_METHODX(JsonDecode, MLStreamT) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_json_stream_state_run;
-	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
+	return State->read((ml_state_t *)State, State->Stream, State->Text, 1);
 }
 
 typedef struct {
@@ -799,7 +800,7 @@ ML_METHOD(JsonEncode, MLAnyT) {
 // Encodes :mini:`Value` into JSON, raising an error if :mini:`Value` cannot be represented as JSON.
 	ML_CHECK_ARG_COUNT(1);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_get_value(Buffer);
+	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_to_string(Buffer);
 }
 
 ML_FUNCTION(MLJson) {

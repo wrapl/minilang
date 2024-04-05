@@ -1,0 +1,368 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__cbor__reader__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_cbor_reader_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a7151eb6d2863ba56c7c4354786f93d48" prot="public" static="no" mutable="no">
+        <type><ref refid="structcollection__t" kindref="compound">collection_t</ref> *</type>
+        <definition>collection_t* ml_cbor_reader_t::Collection</definition>
+        <argsstring></argsstring>
+        <name>Collection</name>
+        <qualifiedname>ml_cbor_reader_t::Collection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="122" column="14" bodyfile="src/ml_cbor.c" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a0dab402b086a941269acba81f4601a24" prot="public" static="no" mutable="no">
+        <type><ref refid="structcollection__t" kindref="compound">collection_t</ref> *</type>
+        <definition>collection_t * ml_cbor_reader_t::FreeCollection</definition>
+        <argsstring></argsstring>
+        <name>FreeCollection</name>
+        <qualifiedname>ml_cbor_reader_t::FreeCollection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="122" column="25" bodyfile="src/ml_cbor.c" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a81b9f80c67e13c95c88e06a207279054" prot="public" static="no" mutable="no">
+        <type><ref refid="structtag__t" kindref="compound">tag_t</ref> *</type>
+        <definition>tag_t* ml_cbor_reader_t::Tags</definition>
+        <argsstring></argsstring>
+        <name>Tags</name>
+        <qualifiedname>ml_cbor_reader_t::Tags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="123" column="7" bodyfile="src/ml_cbor.c" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1aa132c5413316b16c3bfd4e02c92290c7" prot="public" static="no" mutable="no">
+        <type><ref refid="structtag__t" kindref="compound">tag_t</ref> *</type>
+        <definition>tag_t * ml_cbor_reader_t::FreeTag</definition>
+        <argsstring></argsstring>
+        <name>FreeTag</name>
+        <qualifiedname>ml_cbor_reader_t::FreeTag</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="123" column="12" bodyfile="src/ml_cbor.c" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1aed5ec7e07e76a04a0c75d6fda97a28b3" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_cbor_reader_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_cbor_reader_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="124" column="12" bodyfile="src/ml_cbor.c" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a8dc46565944f9df2ce30f5c1898dcb08" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__cbor__tag__fns__t" kindref="compound">ml_cbor_tag_fns_t</ref> *</type>
+        <definition>ml_cbor_tag_fns_t* ml_cbor_reader_t::TagFns</definition>
+        <argsstring></argsstring>
+        <name>TagFns</name>
+        <qualifiedname>ml_cbor_reader_t::TagFns</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="125" column="19" bodyfile="src/ml_cbor.c" bodystart="125" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1aba596c90c0a59578d5fb8738c51c8871" prot="public" static="no" mutable="no">
+        <type>ml_external_fn_t</type>
+        <definition>ml_external_fn_t ml_cbor_reader_t::GlobalGet</definition>
+        <argsstring></argsstring>
+        <name>GlobalGet</name>
+        <qualifiedname>ml_cbor_reader_t::GlobalGet</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="126" column="18" bodyfile="src/ml_cbor.c" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a5e82dd2036264180b43bd41d415238c5" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* ml_cbor_reader_t::Globals</definition>
+        <argsstring></argsstring>
+        <name>Globals</name>
+        <qualifiedname>ml_cbor_reader_t::Globals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="127" column="6" bodyfile="src/ml_cbor.c" bodystart="127" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1ab319f0de86fa2b1a0caf2e9399aae5cf" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+        <definition>ml_value_t** ml_cbor_reader_t::Reused</definition>
+        <argsstring></argsstring>
+        <name>Reused</name>
+        <qualifiedname>ml_cbor_reader_t::Reused</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="128" column="12" bodyfile="src/ml_cbor.c" bodystart="128" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a5df5b8c679c0f0d40c905beb8d0a04f7" prot="public" static="no" mutable="no">
+        <type>minicbor_reader_t</type>
+        <definition>minicbor_reader_t ml_cbor_reader_t::Reader[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Reader</name>
+        <qualifiedname>ml_cbor_reader_t::Reader</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="129" column="19" bodyfile="src/ml_cbor.c" bodystart="129" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1adce944e71949a6dbf1ae5a4ca41731f8" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref></type>
+        <definition>ml_stringbuffer_t ml_cbor_reader_t::Buffer[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Buffer</name>
+        <qualifiedname>ml_cbor_reader_t::Buffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="130" column="19" bodyfile="src/ml_cbor.c" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1ae19fd4cea6a5c08b6c546bfe2fed1738" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_cbor_reader_t::NumReused</definition>
+        <argsstring></argsstring>
+        <name>NumReused</name>
+        <qualifiedname>ml_cbor_reader_t::NumReused</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="131" column="5" bodyfile="src/ml_cbor.c" bodystart="131" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a37a6f23e04ca86819a70a09c4bbbc6ed" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_cbor_reader_t::MaxReused</definition>
+        <argsstring></argsstring>
+        <name>MaxReused</name>
+        <qualifiedname>ml_cbor_reader_t::MaxReused</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="131" column="15" bodyfile="src/ml_cbor.c" bodystart="131" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1ac2c6c0d06e9a7d5dd83fc35363f4b0c8" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_cbor_reader_t::NumSettings</definition>
+        <argsstring></argsstring>
+        <name>NumSettings</name>
+        <qualifiedname>ml_cbor_reader_t::NumSettings</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="132" column="5" bodyfile="src/ml_cbor.c" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__cbor__reader__t_1a54f5093c76760c888bd0b013ff4345a8" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* ml_cbor_reader_t::Settings[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Settings</name>
+        <qualifiedname>ml_cbor_reader_t::Settings</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="133" column="6" bodyfile="src/ml_cbor.c" bodystart="133" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>collection_t</label>
+        <link refid="structcollection__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Tags</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Collection</edgelabel>
+          <edgelabel>Key</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_cbor_reader_t</label>
+        <link refid="structml__cbor__reader__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Collection</edgelabel>
+          <edgelabel>FreeCollection</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>FreeTag</edgelabel>
+          <edgelabel>Tags</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>GlobalGet</edgelabel>
+          <edgelabel>Reused</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>TagFns</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Buffer</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_cbor_tag_fns_t</label>
+        <link refid="structml__cbor__tag__fns__t"/>
+      </node>
+      <node id="12">
+        <label>ml_hash_chain_t</label>
+        <link refid="structml__hash__chain__t"/>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Previous</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>ml_stringbuffer_node_t</label>
+        <link refid="structml__stringbuffer__node__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_stringbuffer_t</label>
+        <link refid="structml__stringbuffer__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>Chain</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>tag_t</label>
+        <link refid="structtag__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Handler</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_cbor.c" line="121" column="1" bodyfile="src/ml_cbor.c" bodystart="121" bodyend="134"/>
+    <listofallmembers>
+      <member refid="structml__cbor__reader__t_1adce944e71949a6dbf1ae5a4ca41731f8" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Buffer</name></member>
+      <member refid="structml__cbor__reader__t_1a7151eb6d2863ba56c7c4354786f93d48" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Collection</name></member>
+      <member refid="structml__cbor__reader__t_1a0dab402b086a941269acba81f4601a24" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>FreeCollection</name></member>
+      <member refid="structml__cbor__reader__t_1aa132c5413316b16c3bfd4e02c92290c7" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>FreeTag</name></member>
+      <member refid="structml__cbor__reader__t_1aba596c90c0a59578d5fb8738c51c8871" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>GlobalGet</name></member>
+      <member refid="structml__cbor__reader__t_1a5e82dd2036264180b43bd41d415238c5" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Globals</name></member>
+      <member refid="structml__cbor__reader__t_1a37a6f23e04ca86819a70a09c4bbbc6ed" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>MaxReused</name></member>
+      <member refid="structml__cbor__reader__t_1ae19fd4cea6a5c08b6c546bfe2fed1738" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>NumReused</name></member>
+      <member refid="structml__cbor__reader__t_1ac2c6c0d06e9a7d5dd83fc35363f4b0c8" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>NumSettings</name></member>
+      <member refid="structml__cbor__reader__t_1a5df5b8c679c0f0d40c905beb8d0a04f7" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Reader</name></member>
+      <member refid="structml__cbor__reader__t_1ab319f0de86fa2b1a0caf2e9399aae5cf" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Reused</name></member>
+      <member refid="structml__cbor__reader__t_1a54f5093c76760c888bd0b013ff4345a8" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Settings</name></member>
+      <member refid="structml__cbor__reader__t_1a8dc46565944f9df2ce30f5c1898dcb08" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>TagFns</name></member>
+      <member refid="structml__cbor__reader__t_1a81b9f80c67e13c95c88e06a207279054" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Tags</name></member>
+      <member refid="structml__cbor__reader__t_1aed5ec7e07e76a04a0c75d6fda97a28b3" prot="public" virt="non-virtual"><scope>ml_cbor_reader_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,259 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__buffered__state__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_buffered_state_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__buffered__state__t_1a0459229df73ad50c88c321019af0c664" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_buffered_state_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_buffered_state_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="492" column="12" bodyfile="src/ml_tasks.c" bodystart="492" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1a179f4be68328c95d95e427a923a19b8d" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_buffered_state_t::Iter</definition>
+        <argsstring></argsstring>
+        <name>Iter</name>
+        <qualifiedname>ml_buffered_state_t::Iter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="493" column="12" bodyfile="src/ml_tasks.c" bodystart="493" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1aa7abbaa2450cdf11d3145a9bf35ecfc8" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_buffered_state_t::Fn</definition>
+        <argsstring></argsstring>
+        <name>Fn</name>
+        <qualifiedname>ml_buffered_state_t::Fn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="493" column="17" bodyfile="src/ml_tasks.c" bodystart="493" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1a012505064df2c0081214b57fba133ca5" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_buffered_state_t::Key</definition>
+        <argsstring></argsstring>
+        <name>Key</name>
+        <qualifiedname>ml_buffered_state_t::Key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="494" column="12" bodyfile="src/ml_tasks.c" bodystart="494" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1adf535843e262d94584133cde9fb355c8" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_buffered_state_t::Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_buffered_state_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="494" column="16" bodyfile="src/ml_tasks.c" bodystart="494" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1a0b284cfde868fd5a771bf133a35db7e1" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_buffered_state_t::Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_buffered_state_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="495" column="5" bodyfile="src/ml_tasks.c" bodystart="495" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1a0714b6369be1b972f0fa2dc02c35c77a" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_buffered_state_t::Use</definition>
+        <argsstring></argsstring>
+        <name>Use</name>
+        <qualifiedname>ml_buffered_state_t::Use</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="495" column="10" bodyfile="src/ml_tasks.c" bodystart="495" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1a5f31e5f06815154c4a87b59d86fc795d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_buffered_state_t::Fetch</definition>
+        <argsstring></argsstring>
+        <name>Fetch</name>
+        <qualifiedname>ml_buffered_state_t::Fetch</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="495" column="14" bodyfile="src/ml_tasks.c" bodystart="495" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1a1079ef8f7fe56c9dc566ad2b3b4aa0b8" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_buffered_state_t::Ready</definition>
+        <argsstring></argsstring>
+        <name>Ready</name>
+        <qualifiedname>ml_buffered_state_t::Ready</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="495" column="20" bodyfile="src/ml_tasks.c" bodystart="495" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__buffered__state__t_1ae3f7ed836c87fe71dc815ce83e99eb9a" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__buffered__entry__t" kindref="compound">ml_buffered_entry_t</ref></type>
+        <definition>ml_buffered_entry_t ml_buffered_state_t::Entries[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Entries</name>
+        <qualifiedname>ml_buffered_state_t::Entries</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_tasks.c" line="496" column="21" bodyfile="src/ml_tasks.c" bodystart="496" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="9">
+        <label>ml_buffered_entry_t</label>
+        <link refid="structml__buffered__entry__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Key</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_buffered_state_t</label>
+        <link refid="structml__buffered__state__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Fn</edgelabel>
+          <edgelabel>Iter</edgelabel>
+          <edgelabel>Key</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Entries</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_tasks.c" line="491" column="1" bodyfile="src/ml_tasks.c" bodystart="491" bodyend="497"/>
+    <listofallmembers>
+      <member refid="structml__buffered__state__t_1a0459229df73ad50c88c321019af0c664" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Base</name></member>
+      <member refid="structml__buffered__state__t_1ae3f7ed836c87fe71dc815ce83e99eb9a" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Entries</name></member>
+      <member refid="structml__buffered__state__t_1a5f31e5f06815154c4a87b59d86fc795d" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Fetch</name></member>
+      <member refid="structml__buffered__state__t_1aa7abbaa2450cdf11d3145a9bf35ecfc8" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Fn</name></member>
+      <member refid="structml__buffered__state__t_1a179f4be68328c95d95e427a923a19b8d" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Iter</name></member>
+      <member refid="structml__buffered__state__t_1a012505064df2c0081214b57fba133ca5" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Key</name></member>
+      <member refid="structml__buffered__state__t_1a1079ef8f7fe56c9dc566ad2b3b4aa0b8" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Ready</name></member>
+      <member refid="structml__buffered__state__t_1a0b284cfde868fd5a771bf133a35db7e1" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Size</name></member>
+      <member refid="structml__buffered__state__t_1a0714b6369be1b972f0fa2dc02c35c77a" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Use</name></member>
+      <member refid="structml__buffered__state__t_1adf535843e262d94584133cde9fb355c8" prot="public" virt="non-virtual"><scope>ml_buffered_state_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

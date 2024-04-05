@@ -380,7 +380,7 @@ ML_METHOD("gets", MLAddressT) {
 	char *String = snew(Length + 1);
 	memcpy(String, Address->Value, Length);
 	String[Length] = 0;
-	return ml_string(String, Length);
+	return ml_string_checked(String, Length);
 }
 
 ML_METHOD("gets", MLAddressT, MLIntegerT) {
@@ -397,7 +397,7 @@ ML_METHOD("gets", MLAddressT, MLIntegerT) {
 	char *String = snew(Length + 1);
 	memcpy(String, Address->Value, Length);
 	String[Length] = 0;
-	return ml_string(String, Length);
+	return ml_string_checked(String, Length);
 }
 
 ML_METHOD("find", MLAddressT, MLAddressT) {
@@ -412,6 +412,26 @@ ML_METHOD("find", MLAddressT, MLAddressT) {
 	ml_address_t *Address1 = (ml_address_t *)Args[0];
 	ml_address_t *Address2 = (ml_address_t *)Args[1];
 	char *Find = memmem(Address1->Value, Address1->Length, Address2->Value, Address2->Length);
+	if (!Find) return MLNil;
+	return ml_integer(Find - Address1->Value);
+}
+
+ML_METHOD("find", MLAddressT, MLAddressT, MLIntegerT) {
+//!address
+//<Haystack
+//<Needle
+//<Start
+//>integer|nil
+// Returns the offset of the first occurence of the bytes of :mini:`Needle` in :mini:`Haystack` or :mini:`nil` is no occurence is found.
+//$= let A := address("Hello world!\n")
+//$= A:find("world")
+//$= A:find("other")
+	ml_address_t *Address1 = (ml_address_t *)Args[0];
+	ml_address_t *Address2 = (ml_address_t *)Args[1];
+	long Start = ml_integer_value_fast(Args[2]);
+	if (Start < 0) return ml_error("SizeError", "Offset must be non-negative");
+	if (Start > Address1->Length) return ml_error("SizeError", "Offset larger than buffer");
+	char *Find = memmem(Address1->Value + Start, Address1->Length - Start, Address2->Value, Address2->Length);
 	if (!Find) return MLNil;
 	return ml_integer(Find - Address1->Value);
 }
@@ -595,7 +615,7 @@ static void ml_string_state_run(ml_string_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
-	ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
 }
 
 ML_FUNCTIONX(MLString) {
@@ -674,6 +694,37 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	String->Value = Value;
 	String->Length = Length;
 	return (ml_value_t *)String;
+}
+
+ml_value_t *ml_string_unchecked(const char *Value, int Length) {
+	return ml_string(Value, Length);
+}
+
+ml_value_t *ml_string_checked(const char *Value, int Length) {
+	int UTF8Length = 0;
+	size_t Length0 = Length;
+	unsigned char *Bytes = (unsigned char *)Value;
+	do {
+		unsigned char Byte = *Bytes++;
+		if (UTF8Length) {
+			if ((Byte & 128) == 128) {
+				--UTF8Length;
+			} else {
+				return ml_error("StringError", "Invalid UTF-8 sequence");
+			}
+		} else if ((Byte & 128) == 0) {
+		} else if ((Byte & 240) == 240) {
+			UTF8Length = 3;
+		} else if ((Byte & 224) == 224) {
+			UTF8Length = 2;
+		} else if ((Byte & 192) == 192) {
+			UTF8Length = 1;
+		} else {
+			return ml_error("StringError", "Invalid UTF-8 sequence");
+		}
+	} while (--Length0 > 0);
+	if (UTF8Length) return ml_error("StringError", "Invalid UTF-8 sequence");
+	return ml_string(Value, Length);
 }
 
 ml_value_t *ml_string_copy(const char *Value, int Length) {
@@ -1120,22 +1171,40 @@ ML_METHOD(MLNumberT, MLStringT) {
 
 typedef struct {
 	ml_type_t *Type;
-	const char *Start, *End;
+	const char *Start, *Next, *End;
 	int Index;
 } ml_string_iterator_t;
 
 ML_TYPE(MLStringIteratorT, (), "string-iterator");
 //!internal
 
+static int utf8_is_multibyte(char C) {
+	return (C & 0xC0) == 0xC0;
+}
+
 static int utf8_is_continuation(char C) {
 	return (C & 0xC0) == 0x80;
 }
 
+static const char *utf8_next(const char *A) {
+	if (utf8_is_multibyte(*A)) {
+		const char *B = A;
+		do ++B; while (utf8_is_continuation(*B));
+		return B;
+	} else {
+		return A + 1;
+	}
+}
+
 static size_t utf8_position(const char *P, const char *Q) {
 	size_t N = 0;
-	while (P != Q) {
-		if (!utf8_is_continuation(*P)) ++N;
-		++P;
+	while (P < Q) {
+		++N;
+		if (utf8_is_multibyte(*P)) {
+			do ++P; while (utf8_is_continuation(*P));
+		} else {
+			++P;
+		}
 	}
 	return N;
 }
@@ -1159,19 +1228,39 @@ static void utf8_expand(const char *S, uint32_t *P) {
 	*P++ = 0;
 }
 
+typedef struct {
+	const char *Chars;
+	size_t Length;
+} subject_t;
+
+static subject_t utf8_index(ml_value_t *V, int P) {
+	const char *S = ml_string_value(V);
+	const char *E = S + ml_string_length(V);
+	if (P <= 0) P += utf8_strlen(V) + 1;
+	while (S <= E) {
+		if (--P == 0) return (subject_t){S, E - S};
+		if (utf8_is_multibyte(*S)) {
+			do ++S; while (utf8_is_continuation(*S));
+		} else {
+			++S;
+		}
+	}
+	return (subject_t){NULL, 0};
+}
+
+
 static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
-	const char *Start = Iter->End;
-	if (!*Start) ML_RETURN(MLNil);
-	const char *End = Start + 1;
-	while (*End && utf8_is_continuation(*End)) ++End;
+	const char *Start = Iter->Next;
+	if (Start >= Iter->End) ML_RETURN(MLNil);
+	const char *Next = utf8_next(Start);
 	Iter->Start = Start;
-	Iter->End = End;
+	Iter->Next = Next;
 	++Iter->Index;
 	ML_RETURN(Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
-	ML_RETURN(ml_string(Iter->Start, Iter->End - Iter->Start));
+	ML_RETURN(ml_string(Iter->Start, Iter->Next - Iter->Start));
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
@@ -1180,14 +1269,15 @@ static void ML_TYPED_FN(ml_iter_key, MLStringIteratorT, ml_state_t *Caller, ml_s
 
 static void ML_TYPED_FN(ml_iterate, MLStringT, ml_state_t *Caller, ml_value_t *String) {
 	const char *Start = ml_string_value(String);
-	if (!*Start) ML_RETURN(MLNil);
-	const char *End = Start + 1;
-	while (*End && utf8_is_continuation(*End)) ++End;
+	size_t Length = ml_string_length(String);
+	if (!Length) ML_RETURN(MLNil);
+	const char *Next = utf8_next(Start);
 	ml_string_iterator_t *Iter = new(ml_string_iterator_t);
 	Iter->Type = MLStringIteratorT;
 	Iter->Index = 1;
 	Iter->Start = Start;
-	Iter->End = End;
+	Iter->Next = Next;
+	Iter->End = Start + Length;
 	ML_RETURN(Iter);
 }
 
@@ -1239,8 +1329,8 @@ ML_METHOD("length", MLStringT) {
 // Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 //$= "Hello world":length
 //$= "Hello world":size
-//$= "λ:😀️ → 😺️":length
-//$= "λ:😀️ → 😺️":size
+//$= "λ:😀 → 😺":length
+//$= "λ:😀 → 😺":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
@@ -1250,8 +1340,8 @@ ML_METHOD("precount", MLStringT) {
 // Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 //$= "Hello world":count
 //$= "Hello world":size
-//$= "λ:😀️ → 😺️":count
-//$= "λ:😀️ → 😺️":size
+//$= "λ:😀 → 😺":count
+//$= "λ:😀 → 😺":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
@@ -1261,8 +1351,8 @@ ML_METHOD("count", MLStringT) {
 // Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 //$= "Hello world":count
 //$= "Hello world":size
-//$= "λ:😀️ → 😺️":count
-//$= "λ:😀️ → 😺️":size
+//$= "λ:😀 → 😺":count
+//$= "λ:😀 → 😺":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
@@ -1496,77 +1586,29 @@ ML_METHOD("ctype", MLStringT) {
 ML_METHOD("[]", MLStringT, MLIntegerT) {
 //<String
 //<Index
-//>string
+//>string|nil
 // Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
+//$- let S := "λ:😀 → 😺"
+//$= map(-7 .. 7 => (2, 2 -> S[_]))
 	int N = ml_integer_value_fast(Args[1]);
-	if (N <= 0) N += Length + 1;
-	if (N <= 0) return MLNil;
-	if (N > Length) return MLNil;
-	for (;;) {
-		if (!utf8_is_continuation(*Start) && (--N == 0)) break;
-		++Start;
-	}
-	const char *End = Start + 1;
-	while (*End && utf8_is_continuation(*End)) ++End;
-	return ml_string(Start, End - Start);
+	subject_t Index = utf8_index(Args[0], N);
+	if (!Index.Length) return MLNil;
+	return ml_string(Index.Chars, utf8_next(Index.Chars) - Index.Chars);
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 //<String
 //<Start
 //<End
-//>string
+//>string|nil
 // Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
-	if (Lo <= 0) Lo += Length + 1;
-	if (Hi <= 0) Hi += Length + 1;
-	if (Lo <= 0) return MLNil;
-	if (Hi > Length + 1) return MLNil;
-	if (Hi < Lo) return MLNil;
-	Hi -= Lo;
-	if (Lo > 0) for (;;) {
-		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
-		++Start;
-	}
-	const char *End = Start;
-	if (++Hi > 0) while (*End) {
-		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
-}
-
-ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
-//<String
-//<Interval
-//>string
-// Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	int Lo = Range->Start, Hi = Range->Limit + 1, Step = Range->Step;
-	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Lo <= 0) Lo += Length + 1;
-	if (Hi <= 0) Hi += Length + 1;
-	if (Lo <= 0) return MLNil;
-	if (Hi > Length + 1) return MLNil;
-	if (Hi < Lo) return MLNil;
-	Hi -= Lo;
-	if (Lo > 0) for (;;) {
-		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
-		++Start;
-	}
-	const char *End = Start;
-	if (++Hi > 0) while (*End) {
-		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
+	subject_t IndexLo = utf8_index(Args[0], Lo);
+	subject_t IndexHi = utf8_index(Args[0], Hi);
+	if (!IndexLo.Chars || !IndexHi.Chars) return MLNil;
+	if (IndexLo.Chars > IndexHi.Chars) return MLNil;
+	return ml_string(IndexLo.Chars, IndexHi.Chars - IndexLo.Chars);
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerIntervalT) {
@@ -1574,27 +1616,13 @@ ML_METHOD("[]", MLStringT, MLIntegerIntervalT) {
 //<Interval
 //>string
 // Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
-	int Lo = Interval->Start, Hi = Interval->Limit + 1, Step = 1;
-	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Lo <= 0) Lo += Length + 1;
-	if (Hi <= 0) Hi += Length + 1;
-	if (Lo <= 0) return MLNil;
-	if (Hi > Length + 1) return MLNil;
-	if (Hi < Lo) return MLNil;
-	Hi -= Lo;
-	if (Lo > 0) for (;;) {
-		if (!utf8_is_continuation(*Start) && (--Lo == 0)) break;
-		++Start;
-	}
-	const char *End = Start;
-	if (++Hi > 0) while (*End) {
-		if (!utf8_is_continuation(*End) && (--Hi == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
+	int Lo = Interval->Start, Hi = Interval->Limit + 1;
+	subject_t IndexLo = utf8_index(Args[0], Lo);
+	subject_t IndexHi = utf8_index(Args[0], Hi);
+	if (!IndexLo.Chars || !IndexHi.Chars) return MLNil;
+	if (IndexLo.Chars > IndexHi.Chars) return MLNil;
+	return ml_string(IndexLo.Chars, IndexHi.Chars - IndexLo.Chars);
 }
 
 ML_METHOD("limit", MLStringT, MLIntegerT) {
@@ -1604,18 +1632,11 @@ ML_METHOD("limit", MLStringT, MLIntegerT) {
 // Returns the prefix of :mini:`String` limited to :mini:`Length`.
 //$= "Hello world":limit(5)
 //$= "Cake":limit(5)
-	int Length = utf8_strlen(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
-	if (N < 0) return MLNil;
-	if (N == 0) return ml_cstring("");
-	if (N >= Length) return Args[0];
-	++N;
-	const char *Start = ml_string_value(Args[0]), *End = Start;
-	for (;;) {
-		if (!utf8_is_continuation(*End) && (--N == 0)) break;
-		++End;
-	}
-	return ml_string(Start, End - Start);
+	subject_t Index = utf8_index(Args[0], N + 1);
+	if (!Index.Length) return Args[0];
+	const char *Start = ml_string_value(Args[0]);
+	return ml_string(Start, Index.Chars - Start);
 }
 
 ML_METHOD("offset", MLStringT, MLIntegerT) {
@@ -1623,20 +1644,13 @@ ML_METHOD("offset", MLStringT, MLIntegerT) {
 //<Index
 //>integer
 // Returns the byte position of the :mini:`Index`-th character of :mini:`String`.
-//$- let S := "λ:😀️ → 😺️"
+//$- let S := "λ:😀 → 😺"
 //$= list(1 .. S:length, S:offset(_))
-	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
-	if (N <= 0) N += Length + 1;
-	if (N <= 0) return MLNil;
-	if (N > Length) return MLNil;
-	const char *P = Start;
-	for (;;) {
-		if (!utf8_is_continuation(*P) && (--N == 0)) break;
-		++P;
-	}
-	return ml_integer(P - Start);
+	subject_t Index = utf8_index(Args[0], N);
+	if (!Index.Chars) return Args[0];
+	const char *Start = ml_string_value(Args[0]);
+	return ml_integer(Index.Chars - Start);
 }
 
 ML_METHOD("+", MLStringT, MLStringT) {
@@ -1666,7 +1680,7 @@ ML_METHOD("*", MLIntegerT, MLStringT) {
 	int Length = ml_string_length(Args[1]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < N; ++I) ml_stringbuffer_write(Buffer, Chars, Length);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("trim", MLStringT) {
@@ -2007,25 +2021,26 @@ ML_METHOD("/", MLStringT, MLStringT) {
 //$= "2022/03/08" / "/"
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
+	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
-	size_t Length = strlen(Pattern);
-	if (!Length) return ml_error("ValueError", "Empty pattern used in split");
+	size_t PatternLength = ml_string_length(Args[1]);
+	if (!PatternLength) return ml_error("ValueError", "Empty pattern used in split");
 	for (;;) {
-		const char *Next = strstr(Subject, Pattern);
+		const char *Next = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 		while (Next == Subject) {
-			Subject += Length;
-			Next = strstr(Subject, Pattern);
+			Subject += PatternLength;
+			Next = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 		}
-		if (!Subject[0]) return Results;
+		if (Subject == SubjectEnd) return Results;
 		if (Next) {
 			size_t MatchLength = Next - Subject;
 			char *Match = snew(MatchLength + 1);
 			memcpy(Match, Subject, MatchLength);
 			Match[MatchLength] = 0;
 			ml_list_put(Results, ml_string(Match, MatchLength));
-			Subject = Next + Length;
+			Subject = Next + PatternLength;
 		} else {
-			ml_list_put(Results, ml_string(Subject, strlen(Subject)));
+			ml_list_put(Results, ml_string(Subject, SubjectEnd - Subject));
 			break;
 		}
 	}
@@ -2151,15 +2166,15 @@ ML_METHOD("/*", MLStringT, MLStringT) {
 // Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 //$= "2022/03/08" /* "/"
 	const char *Subject = ml_string_value(Args[0]);
-	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
-	size_t Length = strlen(Pattern);
+	size_t PatternLength = ml_string_length(Args[1]);
+	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	ml_value_t *Results = ml_tuple(2);
-	const char *Next = strstr(Subject, Pattern);
+	const char *Next = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	if (Next) {
 		ml_tuple_set(Results, 1, ml_string(Subject, Next - Subject));
-		Next += Length;
-		ml_tuple_set(Results, 2, ml_string(Next, End - Next));
+		Next += PatternLength;
+		ml_tuple_set(Results, 2, ml_string(Next, SubjectEnd - Next));
 	} else {
 		ml_tuple_set(Results, 1, Args[0]);
 		ml_tuple_set(Results, 2, ml_cstring(""));
@@ -2212,7 +2227,7 @@ ML_METHOD("*/", MLStringT, MLStringT) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
-	size_t Length = strlen(Pattern);
+	size_t Length = ml_string_length(Args[1]);
 	ml_value_t *Results = ml_tuple(2);
 	const char *Next = End - Length;
 	while (Next >= Subject) {
@@ -2328,7 +2343,7 @@ ML_METHOD("escape", MLStringT) {
 		}
 	}
 	ml_stringbuffer_write(Buffer, Start, End - Start);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("contains", MLStringT, MLStringT) {
@@ -2338,9 +2353,11 @@ ML_METHOD("contains", MLStringT, MLStringT) {
 // Returns the :mini:`Haystack` if it contains :mini:`Pattern` or :mini:`nil` otherwise.
 //$= "The cat snored as he slept":contains("cat")
 //$= "The cat snored as he slept":contains("dog")
-	const char *Haystack = ml_string_value(Args[0]);
-	const char *Needle = ml_string_value(Args[1]);
-	return strstr(Haystack, Needle) ? Args[0] : MLNil;
+	const char *Subject = ml_string_value(Args[0]);
+	size_t SubjectLength = ml_string_length(Args[0]);
+	const char *Pattern = ml_string_value(Args[1]);
+	size_t PatternLength = ml_string_length(Args[1]);
+	return memmem(Subject, SubjectLength, Pattern, PatternLength) ? Args[0] : MLNil;
 }
 
 ML_METHOD("find", MLStringT, MLStringT) {
@@ -2351,8 +2368,10 @@ ML_METHOD("find", MLStringT, MLStringT) {
 //$= "The cat snored as he slept":find("cat")
 //$= "The cat snored as he slept":find("dog")
 	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_integer(1 + utf8_position(Haystack, Match));
 	} else {
@@ -2368,22 +2387,15 @@ ML_METHOD("find2", MLStringT, MLStringT) {
 //$= "The cat snored as he slept":find2("cat")
 //$= "The cat snored as he slept":find2("dog")
 	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_tuplev(2, ml_integer(1 + utf8_position(Haystack, Match)), Args[1]);
 	} else {
 		return MLNil;
 	}
-}
-
-static const char *utf8_skip(const char *S, int P) {
-	for (;;) {
-		if (!*S) break;
-		if (!utf8_is_continuation(*S) && (--P == 0)) break;
-		++S;
-	}
-	return S;
 }
 
 ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
@@ -2395,17 +2407,13 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find("s", 1)
 //$= "The cat snored as he slept":find("s", 10)
 //$= "The cat snored as he slept":find("s", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	size_t HaystackLength = utf8_strlen(Args[0]);
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
+	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += HaystackLength + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > HaystackLength) return MLNil;
-	Haystack = utf8_skip(Haystack, Start);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_integer(Start + utf8_position(Haystack, Match));
+		return ml_integer(1 + utf8_position(ml_string_value(Args[0]), Match));
 	} else {
 		return MLNil;
 	}
@@ -2420,17 +2428,13 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	size_t HaystackLength = ml_string_length(Args[0]);
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
+	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += HaystackLength + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > HaystackLength) return MLNil;
-	Haystack = utf8_skip(Haystack, Start);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_tuplev(2, ml_integer(Start + utf8_position(Haystack, Match)), Args[1]);
+		return ml_tuplev(2, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
 	} else {
 		return MLNil;
 	}
@@ -2540,20 +2544,13 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find(r"s[a-z]+", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += Length + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
-	const char *Haystack2 = utf8_skip(Haystack, Start);
-	Length -= (Haystack2 - Haystack);
 	regmatch_t Matches[1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack2, Length, 1, Matches, 0)) {
+	switch (regnexec(Regex, Subject.Chars, Subject.Length, 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack2, 1, Matches, 0)) {
+	switch (regexec(Regex, Subject.Chars, 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -2564,7 +2561,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
-	return ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so));
+	return ml_integer(1 + utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so));
 }
 
 ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
@@ -2576,20 +2573,13 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
+	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
-	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += Length + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
-	const char *Haystack2 = utf8_skip(Haystack, Start);
-	Length -= (Haystack2 - Haystack);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack2, Length, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regnexec(Regex, Subject.Chars, Subject.Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack2, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regexec(Regex, Subject.Chars, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -2601,12 +2591,12 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
-	ml_tuple_set(Result, 1, ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so)));
+	ml_tuple_set(Result, 1, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
 	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 		regoff_t Start = Matches[I].rm_so;
 		if (Start >= 0) {
 			size_t Length = Matches[I].rm_eo - Start;
-			ml_tuple_set(Result, I + 2, ml_string(Haystack2 + Start, Length));
+			ml_tuple_set(Result, I + 2, ml_string(Subject.Chars + Start, Length));
 		} else {
 			ml_tuple_set(Result, I + 2, MLNil);
 		}
@@ -2627,17 +2617,13 @@ ML_METHOD("find2", MLStringT, MLStringT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	size_t HaystackLength = ml_string_length(Args[0]);
-	const char *Needle = ml_string_value(Args[1]);
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	if (Start <= 0) Start += HaystackLength + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > HaystackLength) return MLNil;
-	Haystack = utf8_skip(Haystack, Start);
-	const char *Match = strstr(Haystack, Needle);
+	subject_t Subject = utf8_index(Args[0], Start);
+	const char *Needle = ml_string_value(Args[1]);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
 	if (Match) {
-		return ml_tuplev(2, ml_integer(Start + utf8_position(Haystack, Match)), Args[1]);
+		return ml_tuplev(2, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Match)), Args[1]);
 	} else {
 		return MLNil;
 	}
@@ -2652,20 +2638,14 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
-	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
-	regex_t *Regex = ml_regex_value(Args[1]);
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	if (Start <= 0) Start += Length + 1;
-	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
-	const char *Haystack2 = utf8_skip(Haystack, Start);
-	Length -= (Haystack2 - Haystack);
+	subject_t Subject = utf8_index(Args[0], Start);
+	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack2, Length, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regnexec(Regex, Subject.Chars, Subject.Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack2, Regex->re_nsub + 1, Matches, 0)) {
+	switch (regexec(Regex, Subject.Chars, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -2677,12 +2657,12 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
-	ml_tuple_set(Result, 1, ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so)));
+	ml_tuple_set(Result, 1, ml_integer(1 + utf8_position(ml_string_value(Args[0]), Subject.Chars + Matches->rm_so)));
 	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 		regoff_t Start = Matches[I].rm_so;
 		if (Start >= 0) {
 			size_t Length = Matches[I].rm_eo - Start;
-			ml_tuple_set(Result, I + 2, ml_string(Haystack2 + Start, Length));
+			ml_tuple_set(Result, I + 2, ml_string(Subject.Chars + Start, Length));
 		} else {
 			ml_tuple_set(Result, I + 2, MLNil);
 		}
@@ -2884,7 +2864,7 @@ ML_METHOD("after", MLStringT, MLStringT) {
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		Match += NeedleLength;
 		int Length = HaystackLength - (Match - Haystack);
@@ -2910,10 +2890,11 @@ ML_METHOD("after", MLStringT, MLStringT, MLIntegerT) {
 	int Index = ml_integer_value(Args[2]);
 	if (Index > 0) {
 		for (;;) {
-			const char *Match = strstr(Haystack, Needle);
+			const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 			if (!Match) return MLNil;
 			if (--Index) {
 				Haystack = Match + NeedleLength;
+				HaystackLength = HaystackEnd - Haystack;
 			} else {
 				Match += NeedleLength;
 				int Length = HaystackEnd - Match;
@@ -2945,8 +2926,10 @@ ML_METHOD("before", MLStringT, MLStringT) {
 // Returns the portion of :mini:`String` before the 1st occurence of :mini:`Delimiter`, or :mini:`nil` if no occurence if found.
 //$= "2022/03/08":before("/")
 	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	const char *Match = strstr(Haystack, Needle);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 	if (Match) {
 		return ml_string(Haystack, Match - Haystack);
 	} else {
@@ -2964,15 +2947,17 @@ ML_METHOD("before", MLStringT, MLStringT, MLIntegerT) {
 // If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *HaystackEnd = Haystack + HaystackLength;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
 	int Index = ml_integer_value(Args[2]);
 	if (Index > 0) {
 		for (;;) {
-			const char *Match = strstr(Haystack, Needle);
+			const char *Match = memmem(Haystack, HaystackLength, Needle, NeedleLength);
 			if (!Match) return MLNil;
 			if (--Index) {
 				Haystack = Match + NeedleLength;
+				HaystackLength = HaystackEnd - Haystack;
 			} else {
 				const char *Haystack = ml_string_value(Args[0]);
 				return ml_string(Haystack, Match - Haystack);
@@ -3008,17 +2993,17 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	const char *Replace = ml_string_value(Args[2]);
 	int ReplaceLength = ml_string_length(Args[2]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	const char *Find = strstr(Subject, Pattern);
+	const char *Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	while (Find) {
 		if (Find > Subject) ml_stringbuffer_write(Buffer, Subject, Find - Subject);
 		ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 		Subject = Find + PatternLength;
-		Find = strstr(Subject, Pattern);
+		Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	}
 	if (SubjectEnd > Subject) {
 		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
@@ -3045,7 +3030,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 #endif
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
-			return ml_stringbuffer_get_value(Buffer);
+			return ml_stringbuffer_to_string(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -3083,18 +3068,18 @@ ML_METHOD("replace2", MLStringT, MLStringT, MLStringT) {
 	int ReplaceLength = ml_string_length(Args[2]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	int Total = 0;
-	const char *Find = strstr(Subject, Pattern);
+	const char *Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 	while (Find) {
 		if (Find > Subject) ml_stringbuffer_write(Buffer, Subject, Find - Subject);
 		ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 		Subject = Find + PatternLength;
-		Find = strstr(Subject, Pattern);
+		Find = memmem(Subject, SubjectEnd - Subject, Pattern, PatternLength);
 		++Total;
 	}
 	if (SubjectEnd > Subject) {
 		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
 	}
-	return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+	return ml_tuplev(2, ml_stringbuffer_to_string(Buffer), ml_integer(Total));
 }
 
 ML_METHOD("replace2", MLStringT, MLRegexT, MLStringT) {
@@ -3121,7 +3106,7 @@ ML_METHOD("replace2", MLStringT, MLRegexT, MLStringT) {
 #endif
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
-			return ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(Total));
+			return ml_tuplev(2, ml_stringbuffer_to_string(Buffer), ml_integer(Total));
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -3174,7 +3159,7 @@ static void ml_str_replacement_func(ml_str_replacement_state_t *State, ml_value_
 	ml_value_t **Args = ml_alloc_args(2);
 	Args[0] = (ml_value_t *)State->Buffer;
 	Args[1] = Value;
-	ml_call(State, AppendMethod, 2, Args);
+	return ml_call(State, AppendMethod, 2, Args);
 }
 
 static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_t *Value) {
@@ -3221,7 +3206,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 				}
 				}
 			} else {
-				const char *Find = strstr(Subject, Test->Pattern.String);
+				const char *Find = memmem(Subject, Length, Test->Pattern.String, Test->PatternLength);
 				if (Find) {
 					int Start = Find - Subject;
 					if (Start < MatchStart) {
@@ -3252,9 +3237,9 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 	}
 	if (State->Length) ml_stringbuffer_write(Buffer, Subject, Length);
 	if (State->Tuple) {
-		ML_RETURN(ml_tuplev(2, ml_stringbuffer_get_value(Buffer), ml_integer(State->Total)));
+		ML_RETURN(ml_tuplev(2, ml_stringbuffer_to_string(Buffer), ml_integer(State->Total)));
 	} else {
-		ML_RETURN(ml_stringbuffer_get_value(Buffer));
+		ML_RETURN(ml_stringbuffer_to_string(Buffer));
 	}
 }
 
@@ -3388,13 +3373,12 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 		if (!utf8_is_continuation(*A) && (--N == 0)) break;
 		++A;
 	}
-	const char *B = A + 1;
-	while (*B && utf8_is_continuation(*B)) ++B;
+	const char *B = utf8_next(A);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_write(Buffer, Start, A - Start);
 	ml_stringbuffer_write(Buffer, ml_string_value(Args[2]), ml_string_length(Args[2]));
 	ml_stringbuffer_write(Buffer, B, End - B);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
@@ -3431,7 +3415,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
 	ml_stringbuffer_write(Buffer, Start, A - Start);
 	ml_stringbuffer_write(Buffer, ml_string_value(Args[3]), ml_string_length(Args[3]));
 	ml_stringbuffer_write(Buffer, B, End - B);
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 typedef struct {
@@ -3445,7 +3429,7 @@ static void ml_fn_replace_run(ml_fn_replace_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	ml_stringbuffer_write(State->Buffer, State->Rest, State->Length);
-	ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
 }
 
 static void ml_fn_replace_func(ml_fn_replace_state_t *State, ml_value_t *Value) {
@@ -3576,7 +3560,7 @@ ML_FUNCTION(MLStringEscape) {
 			break;
 		}
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
@@ -3814,7 +3798,7 @@ ML_FUNCTION(MLRegexEscape) {
 			break;
 		}
 	}
-	return ml_stringbuffer_get_value(Buffer);
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 typedef struct {
@@ -4039,7 +4023,12 @@ size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 }
 
 char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
-	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	ml_stringbuffer_node_t *Node = Buffer->Tail;
+	if (!Node) {
+		Node = Buffer->Head = Buffer->Tail = ml_stringbuffer_node();
+		Buffer->Start = 0;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+	}
 	Buffer->Length += Length;
 	Buffer->Space -= Length;
 	if (!Buffer->Space) {
@@ -4181,7 +4170,7 @@ ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
 	} else {
 		char *Chars = snew(Length + 1);
 		ml_stringbuffer_finish(Buffer, Chars);
-		return ml_string(Chars, Length);
+		return ml_string_unchecked(Chars, Length);
 	}
 }
 

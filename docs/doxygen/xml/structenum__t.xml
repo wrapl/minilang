@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structenum__t" kind="struct" language="C++" prot="public">
+    <compoundname>enum_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structenum__t_1afeaa51d2aaeae0eaf75e24580e65a760" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t enum_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>enum_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="486" column="11" bodyfile="src/ml_gir.c" bodystart="486" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structenum__t_1a513b589dfed673ffe9397951a5047f79" prot="public" static="no" mutable="no">
+        <type>GIEnumInfo *</type>
+        <definition>GIEnumInfo* enum_t::Info</definition>
+        <argsstring></argsstring>
+        <name>Info</name>
+        <qualifiedname>enum_t::Info</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="487" column="12" bodyfile="src/ml_gir.c" bodystart="487" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structenum__t_1ad1753360fca80cc5b2077a0bf9a1a9a8" prot="public" static="no" mutable="no">
+        <type><ref refid="structenum__value__t" kindref="compound">enum_value_t</ref> *</type>
+        <definition>enum_value_t* enum_t::ByIndex[]</definition>
+        <argsstring>[]</argsstring>
+        <name>ByIndex</name>
+        <qualifiedname>enum_t::ByIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="488" column="14" bodyfile="src/ml_gir.c" bodystart="488" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>enum_t</label>
+        <link refid="structenum__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>ByIndex</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>enum_value_t</label>
+        <link refid="structenum__value__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Name</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="485" column="1" bodyfile="src/ml_gir.c" bodystart="485" bodyend="489"/>
+    <listofallmembers>
+      <member refid="structenum__t_1afeaa51d2aaeae0eaf75e24580e65a760" prot="public" virt="non-virtual"><scope>enum_t</scope><name>Base</name></member>
+      <member refid="structenum__t_1ad1753360fca80cc5b2077a0bf9a1a9a8" prot="public" virt="non-virtual"><scope>enum_t</scope><name>ByIndex</name></member>
+      <member refid="structenum__t_1a513b589dfed673ffe9397951a5047f79" prot="public" virt="non-virtual"><scope>enum_t</scope><name>Info</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

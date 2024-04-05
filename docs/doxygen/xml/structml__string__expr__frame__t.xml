@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__string__expr__frame__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_string_expr_frame_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__string__expr__frame__t_1a0c11aa0aa7bf7d02435d3d09bc29c7da" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__string__expr__t" kindref="compound">mlc_string_expr_t</ref> *</type>
+        <definition>mlc_string_expr_t* ml_string_expr_frame_t::Expr</definition>
+        <argsstring></argsstring>
+        <name>Expr</name>
+        <qualifiedname>ml_string_expr_frame_t::Expr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="2851" column="19" bodyfile="src/ml_compiler.c" bodystart="2851" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__string__expr__frame__t_1ad1ca27f9154136ae20a5096b8d436f47" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref> *</type>
+        <definition>mlc_string_part_t* ml_string_expr_frame_t::Part</definition>
+        <argsstring></argsstring>
+        <name>Part</name>
+        <qualifiedname>ml_string_expr_frame_t::Part</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="2852" column="19" bodyfile="src/ml_compiler.c" bodystart="2852" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__string__expr__frame__t_1a802e726a0a609198449bfb470e50a0bc" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+        <definition>mlc_expr_t* ml_string_expr_frame_t::Child</definition>
+        <argsstring></argsstring>
+        <name>Child</name>
+        <qualifiedname>ml_string_expr_frame_t::Child</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="2853" column="12" bodyfile="src/ml_compiler.c" bodystart="2853" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__string__expr__frame__t_1a6aec1805a274690a870d5acda4b0961d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_string_expr_frame_t::NumArgs</definition>
+        <argsstring></argsstring>
+        <name>NumArgs</name>
+        <qualifiedname>ml_string_expr_frame_t::NumArgs</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="2854" column="5" bodyfile="src/ml_compiler.c" bodystart="2854" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__string__expr__frame__t_1a75e21d815ec276226c687f0c5c23f13d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_string_expr_frame_t::Flags</definition>
+        <argsstring></argsstring>
+        <name>Flags</name>
+        <qualifiedname>ml_string_expr_frame_t::Flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="2854" column="13" bodyfile="src/ml_compiler.c" bodystart="2854" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="7">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_string_expr_frame_t</label>
+        <link refid="structml__string__expr__frame__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Part</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Child</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_string_expr_t</label>
+        <link refid="structmlc__string__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Parts</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>mlc_string_part_t</label>
+        <link refid="structmlc__string__part__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Child</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="2850" column="1" bodyfile="src/ml_compiler.c" bodystart="2850" bodyend="2855"/>
+    <listofallmembers>
+      <member refid="structml__string__expr__frame__t_1a802e726a0a609198449bfb470e50a0bc" prot="public" virt="non-virtual"><scope>ml_string_expr_frame_t</scope><name>Child</name></member>
+      <member refid="structml__string__expr__frame__t_1a0c11aa0aa7bf7d02435d3d09bc29c7da" prot="public" virt="non-virtual"><scope>ml_string_expr_frame_t</scope><name>Expr</name></member>
+      <member refid="structml__string__expr__frame__t_1a75e21d815ec276226c687f0c5c23f13d" prot="public" virt="non-virtual"><scope>ml_string_expr_frame_t</scope><name>Flags</name></member>
+      <member refid="structml__string__expr__frame__t_1a6aec1805a274690a870d5acda4b0961d" prot="public" virt="non-virtual"><scope>ml_string_expr_frame_t</scope><name>NumArgs</name></member>
+      <member refid="structml__string__expr__frame__t_1ad1ca27f9154136ae20a5096b8d436f47" prot="public" virt="non-virtual"><scope>ml_string_expr_frame_t</scope><name>Part</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

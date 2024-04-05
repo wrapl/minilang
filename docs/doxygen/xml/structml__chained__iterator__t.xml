@@ -1,0 +1,170 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__chained__iterator__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_chained_iterator_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__chained__iterator__t_1a952c9e128cb6108e5595c40e4de34da7" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref></type>
+        <definition>ml_state_t ml_chained_iterator_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>ml_chained_iterator_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="122" column="12" bodyfile="src/ml_sequence.c" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__chained__iterator__t_1a3722a711001e5cfb72e7084e4b3c4e50" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_chained_iterator_t::Iterator</definition>
+        <argsstring></argsstring>
+        <name>Iterator</name>
+        <qualifiedname>ml_chained_iterator_t::Iterator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="123" column="12" bodyfile="src/ml_sequence.c" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__chained__iterator__t_1a7e3fa12e1721a0c460872e5083f87723" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+        <definition>ml_value_t** ml_chained_iterator_t::Current</definition>
+        <argsstring></argsstring>
+        <name>Current</name>
+        <qualifiedname>ml_chained_iterator_t::Current</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="124" column="12" bodyfile="src/ml_sequence.c" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__chained__iterator__t_1a4b0895d99360d3d7eb3c7d25f3a37aff" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+        <definition>ml_value_t ** ml_chained_iterator_t::Entries</definition>
+        <argsstring></argsstring>
+        <name>Entries</name>
+        <qualifiedname>ml_chained_iterator_t::Entries</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="124" column="20" bodyfile="src/ml_sequence.c" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__chained__iterator__t_1a979989c5fd15ee3acfa725c9e1c3b848" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_chained_iterator_t::Values[4]</definition>
+        <argsstring>[4]</argsstring>
+        <name>Values</name>
+        <qualifiedname>ml_chained_iterator_t::Values</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_sequence.c" line="125" column="12" bodyfile="src/ml_sequence.c" bodystart="125" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_chained_iterator_t</label>
+        <link refid="structml__chained__iterator__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Current</edgelabel>
+          <edgelabel>Entries</edgelabel>
+          <edgelabel>Iterator</edgelabel>
+          <edgelabel>Values</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_context_t</label>
+        <link refid="structml__context__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_state_t</label>
+        <link refid="structml__state__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Caller</edgelabel>
+          <edgelabel>run</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Context</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_sequence.c" line="121" column="1" bodyfile="src/ml_sequence.c" bodystart="121" bodyend="126"/>
+    <listofallmembers>
+      <member refid="structml__chained__iterator__t_1a952c9e128cb6108e5595c40e4de34da7" prot="public" virt="non-virtual"><scope>ml_chained_iterator_t</scope><name>Base</name></member>
+      <member refid="structml__chained__iterator__t_1a7e3fa12e1721a0c460872e5083f87723" prot="public" virt="non-virtual"><scope>ml_chained_iterator_t</scope><name>Current</name></member>
+      <member refid="structml__chained__iterator__t_1a4b0895d99360d3d7eb3c7d25f3a37aff" prot="public" virt="non-virtual"><scope>ml_chained_iterator_t</scope><name>Entries</name></member>
+      <member refid="structml__chained__iterator__t_1a3722a711001e5cfb72e7084e4b3c4e50" prot="public" virt="non-virtual"><scope>ml_chained_iterator_t</scope><name>Iterator</name></member>
+      <member refid="structml__chained__iterator__t_1a979989c5fd15ee3acfa725c9e1c3b848" prot="public" virt="non-virtual"><scope>ml_chained_iterator_t</scope><name>Values</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

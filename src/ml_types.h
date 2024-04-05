@@ -718,6 +718,8 @@ static inline size_t ml_buffer_length(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
+ml_value_t *ml_string_checked(const char *Value, int Length) __attribute__((malloc));
+ml_value_t *ml_string_unchecked(const char *Value, int Length) __attribute__((malloc));
 ml_value_t *ml_string_copy(const char *Value, int Length) __attribute__((malloc));
 ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, format(printf, 1, 2)));
 #define ml_string_value ml_address_value

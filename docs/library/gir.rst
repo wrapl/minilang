@@ -9,7 +9,7 @@ gir
 
 .. rst-class:: mini-api
 
-:mini:`fun girinstall()`
+:mini:`fun gir::install()`
    *TBD*
 
 

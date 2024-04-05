@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__preprocessor__output__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_preprocessor_output_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__preprocessor__output__t_1adf94316ccc87246438971b2f6325bb4f" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref> *</type>
+        <definition>ml_preprocessor_output_t* ml_preprocessor_output_t::Prev</definition>
+        <argsstring></argsstring>
+        <name>Prev</name>
+        <qualifiedname>ml_preprocessor_output_t::Prev</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="27" column="26" bodyfile="src/minipp.c" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__preprocessor__output__t_1aaab6241e91cb550c78dd8e0ed6d82cc3" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_preprocessor_output_t::Writer</definition>
+        <argsstring></argsstring>
+        <name>Writer</name>
+        <qualifiedname>ml_preprocessor_output_t::Writer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="28" column="12" bodyfile="src/minipp.c" bodystart="28" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_preprocessor_output_t</label>
+        <link refid="structml__preprocessor__output__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Writer</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/minipp.c" line="26" column="1" bodyfile="src/minipp.c" bodystart="26" bodyend="29"/>
+    <listofallmembers>
+      <member refid="structml__preprocessor__output__t_1adf94316ccc87246438971b2f6325bb4f" prot="public" virt="non-virtual"><scope>ml_preprocessor_output_t</scope><name>Prev</name></member>
+      <member refid="structml__preprocessor__output__t_1aaab6241e91cb550c78dd8e0ed6d82cc3" prot="public" virt="non-virtual"><scope>ml_preprocessor_output_t</scope><name>Writer</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structghash__to__map__t" kind="struct" language="C++" prot="public">
+    <compoundname>ghash_to_map_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structghash__to__map__t_1a2a535a971fcdd294fad2f16e159f82d0" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ghash_to_map_t::Map</definition>
+        <argsstring></argsstring>
+        <name>Map</name>
+        <qualifiedname>ghash_to_map_t::Map</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="2571" column="12" bodyfile="src/ml_gir.c" bodystart="2571" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structghash__to__map__t_1a3bb261b6150502b74d30a744b355b0d4" prot="public" static="no" mutable="no">
+        <type><ref refid="structptr__to__value__t" kindref="compound">ptr_to_value_t</ref></type>
+        <definition>ptr_to_value_t ghash_to_map_t::Key[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Key</name>
+        <qualifiedname>ghash_to_map_t::Key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="2572" column="16" bodyfile="src/ml_gir.c" bodystart="2572" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structghash__to__map__t_1ad4628781b57be74ad42cc465294f17b2" prot="public" static="no" mutable="no">
+        <type><ref refid="structptr__to__value__t" kindref="compound">ptr_to_value_t</ref></type>
+        <definition>ptr_to_value_t ghash_to_map_t::Value[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Value</name>
+        <qualifiedname>ghash_to_map_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="2573" column="16" bodyfile="src/ml_gir.c" bodystart="2573" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>ghash_to_map_t</label>
+        <link refid="structghash__to__map__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Map</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Key</edgelabel>
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ptr_to_value_t</label>
+        <link refid="structptr__to__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>to_value</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="2570" column="1" bodyfile="src/ml_gir.c" bodystart="2570" bodyend="2574"/>
+    <listofallmembers>
+      <member refid="structghash__to__map__t_1a3bb261b6150502b74d30a744b355b0d4" prot="public" virt="non-virtual"><scope>ghash_to_map_t</scope><name>Key</name></member>
+      <member refid="structghash__to__map__t_1a2a535a971fcdd294fad2f16e159f82d0" prot="public" virt="non-virtual"><scope>ghash_to_map_t</scope><name>Map</name></member>
+      <member refid="structghash__to__map__t_1ad4628781b57be74ad42cc465294f17b2" prot="public" virt="non-virtual"><scope>ghash_to_map_t</scope><name>Value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

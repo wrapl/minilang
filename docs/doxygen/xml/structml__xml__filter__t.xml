@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__xml__filter__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_xml_filter_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__xml__filter__t_1ad69065ecb2c9a02c84141c6ee7c0fe0b" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_xml_filter_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_xml_filter_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="643" column="11" bodyfile="src/ml_xml.c" bodystart="643" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__xml__filter__t_1a6ea54012f2cbd16f36fe68afc49de56e" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* ml_xml_filter_t::Tag</definition>
+        <argsstring></argsstring>
+        <name>Tag</name>
+        <qualifiedname>ml_xml_filter_t::Tag</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="644" column="12" bodyfile="src/ml_xml.c" bodystart="644" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__xml__filter__t_1a9db55b00bbd326ceb5b98d5d6e91dedd" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_xml_filter_t::Attributes</definition>
+        <argsstring></argsstring>
+        <name>Attributes</name>
+        <qualifiedname>ml_xml_filter_t::Attributes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.c" line="645" column="12" bodyfile="src/ml_xml.c" bodystart="645" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_xml_filter_t</label>
+        <link refid="structml__xml__filter__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Attributes</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_xml.c" line="642" column="1" bodyfile="src/ml_xml.c" bodystart="642" bodyend="646"/>
+    <listofallmembers>
+      <member refid="structml__xml__filter__t_1a9db55b00bbd326ceb5b98d5d6e91dedd" prot="public" virt="non-virtual"><scope>ml_xml_filter_t</scope><name>Attributes</name></member>
+      <member refid="structml__xml__filter__t_1a6ea54012f2cbd16f36fe68afc49de56e" prot="public" virt="non-virtual"><scope>ml_xml_filter_t</scope><name>Tag</name></member>
+      <member refid="structml__xml__filter__t_1ad69065ecb2c9a02c84141c6ee7c0fe0b" prot="public" virt="non-virtual"><scope>ml_xml_filter_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

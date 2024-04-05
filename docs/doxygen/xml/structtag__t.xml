@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structtag__t" kind="struct" language="C++" prot="public">
+    <compoundname>tag_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structtag__t_1a75dc2b52c4580dc200c70dfbafca95c0" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="structtag__t" kindref="compound">tag_t</ref> *</type>
+        <definition>struct tag_t* tag_t::Prev</definition>
+        <argsstring></argsstring>
+        <name>Prev</name>
+        <qualifiedname>tag_t::Prev</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="116" column="12" bodyfile="src/ml_cbor.c" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtag__t_1ac344893d8ad35ee2f85415219054c004" prot="public" static="no" mutable="no">
+        <type>ml_cbor_tag_fn</type>
+        <definition>ml_cbor_tag_fn tag_t::Handler</definition>
+        <argsstring></argsstring>
+        <name>Handler</name>
+        <qualifiedname>tag_t::Handler</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="117" column="16" bodyfile="src/ml_cbor.c" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtag__t_1abc7300c217a83d4e419f439105ef3980" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int tag_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>tag_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.c" line="118" column="5" bodyfile="src/ml_cbor.c" bodystart="118" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>tag_t</label>
+        <link refid="structtag__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Handler</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_cbor.c" line="115" column="1" bodyfile="src/ml_cbor.c" bodystart="115" bodyend="119"/>
+    <listofallmembers>
+      <member refid="structtag__t_1ac344893d8ad35ee2f85415219054c004" prot="public" virt="non-virtual"><scope>tag_t</scope><name>Handler</name></member>
+      <member refid="structtag__t_1abc7300c217a83d4e419f439105ef3980" prot="public" virt="non-virtual"><scope>tag_t</scope><name>Index</name></member>
+      <member refid="structtag__t_1a75dc2b52c4580dc200c70dfbafca95c0" prot="public" virt="non-virtual"><scope>tag_t</scope><name>Prev</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__compiler__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_compiler_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__compiler__t_1a7a367d446b0ffce1a5d5b80d541c4dd8" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_compiler_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_compiler_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="72" column="11" bodyfile="src/ml_compiler.c" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__compiler__t_1abd3f71bfc3651b1dc49ee5777b366067" prot="public" static="no" mutable="no">
+        <type>ml_getter_t</type>
+        <definition>ml_getter_t ml_compiler_t::GlobalGet</definition>
+        <argsstring></argsstring>
+        <name>GlobalGet</name>
+        <qualifiedname>ml_compiler_t::GlobalGet</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="73" column="13" bodyfile="src/ml_compiler.c" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__compiler__t_1aef086cab3f1539f55ec8f62c2bbdb545" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* ml_compiler_t::Globals</definition>
+        <argsstring></argsstring>
+        <name>Globals</name>
+        <qualifiedname>ml_compiler_t::Globals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="74" column="6" bodyfile="src/ml_compiler.c" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__compiler__t_1af75a4b8f4cd4c5db7b52df241d322b52" prot="public" static="no" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t ml_compiler_t::Vars[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Vars</name>
+        <qualifiedname>ml_compiler_t::Vars</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="75" column="13" bodyfile="src/ml_compiler.c" bodystart="75" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_compiler_t</label>
+        <link refid="structml__compiler__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>GlobalGet</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Vars</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="71" column="1" bodyfile="src/ml_compiler.c" bodystart="71" bodyend="76"/>
+    <listofallmembers>
+      <member refid="structml__compiler__t_1abd3f71bfc3651b1dc49ee5777b366067" prot="public" virt="non-virtual"><scope>ml_compiler_t</scope><name>GlobalGet</name></member>
+      <member refid="structml__compiler__t_1aef086cab3f1539f55ec8f62c2bbdb545" prot="public" virt="non-virtual"><scope>ml_compiler_t</scope><name>Globals</name></member>
+      <member refid="structml__compiler__t_1a7a367d446b0ffce1a5d5b80d541c4dd8" prot="public" virt="non-virtual"><scope>ml_compiler_t</scope><name>Type</name></member>
+      <member refid="structml__compiler__t_1af75a4b8f4cd4c5db7b52df241d322b52" prot="public" virt="non-virtual"><scope>ml_compiler_t</scope><name>Vars</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

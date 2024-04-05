@@ -1,0 +1,161 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__thread__channel__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_thread_channel_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__thread__channel__t_1a60d934f7cfa3b00d66ff9dade8586459" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_thread_channel_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_thread_channel_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="325" column="11" bodyfile="src/ml_thread.c" bodystart="325" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__channel__t_1ae3b6af154240c9717a98b692f87779b2" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_thread_channel_t::Size</definition>
+        <argsstring></argsstring>
+        <name>Size</name>
+        <qualifiedname>ml_thread_channel_t::Size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="326" column="5" bodyfile="src/ml_thread.c" bodystart="326" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__channel__t_1af85af7ae032d14fa7c9840b82f858a81" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_thread_channel_t::Fill</definition>
+        <argsstring></argsstring>
+        <name>Fill</name>
+        <qualifiedname>ml_thread_channel_t::Fill</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="326" column="10" bodyfile="src/ml_thread.c" bodystart="326" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__channel__t_1aabfe2be535b07bb2ebc94c9b76c7dfa1" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_thread_channel_t::Write</definition>
+        <argsstring></argsstring>
+        <name>Write</name>
+        <qualifiedname>ml_thread_channel_t::Write</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="326" column="15" bodyfile="src/ml_thread.c" bodystart="326" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__channel__t_1aef732e3be399a1c9d0dbfffa46091841" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_thread_channel_t::Read</definition>
+        <argsstring></argsstring>
+        <name>Read</name>
+        <qualifiedname>ml_thread_channel_t::Read</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="326" column="21" bodyfile="src/ml_thread.c" bodystart="326" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__thread__channel__t_1acd6c4de33aa872e6546178b34346a200" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* ml_thread_channel_t::Messages[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Messages</name>
+        <qualifiedname>ml_thread_channel_t::Messages</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_thread.c" line="327" column="12" bodyfile="src/ml_thread.c" bodystart="327" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_thread_channel_t</label>
+        <link refid="structml__thread__channel__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Messages</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_thread.c" line="324" column="1" bodyfile="src/ml_thread.c" bodystart="324" bodyend="328"/>
+    <listofallmembers>
+      <member refid="structml__thread__channel__t_1af85af7ae032d14fa7c9840b82f858a81" prot="public" virt="non-virtual"><scope>ml_thread_channel_t</scope><name>Fill</name></member>
+      <member refid="structml__thread__channel__t_1acd6c4de33aa872e6546178b34346a200" prot="public" virt="non-virtual"><scope>ml_thread_channel_t</scope><name>Messages</name></member>
+      <member refid="structml__thread__channel__t_1aef732e3be399a1c9d0dbfffa46091841" prot="public" virt="non-virtual"><scope>ml_thread_channel_t</scope><name>Read</name></member>
+      <member refid="structml__thread__channel__t_1ae3b6af154240c9717a98b692f87779b2" prot="public" virt="non-virtual"><scope>ml_thread_channel_t</scope><name>Size</name></member>
+      <member refid="structml__thread__channel__t_1a60d934f7cfa3b00d66ff9dade8586459" prot="public" virt="non-virtual"><scope>ml_thread_channel_t</scope><name>Type</name></member>
+      <member refid="structml__thread__channel__t_1aabfe2be535b07bb2ebc94c9b76c7dfa1" prot="public" virt="non-virtual"><scope>ml_thread_channel_t</scope><name>Write</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

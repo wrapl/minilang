@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structcallback__t" kind="struct" language="C++" prot="public">
+    <compoundname>callback_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcallback__t_1a62c11e44487acf1af24963586c37b3c1" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t callback_t::Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>callback_t::Base</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1875" column="11" bodyfile="src/ml_gir.c" bodystart="1875" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__t_1ac9e1fd4739845ac2b8c46b52e6fe63d5" prot="public" static="no" mutable="no">
+        <type>GICallableInfo *</type>
+        <definition>GICallableInfo* callback_t::Info</definition>
+        <argsstring></argsstring>
+        <name>Info</name>
+        <qualifiedname>callback_t::Info</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1876" column="16" bodyfile="src/ml_gir.c" bodystart="1876" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__t_1a532791550713ae7ac0dd87febb43f0b0" prot="public" static="no" mutable="no">
+        <type><ref refid="uniongi__inst__t" kindref="compound">gi_inst_t</ref> *</type>
+        <definition>gi_inst_t* callback_t::InstIn</definition>
+        <argsstring></argsstring>
+        <name>InstIn</name>
+        <qualifiedname>callback_t::InstIn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1877" column="11" bodyfile="src/ml_gir.c" bodystart="1877" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__t_1aecd9fdbca131676933975eea76070c93" prot="public" static="no" mutable="no">
+        <type><ref refid="uniongi__inst__t" kindref="compound">gi_inst_t</ref> *</type>
+        <definition>gi_inst_t * callback_t::InstOut</definition>
+        <argsstring></argsstring>
+        <name>InstOut</name>
+        <qualifiedname>callback_t::InstOut</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1877" column="18" bodyfile="src/ml_gir.c" bodystart="1877" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__t_1a07c59126abd1dc53f195de01698c055a" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int callback_t::Provided</definition>
+        <argsstring></argsstring>
+        <name>Provided</name>
+        <qualifiedname>callback_t::Provided</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1878" column="5" bodyfile="src/ml_gir.c" bodystart="1878" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcallback__t_1a21f213a45afc2387a8ea5f21e87baff2" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* callback_t::Aux[]</definition>
+        <argsstring>[]</argsstring>
+        <name>Aux</name>
+        <qualifiedname>callback_t::Aux</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_gir.c" line="1879" column="6" bodyfile="src/ml_gir.c" bodystart="1879" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>callback_t</label>
+        <link refid="structcallback__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Base</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>InstIn</edgelabel>
+          <edgelabel>InstOut</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>gi_inst_t</label>
+        <link refid="uniongi__inst__t"/>
+      </node>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_gir.c" line="1874" column="1" bodyfile="src/ml_gir.c" bodystart="1874" bodyend="1880"/>
+    <listofallmembers>
+      <member refid="structcallback__t_1a21f213a45afc2387a8ea5f21e87baff2" prot="public" virt="non-virtual"><scope>callback_t</scope><name>Aux</name></member>
+      <member refid="structcallback__t_1a62c11e44487acf1af24963586c37b3c1" prot="public" virt="non-virtual"><scope>callback_t</scope><name>Base</name></member>
+      <member refid="structcallback__t_1ac9e1fd4739845ac2b8c46b52e6fe63d5" prot="public" virt="non-virtual"><scope>callback_t</scope><name>Info</name></member>
+      <member refid="structcallback__t_1a532791550713ae7ac0dd87febb43f0b0" prot="public" virt="non-virtual"><scope>callback_t</scope><name>InstIn</name></member>
+      <member refid="structcallback__t_1aecd9fdbca131676933975eea76070c93" prot="public" virt="non-virtual"><scope>callback_t</scope><name>InstOut</name></member>
+      <member refid="structcallback__t_1a07c59126abd1dc53f195de01698c055a" prot="public" virt="non-virtual"><scope>callback_t</scope><name>Provided</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

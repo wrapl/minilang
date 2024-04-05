@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structml__permutations__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_permutations_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__permutations__t_1a304ea9635086d9bbbc04f634b8c9a0a5" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* ml_permutations_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_permutations_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1773" column="11" bodyfile="src/ml_list.c" bodystart="1773" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__permutations__t_1adb87350bd362449e396e597f4e3df171" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__t" kindref="compound">ml_list_t</ref> *</type>
+        <definition>ml_list_t* ml_permutations_t::List</definition>
+        <argsstring></argsstring>
+        <name>List</name>
+        <qualifiedname>ml_permutations_t::List</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1774" column="11" bodyfile="src/ml_list.c" bodystart="1774" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__permutations__t_1a756a1bdad421c42f1cdd7a90eeadd668" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__list__node__t" kindref="compound">ml_list_node_t</ref> **</type>
+        <definition>ml_list_node_t** ml_permutations_t::Nodes</definition>
+        <argsstring></argsstring>
+        <name>Nodes</name>
+        <qualifiedname>ml_permutations_t::Nodes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1775" column="16" bodyfile="src/ml_list.c" bodystart="1775" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__permutations__t_1aa073091cecc4011b527f9bd3b1189d2d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_permutations_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>ml_permutations_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1776" column="5" bodyfile="src/ml_list.c" bodystart="1776" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__permutations__t_1adeabd3e844b3d2ba0ae47e568452d18c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_permutations_t::Length</definition>
+        <argsstring></argsstring>
+        <name>Length</name>
+        <qualifiedname>ml_permutations_t::Length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1776" column="11" bodyfile="src/ml_list.c" bodystart="1776" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__permutations__t_1ae4e5f80ac928da941500ea627247797c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ml_permutations_t::P[]</definition>
+        <argsstring>[]</argsstring>
+        <name>P</name>
+        <qualifiedname>ml_permutations_t::P</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_list.c" line="1777" column="5" bodyfile="src/ml_list.c" bodystart="1777" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_list_node_t</label>
+        <link refid="structml__list__node__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_list_t</label>
+        <link refid="structml__list__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>CachedNode</edgelabel>
+          <edgelabel>Head</edgelabel>
+          <edgelabel>Tail</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_permutations_t</label>
+        <link refid="structml__permutations__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>List</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Nodes</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_list.c" line="1772" column="1" bodyfile="src/ml_list.c" bodystart="1772" bodyend="1778"/>
+    <listofallmembers>
+      <member refid="structml__permutations__t_1aa073091cecc4011b527f9bd3b1189d2d" prot="public" virt="non-virtual"><scope>ml_permutations_t</scope><name>Index</name></member>
+      <member refid="structml__permutations__t_1adeabd3e844b3d2ba0ae47e568452d18c" prot="public" virt="non-virtual"><scope>ml_permutations_t</scope><name>Length</name></member>
+      <member refid="structml__permutations__t_1adb87350bd362449e396e597f4e3df171" prot="public" virt="non-virtual"><scope>ml_permutations_t</scope><name>List</name></member>
+      <member refid="structml__permutations__t_1a756a1bdad421c42f1cdd7a90eeadd668" prot="public" virt="non-virtual"><scope>ml_permutations_t</scope><name>Nodes</name></member>
+      <member refid="structml__permutations__t_1ae4e5f80ac928da941500ea627247797c" prot="public" virt="non-virtual"><scope>ml_permutations_t</scope><name>P</name></member>
+      <member refid="structml__permutations__t_1a304ea9635086d9bbbc04f634b8c9a0a5" prot="public" virt="non-virtual"><scope>ml_permutations_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

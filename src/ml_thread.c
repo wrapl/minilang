@@ -140,7 +140,7 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLClosureT, ml_closure_t *Closure) {
 	ml_closure_info_t *Info = Closure->Info;
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		ml_value_t *Error = ml_is_threadsafe(Closure->UpValues[I]);
+		ml_value_t *Error = ml_is_threadsafe(Closure->UpValues[I + 1]);
 		if (Error) {
 			int Index = ~I;
 			for (ml_decl_t *Decl = Info->Decls; Decl; Decl = Decl->Next) {

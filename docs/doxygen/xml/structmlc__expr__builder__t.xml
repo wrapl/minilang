@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structmlc__expr__builder__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_expr_builder_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__expr__builder__t_1a5de524f786b9aa04246e399d63b646b7" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* mlc_expr_builder_t::Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>mlc_expr_builder_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3519" column="11" bodyfile="src/ml_compiler.c" bodystart="3519" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__expr__builder__t_1abc1f4a13c7b93a8a810277508904b815" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref> *</type>
+        <definition>mlc_parent_expr_t* mlc_expr_builder_t::Expr</definition>
+        <argsstring></argsstring>
+        <name>Expr</name>
+        <qualifiedname>mlc_expr_builder_t::Expr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3520" column="19" bodyfile="src/ml_compiler.c" bodystart="3520" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__expr__builder__t_1ababc7618c63973e86358271c54c5721a" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> **</type>
+        <definition>mlc_expr_t** mlc_expr_builder_t::ExprSlot</definition>
+        <argsstring></argsstring>
+        <name>ExprSlot</name>
+        <qualifiedname>mlc_expr_builder_t::ExprSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.c" line="3521" column="12" bodyfile="src/ml_compiler.c" bodystart="3521" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>mlc_expr_builder_t</label>
+        <link refid="structmlc__expr__builder__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Expr</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>ExprSlot</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>mlc_parent_expr_t</label>
+        <link refid="structmlc__parent__expr__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>Child</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler.c" line="3518" column="1" bodyfile="src/ml_compiler.c" bodystart="3518" bodyend="3522"/>
+    <listofallmembers>
+      <member refid="structmlc__expr__builder__t_1abc1f4a13c7b93a8a810277508904b815" prot="public" virt="non-virtual"><scope>mlc_expr_builder_t</scope><name>Expr</name></member>
+      <member refid="structmlc__expr__builder__t_1ababc7618c63973e86358271c54c5721a" prot="public" virt="non-virtual"><scope>mlc_expr_builder_t</scope><name>ExprSlot</name></member>
+      <member refid="structmlc__expr__builder__t_1a5de524f786b9aa04246e399d63b646b7" prot="public" virt="non-virtual"><scope>mlc_expr_builder_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

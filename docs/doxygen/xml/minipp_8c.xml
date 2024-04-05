@@ -1,0 +1,784 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="minipp_8c" kind="file" language="C++">
+    <compoundname>minipp.c</compoundname>
+    <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <includes refid="stringmap_8h" local="yes">stringmap.h</includes>
+    <includes refid="ml__compiler_8h" local="yes">ml_compiler.h</includes>
+    <includes refid="ml__file_8h" local="yes">ml_file.h</includes>
+    <includes refid="ml__macros_8h" local="yes">ml_macros.h</includes>
+    <includes local="no">string.h</includes>
+    <includes refid="ml__object_8h" local="yes">ml_object.h</includes>
+    <includes refid="ml__sequence_8h" local="yes">ml_sequence.h</includes>
+    <incdepgraph>
+      <node id="13">
+        <label>inthash.h</label>
+        <link refid="inthash_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>src/minipp.c</label>
+        <link refid="minipp_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>ml_file.h</label>
+        <link refid="ml__file_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>ml_macros.h</label>
+        <link refid="ml__macros_8h_source"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="21">
+        <label>ml_sequence.h</label>
+        <link refid="ml__sequence_8h_source"/>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ml_types.h</label>
+        <link refid="ml__types_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>stringmap.h</label>
+        <link refid="stringmap_8h_source"/>
+      </node>
+      <node id="19">
+        <label>gc/gc.h</label>
+      </node>
+      <node id="16">
+        <label>limits.h</label>
+      </node>
+      <node id="15">
+        <label>ml_config.h</label>
+      </node>
+      <node id="6">
+        <label>setjmp.h</label>
+      </node>
+      <node id="11">
+        <label>stdarg.h</label>
+      </node>
+      <node id="14">
+        <label>stdint.h</label>
+      </node>
+      <node id="9">
+        <label>stdio.h</label>
+      </node>
+      <node id="3">
+        <label>stdlib.h</label>
+      </node>
+      <node id="10">
+        <label>string.h</label>
+      </node>
+      <node id="4">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structml__preprocessor__t" prot="public">ml_preprocessor_t</innerclass>
+    <innerclass refid="structml__preprocessor__input__t" prot="public">ml_preprocessor_input_t</innerclass>
+    <innerclass refid="structml__preprocessor__output__t" prot="public">ml_preprocessor_output_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="minipp_8c_1a592cda8118eddcc2ce2deeb93a125b8c" prot="public" static="no">
+        <type>struct ml_preprocessor_input_t</type>
+        <definition>typedef struct ml_preprocessor_input_t ml_preprocessor_input_t</definition>
+        <argsstring></argsstring>
+        <name>ml_preprocessor_input_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="12" column="38" bodyfile="src/minipp.c" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="minipp_8c_1a34b874a5c840ef1a0754b8d5922ec56b" prot="public" static="no">
+        <type>struct ml_preprocessor_output_t</type>
+        <definition>typedef struct ml_preprocessor_output_t ml_preprocessor_output_t</definition>
+        <argsstring></argsstring>
+        <name>ml_preprocessor_output_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="13" column="39" bodyfile="src/minipp.c" bodystart="13" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="minipp_8c_1a26829b58da90c8296e49c0ac55555308" prot="public" static="no">
+        <type>struct ml_preprocessor_t</type>
+        <definition>typedef struct ml_preprocessor_t ml_preprocessor_t</definition>
+        <argsstring></argsstring>
+        <name>ml_preprocessor_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="18" column="19"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="minipp_8c_1aa77664de80503b2d32d245d987485133" prot="public" static="yes" mutable="no">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
+        <definition>stringmap_t Globals[1]</definition>
+        <argsstring>[1]</argsstring>
+        <name>Globals</name>
+        <initializer>= {STRINGMAP_INIT}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="10" column="20" bodyfile="src/minipp.c" bodystart="10" bodyend="10"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="minipp_8c_1a476a271660b4297367c7b53871c8b4e4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_global_get</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor, const char *Name, const char *Source, int Line, int Mode)</argsstring>
+        <name>ml_preprocessor_global_get</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Source</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Line</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="31" column="19" bodyfile="src/minipp.c" bodystart="31" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a0101264f1b0dff7677ac11e92e34288c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>static const char * ml_preprocessor_read</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor)</argsstring>
+        <name>ml_preprocessor_read</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="35" column="19" bodyfile="src/minipp.c" bodystart="35" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a7c04ccaf03de1baecd5efe2cdf705b97" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>static const char * ml_preprocessor_line_read</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor)</argsstring>
+        <name>ml_preprocessor_line_read</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="56" column="19" bodyfile="src/minipp.c" bodystart="56" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a75419a1a87ac278559f6a9ab21884e6c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_output</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_preprocessor_output</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="73" column="19" bodyfile="src/minipp.c" bodystart="73" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a79eee30cb7e5102490b23d8b39de0494" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_push</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_preprocessor_push</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="77" column="19" bodyfile="src/minipp.c" bodystart="77" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1af0ae2dfdf63fba842539abf2845027f6" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_pop</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_preprocessor_pop</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="85" column="19" bodyfile="src/minipp.c" bodystart="85" bodyend="89"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1af133f515539fa6b84697710aae9c363b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_input</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_preprocessor_input</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="91" column="19" bodyfile="src/minipp.c" bodystart="91" bodyend="98"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a82b5a9f6a32e531546572cb73ba46dd6" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_file_read</definition>
+        <argsstring>(FILE *File, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_preprocessor_file_read</name>
+        <param>
+          <type>FILE *</type>
+          <declname>File</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="100" column="19" bodyfile="src/minipp.c" bodystart="100" bodyend="108"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a024b49753ca1b84a0ccc38d6ee75c281" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_write</definition>
+        <argsstring>(FILE *File, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_preprocessor_write</name>
+        <param>
+          <type>FILE *</type>
+          <declname>File</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="110" column="19" bodyfile="src/minipp.c" bodystart="110" bodyend="122"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a64ad0aa470d8f0d15fc537b287a4c7a8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>static ml_value_t * ml_preprocessor_include</definition>
+        <argsstring>(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args)</argsstring>
+        <name>ml_preprocessor_include</name>
+        <param>
+          <type><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref> *</type>
+          <declname>Preprocessor</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="124" column="19" bodyfile="src/minipp.c" bodystart="124" bodyend="134"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1abfb61832d0624e186f12119a015b0c94" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_result_run</definition>
+        <argsstring>(ml_state_t *State, ml_value_t *Result)</argsstring>
+        <name>ml_result_run</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>State</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="136" column="13" bodyfile="src/minipp.c" bodystart="136" bodyend="139"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1a22fd54c17c81f8d936930cb2da910bd8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_preprocess</definition>
+        <argsstring>(const char *InputName, ml_value_t *Reader, ml_value_t *Writer)</argsstring>
+        <name>ml_preprocess</name>
+        <param>
+          <type>const char *</type>
+          <declname>InputName</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Reader</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Writer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="141" column="6" bodyfile="src/minipp.c" bodystart="141" bodyend="214"/>
+      </memberdef>
+      <memberdef kind="function" id="minipp_8c_1ae98fb7c14fb481a1151b423f9d4adb82" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int main</definition>
+        <argsstring>(int Argc, const char **Argv)</argsstring>
+        <name>main</name>
+        <param>
+          <type>int</type>
+          <declname>Argc</declname>
+        </param>
+        <param>
+          <type>const char **</type>
+          <declname>Argv</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/minipp.c" line="216" column="5" bodyfile="src/minipp.c" bodystart="216" bodyend="250"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;stringmap.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_compiler.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_file.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_macros.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_object.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_sequence.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Globals[1]<sp/>=<sp/>{STRINGMAP_INIT};</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref>;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref><sp/><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref>;</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15" refid="structml__preprocessor__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>*Input;</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref><sp/>*Output;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal">}<sp/><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref>;</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20" refid="structml__preprocessor__input__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>*Prev;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Reader;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Line;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="structml__preprocessor__output__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref><sp/>*Prev;</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Writer;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_global_get(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Mode)<sp/>{</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>stringmap_search(Globals,<sp/>Name)<sp/>?:<sp/>ml_error(</highlight><highlight class="stringliteral">&quot;ParseError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Undefined<sp/>symbol<sp/>%s<sp/>at<sp/>%s:%d&quot;</highlight><highlight class="normal">,<sp/>Name,<sp/>Source,<sp/>Line);</highlight></codeline>
+<codeline lineno="33"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_preprocessor_read(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor)<sp/>{</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*LineValue<sp/>=<sp/>ml_simple_call(Preprocessor-&gt;Input-&gt;Reader,<sp/>0,<sp/>0);</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(LineValue<sp/>==<sp/>MLNil)<sp/>{</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Preprocessor-&gt;Input<sp/>=<sp/>Preprocessor-&gt;Input-&gt;Prev;</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is(LineValue,<sp/>MLErrorT))<sp/>{</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;Error:<sp/>%s\n&quot;</highlight><highlight class="normal">,<sp/>ml_error_message(LineValue));</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>Source;</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Level<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(ml_error_source(LineValue,<sp/>Level++,<sp/>&amp;Source))<sp/>{</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;\t%s:%d\n&quot;</highlight><highlight class="normal">,<sp/>Source.Name,<sp/>Source.Line);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(0);</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is(LineValue,<sp/>MLStringT))<sp/>{</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_string_value(LineValue);</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;Error:<sp/>line<sp/>read<sp/>function<sp/>did<sp/>not<sp/>return<sp/>string\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(0);</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="54"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_preprocessor_line_read(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor)<sp/>{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>*Input<sp/>=<sp/>Preprocessor-&gt;Input;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;;)<sp/>{</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Line<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(!Line)<sp/>{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Input-&gt;Line)<sp/>{</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Line<sp/>=<sp/>Input-&gt;Line;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Input-&gt;Line<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Line<sp/>=<sp/>ml_preprocessor_read(Preprocessor);</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Line;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_output(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>{</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_simple_call(Preprocessor-&gt;Output-&gt;Writer,<sp/>Count,<sp/>Args);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_push(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>{</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref><sp/>*Output<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal">(<ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref>);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/>Output-&gt;Prev<sp/>=<sp/>Preprocessor-&gt;Output;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>Output-&gt;Writer<sp/>=<sp/>Args[0];</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/>Preprocessor-&gt;Output<sp/>=<sp/>Output;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>MLNil;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_pop(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>{</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref><sp/>*Output<sp/>=<sp/>Preprocessor-&gt;Output;</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>Preprocessor-&gt;Output<sp/>=<sp/>Output-&gt;Prev;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Output-&gt;Writer;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_input(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>*Input<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal">(<ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref>);</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>Input-&gt;Prev<sp/>=<sp/>Preprocessor-&gt;Input;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/>Input-&gt;Reader<sp/>=<sp/>Args[0];</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/>Input-&gt;Line<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/>Preprocessor-&gt;Input<sp/>=<sp/>Input;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>MLNil;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_file_read(FILE<sp/>*File,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>{</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Line<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(getline(&amp;Line,<sp/>&amp;Length,<sp/>File)<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fclose(File);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>MLNil;</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_string(Line,<sp/>Length);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_write(FILE<sp/>*File,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>{</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Count;<sp/>++I)<sp/>{</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Result<sp/>=<sp/>Args[I];</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!ml_is(Result,<sp/>MLStringT))<sp/>{</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Result<sp/>=<sp/>ml_simple_call((<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*)MLStringT,<sp/>1,<sp/>&amp;Result);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is(Result,<sp/>MLErrorT))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Result;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!ml_is(Result,<sp/>MLStringT))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;ResultError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;string<sp/>method<sp/>did<sp/>not<sp/>return<sp/>string&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fwrite(ml_string_value(Result),<sp/>1,<sp/>ml_string_length(Result),<sp/>File);</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/>fflush(File);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>MLNil;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_preprocessor_include(<ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>*Preprocessor,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>{</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_CHECK_ARG_TYPE(0,<sp/>MLStringT);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/>FILE<sp/>*File<sp/>=<sp/>fopen(ml_string_value(Args[0]),<sp/></highlight><highlight class="stringliteral">&quot;r&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!File)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>ml_error(</highlight><highlight class="stringliteral">&quot;FileError&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;error<sp/>opening<sp/>%s&quot;</highlight><highlight class="normal">,<sp/>ml_string_value(Args[0]));</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>*Input<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal">(<ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref>);</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>Input-&gt;Prev<sp/>=<sp/>Preprocessor-&gt;Input;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/>Input-&gt;Reader<sp/>=<sp/>ml_cfunction(File,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_file_read);</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>Input-&gt;Line<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>Preprocessor-&gt;Input<sp/>=<sp/>Input;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>MLNil;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_result_run(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Result)<sp/>{</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_preprocess(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*InputName,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Reader,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Writer)<sp/>{</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>Input0[1]<sp/>=<sp/>{{0,<sp/>Reader}};</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__output__t" kindref="compound">ml_preprocessor_output_t</ref><sp/>Output0[1]<sp/>=<sp/>{{0,<sp/>Writer}};</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__t" kindref="compound">ml_preprocessor_t</ref><sp/>Preprocessor[1]<sp/>=<sp/>{{Input0,<sp/>Output0}};</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;write&quot;</highlight><highlight class="normal">,<sp/>ml_cfunction(Preprocessor,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_output));</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;push&quot;</highlight><highlight class="normal">,<sp/>ml_cfunction(Preprocessor,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_push));</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;pop&quot;</highlight><highlight class="normal">,<sp/>ml_cfunction(Preprocessor,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_pop));</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;input&quot;</highlight><highlight class="normal">,<sp/>ml_cfunction(Preprocessor,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_input));</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;include&quot;</highlight><highlight class="normal">,<sp/>ml_cfunction(Preprocessor,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_include));</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/>stringmap_insert(Globals,<sp/></highlight><highlight class="stringliteral">&quot;open&quot;</highlight><highlight class="normal">,<sp/>MLFileT);</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref><sp/>*Parser<sp/>=<sp/><ref refid="group__compiler_1gab31c0e27d21db6f748c137bf13bd7e28" kindref="member">ml_parser</ref>((</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_line_read,<sp/>Preprocessor);</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__compiler__t" kindref="compound">ml_compiler_t</ref><sp/>*Compiler<sp/>=<sp/>ml_compiler((ml_getter_t)ml_preprocessor_global_get,<sp/>Preprocessor);</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_parser_source(Parser,<sp/>(<ref refid="structml__source__t" kindref="compound">ml_source_t</ref>){InputName,<sp/>1});</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*BackSlash<sp/>=<sp/>ml_cstring(</highlight><highlight class="stringliteral">&quot;\\&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;;)<sp/>{</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__preprocessor__input__t" kindref="compound">ml_preprocessor_input_t</ref><sp/>*Input<sp/>=<sp/>Preprocessor-&gt;Input;</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Line<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(!Line)<sp/>{</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Input-&gt;Line)<sp/>{</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Line<sp/>=<sp/>Input-&gt;Line;</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Input-&gt;Line<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*LineValue<sp/>=<sp/>ml_simple_call(Preprocessor-&gt;Input-&gt;Reader,<sp/>0,<sp/>0);</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(LineValue<sp/>==<sp/>MLNil)<sp/>{</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Input<sp/>=<sp/>Preprocessor-&gt;Input<sp/>=<sp/>Preprocessor-&gt;Input-&gt;Prev;</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Input)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is(LineValue,<sp/>MLErrorT))<sp/>{</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;Error:<sp/>%s\n&quot;</highlight><highlight class="normal">,<sp/>ml_error_message(LineValue));</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>Source;</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Level<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(ml_error_source(LineValue,<sp/>Level++,<sp/>&amp;Source))<sp/>{</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;\t%s:%d\n&quot;</highlight><highlight class="normal">,<sp/>Source.Name,<sp/>Source.Line);</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(0);</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is(LineValue,<sp/>MLStringT))<sp/>{</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Line<sp/>=<sp/>ml_string_value(LineValue);</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;Error:<sp/>line<sp/>read<sp/>function<sp/>did<sp/>not<sp/>return<sp/>string\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(0);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Escape<sp/>=<sp/>strchr(Line,<sp/></highlight><highlight class="charliteral">&apos;\\&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Escape)<sp/>{</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Line<sp/>&lt;<sp/>Escape)<sp/>ml_simple_inline(Preprocessor-&gt;Output-&gt;Writer,<sp/>1,<sp/>ml_string(Line,<sp/>Escape<sp/>-<sp/>Line));</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Escape[1]<sp/>==<sp/></highlight><highlight class="charliteral">&apos;;&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Input-&gt;Line<sp/>=<sp/>Escape<sp/>+<sp/>2;</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_simple_inline(Preprocessor-&gt;Output-&gt;Writer,<sp/>1,<sp/>BackSlash);</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Input-&gt;Line<sp/>=<sp/>Escape<sp/>+<sp/>1;</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__result__state__t" kindref="compound">ml_result_state_t</ref><sp/>*State<sp/>=<sp/>ml_result_state(&amp;MLRootContext);</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_command_evaluate((<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*)State,<sp/>Parser,<sp/>Compiler);</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_SCHEDULER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(!State-&gt;Value)<sp/>{</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref><sp/>Queued<sp/>=<sp/>ml_default_queue_next_wait();</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Queued.State-&gt;run(Queued.State,<sp/>Queued.Value);</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(ml_is(State-&gt;Value,<sp/>MLErrorT))<sp/>{</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;Error:<sp/>%s\n&quot;</highlight><highlight class="normal">,<sp/>ml_error_message(State-&gt;Value));</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>Source;</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Level<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(ml_error_source(State-&gt;Value,<sp/>Level++,<sp/>&amp;Source))<sp/>{</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;\t%s:%d\n&quot;</highlight><highlight class="normal">,<sp/>Source.Name,<sp/>Source.Line);</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(0);</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Input-&gt;Line<sp/>=<sp/>ml_parser_clear(Parser);</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Line[0]<sp/>&amp;&amp;<sp/>Line[0]<sp/>!=<sp/></highlight><highlight class="charliteral">&apos;\n&apos;</highlight><highlight class="normal">)<sp/>ml_simple_inline(Preprocessor-&gt;Output-&gt;Writer,<sp/>1,<sp/>ml_string(Line,<sp/>strlen(Line)));</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="214"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"></highlight></codeline>
+<codeline lineno="216"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>main(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Argc,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**Argv)<sp/>{</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_init(Globals);</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_file_init(Globals);</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_object_init(Globals);</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_sequence_init(Globals);</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*InputName<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;stdin&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/>FILE<sp/>*Input<sp/>=<sp/>stdin;</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/>FILE<sp/>*Output<sp/>=<sp/>stdout;</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>I<sp/>=<sp/>1;<sp/>I<sp/>&lt;<sp/>Argc;<sp/>++I)<sp/>{</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Argv[I][0]<sp/>==<sp/></highlight><highlight class="charliteral">&apos;-&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">switch</highlight><highlight class="normal"><sp/>(Argv[I][1])<sp/>{</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/></highlight><highlight class="charliteral">&apos;h&apos;</highlight><highlight class="normal">:<sp/>{</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;Usage:<sp/>%s<sp/>{<sp/>options<sp/>}<sp/>input&quot;</highlight><highlight class="normal">,<sp/>Argv[0]);</highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>puts(</highlight><highlight class="stringliteral">&quot;<sp/><sp/><sp/><sp/>-h<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>display<sp/>this<sp/>message&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit(0);</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/></highlight><highlight class="charliteral">&apos;o&apos;</highlight><highlight class="normal">:<sp/>{</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Argv[I][2])<sp/>{</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Output<sp/>=<sp/>fopen(Argv[I]<sp/>+<sp/>2,<sp/></highlight><highlight class="stringliteral">&quot;w&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Output<sp/>=<sp/>fopen(Argv[++I],<sp/></highlight><highlight class="stringliteral">&quot;w&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/></highlight><highlight class="charliteral">&apos;t&apos;</highlight><highlight class="normal">:<sp/>{</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>GC_disable();</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="243"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="245"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Input<sp/>=<sp/>fopen(InputName<sp/>=<sp/>Argv[I],<sp/></highlight><highlight class="stringliteral">&quot;r&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_preprocess(InputName,<sp/>ml_cfunction(Input,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_file_read),<sp/>ml_cfunction(Output,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)ml_preprocessor_write));</highlight></codeline>
+<codeline lineno="250"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="src/minipp.c"/>
+  </compounddef>
+</doxygen>

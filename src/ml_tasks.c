@@ -72,7 +72,9 @@ ML_METHODVZ(MLTaskT, MLAnyT) {
 	Task->Base.Type = MLTaskT;
 	Task->Base.Context = Caller->Context;
 	Task->Base.run = (ml_state_fn)ml_task_run;
+	// Register Caller as waiting for Task here
 	ml_call(Task, Fn, Count - 1, Args);
+	// Unregister Caller as waiting for Task here
 	ML_RETURN(Task);
 }
 
@@ -245,7 +247,9 @@ ML_METHODX("then", MLFunctionT, MLFunctionT) {
 	Composed->Base.Base.Context = Caller->Context;
 	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
 	Composed->Then = Args[1];
+	// Register Caller as waiting for Composed here
 	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	// Unregister Caller as waiting for Composed here
 	ML_RETURN(Composed);
 }
 
@@ -260,7 +264,9 @@ ML_METHODX("then", MLFunctionT, MLFunctionT, MLFunctionT) {
 	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
 	Composed->Then = Args[1];
 	Composed->Else = Args[2];
+	// Register Caller as waiting for Composed here
 	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	// Unregister Caller as waiting for Composed here
 	ML_RETURN(Composed);
 }
 
@@ -273,7 +279,9 @@ ML_METHODX("else", MLFunctionT, MLFunctionT) {
 	Composed->Base.Base.Context = Caller->Context;
 	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
 	Composed->Else = Args[1];
+	// Register Caller as waiting for Composed here
 	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	// Unregister Caller as waiting for Composed here
 	ML_RETURN(Composed);
 }
 
@@ -286,7 +294,9 @@ ML_METHODX("on", MLFunctionT, MLFunctionT) {
 	Composed->Base.Base.Context = Caller->Context;
 	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
 	Composed->On = Args[1];
+	// Register Caller as waiting for Composed here
 	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	// Unregister Caller as waiting for Composed here
 	ML_RETURN(Composed);
 }
 
@@ -312,12 +322,14 @@ static void ml_task_queue_call(ml_state_t *Caller, ml_task_queue_t *Queue, int C
 	if (!ml_is(Fn, MLFunctionT)) ML_ERROR("TypeError", "expected function for argument %d", Count);
 	ml_task_t *Task = new(ml_task_t);
 	Task->Base.Type = MLTaskT;
+	Task->Base.Caller = (ml_state_t *)Queue;
 	Task->Base.Context = Caller->Context;
 	Task->Base.run = (ml_state_fn)ml_task_run;
-	ml_task_call((ml_state_t *)Queue, Task, 0, NULL);
 	if (Queue->NumRunning < Queue->MaxRunning) {
 		++Queue->NumRunning;
+		// Register Caller as waiting for Task here
 		ml_call(Task, Fn, Count - 1, Args);
+		// Unregister Caller as waiting for Task here
 	} else {
 		ml_task_pending_t *Pending = new(ml_task_pending_t);
 		Pending->Task = Task;
@@ -342,7 +354,7 @@ static void ml_task_queue_run(ml_task_queue_t *Queue, ml_value_t *Value) {
 	ml_task_pending_t *Pending = Queue->Head;
 	if (Pending) {
 		if (!(Queue->Head = Pending->Next)) Queue->Tail = NULL;
-		ml_call(Pending->Task, Pending->Fn, Pending->Count, Pending->Args);
+		return ml_call(Pending->Task, Pending->Fn, Pending->Count, Pending->Args);
 	} else {
 		--Queue->NumRunning;
 	}

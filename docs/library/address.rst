@@ -159,6 +159,17 @@ address
       A:find("other") :> nil
 
 
+:mini:`meth (Haystack: address):find(Needle: address, Start: integer): integer | nil`
+   Returns the offset of the first occurence of the bytes of :mini:`Needle` in :mini:`Haystack` or :mini:`nil` is no occurence is found.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:find("world") :> 6
+      A:find("other") :> nil
+
+
 :mini:`meth (Address: address):get16: integer`
    Returns the signed 16-bit value at :mini:`Address`. Currently follows the platform endiness.
 

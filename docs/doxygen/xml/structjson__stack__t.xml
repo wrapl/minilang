@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="structjson__stack__t" kind="struct" language="C++" prot="public">
+    <compoundname>json_stack_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structjson__stack__t_1ab5cc9aef1b2ddfd2f51ab0c073e49af9" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t* json_stack_t::Values[JSON_STACK_SIZE]</definition>
+        <argsstring>[JSON_STACK_SIZE]</argsstring>
+        <name>Values</name>
+        <qualifiedname>json_stack_t::Values</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_json.c" line="58" column="12" bodyfile="src/ml_json.c" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structjson__stack__t_1a95fb17bb256fbf826e78f888743783af" prot="public" static="no" mutable="no">
+        <type><ref refid="structjson__stack__t" kindref="compound">json_stack_t</ref> *</type>
+        <definition>json_stack_t* json_stack_t::Prev</definition>
+        <argsstring></argsstring>
+        <name>Prev</name>
+        <qualifiedname>json_stack_t::Prev</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_json.c" line="59" column="14" bodyfile="src/ml_json.c" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structjson__stack__t_1a1ae4f41efd5d793b33e25d605b333880" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int json_stack_t::Index</definition>
+        <argsstring></argsstring>
+        <name>Index</name>
+        <qualifiedname>json_stack_t::Index</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_json.c" line="60" column="5" bodyfile="src/ml_json.c" bodystart="60" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>json_stack_t</label>
+        <link refid="structjson__stack__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Values</edgelabel>
+        </childnode>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_node_t</label>
+        <link refid="structstringmap__node__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Left</edgelabel>
+          <edgelabel>Right</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_json.c" line="57" column="1" bodyfile="src/ml_json.c" bodystart="57" bodyend="61"/>
+    <listofallmembers>
+      <member refid="structjson__stack__t_1a1ae4f41efd5d793b33e25d605b333880" prot="public" virt="non-virtual"><scope>json_stack_t</scope><name>Index</name></member>
+      <member refid="structjson__stack__t_1a95fb17bb256fbf826e78f888743783af" prot="public" virt="non-virtual"><scope>json_stack_t</scope><name>Prev</name></member>
+      <member refid="structjson__stack__t_1ab5cc9aef1b2ddfd2f51ab0c073e49af9" prot="public" virt="non-virtual"><scope>json_stack_t</scope><name>Values</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
