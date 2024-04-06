@@ -24,7 +24,7 @@ static void ml_log_default(ml_logger_t *Logger, ml_log_level_t Level, const char
 	gmtime_r(&Time.tv_sec, &BrokenTime);
 	char TimeString[20];
 	strftime(TimeString, 20, "%F %T", &BrokenTime);
-	fprintf(stderr, "[%s] %s %s %s:%d ", MLLogLevelNames[Level], TimeString, Logger->Name, Source, Line);
+	fprintf(stderr, "[%s] %s %s %s:%d ", MLLogLevelNames[Level], TimeString, Logger->AnsiName, Source, Line);
 	va_list Args;
 	va_start(Args, Format);
 	vfprintf(stderr, Format, Args);
@@ -142,6 +142,20 @@ ml_logger_t *ml_logger(const char *Name) {
 		ml_logger_t *Logger = new(ml_logger_t);
 		Logger->Type = MLLoggerT;
 		Logger->Name = Name;
+		int Hue = 0;
+		for (const unsigned char *P = (const unsigned char *)Name; *P; ++P) Hue = (7 * Hue + 13 * P[0]) % 360;
+		double H = fmod(Hue / 60.0, 2.0);
+		int X = round(255 * (1 - fabs(H - 1)));
+		int R, G, B;
+		switch ((int)H) {
+		case 0: R = 255; G = X; B = 0; break;
+		case 1: R = X; G = 255; B = 0; break;
+		case 2: R = 0; G = 255; B = X; break;
+		case 3: R = 0; G = X; B = 255; break;
+		case 4: R = X; G = 0; B = 255; break;
+		case 5: R = 255; G = 0; B = X; break;
+		}
+		GC_asprintf((char **)&Logger->AnsiName, "\e[38;2;%d;%d;%dm%s\e[0m", R, G, B, Name);
 		ml_value_t *LogFn = ml_cfunctionx(Logger, (ml_callbackx_t)ml_log_fn);
 		Logger->Loggers[ML_LOG_LEVEL_ERROR] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=ERROR\" \uFFFC(1, :$Args)");
 		Logger->Loggers[ML_LOG_LEVEL_WARN] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=WARN\" \uFFFC(2, :$Args)");

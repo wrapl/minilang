@@ -1368,7 +1368,7 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 	for (guint I = 1; I < NumArgs; ++I) MLArgs[I] = _value_to_ml(Args + I, Info->Args[I]);
 	ml_result_state_t *State = ml_result_state(Info->Context);
 	ml_call(State, Info->Function, NumArgs, MLArgs);
-	GMainContext *MainContext = g_main_loop_get_context(MainLoop);
+	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Value = State->Value;
 	if (ml_is_error(Value)) {
@@ -2110,7 +2110,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	}
 	ml_result_state_t *State = ml_result_state(Instance->Context);
 	ml_call(State, Instance->Function, Arg - Args, Args);
-	GMainContext *MainContext = g_main_loop_get_context(MainLoop);
+	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Result = State->Value;
 	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
@@ -2763,7 +2763,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		Instance->Type = (ml_type_t *)Type;
 		Instance->Context = Caller->Context;
 		Instance->Function = Value;
-		(ArgIn++)->v_pointer = g_callable_info_prepare_closure(
+		(ArgIn++)->v_pointer = g_callable_info_create_closure(
 			Type->Info,
 			Instance->Cif,
 			(GIFFIClosureCallback)callback_fn,

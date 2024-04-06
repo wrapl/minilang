@@ -21,6 +21,7 @@ typedef struct ml_logger_t ml_logger_t;
 struct ml_logger_t {
 	ml_type_t *Type;
 	const char *Name;
+	const char *AnsiName;
 	ml_value_t *Loggers[ML_LOG_LEVEL_ALL];
 	int Ignored[ML_LOG_LEVEL_ALL];
 };

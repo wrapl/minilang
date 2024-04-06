@@ -6765,11 +6765,11 @@ static void ml_command_idents_unpack(mlc_function_t *Function, ml_value_t *Packe
 	MLC_RETURN(Packed);
 }
 
-static ml_command_idents_frame_t *ml_accept_command_idents(mlc_function_t *Function, ml_parser_t *Parser, int Index) {
+static ml_command_idents_frame_t *ml_command_evaluate_idents(mlc_function_t *Function, ml_parser_t *Parser, int Index) {
 	if (!ml_parse2(Parser, MLT_BLANK)) ml_accept(Parser, MLT_IDENT);
 	const char *Ident = Parser->Ident;
 	if (ml_parse(Parser, MLT_COMMA)) {
-		ml_command_idents_frame_t *Frame = ml_accept_command_idents(Function, Parser, Index + 1);
+		ml_command_idents_frame_t *Frame = ml_command_evaluate_idents(Function, Parser, Index + 1);
 		Frame->Globals[Index] = ml_command_global(Function->Compiler->Vars, Ident);
 		return Frame;
 	}
@@ -6846,9 +6846,9 @@ static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml
 	MLC_RETURN(Value);
 }
 
-static void ml_accept_command_decl2(mlc_function_t *Function, ml_parser_t *Parser, ml_token_t Type) {
+static void ml_command_evaluate_decl2(mlc_function_t *Function, ml_parser_t *Parser, ml_token_t Type) {
 	if (ml_parse(Parser, MLT_LEFT_PAREN)) {
-		ml_command_idents_frame_t *Frame = ml_accept_command_idents(Function, Parser, 0);
+		ml_command_idents_frame_t *Frame = ml_command_evaluate_idents(Function, Parser, 0);
 		Frame->Type = Type;
 		mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
 		return mlc_expr_call(Function, Expr);
@@ -6888,21 +6888,21 @@ static void ml_command_decl_run(mlc_function_t *Function, ml_value_t *Value, ml_
 	ml_parser_t *Parser = Frame->Parser;
 	if (setjmp(Parser->OnError)) MLC_RETURN(Parser->Value);
 	if (ml_parse(Parser, MLT_COMMA)) {
-		return ml_accept_command_decl2(Function, Parser, Frame->Type);
+		return ml_command_evaluate_decl2(Function, Parser, Frame->Type);
 	}
 	ml_parse(Parser, MLT_SEMICOLON);
 	MLC_POP();
 	MLC_RETURN(Value);
 }
 
-static void ml_accept_command_decl(mlc_function_t *Function, ml_parser_t *Parser, ml_token_t Type) {
+static void ml_command_evaluate_decl(mlc_function_t *Function, ml_parser_t *Parser, ml_token_t Type) {
 	MLC_FRAME(ml_command_decl_frame_t, ml_command_decl_run);
 	Frame->Parser = Parser;
 	Frame->Type = Type;
-	return ml_accept_command_decl2(Function, Parser, Type);
+	return ml_command_evaluate_decl2(Function, Parser, Type);
 }
 
-static void ml_accept_command_fun(mlc_function_t *Function, ml_parser_t *Parser) {
+static void ml_command_evaluate_fun(mlc_function_t *Function, ml_parser_t *Parser) {
 	ml_compiler_t *Compiler = Function->Compiler;
 	if (ml_parse(Parser, MLT_IDENT)) {
 		while (ml_parse(Parser, MLT_COMMA)) {
@@ -6929,7 +6929,7 @@ static void ml_accept_command_fun(mlc_function_t *Function, ml_parser_t *Parser)
 	}
 }
 
-static void ml_accept_command_expr(mlc_function_t *Function, ml_parser_t *Parser) {
+static void ml_command_evaluate_expr(mlc_function_t *Function, ml_parser_t *Parser) {
 	ml_compiler_t *Compiler = Function->Compiler;
 	mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
 	if (ml_parse(Parser, MLT_COLON)) {
@@ -6974,19 +6974,146 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	if (ml_parse(Parser, MLT_EOI)) {
 		MLC_RETURN(MLEndOfInput);
 	} else if (ml_parse(Parser, MLT_VAR)) {
-		return ml_accept_command_decl(Function, Parser, MLT_VAR);
+		return ml_command_evaluate_decl(Function, Parser, MLT_VAR);
 	} else if (ml_parse(Parser, MLT_LET)) {
-		return ml_accept_command_decl(Function, Parser, MLT_LET);
+		return ml_command_evaluate_decl(Function, Parser, MLT_LET);
 	} else if (ml_parse(Parser, MLT_REF)) {
-		return ml_accept_command_decl(Function, Parser, MLT_REF);
+		return ml_command_evaluate_decl(Function, Parser, MLT_REF);
 	} else if (ml_parse(Parser, MLT_DEF)) {
-		return ml_accept_command_decl(Function, Parser, MLT_DEF);
+		return ml_command_evaluate_decl(Function, Parser, MLT_DEF);
 	} else if (ml_parse(Parser, MLT_FUN)) {
-		return ml_accept_command_fun(Function, Parser);
+		return ml_command_evaluate_fun(Function, Parser);
 	} else {
-		return ml_accept_command_expr(Function, Parser);
+		return ml_command_evaluate_expr(Function, Parser);
 	}
 }
+
+/*
+typedef struct {
+	ml_type_t *Type;
+	mlc_expr_t *Expr;
+	mlc_expr_t *VarType;
+	int NumIdents, Flags;
+	const char *Idents[];
+} ml_command_decl_t;
+
+static ml_command_decl_t ml_accept_command_decls(ml_parser_t *Parser, int Index) {
+	if (!ml_parse2(Parser, MLT_BLANK)) ml_accept(Parser, MLT_IDENT);
+	const char *Ident = Parser->Ident;
+	ml_command_decl_t *Decls;
+	if (ml_parse(Parser, MLT_COMMA)) {
+		Decls = ml_accept_command_decls(Parser, Index + 1);
+	} else {
+		ml_accept(Parser, MLT_RIGHT_PAREN);
+		Decls = xnew(ml_command_decl_t, Index + 1, const char *);
+		Decls->NumIdents = Index + 1;
+	}
+	Decls->Idents[Index] = Ident;
+	return Decls;
+}
+
+#define COMMAND_DECL_VAR 1
+#define COMMAND_DECL_LET 2
+#define COMMAND_DECL_DEF 4
+#define COMMAND_DECL_REF 8
+#define COMMAND_DECL_UNPACK 16
+#define COMMAND_DECL_IN 32
+
+ML_TYPE(MLCommandDeclT, (), "command::decl");
+
+static void ml_accept_command_decl(ml_state_t *Caller, ml_parser_t *Parser, ml_token_t Type) {
+	int Flags;
+	switch (Type) {
+	case MLT_VAR: Flags = COMMAND_DECL_VAR; break;
+	case MLT_LET: Flags = COMMAND_DECL_LET; break;
+	case MLT_DEF: Flags = COMMAND_DECL_DEF; break;
+	case MLT_REF: Flags = COMMAND_DECL_REF; break;
+	}
+	ml_command_decl_t *Decl;
+	if (ml_parse(Parser, MLT_LEFT_PAREN)) {
+		Decl = ml_accept_command_decls(Parser, 0);
+		Decl->Type = MLCommandDeclT;
+		if (ml_parse(Parser, MLT_IN)) {
+			Decl->Flags = Flags | COMMAND_DECL_IN;
+		} else {
+			ml_accept(Parser, MLT_ASSIGN);
+			Decl->Flags = Flags | COMMAND_DECL_UNPACK;
+		}
+		Decl->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
+	} else {
+		ml_accept(Parser, MLT_IDENT);
+		Decl = xnew(ml_command_decl_t, 1, const char *);
+		Decl->Type = MLCommandDeclT;
+		Decl->Idents[0] = Parser->Ident;
+		Decl->Flags = Flags;
+		if (ml_parse(Parser, MLT_LEFT_PAREN)) {
+			Decl->Expr = ml_accept_fun_expr(Parser, Decl->Idents[0], MLT_RIGHT_PAREN);
+		} else {
+			if (ml_parse(Parser, MLT_COLON)) Decl->VarType = ml_accept_term(Parser, 0);
+			if (Type == MLT_VAR) {
+				if (ml_parse(Parser, MLT_ASSIGN)) {
+					Decl->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
+				}
+			} else {
+				ml_accept(Parser, MLT_ASSIGN);
+				Decl->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
+			}
+		}
+	}
+	if (ml_parse(Parser, MLT_COMMA)) {
+		Parser->Token = Type;
+	} else {
+		ml_parse(Parser, MLT_SEMICOLON);
+	}
+	ML_RETURN(Decl);
+}
+
+void ml_accept_command_fun(Caller, Parser) {
+	if (ml_parse(Parser, MLT_IDENT)) {
+		while (ml_parse(Parser, MLT_COMMA)) {
+			ml_command_global(Function->Compiler->Vars, Parser->Ident);
+			ml_accept(Parser, MLT_IDENT);
+		}
+		if (ml_parse(Parser, MLT_SEMICOLON)) {
+			ml_command_global(Function->Compiler->Vars, Parser->Ident);
+			ML_CONTINUE(Function, MLNil);
+		}
+		MLC_FRAME(ml_command_ident_frame_t, ml_command_ident_run);
+		Frame->Global = ml_command_global(Compiler->Vars, Parser->Ident);
+		Frame->VarType = NULL;
+		Frame->Type = MLT_DEF;
+		ml_accept(Parser, MLT_LEFT_PAREN);
+		mlc_expr_t *Expr = ml_accept_fun_expr(Parser, Frame->Global->Name, MLT_RIGHT_PAREN);
+		ml_parse(Parser, MLT_SEMICOLON);
+		return mlc_expr_call(Function, Expr);
+	} else {
+		ml_accept(Parser, MLT_LEFT_PAREN);
+		mlc_expr_t *Expr = ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
+		ml_parse(Parser, MLT_SEMICOLON);
+		return mlc_expr_call(Function, Expr);
+	}
+}
+
+void ml_accept_command(ml_state_t *Caller, ml_parser_t *Parser) {
+	if (setjmp(Parser->OnError)) ML_RETURN(Parser->Value);
+	ml_skip_eol(Parser);
+	if (ml_parse(Parser, MLT_EOI)) {
+		ML_RETURN(MLEndOfInput);
+	} else if (ml_parse(Parser, MLT_VAR)) {
+		return ml_accept_command_decl(Caller, Parser, MLT_VAR);
+	} else if (ml_parse(Parser, MLT_LET)) {
+		return ml_accept_command_decl(Caller, Parser, MLT_LET);
+	} else if (ml_parse(Parser, MLT_REF)) {
+		return ml_accept_command_decl(Caller, Parser, MLT_REF);
+	} else if (ml_parse(Parser, MLT_DEF)) {
+		return ml_accept_command_decl(Caller, Parser, MLT_DEF);
+	} else if (ml_parse(Parser, MLT_FUN)) {
+		return ml_accept_command_fun(Caller, Parser);
+	} else {
+		return ml_accept_command_expr(Caller, Parser);
+	}
+}
+*/
 
 ml_value_t *stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Eval) {
 	return (ml_value_t *)stringmap_search(Map, Key);
