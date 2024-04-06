@@ -3940,7 +3940,6 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 				Parser->Next = "";
 				goto eoi;
 			}
-			++Parser->Line;
 		} else if (C == '\'') {
 			Parser->Next = End;
 			break;
@@ -4001,14 +4000,14 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			case '\\': ml_stringbuffer_put(Buffer, '\\'); break;
 			case '0': ml_stringbuffer_put(Buffer, '\0'); break;
 			case '{': ml_stringbuffer_put(Buffer, '{'); break;
-			case '\n': Parser->Line++; break;
+			case '\n': ++Parser->Line; break;
 			case 0:
 				ml_parse_warn(Parser, "ParseError", "End of line while parsing string");
 				Parser->Next = "";
 				goto eoi;
 			}
 		} else if (C == '\n') {
-			Parser->Line++;
+			++Parser->Line;
 			ml_stringbuffer_write(Buffer, End - 1, 1);
 		} else {
 			ml_stringbuffer_write(Buffer, End - 1, 1);
