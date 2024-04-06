@@ -245,13 +245,13 @@ ML_METHODX("read", MLStreamT, MLTypeT, MLIntegerT) {
 ML_METHODX("read", MLStreamT, MLIntegerT) {
 //<Stream
 //<Count
-//>string|nil
+//>address|nil
 // Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
 	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_read_string_run;
+	State->Base.run = (ml_state_fn)ml_stream_read_address_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
