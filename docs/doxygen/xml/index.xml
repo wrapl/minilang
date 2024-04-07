@@ -266,6 +266,7 @@
   <compound refid="structml__logger__t" kind="struct"><name>ml_logger_t</name>
     <member refid="structml__logger__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
     <member refid="structml__logger__t_1a760b4e07b204e4852e7fb55e25567623" kind="variable"><name>Name</name></member>
+    <member refid="structml__logger__t_1aa349935b72143eee3c0e04c8dc89135f" kind="variable"><name>AnsiName</name></member>
     <member refid="structml__logger__t_1a671b83d13a0c4ba75cfbaee4474a75a5" kind="variable"><name>Loggers</name></member>
     <member refid="structml__logger__t_1a7292fff053400c63c30128f5c70ffd3d" kind="variable"><name>Ignored</name></member>
   </compound>
@@ -1304,6 +1305,7 @@
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da6c990563edd0bfbbe1c67cd1b2129005" kind="enumvalue"><name>MLT_OLD</name></member>
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dad0abb120249eea0aee00fa78c5e10266" kind="enumvalue"><name>MLT_ON</name></member>
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da355342d86374d93665a0639cb96fc1a8" kind="enumvalue"><name>MLT_OR</name></member>
+    <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da018c817587c7547a7e4a16244512390a" kind="enumvalue"><name>MLT_RECUR</name></member>
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da587a9031de72ec0dae585ade0bb7baa0" kind="enumvalue"><name>MLT_REF</name></member>
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da1aa1c5fe2aeabcb1da594c03a0d00190" kind="enumvalue"><name>MLT_RET</name></member>
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da517390b5b3b707f3a7080b86dc8a394c" kind="enumvalue"><name>MLT_SEQ</name></member>

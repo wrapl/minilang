@@ -41,7 +41,7 @@ stream
    Reads bytes from :mini:`Stream` into :mini:`Buffer` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
-:mini:`meth (Stream: stream):read(Count: integer): string | nil`
+:mini:`meth (Stream: stream):read(Count: integer): address | nil`
    Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
@@ -63,6 +63,10 @@ stream
 
 :mini:`meth (Stream: stream):readi(Type: type, Delimiters: string, Count: integer): Type | nil`
    Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):reads(Count: integer): string | nil`
+   Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
 :mini:`meth (Stream: stream):readx(Delimiters: string): string | nil`

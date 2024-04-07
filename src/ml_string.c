@@ -1393,6 +1393,26 @@ ML_METHOD("utf8", MLIntegerT) {
 	return ml_string(S, I);
 }
 
+ML_METHOD("char", MLIntegerT) {
+//<Codepoint
+//>string
+// Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
+	uint32_t Code = ml_integer_value(Args[0]);
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	char *S = snew(I + 1), *P = S;
+	while (I--) *P++ = Val[I];
+	*P = 0;
+	return ml_string(S, I);
+}
+
 #ifdef ML_ICU
 
 ML_METHOD("cname", MLStringT) {

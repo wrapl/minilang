@@ -1322,6 +1322,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 		return 2;
 	case MLIT_INST_CONFIG:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
+		break;
 	case MLIT_INST_COUNT:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 3;

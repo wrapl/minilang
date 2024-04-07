@@ -194,6 +194,7 @@ hierarchy
       "state":e -> "compiler":w;
       "any":e -> "parser":w;
       "any":e -> "global":w;
+      "any":e -> "command::decl":w;
       "stream":e -> "cbor::decoder":w;
       "any":e -> "cbortag":w;
       "any":e -> "variable":w;

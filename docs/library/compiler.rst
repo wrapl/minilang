@@ -17,6 +17,10 @@ compiler
    *TBD*
 
 
+:mini:`type command::decl`
+   *TBD*
+
+
 :mini:`type compiler < state`
    *TBD*
 

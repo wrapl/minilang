@@ -26,6 +26,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       5 * "abc" :> "abcabcabcabcabc"
 
 
+:mini:`meth (Codepoint: integer):char: string`
+   Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
+
+
 :mini:`meth (Codepoint: integer):utf8: string`
    Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
 

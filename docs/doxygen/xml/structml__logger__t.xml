@@ -31,6 +31,20 @@
         </inbodydescription>
         <location file="src/ml_logging.h" line="23" column="12" bodyfile="src/ml_logging.h" bodystart="23" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="variable" id="structml__logger__t_1aa349935b72143eee3c0e04c8dc89135f" prot="public" static="no" mutable="no">
+        <type>const char *</type>
+        <definition>const char* AnsiName</definition>
+        <argsstring></argsstring>
+        <name>AnsiName</name>
+        <qualifiedname>ml_logger_t::AnsiName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="24" column="12" bodyfile="src/ml_logging.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
       <memberdef kind="variable" id="structml__logger__t_1a671b83d13a0c4ba75cfbaee4474a75a5" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
         <definition>ml_value_t* Loggers[ML_LOG_LEVEL_ALL]</definition>
@@ -43,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="24" column="12" bodyfile="src/ml_logging.h" bodystart="24" bodyend="-1"/>
+        <location file="src/ml_logging.h" line="25" column="12" bodyfile="src/ml_logging.h" bodystart="25" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__logger__t_1a7292fff053400c63c30128f5c70ffd3d" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -57,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="25" column="5" bodyfile="src/ml_logging.h" bodystart="25" bodyend="-1"/>
+        <location file="src/ml_logging.h" line="26" column="5" bodyfile="src/ml_logging.h" bodystart="26" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -109,8 +123,9 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_logging.h" line="21" column="1" bodyfile="src/ml_logging.h" bodystart="21" bodyend="26"/>
+    <location file="src/ml_logging.h" line="21" column="1" bodyfile="src/ml_logging.h" bodystart="21" bodyend="27"/>
     <listofallmembers>
+      <member refid="structml__logger__t_1aa349935b72143eee3c0e04c8dc89135f" prot="public" virt="non-virtual"><scope>ml_logger_t</scope><name>AnsiName</name></member>
       <member refid="structml__logger__t_1a7292fff053400c63c30128f5c70ffd3d" prot="public" virt="non-virtual"><scope>ml_logger_t</scope><name>Ignored</name></member>
       <member refid="structml__logger__t_1a671b83d13a0c4ba75cfbaee4474a75a5" prot="public" virt="non-virtual"><scope>ml_logger_t</scope><name>Loggers</name></member>
       <member refid="structml__logger__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_logger_t</scope><name>Name</name></member>
