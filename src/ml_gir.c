@@ -1499,8 +1499,9 @@ static void instance_constructor_fn(ml_state_t *Caller, ml_gir_type_t *Class, in
 
 #ifdef ML_SCHEDULER
 
-static gboolean ml_gir_queue_run(void *Data) {
-	ml_queued_state_t QueuedState = ml_default_queue_next();
+static gboolean ml_gir_queue_idle(void *Data) {
+	ml_scheduler_queue_t *Queue = (ml_scheduler_queue_t *)Data;
+	ml_queued_state_t QueuedState = ml_scheduler_queue_next(Queue);
 	if (!QueuedState.State) return FALSE;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	return TRUE;
@@ -1508,13 +1509,18 @@ static gboolean ml_gir_queue_run(void *Data) {
 
 typedef struct {
 	ml_scheduler_t Base;
-	ml_scheduler_t *Parent;
+	ml_scheduler_queue_t *Queue;
+	GMainContext *MainContext;
 } gir_scheduler_t;
 
 int ml_gir_queue_add(gir_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value) {
-	int Fill = Scheduler->Parent->add(Scheduler->Parent, State, Value);
-	if (Fill == 1) g_idle_add(ml_gir_queue_run, NULL);
+	int Fill = ml_scheduler_queue_add(Scheduler->Queue, State, Value);
+	if (Fill == 1) g_idle_add(ml_gir_queue_idle, Scheduler->Queue);
 	return Fill;
+}
+
+void ml_gir_queue_run(gir_scheduler_t *Scheduler) {
+	g_main_context_iteration(Scheduler->MainContext, TRUE);
 }
 
 static ptrset_t SleepSet[1] = {PTRSET_INIT};
@@ -1537,8 +1543,10 @@ ML_FUNCTIONX(MLSleep) {
 ML_FUNCTIONX(GirInstall) {
 //@gir::install
 	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
-	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
-	Scheduler->Parent = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	Scheduler->Base.add = (ml_scheduler_add_fn)ml_gir_queue_add;
+	Scheduler->Base.run = (ml_scheduler_run_fn)ml_gir_queue_run;
+	Scheduler->Queue = ml_default_queue_init(Caller->Context, 256);
+	Scheduler->MainContext = g_main_context_default();
 	ml_context_set(Caller->Context, ML_SCHEDULER_INDEX, Scheduler);
 	ML_RETURN(MLNil);
 }
@@ -1626,8 +1634,10 @@ struct ml_gir_value_t {
 void ml_gir_loop_init(ml_context_t *Context) {
 	MainLoop = g_main_loop_new(NULL, TRUE);
 	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
-	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
-	Scheduler->Parent = ml_context_get(Context, ML_SCHEDULER_INDEX);
+	Scheduler->Base.add = (ml_scheduler_add_fn)ml_gir_queue_add;
+	Scheduler->Base.run = (ml_scheduler_run_fn)ml_gir_queue_run;
+	Scheduler->Queue = ml_default_queue_init(Context, 256);
+	Scheduler->MainContext = g_main_context_default();
 	ml_context_set(Context, ML_SCHEDULER_INDEX, Scheduler);
 }
 

@@ -3,6 +3,7 @@
 #include "ml_macros.h"
 #include "ml_compiler2.h"
 #include <sys/time.h>
+#include <math.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "logging"
@@ -153,7 +154,7 @@ ml_logger_t *ml_logger(const char *Name) {
 		case 2: R = 0; G = 255; B = X; break;
 		case 3: R = 0; G = X; B = 255; break;
 		case 4: R = X; G = 0; B = 255; break;
-		case 5: R = 255; G = 0; B = X; break;
+		default: R = 255; G = 0; B = X; break;
 		}
 		GC_asprintf((char **)&Logger->AnsiName, "\e[38;2;%d;%d;%dm%s\e[0m", R, G, B, Name);
 		ml_value_t *LogFn = ml_cfunctionx(Logger, (ml_callbackx_t)ml_log_fn);

@@ -460,11 +460,17 @@ int main(int Argc, const char *Argv[]) {
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		ml_default_queue_init(Main->Context, SliceSize);
 #ifdef ML_GIR
-		if (UseGirLoop) ml_gir_loop_init(Main->Context);
+		if (UseGirLoop) {
+			ml_gir_loop_init(Main->Context);
+		} else {
+#endif
+			ml_default_queue_init(Main->Context, SliceSize);
+#ifdef ML_GIR
+		}
 #endif
 	}
+	ml_scheduler_t *Scheduler = ml_context_get(Main->Context, ML_SCHEDULER_INDEX);
 #endif
 #ifdef ML_THREADS
 	ml_default_thread_init(Main->Context);
@@ -501,10 +507,7 @@ int main(int Argc, const char *Argv[]) {
 		} else {
 #endif
 		if (SliceSize) {
-			while (!MainResult) {
-				ml_queued_state_t Queued = ml_default_queue_next_wait();
-				Queued.State->run(Queued.State, Queued.Value);
-			}
+			while (!MainResult) Scheduler->run(Scheduler);
 		}
 #ifdef ML_GIR
 		}
@@ -522,10 +525,7 @@ int main(int Argc, const char *Argv[]) {
 		ml_command_evaluate(Main, Parser, Compiler);
 #ifdef ML_SCHEDULER
 		if (SliceSize) {
-			while (!MainResult) {
-				ml_queued_state_t Queued = ml_default_queue_next_wait();
-				Queued.State->run(Queued.State, Queued.Value);
-			}
+			while (!MainResult) Scheduler->run(Scheduler);
 		}
 #endif
 	} else {
@@ -537,10 +537,7 @@ int main(int Argc, const char *Argv[]) {
 		} else {
 #endif
 		if (SliceSize) {
-			while (!MainResult) {
-				ml_queued_state_t Queued = ml_default_queue_next_wait();
-				Queued.State->run(Queued.State, Queued.Value);
-			}
+			while (!MainResult) Scheduler->run(Scheduler);
 		}
 #ifdef ML_GIR
 		}
