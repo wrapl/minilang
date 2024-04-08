@@ -220,9 +220,18 @@ typedef struct ml_scheduler_t ml_scheduler_t;
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
 typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
 
+#ifdef ML_THREADS
+
+typedef struct ml_scheduler_block_t ml_scheduler_block_t;
+
+#endif
+
 struct ml_scheduler_t {
 	ml_scheduler_add_fn add;
 	ml_scheduler_run_fn run;
+#ifdef ML_THREADS
+	ml_scheduler_block_t *Resume;
+#endif
 };
 
 static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
