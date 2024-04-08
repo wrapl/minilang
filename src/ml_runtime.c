@@ -1130,6 +1130,7 @@ struct ml_scheduler_thread_t {
 
 struct ml_scheduler_block_t {
 	ml_state_t Base;
+	ml_scheduler_t *Scheduler;
 	pthread_mutex_t Lock[1];
 	pthread_cond_t Resume[1];
 };
@@ -1139,8 +1140,8 @@ static int MaxIdle = 8;
 static pthread_mutex_t ThreadLock[1] = {PTHREAD_MUTEX_INITIALIZER};
 
 static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
-	ml_scheduler_t *Scheduler = ml_context_get(State->Context, ML_SCHEDULER_INDEX);
-	Scheduler->Resume = (ml_scheduler_block_t *)State;
+	ml_scheduler_block_t *Block = (ml_scheduler_block_t *)State;
+	Block->Scheduler->Resume = Block;
 }
 
 static void *ml_scheduler_thread_fn(void *Data) {
@@ -1196,6 +1197,7 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 	ml_scheduler_block_t Block = {
 		{NULL, NULL, ml_scheduler_thread_resume},
+		Scheduler,
 		{PTHREAD_MUTEX_INITIALIZER},
 		{PTHREAD_COND_INITIALIZER}
 	};
