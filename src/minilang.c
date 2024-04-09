@@ -505,6 +505,11 @@ int main(int Argc, const char *Argv[]) {
 		}
 #endif
 #ifdef ML_SCHEDULER
+#ifdef ML_GIR
+		if (UseGirLoop) {
+			for (;;) Scheduler->run(Scheduler);
+		} else
+#endif
 		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
 #ifdef GC_DEBUG
@@ -516,11 +521,21 @@ int main(int Argc, const char *Argv[]) {
 		ml_parser_input(Parser, Command);
 		ml_command_evaluate(Main, Parser, Compiler);
 #ifdef ML_SCHEDULER
+#ifdef ML_GIR
+		if (UseGirLoop) {
+			for (;;) Scheduler->run(Scheduler);
+		} else
+#endif
 		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
 	} else {
 		ml_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
 #ifdef ML_SCHEDULER
+#ifdef ML_GIR
+		if (UseGirLoop) {
+			for (;;) Scheduler->run(Scheduler);
+		} else
+#endif
 		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
 #ifdef GC_DEBUG
