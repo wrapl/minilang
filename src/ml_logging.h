@@ -32,7 +32,9 @@ extern ml_log_level_t MLLogLevel;
 extern ml_logger_fn ml_log;
 extern ml_logger_t MLLoggerDefault[];
 
+#ifndef ML_LOGGER
 #define ML_LOGGER MLLoggerDefault
+#endif
 
 #define ML_LOG_ERROR(FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_ERROR) { \
@@ -52,6 +54,7 @@ extern ml_logger_t MLLoggerDefault[];
 	}
 
 ml_logger_t *ml_logger(const char *Name);
+void ml_logger_init(ml_logger_t *Logger, const char *Name);
 
 void ml_logging_init(stringmap_t *Globals);
 

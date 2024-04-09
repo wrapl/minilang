@@ -372,7 +372,8 @@
     <member refid="structml__result__state__t_1a022b24deb82c844e73083ad06165b5bd" kind="variable"><name>Value</name></member>
   </compound>
   <compound refid="structml__scheduler__t" kind="struct"><name>ml_scheduler_t</name>
-    <member refid="structml__scheduler__t_1a54152e0b3afbca24edcbbc0fb0aea0f2" kind="variable"><name>add</name></member>
+    <member refid="structml__scheduler__t_1ae9d170cd70ddb99876fa37d5ce1874c3" kind="variable"><name>add</name></member>
+    <member refid="structml__scheduler__t_1a8cf1ae64f4193583dd4167a9e6c7ffec" kind="variable"><name>run</name></member>
   </compound>
   <compound refid="structml__set__iter__t" kind="struct"><name>ml_set_iter_t</name>
     <member refid="structml__set__iter__t_1a0e5bda0d3f995088a49430796cad681e" kind="variable"><name>Node</name></member>
@@ -1527,6 +1528,7 @@
     <member refid="ml__logging_8h_1ae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
     <member refid="ml__logging_8h_1aa8c901d37ef198c7100a86a593925b15" kind="variable"><name>MLLoggerDefault</name></member>
     <member refid="ml__logging_8h_1a9084628ba013ca3cef24798656fa35e0" kind="function"><name>ml_logger</name></member>
+    <member refid="ml__logging_8h_1a8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
     <member refid="ml__logging_8h_1a59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
   </compound>
   <compound refid="ml__macros_8h" kind="file"><name>ml_macros.h</name>
@@ -1765,8 +1767,6 @@
     <member refid="group__runtime_1ga051cb433271b4305a6d7d13d1d46b2ef" kind="define"><name>MLC_DECL_ASVAR</name></member>
     <member refid="group__runtime_1ga44204b201d70aacc6352e3128246582c" kind="define"><name>ML_STATE_FN2</name></member>
     <member refid="group__runtime_1gad2ca04d78c9fa90c543e797ce81d056d" kind="define"><name>ML_STATE_FN</name></member>
-    <member refid="group__runtime_1ga6d5228b69bc4268d7c11a742739144ee" kind="define"><name>ml_default_queue_next_wait</name></member>
-    <member refid="group__runtime_1ga6500f5cb805750064badb75daf8b4b71" kind="define"><name>ml_default_queue_add_signal</name></member>
     <member refid="group__runtime_1ga385c44f6fb256e5716a2302a5b940388" kind="enum"><name></name></member>
     <member refid="group__runtime_1gad422db96e7445bb8df941890132ae087" kind="typedef"><name>ml_config_fn</name></member>
     <member refid="group__runtime_1ga0a66ed25c741cc91af6ca91e2b021f32" kind="typedef"><name>ml_state_fn</name></member>
@@ -1777,7 +1777,8 @@
     <member refid="group__runtime_1gad9cbe0394673a01f4acb0dd9116c807e" kind="typedef"><name>ml_decl_t</name></member>
     <member refid="group__runtime_1ga349934bfcbc22dd8ad09bb0c5be41e06" kind="typedef"><name>ml_debugger_t</name></member>
     <member refid="group__runtime_1ga3d5b2c20c4f3355468a2661469a26a5d" kind="typedef"><name>ml_scheduler_t</name></member>
-    <member refid="group__runtime_1ga03d8d497ecdada6aa119514f4e8f35fc" kind="typedef"><name>ml_scheduler_fn</name></member>
+    <member refid="group__runtime_1gaed066071d919bc72c397d385d0103416" kind="typedef"><name>ml_scheduler_add_fn</name></member>
+    <member refid="group__runtime_1ga9a618bc907f32ab1a951daf88104a16f" kind="typedef"><name>ml_scheduler_run_fn</name></member>
     <member refid="group__runtime_1ga30ea21a83c14f17753fc1265cb952c75" kind="typedef"><name>ml_scheduler_queue_t</name></member>
     <member refid="group__runtime_1ga9e4a5e05bc20f28d92db209c48002871" kind="variable"><name>MLArgCache</name></member>
     <member refid="group__runtime_1gac1ad2e5f00dcb7ffab65bf1b58334aef" kind="variable"><name>MLRootContext</name></member>
@@ -1837,11 +1838,12 @@
     <member refid="group__runtime_1gaedfc931f83981097241e0e104b9073c3" kind="function"><name>ml_debugger_decls</name></member>
     <member refid="group__runtime_1gafd39568826e945dae842d6a019d91364" kind="function"><name>ml_debugger_local</name></member>
     <member refid="group__runtime_1ga32198d43f48db3b8d94e998fc0209f18" kind="function"><name>ml_state_schedule</name></member>
-    <member refid="group__runtime_1gaf7a35d4daa1f84539802f558fe0814cc" kind="function"><name>ml_default_queue_init</name></member>
-    <member refid="group__runtime_1gacbf0d8270573ee8b04a8917c794c6be9" kind="function"><name>ml_default_queue_next</name></member>
-    <member refid="group__runtime_1ga9655e777aafdaf54b4ea2426fb328a18" kind="function"><name>ml_default_queue_add</name></member>
-    <member refid="group__runtime_1gad1aef37a4ffee47b96fff69264f7f966" kind="function"><name>ml_default_queue_get</name></member>
-    <member refid="group__runtime_1ga8555e14f7fe295112f6adb8260a1a6f0" kind="function"><name>ml_default_queue_set</name></member>
+    <member refid="group__runtime_1gaaf797229254739c2050961b77ca44ab8" kind="function"><name>ml_default_queue_init</name></member>
+    <member refid="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" kind="function"><name>ml_scheduler_queue_fill</name></member>
+    <member refid="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" kind="function"><name>ml_scheduler_queue_next</name></member>
+    <member refid="group__runtime_1ga9b45bd192553d70ee559f868029a28af" kind="function"><name>ml_scheduler_queue_add</name></member>
+    <member refid="group__runtime_1gad071f1bf1513001c63aab59a854c1b05" kind="function"><name>ml_scheduler_queue_next_wait</name></member>
+    <member refid="group__runtime_1ga65a6bbf10f06668af40d245980e4a673" kind="function"><name>ml_scheduler_queue_add_signal</name></member>
   </compound>
   <compound refid="ml__sequence_8h" kind="file"><name>ml_sequence.h</name>
     <member refid="ml__sequence_8h_1a4b8976bf2a9f132156936545e7b67ed4" kind="function"><name>ml_sequence_init</name></member>
@@ -2523,7 +2525,8 @@
     <member refid="group__runtime_1gad9cbe0394673a01f4acb0dd9116c807e" kind="typedef"><name>ml_decl_t</name></member>
     <member refid="group__runtime_1ga349934bfcbc22dd8ad09bb0c5be41e06" kind="typedef"><name>ml_debugger_t</name></member>
     <member refid="group__runtime_1ga3d5b2c20c4f3355468a2661469a26a5d" kind="typedef"><name>ml_scheduler_t</name></member>
-    <member refid="group__runtime_1ga03d8d497ecdada6aa119514f4e8f35fc" kind="typedef"><name>ml_scheduler_fn</name></member>
+    <member refid="group__runtime_1gaed066071d919bc72c397d385d0103416" kind="typedef"><name>ml_scheduler_add_fn</name></member>
+    <member refid="group__runtime_1ga9a618bc907f32ab1a951daf88104a16f" kind="typedef"><name>ml_scheduler_run_fn</name></member>
     <member refid="group__runtime_1ga30ea21a83c14f17753fc1265cb952c75" kind="typedef"><name>ml_scheduler_queue_t</name></member>
     <member refid="group__runtime_1ga9e4a5e05bc20f28d92db209c48002871" kind="variable"><name>MLArgCache</name></member>
     <member refid="group__runtime_1gac1ad2e5f00dcb7ffab65bf1b58334aef" kind="variable"><name>MLRootContext</name></member>
@@ -2583,11 +2586,12 @@
     <member refid="group__runtime_1gaedfc931f83981097241e0e104b9073c3" kind="function"><name>ml_debugger_decls</name></member>
     <member refid="group__runtime_1gafd39568826e945dae842d6a019d91364" kind="function"><name>ml_debugger_local</name></member>
     <member refid="group__runtime_1ga32198d43f48db3b8d94e998fc0209f18" kind="function"><name>ml_state_schedule</name></member>
-    <member refid="group__runtime_1gaf7a35d4daa1f84539802f558fe0814cc" kind="function"><name>ml_default_queue_init</name></member>
-    <member refid="group__runtime_1gacbf0d8270573ee8b04a8917c794c6be9" kind="function"><name>ml_default_queue_next</name></member>
-    <member refid="group__runtime_1ga9655e777aafdaf54b4ea2426fb328a18" kind="function"><name>ml_default_queue_add</name></member>
-    <member refid="group__runtime_1gad1aef37a4ffee47b96fff69264f7f966" kind="function"><name>ml_default_queue_get</name></member>
-    <member refid="group__runtime_1ga8555e14f7fe295112f6adb8260a1a6f0" kind="function"><name>ml_default_queue_set</name></member>
+    <member refid="group__runtime_1gaaf797229254739c2050961b77ca44ab8" kind="function"><name>ml_default_queue_init</name></member>
+    <member refid="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" kind="function"><name>ml_scheduler_queue_fill</name></member>
+    <member refid="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" kind="function"><name>ml_scheduler_queue_next</name></member>
+    <member refid="group__runtime_1ga9b45bd192553d70ee559f868029a28af" kind="function"><name>ml_scheduler_queue_add</name></member>
+    <member refid="group__runtime_1gad071f1bf1513001c63aab59a854c1b05" kind="function"><name>ml_scheduler_queue_next_wait</name></member>
+    <member refid="group__runtime_1ga65a6bbf10f06668af40d245980e4a673" kind="function"><name>ml_scheduler_queue_add_signal</name></member>
     <member refid="group__runtime_1gacb4dbc9c60321a197cb4e383665d732b" kind="define"><name>ML_ARG_CACHE_SIZE</name></member>
     <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
     <member refid="group__runtime_1ga9389dff42b52f0da9eba7898a7eb48ba" kind="define"><name>ml_context_get</name></member>
@@ -2600,8 +2604,6 @@
     <member refid="group__runtime_1ga051cb433271b4305a6d7d13d1d46b2ef" kind="define"><name>MLC_DECL_ASVAR</name></member>
     <member refid="group__runtime_1ga44204b201d70aacc6352e3128246582c" kind="define"><name>ML_STATE_FN2</name></member>
     <member refid="group__runtime_1gad2ca04d78c9fa90c543e797ce81d056d" kind="define"><name>ML_STATE_FN</name></member>
-    <member refid="group__runtime_1ga6d5228b69bc4268d7c11a742739144ee" kind="define"><name>ml_default_queue_next_wait</name></member>
-    <member refid="group__runtime_1ga6500f5cb805750064badb75daf8b4b71" kind="define"><name>ml_default_queue_add_signal</name></member>
   </compound>
   <compound refid="group__types" kind="group"><name>types</name>
     <member refid="group__types_1ga5d1583b78bcbb3d035efb58c8bcad3ab" kind="typedef"><name>ml_value_t</name></member>
