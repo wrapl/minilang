@@ -1011,17 +1011,17 @@
     <member refid="gtk__console__completion_8h_1a6656db99de1e04e11b69214830581b9b" kind="function"><name>gtk_console_completion_provider</name></member>
   </compound>
   <compound refid="inthash_8h" kind="file"><name>inthash.h</name>
-    <member refid="inthash_8h_1a27d72e87f09dbeafc3d36cc7904db468" kind="define"><name>INTHASH_INDEX_SHIFT</name></member>
-    <member refid="inthash_8h_1a815f76b04432c6fb81ad28140a77a6dc" kind="define"><name>INTHASH_INCR_SHIFT</name></member>
-    <member refid="inthash_8h_1aa68df1ce06c4c8542b0ecf7c4c77c94a" kind="define"><name>INTHASH_INIT</name></member>
-    <member refid="inthash_8h_1a35ec6770c96376fbd7e4ebd33c41e225" kind="typedef"><name>inthash_t</name></member>
-    <member refid="inthash_8h_1ac8b4e1f4707c584dc03a5a4b1fe6915f" kind="function"><name>inthash_new</name></member>
-    <member refid="inthash_8h_1aa9f7ec5134103dc383959064723a2e25" kind="function"><name>inthash_search</name></member>
-    <member refid="inthash_8h_1aee868ab4d35a35ba57302035133f5282" kind="function"><name>inthash_insert</name></member>
-    <member refid="inthash_8h_1a4a152e7b6312c0d13311d92bdaeccdb1" kind="function"><name>inthash_search_inline</name></member>
-    <member refid="inthash_8h_1adc81ecd4ba4a3bc61c95fd9099b71e60" kind="function"><name>inthash_contains_inline</name></member>
-    <member refid="inthash_8h_1af28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
-    <member refid="inthash_8h_1a6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
+    <member refid="group__inthash_1ga27d72e87f09dbeafc3d36cc7904db468" kind="define"><name>INTHASH_INDEX_SHIFT</name></member>
+    <member refid="group__inthash_1ga815f76b04432c6fb81ad28140a77a6dc" kind="define"><name>INTHASH_INCR_SHIFT</name></member>
+    <member refid="group__inthash_1gaa68df1ce06c4c8542b0ecf7c4c77c94a" kind="define"><name>INTHASH_INIT</name></member>
+    <member refid="group__inthash_1ga35ec6770c96376fbd7e4ebd33c41e225" kind="typedef"><name>inthash_t</name></member>
+    <member refid="group__inthash_1gac8b4e1f4707c584dc03a5a4b1fe6915f" kind="function"><name>inthash_new</name></member>
+    <member refid="group__inthash_1gaa9f7ec5134103dc383959064723a2e25" kind="function"><name>inthash_search</name></member>
+    <member refid="group__inthash_1gaee868ab4d35a35ba57302035133f5282" kind="function"><name>inthash_insert</name></member>
+    <member refid="group__inthash_1ga4a152e7b6312c0d13311d92bdaeccdb1" kind="function"><name>inthash_search_inline</name></member>
+    <member refid="group__inthash_1gadc81ecd4ba4a3bc61c95fd9099b71e60" kind="function"><name>inthash_contains_inline</name></member>
+    <member refid="group__inthash_1gaf28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
+    <member refid="group__inthash_1ga6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
   </compound>
   <compound refid="inthash2_8h" kind="file"><name>inthash2.h</name>
     <member refid="inthash2_8h_1ab6c05145f6e02872f65710b571dc7f12" kind="define"><name>INTHASH2_INDEX_SHIFT</name></member>
@@ -1510,26 +1510,20 @@
     <member refid="ml__list_8h_1ae213d4f52887694661f8761a9db15306" kind="function"><name>ml_list_init</name></member>
   </compound>
   <compound refid="ml__logging_8h" kind="file"><name>ml_logging.h</name>
-    <member refid="ml__logging_8h_1a15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
-    <member refid="ml__logging_8h_1aedeeaf370defedd8e6117f05de9f9ac0" kind="define"><name>ML_LOG_ERROR</name></member>
-    <member refid="ml__logging_8h_1a5b38e30bbc800036ce4eb9beacc87377" kind="define"><name>ML_LOG_WARN</name></member>
-    <member refid="ml__logging_8h_1a043260d3c5daeb548f4770b0d93cf37e" kind="define"><name>ML_LOG_INFO</name></member>
-    <member refid="ml__logging_8h_1a90e81294f711e714474775939b68602c" kind="define"><name>ML_LOG_DEBUG</name></member>
-    <member refid="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5d" kind="enum"><name>ml_log_level_t</name></member>
-    <member refid="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5dac6a407dfde69d0401eab64e1bf59e4c2" kind="enumvalue"><name>ML_LOG_LEVEL_NONE</name></member>
-    <member refid="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5da0ba31a6ceea68f5ea68d20d40c59df6d" kind="enumvalue"><name>ML_LOG_LEVEL_ERROR</name></member>
-    <member refid="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5da719389ac7b2c759bdc6d6a77959eaede" kind="enumvalue"><name>ML_LOG_LEVEL_WARN</name></member>
-    <member refid="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5dac9889f39811527db27b832ff64117f3b" kind="enumvalue"><name>ML_LOG_LEVEL_INFO</name></member>
-    <member refid="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5da8090a7ffa0915d58c3ed4c4092cf4edb" kind="enumvalue"><name>ML_LOG_LEVEL_DEBUG</name></member>
-    <member refid="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5dab92b65b1dd4c7ba4d26609f20a4638f4" kind="enumvalue"><name>ML_LOG_LEVEL_ALL</name></member>
-    <member refid="ml__logging_8h_1a1b1a74cc75665cf0796bc796cb496078" kind="typedef"><name>ml_logger_t</name></member>
-    <member refid="ml__logging_8h_1ace1fba9847004c7e95e1e19ded15f5b9" kind="typedef"><name>ml_logger_fn</name></member>
-    <member refid="ml__logging_8h_1a0d57f9581b804027a60b4c23f950e607" kind="typedef"><name>MLLogLevel</name></member>
-    <member refid="ml__logging_8h_1ae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
-    <member refid="ml__logging_8h_1aa8c901d37ef198c7100a86a593925b15" kind="variable"><name>MLLoggerDefault</name></member>
-    <member refid="ml__logging_8h_1a9084628ba013ca3cef24798656fa35e0" kind="function"><name>ml_logger</name></member>
-    <member refid="ml__logging_8h_1a8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
-    <member refid="ml__logging_8h_1a59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
+    <member refid="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
+    <member refid="group__logging_1gaedeeaf370defedd8e6117f05de9f9ac0" kind="define"><name>ML_LOG_ERROR</name></member>
+    <member refid="group__logging_1ga5b38e30bbc800036ce4eb9beacc87377" kind="define"><name>ML_LOG_WARN</name></member>
+    <member refid="group__logging_1ga043260d3c5daeb548f4770b0d93cf37e" kind="define"><name>ML_LOG_INFO</name></member>
+    <member refid="group__logging_1ga90e81294f711e714474775939b68602c" kind="define"><name>ML_LOG_DEBUG</name></member>
+    <member refid="group__logging_1gad85d5ad7f21721364ba021b14fbbbf5d" kind="enum"><name>ml_log_level_t</name></member>
+    <member refid="group__logging_1ga1b1a74cc75665cf0796bc796cb496078" kind="typedef"><name>ml_logger_t</name></member>
+    <member refid="group__logging_1gace1fba9847004c7e95e1e19ded15f5b9" kind="typedef"><name>ml_logger_fn</name></member>
+    <member refid="group__logging_1ga0d57f9581b804027a60b4c23f950e607" kind="typedef"><name>MLLogLevel</name></member>
+    <member refid="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
+    <member refid="group__logging_1gaa8c901d37ef198c7100a86a593925b15" kind="variable"><name>MLLoggerDefault</name></member>
+    <member refid="group__logging_1ga9084628ba013ca3cef24798656fa35e0" kind="function"><name>ml_logger</name></member>
+    <member refid="group__logging_1ga8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
+    <member refid="group__logging_1ga59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
   </compound>
   <compound refid="ml__macros_8h" kind="file"><name>ml_macros.h</name>
     <member refid="ml__macros_8h_1a5d50d900b1dc525df2581585e1b9d477" kind="define"><name>new</name></member>
@@ -1856,22 +1850,22 @@
     <member refid="ml__socket_8h_1af3e565f784a0ec99e1503cad4b3280a3" kind="function"><name>ml_socket_init</name></member>
   </compound>
   <compound refid="ml__stream_8h" kind="file"><name>ml_stream.h</name>
-    <member refid="ml__stream_8h_1a206579eb6453064f0b112505224890c2" kind="variable"><name>MLStreamT</name></member>
-    <member refid="ml__stream_8h_1a2ef17055aaff824267bc3c728ca1e354" kind="variable"><name>MLStreamFdT</name></member>
-    <member refid="ml__stream_8h_1a4202d8e8a2dc2115e288d5cb2c1b9924" kind="function"><name>ml_stream_init</name></member>
-    <member refid="ml__stream_8h_1a48fb874e1b08e92bed3348ee8208d486" kind="function"><name>ml_stream_read</name></member>
-    <member refid="ml__stream_8h_1a44ae58e09771a5373f7b6f8f088c7b41" kind="function"><name>ml_stream_write</name></member>
-    <member refid="ml__stream_8h_1a4706857fc377632c07e75ebc4177b8b5" kind="function"><name>ml_stream_flush</name></member>
-    <member refid="ml__stream_8h_1aca9a79fbd6a4acd600e5fc38ff2438e8" kind="function"><name>ml_stream_seek</name></member>
-    <member refid="ml__stream_8h_1a10a8a67179bf9bb003bef279ee0f5041" kind="function"><name>ml_stream_tell</name></member>
-    <member refid="ml__stream_8h_1a6a6d62bf0d039c36c0d7c9820f58b0f1" kind="function"><name>ml_stream_read_method</name></member>
-    <member refid="ml__stream_8h_1ac2022366690473054f23d8ed1fa78fa3" kind="function"><name>ml_stream_write_method</name></member>
-    <member refid="ml__stream_8h_1a7021c4e0bfdb44c2ba065cd4570585b8" kind="function"><name>ml_stream_flush_method</name></member>
-    <member refid="ml__stream_8h_1a5ca361adee8d0d18a7ba2c7ca7fb1075" kind="function"><name>ml_stream_seek_method</name></member>
-    <member refid="ml__stream_8h_1a77e1213e399597dbb2e7be20dec93d71" kind="function"><name>ml_stream_tell_method</name></member>
-    <member refid="ml__stream_8h_1a8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
-    <member refid="ml__stream_8h_1a4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
-    <member refid="ml__stream_8h_1a135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
+    <member refid="group__streams_1ga206579eb6453064f0b112505224890c2" kind="variable"><name>MLStreamT</name></member>
+    <member refid="group__streams_1ga2ef17055aaff824267bc3c728ca1e354" kind="variable"><name>MLStreamFdT</name></member>
+    <member refid="group__streams_1ga4202d8e8a2dc2115e288d5cb2c1b9924" kind="function"><name>ml_stream_init</name></member>
+    <member refid="group__streams_1ga48fb874e1b08e92bed3348ee8208d486" kind="function"><name>ml_stream_read</name></member>
+    <member refid="group__streams_1ga44ae58e09771a5373f7b6f8f088c7b41" kind="function"><name>ml_stream_write</name></member>
+    <member refid="group__streams_1ga4706857fc377632c07e75ebc4177b8b5" kind="function"><name>ml_stream_flush</name></member>
+    <member refid="group__streams_1gaca9a79fbd6a4acd600e5fc38ff2438e8" kind="function"><name>ml_stream_seek</name></member>
+    <member refid="group__streams_1ga10a8a67179bf9bb003bef279ee0f5041" kind="function"><name>ml_stream_tell</name></member>
+    <member refid="group__streams_1ga6a6d62bf0d039c36c0d7c9820f58b0f1" kind="function"><name>ml_stream_read_method</name></member>
+    <member refid="group__streams_1gac2022366690473054f23d8ed1fa78fa3" kind="function"><name>ml_stream_write_method</name></member>
+    <member refid="group__streams_1ga7021c4e0bfdb44c2ba065cd4570585b8" kind="function"><name>ml_stream_flush_method</name></member>
+    <member refid="group__streams_1ga5ca361adee8d0d18a7ba2c7ca7fb1075" kind="function"><name>ml_stream_seek_method</name></member>
+    <member refid="group__streams_1ga77e1213e399597dbb2e7be20dec93d71" kind="function"><name>ml_stream_tell_method</name></member>
+    <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
+    <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
+    <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
   </compound>
   <compound refid="ml__string_8h" kind="file"><name>ml_string.h</name>
     <member refid="ml__string_8h_1a12e8e8945dc82c8478f85df5daa01cc9" kind="function"><name>ml_string_init</name></member>
@@ -2260,16 +2254,16 @@
     <member refid="sha256_8h_1a4e83d24657605fb0263b398430da53d2" kind="function"><name>sha256_final</name></member>
   </compound>
   <compound refid="stringmap_8h" kind="file"><name>stringmap.h</name>
-    <member refid="stringmap_8h_1a04ce49e388ce3b5f4bf48647a444a2be" kind="define"><name>STRINGMAP_INIT</name></member>
-    <member refid="stringmap_8h_1a4db75414a24fd822287a7c96bf705566" kind="typedef"><name>stringmap_t</name></member>
-    <member refid="stringmap_8h_1a21fd9fa7b35391ee3d02c7f8a27fc9ab" kind="typedef"><name>stringmap_node_t</name></member>
-    <member refid="stringmap_8h_1a42f10093d6219fab973e69d5ce9751eb" kind="function"><name>stringmap_new</name></member>
-    <member refid="stringmap_8h_1a10f0f63b9f8fd79d440152242674e147" kind="function"><name>stringmap_search</name></member>
-    <member refid="stringmap_8h_1aa998fa79f38f255353f826e936dab5ca" kind="function"><name>stringmap_insert</name></member>
-    <member refid="stringmap_8h_1a0417ec748d22adad862d966c22117cb0" kind="function"><name>stringmap_remove</name></member>
-    <member refid="stringmap_8h_1a30e3dcebb967aaf27cc9a76603bae8b7" kind="function"><name>stringmap_slot</name></member>
-    <member refid="stringmap_8h_1ad12eec37972389dfeec0d3496cb81d61" kind="function"><name>stringmap_foreach</name></member>
-    <member refid="stringmap_8h_1a3c4928ecb13ded49f590f494e7c7cff0" kind="function"><name>stringmap_hash</name></member>
+    <member refid="group__stringmap_1ga04ce49e388ce3b5f4bf48647a444a2be" kind="define"><name>STRINGMAP_INIT</name></member>
+    <member refid="group__stringmap_1ga4db75414a24fd822287a7c96bf705566" kind="typedef"><name>stringmap_t</name></member>
+    <member refid="group__stringmap_1ga21fd9fa7b35391ee3d02c7f8a27fc9ab" kind="typedef"><name>stringmap_node_t</name></member>
+    <member refid="group__stringmap_1ga42f10093d6219fab973e69d5ce9751eb" kind="function"><name>stringmap_new</name></member>
+    <member refid="group__stringmap_1ga10f0f63b9f8fd79d440152242674e147" kind="function"><name>stringmap_search</name></member>
+    <member refid="group__stringmap_1gaa998fa79f38f255353f826e936dab5ca" kind="function"><name>stringmap_insert</name></member>
+    <member refid="group__stringmap_1ga0417ec748d22adad862d966c22117cb0" kind="function"><name>stringmap_remove</name></member>
+    <member refid="group__stringmap_1ga30e3dcebb967aaf27cc9a76603bae8b7" kind="function"><name>stringmap_slot</name></member>
+    <member refid="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" kind="function"><name>stringmap_foreach</name></member>
+    <member refid="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" kind="function"><name>stringmap_hash</name></member>
   </compound>
   <compound refid="timelib__mem_8h" kind="file"><name>timelib_mem.h</name>
     <member refid="timelib__mem_8h_1a169e5bce5af810344e2bc538a6844675" kind="define"><name>timelib_malloc</name></member>
@@ -2292,6 +2286,19 @@
     <member refid="whereami_8h_1aca46f8ead8100022a86fa699ccffab93" kind="define"><name>WAI_PREFIX</name></member>
     <member refid="whereami_8h_1ab24b0c2afc4a0386e3681df5d8c74ff7" kind="function"><name>getExecutablePath</name></member>
     <member refid="whereami_8h_1afbc999f1124e81d03119803a1f817627" kind="function"><name>getModulePath</name></member>
+  </compound>
+  <compound refid="group__inthash" kind="group"><name>inthash</name>
+    <member refid="group__inthash_1ga35ec6770c96376fbd7e4ebd33c41e225" kind="typedef"><name>inthash_t</name></member>
+    <member refid="group__inthash_1gac8b4e1f4707c584dc03a5a4b1fe6915f" kind="function"><name>inthash_new</name></member>
+    <member refid="group__inthash_1gaa9f7ec5134103dc383959064723a2e25" kind="function"><name>inthash_search</name></member>
+    <member refid="group__inthash_1gaee868ab4d35a35ba57302035133f5282" kind="function"><name>inthash_insert</name></member>
+    <member refid="group__inthash_1ga4a152e7b6312c0d13311d92bdaeccdb1" kind="function"><name>inthash_search_inline</name></member>
+    <member refid="group__inthash_1gadc81ecd4ba4a3bc61c95fd9099b71e60" kind="function"><name>inthash_contains_inline</name></member>
+    <member refid="group__inthash_1gaf28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
+    <member refid="group__inthash_1ga6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
+    <member refid="group__inthash_1ga27d72e87f09dbeafc3d36cc7904db468" kind="define"><name>INTHASH_INDEX_SHIFT</name></member>
+    <member refid="group__inthash_1ga815f76b04432c6fb81ad28140a77a6dc" kind="define"><name>INTHASH_INCR_SHIFT</name></member>
+    <member refid="group__inthash_1gaa68df1ce06c4c8542b0ecf7c4c77c94a" kind="define"><name>INTHASH_INIT</name></member>
   </compound>
   <compound refid="group__cbor" kind="group"><name>cbor</name>
     <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
@@ -2421,6 +2428,28 @@
     <member refid="group__compiler_1ga37c2bd6ded02705ed136763ef3f7d4e9" kind="function"><name>ml_inline_function</name></member>
     <member refid="group__compiler_1ga6761f9e4533e970759d9d7ddc904ab87" kind="define"><name>ML_FUNCTION_INLINE2</name></member>
     <member refid="group__compiler_1gae956fbe148c24a82b7fb17dd79c4253c" kind="define"><name>ML_FUNCTION_INLINE</name></member>
+  </compound>
+  <compound refid="group__logging" kind="group"><name>logging</name>
+    <member refid="group__logging_1gad85d5ad7f21721364ba021b14fbbbf5d" kind="enum"><name>ml_log_level_t</name></member>
+    <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dac6a407dfde69d0401eab64e1bf59e4c2" kind="enumvalue"><name>ML_LOG_LEVEL_NONE</name></member>
+    <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da0ba31a6ceea68f5ea68d20d40c59df6d" kind="enumvalue"><name>ML_LOG_LEVEL_ERROR</name></member>
+    <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da719389ac7b2c759bdc6d6a77959eaede" kind="enumvalue"><name>ML_LOG_LEVEL_WARN</name></member>
+    <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dac9889f39811527db27b832ff64117f3b" kind="enumvalue"><name>ML_LOG_LEVEL_INFO</name></member>
+    <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da8090a7ffa0915d58c3ed4c4092cf4edb" kind="enumvalue"><name>ML_LOG_LEVEL_DEBUG</name></member>
+    <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dab92b65b1dd4c7ba4d26609f20a4638f4" kind="enumvalue"><name>ML_LOG_LEVEL_ALL</name></member>
+    <member refid="group__logging_1ga1b1a74cc75665cf0796bc796cb496078" kind="typedef"><name>ml_logger_t</name></member>
+    <member refid="group__logging_1gace1fba9847004c7e95e1e19ded15f5b9" kind="typedef"><name>ml_logger_fn</name></member>
+    <member refid="group__logging_1ga0d57f9581b804027a60b4c23f950e607" kind="typedef"><name>MLLogLevel</name></member>
+    <member refid="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
+    <member refid="group__logging_1gaa8c901d37ef198c7100a86a593925b15" kind="variable"><name>MLLoggerDefault</name></member>
+    <member refid="group__logging_1ga9084628ba013ca3cef24798656fa35e0" kind="function"><name>ml_logger</name></member>
+    <member refid="group__logging_1ga8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
+    <member refid="group__logging_1ga59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
+    <member refid="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
+    <member refid="group__logging_1gaedeeaf370defedd8e6117f05de9f9ac0" kind="define"><name>ML_LOG_ERROR</name></member>
+    <member refid="group__logging_1ga5b38e30bbc800036ce4eb9beacc87377" kind="define"><name>ML_LOG_WARN</name></member>
+    <member refid="group__logging_1ga043260d3c5daeb548f4770b0d93cf37e" kind="define"><name>ML_LOG_INFO</name></member>
+    <member refid="group__logging_1ga90e81294f711e714474775939b68602c" kind="define"><name>ML_LOG_DEBUG</name></member>
   </compound>
   <compound refid="group__math" kind="group"><name>math</name>
     <member refid="group__math_1gabed55e2c9824b63b4fdf650ae4862abc" kind="variable"><name>AcosMethod</name></member>
@@ -2604,6 +2633,24 @@
     <member refid="group__runtime_1ga051cb433271b4305a6d7d13d1d46b2ef" kind="define"><name>MLC_DECL_ASVAR</name></member>
     <member refid="group__runtime_1ga44204b201d70aacc6352e3128246582c" kind="define"><name>ML_STATE_FN2</name></member>
     <member refid="group__runtime_1gad2ca04d78c9fa90c543e797ce81d056d" kind="define"><name>ML_STATE_FN</name></member>
+  </compound>
+  <compound refid="group__streams" kind="group"><name>streams</name>
+    <member refid="group__streams_1ga206579eb6453064f0b112505224890c2" kind="variable"><name>MLStreamT</name></member>
+    <member refid="group__streams_1ga2ef17055aaff824267bc3c728ca1e354" kind="variable"><name>MLStreamFdT</name></member>
+    <member refid="group__streams_1ga4202d8e8a2dc2115e288d5cb2c1b9924" kind="function"><name>ml_stream_init</name></member>
+    <member refid="group__streams_1ga48fb874e1b08e92bed3348ee8208d486" kind="function"><name>ml_stream_read</name></member>
+    <member refid="group__streams_1ga44ae58e09771a5373f7b6f8f088c7b41" kind="function"><name>ml_stream_write</name></member>
+    <member refid="group__streams_1ga4706857fc377632c07e75ebc4177b8b5" kind="function"><name>ml_stream_flush</name></member>
+    <member refid="group__streams_1gaca9a79fbd6a4acd600e5fc38ff2438e8" kind="function"><name>ml_stream_seek</name></member>
+    <member refid="group__streams_1ga10a8a67179bf9bb003bef279ee0f5041" kind="function"><name>ml_stream_tell</name></member>
+    <member refid="group__streams_1ga6a6d62bf0d039c36c0d7c9820f58b0f1" kind="function"><name>ml_stream_read_method</name></member>
+    <member refid="group__streams_1gac2022366690473054f23d8ed1fa78fa3" kind="function"><name>ml_stream_write_method</name></member>
+    <member refid="group__streams_1ga7021c4e0bfdb44c2ba065cd4570585b8" kind="function"><name>ml_stream_flush_method</name></member>
+    <member refid="group__streams_1ga5ca361adee8d0d18a7ba2c7ca7fb1075" kind="function"><name>ml_stream_seek_method</name></member>
+    <member refid="group__streams_1ga77e1213e399597dbb2e7be20dec93d71" kind="function"><name>ml_stream_tell_method</name></member>
+    <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
+    <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
+    <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
   </compound>
   <compound refid="group__types" kind="group"><name>types</name>
     <member refid="group__types_1ga5d1583b78bcbb3d035efb58c8bcad3ab" kind="typedef"><name>ml_value_t</name></member>
@@ -2966,6 +3013,18 @@
   </compound>
   <compound refid="group__init" kind="group"><name>init</name>
     <member refid="group__init_1ga2b26ef655ee57ffc1302d73a3f32eb51" kind="function"><name>ml_types_init</name></member>
+  </compound>
+  <compound refid="group__stringmap" kind="group"><name>stringmap</name>
+    <member refid="group__stringmap_1ga4db75414a24fd822287a7c96bf705566" kind="typedef"><name>stringmap_t</name></member>
+    <member refid="group__stringmap_1ga21fd9fa7b35391ee3d02c7f8a27fc9ab" kind="typedef"><name>stringmap_node_t</name></member>
+    <member refid="group__stringmap_1ga42f10093d6219fab973e69d5ce9751eb" kind="function"><name>stringmap_new</name></member>
+    <member refid="group__stringmap_1ga10f0f63b9f8fd79d440152242674e147" kind="function"><name>stringmap_search</name></member>
+    <member refid="group__stringmap_1gaa998fa79f38f255353f826e936dab5ca" kind="function"><name>stringmap_insert</name></member>
+    <member refid="group__stringmap_1ga0417ec748d22adad862d966c22117cb0" kind="function"><name>stringmap_remove</name></member>
+    <member refid="group__stringmap_1ga30e3dcebb967aaf27cc9a76603bae8b7" kind="function"><name>stringmap_slot</name></member>
+    <member refid="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" kind="function"><name>stringmap_foreach</name></member>
+    <member refid="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" kind="function"><name>stringmap_hash</name></member>
+    <member refid="group__stringmap_1ga04ce49e388ce3b5f4bf48647a444a2be" kind="define"><name>STRINGMAP_INIT</name></member>
   </compound>
   <compound refid="dir_c440a0232048a2af23c47d1be7b434ce" kind="dir"><name>src/array</name>
   </compound>

@@ -102,264 +102,28 @@
     </incdepgraph>
     <innerclass refid="structml__logger__t" prot="public">ml_logger_t</innerclass>
     <sectiondef kind="define">
-      <memberdef kind="define" id="ml__logging_8h_1a15120c861e87028b63c4e797d55eb3a5" prot="public" static="no">
-        <name>ML_LOGGER</name>
-        <initializer>MLLoggerDefault</initializer>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="36" column="9" bodyfile="src/ml_logging.h" bodystart="36" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="define" id="ml__logging_8h_1aedeeaf370defedd8e6117f05de9f9ac0" prot="public" static="no">
-        <name>ML_LOG_ERROR</name>
-        <param><defname>FORMAT</defname></param>
-        <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_ERROR) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_ERROR, __FILE__, __LINE__, FORMAT, __VA_ARGS__); \
-	}</initializer>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="39" column="9" bodyfile="src/ml_logging.h" bodystart="39" bodyend="42"/>
-      </memberdef>
-      <memberdef kind="define" id="ml__logging_8h_1a5b38e30bbc800036ce4eb9beacc87377" prot="public" static="no">
-        <name>ML_LOG_WARN</name>
-        <param><defname>FORMAT</defname></param>
-        <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_WARN) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, __FILE__, __LINE__, FORMAT, __VA_ARGS__); \
-	}</initializer>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="43" column="9" bodyfile="src/ml_logging.h" bodystart="43" bodyend="46"/>
-      </memberdef>
-      <memberdef kind="define" id="ml__logging_8h_1a043260d3c5daeb548f4770b0d93cf37e" prot="public" static="no">
-        <name>ML_LOG_INFO</name>
-        <param><defname>FORMAT</defname></param>
-        <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_INFO) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_INFO, __FILE__, __LINE__, FORMAT, __VA_ARGS__); \
-	}</initializer>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="47" column="9" bodyfile="src/ml_logging.h" bodystart="47" bodyend="50"/>
-      </memberdef>
-      <memberdef kind="define" id="ml__logging_8h_1a90e81294f711e714474775939b68602c" prot="public" static="no">
-        <name>ML_LOG_DEBUG</name>
-        <param><defname>FORMAT</defname></param>
-        <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_DEBUG) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_DEBUG, __FILE__, __LINE__, FORMAT, __VA_ARGS__); \
-	}</initializer>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="51" column="9" bodyfile="src/ml_logging.h" bodystart="51" bodyend="54"/>
-      </memberdef>
+      <member refid="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
+      <member refid="group__logging_1gaedeeaf370defedd8e6117f05de9f9ac0" kind="define"><name>ML_LOG_ERROR</name></member>
+      <member refid="group__logging_1ga5b38e30bbc800036ce4eb9beacc87377" kind="define"><name>ML_LOG_WARN</name></member>
+      <member refid="group__logging_1ga043260d3c5daeb548f4770b0d93cf37e" kind="define"><name>ML_LOG_INFO</name></member>
+      <member refid="group__logging_1ga90e81294f711e714474775939b68602c" kind="define"><name>ML_LOG_DEBUG</name></member>
     </sectiondef>
     <sectiondef kind="enum">
-      <memberdef kind="enum" id="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5d" prot="public" static="no" strong="no">
-        <type></type>
-        <name>ml_log_level_t</name>
-        <enumvalue id="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5dac6a407dfde69d0401eab64e1bf59e4c2" prot="public">
-          <name>ML_LOG_LEVEL_NONE</name>
-          <initializer>= 0</initializer>
-          <briefdescription>
-          </briefdescription>
-          <detaileddescription>
-          </detaileddescription>
-        </enumvalue>
-        <enumvalue id="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5da0ba31a6ceea68f5ea68d20d40c59df6d" prot="public">
-          <name>ML_LOG_LEVEL_ERROR</name>
-          <initializer>= 1</initializer>
-          <briefdescription>
-          </briefdescription>
-          <detaileddescription>
-          </detaileddescription>
-        </enumvalue>
-        <enumvalue id="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5da719389ac7b2c759bdc6d6a77959eaede" prot="public">
-          <name>ML_LOG_LEVEL_WARN</name>
-          <initializer>= 2</initializer>
-          <briefdescription>
-          </briefdescription>
-          <detaileddescription>
-          </detaileddescription>
-        </enumvalue>
-        <enumvalue id="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5dac9889f39811527db27b832ff64117f3b" prot="public">
-          <name>ML_LOG_LEVEL_INFO</name>
-          <initializer>= 3</initializer>
-          <briefdescription>
-          </briefdescription>
-          <detaileddescription>
-          </detaileddescription>
-        </enumvalue>
-        <enumvalue id="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5da8090a7ffa0915d58c3ed4c4092cf4edb" prot="public">
-          <name>ML_LOG_LEVEL_DEBUG</name>
-          <initializer>= 4</initializer>
-          <briefdescription>
-          </briefdescription>
-          <detaileddescription>
-          </detaileddescription>
-        </enumvalue>
-        <enumvalue id="ml__logging_8h_1ad85d5ad7f21721364ba021b14fbbbf5dab92b65b1dd4c7ba4d26609f20a4638f4" prot="public">
-          <name>ML_LOG_LEVEL_ALL</name>
-          <initializer>= 5</initializer>
-          <briefdescription>
-          </briefdescription>
-          <detaileddescription>
-          </detaileddescription>
-        </enumvalue>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="10" column="1" bodyfile="src/ml_logging.h" bodystart="10" bodyend="17"/>
-      </memberdef>
+      <member refid="group__logging_1gad85d5ad7f21721364ba021b14fbbbf5d" kind="enum"><name>ml_log_level_t</name></member>
     </sectiondef>
     <sectiondef kind="typedef">
-      <memberdef kind="typedef" id="ml__logging_8h_1a1b1a74cc75665cf0796bc796cb496078" prot="public" static="no">
-        <type>struct ml_logger_t</type>
-        <definition>typedef struct ml_logger_t ml_logger_t</definition>
-        <argsstring></argsstring>
-        <name>ml_logger_t</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="19" column="26" bodyfile="src/ml_logging.h" bodystart="19" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="typedef" id="ml__logging_8h_1ace1fba9847004c7e95e1e19ded15f5b9" prot="public" static="no">
-        <type>void(*</type>
-        <definition>typedef void(* ml_logger_fn) (ml_logger_t *Logger, ml_log_level_t Level, const char *Source, int Line, const char *Format,...) __attribute__((format(printf</definition>
-        <argsstring>)(ml_logger_t *Logger, ml_log_level_t Level, const char *Source, int Line, const char *Format,...) __attribute__((format(printf</argsstring>
-        <name>ml_logger_fn</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="29" column="9" bodyfile="src/ml_logging.h" bodystart="29" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="typedef" id="ml__logging_8h_1a0d57f9581b804027a60b4c23f950e607" prot="public" static="no" extern="yes">
-        <type>void ml_log_level_t</type>
-        <definition>typedef void ml_log_level_t MLLogLevel</definition>
-        <argsstring></argsstring>
-        <name>MLLogLevel</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="31" column="23" declfile="src/ml_logging.h" declline="31" declcolumn="23"/>
-      </memberdef>
+      <member refid="group__logging_1ga1b1a74cc75665cf0796bc796cb496078" kind="typedef"><name>ml_logger_t</name></member>
+      <member refid="group__logging_1gace1fba9847004c7e95e1e19ded15f5b9" kind="typedef"><name>ml_logger_fn</name></member>
+      <member refid="group__logging_1ga0d57f9581b804027a60b4c23f950e607" kind="typedef"><name>MLLogLevel</name></member>
     </sectiondef>
     <sectiondef kind="var">
-      <memberdef kind="variable" id="ml__logging_8h_1ae141b3a092df79ec95c287e3e7fea98b" prot="public" static="no" extern="yes" mutable="no">
-        <type>ml_logger_fn</type>
-        <definition>ml_logger_fn ml_log</definition>
-        <argsstring></argsstring>
-        <name>ml_log</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="32" column="21" declfile="src/ml_logging.h" declline="32" declcolumn="21"/>
-      </memberdef>
-      <memberdef kind="variable" id="ml__logging_8h_1aa8c901d37ef198c7100a86a593925b15" prot="public" static="no" extern="yes" mutable="no">
-        <type><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref></type>
-        <definition>ml_logger_t MLLoggerDefault[]</definition>
-        <argsstring>[]</argsstring>
-        <name>MLLoggerDefault</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="33" column="20" declfile="src/ml_logging.h" declline="33" declcolumn="20"/>
-      </memberdef>
+      <member refid="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
+      <member refid="group__logging_1gaa8c901d37ef198c7100a86a593925b15" kind="variable"><name>MLLoggerDefault</name></member>
     </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="ml__logging_8h_1a9084628ba013ca3cef24798656fa35e0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref> *</type>
-        <definition>ml_logger_t * ml_logger</definition>
-        <argsstring>(const char *Name)</argsstring>
-        <name>ml_logger</name>
-        <param>
-          <type>const char *</type>
-          <declname>Name</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="56" column="13" declfile="src/ml_logging.h" declline="56" declcolumn="13"/>
-      </memberdef>
-      <memberdef kind="function" id="ml__logging_8h_1a8060269338d356d34e36691c2b7077f4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ml_logger_init</definition>
-        <argsstring>(ml_logger_t *Logger, const char *Name)</argsstring>
-        <name>ml_logger_init</name>
-        <param>
-          <type><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref> *</type>
-          <declname>Logger</declname>
-        </param>
-        <param>
-          <type>const char *</type>
-          <declname>Name</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="57" column="6" declfile="src/ml_logging.h" declline="57" declcolumn="6"/>
-      </memberdef>
-      <memberdef kind="function" id="ml__logging_8h_1a59673295603f23e896e0c1ec708b33f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ml_logging_init</definition>
-        <argsstring>(stringmap_t *Globals)</argsstring>
-        <name>ml_logging_init</name>
-        <param>
-          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
-          <declname>Globals</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_logging.h" line="59" column="6" declfile="src/ml_logging.h" declline="59" declcolumn="6"/>
-      </memberdef>
+      <member refid="group__logging_1ga9084628ba013ca3cef24798656fa35e0" kind="function"><name>ml_logger</name></member>
+      <member refid="group__logging_1ga8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
+      <member refid="group__logging_1ga59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -369,68 +133,70 @@
 <codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ML_LOGGER_H</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOGGER_H</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="3"><highlight class="normal"></highlight></codeline>
-<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="5"><highlight class="normal"></highlight></codeline>
-<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="9"><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_NONE<sp/>=<sp/>0,</highlight></codeline>
-<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_ERROR<sp/>=<sp/>1,</highlight></codeline>
-<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_WARN<sp/>=<sp/>2,</highlight></codeline>
-<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_INFO<sp/>=<sp/>3,</highlight></codeline>
-<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_DEBUG<sp/>=<sp/>4,</highlight></codeline>
-<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_ALL<sp/>=<sp/>5</highlight></codeline>
-<codeline lineno="17"><highlight class="normal">}<sp/>ml_log_level_t;</highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref>;</highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight></codeline>
-<codeline lineno="21" refid="structml__logger__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
-<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*AnsiName;</highlight></codeline>
-<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Loggers[ML_LOG_LEVEL_ALL];</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Ignored[ML_LOG_LEVEL_ALL];</highlight></codeline>
-<codeline lineno="27"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"></highlight></codeline>
-<codeline lineno="29"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_logger_fn)(<ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>*Logger,<sp/>ml_log_level_t<sp/>Level,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Format,<sp/>...)<sp/>__attribute__((format(printf,<sp/>5,<sp/>6)));</highlight></codeline>
-<codeline lineno="30"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>ml_log_level_t<sp/>MLLogLevel;</highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>ml_logger_fn<sp/>ml_log;</highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>MLLoggerDefault[];</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_NONE<sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_ERROR<sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_WARN<sp/>=<sp/>2,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_INFO<sp/>=<sp/>3,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_DEBUG<sp/>=<sp/>4,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>ML_LOG_LEVEL_ALL<sp/>=<sp/>5</highlight></codeline>
+<codeline lineno="21"><highlight class="normal">}<sp/>ml_log_level_t;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref>;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25" refid="structml__logger__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*AnsiName;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Loggers[ML_LOG_LEVEL_ALL];</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Ignored[ML_LOG_LEVEL_ALL];</highlight></codeline>
+<codeline lineno="31"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_logger_fn)(<ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>*Logger,<sp/>ml_log_level_t<sp/>Level,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Format,<sp/>...)<sp/>__attribute__((format(printf,<sp/>5,<sp/>6)));</highlight></codeline>
 <codeline lineno="34"><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>ML_LOGGER</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOGGER<sp/>MLLoggerDefault</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>ml_log_level_t<sp/>MLLogLevel;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>ml_logger_fn<sp/>ml_log;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>MLLoggerDefault[];</highlight></codeline>
 <codeline lineno="38"><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_ERROR(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
-<codeline lineno="40"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_ERROR)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="41"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_ERROR,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
-<codeline lineno="42"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_WARN(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
-<codeline lineno="44"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_WARN)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="45"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_WARN,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>ML_LOGGER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOGGER<sp/>MLLoggerDefault</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_ERROR(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
+<codeline lineno="44"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_ERROR)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="45"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_ERROR,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
 <codeline lineno="46"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_INFO(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
-<codeline lineno="48"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_INFO)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="49"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_INFO,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_WARN(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
+<codeline lineno="48"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_WARN)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="49"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_WARN,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
 <codeline lineno="50"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_DEBUG(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
-<codeline lineno="52"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_DEBUG)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="53"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_DEBUG,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_INFO(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
+<codeline lineno="52"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_INFO)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="53"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_INFO,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
 <codeline lineno="54"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="55"><highlight class="normal"></highlight></codeline>
-<codeline lineno="56"><highlight class="normal"><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>*ml_logger(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="57"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_logger_init(<ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>*Logger,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="58"><highlight class="normal"></highlight></codeline>
-<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_logging_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
-<codeline lineno="60"><highlight class="normal"></highlight></codeline>
-<codeline lineno="61"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="62"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="63"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LOG_DEBUG(FORMAT,<sp/>...)<sp/>\</highlight></codeline>
+<codeline lineno="56"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(MLLogLevel<sp/>&gt;=<sp/>ML_LOG_LEVEL_DEBUG)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="57"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_log(ML_LOGGER,<sp/>ML_LOG_LEVEL_DEBUG,<sp/>__FILE__,<sp/>__LINE__,<sp/>FORMAT,<sp/>__VA_ARGS__);<sp/>\</highlight></codeline>
+<codeline lineno="58"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>*ml_logger(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_logger_init(<ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref><sp/>*Logger,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_logging_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="64"><highlight class="normal"></highlight></codeline>
-<codeline lineno="65"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_logging.h"/>
   </compounddef>

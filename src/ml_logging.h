@@ -1,6 +1,10 @@
 #ifndef ML_LOGGER_H
 #define ML_LOGGER_H
 
+/// \defgroup logging
+/// @{
+///
+
 #include "minilang.h"
 
 #ifdef __cplusplus
@@ -61,5 +65,7 @@ void ml_logging_init(stringmap_t *Globals);
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

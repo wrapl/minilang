@@ -1,6 +1,10 @@
 #ifndef ML_STREAM_H
 #define ML_STREAM_H
 
+/// \defgroup streams
+/// @{
+///
+
 #include "minilang.h"
 
 #ifdef __cplusplus
@@ -33,5 +37,7 @@ int ml_fd_stream_fd(ml_value_t *Stream);
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif
