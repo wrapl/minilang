@@ -844,7 +844,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 979725410>>
+      A:minidx(2) :> <<2 1> <1 829713993>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1859,9 +1859,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:40CFC925237F0000F3FFFFFFFFFFFFFF>
+      :> <16:208AAA86FD7E00000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<53056 9673> <32547 0>> <<65523 65535> <65535 65535>>>
+      :> <<<35360 34474> <32509 0>> <<0 0> <0 0>>>
 
 
 :mini:`type vector < array`

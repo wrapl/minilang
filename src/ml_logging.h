@@ -42,19 +42,19 @@ extern ml_logger_t MLLoggerDefault[];
 
 #define ML_LOG_ERROR(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_ERROR) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_ERROR, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_ERROR, ERROR, __FILE_NAME__, __LINE__, FORMAT, ##__VA_ARGS__); \
 	}
 #define ML_LOG_WARN(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_WARN) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, ERROR, __FILE_NAME__, __LINE__, FORMAT, ##__VA_ARGS__); \
 	}
 #define ML_LOG_INFO(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_INFO) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_INFO, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_INFO, ERROR, __FILE_NAME__, __LINE__, FORMAT, ##__VA_ARGS__); \
 	}
 #define ML_LOG_DEBUG(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_DEBUG) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_DEBUG, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_DEBUG, ERROR, __FILE_NAME__, __LINE__, FORMAT, ##__VA_ARGS__); \
 	}
 
 ml_logger_t *ml_logger(const char *Name);
