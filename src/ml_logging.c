@@ -18,7 +18,7 @@ static const char *MLLogLevelNames[] = {
 	[ML_LOG_LEVEL_DEBUG] = "\e[34mDEBUG\e[0m"
 };
 
-static void ml_log_default(ml_logger_t *Logger, ml_log_level_t Level, const char *Source, int Line, const char *Format, ...) {
+static void ml_log_default(ml_logger_t *Logger, ml_log_level_t Level, ml_value_t *Error, const char *Source, int Line, const char *Format, ...) {
 	struct timespec Time;
 	clock_gettime(CLOCK_REALTIME, &Time);
 	struct tm BrokenTime;
@@ -31,10 +31,17 @@ static void ml_log_default(ml_logger_t *Logger, ml_log_level_t Level, const char
 	vfprintf(stderr, Format, Args);
 	va_end(Args);
 	fprintf(stderr, "\n");
+	if (Error) {
+		fprintf(stderr, "\t%s: %s\n", ml_error_type(Error), ml_error_message(Error));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Error, Level++, &Source)) {
+			fprintf(stderr, "\t\t%s:%d\n", Source.Name, Source.Line);
+		}
+	}
 }
 
 ml_logger_fn ml_log = ml_log_default;
-static ml_value_t *MLLog = NULL;
 
 typedef struct {
 	ml_state_t Base;
@@ -47,7 +54,7 @@ typedef struct {
 } ml_log_state_t;
 
 static int ml_log_buffer_fn(ml_log_state_t *State, const char *Chars, size_t Length) {
-	ml_log(State->Logger, State->Level, State->Source, State->Line, "%.*s", (int)Length, Chars);
+	ml_log(State->Logger, State->Level, NULL, State->Source, State->Line, "%.*s", (int)Length, Chars);
 	return 0;
 }
 
@@ -69,26 +76,21 @@ static void ml_log_state_run(ml_log_state_t *State, ml_value_t *Value) {
 static void ml_log_fn(ml_state_t *Caller, ml_logger_t *Logger, int Count, ml_value_t **Args) {
 	ml_log_level_t Level = ml_integer_value(Args[0]);
 	if (Level <= ML_LOG_LEVEL_NONE || Level > MLLogLevel || Logger->Ignored[Level]) ML_RETURN(MLNil);
-	if (MLLog) {
-		// TODO: Call MLLog
-		ML_RETURN(MLNil);
-	} else {
-		ml_log_state_t *State = xnew(ml_log_state_t, Count + 1, ml_value_t *);
-		State->Base.Caller = Caller;
-		State->Base.Context = Caller->Context;
-		State->Base.run = (ml_state_fn)ml_log_state_run;
-		State->Logger = Logger;
-		State->Buffer[0] = ML_STRINGBUFFER_INIT;
-		ml_source_t Source = ml_debugger_source(Caller);
-		State->Source = Source.Name;
-		State->Line = Source.Line;
-		State->Level = Level;
-		for (int I = 1; I < Count; ++I) State->Args[I] = Args[I];
-		if (Count == 0) return ml_log_state_run(State, MLNil);
-		State->Index = 2;
-		State->Args[0] = (ml_value_t *)State->Buffer;
-		return ml_call(State, AppendMethod, 2, State->Args);
-	}
+	ml_log_state_t *State = xnew(ml_log_state_t, Count + 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_log_state_run;
+	State->Logger = Logger;
+	State->Buffer[0] = ML_STRINGBUFFER_INIT;
+	ml_source_t Source = ml_debugger_source(Caller);
+	State->Source = Source.Name;
+	State->Line = Source.Line;
+	State->Level = Level;
+	for (int I = 1; I < Count; ++I) State->Args[I] = Args[I];
+	if (Count == 0) return ml_log_state_run(State, MLNil);
+	State->Index = 2;
+	State->Args[0] = (ml_value_t *)State->Buffer;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 #define ML_CONFIG_LOG_LEVEL(NAME, LEVEL) \
@@ -223,8 +225,11 @@ ML_FUNCTION(MLLoggerLevel) {
 	}
 }
 
+ml_logger_t MLLoggerDefault[1];
+
 void ml_logging_init(stringmap_t *Globals) {
 #include "ml_logging_init.c"
+	ml_logger_init(MLLoggerDefault, "main");
 	ml_config_register("LOG>=ERROR", ml_config_log_error);
 	ml_config_register("LOG>=WARN", ml_config_log_warn);
 	ml_config_register("LOG>=INFO", ml_config_log_info);

@@ -1511,13 +1511,13 @@
   </compound>
   <compound refid="ml__logging_8h" kind="file"><name>ml_logging.h</name>
     <member refid="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
-    <member refid="group__logging_1gaedeeaf370defedd8e6117f05de9f9ac0" kind="define"><name>ML_LOG_ERROR</name></member>
-    <member refid="group__logging_1ga5b38e30bbc800036ce4eb9beacc87377" kind="define"><name>ML_LOG_WARN</name></member>
-    <member refid="group__logging_1ga043260d3c5daeb548f4770b0d93cf37e" kind="define"><name>ML_LOG_INFO</name></member>
-    <member refid="group__logging_1ga90e81294f711e714474775939b68602c" kind="define"><name>ML_LOG_DEBUG</name></member>
+    <member refid="group__logging_1gaebf88e6908ef617953afa05f50e1916f" kind="define"><name>ML_LOG_ERROR</name></member>
+    <member refid="group__logging_1gada7629204b251e9a90e20978e8b28759" kind="define"><name>ML_LOG_WARN</name></member>
+    <member refid="group__logging_1ga9f77e3b7c700fbd00198de7b6bcd4090" kind="define"><name>ML_LOG_INFO</name></member>
+    <member refid="group__logging_1gaef503c71d4eaacaad1ea793deb302716" kind="define"><name>ML_LOG_DEBUG</name></member>
     <member refid="group__logging_1gad85d5ad7f21721364ba021b14fbbbf5d" kind="enum"><name>ml_log_level_t</name></member>
     <member refid="group__logging_1ga1b1a74cc75665cf0796bc796cb496078" kind="typedef"><name>ml_logger_t</name></member>
-    <member refid="group__logging_1gace1fba9847004c7e95e1e19ded15f5b9" kind="typedef"><name>ml_logger_fn</name></member>
+    <member refid="group__logging_1ga3801ca2abfc03b2781896138f8fe6428" kind="typedef"><name>ml_logger_fn</name></member>
     <member refid="group__logging_1ga0d57f9581b804027a60b4c23f950e607" kind="typedef"><name>MLLogLevel</name></member>
     <member refid="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
     <member refid="group__logging_1gaa8c901d37ef198c7100a86a593925b15" kind="variable"><name>MLLoggerDefault</name></member>
@@ -2438,7 +2438,7 @@
     <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da8090a7ffa0915d58c3ed4c4092cf4edb" kind="enumvalue"><name>ML_LOG_LEVEL_DEBUG</name></member>
     <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dab92b65b1dd4c7ba4d26609f20a4638f4" kind="enumvalue"><name>ML_LOG_LEVEL_ALL</name></member>
     <member refid="group__logging_1ga1b1a74cc75665cf0796bc796cb496078" kind="typedef"><name>ml_logger_t</name></member>
-    <member refid="group__logging_1gace1fba9847004c7e95e1e19ded15f5b9" kind="typedef"><name>ml_logger_fn</name></member>
+    <member refid="group__logging_1ga3801ca2abfc03b2781896138f8fe6428" kind="typedef"><name>ml_logger_fn</name></member>
     <member refid="group__logging_1ga0d57f9581b804027a60b4c23f950e607" kind="typedef"><name>MLLogLevel</name></member>
     <member refid="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
     <member refid="group__logging_1gaa8c901d37ef198c7100a86a593925b15" kind="variable"><name>MLLoggerDefault</name></member>
@@ -2446,10 +2446,10 @@
     <member refid="group__logging_1ga8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
     <member refid="group__logging_1ga59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
     <member refid="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
-    <member refid="group__logging_1gaedeeaf370defedd8e6117f05de9f9ac0" kind="define"><name>ML_LOG_ERROR</name></member>
-    <member refid="group__logging_1ga5b38e30bbc800036ce4eb9beacc87377" kind="define"><name>ML_LOG_WARN</name></member>
-    <member refid="group__logging_1ga043260d3c5daeb548f4770b0d93cf37e" kind="define"><name>ML_LOG_INFO</name></member>
-    <member refid="group__logging_1ga90e81294f711e714474775939b68602c" kind="define"><name>ML_LOG_DEBUG</name></member>
+    <member refid="group__logging_1gaebf88e6908ef617953afa05f50e1916f" kind="define"><name>ML_LOG_ERROR</name></member>
+    <member refid="group__logging_1gada7629204b251e9a90e20978e8b28759" kind="define"><name>ML_LOG_WARN</name></member>
+    <member refid="group__logging_1ga9f77e3b7c700fbd00198de7b6bcd4090" kind="define"><name>ML_LOG_INFO</name></member>
+    <member refid="group__logging_1gaef503c71d4eaacaad1ea793deb302716" kind="define"><name>ML_LOG_DEBUG</name></member>
   </compound>
   <compound refid="group__math" kind="group"><name>math</name>
     <member refid="group__math_1gabed55e2c9824b63b4fdf650ae4862abc" kind="variable"><name>AcosMethod</name></member>

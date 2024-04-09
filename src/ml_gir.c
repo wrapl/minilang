@@ -1,5 +1,6 @@
 #include "ml_gir.h"
 #include "ml_macros.h"
+#include "ml_logging.h"
 #include <girffi.h>
 #include <stdio.h>
 
@@ -1371,14 +1372,7 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Value = State->Value;
-	if (ml_is_error(Value)) {
-		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
-		ml_source_t Source;
-		int Level = 0;
-		while (ml_error_source(Value, Level++, &Source)) {
-			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
-		}
-	}
+	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Closure returned error");
 	if (Dest) {
 		if (ml_is(Value, MLBooleanT)) {
 			g_value_set_boolean(Dest, ml_boolean_value(Value));
@@ -2117,6 +2111,7 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Result = State->Value;
+	if (ml_is_error(Result)) ML_LOG_ERROR(Result, "Callback returned error");
 	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
 	case GIB_BOOLEAN: *(gboolean *)Return = ml_boolean_value(Result); break;
 	case GIB_INT8: *(gint8 *)Return = ml_integer_value(Result); break;
