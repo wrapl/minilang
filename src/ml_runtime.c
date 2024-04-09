@@ -991,6 +991,10 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	return Next;
 }
 
+int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue) {
+	return Queue->Fill;
+}
+
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
 	ml_queued_state_t Next = {NULL, NULL};
 #ifdef ML_THREADS
@@ -1147,9 +1151,11 @@ static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 static void *ml_scheduler_thread_fn(void *Data) {
 	static int NumIdle = 0;
 	ml_scheduler_t *Scheduler = (ml_scheduler_t *)Data;
+	if (Scheduler->attach) Scheduler->attach(Scheduler);
 	for (;;) {
 		Scheduler->run(Scheduler);
 		if (Scheduler->Resume) {
+			if (Scheduler->detach) Scheduler->detach(Scheduler);
 			ml_scheduler_block_t *Block = Scheduler->Resume;
 			pthread_mutex_lock(Block->Lock);
 			pthread_cond_signal(Block->Resume);
@@ -1167,6 +1173,7 @@ static void *ml_scheduler_thread_fn(void *Data) {
 			--NumIdle;
 			pthread_mutex_unlock(ThreadLock);
 			Scheduler = Thread.Scheduler;
+			if (Scheduler->attach) Scheduler->attach(Scheduler);
 		}
 	}
 	return NULL;
@@ -1177,6 +1184,7 @@ void ml_threads_set_max_count(int Max) {
 }
 
 void ml_scheduler_split(ml_scheduler_t *Scheduler) {
+	if (Scheduler->detach) Scheduler->detach(Scheduler);
 	pthread_mutex_lock(ThreadLock);
 	ml_scheduler_thread_t *Thread = NextThread;
 	if (Thread) {
@@ -1205,6 +1213,7 @@ void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 	Scheduler->add(Scheduler, (ml_state_t *)&Block, MLNil);
 	pthread_cond_wait(Block.Resume, Block.Lock);
 	pthread_mutex_unlock(Block.Lock);
+	if (Scheduler->attach) Scheduler->attach(Scheduler);
 	Scheduler->Resume = NULL;
 }
 

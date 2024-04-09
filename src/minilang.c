@@ -372,9 +372,11 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
-	int BreakOnExit = 0;
 #ifdef ML_SCHEDULER
 	int SliceSize = 256;
+#endif
+#ifdef GC_DEBUG
+	int BreakOnExit = 0;
 #endif
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
@@ -448,9 +450,11 @@ int main(int Argc, const char *Argv[]) {
 #endif
 				break;
 #endif
+#ifdef GC_DEBUG
 			case 'B':
 				BreakOnExit = 1;
 				break;
+#endif
 			}
 		} else {
 			MainModule = Argv[I];
@@ -501,22 +505,10 @@ int main(int Argc, const char *Argv[]) {
 		}
 #endif
 #ifdef ML_SCHEDULER
-#ifdef ML_GIR
-		if (UseGirLoop) {
-			ml_gir_loop_run();
-		} else {
+		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
-		if (SliceSize) {
-			while (!MainResult) Scheduler->run(Scheduler);
-		}
-#ifdef ML_GIR
-		}
-		if (BreakOnExit) {
 #ifdef GC_DEBUG
-			GC_generate_random_backtrace();
-#endif
-		}
-#endif
+		if (BreakOnExit) GC_generate_random_backtrace();
 #endif
 	} else if (Command) {
 		ml_parser_t *Parser = ml_parser(NULL, NULL);
@@ -524,29 +516,15 @@ int main(int Argc, const char *Argv[]) {
 		ml_parser_input(Parser, Command);
 		ml_command_evaluate(Main, Parser, Compiler);
 #ifdef ML_SCHEDULER
-		if (SliceSize) {
-			while (!MainResult) Scheduler->run(Scheduler);
-		}
+		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
 	} else {
 		ml_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
 #ifdef ML_SCHEDULER
-#ifdef ML_GIR
-		if (UseGirLoop) {
-			ml_gir_loop_run();
-		} else {
+		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
-		if (SliceSize) {
-			while (!MainResult) Scheduler->run(Scheduler);
-		}
-#ifdef ML_GIR
-		}
-		if (BreakOnExit) {
 #ifdef GC_DEBUG
-			GC_generate_random_backtrace();
-#endif
-		}
-#endif
+		if (BreakOnExit) GC_generate_random_backtrace();
 #endif
 	}
 	return 0;

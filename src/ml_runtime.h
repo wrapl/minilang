@@ -230,6 +230,8 @@ struct ml_scheduler_t {
 	ml_scheduler_add_fn add;
 	ml_scheduler_run_fn run;
 #ifdef ML_THREADS
+	ml_scheduler_run_fn attach;
+	ml_scheduler_run_fn detach;
 	ml_scheduler_block_t *Resume;
 #endif
 };
@@ -247,6 +249,8 @@ typedef struct {
 typedef struct ml_scheduler_queue_t ml_scheduler_queue_t;
 
 ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice);
+
+int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue);
 
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
 int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
