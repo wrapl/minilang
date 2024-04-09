@@ -230,8 +230,6 @@ struct ml_scheduler_t {
 	ml_scheduler_add_fn add;
 	ml_scheduler_run_fn run;
 #ifdef ML_THREADS
-	ml_scheduler_run_fn attach;
-	ml_scheduler_run_fn detach;
 	ml_scheduler_block_t *Resume;
 #endif
 };
