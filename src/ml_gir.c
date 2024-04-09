@@ -1369,8 +1369,8 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 	for (guint I = 1; I < NumArgs; ++I) MLArgs[I] = _value_to_ml(Args + I, Info->Args[I]);
 	ml_result_state_t *State = ml_result_state(Info->Context);
 	ml_call(State, Info->Function, NumArgs, MLArgs);
-	GMainContext *MainContext = g_main_context_default();
-	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
+	ml_scheduler_t *Scheduler = ml_context_get(Info->Context, ML_SCHEDULER_INDEX);
+	while (!State->Value) Scheduler->run(Scheduler);
 	ml_value_t *Value = State->Value;
 	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Closure returned error");
 	if (Dest) {
@@ -2108,8 +2108,8 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	}
 	ml_result_state_t *State = ml_result_state(Instance->Context);
 	ml_call(State, Instance->Function, Arg - Args, Args);
-	GMainContext *MainContext = g_main_context_default();
-	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
+	ml_scheduler_t *Scheduler = ml_context_get(Instance->Context, ML_SCHEDULER_INDEX);
+	while (!State->Value) Scheduler->run(Scheduler);
 	ml_value_t *Result = State->Value;
 	if (ml_is_error(Result)) ML_LOG_ERROR(Result, "Callback returned error");
 	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
