@@ -1506,7 +1506,7 @@ int ml_gir_queue_add(gir_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *
 }
 
 void ml_gir_queue_run(gir_scheduler_t *Scheduler) {
-	g_main_context_iteration(Scheduler->MainContext, TRUE);
+	g_main_context_iteration(Scheduler->MainContext, !ml_scheduler_queue_fill(Scheduler->Queue));
 	ml_queued_state_t QueuedState = ml_scheduler_queue_next(Scheduler->Queue);
 	if (QueuedState.State) QueuedState.State->run(QueuedState.State, QueuedState.Value);
 }
