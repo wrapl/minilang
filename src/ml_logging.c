@@ -127,15 +127,52 @@ static ml_value_t *ml_log_macro_special(void *LogFn) {
 	return (ml_value_t *)LogFn;
 }
 
-static ml_value_t *ml_log_macro(ml_logger_t *Logger, ml_value_t *LogFn, const char *Input) {
-	ml_log_macro_t *Macro = new(ml_log_macro_t);
-	Macro->Type = MLLogMacroT;
-	ml_parser_t *Parser = ml_parser(NULL, NULL);
-	ml_parser_input(Parser, Input);
-	ml_parser_special(Parser, ml_log_macro_special, LogFn);
-	Macro->Expr = ml_parse_expr(Parser);
-	if (!Macro->Expr) return ml_parser_value(Parser);
-	return ml_macro((ml_value_t *)Macro);
+typedef struct {
+	ml_value_t *LogFn;
+	int Level;
+} ml_log_info_t;
+
+static mlc_expr_t *ml_log_macro_fn(mlc_expr_t *Expr, mlc_expr_t *Child, ml_log_info_t *Info) {
+	static const char *Conditions[] = {
+		[ML_LOG_LEVEL_NONE] = "",
+		[ML_LOG_LEVEL_ERROR] = "LOG>=ERROR",
+		[ML_LOG_LEVEL_WARN] = "LOG>=WARN",
+		[ML_LOG_LEVEL_INFO] = "LOG>=INFO",
+		[ML_LOG_LEVEL_DEBUG] = "LOG>=DEBUG"
+	};
+
+	mlc_value_expr_t *LevelExpr = new(mlc_value_expr_t);
+	LevelExpr->compile = ml_value_expr_compile;
+	LevelExpr->Source = Expr->Source;
+	LevelExpr->StartLine = Expr->StartLine;
+	LevelExpr->EndLine = Expr->EndLine;
+	LevelExpr->Value = ml_integer(Info->Level);
+	LevelExpr->Next = Child;
+
+	mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
+	CallExpr->compile = ml_const_call_expr_compile;
+	CallExpr->Source = Expr->Source;
+	CallExpr->StartLine = Expr->StartLine;
+	CallExpr->EndLine = Expr->EndLine;
+	CallExpr->Value = Info->LogFn;
+	CallExpr->Child = (mlc_expr_t *)LevelExpr;
+
+	mlc_if_config_expr_t *IfConfigExpr = new(mlc_if_config_expr_t);
+	IfConfigExpr->compile = ml_if_config_expr_compile;
+	IfConfigExpr->Source = Expr->Source;
+	IfConfigExpr->StartLine = Expr->StartLine;
+	IfConfigExpr->EndLine = Expr->EndLine;
+	IfConfigExpr->Config = Conditions[Info->Level];
+	IfConfigExpr->Child = (mlc_expr_t *)CallExpr;
+
+	return (mlc_expr_t *)IfConfigExpr;
+}
+
+static ml_value_t *ml_log_macro(ml_value_t *LogFn, int Level) {
+	ml_log_info_t *Info = new(ml_log_info_t);
+	Info->LogFn = LogFn;
+	Info->Level = Level;
+	return ml_macrox((void *)ml_log_macro_fn, Info);
 }
 
 void ml_logger_init(ml_logger_t *Logger, const char *Name) {
@@ -156,10 +193,10 @@ void ml_logger_init(ml_logger_t *Logger, const char *Name) {
 	}
 	GC_asprintf((char **)&Logger->AnsiName, "\e[38;2;%d;%d;%dm%s\e[0m", R, G, B, Name);
 	ml_value_t *LogFn = ml_cfunctionx(Logger, (ml_callbackx_t)ml_log_fn);
-	Logger->Loggers[ML_LOG_LEVEL_ERROR] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=ERROR\" \uFFFC(1, :$Args)");
-	Logger->Loggers[ML_LOG_LEVEL_WARN] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=WARN\" \uFFFC(2, :$Args)");
-	Logger->Loggers[ML_LOG_LEVEL_INFO] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=INFO\" \uFFFC(3, :$Args)");
-	Logger->Loggers[ML_LOG_LEVEL_DEBUG] = ml_log_macro(Logger, LogFn, "ifConfig \"LOG>=DEBUG\" \uFFFC(4, :$Args)");
+	Logger->Loggers[ML_LOG_LEVEL_ERROR] = ml_log_macro(LogFn, ML_LOG_LEVEL_ERROR);
+	Logger->Loggers[ML_LOG_LEVEL_WARN] = ml_log_macro(LogFn, ML_LOG_LEVEL_WARN);
+	Logger->Loggers[ML_LOG_LEVEL_INFO] = ml_log_macro(LogFn, ML_LOG_LEVEL_INFO);
+	Logger->Loggers[ML_LOG_LEVEL_DEBUG] = ml_log_macro(LogFn, ML_LOG_LEVEL_DEBUG);
 }
 
 ml_logger_t *ml_logger(const char *Name) {
