@@ -123,7 +123,7 @@ static ml_log_state_t *ml_log_state(int Count) {
 #else
 	ml_log_state_t *Next = LogStateCache;
 	if (Next) {
-		LogStateCache = State->Next;
+		LogStateCache = Next->Next;
 	} else {
 		Next = xnew(ml_log_state_t, MAX_LOG_ARG_COUNT + 1, ml_value_t *);
 		Next->Base.run = (ml_state_fn)ml_log_state_run;
