@@ -82,7 +82,9 @@ static void ml_log_state_run(ml_log_state_t *State, ml_value_t *Value) {
 		return ml_call(State, AppendMethod, 2, State->Args);
 	}
 	int Length = State->Buffer->Length;
-	if (Length < ML_STRINGBUFFER_NODE_SIZE - 1) {
+	if (!Length) {
+		ml_log(State->Logger, State->Level, State->Error, State->Source, State->Line, "");
+	} else if (Length < ML_STRINGBUFFER_NODE_SIZE - 1) {
 		char *Message = State->Buffer->Head->Chars;
 		Message[Length] = 0;
 		ml_log(State->Logger, State->Level, State->Error, State->Source, State->Line, "%.*s", Length, Message);
