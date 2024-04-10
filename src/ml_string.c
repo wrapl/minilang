@@ -4169,6 +4169,22 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	Buffer->Length = Buffer->Space = Buffer->Start = 0;
 }
 
+void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer) {
+	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
+	if (!Head) return;
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+	do {
+		Tail->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Head));
+#else
+	Tail->Next = StringBufferNodeCache;
+	StringBufferNodeCache = Head;
+#endif
+	Buffer->Head = Buffer->Tail = NULL;
+	Buffer->Length = Buffer->Space = Buffer->Start = 0;
+}
+
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 	if (Buffer->Length == 0) return "";
 	char *String = snew(Buffer->Length + 1);

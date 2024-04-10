@@ -1884,6 +1884,7 @@
     <member refid="group__runtime_1ga28551bd1cbe29a6c8de5ed3cc2390c43" kind="function"><name>ml_error_value_type</name></member>
     <member refid="group__runtime_1ga11b191bff691a4e11e037882aede2ffd" kind="function"><name>ml_error_value_message</name></member>
     <member refid="group__runtime_1ga04326d13882081a9e27d8692e50aa8bf" kind="function"><name>ml_error_value_source</name></member>
+    <member refid="group__runtime_1gabe18b0ae7388101109d8ab5b6fa5b797" kind="function"><name>ml_error_value_error</name></member>
     <member refid="group__runtime_1ga93405b5a85e955046cee32f4e9ab4883" kind="function"><name>ml_debugger_check</name></member>
     <member refid="group__runtime_1ga5c50a4b2fc5852675d857a128a96e668" kind="function"><name>ml_debugger_step_mode</name></member>
     <member refid="group__runtime_1ga9f32f068f3b250e6a05c936a0114c924" kind="function"><name>ml_debugger_source</name></member>
@@ -2187,6 +2188,7 @@
     <member refid="group__strings_1ga091de766590ef18b48eeb64fdd39d936" kind="function"><name>ml_stringbuffer_last</name></member>
     <member refid="group__strings_1gab5a92246f9bb2db6106fb1943df8ec79" kind="function"><name>ml_stringbuffer_put32</name></member>
     <member refid="group__strings_1ga3d289fad4e03330ff3f938ef9a544953" kind="function"><name>ml_stringbuffer_append</name></member>
+    <member refid="group__strings_1gad6f6e5740e09fc100237cd7fbe1bdfac" kind="function"><name>ml_stringbuffer_clear</name></member>
     <member refid="group__strings_1ga7f8281b09ed06b5c88db0b178eb2967b" kind="function"><name>ml_stringbuffer_simple_append</name></member>
     <member refid="group__strings_1ga43340f5bb19474b6e841313078519c8f" kind="function"><name>ml_stringbuffer_get_string</name></member>
     <member refid="group__strings_1gac641653a059a4d860d3842eb6c606a37" kind="function"><name>ml_stringbuffer_get_uncollectable</name></member>
@@ -2667,6 +2669,7 @@
     <member refid="group__runtime_1ga28551bd1cbe29a6c8de5ed3cc2390c43" kind="function"><name>ml_error_value_type</name></member>
     <member refid="group__runtime_1ga11b191bff691a4e11e037882aede2ffd" kind="function"><name>ml_error_value_message</name></member>
     <member refid="group__runtime_1ga04326d13882081a9e27d8692e50aa8bf" kind="function"><name>ml_error_value_source</name></member>
+    <member refid="group__runtime_1gabe18b0ae7388101109d8ab5b6fa5b797" kind="function"><name>ml_error_value_error</name></member>
     <member refid="group__runtime_1ga93405b5a85e955046cee32f4e9ab4883" kind="function"><name>ml_debugger_check</name></member>
     <member refid="group__runtime_1ga5c50a4b2fc5852675d857a128a96e668" kind="function"><name>ml_debugger_step_mode</name></member>
     <member refid="group__runtime_1ga9f32f068f3b250e6a05c936a0114c924" kind="function"><name>ml_debugger_source</name></member>
@@ -2896,6 +2899,7 @@
     <member refid="group__strings_1ga091de766590ef18b48eeb64fdd39d936" kind="function"><name>ml_stringbuffer_last</name></member>
     <member refid="group__strings_1gab5a92246f9bb2db6106fb1943df8ec79" kind="function"><name>ml_stringbuffer_put32</name></member>
     <member refid="group__strings_1ga3d289fad4e03330ff3f938ef9a544953" kind="function"><name>ml_stringbuffer_append</name></member>
+    <member refid="group__strings_1gad6f6e5740e09fc100237cd7fbe1bdfac" kind="function"><name>ml_stringbuffer_clear</name></member>
     <member refid="group__strings_1ga7f8281b09ed06b5c88db0b178eb2967b" kind="function"><name>ml_stringbuffer_simple_append</name></member>
     <member refid="group__strings_1ga43340f5bb19474b6e841313078519c8f" kind="function"><name>ml_stringbuffer_get_string</name></member>
     <member refid="group__strings_1gac641653a059a4d860d3842eb6c606a37" kind="function"><name>ml_stringbuffer_get_uncollectable</name></member>

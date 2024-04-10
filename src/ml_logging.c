@@ -3,6 +3,7 @@
 #include "ml_macros.h"
 #include "ml_compiler2.h"
 #include <sys/time.h>
+#include <stdatomic.h>
 #include <math.h>
 
 #undef ML_CATEGORY
@@ -43,53 +44,112 @@ static void ml_log_default(ml_logger_t *Logger, ml_log_level_t Level, ml_value_t
 
 ml_logger_fn ml_log = ml_log_default;
 
-typedef struct {
+typedef struct ml_log_state_t  ml_log_state_t;
+
+struct ml_log_state_t {
 	ml_state_t Base;
-	ml_logger_t *Logger;
+	union { ml_logger_t *Logger; ml_log_state_t *Next; };
 	const char *Source;
 	ml_stringbuffer_t Buffer[1];
 	ml_log_level_t Level;
 	int Line, Index;
+	ml_value_t *Error;
 	ml_value_t *Args[];
-} ml_log_state_t;
-
-static int ml_log_buffer_fn(ml_log_state_t *State, const char *Chars, size_t Length) {
-	ml_log(State->Logger, State->Level, NULL, State->Source, State->Line, "%.*s", (int)Length, Chars);
-	return 0;
-}
+};
 
 extern ml_value_t *AppendMethod;
 
+#ifdef ML_THREADSAFE
+static ml_log_state_t * _Atomic LogStateCache = NULL;
+#else
+static ml_log_state_t *LogStateCache = NULL;
+#endif
+
+#define MAX_LOG_ARG_COUNT 8
+
 static void ml_log_state_run(ml_log_state_t *State, ml_value_t *Value) {
-	// TODO: Check for error
 	ml_value_t *Arg = State->Args[State->Index];
 	if (Arg) {
+		if (ml_typeof(Arg) == MLErrorValueT) {
+			State->Error = ml_error_value_error(Arg);
+			++State->Index;
+			return ml_log_state_run(State, MLNil);
+		}
 		ml_stringbuffer_put(State->Buffer, ' ');
 		++State->Index;
+		State->Args[0] = (ml_value_t *)State->Buffer;
 		State->Args[1] = Arg;
 		return ml_call(State, AppendMethod, 2, State->Args);
 	}
-	ml_stringbuffer_drain(State->Buffer, State, (void *)ml_log_buffer_fn);
+	int Length = State->Buffer->Length;
+	if (Length < ML_STRINGBUFFER_NODE_SIZE - 1) {
+		char *Message = State->Buffer->Head->Chars;
+		Message[Length] = 0;
+		ml_log(State->Logger, State->Level, State->Error, State->Source, State->Line, "%.*s", Length, Message);
+		ml_stringbuffer_clear(State->Buffer);
+	} else {
+		const char *Message = ml_stringbuffer_get_string(State->Buffer);
+		ml_log(State->Logger, State->Level, State->Error, State->Source, State->Line, "%.*s", Length, Message);
+	}
+	if (State->Index <= MAX_LOG_ARG_COUNT) {
+#ifdef ML_THREADSAFE
+		ml_log_state_t *CacheNext = LogStateCache;
+		do {
+			State->Next = CacheNext;
+		} while (!atomic_compare_exchange_weak(&LogStateCache, &CacheNext, State));
+#else
+		State->Next = LogStateCache;
+		LogStateCache = State;
+#endif
+	}
 	ML_CONTINUE(State->Base.Caller, MLNil);
 }
 
+static ml_log_state_t *ml_log_state(int Count) {
+	if (Count > MAX_LOG_ARG_COUNT) {
+		ml_log_state_t *State = xnew(ml_log_state_t, Count + 1, ml_value_t *);
+		State->Base.run = (ml_state_fn)ml_log_state_run;
+		return State;
+	}
+#ifdef ML_THREADSAFE
+	ml_log_state_t *Next = LogStateCache, *CacheNext;
+	do {
+		if (!Next) {
+			Next = xnew(ml_log_state_t, MAX_LOG_ARG_COUNT + 1, ml_value_t *);
+			break;
+		}
+		CacheNext = Next->Next;
+	} while (!atomic_compare_exchange_weak(&LogStateCache, &Next, CacheNext));
+#else
+	ml_log_state_t *Next = LogStateCache;
+	if (Next) {
+		LogStateCache = State->Next;
+	} else {
+		Next = xnew(ml_log_state_t, MAX_LOG_ARG_COUNT + 1, ml_value_t *);
+		Next->Base.run = (ml_state_fn)ml_log_state_run;
+	}
+#endif
+	return Next;
+}
+
 static void ml_log_fn(ml_state_t *Caller, ml_logger_t *Logger, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(2);
 	ml_log_level_t Level = ml_integer_value(Args[0]);
 	if (Level <= ML_LOG_LEVEL_NONE || Level > MLLogLevel || Logger->Ignored[Level]) ML_RETURN(MLNil);
+	ml_source_t Source = ml_debugger_source(Caller);
 	ml_log_state_t *State = xnew(ml_log_state_t, Count + 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_log_state_run;
 	State->Logger = Logger;
 	State->Buffer[0] = ML_STRINGBUFFER_INIT;
-	ml_source_t Source = ml_debugger_source(Caller);
 	State->Source = Source.Name;
 	State->Line = Source.Line;
 	State->Level = Level;
-	for (int I = 1; I < Count; ++I) State->Args[I] = Args[I];
-	if (Count == 0) return ml_log_state_run(State, MLNil);
+	for (int I = 1; I < Count; ++I) State->Args[I] = ml_deref(Args[I]);
 	State->Index = 2;
 	State->Args[0] = (ml_value_t *)State->Buffer;
+	if (ml_typeof(State->Args[1]) == MLErrorValueT) return ml_log_state_run(State, MLNil);
 	return ml_call(State, AppendMethod, 2, State->Args);
 }
 

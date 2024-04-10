@@ -172,6 +172,7 @@ void ml_error_fprint(FILE *File, const ml_value_t *Error);
 const char *ml_error_value_type(const ml_value_t *Value) __attribute__ ((pure));
 const char *ml_error_value_message(const ml_value_t *Value) __attribute__ ((pure));
 int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Source);
+ml_value_t *ml_error_value_error(ml_value_t *Value);
 
 // Debugging //
 

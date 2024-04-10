@@ -571,6 +571,10 @@ int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Sourc
 	return 1;
 }
 
+ml_value_t *ml_error_value_error(ml_value_t *Value) {
+	return (ml_value_t *)((void *)Value - offsetof(ml_error_t, Error));
+}
+
 ML_METHOD("type", MLErrorValueT) {
 //!error
 //<Error
