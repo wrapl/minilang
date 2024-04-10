@@ -151,7 +151,10 @@ static void ml_log_fn(ml_state_t *Caller, ml_logger_t *Logger, int Count, ml_val
 	for (int I = 1; I < Count; ++I) State->Args[I] = ml_deref(Args[I]);
 	State->Index = 2;
 	State->Args[0] = (ml_value_t *)State->Buffer;
-	if (ml_typeof(State->Args[1]) == MLErrorValueT) return ml_log_state_run(State, MLNil);
+	if (ml_typeof(State->Args[1]) == MLErrorValueT) {
+		State->Error = State->Args[1];
+		return ml_log_state_run(State, MLNil);
+	}
 	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
