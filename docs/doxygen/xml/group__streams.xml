@@ -1,0 +1,375 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__streams" kind="group">
+    <compoundname>streams</compoundname>
+    <title>Streams</title>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__streams_1ga206579eb6453064f0b112505224890c2" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLStreamT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLStreamT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="16" column="18" declfile="src/ml_stream.h" declline="16" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__streams_1ga2ef17055aaff824267bc3c728ca1e354" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLStreamFdT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLStreamFdT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="32" column="18" declfile="src/ml_stream.h" declline="32" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__streams_1ga4202d8e8a2dc2115e288d5cb2c1b9924" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_stream_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="14" column="6" declfile="src/ml_stream.h" declline="14" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga48fb874e1b08e92bed3348ee8208d486" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_read</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count)</argsstring>
+        <name>ml_stream_read</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Address</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="18" column="6" declfile="src/ml_stream.h" declline="18" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga44ae58e09771a5373f7b6f8f088c7b41" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_write</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count)</argsstring>
+        <name>ml_stream_write</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>Address</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="19" column="6" declfile="src/ml_stream.h" declline="19" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga4706857fc377632c07e75ebc4177b8b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_flush</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_stream_flush</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="20" column="6" declfile="src/ml_stream.h" declline="20" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1gaca9a79fbd6a4acd600e5fc38ff2438e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_seek</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value, int64_t Offset, int Mode)</argsstring>
+        <name>ml_stream_seek</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int64_t</type>
+          <declname>Offset</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="21" column="6" declfile="src/ml_stream.h" declline="21" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga10a8a67179bf9bb003bef279ee0f5041" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_tell</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_stream_tell</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="22" column="6" declfile="src/ml_stream.h" declline="22" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga6a6d62bf0d039c36c0d7c9820f58b0f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_read_method</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count)</argsstring>
+        <name>ml_stream_read_method</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Address</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="24" column="6" declfile="src/ml_stream.h" declline="24" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1gac2022366690473054f23d8ed1fa78fa3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_write_method</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count)</argsstring>
+        <name>ml_stream_write_method</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>Address</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="25" column="6" declfile="src/ml_stream.h" declline="25" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga7021c4e0bfdb44c2ba065cd4570585b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_flush_method</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_stream_flush_method</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="26" column="6" declfile="src/ml_stream.h" declline="26" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga5ca361adee8d0d18a7ba2c7ca7fb1075" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_seek_method</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value, int64_t Offset, int Mode)</argsstring>
+        <name>ml_stream_seek_method</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int64_t</type>
+          <declname>Offset</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="27" column="6" declfile="src/ml_stream.h" declline="27" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga77e1213e399597dbb2e7be20dec93d71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_tell_method</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_stream_tell_method</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="28" column="6" declfile="src/ml_stream.h" declline="28" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_stream_buffered</definition>
+        <argsstring>(ml_value_t *Stream, size_t Size)</argsstring>
+        <name>ml_stream_buffered</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Stream</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="30" column="12" declfile="src/ml_stream.h" declline="30" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_fd_stream</definition>
+        <argsstring>(ml_type_t *Type, int Fd)</argsstring>
+        <name>ml_fd_stream</name>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Fd</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="34" column="12" declfile="src/ml_stream.h" declline="34" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_fd_stream_fd</definition>
+        <argsstring>(ml_value_t *Stream)</argsstring>
+        <name>ml_fd_stream_fd</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Stream</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="35" column="5" declfile="src/ml_stream.h" declline="35" declcolumn="5"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

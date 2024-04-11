@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__stringmap" kind="group">
+    <compoundname>stringmap</compoundname>
+    <title>Stringmap</title>
+    <innerclass refid="structstringmap__t" prot="public">stringmap_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__stringmap_1ga4db75414a24fd822287a7c96bf705566" prot="public" static="no">
+        <type>struct stringmap_t</type>
+        <definition>typedef struct stringmap_t stringmap_t</definition>
+        <argsstring></argsstring>
+        <name>stringmap_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="12" column="26" bodyfile="src/stringmap.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__stringmap_1ga21fd9fa7b35391ee3d02c7f8a27fc9ab" prot="public" static="no">
+        <type>struct stringmap_node_t</type>
+        <definition>typedef struct stringmap_node_t stringmap_node_t</definition>
+        <argsstring></argsstring>
+        <name>stringmap_node_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="13" column="31" bodyfile="src/stringmap.h" bodystart="13" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__stringmap_1ga42f10093d6219fab973e69d5ce9751eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+        <definition>stringmap_t * stringmap_new</definition>
+        <argsstring>() __attribute__((malloc))</argsstring>
+        <name>stringmap_new</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="22" column="13" declfile="src/stringmap.h" declline="22" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__stringmap_1ga10f0f63b9f8fd79d440152242674e147" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * stringmap_search</definition>
+        <argsstring>(const stringmap_t *Map, const char *Key) __attribute__((pure))</argsstring>
+        <name>stringmap_search</name>
+        <param>
+          <type>const <ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="24" column="6" declfile="src/stringmap.h" declline="24" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__stringmap_1gaa998fa79f38f255353f826e936dab5ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * stringmap_insert</definition>
+        <argsstring>(stringmap_t *Map, const char *Key, void *Value)</argsstring>
+        <name>stringmap_insert</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="25" column="6" declfile="src/stringmap.h" declline="25" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__stringmap_1ga0417ec748d22adad862d966c22117cb0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * stringmap_remove</definition>
+        <argsstring>(stringmap_t *Map, const char *Key)</argsstring>
+        <name>stringmap_remove</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="26" column="6" declfile="src/stringmap.h" declline="26" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__stringmap_1ga30e3dcebb967aaf27cc9a76603bae8b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void **</type>
+        <definition>void ** stringmap_slot</definition>
+        <argsstring>(stringmap_t *Map, const char *Key)</argsstring>
+        <name>stringmap_slot</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="27" column="6" declfile="src/stringmap.h" declline="27" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int stringmap_foreach</definition>
+        <argsstring>(stringmap_t *Map, void *Data, int(*callback)(const char *, void *, void *))</argsstring>
+        <name>stringmap_foreach</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int(*)(const char *, void *, void *)</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="28" column="5" declfile="src/stringmap.h" declline="28" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>unsigned long</type>
+        <definition>unsigned long stringmap_hash</definition>
+        <argsstring>(const char *Key) __attribute__((pure))</argsstring>
+        <name>stringmap_hash</name>
+        <param>
+          <type>const char *</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="30" column="15" declfile="src/stringmap.h" declline="30" declcolumn="15"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__stringmap_1ga04ce49e388ce3b5f4bf48647a444a2be" prot="public" static="no">
+        <name>STRINGMAP_INIT</name>
+        <initializer>{0,}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="20" column="9" bodyfile="src/stringmap.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

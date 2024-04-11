@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__inthash" kind="group">
+    <compoundname>inthash</compoundname>
+    <title>Inthash</title>
+    <innerclass refid="structinthash__t" prot="public">inthash_t</innerclass>
+    <innerclass refid="structinthash__result__t" prot="public">inthash_result_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__inthash_1ga35ec6770c96376fbd7e4ebd33c41e225" prot="public" static="no">
+        <type>struct inthash_t</type>
+        <definition>typedef struct inthash_t inthash_t</definition>
+        <argsstring></argsstring>
+        <name>inthash_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="15" column="24" bodyfile="src/inthash.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__inthash_1gac8b4e1f4707c584dc03a5a4b1fe6915f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+        <definition>inthash_t * inthash_new</definition>
+        <argsstring>() __attribute__((malloc))</argsstring>
+        <name>inthash_new</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="28" column="11" declfile="src/inthash.h" declline="28" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__inthash_1gaa9f7ec5134103dc383959064723a2e25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * inthash_search</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key) __attribute__((pure))</argsstring>
+        <name>inthash_search</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="30" column="6" declfile="src/inthash.h" declline="30" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__inthash_1gaee868ab4d35a35ba57302035133f5282" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * inthash_insert</definition>
+        <argsstring>(inthash_t *Map, uintptr_t Key, void *Value)</argsstring>
+        <name>inthash_insert</name>
+        <param>
+          <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="31" column="6" declfile="src/inthash.h" declline="31" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__inthash_1ga4a152e7b6312c0d13311d92bdaeccdb1" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void *</type>
+        <definition>static void * inthash_search_inline</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key)</argsstring>
+        <name>inthash_search_inline</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="33" column="20" bodyfile="src/inthash.h" bodystart="33" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="group__inthash_1gadc81ecd4ba4a3bc61c95fd9099b71e60" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int inthash_contains_inline</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key)</argsstring>
+        <name>inthash_contains_inline</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="48" column="19" bodyfile="src/inthash.h" bodystart="48" bodyend="61"/>
+      </memberdef>
+      <memberdef kind="function" id="group__inthash_1gaf28e2d798de07546d19ad48a8e9746cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref></type>
+        <definition>inthash_result_t inthash_search2</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key) __attribute__((pure))</argsstring>
+        <name>inthash_search2</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="65" column="18" declfile="src/inthash.h" declline="65" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="group__inthash_1ga6d0b8beaaf60a0692f8b1c2d40fa80b0" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structinthash__result__t" kindref="compound">inthash_result_t</ref></type>
+        <definition>static inthash_result_t inthash_search2_inline</definition>
+        <argsstring>(const inthash_t *Map, uintptr_t Key)</argsstring>
+        <name>inthash_search2_inline</name>
+        <param>
+          <type>const <ref refid="structinthash__t" kindref="compound">inthash_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>uintptr_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="67" column="32" bodyfile="src/inthash.h" bodystart="67" bodyend="80"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__inthash_1ga27d72e87f09dbeafc3d36cc7904db468" prot="public" static="no">
+        <name>INTHASH_INDEX_SHIFT</name>
+        <initializer>6</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="23" column="9" bodyfile="src/inthash.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__inthash_1ga815f76b04432c6fb81ad28140a77a6dc" prot="public" static="no">
+        <name>INTHASH_INCR_SHIFT</name>
+        <initializer>9</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="24" column="9" bodyfile="src/inthash.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__inthash_1gaa68df1ce06c4c8542b0ecf7c4c77c94a" prot="public" static="no">
+        <name>INTHASH_INIT</name>
+        <initializer>(<ref refid="structinthash__t" kindref="compound">inthash_t</ref>){NULL, NULL, 0, 0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/inthash.h" line="26" column="9" bodyfile="src/inthash.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

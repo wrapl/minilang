@@ -1,0 +1,276 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+  <compounddef id="group__logging" kind="group">
+    <compoundname>logging</compoundname>
+    <title>Logging</title>
+    <innerclass refid="structml__logger__t" prot="public">ml_logger_t</innerclass>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__logging_1gad85d5ad7f21721364ba021b14fbbbf5d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ml_log_level_t</name>
+        <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dac6a407dfde69d0401eab64e1bf59e4c2" prot="public">
+          <name>ML_LOG_LEVEL_NONE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da0ba31a6ceea68f5ea68d20d40c59df6d" prot="public">
+          <name>ML_LOG_LEVEL_ERROR</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da719389ac7b2c759bdc6d6a77959eaede" prot="public">
+          <name>ML_LOG_LEVEL_WARN</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dac9889f39811527db27b832ff64117f3b" prot="public">
+          <name>ML_LOG_LEVEL_INFO</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da8090a7ffa0915d58c3ed4c4092cf4edb" prot="public">
+          <name>ML_LOG_LEVEL_DEBUG</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dab92b65b1dd4c7ba4d26609f20a4638f4" prot="public">
+          <name>ML_LOG_LEVEL_ALL</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="14" column="1" bodyfile="src/ml_logging.h" bodystart="14" bodyend="21"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__logging_1ga1b1a74cc75665cf0796bc796cb496078" prot="public" static="no">
+        <type>struct ml_logger_t</type>
+        <definition>typedef struct ml_logger_t ml_logger_t</definition>
+        <argsstring></argsstring>
+        <name>ml_logger_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="23" column="26" bodyfile="src/ml_logging.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__logging_1ga3801ca2abfc03b2781896138f8fe6428" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* ml_logger_fn) (ml_logger_t *Logger, ml_log_level_t Level, ml_value_t *Error, const char *Source, int Line, const char *Format,...) __attribute__((format(printf</definition>
+        <argsstring>)(ml_logger_t *Logger, ml_log_level_t Level, ml_value_t *Error, const char *Source, int Line, const char *Format,...) __attribute__((format(printf</argsstring>
+        <name>ml_logger_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="33" column="9" bodyfile="src/ml_logging.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__logging_1ga0d57f9581b804027a60b4c23f950e607" prot="public" static="no" extern="yes">
+        <type>void ml_log_level_t</type>
+        <definition>typedef void ml_log_level_t MLLogLevel</definition>
+        <argsstring></argsstring>
+        <name>MLLogLevel</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="35" column="23" declfile="src/ml_logging.h" declline="35" declcolumn="23"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" prot="public" static="no" extern="yes" mutable="no">
+        <type>ml_logger_fn</type>
+        <definition>ml_logger_fn ml_log</definition>
+        <argsstring></argsstring>
+        <name>ml_log</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="36" column="21" declfile="src/ml_logging.h" declline="36" declcolumn="21"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__logging_1gaa8c901d37ef198c7100a86a593925b15" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref></type>
+        <definition>ml_logger_t MLLoggerDefault[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLLoggerDefault</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="37" column="20" declfile="src/ml_logging.h" declline="37" declcolumn="20"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__logging_1ga9084628ba013ca3cef24798656fa35e0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref> *</type>
+        <definition>ml_logger_t * ml_logger</definition>
+        <argsstring>(const char *Name)</argsstring>
+        <name>ml_logger</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="60" column="13" declfile="src/ml_logging.h" declline="60" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__logging_1ga8060269338d356d34e36691c2b7077f4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_logger_init</definition>
+        <argsstring>(ml_logger_t *Logger, const char *Name)</argsstring>
+        <name>ml_logger_init</name>
+        <param>
+          <type><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref> *</type>
+          <declname>Logger</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="61" column="6" declfile="src/ml_logging.h" declline="61" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__logging_1ga59673295603f23e896e0c1ec708b33f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_logging_init</definition>
+        <argsstring>(stringmap_t *Globals)</argsstring>
+        <name>ml_logging_init</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Globals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="63" column="6" declfile="src/ml_logging.h" declline="63" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" prot="public" static="no">
+        <name>ML_LOGGER</name>
+        <initializer>MLLoggerDefault</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="40" column="9" bodyfile="src/ml_logging.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__logging_1gaebf88e6908ef617953afa05f50e1916f" prot="public" static="no">
+        <name>ML_LOG_ERROR</name>
+        <param><defname>ERROR</defname></param>
+        <param><defname>FORMAT</defname></param>
+        <param><defname>...</defname></param>
+        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_ERROR) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_ERROR, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="43" column="9" bodyfile="src/ml_logging.h" bodystart="43" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="define" id="group__logging_1gada7629204b251e9a90e20978e8b28759" prot="public" static="no">
+        <name>ML_LOG_WARN</name>
+        <param><defname>ERROR</defname></param>
+        <param><defname>FORMAT</defname></param>
+        <param><defname>...</defname></param>
+        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_WARN) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="47" column="9" bodyfile="src/ml_logging.h" bodystart="47" bodyend="50"/>
+      </memberdef>
+      <memberdef kind="define" id="group__logging_1ga9f77e3b7c700fbd00198de7b6bcd4090" prot="public" static="no">
+        <name>ML_LOG_INFO</name>
+        <param><defname>ERROR</defname></param>
+        <param><defname>FORMAT</defname></param>
+        <param><defname>...</defname></param>
+        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_INFO) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_INFO, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="51" column="9" bodyfile="src/ml_logging.h" bodystart="51" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="define" id="group__logging_1gaef503c71d4eaacaad1ea793deb302716" prot="public" static="no">
+        <name>ML_LOG_DEBUG</name>
+        <param><defname>ERROR</defname></param>
+        <param><defname>FORMAT</defname></param>
+        <param><defname>...</defname></param>
+        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_DEBUG) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_DEBUG, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="55" column="9" bodyfile="src/ml_logging.h" bodystart="55" bodyend="58"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>
