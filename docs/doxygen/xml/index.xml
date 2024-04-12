@@ -26,20 +26,6 @@
     <member refid="structdasm__State_1a6e27f49150e9a14580fb313cc2777e00" kind="variable"><name>status</name></member>
     <member refid="structdasm__State_1aeab1e51ba49feab1ed376b9ae570ba76" kind="variable"><name>sections</name></member>
   </compound>
-  <compound refid="structinthash2__node__t" kind="struct"><name>inthash2_node_t</name>
-    <member refid="structinthash2__node__t_1a4098168278c6e0666eedbfb6805c5f02" kind="variable"><name>Key</name></member>
-    <member refid="structinthash2__node__t_1a63a2e91d18fabd71e0759c2406145574" kind="variable"><name>Offset</name></member>
-  </compound>
-  <compound refid="structinthash2__result__t" kind="struct"><name>inthash2_result_t</name>
-    <member refid="structinthash2__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
-    <member refid="structinthash2__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
-  </compound>
-  <compound refid="structinthash2__t" kind="struct"><name>inthash2_t</name>
-    <member refid="structinthash2__t_1a8f351070e1bb0035edf33c1baaddd13e" kind="variable"><name>Nodes</name></member>
-    <member refid="structinthash2__t_1a93b817b8cb9e5be468df90c8a277e5bc" kind="variable"><name>Values</name></member>
-    <member refid="structinthash2__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
-    <member refid="structinthash2__t_1adbeb0cbccc7ac4e39443f6cf8049b260" kind="variable"><name>Space</name></member>
-  </compound>
   <compound refid="structinthash__result__t" kind="struct"><name>inthash_result_t</name>
     <member refid="structinthash__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
     <member refid="structinthash__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
@@ -762,8 +748,6 @@
     <member refid="coro_8h_1af889af911dcc4afc6014c9402b77b2e5" kind="function"><name>coro_stack_alloc</name></member>
     <member refid="coro_8h_1a2b0db6ba1253ca9fb7753fef48c406f7" kind="function"><name>coro_stack_free</name></member>
   </compound>
-  <compound refid="dap_8h" kind="file"><name>dap.h</name>
-  </compound>
   <compound refid="dasm__arm_8h" kind="file"><name>dasm_arm.h</name>
     <member refid="dasm__arm_8h_1a10cc6c8dc6fece8ec10c7842c51d83c1" kind="define"><name>DASM_ARCH</name></member>
     <member refid="dasm__arm_8h_1abd28deb7b2d8fa748f81e63e132c6784" kind="define"><name>DASM_EXTERN</name></member>
@@ -1024,19 +1008,6 @@
     <member refid="group__inthash_1gadc81ecd4ba4a3bc61c95fd9099b71e60" kind="function"><name>inthash_contains_inline</name></member>
     <member refid="group__inthash_1gaf28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
     <member refid="group__inthash_1ga6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
-  </compound>
-  <compound refid="inthash2_8h" kind="file"><name>inthash2.h</name>
-    <member refid="inthash2_8h_1ab6c05145f6e02872f65710b571dc7f12" kind="define"><name>INTHASH2_INDEX_SHIFT</name></member>
-    <member refid="inthash2_8h_1a0ed0865aee51b153806b21426a16d321" kind="define"><name>INTHASH2_INCR_SHIFT</name></member>
-    <member refid="inthash2_8h_1af2c0a9bf050afa4815d2c1c1aade99e6" kind="define"><name>INTHASH2_INIT</name></member>
-    <member refid="inthash2_8h_1ae916a2db26a51c6dbde5c46abbadadb2" kind="typedef"><name>inthash2_t</name></member>
-    <member refid="inthash2_8h_1a7cdb71feb5a0fe19667f82e2e676b36c" kind="function"><name>inthash2_new</name></member>
-    <member refid="inthash2_8h_1aa0e31570ddccb7de88a470257f8844aa" kind="function"><name>inthash2_search</name></member>
-    <member refid="inthash2_8h_1a82565f4aadc4818d019811dfce15bedf" kind="function"><name>inthash2_insert</name></member>
-    <member refid="inthash2_8h_1a8b64f716274ccb7e4e7fcc31ee61407b" kind="function"><name>inthash2_search_inline</name></member>
-    <member refid="inthash2_8h_1a089f5efb7d0b91774b589b61d3a8bde2" kind="function"><name>inthash2_foreach</name></member>
-    <member refid="inthash2_8h_1a289cc7841657f0ce2d8d7bccbae48a5e" kind="function"><name>inthash2_search2</name></member>
-    <member refid="inthash2_8h_1a53ec8f101c5f2e99efb769065156bc7b" kind="function"><name>inthash2_search2_inline</name></member>
   </compound>
   <compound refid="linenoise_8h" kind="file"><name>linenoise.h</name>
     <member refid="linenoise_8h_1ac910792e203989883a76044651a4f99b" kind="typedef"><name>linenoiseCompletions</name></member>
@@ -1928,9 +1899,6 @@
   </compound>
   <compound refid="ml__string_8h" kind="file"><name>ml_string.h</name>
     <member refid="ml__string_8h_1a12e8e8945dc82c8478f85df5daa01cc9" kind="function"><name>ml_string_init</name></member>
-  </compound>
-  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
-    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
   </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>

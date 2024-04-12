@@ -72,6 +72,35 @@ ML_FUNCTIONX(MLMethodIsolate) {
 	return ml_call(State, Function, Count - 1, Args);
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Function;
+} ml_method_isolated_t;
+
+static void ml_method_isolated_call(ml_state_t *Caller, ml_method_isolated_t *Isolated, int Count, ml_value_t **Args) {
+	ml_state_t *State = ml_state(Caller);
+	ml_methods_t *Methods = new(ml_methods_t);
+	Methods->Type = MLMethodContextT;
+	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];
+	State->Context->Values[ML_METHODS_INDEX] = Methods;
+	return ml_call(State, Isolated->Function, Count, Args);
+}
+
+extern ml_type_t MLMethodIsolatedT[];
+
+ML_FUNCTION(MLMethodIsolated) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_method_isolated_t *Isolated = new(ml_method_isolated_t);
+	Isolated->Type = MLMethodIsolatedT;
+	Isolated->Function = Args[0];
+	return (ml_value_t *)Isolated;
+}
+
+ML_TYPE(MLMethodIsolatedT, (MLFunctionT), "method::isolated",
+	.call = (void *)ml_method_isolated_call,
+	.Constructor = (ml_value_t *)MLMethodIsolated
+);
+
 static ml_methods_t MLRootMethods[1] = {{
 	MLMethodContextT, NULL,
 	{INTHASH_INIT},
@@ -836,6 +865,7 @@ void ml_method_init() {
 	//stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	stringmap_insert(MLMethodT->Exports, "isolate", MLMethodIsolate);
+	stringmap_insert(MLMethodT->Exports, "isolated", MLMethodIsolatedT);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);
 	stringmap_insert(MLMethodT->Exports, "default", MLMethodDefault);
 	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);

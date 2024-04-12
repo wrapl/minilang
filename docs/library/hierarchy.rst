@@ -54,12 +54,6 @@ hierarchy
       "function":e -> "task::queue":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
-      "any":e -> "instance::field":w;
-      "any":e -> "instance":w;
-      "function":e -> "struct::getter":w;
-      "function":e -> "struct::getter::fast":w;
-      "type":e -> "struct":w;
-      "any":e -> "ref":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
       "address":e -> "string":w;
@@ -129,6 +123,7 @@ hierarchy
       "buffer":e -> "mmap::buffer":w;
       "any":e -> "minijs":w;
       "any":e -> "method::context":w;
+      "function":e -> "method::isolated":w;
       "function":e -> "method":w;
       "function":e -> "random":w;
       "sequence":e -> "map":w;

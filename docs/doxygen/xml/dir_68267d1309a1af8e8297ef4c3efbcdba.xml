@@ -5,11 +5,9 @@
     <innerdir refid="dir_c440a0232048a2af23c47d1be7b434ce">src/array</innerdir>
     <innerdir refid="dir_f5f4ff3311de724cc1cde742592e824c">src/dynasm</innerdir>
     <innerfile refid="coro_8h">coro.h</innerfile>
-    <innerfile refid="dap_8h">dap.h</innerfile>
     <innerfile refid="gtk__console_8h">gtk_console.h</innerfile>
     <innerfile refid="gtk__console__completion_8h">gtk_console_completion.h</innerfile>
     <innerfile refid="inthash_8h">inthash.h</innerfile>
-    <innerfile refid="inthash2_8h">inthash2.h</innerfile>
     <innerfile refid="linenoise_8h">linenoise.h</innerfile>
     <innerfile refid="minilang_8h">minilang.h</innerfile>
     <innerfile refid="ml__array_8h">ml_array.h</innerfile>
@@ -49,7 +47,6 @@
     <innerfile refid="ml__socket_8h">ml_socket.h</innerfile>
     <innerfile refid="ml__stream_8h">ml_stream.h</innerfile>
     <innerfile refid="ml__string_8h">ml_string.h</innerfile>
-    <innerfile refid="ml__struct_8h">ml_struct.h</innerfile>
     <innerfile refid="ml__table_8h">ml_table.h</innerfile>
     <innerfile refid="ml__tasks_8h">ml_tasks.h</innerfile>
     <innerfile refid="ml__thread_8h">ml_thread.h</innerfile>
