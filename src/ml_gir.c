@@ -1,5 +1,6 @@
 #include "ml_gir.h"
 #include "ml_macros.h"
+#include "ml_logging.h"
 #include <girffi.h>
 #include <stdio.h>
 
@@ -1351,6 +1352,8 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	}
 }
 
+static GMainLoop *MainLoop = NULL;
+
 typedef struct {
 	object_instance_t *Instance;
 	ml_context_t *Context;
@@ -1366,17 +1369,10 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 	for (guint I = 1; I < NumArgs; ++I) MLArgs[I] = _value_to_ml(Args + I, Info->Args[I]);
 	ml_result_state_t *State = ml_result_state(Info->Context);
 	ml_call(State, Info->Function, NumArgs, MLArgs);
-	GMainContext *MainContext = g_main_context_default();
-	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
+	ml_scheduler_t *Scheduler = ml_context_get(Info->Context, ML_SCHEDULER_INDEX);
+	while (!State->Value) Scheduler->run(Scheduler);
 	ml_value_t *Value = State->Value;
-	if (ml_is_error(Value)) {
-		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
-		ml_source_t Source;
-		int Level = 0;
-		while (ml_error_source(Value, Level++, &Source)) {
-			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
-		}
-	}
+	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Closure returned error");
 	if (Dest) {
 		if (ml_is(Value, MLBooleanT)) {
 			g_value_set_boolean(Dest, ml_boolean_value(Value));
@@ -1497,22 +1493,32 @@ static void instance_constructor_fn(ml_state_t *Caller, ml_gir_type_t *Class, in
 
 #ifdef ML_SCHEDULER
 
-static gboolean ml_gir_queue_run(void *Data) {
-	ml_queued_state_t QueuedState = ml_default_queue_next();
-	if (!QueuedState.State) return FALSE;
-	QueuedState.State->run(QueuedState.State, QueuedState.Value);
-	return TRUE;
-}
-
 typedef struct {
 	ml_scheduler_t Base;
-	ml_scheduler_t *Parent;
+	ml_scheduler_queue_t *Queue;
+	GMainContext *MainContext;
 } gir_scheduler_t;
 
 int ml_gir_queue_add(gir_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value) {
-	int Fill = Scheduler->Parent->add(Scheduler->Parent, State, Value);
-	if (Fill == 1) g_idle_add(ml_gir_queue_run, NULL);
+	int Fill = ml_scheduler_queue_add(Scheduler->Queue, State, Value);
+	g_main_context_wakeup(Scheduler->MainContext);
 	return Fill;
+}
+
+void ml_gir_queue_run(gir_scheduler_t *Scheduler) {
+	g_main_context_iteration(Scheduler->MainContext, !ml_scheduler_queue_fill(Scheduler->Queue));
+	ml_queued_state_t QueuedState = ml_scheduler_queue_next(Scheduler->Queue);
+	if (QueuedState.State) QueuedState.State->run(QueuedState.State, QueuedState.Value);
+}
+
+static gir_scheduler_t *gir_scheduler(ml_context_t *Context) {
+	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
+	Scheduler->Base.add = (ml_scheduler_add_fn)ml_gir_queue_add;
+	Scheduler->Base.run = (ml_scheduler_run_fn)ml_gir_queue_run;
+	Scheduler->Queue = ml_default_queue_init(Context, 256);
+	Scheduler->MainContext = g_main_context_default();
+	ml_context_set(Context, ML_SCHEDULER_INDEX, Scheduler);
+	return Scheduler;
 }
 
 static ptrset_t SleepSet[1] = {PTRSET_INIT};
@@ -1534,10 +1540,7 @@ ML_FUNCTIONX(MLSleep) {
 
 ML_FUNCTIONX(GirInstall) {
 //@gir::install
-	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
-	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
-	Scheduler->Parent = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
-	ml_context_set(Caller->Context, ML_SCHEDULER_INDEX, Scheduler);
+	gir_scheduler(Caller->Context);
 	ML_RETURN(MLNil);
 }
 
@@ -1621,14 +1624,9 @@ struct ml_gir_value_t {
 
 };
 
-static GMainLoop *MainLoop = NULL;
-
 void ml_gir_loop_init(ml_context_t *Context) {
 	MainLoop = g_main_loop_new(NULL, TRUE);
-	gir_scheduler_t *Scheduler = new(gir_scheduler_t);
-	Scheduler->Base.add = (ml_scheduler_fn)ml_gir_queue_add;
-	Scheduler->Parent = ml_context_get(Context, ML_SCHEDULER_INDEX);
-	ml_context_set(Context, ML_SCHEDULER_INDEX, Scheduler);
+	gir_scheduler(Context);
 }
 
 void ml_gir_loop_run() {
@@ -2110,9 +2108,10 @@ static void callback_fn(ffi_cif *Cif, void *Return, void **Params, callback_inst
 	}
 	ml_result_state_t *State = ml_result_state(Instance->Context);
 	ml_call(State, Instance->Function, Arg - Args, Args);
-	GMainContext *MainContext = g_main_context_default();
-	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
+	ml_scheduler_t *Scheduler = ml_context_get(Instance->Context, ML_SCHEDULER_INDEX);
+	while (!State->Value) Scheduler->run(Scheduler);
 	ml_value_t *Result = State->Value;
+	if (ml_is_error(Result)) ML_LOG_ERROR(Result, "Callback returned error");
 	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
 	case GIB_BOOLEAN: *(gboolean *)Return = ml_boolean_value(Result); break;
 	case GIB_INT8: *(gint8 *)Return = ml_integer_value(Result); break;
@@ -2763,7 +2762,7 @@ static void gir_function_call(ml_state_t *Caller, gir_function_t *Function, int 
 		Instance->Type = (ml_type_t *)Type;
 		Instance->Context = Caller->Context;
 		Instance->Function = Value;
-		(ArgIn++)->v_pointer = g_callable_info_prepare_closure(
+		(ArgIn++)->v_pointer = g_callable_info_create_closure(
 			Type->Info,
 			Instance->Cif,
 			(GIFFIClosureCallback)callback_fn,

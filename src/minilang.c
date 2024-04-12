@@ -372,9 +372,11 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
-	int BreakOnExit = 0;
 #ifdef ML_SCHEDULER
 	int SliceSize = 256;
+#endif
+#ifdef GC_DEBUG
+	int BreakOnExit = 0;
 #endif
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
@@ -448,9 +450,11 @@ int main(int Argc, const char *Argv[]) {
 #endif
 				break;
 #endif
+#ifdef GC_DEBUG
 			case 'B':
 				BreakOnExit = 1;
 				break;
+#endif
 			}
 		} else {
 			MainModule = Argv[I];
@@ -460,11 +464,17 @@ int main(int Argc, const char *Argv[]) {
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		ml_default_queue_init(Main->Context, SliceSize);
 #ifdef ML_GIR
-		if (UseGirLoop) ml_gir_loop_init(Main->Context);
+		if (UseGirLoop) {
+			ml_gir_loop_init(Main->Context);
+		} else {
+#endif
+			ml_default_queue_init(Main->Context, SliceSize);
+#ifdef ML_GIR
+		}
 #endif
 	}
+	ml_scheduler_t *Scheduler = ml_context_get(Main->Context, ML_SCHEDULER_INDEX);
 #endif
 #ifdef ML_THREADS
 	ml_default_thread_init(Main->Context);
@@ -497,23 +507,13 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
 		if (UseGirLoop) {
-			ml_gir_loop_run();
-		} else {
+			for (;;) Scheduler->run(Scheduler);
+		} else
 #endif
-		if (SliceSize) {
-			while (!MainResult) {
-				ml_queued_state_t Queued = ml_default_queue_next_wait();
-				Queued.State->run(Queued.State, Queued.Value);
-			}
-		}
-#ifdef ML_GIR
-		}
-		if (BreakOnExit) {
+		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
+#endif
 #ifdef GC_DEBUG
-			GC_generate_random_backtrace();
-#endif
-		}
-#endif
+		if (BreakOnExit) GC_generate_random_backtrace();
 #endif
 	} else if (Command) {
 		ml_parser_t *Parser = ml_parser(NULL, NULL);
@@ -521,35 +521,25 @@ int main(int Argc, const char *Argv[]) {
 		ml_parser_input(Parser, Command);
 		ml_command_evaluate(Main, Parser, Compiler);
 #ifdef ML_SCHEDULER
-		if (SliceSize) {
-			while (!MainResult) {
-				ml_queued_state_t Queued = ml_default_queue_next_wait();
-				Queued.State->run(Queued.State, Queued.Value);
-			}
-		}
+#ifdef ML_GIR
+		if (UseGirLoop) {
+			for (;;) Scheduler->run(Scheduler);
+		} else
+#endif
+		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
 	} else {
 		ml_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
 		if (UseGirLoop) {
-			ml_gir_loop_run();
-		} else {
+			for (;;) Scheduler->run(Scheduler);
+		} else
 #endif
-		if (SliceSize) {
-			while (!MainResult) {
-				ml_queued_state_t Queued = ml_default_queue_next_wait();
-				Queued.State->run(Queued.State, Queued.Value);
-			}
-		}
-#ifdef ML_GIR
-		}
-		if (BreakOnExit) {
+		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
+#endif
 #ifdef GC_DEBUG
-			GC_generate_random_backtrace();
-#endif
-		}
-#endif
+		if (BreakOnExit) GC_generate_random_backtrace();
 #endif
 	}
 	return 0;

@@ -764,6 +764,7 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char);
 char ml_stringbuffer_last(ml_stringbuffer_t *Buffer);
 void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code);
 void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
+void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer);
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 

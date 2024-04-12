@@ -1,0 +1,4 @@
+Stringmap
+=========
+
+.. doxygengroup:: stringmap

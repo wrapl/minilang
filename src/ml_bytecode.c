@@ -1322,6 +1322,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 		return 2;
 	case MLIT_INST_CONFIG:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
+		return 3;
 	case MLIT_INST_COUNT:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 3;
@@ -1674,8 +1675,8 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 	} else {
 		ml_stringbuffer_printf(Buffer, " %s", ml_typeof(Value)->Name);
 	}
-	long Hash = ml_hash(Value);
-	ml_stringbuffer_printf(Buffer, "[%ld]", Hash);
+	//long Hash = ml_hash(Value);
+	//ml_stringbuffer_printf(Buffer, "[%ld]", Hash);
 }
 
 static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {

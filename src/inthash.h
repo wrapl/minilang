@@ -1,6 +1,10 @@
 #ifndef INTHASH_H
 #define INTHASH_H
 
+/// \defgroup inthash
+/// @{
+///
+
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -79,5 +83,6 @@ static inline inthash_result_t inthash_search2_inline(const inthash_t *Map, uint
 }
 #endif
 
+/// @}
 
 #endif

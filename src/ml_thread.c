@@ -169,17 +169,19 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLUUIDT, ml_value_t *Value) {
 static void *ml_thread_fn(ml_thread_t *Thread) {
 	ml_context_t *Context = Thread->Base.Context;
 #ifdef ML_SCHEDULER
-	ml_default_queue_init(Context, 256);
+	ml_scheduler_queue_t *Queue = ml_default_queue_init(Context, 256);
 #endif
 	ml_value_t **Args = Thread->Args;
 	int Count = Thread->Count;
 	Thread->Args = NULL;
 	Thread->Count = 0;
 	ml_call((ml_state_t *)Thread, Args[Count - 1], Count - 1, Args);
+#ifdef ML_SCHEDULER
 	while (!Thread->Result) {
-		ml_queued_state_t Queued = ml_default_queue_next_wait();
+		ml_queued_state_t Queued = ml_scheduler_queue_next_wait(Queue);
 		Queued.State->run(Queued.State, Queued.Value);
 	}
+#endif
 	return Thread->Result;
 }
 

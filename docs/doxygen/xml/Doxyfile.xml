@@ -167,6 +167,11 @@
   <option  id='SOURCE_TOOLTIPS' default='yes' type='bool'><value>YES</value></option>
   <option  id='USE_HTAGS' default='yes' type='bool'><value>NO</value></option>
   <option  id='VERBATIM_HEADERS' default='yes' type='bool'><value>YES</value></option>
+  <option  id='CLANG_ASSISTED_PARSING' default='yes' type='bool'><value>NO</value></option>
+  <option  id='CLANG_ADD_INC_PATHS' default='yes' type='bool'><value>YES</value></option>
+  <option  id='CLANG_OPTIONS' default='yes' type='stringlist'>
+  </option>
+  <option  id='CLANG_DATABASE_PATH' default='yes' type='string'><value><![CDATA[]]></value></option>
   <option  id='ALPHABETICAL_INDEX' default='yes' type='bool'><value>YES</value></option>
   <option  id='IGNORE_PREFIX' default='yes' type='stringlist'>
   </option>

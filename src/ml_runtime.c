@@ -571,6 +571,10 @@ int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Sourc
 	return 1;
 }
 
+ml_value_t *ml_error_value_error(ml_value_t *Value) {
+	return (ml_value_t *)((void *)Value - offsetof(ml_error_t, Error));
+}
+
 ML_METHOD("type", MLErrorValueT) {
 //!error
 //<Error
@@ -991,6 +995,10 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	return Next;
 }
 
+int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue) {
+	return Queue->Fill;
+}
+
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
 	ml_queued_state_t Next = {NULL, NULL};
 #ifdef ML_THREADS
@@ -1061,15 +1069,21 @@ int ml_scheduler_queue_add_signal(ml_scheduler_queue_t *Queue, ml_state_t *State
 
 #endif
 
-static
+void ml_scheduler_queue_run(ml_scheduler_queue_t *Queue) {
+	ml_queued_state_t Queued = ml_scheduler_queue_next_wait(Queue);
+	Queued.State->run(Queued.State, Queued.Value);
+}
+
+/*static
 #ifdef ML_THREADS
 __thread
 #endif
-ml_scheduler_queue_t *DefaultQueue = NULL;
+ml_scheduler_t *CurrentScheduler = NULL;*/
 
-void ml_default_queue_init(ml_context_t *Context, int Slice) {
+ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice) {
 	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
-	Queue->Base.add = (ml_scheduler_fn)ml_scheduler_queue_add_signal;
+	Queue->Base.add = (ml_scheduler_add_fn)ml_scheduler_queue_add_signal;
+	Queue->Base.run = (ml_scheduler_run_fn)ml_scheduler_queue_run;
 	ml_queue_block_t *Block = new(ml_queue_block_t);
 	Block->Next = Block;
 	Queue->WriteBlock = Queue->ReadBlock = Block;
@@ -1084,10 +1098,11 @@ void ml_default_queue_init(ml_context_t *Context, int Slice) {
 	Queue->Counter = Slice;
 	ml_context_set(Context, ML_SCHEDULER_INDEX, Queue);
 	ml_context_set(Context, ML_COUNTER_INDEX, &Queue->Counter);
-	DefaultQueue = Queue;
+	//CurrentScheduler = (ml_scheduler_t *)Queue;
+	return Queue;
 }
 
-static ml_queued_state_t ml_default_queue_read() {
+/*static ml_queued_state_t ml_default_queue_read() {
 	return ml_scheduler_queue_read(DefaultQueue);
 }
 
@@ -1101,62 +1116,66 @@ static int ml_default_queue_write(ml_state_t *State, ml_value_t *Value) {
 
 int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 	return ml_scheduler_queue_add(DefaultQueue, State, Value);
-}
+}*/
 
 #ifdef ML_THREADS
 
-ml_queued_state_t ml_default_queue_next_wait() {
+/*ml_queued_state_t ml_default_queue_next_wait() {
 	return ml_scheduler_queue_next_wait(DefaultQueue);
 }
 
 int ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
 	return ml_scheduler_queue_add_signal(DefaultQueue, State, Value);
-}
+}*/
 
 typedef struct ml_scheduler_thread_t ml_scheduler_thread_t;
 
 struct ml_scheduler_thread_t {
 	ml_scheduler_thread_t *Next;
-	ml_scheduler_queue_t *Queue;
+	ml_scheduler_t *Scheduler;
 	pthread_cond_t Resume[1];
 };
 
-typedef struct {
+struct ml_scheduler_block_t {
 	ml_state_t Base;
+	ml_scheduler_t *Scheduler;
+	pthread_mutex_t Lock[1];
 	pthread_cond_t Resume[1];
-	ml_scheduler_queue_t *Queue;
-} ml_scheduler_block_t;
+};
 
 static ml_scheduler_thread_t *NextThread = NULL;
 static int MaxIdle = 8;
 static pthread_mutex_t ThreadLock[1] = {PTHREAD_MUTEX_INITIALIZER};
 
 static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
-	static int NumIdle = 0;
 	ml_scheduler_block_t *Block = (ml_scheduler_block_t *)State;
-	//pthread_mutex_lock(Queue->Lock);
-	pthread_cond_signal(Block->Resume);
-	//pthread_mutex_unlock(Queue->Lock);
-
-	pthread_mutex_lock(ThreadLock);
-	if (NumIdle >= MaxIdle) {
-		pthread_mutex_unlock(ThreadLock);
-		pthread_exit(NULL);
-	}
-	ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
-	NextThread = &Thread;
-	++NumIdle;
-	pthread_cond_wait(Thread.Resume, ThreadLock);
-	--NumIdle;
-	pthread_mutex_unlock(ThreadLock);
-	DefaultQueue = Thread.Queue;
+	Block->Scheduler->Resume = Block;
 }
 
 static void *ml_scheduler_thread_fn(void *Data) {
-	DefaultQueue = (ml_scheduler_queue_t *)Data;
+	static int NumIdle = 0;
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)Data;
 	for (;;) {
-		ml_queued_state_t Queued = ml_default_queue_next_wait();
-		Queued.State->run(Queued.State, Queued.Value);
+		Scheduler->run(Scheduler);
+		if (Scheduler->Resume) {
+			ml_scheduler_block_t *Block = Scheduler->Resume;
+			pthread_mutex_lock(Block->Lock);
+			pthread_cond_signal(Block->Resume);
+			pthread_mutex_unlock(Block->Lock);
+
+			pthread_mutex_lock(ThreadLock);
+			if (NumIdle >= MaxIdle) {
+				pthread_mutex_unlock(ThreadLock);
+				return NULL;
+			}
+			ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
+			NextThread = &Thread;
+			++NumIdle;
+			pthread_cond_wait(Thread.Resume, ThreadLock);
+			--NumIdle;
+			pthread_mutex_unlock(ThreadLock);
+			Scheduler = Thread.Scheduler;
+		}
 	}
 	return NULL;
 }
@@ -1165,34 +1184,36 @@ void ml_threads_set_max_count(int Max) {
 	MaxIdle = Max;
 }
 
-void ml_default_scheduler_split() {
+void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 	pthread_mutex_lock(ThreadLock);
 	ml_scheduler_thread_t *Thread = NextThread;
 	if (Thread) {
 		NextThread = Thread->Next;
-		Thread->Queue = DefaultQueue;
+		Thread->Scheduler = Scheduler;
 		pthread_cond_signal(Thread->Resume);
 	} else {
 		pthread_attr_t Attr;
 		pthread_attr_init(&Attr);
 		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
-		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, DefaultQueue);
+		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Scheduler);
 		pthread_setname_np(Thread, "minilang");
 	}
 	pthread_mutex_unlock(ThreadLock);
 }
 
-void ml_default_scheduler_join() {
+void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 	ml_scheduler_block_t Block = {
 		{NULL, NULL, ml_scheduler_thread_resume},
+		Scheduler,
+		{PTHREAD_MUTEX_INITIALIZER},
 		{PTHREAD_COND_INITIALIZER}
 	};
-	pthread_mutex_lock(DefaultQueue->Lock);
-	int Fill = ml_default_queue_write((ml_state_t *)&Block, MLNil);
-	if (Fill == 1) pthread_cond_signal(DefaultQueue->Available);
-	pthread_cond_wait(Block.Resume, DefaultQueue->Lock);
-	pthread_mutex_unlock(DefaultQueue->Lock);
+	pthread_mutex_lock(Block.Lock);
+	Scheduler->add(Scheduler, (ml_state_t *)&Block, MLNil);
+	pthread_cond_wait(Block.Resume, Block.Lock);
+	pthread_mutex_unlock(Block.Lock);
+	Scheduler->Resume = NULL;
 }
 
 #endif
@@ -1687,7 +1708,7 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 
 void ml_runtime_init() {
 #ifdef ML_THREADS
-	GC_add_roots(&DefaultQueue, &DefaultQueue + 1);
+	//GC_add_roots(&CurrentScheduler, &CurrentScheduler + 1);
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 #endif
 	ml_config_register("DEBUGGER", ml_config_debugger);

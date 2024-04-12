@@ -17,6 +17,10 @@ method
    Evaluates :mini:`Fn(Args)` in a new method context and returns the result.
 
 
+:mini:`fun mlmethodisolated(Arg₁: any)`
+   *TBD*
+
+
 :mini:`type method < function`
    A map of type signatures to functions. Each type signature consists of a number of types and a flag denoting whether the signature is variadic.
    
@@ -29,12 +33,12 @@ method
       * A type signature with the same number of types as arguments is considered a closer match than a matching variadic signature with fewer types.
 
 
-:mini:`meth method(Name: string): method`
-   Returns the method with name :mini:`Name`.
-
-
 :mini:`meth method(): method`
    Returns a new anonymous method.
+
+
+:mini:`meth method(Name: string): method`
+   Returns the method with name :mini:`Name`.
 
 
 :mini:`meth (Arg₁: method):MLMethodDefault(...)`
@@ -74,5 +78,9 @@ method
 
 :mini:`fun method::context(): method::context`
    Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
+
+
+:mini:`type method::isolated < function`
+   *TBD*
 
 

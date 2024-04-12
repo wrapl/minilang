@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="12" column="18" bodyfile="src/stringmap.h" bodystart="12" bodyend="-1"/>
+        <location file="src/stringmap.h" line="16" column="18" bodyfile="src/stringmap.h" bodystart="16" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structstringmap__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -29,14 +29,14 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="13" column="5" bodyfile="src/stringmap.h" bodystart="13" bodyend="-1"/>
+        <location file="src/stringmap.h" line="17" column="5" bodyfile="src/stringmap.h" bodystart="17" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="src/stringmap.h" line="11" column="1" bodyfile="src/stringmap.h" bodystart="11" bodyend="14"/>
+    <location file="src/stringmap.h" line="15" column="1" bodyfile="src/stringmap.h" bodystart="15" bodyend="18"/>
     <listofallmembers>
       <member refid="structstringmap__t_1ae4399f8c8d02037b3de60736354e4dae" prot="public" virt="non-virtual"><scope>stringmap_t</scope><name>Root</name></member>
       <member refid="structstringmap__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>stringmap_t</scope><name>Size</name></member>

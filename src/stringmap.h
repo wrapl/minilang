@@ -1,6 +1,10 @@
 #ifndef STRINGMAP_H
 #define STRINGMAP_H
 
+/// \defgroup stringmap
+/// @{
+///
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,5 +32,7 @@ unsigned long stringmap_hash(const char *Key) __attribute__ ((pure));
 #ifdef __cplusplus
 }
 #endif
+
+/// @}
 
 #endif

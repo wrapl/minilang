@@ -172,6 +172,7 @@ void ml_error_fprint(FILE *File, const ml_value_t *Error);
 const char *ml_error_value_type(const ml_value_t *Value) __attribute__ ((pure));
 const char *ml_error_value_message(const ml_value_t *Value) __attribute__ ((pure));
 int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Source);
+ml_value_t *ml_error_value_error(ml_value_t *Value);
 
 // Debugging //
 
@@ -217,10 +218,21 @@ extern ml_cfunctionx_t MLTrace[];
 
 typedef struct ml_scheduler_t ml_scheduler_t;
 
-typedef int (*ml_scheduler_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
+typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
+typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
+
+#ifdef ML_THREADS
+
+typedef struct ml_scheduler_block_t ml_scheduler_block_t;
+
+#endif
 
 struct ml_scheduler_t {
-	ml_scheduler_fn add;
+	ml_scheduler_add_fn add;
+	ml_scheduler_run_fn run;
+#ifdef ML_THREADS
+	ml_scheduler_block_t *Resume;
+#endif
 };
 
 static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
@@ -233,14 +245,17 @@ typedef struct {
 	ml_value_t *Value;
 } ml_queued_state_t;
 
-void ml_default_queue_init(ml_context_t *Context, int Slice);
-ml_queued_state_t ml_default_queue_next();
-int ml_default_queue_add(ml_state_t *State, ml_value_t *Value);
-
 typedef struct ml_scheduler_queue_t ml_scheduler_queue_t;
 
-ml_scheduler_queue_t *ml_default_queue_get();
-void ml_default_queue_set(ml_scheduler_queue_t *Queue);
+ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice);
+
+int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue);
+
+ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
+int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
+
+ml_queued_state_t ml_scheduler_queue_next_wait(ml_scheduler_queue_t *Queue);
+int ml_scheduler_queue_add_signal(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
 
 #ifdef ML_SCHEDULER
 extern ml_cfunctionx_t MLAtomic[];
@@ -258,16 +273,12 @@ static void FUNCTION(ml_state_t *State, ml_value_t *Value)
 #define ML_STATE_FN(NAME) ML_STATE_FN2(NAME, CONCAT3(ml_state_fn_, __LINE__, __COUNTER__))
 
 #ifdef ML_THREADS
-ml_queued_state_t ml_default_queue_next_wait();
-int ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 
 void ml_threads_set_max_count(int Max);
-void ml_default_scheduler_split();
-void ml_default_scheduler_join();
 
-#else
-#define ml_default_queue_next_wait ml_default_queue_next
-#define ml_default_queue_add_signal ml_default_queue_add
+void ml_scheduler_split(ml_scheduler_t *Scheduler);
+void ml_scheduler_join(ml_scheduler_t *Scheduler);
+
 #endif
 
 // Locks
