@@ -22,6 +22,7 @@ CFLAGS := old + [
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
 	"-Werror=format-security",
+	"-Wno-format-zero-length",
 	:>"-Wsuggest-attribute=pure",
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
@@ -229,7 +230,7 @@ let Options := [
 	"ENCODINGS",
 	"STRUCTS",
 	"MMAP"
-] 
+]
 
 MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
 
