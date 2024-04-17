@@ -94,6 +94,7 @@ static void ml_log_state_run(ml_log_state_t *State, ml_value_t *Value) {
 		ml_log(State->Logger, State->Level, State->Error, State->Source, State->Line, "%.*s", Length, Message);
 	}
 	if (State->Index <= MAX_LOG_ARG_COUNT) {
+		for (int I = 0; I < State->Index; ++I) State->Args[I] = NULL;
 #ifdef ML_THREADSAFE
 		ml_log_state_t *CacheNext = LogStateCache;
 		do {
