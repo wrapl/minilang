@@ -70,6 +70,8 @@ struct ml_state_t {
 
 extern ml_type_t MLStateT[];
 
+extern ml_state_t MLEndState[];
+
 ml_state_t *ml_state(ml_state_t *Caller) __attribute__ ((malloc));
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
@@ -246,6 +248,9 @@ typedef struct {
 } ml_queued_state_t;
 
 typedef struct ml_scheduler_queue_t ml_scheduler_queue_t;
+
+ml_scheduler_queue_t *ml_scheduler_queue(int Slice);
+uint64_t *ml_scheduler_queue_counter(ml_scheduler_queue_t *Queue);
 
 ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice);
 

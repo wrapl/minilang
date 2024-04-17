@@ -1858,6 +1858,601 @@ ML_METHOD("jit", MLClosureT) {
 
 #endif
 
+#ifdef ML_CBOR
+
+#include "ml_cbor.h"
+
+static void vlq64_encode(ml_stringbuffer_t *Buffer, int64_t Value) {
+	unsigned char Bytes[9];
+	uint64_t X = (uint64_t)Value;
+	unsigned char Sign = 0;
+	if (Value < 0) {
+		X = ~X;
+		Sign = 128;
+	}
+	uint64_t Y = X & 63;
+	X >>= 6;
+	if (!X) {
+		Bytes[0] = Sign + Y;
+		ml_stringbuffer_write(Buffer, (const char *)Bytes, 1);
+	} else {
+		Bytes[0] = Sign + 64 + Y;
+		unsigned char *Ptr = Bytes + 1;
+		for (int I = 1; I < 8; ++I) {
+			Y = X & 127;
+			X >>= 6;
+			if (!X) {
+				*Ptr = Y;
+				ml_stringbuffer_write(Buffer, (const char *)Bytes, (Ptr - Bytes) + 1);
+				return;
+			}
+			*Ptr++ = 128 + Y;
+		}
+		*Ptr = (unsigned char)X;
+		ml_stringbuffer_write(Buffer, (const char *)Bytes, (Ptr - Bytes) + 1);
+	}
+}
+
+static void vlq64_encode_string(ml_stringbuffer_t *Buffer, const char *Value) {
+	int Length = strlen(Value);
+	vlq64_encode(Buffer, Length);
+	ml_stringbuffer_write(Buffer, Value, Length);
+}
+
+static int ml_closure_info_param_fn(const char *Name, void *Index, const char *Params[]) {
+	Params[(intptr_t)Index - 1] = Name;
+	return 0;
+}
+
+static int ml_closure_find_decl(ml_stringbuffer_t *Buffer, inthash_t *Decls, ml_decl_t *Decl) {
+	if (!Decl) return -1;
+	inthash_result_t Result = inthash_search2(Decls, (uintptr_t)Decl);
+	if (Result.Present) return (uintptr_t)Result.Value;
+	int Next = ml_closure_find_decl(Buffer, Decls, Decl->Next);
+	int Index = Decls->Size - Decls->Space;
+	vlq64_encode_string(Buffer, Decl->Ident);
+	vlq64_encode(Buffer, Next);
+	vlq64_encode(Buffer, Decl->Source.Line);
+	vlq64_encode(Buffer, Decl->Index);
+	vlq64_encode(Buffer, Decl->Flags);
+	inthash_insert(Decls, (uintptr_t)Decl, (void *)(uintptr_t)Index);
+	return Index;
+}
+
+static int ml_stringbuffer_copy(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+	ml_stringbuffer_write(Buffer, String, Length);
+	return 0;
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer, ml_closure_info_t *Info) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	vlq64_encode(Buffer, ML_BYTECODE_VERSION);
+	vlq64_encode_string(Buffer, Info->Name ?: "");
+	vlq64_encode_string(Buffer, Info->Source ?: "");
+	vlq64_encode(Buffer, Info->StartLine);
+	vlq64_encode(Buffer, Info->FrameSize);
+	vlq64_encode(Buffer, Info->NumParams);
+	vlq64_encode(Buffer, Info->NumUpValues);
+	vlq64_encode(Buffer, Info->Flags & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS));
+	const char *Params[Info->NumParams];
+	stringmap_foreach(Info->Params, Params, (void *)ml_closure_info_param_fn);
+	for (int I = 0; I < Info->NumParams; ++I) vlq64_encode_string(Buffer, Params[I]);
+	inthash_t Labels[1] = {INTHASH_INIT};
+	uintptr_t BaseOffset = 0, Return = 0;
+	ml_inst_t *Base = Info->Entry;
+	ml_closure_info_labels(Info);
+	inthash_t Decls[1] = {INTHASH_INIT};
+	ml_stringbuffer_t DeclBuffer[1] = {ML_STRINGBUFFER_INIT};
+	int DeclsIndex = ml_closure_find_decl(DeclBuffer, Decls, Info->Decls);
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)((Inst - Base) + BaseOffset));
+		if (Inst->Opcode == MLI_LINK) {
+			BaseOffset += Inst - Base;
+			Base = Inst = Inst[1].Inst;
+			continue;
+		}
+		if (Inst == Info->Return) Return = (Inst - Base) + BaseOffset;
+		switch (MLInstTypes[Inst->Opcode]) {
+		case MLIT_NONE:
+			Inst += 1;
+			break;
+		case MLIT_INST:
+			Inst += 2;
+			break;
+		case MLIT_INST_CONFIG:
+			Inst += 3;
+			break;
+		case MLIT_INST_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_INST_COUNT_DECL:
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
+			Inst += 4;
+			break;
+		case MLIT_COUNT_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_COUNT:
+			Inst += 2;
+			break;
+		case MLIT_VALUE:
+			Inst += 2;
+			break;
+		case MLIT_VALUE_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_VALUE_COUNT_DATA:
+			Inst += 4;
+			break;
+		case MLIT_COUNT_CHARS:
+			Inst += 3;
+			break;
+		case MLIT_DECL:
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[1].Decls);
+			Inst += 2;
+			break;
+		case MLIT_COUNT_DECL:
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[2].Decls);
+			Inst += 3;
+			break;
+		case MLIT_COUNT_COUNT_DECL:
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
+			Inst += 4;
+			break;
+		case MLIT_CLOSURE:
+			Inst += 2 + Inst[1].ClosureInfo->NumUpValues;
+			break;
+		case MLIT_SWITCH:
+			Inst += 3;
+			break;
+		default: __builtin_unreachable();
+		}
+	}
+	vlq64_encode(Buffer, Decls->Size - Decls->Space);
+	ml_stringbuffer_drain(DeclBuffer, Buffer, (void *)ml_stringbuffer_copy);
+	vlq64_encode(Buffer, DeclsIndex);
+	vlq64_encode(Buffer, (Info->Halt - Base) + BaseOffset);
+	vlq64_encode(Buffer, Return);
+	int Line = Info->Entry->Line;
+	vlq64_encode(Buffer, Info->Entry->Line - Info->StartLine);
+	ml_value_t *Values = ml_list();
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			Inst = Inst[1].Inst;
+			continue;
+		}
+		if (Inst->Line != Line) {
+			vlq64_encode(Buffer, MLI_LINK);
+			vlq64_encode(Buffer, Inst->Line - Line);
+			Line = Inst->Line;
+		}
+		vlq64_encode(Buffer, Inst->Opcode);
+		switch (MLInstTypes[Inst->Opcode]) {
+		case MLIT_NONE:
+			Inst += 1;
+			break;
+		case MLIT_INST:
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			Inst += 2;
+			break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			Inst += 2;
+			break;
+		case MLIT_INST_COUNT:
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			vlq64_encode(Buffer, Inst[2].Count);
+			Inst += 3;
+			break;
+		case MLIT_INST_COUNT_DECL:
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			vlq64_encode(Buffer, Inst[2].Count);
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
+			Inst += 4;
+			break;
+		case MLIT_COUNT_COUNT:
+			vlq64_encode(Buffer, Inst[1].Count);
+			vlq64_encode(Buffer, Inst[2].Count);
+			Inst += 3;
+			break;
+		case MLIT_COUNT:
+			vlq64_encode(Buffer, Inst[1].Count);
+			Inst += 2;
+			break;
+		case MLIT_VALUE:
+			ml_list_put(Values, Inst[1].Value);
+			Inst += 2;
+			break;
+		case MLIT_VALUE_COUNT:
+			ml_list_put(Values, Inst[1].Value);
+			vlq64_encode(Buffer, Inst[2].Count);
+			Inst += 3;
+			break;
+		case MLIT_VALUE_COUNT_DATA:
+			ml_list_put(Values, Inst[1].Value);
+			vlq64_encode(Buffer, Inst[2].Count);
+			Inst += 4;
+			break;
+		case MLIT_COUNT_CHARS:
+			vlq64_encode(Buffer, Inst[1].Count);
+			ml_stringbuffer_write(Buffer, Inst[2].Chars, Inst[1].Count);
+			Inst += 3;
+			break;
+		case MLIT_DECL:
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[1].Decls));
+			Inst += 2;
+			break;
+		case MLIT_COUNT_DECL:
+			vlq64_encode(Buffer, Inst[1].Count);
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[2].Decls));
+			Inst += 3;
+			break;
+		case MLIT_COUNT_COUNT_DECL:
+			vlq64_encode(Buffer, Inst[1].Count);
+			vlq64_encode(Buffer, Inst[2].Count);
+			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
+			Inst += 4;
+			break;
+		case MLIT_CLOSURE: {
+			ml_closure_info_t *Info = Inst[1].ClosureInfo;
+			Info->Type = MLClosureInfoT;
+			ml_list_put(Values, (ml_value_t *)Info);
+			vlq64_encode(Buffer, Info->NumUpValues);
+			for (int N = 0; N < Info->NumUpValues; ++N) vlq64_encode(Buffer, Inst[2 + N].Count);
+			Inst += 2 + Info->NumUpValues;
+			break;
+		}
+		case MLIT_SWITCH: {
+			vlq64_encode(Buffer, Inst[1].Count);
+			for (int N = 0; N < Inst[1].Count; ++N) {
+				vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[2].Insts[N]->Label));
+			}
+			Inst += 3;
+			break;
+		}
+		default: __builtin_unreachable();
+		}
+	}
+	ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	ml_cbor_write_array(Writer, ml_list_length(Values) + 2);
+	ml_cbor_write_string(Writer, 1);
+	ml_cbor_write_raw(Writer, (unsigned char *)"!", 1);
+	ml_cbor_write_bytes(Writer, Buffer->Length);
+	ml_stringbuffer_drain(Buffer, Writer, (void *)ml_cbor_write_raw);
+	ML_LIST_FOREACH(Values, Iter) ml_cbor_write(Writer, Iter->Value);
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_cbor_writer_t *Writer, ml_closure_t *Closure) {
+	ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	ml_closure_info_t *Info = Closure->Info;
+	Info->Type = MLClosureInfoT;
+	ml_cbor_write_array(Writer, 2 + Info->NumUpValues);
+	ml_cbor_write_string(Writer, 1);
+	ml_cbor_write_raw(Writer, (unsigned char *)"*", 1);
+	ml_cbor_write(Writer, (ml_value_t *)Info);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_cbor_write(Writer, Closure->UpValues[I + 1]);
+}
+
+typedef struct {
+	int64_t Value;
+	int Count;
+} vlq_result_t;
+
+static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
+	int64_t X = Bytes[0] & 63;
+	if (!(Bytes[0] & 64)) {
+		if (Bytes[0] & 128) X = ~X;
+		return (vlq_result_t){X, 1};
+	}
+	int Shift = 6;
+	for (int I = 1; I < 8; ++I) {
+		X += (uint64_t)(Bytes[I] & 127) << Shift;
+		Shift += 7;
+		if (!(Bytes[I] & 128)) {
+			if (Bytes[0] & 128) X = ~X;
+			return (vlq_result_t){X, I + 1};
+		}
+	}
+	X += (uint64_t)Bytes[8] << 55;
+	return (vlq_result_t){X, 9};
+}
+
+#define VLQ64_NEXT() ({ \
+	if (Length <= 0) return ml_error("CBORError", "Invalid closure info"); \
+	vlq_result_t Result = vlq64_decode(Bytes); \
+	Length -= Result.Count; \
+	Bytes += Result.Count; \
+	Result.Value; \
+})
+
+#define VLQ64_NEXT_STRING() ({ \
+	if (Length <= 0) return ml_error("CBORError", "Invalid closure info"); \
+	vlq_result_t Result = vlq64_decode(Bytes); \
+	Length -= Result.Count; \
+	if (Length < Result.Value) return ml_error("CBORError", "Invalid closure info"); \
+	Bytes += Result.Count; \
+	char *String = snew(Length + 1); \
+	memcpy(String, Bytes, Result.Value); \
+	String[Result.Value] = 0; \
+	Length -= Result.Value; \
+	Bytes += Result.Value; \
+	String; \
+})
+
+#define NEXT_VALUE(DEST) { \
+	ML_CHECK_ARG_COUNT(Index + 1); \
+	ml_value_t *Value = Args[Index++]; \
+	if (ml_typeof(Value) == MLUninitializedT) { \
+		ml_uninitialized_use(Value, &DEST); \
+	} \
+	DEST = Value; \
+}
+
+ML_FUNCTION(DecodeClosureInfo) {
+//!internal
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLAddressT);
+	const unsigned char *Bytes = (const unsigned char *)ml_address_value(Args[0]);
+	int Length = ml_address_length(Args[0]);
+	int Version = VLQ64_NEXT();
+	if (Version != ML_BYTECODE_VERSION) return ml_error("CBORError", "Bytecode version mismatch");
+	ml_closure_info_t *Info = new(ml_closure_info_t);
+	Info->Type = MLClosureInfoT;
+	Info->Name = VLQ64_NEXT_STRING();
+	Info->Source = VLQ64_NEXT_STRING();
+	Info->StartLine = VLQ64_NEXT();
+	Info->FrameSize = VLQ64_NEXT();
+	Info->NumParams = VLQ64_NEXT();
+	Info->NumUpValues = VLQ64_NEXT();
+	Info->Flags = VLQ64_NEXT() & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS);
+	for (int I = 0; I < Info->NumParams; ++I) {
+		const char *Param = VLQ64_NEXT_STRING();
+		stringmap_insert(Info->Params, Param, (void *)(uintptr_t)(I + 1));
+	}
+	int NumDecls = VLQ64_NEXT();
+	ml_decl_t *Decls = anew(ml_decl_t, NumDecls);
+	for (int I = 0; I < NumDecls; ++I) {
+		Decls[I].Ident = VLQ64_NEXT_STRING();
+		int Next = VLQ64_NEXT();
+		Decls[I].Next = Next >= 0 ? &Decls[Next] : NULL;
+		Decls[I].Source.Name = Info->Source;
+		Decls[I].Source.Line = VLQ64_NEXT();
+		Decls[I].Index = VLQ64_NEXT();
+		Decls[I].Flags = VLQ64_NEXT();
+	}
+	int DeclIndex = VLQ64_NEXT();
+	Info->Decls = DeclIndex >= 0 ? &Decls[DeclIndex] : NULL;
+	int NumInsts = VLQ64_NEXT();
+	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
+	ml_inst_t *Halt = Info->Halt = Code + NumInsts;
+	ml_inst_t *Inst = Code;
+	Info->Return = Inst + VLQ64_NEXT();
+	int Line = VLQ64_NEXT() + Info->StartLine;
+	int EndLine = Info->StartLine;
+	int Index = 1;
+	while (Inst < Halt) {
+		ml_opcode_t Opcode = (ml_opcode_t)VLQ64_NEXT();
+		if (Opcode == MLI_LINK) {
+			Line += VLQ64_NEXT();
+			if (Line > EndLine) EndLine = Line;
+			continue;
+		}
+		Inst->Opcode = Opcode;
+		Inst->Line = Line;
+		switch (MLInstTypes[Opcode]) {
+		case MLIT_NONE:
+			Inst += 1; break;
+		case MLIT_INST:
+			Inst[1].Inst = Code + VLQ64_NEXT();
+			Inst += 2; break;
+		case MLIT_INST_CONFIG:
+			// TODO: Implement this!
+			Inst[1].Inst = Code + VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 3; break;
+		case MLIT_INST_COUNT:
+			Inst[1].Inst = Code + VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 3; break;
+		case MLIT_INST_COUNT_DECL:
+			Inst[1].Inst = Code + VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst[3].Decls = &Decls[VLQ64_NEXT()];
+			Inst += 4; break;
+		case MLIT_COUNT:
+			Inst[1].Count = VLQ64_NEXT();
+			Inst += 2; break;
+		case MLIT_VALUE:
+			NEXT_VALUE(Inst[1].Value);
+			Inst += 2; break;
+		case MLIT_COUNT_COUNT:
+			Inst[1].Count = VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 3; break;
+		case MLIT_VALUE_COUNT:
+			NEXT_VALUE(Inst[1].Value);
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 3; break;
+		case MLIT_VALUE_COUNT_DATA:
+			NEXT_VALUE(Inst[1].Value);
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 4; break;
+		case MLIT_COUNT_CHARS: {
+			int Count2 = Inst[1].Count = VLQ64_NEXT();
+			char *Chars = snew(Count2);
+			memcpy(Chars, Bytes, Count2);
+			Chars[Count2] = 0;
+			Inst[2].Chars = Chars;
+			Length -= Count2;
+			Bytes += Count2;
+			Inst += 3; break;
+		}
+		case MLIT_DECL:
+			Inst[1].Decls = &Decls[VLQ64_NEXT()];
+			Inst += 2; break;
+		case MLIT_COUNT_DECL:
+			Inst[1].Count = VLQ64_NEXT();
+			Inst[2].Decls = &Decls[VLQ64_NEXT()];
+			Inst += 3; break;
+		case MLIT_COUNT_COUNT_DECL:
+			Inst[1].Count = VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst[3].Decls = &Decls[VLQ64_NEXT()];
+			Inst += 4; break;
+		case MLIT_CLOSURE:
+			NEXT_VALUE(Inst[1].Value);
+			int NumUpValues = VLQ64_NEXT();
+			for (int J = 0; J < NumUpValues; ++J) Inst[J + 2].Count = VLQ64_NEXT();
+			Inst += 2 + NumUpValues;
+			break;
+		case MLIT_SWITCH: {
+			int Count2 = Inst[1].Count = VLQ64_NEXT();
+			ml_inst_t **Ptr = Inst[2].Insts = anew(ml_inst_t *, Count2);
+			for (int J = 0; J < Inst[1].Count; ++J) *Ptr++ = Code + VLQ64_NEXT();
+			Inst += 3;
+			break;
+		}
+		}
+	}
+	Info->EndLine = EndLine;
+	return (ml_value_t *)Info;
+}
+
+ML_FUNCTION(DecodeClosure) {
+//!internal
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLClosureInfoT);
+	ml_closure_info_t *Info = (ml_closure_info_t *)Args[0];
+	ml_closure_t *Closure = (ml_closure_t *)ml_closure(Info);
+	ML_CHECK_ARG_COUNT(Info->NumUpValues + 1);
+	for (int I = 0; I < Info->NumUpValues; ++I) {
+		ml_value_t *Value = Args[I + 1];
+		if (ml_typeof(Value) == MLUninitializedT) {
+			ml_uninitialized_use(Value, &Closure->UpValues[I + 1]);
+		}
+		Closure->UpValues[I + 1] = Value;
+	}
+	return (ml_value_t *)Closure;
+}
+
+static size_t ml_inst_offset(ml_inst_t *Target, ml_inst_t *Base, ml_inst_t *Halt) {
+	uintptr_t BaseOffset = 0;
+	for (ml_inst_t *Inst = Base; Inst != Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			BaseOffset += Inst - Base;
+			Base = Inst = Inst[1].Inst;
+			continue;
+		}
+		if (Inst == Target) return (Inst - Base) + BaseOffset;
+		switch (MLInstTypes[Inst->Opcode]) {
+		case MLIT_NONE:
+			Inst += 1;
+			break;
+		case MLIT_INST:
+			Inst += 2;
+			break;
+		case MLIT_INST_CONFIG:
+			Inst += 3;
+			break;
+		case MLIT_INST_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_INST_COUNT_DECL:
+			Inst += 4;
+			break;
+		case MLIT_COUNT_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_COUNT:
+			Inst += 2;
+			break;
+		case MLIT_VALUE:
+			Inst += 2;
+			break;
+		case MLIT_VALUE_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_VALUE_COUNT_DATA:
+			Inst += 4;
+			break;
+		case MLIT_COUNT_CHARS:
+			Inst += 3;
+			break;
+		case MLIT_DECL:
+			Inst += 2;
+			break;
+		case MLIT_COUNT_DECL:
+			Inst += 3;
+			break;
+		case MLIT_COUNT_COUNT_DECL:
+			Inst += 4;
+			break;
+		case MLIT_CLOSURE:
+			Inst += 2 + Inst[1].ClosureInfo->NumUpValues;
+			break;
+		case MLIT_SWITCH:
+			Inst += 3;
+			break;
+		default: __builtin_unreachable();
+		}
+	}
+	return 0;
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLContinuationT, ml_cbor_writer_t *Writer, ml_frame_t *Frame) {
+	ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	ml_cbor_write_indef_array(Writer);
+	ml_cbor_write_string(Writer, strlen("frame"));
+	ml_cbor_write_raw(Writer, "frame", strlen("frame"));
+	if (Frame->Base.Caller->Type == MLContinuationT) {
+		ml_cbor_write(Writer, (ml_value_t *)Frame->Base.Caller);
+	} else {
+		ml_cbor_write_simple(Writer, ML_CBOR_SIMPLE_NULL);
+	}
+	ml_cbor_write(Writer, Frame->UpValues[0]);
+	ml_closure_info_t *Info = ((ml_closure_t *)Frame->UpValues[0])->Info;
+	ml_cbor_write_positive(Writer, ml_inst_offset(Frame->Inst, Info->Entry, Info->Halt));
+	ml_cbor_write_positive(Writer, ml_inst_offset(Frame->OnError, Info->Entry, Info->Halt));
+	ml_cbor_write_string(Writer, strlen(Frame->Source));
+	ml_cbor_write_raw(Writer, Frame->Source, strlen(Frame->Source));
+	ml_cbor_write_positive(Writer, Frame->Line);
+	for (ml_value_t **Slot = Frame->Stack; Slot < Frame->Top; ++Slot) ml_cbor_write(Writer, *Slot++);
+	ml_cbor_write_break(Writer);
+}
+
+ML_FUNCTION(DecodeFrame) {
+//!internal
+	ML_CHECK_ARG_COUNT(6);
+	ML_CHECK_ARG_TYPE(1, MLClosureT);
+	ML_CHECK_ARG_TYPE(2, MLIntegerT);
+	ML_CHECK_ARG_TYPE(3, MLIntegerT);
+	ML_CHECK_ARG_TYPE(4, MLStringT);
+	ML_CHECK_ARG_TYPE(5, MLIntegerT);
+	ml_closure_info_t *Info = ((ml_closure_t *)Args[1])->Info;
+	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
+	ml_frame_t *Frame = bnew(Size);
+	Frame->Base.Type = MLContinuationT;
+	if (Args[0] != MLNil) {
+		ML_CHECK_ARG_TYPE(0, MLStateT);
+		Frame->Base.Caller = (ml_state_t *)Args[0];
+	} else {
+		Frame->Base.Caller = MLEndState;
+	}
+	Frame->Base.run = (ml_state_fn)ml_frame_run;
+	Frame->Base.Context = &MLRootContext;
+	Frame->Inst = Info->Entry + ml_integer_value(Args[2]);
+	Frame->OnError = Info->Entry + ml_integer_value(Args[3]);
+	Frame->Source = ml_string_value(Args[4]);
+	Frame->Line = ml_integer_value(Args[5]);
+	ml_value_t **Top = Frame->Stack;
+	for (int I = 6; I < Count; ++I) *Top++ = Args[I];
+	Frame->Top = Top;
+	return (ml_value_t *)Frame;
+}
+
+#endif
+
 #define DEBUG_VERSION
 #include "ml_bytecode.c"
 #undef DEBUG_VERSION
@@ -1867,5 +2462,10 @@ void ml_bytecode_init() {
 	ml_type_add_rule(MLClosureT, MLFunctionT, ML_TYPE_ARG(1), NULL);
 #endif
 #include "ml_bytecode_init.c"
+#ifdef ML_CBOR
+	ml_cbor_default_object("!", (ml_value_t *)DecodeClosureInfo);
+	ml_cbor_default_object("*", (ml_value_t *)DecodeClosure);
+	ml_cbor_default_object("frame", (ml_value_t *)DecodeFrame);
+#endif
 }
 #endif

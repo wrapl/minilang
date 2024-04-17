@@ -133,6 +133,8 @@ ML_TYPE(MLStateT, (MLFunctionT), "state",
 static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 }
 
+ml_state_t MLEndState[1] = {{MLStateT, NULL, ml_end_state_run, &MLRootContext}};
+
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }
@@ -1079,6 +1081,29 @@ void ml_scheduler_queue_run(ml_scheduler_queue_t *Queue) {
 __thread
 #endif
 ml_scheduler_t *CurrentScheduler = NULL;*/
+
+ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
+	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
+	Queue->Base.add = (ml_scheduler_add_fn)ml_scheduler_queue_add_signal;
+	Queue->Base.run = (ml_scheduler_run_fn)ml_scheduler_queue_run;
+	ml_queue_block_t *Block = new(ml_queue_block_t);
+	Block->Next = Block;
+	Queue->WriteBlock = Queue->ReadBlock = Block;
+	Queue->WriteIndex = Queue->ReadIndex = QUEUE_BLOCK_SIZE - 1;
+	Queue->Space = QUEUE_BLOCK_SIZE;
+	Queue->Fill = 0;
+#ifdef ML_THREADS
+	pthread_mutex_init(Queue->Lock, NULL);
+	pthread_cond_init(Queue->Available, NULL);
+#endif
+	Queue->Slice = Slice;
+	Queue->Counter = Slice;
+	return Queue;
+}
+
+uint64_t *ml_scheduler_queue_counter(ml_scheduler_queue_t *Queue) {
+	return &Queue->Counter;
+}
 
 ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice) {
 	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);

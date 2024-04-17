@@ -69,6 +69,11 @@ void ml_cbor_writer_error(ml_cbor_writer_t *Writer, ml_value_t *Error) __attribu
 void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
 ml_value_t *ml_cbor_try_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
 
+#define ML_CBOR_SIMPLE_FALSE 20
+#define ML_CBOR_SIMPLE_TRUE 21
+#define ML_CBOR_SIMPLE_NULL 22
+#define ML_CBOR_SIMPLE_UNDEF 23
+
 int ml_cbor_write_raw(ml_cbor_writer_t *Writer, const void *Bytes, size_t Length);
 void ml_cbor_write_integer(ml_cbor_writer_t *Writer, int64_t Number);
 void ml_cbor_write_positive(ml_cbor_writer_t *Writer, uint64_t Number);
