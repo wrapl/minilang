@@ -974,7 +974,7 @@ ML_METHOD("append", MLStringBufferT, MLUninitializedT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_source_t Source = ml_uninitialized_source(Args[1]);
 	ml_stringbuffer_printf(Buffer, "uninitialized value %s @ %s:%d", ml_uninitialized_name(Args[1]), Source.Name, Source.Line);
-	return MLSome;
+	return ml_error("ValueError", "%s is uninitialized", ml_uninitialized_name(Args[1]));
 }
 
 ML_METHOD(MLIntegerT, MLStringT) {
