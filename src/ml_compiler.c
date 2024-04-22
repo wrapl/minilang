@@ -4238,6 +4238,8 @@ static int ml_scan_raw_string(ml_parser_t *Parser) {
 	return Length;
 }
 
+static inthash_t IdentCache[1] = {INTHASH_INIT};
+
 static const char *ml_ident(const char *Next, int Length) {
 	int Shift = 8 - Length;
 	if (Shift < 0) {
@@ -4246,18 +4248,31 @@ static const char *ml_ident(const char *Next, int Length) {
 		Ident[Length] = 0;
 		return Ident;
 	}
-	static inthash_t Idents[1] = {INTHASH_INIT};
 	uintptr_t Key = *(uintptr_t *)Next;
 	Key &= (uintptr_t)-1 >> (8 * Shift);
-	char *Ident = inthash_search_inline(Idents, Key);
+	char *Ident = inthash_search_inline(IdentCache, Key);
 	if (!Ident) {
 		Ident = snew(Length + 1);
 		memcpy(Ident, Next, Length);
 		Ident[Length] = 0;
-		inthash_insert(Idents, Key, Ident);
+		inthash_insert(IdentCache, Key, Ident);
 	}
 	//fprintf(stderr, "%s -> 0x%lx\n", Ident, Ident);
 	return Ident;
+}
+
+int ml_ident_cache_check() {
+	inthash_t Copy = IdentCache[0];
+	for (int I = 0; I < Copy.Size; ++I) {
+		if (Copy.Values[I]) {
+			char Key[sizeof(uintptr_t) + 1] = {0,};
+			memcpy(Key, Copy.Keys + I, sizeof(uintptr_t));
+			if (strcmp(Key, (char *)Copy.Values[I])) {
+				return 1;
+			}
+		}
+	}
+	return 0;
 }
 
 static ml_token_t ml_scan(ml_parser_t *Parser) {
@@ -7211,6 +7226,11 @@ ml_value_t *ml_inline_call_macro(ml_value_t *Value) {
 	return ml_macro(ml_cfunctionx(Value, ml_inline_call_macro_fn));
 }
 
+ML_FUNCTION(MLIdentCacheCheck) {
+	if (ml_ident_cache_check()) return ml_error("InternalError", "Compiler ident cache is corrupt");
+	return MLNil;
+}
+
 void ml_compiler_init() {
 #include "ml_compiler_init.c"
 	stringmap_insert(MLParserT->Exports, "expr", MLExprT);
@@ -7218,6 +7238,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
 	stringmap_insert(MLCompilerT->Exports, "source", MLSourceInline);
+	stringmap_insert(MLCompilerT->Exports, "_check_ident_cache", MLIdentCacheCheck);
 	stringmap_insert(MLMacroT->Exports, "expr", ml_macro((ml_value_t *)MLValueExpr));
 	stringmap_insert(MLMacroT->Exports, "subst", ml_macro((ml_value_t *)MLMacroSubst));
 	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);
