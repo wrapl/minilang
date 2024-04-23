@@ -436,18 +436,14 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_GIR
 			case 'g':
 				UseGirLoop = 1;
-#ifdef ML_SCHEDULER
 				if (!SliceSize) SliceSize = 1000;
-#endif
 				break;
 #endif
 #ifdef ML_GTK_CONSOLE
 			case 'G':
 				UseGirLoop = 1;
 				GtkConsole = 1;
-#ifdef ML_SCHEDULER
 				if (!SliceSize) SliceSize = 1000;
-#endif
 				break;
 #endif
 #ifdef GC_DEBUG
@@ -484,11 +480,11 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals);
+		gtk_console_t *Console = gtk_console(Main, (ml_getter_t)stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
 		if (MainModule) gtk_console_load_file(Console, MainModule, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
-		ml_gir_loop_run();
+		while (!MainResult) Scheduler->run(Scheduler);
 		return 0;
 	}
 #endif
