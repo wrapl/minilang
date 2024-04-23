@@ -100,7 +100,7 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
-void ml_runtime_init();
+void ml_runtime_init(const char *ExecName);
 
 typedef struct {
 	ml_state_t Base;
@@ -144,6 +144,18 @@ void ml_uninitialized_use(ml_value_t *Uninitialized, ml_value_t **Slot);
 void ml_uninitialized_set(ml_value_t *Uninitialized, ml_value_t *Value);
 const char *ml_uninitialized_name(ml_value_t *Uninitialized);
 ml_source_t ml_uninitialized_source(ml_value_t *Uninitialized);
+
+// Backtraces //
+
+#ifdef ML_BACKTRACE
+
+extern ml_cfunction_t MLBacktrace[];
+
+typedef int (*ml_backtrace_fn)(void *Data, uintptr_t PC, const char *Source, int Line, const char *Function);
+
+int ml_backtrace_full(ml_backtrace_fn Callback, void *Data);
+
+#endif
 
 // Errors //
 

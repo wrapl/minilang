@@ -321,6 +321,9 @@ file("ml_config.h") => fun(Target) do
 	if MINILANG_RELAX_NAMES then
 		File:write("\n#define ML_RELAX_NAMES\n")
 	end
+	if MINILANG_BACKTRACE then
+		File:write("\n#define ML_BACKTRACE\n")
+	end
 	File:write("\n#endif")
 	File:close
 end
@@ -459,7 +462,7 @@ if MINILANG_BACKTRACE then
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir}']
+	CFLAGS := old + ['-I{Dir}']
 	LDFLAGS := old + [Lib, "-lunwind"]
 end
 
