@@ -32,7 +32,7 @@ CFLAGS := old + [
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
 ]
-LDFLAGS := old + ["-lm"]
+LDFLAGS := old + ["-lm", "-lunwind"]
 
 if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
@@ -463,7 +463,7 @@ if MINILANG_BACKTRACE then
 	end
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ['-I{Dir}']
-	LDFLAGS := old + [Lib, "-lunwind"]
+	LDFLAGS := old + [Lib]
 end
 
 if MINILANG_LIBRARY then
