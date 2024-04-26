@@ -536,6 +536,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef DEBUG_VERSION
 	goto DO_DEBUG_ADVANCE;
 #else
+	CHECK_COUNTER
 	goto *Labels[Inst->Opcode];
 #endif
 
