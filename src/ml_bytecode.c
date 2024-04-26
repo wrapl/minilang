@@ -1924,10 +1924,6 @@ static int ml_stringbuffer_copy(ml_stringbuffer_t *Buffer, const char *String, s
 	return 0;
 }
 
-static int ml_stringbuffer_cbor_write(ml_cbor_writer_t *Writer, const char *Bytes, size_t Length) {
-	return ml_cbor_write_raw(Writer, Bytes, Length) == -1;
-}
-
 static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer, ml_closure_info_t *Info) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	vlq64_encode(Buffer, ML_BYTECODE_VERSION);
@@ -2123,7 +2119,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 	ml_cbor_write_string(Writer, 1);
 	ml_cbor_write_raw(Writer, (unsigned char *)"!", 1);
 	ml_cbor_write_bytes(Writer, Buffer->Length);
-	ml_stringbuffer_drain(Buffer, Writer, (void *)ml_stringbuffer_cbor_write);
+	ml_stringbuffer_drain(Buffer, Writer, (void *)ml_cbor_write_raw);
 	ML_LIST_FOREACH(Values, Iter) ml_cbor_write(Writer, Iter->Value);
 }
 

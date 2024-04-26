@@ -32,7 +32,7 @@ CFLAGS := old + [
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
 ]
-LDFLAGS := old + ["-lm", "-lunwind"]
+LDFLAGS := old + ["-lm"]
 
 if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
@@ -591,6 +591,7 @@ end
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	GC or LDFLAGS := old + ["-lgc"]
+	LDFLAGS := old + ["-lunwind"]
 elseif PLATFORM = "FreeBSD" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-I/usr/local/include"]

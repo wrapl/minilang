@@ -1732,6 +1732,8 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 }
 */
 
+#ifdef Linux
+
 #define UNW_LOCAL_ONLY
 #include <libunwind.h>
 #include <unistd.h>
@@ -1757,6 +1759,8 @@ static void error_handler(int Signal) {
 	}
 	exit(0);
 }
+
+#endif
 
 #ifdef ML_BACKTRACE
 #include <backtrace.h>
@@ -1813,7 +1817,9 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 }
 
 void ml_runtime_init(const char *ExecName) {
+#ifdef Linux
 	signal(SIGSEGV, error_handler);
+#endif
 	GC_set_warn_proc(ml_gc_warn_fn);
 #ifdef ML_BACKTRACE
 	BacktraceState = backtrace_create_state(ExecName, 0, NULL, NULL);

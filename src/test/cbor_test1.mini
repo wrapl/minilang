@@ -1,0 +1,22 @@
+let S := string::buffer()
+
+S:write("fun(X) X + {\n\t\"A1\" is 1")
+for I in 2 .. 100 do
+	S:write(',\n\t\"A{I}\" is {I}')
+end
+S:write("\n}")
+
+let C := compiler(globals())
+let P := parser()
+P:source("test", 1)
+P:input(S:rest)
+
+let F1 := P:compile(C)()
+
+let E := fmt::cbor::encode(F1)
+
+print(enc::base16::encode(E), "\n")
+
+let F2 := fmt::cbor::decode(E)
+
+print(F2({}))

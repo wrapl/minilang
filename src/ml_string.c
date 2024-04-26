@@ -4279,11 +4279,11 @@ int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)
 		goto done;
 	}
 	Result = callback(Data, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - Start);
-	if (Result) goto done;
+	if (Result < 0) goto done;
 	Node = Node->Next;
 	while (Node->Next) {
 		Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
-		if (Result) goto done;
+		if (Result < 0) goto done;
 		Node = Node->Next;
 	}
 	Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);

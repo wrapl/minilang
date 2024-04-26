@@ -1,8 +1,8 @@
-var test_minilang := fun(Source) do
+fun test_minilang(Source) do
 	var Target := meta('test-{Source:basename}')[MINILANG, Source] => fun() do
 		var Actual := shell(MINILANG, Source)
 		var File := (Source % "out"):open("r")
-		var Expected := File:read(2048)
+		var Expected := File:rest or ""
 		File:close
 		if Actual = Expected then
 			print('\e[32mTest {Source:basename} passed!\e[0m\n')
@@ -16,6 +16,14 @@ var test_minilang := fun(Source) do
 	DEFAULT[Target]
 end
 
-for I in 1 .. 27 do
-	test_minilang(file('test{I}.mini'))
+for I in 1:up do
+	let Test := file('test{I}.mini')
+	while Test:exists
+	test_minilang(Test)
+end
+
+MINILANG_CBOR and for I in 1:up do
+	let Test := file('cbor_test{I}.mini')
+	while Test:exists
+	test_minilang(Test)
 end
