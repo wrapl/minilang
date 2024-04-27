@@ -46,6 +46,11 @@ int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
 ml_value_t *ml_array_index(ml_array_t *Array, int Count, ml_value_t **Indices);
 
+size_t ml_array_data_size(ml_array_t *Source);
+void ml_array_copy_data(ml_array_t *Source, char *Data);
+char *ml_array_flatten(ml_array_t *Source);
+int ml_array_copy(ml_array_t *Target, ml_array_t *Source);
+
 #define ML_ARRAY_ACCESSORS(CTYPE) \
 CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, ...); \
 void ml_array_set_ ## CTYPE (CTYPE Value, ml_array_t *Array, ...)

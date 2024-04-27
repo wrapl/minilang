@@ -3284,7 +3284,7 @@ ML_METHOD("get", MLWeakRefT) {
 	return Ref->Value ?: MLNil;
 }
 
-void ml_init(stringmap_t *Globals) {
+void ml_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_JIT
 	GC_set_pages_executable(1);
 #endif
@@ -3319,7 +3319,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_map_init();
 	ml_set_init();
 	ml_compiler_init();
-	ml_runtime_init();
+	ml_runtime_init(ExecName);
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include "ml_types.h"
+#include "ml_logging.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "runtime"
@@ -132,6 +133,8 @@ ML_TYPE(MLStateT, (MLFunctionT), "state",
 
 static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 }
+
+ml_state_t MLEndState[1] = {{MLStateT, NULL, ml_end_state_run, &MLRootContext}};
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
@@ -421,7 +424,7 @@ typedef struct {
 
 typedef struct {
 	ml_type_t *Type;
-	ml_error_value_t Error[];
+	ml_error_value_t Error[1];
 } ml_error_t;
 
 static void ml_error_assign(ml_state_t *Caller, ml_value_t *Error, ml_value_t *Value) {
@@ -442,7 +445,7 @@ ML_FUNCTION(MLError) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
-	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
+	ml_error_t *Error = new(ml_error_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[0]);
@@ -485,7 +488,7 @@ ML_TYPE(MLErrorValueT, (), "error",
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;
 	GC_vasprintf(&Message, Format, Args);
-	ml_error_t *Value = xnew(ml_error_t, 1, ml_error_value_t);
+	ml_error_t *Value = new(ml_error_t);
 	Value->Type = MLErrorT;
 	Value->Error->Type = MLErrorValueT;
 	Value->Error->Error = Error;
@@ -616,7 +619,7 @@ ML_METHOD("raise", MLErrorValueT) {
 //<Error
 //>error
 // Returns :mini:`Error` as an error (i.e. rethrows the error).
-	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
+	ml_error_t *Error = new(ml_error_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_error_value_type(Args[0]);
@@ -1079,6 +1082,29 @@ void ml_scheduler_queue_run(ml_scheduler_queue_t *Queue) {
 __thread
 #endif
 ml_scheduler_t *CurrentScheduler = NULL;*/
+
+ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
+	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
+	Queue->Base.add = (ml_scheduler_add_fn)ml_scheduler_queue_add_signal;
+	Queue->Base.run = (ml_scheduler_run_fn)ml_scheduler_queue_run;
+	ml_queue_block_t *Block = new(ml_queue_block_t);
+	Block->Next = Block;
+	Queue->WriteBlock = Queue->ReadBlock = Block;
+	Queue->WriteIndex = Queue->ReadIndex = QUEUE_BLOCK_SIZE - 1;
+	Queue->Space = QUEUE_BLOCK_SIZE;
+	Queue->Fill = 0;
+#ifdef ML_THREADS
+	pthread_mutex_init(Queue->Lock, NULL);
+	pthread_cond_init(Queue->Available, NULL);
+#endif
+	Queue->Slice = Slice;
+	Queue->Counter = Slice;
+	return Queue;
+}
+
+uint64_t *ml_scheduler_queue_counter(ml_scheduler_queue_t *Queue) {
+	return &Queue->Counter;
+}
 
 ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice) {
 	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
@@ -1669,7 +1695,7 @@ ML_METHODX("error", MLChannelT, MLStringT, MLStringT) {
 	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
 	Channel->Caller = Caller;
 	Channel->Context = Caller->Context;
-	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
+	ml_error_t *Error = new(ml_error_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[1]);
@@ -1684,7 +1710,7 @@ ML_METHODX("raise", MLChannelT, MLStringT, MLAnyT) {
 	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
 	Channel->Caller = Caller;
 	Channel->Context = Caller->Context;
-	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
+	ml_error_t *Error = new(ml_error_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[1]);
@@ -1699,14 +1725,105 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
 	Channel->Caller = Caller;
 	Channel->Context = Caller->Context;
-	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
+	ml_error_t *Error = new(ml_error_t);
 	Error->Type = MLErrorT;
 	Error->Error[0] = *(ml_error_value_t *)Args[1];
 	ML_CONTINUE(Receiver, Error);
 }
 */
 
-void ml_runtime_init() {
+#ifdef Linux
+
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+#include <unistd.h>
+
+static void error_handler(int Signal) {
+	//backtrace_print(BacktraceState, 0, stderr);
+	unw_context_t Context;
+	unw_getcontext(&Context);
+	unw_cursor_t Cursor;
+	unw_init_local2(&Cursor, &Context, UNW_INIT_SIGNAL_FRAME);
+	while (unw_step(&Cursor) > 0) {
+		unw_word_t Offset;
+		char Line[256];
+		int Length;
+		if (unw_get_proc_name(&Cursor, Line, 240, &Offset)) {
+			Length = sprintf(Line, "<unknown>\n");
+		} else {
+			Length = strlen(Line);
+			char *End = Line + Length;
+			Length += sprintf(End, "+%lu\n", Offset);
+		}
+		write(STDERR_FILENO, Line, Length);
+	}
+	exit(0);
+}
+
+#endif
+
+#ifdef ML_BACKTRACE
+#include <backtrace.h>
+
+struct backtrace_state *BacktraceState = NULL;
+
+static int ml_backtrace_write(void *Data, uintptr_t PC, const char *Filename, int Lineno, const char *Function) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Data;
+	ml_stringbuffer_printf(Buffer, "%08x: %s: %s:%d\n", (unsigned int)PC, Function, Filename, Lineno);
+	return 0;
+}
+
+int ml_backtrace_full(ml_backtrace_fn Callback, void *Data) {
+	return backtrace_full(BacktraceState, 0, Callback, NULL, Data);
+}
+
+#endif
+
+ML_FUNCTION(MLBacktrace) {
+//@backtrace
+#ifdef ML_BACKTRACE
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	backtrace_full(BacktraceState, 0, ml_backtrace_write, NULL, Buffer);
+	return ml_stringbuffer_to_string(Buffer);
+#endif
+	return ml_cstring("");
+}
+
+#ifdef ML_BACKTRACE
+
+static int ml_backtrace_to_error(void *Data, uintptr_t PC, const char *Filename, int Lineno, const char *Function) {
+	ml_error_t *Error = (ml_error_t *)Data;
+	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Error->Trace[I].Name) {
+		Error->Error->Trace[I].Name = Filename;
+		Error->Error->Trace[I].Line = Lineno;
+		return 0;
+	}
+	return 1;
+}
+
+#endif
+
+static void ml_gc_warn_fn(char *Format, GC_word Arg) {
+	ml_error_t Error[1] = {0,};
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = "";
+	Error->Error->Message = "";
+	Error->Error->Value = MLNil;
+#ifdef ML_BACKTRACE
+	backtrace_full(BacktraceState, 1, ml_backtrace_to_error, NULL, Error);
+#endif
+	ml_log(MLLoggerDefault, ML_LOG_LEVEL_WARN, NULL, "", 0, Format, Arg);
+}
+
+void ml_runtime_init(const char *ExecName) {
+#ifdef Linux
+	signal(SIGSEGV, error_handler);
+#endif
+	GC_set_warn_proc(ml_gc_warn_fn);
+#ifdef ML_BACKTRACE
+	BacktraceState = backtrace_create_state(ExecName, 0, NULL, NULL);
+#endif
 #ifdef ML_THREADS
 	//GC_add_roots(&CurrentScheduler, &CurrentScheduler + 1);
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);

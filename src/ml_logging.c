@@ -94,6 +94,8 @@ static void ml_log_state_run(ml_log_state_t *State, ml_value_t *Value) {
 		ml_log(State->Logger, State->Level, State->Error, State->Source, State->Line, "%.*s", Length, Message);
 	}
 	if (State->Index <= MAX_LOG_ARG_COUNT) {
+		for (int I = 0; I < State->Index; ++I) State->Args[I] = NULL;
+		State->Error = NULL;
 #ifdef ML_THREADSAFE
 		ml_log_state_t *CacheNext = LogStateCache;
 		do {
@@ -139,7 +141,7 @@ static void ml_log_fn(ml_state_t *Caller, ml_logger_t *Logger, int Count, ml_val
 	ml_log_level_t Level = ml_integer_value(Args[0]);
 	if (Level <= ML_LOG_LEVEL_NONE || Level > MLLogLevel || Logger->Ignored[Level]) ML_RETURN(MLNil);
 	ml_source_t Source = ml_debugger_source(Caller);
-	ml_log_state_t *State = xnew(ml_log_state_t, Count + 1, ml_value_t *);
+	ml_log_state_t *State = ml_log_state(Count);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_log_state_run;
@@ -187,10 +189,6 @@ static void ml_log_macro_call(ml_state_t *Caller, ml_log_macro_t *Macro, int Cou
 ML_TYPE(MLLogMacroT, (MLFunctionT), "log::macro",
 	.call = (void *)ml_log_macro_call
 );
-
-static ml_value_t *ml_log_macro_special(void *LogFn) {
-	return (ml_value_t *)LogFn;
-}
 
 typedef struct {
 	ml_value_t *LogFn;

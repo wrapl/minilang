@@ -6,7 +6,7 @@
 
 typedef struct gtk_console_t gtk_console_t;
 
-gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals);
+gtk_console_t *gtk_console(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals);
 void gtk_console_show(gtk_console_t *Console, GtkWindow *Parent);
 void gtk_console_log(gtk_console_t *Console, ml_value_t *Value);
 int gtk_console_append(gtk_console_t *Console, const char *Buffer, int Length);

@@ -162,52 +162,6 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 	return Result;
 }
 
-#ifdef ML_BACKTRACE
-#include <backtrace.h>
-
-#define UNW_LOCAL_ONLY
-#include <libunwind.h>
-#include <unistd.h>
-
-struct backtrace_state *BacktraceState = NULL;
-
-static void error_handler(int Signal) {
-	//backtrace_print(BacktraceState, 0, stderr);
-	unw_context_t Context;
-	unw_getcontext(&Context);
-	unw_cursor_t Cursor;
-	unw_init_local2(&Cursor, &Context, UNW_INIT_SIGNAL_FRAME);
-	while (unw_step(&Cursor) > 0) {
-		unw_word_t Offset;
-		char Line[256];
-		int Length;
-		if (unw_get_proc_name(&Cursor, Line, 240, &Offset)) {
-			Length = sprintf(Line, "<unknown>\n");
-		} else {
-			Length = strlen(Line);
-			char *End = Line + Length;
-			Length += sprintf(End, "+%lu\n", Offset);
-		}
-		write(STDERR_FILENO, Line, Length);
-	}
-	exit(0);
-}
-
-static int ml_backtrace_fn(void *Data, uintptr_t PC, const char *Filename, int Lineno, const char *Function) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Data;
-	ml_stringbuffer_printf(Buffer, "%08x: %s: %s:%d\n", (unsigned int)PC, Function, Filename, Lineno);
-	return 0;
-}
-
-ML_FUNCTION(MLBacktrace) {
-//@backtrace
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	backtrace_full(BacktraceState, 0, ml_backtrace_fn, NULL, Buffer);
-	return ml_stringbuffer_to_string(Buffer);
-}
-
-#endif
-
 static ml_value_t *MainResult = NULL;
 
 static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
@@ -230,12 +184,7 @@ extern ml_cfunction_t MLMemSize[];
 extern ml_cfunction_t MLMemCollect[];
 
 int main(int Argc, const char *Argv[]) {
-#ifdef ML_BACKTRACE
-	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
-	signal(SIGSEGV, error_handler);
-	stringmap_insert(Globals, "backtrace", MLBacktrace);
-#endif
-	ml_init(Globals);
+	ml_init(Argv[0], Globals);
 	ml_sequence_init(Globals);
 	ml_object_init(Globals);
 	ml_time_init(Globals);
@@ -248,6 +197,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_AST
 	ml_ast_init(Globals);
+#endif
+#ifdef ML_BACKTRACE
+	stringmap_insert(Globals, "backtrace", MLBacktrace);
 #endif
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
@@ -436,18 +388,14 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_GIR
 			case 'g':
 				UseGirLoop = 1;
-#ifdef ML_SCHEDULER
 				if (!SliceSize) SliceSize = 1000;
-#endif
 				break;
 #endif
 #ifdef ML_GTK_CONSOLE
 			case 'G':
 				UseGirLoop = 1;
 				GtkConsole = 1;
-#ifdef ML_SCHEDULER
 				if (!SliceSize) SliceSize = 1000;
-#endif
 				break;
 #endif
 #ifdef GC_DEBUG
@@ -484,11 +432,11 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals);
+		gtk_console_t *Console = gtk_console(Main, (ml_getter_t)stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
 		if (MainModule) gtk_console_load_file(Console, MainModule, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
-		ml_gir_loop_run();
+		while (!MainResult) Scheduler->run(Scheduler);
 		return 0;
 	}
 #endif

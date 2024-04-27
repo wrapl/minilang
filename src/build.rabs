@@ -22,6 +22,7 @@ CFLAGS := old + [
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
 	"-Werror=format-security",
+	"-Wno-format-zero-length",
 	:>"-Wsuggest-attribute=pure",
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
@@ -104,8 +105,8 @@ end
 
 PARENT."generate_init_file" := generate_init_file
 
-fun generate_init_files() do
-	for Source in PATH:ls(".*\\.c", :R) do
+fun generate_init_files(Path := PATH) do
+	for Source in Path:ls(".*\\.c") do
 		Source:basename:find("_init") and next
 		generate_init_file(Source)
 	end
@@ -113,7 +114,8 @@ end
 
 PARENT."generate_init_files" := generate_init_files
 
-generate_init_files()
+generate_init_files(PATH)
+generate_init_files(PATH / "array")
 
 let Objects := [
 	file("inthash.o"),
@@ -171,7 +173,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Dir := file("gc")
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
-		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.4/gc-8.2.4.tar.gz -O- | tar xvzP --strip-components=1")
+		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.6/gc-8.2.6.tar.gz -O- | tar xvzP --strip-components=1")
 		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
@@ -229,7 +231,7 @@ let Options := [
 	"ENCODINGS",
 	"STRUCTS",
 	"MMAP"
-] 
+]
 
 MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
 
@@ -267,8 +269,8 @@ MINILANG_XML := old or defined("XML")
 MINILANG_XE := old or defined("XE")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
-MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER") or defined("THREADS")
 MINILANG_THREADS := old or defined("THREADS")
+MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_GIR or MINILANG_THREADS or old or defined("SCHEDULER")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
@@ -319,6 +321,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_RELAX_NAMES then
 		File:write("\n#define ML_RELAX_NAMES\n")
+	end
+	if MINILANG_BACKTRACE then
+		File:write("\n#define ML_BACKTRACE\n")
 	end
 	File:write("\n#endif")
 	File:close
@@ -458,8 +463,8 @@ if MINILANG_BACKTRACE then
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir}']
-	LDFLAGS := old + [Lib, "-lunwind"]
+	CFLAGS := old + ['-I{Dir}']
+	LDFLAGS := old + [Lib]
 end
 
 if MINILANG_LIBRARY then
@@ -587,6 +592,7 @@ end
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	GC or LDFLAGS := old + ["-lgc"]
+	LDFLAGS := old + ["-lunwind"]
 elseif PLATFORM = "FreeBSD" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-I/usr/local/include"]

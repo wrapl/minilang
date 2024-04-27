@@ -523,6 +523,11 @@ static void console_size_allocate(GtkWindow *Window, GdkRectangle *Allocation, g
 	}
 }
 
+static gboolean console_quit(GtkWindow *Window, GdkEvent *Event, gtk_console_t *Console) {
+	ml_state_schedule(Console->Base.Caller, MLNil);
+	return FALSE;
+}
+
 #ifdef __APPLE__
 #define COMMAND_MASK GDK_META_MASK
 #else
@@ -788,12 +793,13 @@ static gboolean console_update_status(gtk_console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
-gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals) {
+gtk_console_t *gtk_console(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals) {
 	gtk_init(0, 0);
 	gtk_console_t *Console = new(gtk_console_t);
 	Console->Base.Type = ConsoleT;
 	Console->Base.run = (ml_state_fn)ml_console_repl_run;
-	Console->Base.Context = Context;
+	Console->Base.Caller = Caller;
+	Console->Base.Context = Caller->Context;
 	Console->Name = strdup("<console>");
 	Console->ParentGetter = GlobalGet;
 	Console->ParentGlobals = Globals;
@@ -988,7 +994,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	}
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), Console->WindowSize[0], Console->WindowSize[1]);
 	g_signal_connect(G_OBJECT(Console->Window), "size-allocate", G_CALLBACK(console_size_allocate), Console);
-	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(ml_gir_loop_quit), NULL);
+	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(console_quit), Console);
 
 	stringmap_insert(Console->Globals, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
 	stringmap_insert(Console->Globals, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));

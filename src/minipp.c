@@ -214,7 +214,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 }
 
 int main(int Argc, const char **Argv) {
-	ml_init(Globals);
+	ml_init(Argv[0], Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_sequence_init(Globals);

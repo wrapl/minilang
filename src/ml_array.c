@@ -419,7 +419,7 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Base.Caller, Array);
 }
 
-static int array_copy(ml_array_t *Target, ml_array_t *Source);
+int ml_array_copy(ml_array_t *Target, ml_array_t *Source);
 
 static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
@@ -462,7 +462,7 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 	} else if (ml_is(Args[0], MLArrayT)) {
 		ml_array_t *Source = (ml_array_t *)Args[0];
 		ml_array_t *Target = ml_array_alloc(Format, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		ML_RETURN(Target);
 	} else if (ml_is(Args[0], MLIntegerT)) {
 		for (int I = 1; I < Count - 1; ++I) ML_CHECKX_ARG_TYPE(I, MLIntegerT);
@@ -3101,7 +3101,13 @@ static char *array_flatten_to(char *Target, int Size, int Degree, int FlatDegree
 	}
 }
 
-static char *array_flatten(ml_array_t *Source) {
+size_t ml_array_data_size(ml_array_t *Source) {
+	size_t Size = MLArraySizes[Source->Format];
+	for (int I = Source->Degree; --I >= 0;) Size *= Source->Dimensions[I].Size;
+	return Size;
+}
+
+void ml_array_copy_data(ml_array_t *Source, char *Data) {
 	size_t Size = MLArraySizes[Source->Format];
 	int FlatDegree = Source->Degree;
 	for (int I = Source->Degree; --I >= 0;) {
@@ -3109,12 +3115,17 @@ static char *array_flatten(ml_array_t *Source) {
 		Size *= Source->Dimensions[I].Size;
 	}
 	FlatDegree = Source->Degree - FlatDegree;
-	char *Data = array_alloc(Source->Format, Size);
 	array_flatten_to(Data, MLArraySizes[Source->Format], Source->Degree, FlatDegree, Source->Dimensions, Source->Base.Value);
+}
+
+char *ml_array_flatten(ml_array_t *Source) {
+	size_t Size = ml_array_data_size(Source);
+	char *Data = array_alloc(Source->Format, Size);
+	ml_array_copy_data(Source, Data);
 	return Data;
 }
 
-static int array_copy(ml_array_t *Target, ml_array_t *Source) {
+int ml_array_copy(ml_array_t *Target, ml_array_t *Source) {
 	int Degree = Source->Degree;
 	int DataSize = MLArraySizes[Target->Format];
 	for (int I = Degree; --I >= 0;) {
@@ -3124,7 +3135,7 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 	}
 	Target->Base.Length = DataSize;
 	if (Target->Format == Source->Format) {
-		Target->Base.Value = array_flatten(Source);
+		Target->Base.Value = ml_array_flatten(Source);
 	} else {
 		Target->Base.Value = array_alloc(Target->Format, DataSize);
 		update_row_fn_t Update = UpdateSetRowFns[Target->Format * MAX_FORMATS + Source->Format];
@@ -3156,7 +3167,7 @@ ML_METHOD("reshape", MLArrayT, MLListT) {
 	if (TargetCount != SourceCount) return ml_error("ArrayError", "Incompatible shapes");
 
 	ml_array_t *Target = ml_array_alloc(Source->Format, TargetDegree);
-	Target->Base.Value = array_flatten(Source);
+	Target->Base.Value = ml_array_flatten(Source);
 	size_t DataSize = MLArraySizes[Target->Format];
 	int I = TargetDegree;
 	ML_LIST_REVERSE(Args[1], Iter) {
@@ -3185,7 +3196,7 @@ ML_METHOD("sums", MLArrayT, MLIntegerT) {
 	case ML_ARRAY_FORMAT_U32:
 	case ML_ARRAY_FORMAT_U64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_U64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_sums_uint64_t(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
@@ -3194,14 +3205,14 @@ ML_METHOD("sums", MLArrayT, MLIntegerT) {
 	case ML_ARRAY_FORMAT_I32:
 	case ML_ARRAY_FORMAT_I64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_sums_int64_t(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
 	case ML_ARRAY_FORMAT_F32:
 	case ML_ARRAY_FORMAT_F64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_F64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_sums_double(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
@@ -3209,7 +3220,7 @@ ML_METHOD("sums", MLArrayT, MLIntegerT) {
 	case ML_ARRAY_FORMAT_C32:
 	case ML_ARRAY_FORMAT_C64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_C64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_sums_complex_double(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
@@ -3236,7 +3247,7 @@ ML_METHOD("prods", MLArrayT, MLIntegerT) {
 	case ML_ARRAY_FORMAT_U32:
 	case ML_ARRAY_FORMAT_U64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_U64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_prods_uint64_t(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
@@ -3245,14 +3256,14 @@ ML_METHOD("prods", MLArrayT, MLIntegerT) {
 	case ML_ARRAY_FORMAT_I32:
 	case ML_ARRAY_FORMAT_I64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_prods_int64_t(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
 	case ML_ARRAY_FORMAT_F32:
 	case ML_ARRAY_FORMAT_F64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_F64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_prods_double(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
@@ -3260,7 +3271,7 @@ ML_METHOD("prods", MLArrayT, MLIntegerT) {
 	case ML_ARRAY_FORMAT_C32:
 	case ML_ARRAY_FORMAT_C64: {
 		ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_C64, Source->Degree);
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		partial_prods_complex_double(Index, Target->Degree, Target->Dimensions, Target->Base.Value, 0);
 		return (ml_value_t *)Target;
 	}
@@ -4022,7 +4033,7 @@ ML_METHOD("-", MLArrayT) {
 	case ML_ARRAY_FORMAT_U8:
 	case ML_ARRAY_FORMAT_I8: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		int8_t *Values = (int8_t *)C->Base.Value;
 		for (int I = DataSize / sizeof(int8_t); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
@@ -4030,7 +4041,7 @@ ML_METHOD("-", MLArrayT) {
 	case ML_ARRAY_FORMAT_U16:
 	case ML_ARRAY_FORMAT_I16: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I16, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		int16_t *Values = (int16_t *)C->Base.Value;
 		for (int I = DataSize / sizeof(int16_t); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
@@ -4038,7 +4049,7 @@ ML_METHOD("-", MLArrayT) {
 	case ML_ARRAY_FORMAT_U32:
 	case ML_ARRAY_FORMAT_I32: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I32, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		int32_t *Values = (int32_t *)C->Base.Value;
 		for (int I = DataSize / sizeof(int32_t); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
@@ -4046,21 +4057,21 @@ ML_METHOD("-", MLArrayT) {
 	case ML_ARRAY_FORMAT_U64:
 	case ML_ARRAY_FORMAT_I64: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		int64_t *Values = (int64_t *)C->Base.Value;
 		for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
 	}
 	case ML_ARRAY_FORMAT_F32: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F32, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		float *Values = (float *)C->Base.Value;
 		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
 	}
 	case ML_ARRAY_FORMAT_F64: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		double *Values = (double *)C->Base.Value;
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
@@ -4068,14 +4079,14 @@ ML_METHOD("-", MLArrayT) {
 #ifdef ML_COMPLEX
 	case ML_ARRAY_FORMAT_C32: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C32, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		complex_float *Values = (complex_float *)C->Base.Value;
 		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
 	}
 	case ML_ARRAY_FORMAT_C64: {
 		ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree);
-		int DataSize = array_copy(C, A);
+		int DataSize = ml_array_copy(C, A);
 		complex_double *Values = (complex_double *)C->Base.Value;
 		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = -*Values;
 		return (ml_value_t *)C;
@@ -4093,7 +4104,7 @@ static ml_value_t *array_math_integer_fn(int64_t (*fn)(int64_t), int Count, ml_v
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree);
-	int DataSize = array_copy(C, A);
+	int DataSize = ml_array_copy(C, A);
 	int64_t *Values = (int64_t *)C->Base.Value;
 	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = fn(*Values);
 	return (ml_value_t *)C;
@@ -4105,7 +4116,7 @@ static ml_value_t *array_math_real_fn(double (*fn)(double), int Count, ml_value_
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree);
-	int DataSize = array_copy(C, A);
+	int DataSize = ml_array_copy(C, A);
 	double *Values = (double *)C->Base.Value;
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = fn(*Values);
 	return (ml_value_t *)C;
@@ -4119,7 +4130,7 @@ static ml_value_t *array_math_complex_fn(complex_double (*fn)(complex_double), i
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree);
-	int DataSize = array_copy(C, A);
+	int DataSize = ml_array_copy(C, A);
 	complex_double *Values = (complex_double *)C->Base.Value;
 	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = fn(*Values);
 	return (ml_value_t *)C;
@@ -4131,11 +4142,11 @@ static ml_value_t *array_math_complex_real_fn(double (*fn)(complex_double), int 
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree);
-	int DataSize = array_copy(C, A);
+	int DataSize = ml_array_copy(C, A);
 	complex_double *Values = (complex_double *)C->Base.Value;
 	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = fn(*Values);
 	ml_array_t *D = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree);
-	array_copy(D, C);
+	ml_array_copy(D, C);
 	return (ml_value_t *)D;
 }
 #endif
@@ -4168,7 +4179,7 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 		}
 	}
 	ml_array_t *C = ml_array_alloc(Format, Degree);
-	array_copy(C, A);
+	ml_array_copy(C, A);
 	update_row_fn_t Update = Updates[C->Format * MAX_FORMATS + B->Format];
 	if (!Update) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", C->Base.Type->Name, B->Base.Type->Name);
 	update_prefix(Update, C->Degree - B->Degree, C->Dimensions, C->Base.Value, B->Degree, B->Dimensions, B->Base.Value);
@@ -4258,7 +4269,7 @@ ML_METHOD(#NAME, MLArrayT, MLAnyT) { \
 	ml_value_t *B = Args[1]; \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_ANY, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	ml_value_t **Values = (ml_value_t **)C->Base.Value; \
 	for (int I = DataSize / sizeof(ml_value_t *); --I >= 0; ++Values) { \
 		*Values = ml_simple_inline(METHOD, 2, *Values, B); \
@@ -4279,7 +4290,7 @@ ML_METHOD(#NAME, MLAnyT, MLArrayT) { \
 	ml_value_t *B = Args[0]; \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_ANY, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	ml_value_t **Values = (ml_value_t **)C->Base.Value; \
 	for (int I = DataSize / sizeof(ml_value_t *); --I >= 0; ++Values) { \
 		*Values = ml_simple_inline(METHOD, 2, B, *Values); \
@@ -4300,7 +4311,7 @@ ML_METHOD(#NAME, MLArrayIntegerT, MLIntegerT) { \
 	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_U64: { \
 		uint64_t *Values = (uint64_t *)C->Base.Value; \
@@ -4343,7 +4354,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayIntegerT) { \
 	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_U64: { \
 		uint64_t *Values = (uint64_t *)C->Base.Value; \
@@ -4386,7 +4397,7 @@ ML_METHOD(#NAME, MLArrayRealT, MLRealT) { \
 	double B = ml_real_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_F64: { \
 		double *Values = (double *)C->Base.Value; \
@@ -4414,7 +4425,7 @@ ML_METHOD(#NAME, MLRealT, MLArrayRealT) { \
 	double B = ml_real_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_F64: { \
 		double *Values = (double *)C->Base.Value; \
@@ -4447,7 +4458,7 @@ ML_METHOD(#NAME, MLArrayComplexT, MLComplexT) { \
 	complex_double B = ml_complex_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	complex_double *Values = (complex_double *)C->Base.Value; \
 	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = *Values NAME B; \
 	return (ml_value_t *)C; \
@@ -4466,7 +4477,7 @@ ML_METHOD(#NAME, MLComplexT, MLArrayComplexT) { \
 	complex_double B = ml_complex_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	complex_double *Values = (complex_double *)C->Base.Value; \
 	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = B NAME *Values; \
 	return (ml_value_t *)C; \
@@ -4500,7 +4511,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	int64_t *Values = (int64_t *)C->Base.Value; \
 	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = *Values SYMBOL B; \
 	return (ml_value_t *)C; \
@@ -4520,7 +4531,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	int64_t *Values = (int64_t *)C->Base.Value; \
 	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = B SYMBOL *Values; \
 	return (ml_value_t *)C; \
@@ -4546,7 +4557,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	int64_t *Values = (int64_t *)C->Base.Value; \
 	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = FN(*Values, B); \
 	return (ml_value_t *)C; \
@@ -4566,7 +4577,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	int64_t *Values = (int64_t *)C->Base.Value; \
 	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = FN(B, *Values); \
 	return (ml_value_t *)C; \
@@ -4586,7 +4597,7 @@ ML_METHOD(#NAME, MLArrayT, MLRealT) { \
 	double B = ml_real_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	double *Values = (double *)C->Base.Value; \
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = FN(*Values, B); \
 	return (ml_value_t *)C; \
@@ -4606,7 +4617,7 @@ ML_METHOD(#NAME, MLRealT, MLArrayT) { \
 	int64_t B = ml_real_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree); \
-	int DataSize = array_copy(C, A); \
+	int DataSize = ml_array_copy(C, A); \
 	double *Values = (double *)C->Base.Value; \
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = FN(B, *Values); \
 	return (ml_value_t *)C; \
@@ -4623,7 +4634,7 @@ ML_METHOD("^", MLArrayMutableComplexT, MLComplexT) {
 	complex_double B = ml_complex_value(Args[1]);
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree);
-	int DataSize = array_copy(C, A);
+	int DataSize = ml_array_copy(C, A);
 	complex_double *Values = (complex_double *)C->Base.Value;
 	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = cpow(*Values, B);
 	return (ml_value_t *)C;
@@ -4637,7 +4648,7 @@ ML_METHOD("^", MLArrayMutableRealT, MLRealT) {
 	double B = ml_real_value(Args[1]);
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree);
-	int DataSize = array_copy(C, A);
+	int DataSize = ml_array_copy(C, A);
 	double *Values = (double *)C->Base.Value;
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = pow(*Values, B);
 	return (ml_value_t *)C;
@@ -5570,7 +5581,7 @@ ML_METHOD("copy", MLArrayT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	if (Source->Degree == -1) return (ml_value_t *)Source;
 	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree);
-	array_copy(Target, Source);
+	ml_array_copy(Target, Source);
 	return (ml_value_t *)Target;
 }
 
@@ -5581,10 +5592,10 @@ ML_METHOD("copy", MLVisitorT, MLArrayT) {
 	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree);
 	inthash_insert(Visitor->Cache, (uintptr_t)Source, Target);
 	if (Source->Format == ML_ARRAY_FORMAT_ANY) {
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		// TODO: Use Visitor to make a copy of each value in Target.
 	} else {
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 	}
 	return (ml_value_t *)Target;
 }
@@ -5601,10 +5612,10 @@ ML_METHOD("const", MLVisitorT, MLArrayT) {
 	}
 	inthash_insert(Visitor->Cache, (uintptr_t)Source, Target);
 	if (Source->Format == ML_ARRAY_FORMAT_ANY) {
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 		// TODO: Use Visitor to make a copy of each value in Target.
 	} else {
-		array_copy(Target, Source);
+		ml_array_copy(Target, Source);
 	}
 	return (ml_value_t *)Target;
 }
@@ -5703,7 +5714,7 @@ ML_METHODX("copy", MLArrayT, MLFunctionT) {
 	int Degree = A->Degree;
 	if (Degree == -1) ML_RETURN(A);
 	ml_array_t *C = ml_array_alloc(A->Format, Degree);
-	int Remaining = array_copy(C, A) / MLArraySizes[C->Format];
+	int Remaining = ml_array_copy(C, A) / MLArraySizes[C->Format];
 	if (Remaining == 0) ML_RETURN(C);
 	ml_array_apply_state_t *State = new(ml_array_apply_state_t);
 	State->Base.Caller = Caller;
@@ -7210,7 +7221,7 @@ ML_METHOD("\\", MLMatrixT) {
 	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
 	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
 		ml_array_t *Inv = ml_array_alloc(ML_ARRAY_FORMAT_F64, 2);
-		array_copy(Inv, Source);
+		ml_array_copy(Inv, Source);
 		int Stride = Inv->Dimensions->Stride;
 		double *A[N];
 		char *Data = Inv->Base.Value;
@@ -7242,7 +7253,7 @@ ML_METHOD("\\", MLMatrixT) {
 #ifdef ML_COMPLEX
 	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
 		ml_array_t *Inv = ml_array_alloc(ML_ARRAY_FORMAT_C64, 2);
-		array_copy(Inv, Source);
+		ml_array_copy(Inv, Source);
 		int N = Inv->Dimensions->Size;
 		int Stride = Inv->Dimensions->Stride;
 		complex double *A[N];
@@ -7291,7 +7302,7 @@ ML_METHOD("\\", MLMatrixT, MLVectorT) {
 	ml_array_format_t Format = MAX(Source->Format, B->Format);
 	if (Format <= ML_ARRAY_FORMAT_F64) {
 		ml_array_t *Tmp = ml_array_alloc(ML_ARRAY_FORMAT_F64, 2);
-		array_copy(Tmp, Source);
+		ml_array_copy(Tmp, Source);
 		int Stride = Tmp->Dimensions->Stride;
 		double *A[N];
 		char *Data = Tmp->Base.Value;
@@ -7302,7 +7313,7 @@ ML_METHOD("\\", MLMatrixT, MLVectorT) {
 		int *P = anew(int, N + 1);
 		if (!ml_lu_decomp_real(A, P, N)) return ml_error("ArrayError", "Matrix is degenerate");
 		ml_array_t *Sol = ml_array_alloc(ML_ARRAY_FORMAT_F64, 1);
-		array_copy(Sol, B);
+		ml_array_copy(Sol, B);
 		double X[N], *SolData = (double *)Sol->Base.Value;
 		for (int I = 0; I < N; ++I) {
 			X[I] = SolData[P[I]];
@@ -7321,7 +7332,7 @@ ML_METHOD("\\", MLMatrixT, MLVectorT) {
 #ifdef ML_COMPLEX
 	} else if (Format <= ML_ARRAY_FORMAT_C64) {
 		ml_array_t *Tmp = ml_array_alloc(ML_ARRAY_FORMAT_C64, 2);
-		array_copy(Tmp, Source);
+		ml_array_copy(Tmp, Source);
 		int Stride = Tmp->Dimensions->Stride;
 		complex double *A[N];
 		char *Data = Tmp->Base.Value;
@@ -7332,7 +7343,7 @@ ML_METHOD("\\", MLMatrixT, MLVectorT) {
 		int *P = anew(int, N + 1);
 		if (!ml_lu_decomp_complex(A, P, N)) return ml_error("ArrayError", "Matrix is degenerate");
 		ml_array_t *Sol = ml_array_alloc(ML_ARRAY_FORMAT_C64, 1);
-		array_copy(Sol, B);
+		ml_array_copy(Sol, B);
 		complex double X[N], *SolData = (complex double *)Sol->Base.Value;
 		for (int I = 0; I < N; ++I) {
 			X[I] = SolData[P[I]];
@@ -7407,7 +7418,7 @@ ML_METHOD("det", MLMatrixT) {
 	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
 	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
 		ml_array_t *Tmp = ml_array_alloc(ML_ARRAY_FORMAT_F64, 2);
-		array_copy(Tmp, Source);
+		ml_array_copy(Tmp, Source);
 		int Stride = Tmp->Dimensions->Stride;
 		double *A[N];
 		char *Data = Tmp->Base.Value;
@@ -7427,7 +7438,7 @@ ML_METHOD("det", MLMatrixT) {
 #ifdef ML_COMPLEX
 	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
 		ml_array_t *Tmp = ml_array_alloc(ML_ARRAY_FORMAT_C64, 2);
-		array_copy(Tmp, Source);
+		ml_array_copy(Tmp, Source);
 		int Stride = Tmp->Dimensions->Stride;
 		complex double *A[N];
 		char *Data = Tmp->Base.Value;
@@ -7571,7 +7582,7 @@ ML_METHOD("softmax", MLVectorMutableRealT) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int N = A->Dimensions[0].Size;
 	ml_array_t *B = ml_array(ML_ARRAY_FORMAT_F64, 1, N);
-	array_copy(B, A);
+	ml_array_copy(B, A);
 	double *Values = (double *)B->Base.Value;
 	double M = -INFINITY;
 	for (int I = 0; I < N; ++I) if (M < Values[I]) M = Values[I];
