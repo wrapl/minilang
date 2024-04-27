@@ -105,8 +105,8 @@ end
 
 PARENT."generate_init_file" := generate_init_file
 
-fun generate_init_files() do
-	for Source in PATH:ls(".*\\.c", :R) do
+fun generate_init_files(Path := PATH) do
+	for Source in Path:ls(".*\\.c") do
 		Source:basename:find("_init") and next
 		generate_init_file(Source)
 	end
@@ -114,7 +114,8 @@ end
 
 PARENT."generate_init_files" := generate_init_files
 
-generate_init_files()
+generate_init_files(PATH)
+generate_init_files(PATH / "array")
 
 let Objects := [
 	file("inthash.o"),
@@ -172,7 +173,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Dir := file("gc")
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
-		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.4/gc-8.2.4.tar.gz -O- | tar xvzP --strip-components=1")
+		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.6/gc-8.2.6.tar.gz -O- | tar xvzP --strip-components=1")
 		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
