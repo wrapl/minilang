@@ -1167,8 +1167,6 @@ struct ml_scheduler_block_t {
 	ml_scheduler_t *Scheduler;
 	pthread_mutex_t Lock[1];
 	pthread_cond_t Resume[1];
-	pthread_t Thread;
-	int Wait;
 };
 
 static ml_scheduler_thread_t *NextThread = NULL;
@@ -1187,18 +1185,17 @@ static void *ml_scheduler_thread_fn(void *Data) {
 	for (;;) {
 		Scheduler->run(Scheduler);
 		if (Scheduler->Resume) {
-			pthread_mutex_lock(ThreadLock);
-			int Exit = NumIdle >= MaxIdle;
-			pthread_mutex_unlock(ThreadLock);
-
 			ml_scheduler_block_t *Block = Scheduler->Resume;
 			pthread_mutex_lock(Block->Lock);
-			if ((Block->Wait = Exit)) Block->Thread = pthread_self();
 			pthread_cond_signal(Block->Resume);
 			pthread_mutex_unlock(Block->Lock);
 
-			if (Exit) return NULL;
-
+			pthread_mutex_lock(ThreadLock);
+			if (NumIdle >= MaxIdle) {
+				pthread_mutex_unlock(ThreadLock);
+				GC_remove_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
+				return NULL;
+			}
 			ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
 			NextThread = &Thread;
 			++NumIdle;
@@ -1223,8 +1220,11 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 		Thread->Scheduler = Scheduler;
 		pthread_cond_signal(Thread->Resume);
 	} else {
+		pthread_attr_t Attr;
+		pthread_attr_init(&Attr);
+		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
-		GC_pthread_create(&Thread, NULL, ml_scheduler_thread_fn, Scheduler);
+		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Scheduler);
 		pthread_setname_np(Thread, "minilang");
 	}
 	pthread_mutex_unlock(ThreadLock);
@@ -1240,8 +1240,6 @@ void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 	pthread_mutex_lock(Block.Lock);
 	Scheduler->add(Scheduler, (ml_state_t *)&Block, MLNil);
 	pthread_cond_wait(Block.Resume, Block.Lock);
-	void *Result;
-	if (Block.Wait) GC_pthread_join(Block.Thread, &Result);
 	pthread_mutex_unlock(Block.Lock);
 	Scheduler->Resume = NULL;
 }
