@@ -171,8 +171,6 @@
         </childnode>
         <childnode refid="37" relation="include">
         </childnode>
-        <childnode refid="38" relation="include">
-        </childnode>
       </node>
       <node id="9">
         <label>src/ml_array.h</label>
@@ -222,7 +220,7 @@
         <label>src/ml_console.h</label>
         <link refid="ml__console_8h_source"/>
       </node>
-      <node id="39">
+      <node id="38">
         <label>src/ml_debugger.h</label>
         <link refid="ml__debugger_8h_source"/>
       </node>
@@ -273,7 +271,7 @@
         </childnode>
         <childnode refid="5" relation="include">
         </childnode>
-        <childnode refid="39" relation="include">
+        <childnode refid="38" relation="include">
         </childnode>
       </node>
       <node id="30">
@@ -285,30 +283,26 @@
         <link refid="ml__stream_8h_source"/>
       </node>
       <node id="32">
-        <label>src/ml_struct.h</label>
-        <link refid="ml__struct_8h_source"/>
-      </node>
-      <node id="33">
         <label>src/ml_table.h</label>
         <link refid="ml__table_8h_source"/>
       </node>
-      <node id="34">
+      <node id="33">
         <label>src/ml_thread.h</label>
         <link refid="ml__thread_8h_source"/>
       </node>
-      <node id="35">
+      <node id="34">
         <label>src/ml_time.h</label>
         <link refid="ml__time_8h_source"/>
       </node>
-      <node id="36">
+      <node id="35">
         <label>src/ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
       </node>
-      <node id="37">
+      <node id="36">
         <label>src/ml_xe.h</label>
         <link refid="ml__xe_8h_source"/>
       </node>
-      <node id="38">
+      <node id="37">
         <label>src/ml_xml.h</label>
         <link refid="ml__xml_8h_source"/>
       </node>

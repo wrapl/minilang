@@ -182,6 +182,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			"--enable-threads=pthreads",
 			:>"--enable-large-config",
 			:>"--enable-redirect-malloc",
+			"--enable-cplusplus",
 			"--enable-mmap"
 		}
 		if GC_DEBUG then
@@ -194,7 +195,8 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	end
 	GC := Lib
 	PREBUILDS := old + [Lib]
-	Libraries:put(Lib)
+	let Lib2 := file("gc/.libs/libgccpp.a")[Lib]
+	Libraries:put(Lib, Lib2)
 	:>LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
 end
 
