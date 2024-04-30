@@ -122,14 +122,14 @@
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="gtk__console_8h_1aabe8cf4c5a610f89b5b053b8d2d568c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="gtk__console_8h_1a733bb859b034b904f5825e52db6136f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>gtk_console_t *</type>
         <definition>gtk_console_t * gtk_console</definition>
-        <argsstring>(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals)</argsstring>
+        <argsstring>(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals)</argsstring>
         <name>gtk_console</name>
         <param>
-          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
-          <declname>Context</declname>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
         </param>
         <param>
           <type>ml_getter_t</type>
@@ -336,7 +336,7 @@
 <codeline lineno="6"><highlight class="normal"></highlight></codeline>
 <codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">gtk_console_t<sp/>gtk_console_t;</highlight></codeline>
 <codeline lineno="8"><highlight class="normal"></highlight></codeline>
-<codeline lineno="9"><highlight class="normal">gtk_console_t<sp/>*gtk_console(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/>ml_getter_t<sp/>GlobalGet,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Globals);</highlight></codeline>
+<codeline lineno="9"><highlight class="normal">gtk_console_t<sp/>*gtk_console(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/>ml_getter_t<sp/>GlobalGet,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Globals);</highlight></codeline>
 <codeline lineno="10"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_show(gtk_console_t<sp/>*Console,<sp/>GtkWindow<sp/>*Parent);</highlight></codeline>
 <codeline lineno="11"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>gtk_console_log(gtk_console_t<sp/>*Console,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
 <codeline lineno="12"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>gtk_console_append(gtk_console_t<sp/>*Console,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Buffer,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>

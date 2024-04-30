@@ -26,6 +26,20 @@
     <member refid="structdasm__State_1a6e27f49150e9a14580fb313cc2777e00" kind="variable"><name>status</name></member>
     <member refid="structdasm__State_1aeab1e51ba49feab1ed376b9ae570ba76" kind="variable"><name>sections</name></member>
   </compound>
+  <compound refid="structinthash2__node__t" kind="struct"><name>inthash2_node_t</name>
+    <member refid="structinthash2__node__t_1a4098168278c6e0666eedbfb6805c5f02" kind="variable"><name>Key</name></member>
+    <member refid="structinthash2__node__t_1a63a2e91d18fabd71e0759c2406145574" kind="variable"><name>Offset</name></member>
+  </compound>
+  <compound refid="structinthash2__result__t" kind="struct"><name>inthash2_result_t</name>
+    <member refid="structinthash2__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
+    <member refid="structinthash2__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
+  </compound>
+  <compound refid="structinthash2__t" kind="struct"><name>inthash2_t</name>
+    <member refid="structinthash2__t_1a8f351070e1bb0035edf33c1baaddd13e" kind="variable"><name>Nodes</name></member>
+    <member refid="structinthash2__t_1a93b817b8cb9e5be468df90c8a277e5bc" kind="variable"><name>Values</name></member>
+    <member refid="structinthash2__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
+    <member refid="structinthash2__t_1adbeb0cbccc7ac4e39443f6cf8049b260" kind="variable"><name>Space</name></member>
+  </compound>
   <compound refid="structinthash__result__t" kind="struct"><name>inthash_result_t</name>
     <member refid="structinthash__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
     <member refid="structinthash__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
@@ -748,6 +762,8 @@
     <member refid="coro_8h_1af889af911dcc4afc6014c9402b77b2e5" kind="function"><name>coro_stack_alloc</name></member>
     <member refid="coro_8h_1a2b0db6ba1253ca9fb7753fef48c406f7" kind="function"><name>coro_stack_free</name></member>
   </compound>
+  <compound refid="dap_8h" kind="file"><name>dap.h</name>
+  </compound>
   <compound refid="dasm__arm_8h" kind="file"><name>dasm_arm.h</name>
     <member refid="dasm__arm_8h_1a10cc6c8dc6fece8ec10c7842c51d83c1" kind="define"><name>DASM_ARCH</name></member>
     <member refid="dasm__arm_8h_1abd28deb7b2d8fa748f81e63e132c6784" kind="define"><name>DASM_EXTERN</name></member>
@@ -982,7 +998,7 @@
   </compound>
   <compound refid="gtk__console_8h" kind="file"><name>gtk_console.h</name>
     <member refid="gtk__console_8h_1a51fd9ea886f1efb234fe13e6dfb8ac84" kind="typedef"><name>gtk_console_t</name></member>
-    <member refid="gtk__console_8h_1aabe8cf4c5a610f89b5b053b8d2d568c8" kind="function"><name>gtk_console</name></member>
+    <member refid="gtk__console_8h_1a733bb859b034b904f5825e52db6136f1" kind="function"><name>gtk_console</name></member>
     <member refid="gtk__console_8h_1a61ccc621bccc38732668e868cf39991f" kind="function"><name>gtk_console_show</name></member>
     <member refid="gtk__console_8h_1af1ef5f5d42508fae608d64e7c7443ec3" kind="function"><name>gtk_console_log</name></member>
     <member refid="gtk__console_8h_1ae85dc8471575c880c30215d896430672" kind="function"><name>gtk_console_append</name></member>
@@ -1009,6 +1025,19 @@
     <member refid="group__inthash_1gaf28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
     <member refid="group__inthash_1ga6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
   </compound>
+  <compound refid="inthash2_8h" kind="file"><name>inthash2.h</name>
+    <member refid="inthash2_8h_1ab6c05145f6e02872f65710b571dc7f12" kind="define"><name>INTHASH2_INDEX_SHIFT</name></member>
+    <member refid="inthash2_8h_1a0ed0865aee51b153806b21426a16d321" kind="define"><name>INTHASH2_INCR_SHIFT</name></member>
+    <member refid="inthash2_8h_1af2c0a9bf050afa4815d2c1c1aade99e6" kind="define"><name>INTHASH2_INIT</name></member>
+    <member refid="inthash2_8h_1ae916a2db26a51c6dbde5c46abbadadb2" kind="typedef"><name>inthash2_t</name></member>
+    <member refid="inthash2_8h_1a7cdb71feb5a0fe19667f82e2e676b36c" kind="function"><name>inthash2_new</name></member>
+    <member refid="inthash2_8h_1aa0e31570ddccb7de88a470257f8844aa" kind="function"><name>inthash2_search</name></member>
+    <member refid="inthash2_8h_1a82565f4aadc4818d019811dfce15bedf" kind="function"><name>inthash2_insert</name></member>
+    <member refid="inthash2_8h_1a8b64f716274ccb7e4e7fcc31ee61407b" kind="function"><name>inthash2_search_inline</name></member>
+    <member refid="inthash2_8h_1a089f5efb7d0b91774b589b61d3a8bde2" kind="function"><name>inthash2_foreach</name></member>
+    <member refid="inthash2_8h_1a289cc7841657f0ce2d8d7bccbae48a5e" kind="function"><name>inthash2_search2</name></member>
+    <member refid="inthash2_8h_1a53ec8f101c5f2e99efb769065156bc7b" kind="function"><name>inthash2_search2_inline</name></member>
+  </compound>
   <compound refid="linenoise_8h" kind="file"><name>linenoise.h</name>
     <member refid="linenoise_8h_1ac910792e203989883a76044651a4f99b" kind="typedef"><name>linenoiseCompletions</name></member>
     <member refid="linenoise_8h_1a842807bddcb194f7e1669bba826acd19" kind="typedef"><name>linenoiseCompletionCallback</name></member>
@@ -1031,7 +1060,7 @@
     <member refid="linenoise_8h_1a63a5cb6aff2c705e71389d196878aec4" kind="function"><name>linenoiseSetMultiLine</name></member>
   </compound>
   <compound refid="minilang_8h" kind="file"><name>minilang.h</name>
-    <member refid="minilang_8h_1a4c01a7e9a9beb0e447ec08b7b41767bd" kind="function"><name>ml_init</name></member>
+    <member refid="minilang_8h_1a63b501a210e2582c50d3608ceee4dea3" kind="function"><name>ml_init</name></member>
   </compound>
   <compound refid="ml__array_8h" kind="file"><name>ml_array.h</name>
     <member refid="ml__array_8h_1ad3bfbbf0e3632a5d3cbb42fee65305d4" kind="define"><name>MAX_FORMATS</name></member>
@@ -1057,6 +1086,10 @@
     <member refid="ml__array_8h_1a2c74fe3d13c9294dfa0e24f926bc3cbf" kind="function"><name>ml_array_degree</name></member>
     <member refid="ml__array_8h_1a6c6130c9f4ea1156810402e2dd16f66c" kind="function"><name>ml_array_size</name></member>
     <member refid="ml__array_8h_1a04f775d73be07991ab6076362debe764" kind="function"><name>ml_array_index</name></member>
+    <member refid="ml__array_8h_1a6e12fef819367924e97c1ea11e3e2cd8" kind="function"><name>ml_array_data_size</name></member>
+    <member refid="ml__array_8h_1ad6c1ed133dc4661584c86ec4f99a0ee5" kind="function"><name>ml_array_copy_data</name></member>
+    <member refid="ml__array_8h_1a93d1894feb290af68a61215699cf5f39" kind="function"><name>ml_array_flatten</name></member>
+    <member refid="ml__array_8h_1ab2b6c536c4a952bd07d1cab98dc885ab" kind="function"><name>ml_array_copy</name></member>
     <member refid="ml__array_8h_1a1acf07a2bead117f050aaec41dfc8dce" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1a27f749ff92c01c31f5dcd16899ac4209" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1ad260afc8c3a139859676738be2c6fcdc" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
@@ -1109,6 +1142,10 @@
   </compound>
   <compound refid="ml__cbor_8h" kind="file"><name>ml_cbor.h</name>
     <member refid="group__cbor_1ga42c342cfc94c4315b24a889ae2a41fad" kind="define"><name>ML_CBOR_WRITER_ERROR</name></member>
+    <member refid="group__cbor_1gaf2ac6052f01bbc3b128f4001f592d720" kind="define"><name>ML_CBOR_SIMPLE_FALSE</name></member>
+    <member refid="group__cbor_1ga42e0117c6446bc0e25aae42cb686a0eb" kind="define"><name>ML_CBOR_SIMPLE_TRUE</name></member>
+    <member refid="group__cbor_1ga8f5a49a01b8d00c2689f9970bf513458" kind="define"><name>ML_CBOR_SIMPLE_NULL</name></member>
+    <member refid="group__cbor_1ga1cec775e2c5c63e0280e09c4f94bec80" kind="define"><name>ML_CBOR_SIMPLE_UNDEF</name></member>
     <member refid="group__cbor_1gaada70f0ea23e15bf397e61a143bb2be0" kind="define"><name>ML_CBOR_TAG_TIME_STRING</name></member>
     <member refid="group__cbor_1gac49547f7b37eb1c8ae832c371cad7c7a" kind="define"><name>ML_CBOR_TAG_TIME_EPOCH</name></member>
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
@@ -1806,6 +1843,7 @@
     <member refid="group__runtime_1ga9e4a5e05bc20f28d92db209c48002871" kind="variable"><name>MLArgCache</name></member>
     <member refid="group__runtime_1gac1ad2e5f00dcb7ffab65bf1b58334aef" kind="variable"><name>MLRootContext</name></member>
     <member refid="group__runtime_1gac966d41213fdc6f77ddf16aebce9dd49" kind="variable"><name>MLStateT</name></member>
+    <member refid="group__runtime_1gae93298a2a171a33887cb2a01118a1921" kind="variable"><name>MLEndState</name></member>
     <member refid="group__runtime_1ga00a9b3bf3ee5760cb85991433fbc144e" kind="variable"><name>MLComparisonStateT</name></member>
     <member refid="group__runtime_1ga80daa34751a0871a6fe8c3202548defc" kind="variable"><name>MLReferenceT</name></member>
     <member refid="group__runtime_1ga0b748f6d626886aa5b11fc2e99c5f417" kind="variable"><name>MLUninitializedT</name></member>
@@ -1832,7 +1870,7 @@
     <member refid="group__runtime_1gaac161795d2df9af58f3deca0dff384bf" kind="function"><name>ml_call_state</name></member>
     <member refid="group__runtime_1gabbc4d2f9454ddfeffb90419fd2de6428" kind="function"><name>ml_simple_call</name></member>
     <member refid="group__runtime_1ga0d52632f3a3fd7def5aaee9a23f75ec4" kind="function"><name>ml_simple_assign</name></member>
-    <member refid="group__runtime_1ga57528ac25b01d2a781500b372f14fe37" kind="function"><name>ml_runtime_init</name></member>
+    <member refid="group__runtime_1ga2d50ff08bfb2e37a7e4b393a53831f41" kind="function"><name>ml_runtime_init</name></member>
     <member refid="group__runtime_1ga974a5b05d15d601bd0de4e92a74f4f46" kind="function"><name>ml_reference</name></member>
     <member refid="group__runtime_1ga87051d70cc770221b9da41e48e3f9cf1" kind="function"><name>ml_uninitialized</name></member>
     <member refid="group__runtime_1ga7820bf0a49f3ba94bc11a8ad6adb4fea" kind="function"><name>ml_uninitialized_use</name></member>
@@ -1862,6 +1900,8 @@
     <member refid="group__runtime_1gaedfc931f83981097241e0e104b9073c3" kind="function"><name>ml_debugger_decls</name></member>
     <member refid="group__runtime_1gafd39568826e945dae842d6a019d91364" kind="function"><name>ml_debugger_local</name></member>
     <member refid="group__runtime_1ga32198d43f48db3b8d94e998fc0209f18" kind="function"><name>ml_state_schedule</name></member>
+    <member refid="group__runtime_1gae463f4081ce3aeea4307fcd312b46f32" kind="function"><name>ml_scheduler_queue</name></member>
+    <member refid="group__runtime_1ga31ba6714ae657c236e00de7756640226" kind="function"><name>ml_scheduler_queue_counter</name></member>
     <member refid="group__runtime_1gaaf797229254739c2050961b77ca44ab8" kind="function"><name>ml_default_queue_init</name></member>
     <member refid="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" kind="function"><name>ml_scheduler_queue_fill</name></member>
     <member refid="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" kind="function"><name>ml_scheduler_queue_next</name></member>
@@ -1899,6 +1939,9 @@
   </compound>
   <compound refid="ml__string_8h" kind="file"><name>ml_string.h</name>
     <member refid="ml__string_8h_1a12e8e8945dc82c8478f85df5daa01cc9" kind="function"><name>ml_string_init</name></member>
+  </compound>
+  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
+    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
   </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
@@ -2383,6 +2426,10 @@
     <member refid="group__cbor_1ga875acf4b0085636e0ec8fc2b78cec64c" kind="function"><name>ml_from_cbor</name></member>
     <member refid="group__cbor_1gab60f5ad34cf7e3f07f2cd211778d5379" kind="function"><name>ml_from_cbor_extra</name></member>
     <member refid="group__cbor_1ga42c342cfc94c4315b24a889ae2a41fad" kind="define"><name>ML_CBOR_WRITER_ERROR</name></member>
+    <member refid="group__cbor_1gaf2ac6052f01bbc3b128f4001f592d720" kind="define"><name>ML_CBOR_SIMPLE_FALSE</name></member>
+    <member refid="group__cbor_1ga42e0117c6446bc0e25aae42cb686a0eb" kind="define"><name>ML_CBOR_SIMPLE_TRUE</name></member>
+    <member refid="group__cbor_1ga8f5a49a01b8d00c2689f9970bf513458" kind="define"><name>ML_CBOR_SIMPLE_NULL</name></member>
+    <member refid="group__cbor_1ga1cec775e2c5c63e0280e09c4f94bec80" kind="define"><name>ML_CBOR_SIMPLE_UNDEF</name></member>
     <member refid="group__cbor_1gaada70f0ea23e15bf397e61a143bb2be0" kind="define"><name>ML_CBOR_TAG_TIME_STRING</name></member>
     <member refid="group__cbor_1gac49547f7b37eb1c8ae832c371cad7c7a" kind="define"><name>ML_CBOR_TAG_TIME_EPOCH</name></member>
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
@@ -2588,6 +2635,7 @@
     <member refid="group__runtime_1ga9e4a5e05bc20f28d92db209c48002871" kind="variable"><name>MLArgCache</name></member>
     <member refid="group__runtime_1gac1ad2e5f00dcb7ffab65bf1b58334aef" kind="variable"><name>MLRootContext</name></member>
     <member refid="group__runtime_1gac966d41213fdc6f77ddf16aebce9dd49" kind="variable"><name>MLStateT</name></member>
+    <member refid="group__runtime_1gae93298a2a171a33887cb2a01118a1921" kind="variable"><name>MLEndState</name></member>
     <member refid="group__runtime_1ga00a9b3bf3ee5760cb85991433fbc144e" kind="variable"><name>MLComparisonStateT</name></member>
     <member refid="group__runtime_1ga80daa34751a0871a6fe8c3202548defc" kind="variable"><name>MLReferenceT</name></member>
     <member refid="group__runtime_1ga0b748f6d626886aa5b11fc2e99c5f417" kind="variable"><name>MLUninitializedT</name></member>
@@ -2614,7 +2662,7 @@
     <member refid="group__runtime_1gaac161795d2df9af58f3deca0dff384bf" kind="function"><name>ml_call_state</name></member>
     <member refid="group__runtime_1gabbc4d2f9454ddfeffb90419fd2de6428" kind="function"><name>ml_simple_call</name></member>
     <member refid="group__runtime_1ga0d52632f3a3fd7def5aaee9a23f75ec4" kind="function"><name>ml_simple_assign</name></member>
-    <member refid="group__runtime_1ga57528ac25b01d2a781500b372f14fe37" kind="function"><name>ml_runtime_init</name></member>
+    <member refid="group__runtime_1ga2d50ff08bfb2e37a7e4b393a53831f41" kind="function"><name>ml_runtime_init</name></member>
     <member refid="group__runtime_1ga974a5b05d15d601bd0de4e92a74f4f46" kind="function"><name>ml_reference</name></member>
     <member refid="group__runtime_1ga87051d70cc770221b9da41e48e3f9cf1" kind="function"><name>ml_uninitialized</name></member>
     <member refid="group__runtime_1ga7820bf0a49f3ba94bc11a8ad6adb4fea" kind="function"><name>ml_uninitialized_use</name></member>
@@ -2644,6 +2692,8 @@
     <member refid="group__runtime_1gaedfc931f83981097241e0e104b9073c3" kind="function"><name>ml_debugger_decls</name></member>
     <member refid="group__runtime_1gafd39568826e945dae842d6a019d91364" kind="function"><name>ml_debugger_local</name></member>
     <member refid="group__runtime_1ga32198d43f48db3b8d94e998fc0209f18" kind="function"><name>ml_state_schedule</name></member>
+    <member refid="group__runtime_1gae463f4081ce3aeea4307fcd312b46f32" kind="function"><name>ml_scheduler_queue</name></member>
+    <member refid="group__runtime_1ga31ba6714ae657c236e00de7756640226" kind="function"><name>ml_scheduler_queue_counter</name></member>
     <member refid="group__runtime_1gaaf797229254739c2050961b77ca44ab8" kind="function"><name>ml_default_queue_init</name></member>
     <member refid="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" kind="function"><name>ml_scheduler_queue_fill</name></member>
     <member refid="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" kind="function"><name>ml_scheduler_queue_next</name></member>

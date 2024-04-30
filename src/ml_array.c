@@ -2047,45 +2047,6 @@ static ml_value_t *compare_array_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Target;
 }
 
-#define COMPARE_METHOD(OP) \
-/*
-ML_METHOD(#OP, MLArrayT, MLArrayT) {
-//<A
-//<B
-//>array
-// Returns :mini:`A OP B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible, i.e. either
-//
-// * :mini:`A:shape = B:shape` or
-// * :mini:`B:shape` is a prefix of :mini:`A:shape`.
-//
-// When the shapes are not the same, remaining dimensions are repeated (broadcast) to the required size.
-//$= let A := array([[1, 8, 3], [4, 5, 12]])
-//$= let B := array([[7, 2, 9], [4, 11, 6]])
-//$= let C := array([1, 5, 10])
-//$= A OP B
-//$= A OP C
-}
-*/
-
-COMPARE_METHOD(=)
-COMPARE_METHOD(!=)
-COMPARE_METHOD(<)
-COMPARE_METHOD(<=)
-COMPARE_METHOD(>)
-COMPARE_METHOD(>=)
-
-extern int ml_array_compare(ml_array_t *A, ml_array_t *B);
-
-ML_METHOD("<>", MLArrayT, MLArrayT) {
-//<A
-//<B
-//>integer
-// Compare the degrees, dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`, :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
-	ml_array_t *A = (ml_array_t *)Args[0];
-	ml_array_t *B = (ml_array_t *)Args[1];
-	return ml_integer(ml_array_compare(A, B));
-}
-
 static long srotl(long X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(long) - 1);
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
@@ -4656,9 +4617,49 @@ ML_METHOD("^", MLArrayMutableRealT, MLRealT) {
 
 #endif
 
-#define ML_COMPARE_METHOD_BASE(TITLE, TITLE2, OP) \
+extern int ml_array_compare(ml_array_t *A, ml_array_t *B);
+
+#define ML_ORDER_METHOD(NAME, SYMBOL) \
 \
-ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
+ML_METHOD(#NAME, MLArrayT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Compare the degrees, dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`B` or :mini:`nil`. This method is only intending for comparing arrays for equivalence, sorting arrays or using them as keys in a map.
+//$= let A := array([[1, 8, 3], [4, 5, 12]])
+//$= let B := array([[7, 2, 9], [4, 11, 6]])
+//$= let C := array([1, 5, 10])
+//$= let D := array([[1.0, 8.0, 3.0], [4.0, 5.0, 12.0]])
+//$= A NAME B
+//$= A NAME C
+//$= A NAME D
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[0]; \
+	ml_array_t *B = (ml_array_t *)Args[1]; \
+	int Compare = ml_array_compare(A, B); \
+	return Compare SYMBOL 0 ? Args[1] : MLNil; \
+}
+
+ML_ORDER_METHOD(=, ==)
+ML_ORDER_METHOD(!=, !=)
+ML_ORDER_METHOD(<, <)
+ML_ORDER_METHOD(<=, <=)
+ML_ORDER_METHOD(>, >)
+ML_ORDER_METHOD(>=, >=)
+
+ML_METHOD("<>", MLArrayT, MLArrayT) {
+//<A
+//<B
+//>integer
+// Compare the degrees, dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`, :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
+	ml_array_t *A = (ml_array_t *)Args[0];
+	ml_array_t *B = (ml_array_t *)Args[1];
+	return ml_integer(ml_array_compare(A, B));
+}
+
+#define ML_COMPARE_METHOD_BASE(TITLE, TITLE2, OP, NAME) \
+\
+ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
@@ -4682,7 +4683,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
+ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4706,7 +4707,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLRealT) { \
+ML_METHOD(#NAME, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
@@ -4730,7 +4731,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLRealT, MLArrayT) { \
+ML_METHOD(#NAME, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4754,7 +4755,7 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLAnyT) { \
+ML_METHOD(#NAME, MLArrayT, MLAnyT) { \
 /*<A
 //<B
 //>array
@@ -4778,7 +4779,7 @@ ML_METHOD(#OP, MLArrayT, MLAnyT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLAnyT, MLArrayT) { \
+ML_METHOD(#NAME, MLAnyT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4804,10 +4805,10 @@ ML_METHOD(#OP, MLAnyT, MLArrayT) { \
 
 #ifdef ML_COMPLEX
 
-#define ML_COMPARE_METHOD(TITLE, TITLE2, OP) \
-ML_COMPARE_METHOD_BASE(TITLE, TITLE2, OP) \
+#define ML_COMPARE_METHOD(TITLE, TITLE2, OP, NAME) \
+ML_COMPARE_METHOD_BASE(TITLE, TITLE2, OP, NAME) \
 \
-ML_METHOD(#OP, MLArrayT, MLComplexT) { \
+ML_METHOD(#NAME, MLArrayT, MLComplexT) { \
 /*<A
 //<B
 //>array
@@ -4832,7 +4833,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLComplexT, MLArrayT) { \
+ML_METHOD(#NAME, MLComplexT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4864,12 +4865,12 @@ ML_COMPARE_METHOD_BASE(BASE, BASE2, OP)
 
 #endif
 
-ML_COMPARE_METHOD(Eq, Eq, =);
-ML_COMPARE_METHOD(Ne, Ne, !=);
-ML_COMPARE_METHOD(Lt, Gt, <);
-ML_COMPARE_METHOD(Gt, Lt, >);
-ML_COMPARE_METHOD(Le, Ge, <=);
-ML_COMPARE_METHOD(Ge, Le, >=);
+ML_COMPARE_METHOD(Eq, Eq, =, .=);
+ML_COMPARE_METHOD(Ne, Ne, !=, .!=);
+ML_COMPARE_METHOD(Lt, Gt, <, .<);
+ML_COMPARE_METHOD(Gt, Lt, >, .>);
+ML_COMPARE_METHOD(Le, Ge, <=, .<=);
+ML_COMPARE_METHOD(Ge, Le, >=, .>=);
 
 static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
 	typeof(ml_array_of_type_guess) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_type_guess);
@@ -7082,6 +7083,26 @@ ML_METHOD("@", MLMatrixT, MLVectorT) {
 	}
 }
 
+#define ML_COMPARE_PAIRWISE(OP) \
+/*
+ML_METHOD(#OP, MLArrayT, MLArrayT) {
+//<A
+//<B
+//>array
+// Returns :mini:`A OP B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible, i.e. either
+//
+// * :mini:`A:shape = B:shape` or
+// * :mini:`B:shape` is a prefix of :mini:`A:shape`.
+//
+// When the shapes are not the same, remaining dimensions are repeated (broadcast) to the required size.
+//$= let A := array([[1, 8, 3], [4, 5, 12]])
+//$= let B := array([[7, 2, 9], [4, 11, 6]])
+//$= let C := array([1, 5, 10])
+//$= A .OP B
+//$= A .OP C
+}
+*/
+
 static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -7802,12 +7823,12 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
 	ml_method_by_name("min", UpdateMinRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
 	ml_method_by_name("max", UpdateMaxRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("=", CompareEqRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("!=", CompareNeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("<", CompareLtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name(">", CompareGtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("<=", CompareLeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name(">=", CompareGeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(".=", CompareEqRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(".!=", CompareNeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(".<", CompareLtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(".>", CompareGtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(".<=", CompareLeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(".>=", CompareGeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("++", MLArrayInfixAddFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("**", MLArrayInfixMulFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
