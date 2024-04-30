@@ -1221,7 +1221,7 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 	} else {
 		pthread_attr_t Attr;
 		pthread_attr_init(&Attr);
-		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
+		//pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
 		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Scheduler);
 		pthread_setname_np(Thread, "minilang");
