@@ -607,6 +607,9 @@ elseif PLATFORM = "Darwin" then
 	Objects:put(file("linenoise.o"))
 	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
+elseif PLATFORM = "Android" then
+	Objects:put(file("linenoise.o"))
+	GC or LDFLAGS := old + ["-lgc"]
 end
 
 LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
