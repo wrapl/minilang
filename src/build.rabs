@@ -180,13 +180,17 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			"--disable-shared",
 			:>"--disable-parallel-mark",
 			"--enable-threads=pthreads",
-			:>"--enable-large-config",
+			"--enable-large-config",
 			:>"--enable-redirect-malloc",
 			"--enable-cplusplus",
 			"--enable-mmap"
 		}
 		if GC_DEBUG then
-			Configuration:insert("--enable-gc-debug", not nil)
+			Configuration:grow({
+				"--enable-gc-debug",
+				"--enable-gc-assertions",
+				"--disable-thread-local-alloc"
+			})
 		end
 		execute('CC={CC} ./configure', Configuration)
 		execute("make clean")
