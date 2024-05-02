@@ -9,6 +9,10 @@ runtime
 
 .. rst-class:: mini-api
 
+:mini:`fun backtrace()`
+   *TBD*
+
+
 :mini:`fun break(Condition?: any)`
    If a debugger is present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
 

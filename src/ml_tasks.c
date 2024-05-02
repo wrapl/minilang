@@ -331,7 +331,7 @@ static void ml_task_queue_call(ml_state_t *Caller, ml_task_queue_t *Queue, int C
 		ml_call(Task, Fn, Count - 1, Args);
 		// Unregister Caller as waiting for Task here
 	} else {
-		ml_task_pending_t *Pending = new(ml_task_pending_t);
+		ml_task_pending_t *Pending = xnew(ml_task_pending_t, Count, ml_value_t *);
 		Pending->Task = Task;
 		Pending->Fn = Fn;
 		Pending->Count = Count - 1;

@@ -1181,6 +1181,7 @@ static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 static void *ml_scheduler_thread_fn(void *Data) {
 	static int NumIdle = 0;
 	ml_scheduler_t *Scheduler = (ml_scheduler_t *)Data;
+	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 	for (;;) {
 		Scheduler->run(Scheduler);
 		if (Scheduler->Resume) {
@@ -1192,6 +1193,7 @@ static void *ml_scheduler_thread_fn(void *Data) {
 			pthread_mutex_lock(ThreadLock);
 			if (NumIdle >= MaxIdle) {
 				pthread_mutex_unlock(ThreadLock);
+				GC_remove_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 				return NULL;
 			}
 			ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};

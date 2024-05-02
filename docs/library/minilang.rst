@@ -9,10 +9,6 @@ minilang
 
 .. rst-class:: mini-api
 
-:mini:`fun backtrace()`
-   *TBD*
-
-
 :mini:`fun clock()`
    *TBD*
 

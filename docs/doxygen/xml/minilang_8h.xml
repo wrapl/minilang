@@ -306,11 +306,15 @@
       </node>
     </invincdepgraph>
     <sectiondef kind="func">
-      <memberdef kind="function" id="minilang_8h_1a4c01a7e9a9beb0e447ec08b7b41767bd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="minilang_8h_1a63b501a210e2582c50d3608ceee4dea3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_init</definition>
-        <argsstring>(stringmap_t *Globals)</argsstring>
+        <argsstring>(const char *ExecName, stringmap_t *Globals)</argsstring>
         <name>ml_init</name>
+        <param>
+          <type>const char *</type>
+          <declname>ExecName</declname>
+        </param>
         <param>
           <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
           <declname>Globals</declname>
@@ -341,7 +345,7 @@
 <codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
 <codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_init(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ExecName,<sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="14"><highlight class="normal"></highlight></codeline>
 <codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="16"><highlight class="normal">}</highlight></codeline>

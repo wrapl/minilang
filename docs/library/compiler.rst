@@ -9,6 +9,10 @@ compiler
 
 .. rst-class:: mini-api
 
+:mini:`fun mlidentcachecheck()`
+   *TBD*
+
+
 :mini:`fun source(): tuple[string, integer]`
    Returns the caller source location. Evaluated at compile time if possible.
 

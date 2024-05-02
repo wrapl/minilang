@@ -104,25 +104,6 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
 
-:mini:`meth (A: array) != (B: array): array`
-   Returns :mini:`A != B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
-   
-   * :mini:`A:shape = B:shape` or
-   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
-   
-   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
-
-   .. code-block:: mini
-
-      let A := array([[1, 8, 3], [4, 5, 12]])
-      :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]])
-      :> <<7 2 9> <4 11 6>>
-      let C := array([1, 5, 10]) :> <1 5 10>
-      A != B :> <<1 1 1> <0 1 1>>
-      A != C :> <<0 1 1> <1 0 1>>
-
-
 :mini:`meth (A: array) != (B: complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
@@ -133,6 +114,10 @@ array
 
 :mini:`meth (A: array) != (B: real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) !~ (B: array): integer`
+   Compare the degrees,  dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 
 
 :mini:`meth (A: array) * (B: any): array`
@@ -372,25 +357,6 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
 
 
-:mini:`meth (A: array) < (B: array): array`
-   Returns :mini:`A < B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
-   
-   * :mini:`A:shape = B:shape` or
-   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
-   
-   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
-
-   .. code-block:: mini
-
-      let A := array([[1, 8, 3], [4, 5, 12]])
-      :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]])
-      :> <<7 2 9> <4 11 6>>
-      let C := array([1, 5, 10]) :> <1 5 10>
-      A < B :> <<1 0 1> <0 1 0>>
-      A < C :> <<0 0 1> <0 0 0>>
-
-
 :mini:`meth (A: array) < (B: complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
 
@@ -405,25 +371,6 @@ array
 
 :mini:`meth (A: array) <= (B: any): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) <= (B: array): array`
-   Returns :mini:`A <= B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
-   
-   * :mini:`A:shape = B:shape` or
-   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
-   
-   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
-
-   .. code-block:: mini
-
-      let A := array([[1, 8, 3], [4, 5, 12]])
-      :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]])
-      :> <<7 2 9> <4 11 6>>
-      let C := array([1, 5, 10]) :> <1 5 10>
-      A <= B :> <<1 0 1> <1 1 0>>
-      A <= C :> <<1 0 1> <0 1 0>>
 
 
 :mini:`meth (A: array) <= (B: complex): array`
@@ -446,25 +393,6 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
 
 
-:mini:`meth (A: array) = (B: array): array`
-   Returns :mini:`A = B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
-   
-   * :mini:`A:shape = B:shape` or
-   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
-   
-   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
-
-   .. code-block:: mini
-
-      let A := array([[1, 8, 3], [4, 5, 12]])
-      :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]])
-      :> <<7 2 9> <4 11 6>>
-      let C := array([1, 5, 10]) :> <1 5 10>
-      A = B :> <<0 0 0> <1 0 0>>
-      A = C :> <<1 0 0> <0 1 0>>
-
-
 :mini:`meth (A: array) = (B: complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
 
@@ -479,25 +407,6 @@ array
 
 :mini:`meth (A: array) > (B: any): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) > (B: array): array`
-   Returns :mini:`A > B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
-   
-   * :mini:`A:shape = B:shape` or
-   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
-   
-   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
-
-   .. code-block:: mini
-
-      let A := array([[1, 8, 3], [4, 5, 12]])
-      :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]])
-      :> <<7 2 9> <4 11 6>>
-      let C := array([1, 5, 10]) :> <1 5 10>
-      A > B :> <<0 1 0> <0 0 1>>
-      A > C :> <<0 1 0> <1 0 1>>
 
 
 :mini:`meth (A: array) > (B: complex): array`
@@ -547,25 +456,6 @@ array
 
 :mini:`meth (A: array) >= (B: any): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) >= (B: array): array`
-   Returns :mini:`A >= B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
-   
-   * :mini:`A:shape = B:shape` or
-   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
-   
-   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
-
-   .. code-block:: mini
-
-      let A := array([[1, 8, 3], [4, 5, 12]])
-      :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]])
-      :> <<7 2 9> <4 11 6>>
-      let C := array([1, 5, 10]) :> <1 5 10>
-      A >= B :> <<0 1 0> <1 0 1>>
-      A >= C :> <<1 1 0> <1 1 1>>
 
 
 :mini:`meth (A: array) >= (B: complex): array`
@@ -844,7 +734,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 979725410>>
+      A:minidx(2) :> <<2 1> <1 1936024425>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -997,6 +887,10 @@ array
 
 :mini:`meth (Array: array) || (Arg₂: real): number`
    Returns the norm of the values in :mini:`Array`.
+
+
+:mini:`meth (A: array) ~~ (B: array): integer`
+   Compare the degrees,  dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 
 
 :mini:`type array::any < array`
@@ -1859,9 +1753,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:E01CD034EE7F00004672616D652D3E44>
+      :> <16:00571C42337F00005553485D203D2026>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<7392 13520> <32750 0>> <<29254 28001> <11621 17470>>>
+      :> <<<22272 16924> <32563 0>> <<21333 23880> <15648 9760>>>
 
 
 :mini:`type vector < array`

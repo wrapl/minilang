@@ -249,6 +249,6 @@ int ml_array_compare(ml_array_t *A, ml_array_t *B) {
 		if (A->Dimensions[I].Size > B->Dimensions[I].Size) return 1;
 	}
 	int Op = A->Format * MAX_FORMATS + B->Format;
-	if (!CmpRowFns[Op]) return -1;
+	if (!CmpRowFns[Op]) return A->Format < B->Format ? -1 : 1;
 	return cmp_array(Op, A->Degree, A->Dimensions, A->Base.Value, B->Dimensions, B->Base.Value);
 }
