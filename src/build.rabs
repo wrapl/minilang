@@ -620,7 +620,7 @@ MINIDBG := (BIN_DIR / "minidbg")[file("minidbg")] => fun(Target) do
 end
 MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
 
-if PLATFORM = "Linux" then
+if PLATFORM = "Linux" or PLATFORM = "Android" then
 	let Exports := file("exports.lst")
 	MINILANG[Exports]
 	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
