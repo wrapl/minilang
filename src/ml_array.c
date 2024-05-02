@@ -4623,27 +4623,27 @@ ML_METHOD("<>", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>integer
-// Compare the degrees, dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`, :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
+// Compare the degrees, dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`-1`, :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	return ml_integer(ml_array_compare(A, B));
 }
 
-ML_METHOD("~~", MLArrayT, MLArrayT) {
+ML_METHOD("==", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>integer
-// Compare the degrees, dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`B` if they match and :mini:`nil` otherwise.
+// Compare the degrees, dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`B` if they match and :mini:`nil` otherwise.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	return ml_array_compare(A, B) ? MLNil : (ml_value_t *)B;
 }
 
-ML_METHOD("!~", MLArrayT, MLArrayT) {
+ML_METHOD("!==", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>integer
-// Compare the degrees, dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`nil` if they match and :mini:`B` otherwise.
+// Compare the degrees, dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`nil` if they match and :mini:`B` otherwise.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	return ml_array_compare(A, B) ? (ml_value_t *)B : MLNil;
