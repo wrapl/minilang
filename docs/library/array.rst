@@ -116,8 +116,8 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
 
-:mini:`meth (A: array) !~ (B: array): integer`
-   Compare the degrees,  dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
+:mini:`meth (A: array) !== (B: array): integer`
+   Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`nil` if they match and :mini:`B` otherwise.
 
 
 :mini:`meth (A: array) * (B: any): array`
@@ -386,7 +386,7 @@ array
 
 
 :mini:`meth (A: array) <> (B: array): integer`
-   Compare the degrees,  dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
+   Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 
 
 :mini:`meth (A: array) = (B: any): array`
@@ -403,6 +403,10 @@ array
 
 :mini:`meth (A: array) = (B: real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) == (B: array): integer`
+   Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`B` if they match and :mini:`nil` otherwise.
 
 
 :mini:`meth (A: array) > (B: any): array`
@@ -734,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1936024425>>
+      A:minidx(2) :> <<2 1> <1 1618240876>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -887,10 +891,6 @@ array
 
 :mini:`meth (Array: array) || (Arg₂: real): number`
    Returns the norm of the values in :mini:`Array`.
-
-
-:mini:`meth (A: array) ~~ (B: array): integer`
-   Compare the degrees,  dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 
 
 :mini:`type array::any < array`
@@ -1753,9 +1753,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:00571C42337F00005553485D203D2026>
+      :> <16:80D94DF3617F00000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<22272 16924> <32563 0>> <<21333 23880> <15648 9760>>>
+      :> <<<55680 62285> <32609 0>> <<0 0> <0 0>>>
 
 
 :mini:`type vector < array`
