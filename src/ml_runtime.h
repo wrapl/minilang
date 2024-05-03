@@ -61,10 +61,17 @@ ml_config_fn ml_config_lookup(const char *Name);
 
 typedef void (*ml_state_fn)(ml_state_t *State, ml_value_t *Result);
 
+/**
+ * An execution state.
+ */
 struct ml_state_t {
+	/// The corresponding Minilang type for this state. Can be ``NULL``.
 	ml_type_t *Type;
+	/// The calling state, normally resumed once this state has completed.
 	ml_state_t *Caller;
+	/// Function to call to run this state ``State->run(State, Value)``. Can be reassigned as required.
 	ml_state_fn run;
+	/// The current context, usually inherited from the calling state.
 	ml_context_t *Context;
 };
 

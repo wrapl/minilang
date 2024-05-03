@@ -1263,7 +1263,7 @@
     <member refid="group__compiler_1ga4368e311e7391106a3a9c5908ce815fc" kind="function"><name>ml_command_evaluate</name></member>
     <member refid="group__compiler_1ga74a69436921639e9cb02c285852ce333" kind="function"><name>ml_load_file</name></member>
     <member refid="group__compiler_1gac6d491e41f0debbe3329b73134e8d1d6" kind="function"><name>ml_stringmap_globals</name></member>
-    <member refid="group__compiler_1ga72a4bc63c6250cf271513e7d45311986" kind="function"><name>stringmap_global_get</name></member>
+    <member refid="group__compiler_1gab29aa8a643e7282bcaa307e232d27c1e" kind="function"><name>ml_stringmap_global_get</name></member>
     <member refid="group__compiler_1gaf2aa481871fb57dc769e0e74bc87a514" kind="function"><name>ml_string_fn_register</name></member>
     <member refid="group__compiler_1gad4a469c6a89bb88079d70eb008b76493" kind="function"><name>ml_compiler_init</name></member>
     <member refid="group__compiler_1ga076b4ddab4f2553f5971f3bd6c512c44" kind="function"><name>ml_global</name></member>
@@ -2492,7 +2492,7 @@
     <member refid="group__compiler_1ga4368e311e7391106a3a9c5908ce815fc" kind="function"><name>ml_command_evaluate</name></member>
     <member refid="group__compiler_1ga74a69436921639e9cb02c285852ce333" kind="function"><name>ml_load_file</name></member>
     <member refid="group__compiler_1gac6d491e41f0debbe3329b73134e8d1d6" kind="function"><name>ml_stringmap_globals</name></member>
-    <member refid="group__compiler_1ga72a4bc63c6250cf271513e7d45311986" kind="function"><name>stringmap_global_get</name></member>
+    <member refid="group__compiler_1gab29aa8a643e7282bcaa307e232d27c1e" kind="function"><name>ml_stringmap_global_get</name></member>
     <member refid="group__compiler_1gaf2aa481871fb57dc769e0e74bc87a514" kind="function"><name>ml_string_fn_register</name></member>
     <member refid="group__compiler_1gad4a469c6a89bb88079d70eb008b76493" kind="function"><name>ml_compiler_init</name></member>
     <member refid="group__compiler_1ga076b4ddab4f2553f5971f3bd6c512c44" kind="function"><name>ml_global</name></member>

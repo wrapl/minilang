@@ -2,3 +2,4 @@ Booleans
 ========
 
 .. doxygengroup:: booleans
+   :members:

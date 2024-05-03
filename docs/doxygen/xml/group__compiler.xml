@@ -774,11 +774,11 @@
         </inbodydescription>
         <location file="src/ml_compiler.h" line="129" column="12" declfile="src/ml_compiler.h" declline="129" declcolumn="12"/>
       </memberdef>
-      <memberdef kind="function" id="group__compiler_1ga72a4bc63c6250cf271513e7d45311986" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="group__compiler_1gab29aa8a643e7282bcaa307e232d27c1e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t * stringmap_global_get</definition>
+        <definition>ml_value_t * ml_stringmap_global_get</definition>
         <argsstring>(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Eval)</argsstring>
-        <name>stringmap_global_get</name>
+        <name>ml_stringmap_global_get</name>
         <param>
           <type>const <ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
           <declname>Map</declname>

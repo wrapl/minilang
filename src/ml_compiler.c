@@ -7133,7 +7133,7 @@ void ml_accept_command(ml_state_t *Caller, ml_parser_t *Parser) {
 }
 */
 
-ml_value_t *stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Eval) {
+ml_value_t *ml_stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Eval) {
 	return (ml_value_t *)stringmap_search(Map, Key);
 }
 

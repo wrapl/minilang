@@ -2,3 +2,4 @@ Externals
 =========
 
 .. doxygengroup:: externals
+   :members:

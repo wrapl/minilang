@@ -2,3 +2,4 @@ Sets
 ====
 
 .. doxygengroup:: sets
+   :members:

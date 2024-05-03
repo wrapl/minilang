@@ -69,7 +69,7 @@
   <option  id='NUM_PROC_THREADS' default='yes' type='int'><value>1</value></option>
   <option  id='TIMESTAMP' default='yes' type='string'><value>NO</value></option>
   <option  id='EXTRACT_ALL' default='yes' type='bool'><value>NO</value></option>
-  <option  id='EXTRACT_PRIVATE' default='yes' type='bool'><value>NO</value></option>
+  <option  id='EXTRACT_PRIVATE' default='no' type='bool'><value>YES</value></option>
   <option  id='EXTRACT_PRIV_VIRTUAL' default='yes' type='bool'><value>NO</value></option>
   <option  id='EXTRACT_PACKAGE' default='yes' type='bool'><value>NO</value></option>
   <option  id='EXTRACT_STATIC' default='yes' type='bool'><value>NO</value></option>
@@ -86,11 +86,11 @@
   <option  id='HIDE_SCOPE_NAMES' default='no' type='bool'><value>YES</value></option>
   <option  id='HIDE_COMPOUND_REFERENCE' default='yes' type='bool'><value>NO</value></option>
   <option  id='SHOW_HEADERFILE' default='yes' type='bool'><value>YES</value></option>
-  <option  id='SHOW_INCLUDE_FILES' default='yes' type='bool'><value>YES</value></option>
+  <option  id='SHOW_INCLUDE_FILES' default='no' type='bool'><value>NO</value></option>
   <option  id='SHOW_GROUPED_MEMB_INC' default='yes' type='bool'><value>NO</value></option>
   <option  id='FORCE_LOCAL_INCLUDES' default='yes' type='bool'><value>NO</value></option>
   <option  id='INLINE_INFO' default='yes' type='bool'><value>YES</value></option>
-  <option  id='SORT_MEMBER_DOCS' default='yes' type='bool'><value>YES</value></option>
+  <option  id='SORT_MEMBER_DOCS' default='no' type='bool'><value>NO</value></option>
   <option  id='SORT_BRIEF_DOCS' default='yes' type='bool'><value>NO</value></option>
   <option  id='SORT_MEMBERS_CTORS_1ST' default='yes' type='bool'><value>NO</value></option>
   <option  id='SORT_GROUP_NAMES' default='yes' type='bool'><value>NO</value></option>
@@ -175,7 +175,7 @@
   <option  id='ALPHABETICAL_INDEX' default='yes' type='bool'><value>YES</value></option>
   <option  id='IGNORE_PREFIX' default='yes' type='stringlist'>
   </option>
-  <option  id='GENERATE_HTML' default='no' type='bool'><value>NO</value></option>
+  <option  id='GENERATE_HTML' default='yes' type='bool'><value>YES</value></option>
   <option  id='HTML_OUTPUT' default='yes' type='string'><value><![CDATA[html]]></value></option>
   <option  id='HTML_FILE_EXTENSION' default='yes' type='string'><value><![CDATA[.html]]></value></option>
   <option  id='HTML_HEADER' default='yes' type='string'><value><![CDATA[]]></value></option>

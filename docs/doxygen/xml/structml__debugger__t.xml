@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="214" column="8" bodyfile="src/ml_runtime.h" bodystart="214" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="221" column="8" bodyfile="src/ml_runtime.h" bodystart="221" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__debugger__t_1a1e7a576750badcba3bf29e764a273d74" prot="public" static="no" mutable="no">
         <type>void(*</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="215" column="1" bodyfile="src/ml_runtime.h" bodystart="215" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="222" column="1" bodyfile="src/ml_runtime.h" bodystart="222" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__debugger__t_1a93122dbc81b8ae39c6439b39376d52e1" prot="public" static="no" mutable="no">
         <type>size_t *(*</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="216" column="1" bodyfile="src/ml_runtime.h" bodystart="216" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="223" column="1" bodyfile="src/ml_runtime.h" bodystart="223" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__debugger__t_1a49430fce113df5a94f63e4db44a36274" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -58,7 +58,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="217" column="5" bodyfile="src/ml_runtime.h" bodystart="217" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="224" column="5" bodyfile="src/ml_runtime.h" bodystart="224" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__debugger__t_1a6adc6f4dee09aeb6f2d2ecdde4eba8fc" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -73,14 +73,14 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="218" column="5" bodyfile="src/ml_runtime.h" bodystart="218" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="225" column="5" bodyfile="src/ml_runtime.h" bodystart="225" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="src/ml_runtime.h" line="213" column="1" bodyfile="src/ml_runtime.h" bodystart="213" bodyend="219"/>
+    <location file="src/ml_runtime.h" line="220" column="1" bodyfile="src/ml_runtime.h" bodystart="220" bodyend="226"/>
     <listofallmembers>
       <member refid="structml__debugger__t_1a6adc6f4dee09aeb6f2d2ecdde4eba8fc" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>BreakOnError</name></member>
       <member refid="structml__debugger__t_1a93122dbc81b8ae39c6439b39376d52e1" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>breakpoints</name></member>

@@ -2,3 +2,4 @@ Stringmap
 =========
 
 .. doxygengroup:: stringmap
+   :members:

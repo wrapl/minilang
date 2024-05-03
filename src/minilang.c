@@ -432,7 +432,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(Main, (ml_getter_t)stringmap_global_get, Globals);
+		gtk_console_t *Console = gtk_console(Main, (ml_getter_t)ml_stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
 		if (MainModule) gtk_console_load_file(Console, MainModule, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
@@ -477,7 +477,7 @@ int main(int Argc, const char *Argv[]) {
 		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
 	} else {
-		ml_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
+		ml_console(Main->Context, (ml_getter_t)ml_stringmap_global_get, Globals, "--> ", "... ");
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
 		if (UseGirLoop) {

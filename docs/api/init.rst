@@ -2,3 +2,4 @@ Init
 ====
 
 .. doxygengroup:: init
+   :members:

@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="199" column="11" bodyfile="src/ml_runtime.h" bodystart="199" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="206" column="11" bodyfile="src/ml_runtime.h" bodystart="206" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__decl__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="200" column="12" bodyfile="src/ml_runtime.h" bodystart="200" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="207" column="12" bodyfile="src/ml_runtime.h" bodystart="207" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__decl__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="201" column="12" bodyfile="src/ml_runtime.h" bodystart="201" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="208" column="12" bodyfile="src/ml_runtime.h" bodystart="208" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__decl__t_1ab0dd8704f8a586d7b9e86cb824197481" prot="public" static="no" mutable="no">
         <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="202" column="13" bodyfile="src/ml_runtime.h" bodystart="202" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="209" column="13" bodyfile="src/ml_runtime.h" bodystart="209" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__decl__t_1a295be8ec098a21a7f81d0932be0d327e" prot="public" static="no" mutable="no">
         <type>long</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="203" column="6" bodyfile="src/ml_runtime.h" bodystart="203" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="210" column="6" bodyfile="src/ml_runtime.h" bodystart="210" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__decl__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -85,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="204" column="5" bodyfile="src/ml_runtime.h" bodystart="204" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="211" column="5" bodyfile="src/ml_runtime.h" bodystart="211" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__decl__t_1ac3e60a9fc42fb6c0b656191ebb1d658b" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -99,7 +99,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="204" column="11" bodyfile="src/ml_runtime.h" bodystart="204" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="211" column="11" bodyfile="src/ml_runtime.h" bodystart="211" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -158,7 +158,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_runtime.h" line="198" column="1" bodyfile="src/ml_runtime.h" bodystart="198" bodyend="205"/>
+    <location file="src/ml_runtime.h" line="205" column="1" bodyfile="src/ml_runtime.h" bodystart="205" bodyend="212"/>
     <listofallmembers>
       <member refid="structml__decl__t_1ac3e60a9fc42fb6c0b656191ebb1d658b" prot="public" virt="non-virtual"><scope>ml_decl_t</scope><name>Flags</name></member>
       <member refid="structml__decl__t_1a295be8ec098a21a7f81d0932be0d327e" prot="public" virt="non-virtual"><scope>ml_decl_t</scope><name>Hash</name></member>

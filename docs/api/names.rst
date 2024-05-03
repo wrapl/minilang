@@ -2,3 +2,4 @@ Names
 =====
 
 .. doxygengroup:: names
+   :members:

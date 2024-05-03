@@ -899,6 +899,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:get :> ""
 
 
+:mini:`meth (Arg₁: string::buffer):grow(Arg₂: sequence)`
+   *TBD*
+
+
 :mini:`meth (Buffer: string::buffer):length: integer`
    Returns the number of bytes currently available in :mini:`Buffer`.
 

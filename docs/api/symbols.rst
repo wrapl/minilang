@@ -2,3 +2,4 @@ Symbols
 =======
 
 .. doxygengroup:: symbols
+   :members:

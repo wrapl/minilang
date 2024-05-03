@@ -2,3 +2,4 @@ Tuples
 ======
 
 .. doxygengroup:: tuples
+   :members:
