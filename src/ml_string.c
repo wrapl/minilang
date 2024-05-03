@@ -4235,6 +4235,43 @@ ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
 	return ml_string(Chars, Length);
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Args[2];
+} ml_stringbuffer_grow_t;
+
+static void ml_stringbuffer_grow_next(ml_stringbuffer_grow_t *State, ml_value_t *Value);
+
+static void ml_stringbuffer_grow_append(ml_stringbuffer_grow_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_stringbuffer_grow_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ml_stringbuffer_grow_value(ml_stringbuffer_grow_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_stringbuffer_grow_append;
+	State->Args[1] = Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+static void ml_stringbuffer_grow_next(ml_stringbuffer_grow_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Args[0]);
+	State->Base.run = (void *)ml_stringbuffer_grow_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODX("grow", MLStringBufferT, MLSequenceT) {
+	ml_stringbuffer_grow_t *Grow = new(ml_stringbuffer_grow_t);
+	Grow->Base.Caller = Caller;
+	Grow->Base.Context = Caller->Context;
+	Grow->Base.run = (void *)ml_stringbuffer_grow_next;
+	Grow->Args[0] = Args[0];
+	return ml_iterate((ml_state_t *)Grow, Args[1]);
+}
+
 ML_METHOD("rest", MLStringBufferT) {
 //<Buffer
 //>string
