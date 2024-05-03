@@ -586,9 +586,9 @@ static void json_decode_single_fn(json_decoder_t *Decoder, ml_value_t *Value) {
 	*(ml_value_t **)Decoder->Data = Value;
 }
 
-ML_METHOD_ANON(JsonDecode, "json::decode");
+ML_METHOD_ANON(MLJsonDecode, "json::decode");
 
-ML_METHOD(JsonDecode, MLStringT) {
+ML_METHOD(MLJsonDecode, MLStringT) {
 //@json::decode
 //<Json
 //>any
@@ -628,7 +628,7 @@ static void ml_json_stream_state_run(ml_json_stream_state_t *State, ml_value_t *
 	}
 }
 
-ML_METHODX(JsonDecode, MLStreamT) {
+ML_METHODX(MLJsonDecode, MLStreamT) {
 //@json::decode
 //<Stream
 //>any
@@ -665,7 +665,7 @@ static void ml_json_decoder_run(ml_json_decoder_t *State, ml_value_t *Value) {
 	return ml_call(State, State->Callback, 1, State->Args);
 }
 
-ML_FUNCTIONX(JsonDecoder) {
+ML_FUNCTIONX(MLJsonDecoder) {
 //@json::decoder
 //<Callback
 //>json::decoder
@@ -683,7 +683,7 @@ ML_FUNCTIONX(JsonDecoder) {
 ML_TYPE(MLJsonDecoderT, (MLStreamT), "json-decoder",
 //@json::decoder
 // A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
-	.Constructor = (ml_value_t *)JsonDecoder
+	.Constructor = (ml_value_t *)MLJsonDecoder
 );
 
 static void ML_TYPED_FN(ml_stream_write, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder, const void *Address, int Count) {
@@ -791,9 +791,9 @@ static ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) 
 	return NULL;
 }
 
-ML_METHOD_ANON(JsonEncode, "json::encode");
+ML_METHOD_ANON(MLJsonEncode, "json::encode");
 
-ML_METHOD(JsonEncode, MLAnyT) {
+ML_METHOD(MLJsonEncode, MLAnyT) {
 //@json::encode
 //<Value
 //>string|error
@@ -801,6 +801,16 @@ ML_METHOD(JsonEncode, MLAnyT) {
 	ML_CHECK_ARG_COUNT(1);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_to_string(Buffer);
+}
+
+ML_FUNCTION(MLJsonAppend) {
+//@json::append
+//<Buffer
+//<Value
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringBufferT);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_json_encode(Buffer, Args[1]) ?: MLSome;
 }
 
 ML_FUNCTION(MLJson) {
@@ -876,8 +886,9 @@ static ml_value_t *ml_cbor_read_json(ml_cbor_reader_t *Reader, ml_value_t *Value
 
 void ml_json_init(stringmap_t *Globals) {
 #include "ml_json_init.c"
-	stringmap_insert(MLJsonT->Exports, "encode", JsonEncode);
-	stringmap_insert(MLJsonT->Exports, "decode", JsonDecode);
+	stringmap_insert(MLJsonT->Exports, "encode", MLJsonEncode);
+	stringmap_insert(MLJsonT->Exports, "append", MLJsonAppend);
+	stringmap_insert(MLJsonT->Exports, "decode", MLJsonDecode);
 	stringmap_insert(MLJsonT->Exports, "decoder", MLJsonDecoderT);
 	if (Globals) {
 		stringmap_insert(Globals, "json", MLJsonT);
