@@ -1672,13 +1672,17 @@ ML_METHOD("offset", MLStringT, MLIntegerT) {
 	const char *Start = ml_string_value(Args[0]);
 	return ml_integer(Index.Chars - Start);
 }
-
+/*
 ML_METHOD("+", MLStringT, MLStringT) {
 //<A
 //<B
 //>string
 // Returns :mini:`A` and :mini:`B` concatentated.
 //$= "Hello" + " " + "world"
+*/
+
+ML_FUNCTION(MLAddStringString) {
+//!internal
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
@@ -4404,6 +4408,7 @@ void ml_string_init() {
 	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
 	stringmap_insert(MLRegexT->Exports, "escape", MLRegexEscape);
 #include "ml_string_init.c"
+	ml_method_definev(ml_method("+"), (ml_value_t *)MLAddStringString, NULL, MLStringT, MLStringT, NULL);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};
 	ml_type_add_parent(MLStringT, ml_generic_type(3, TArgs));

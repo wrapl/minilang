@@ -1293,19 +1293,27 @@ typedef struct {
 
 static void string_sum_iter_next(ml_string_sum_t *State, ml_value_t *Value);
 
+extern ml_cfunction_t MLAddStringString[1];
+
+static __attribute__ ((noinline)) int is_not_string_add(ml_context_t *Context, ml_value_t *Value) {
+	ml_value_t *Args[2] = {ml_cstring(""), Value};
+	ml_value_t *Method = ml_method_search(ml_context_get(Context, ML_METHODS_INDEX), (ml_method_t *)AddMethod, 2, Args);
+	return Method != (ml_value_t *)MLAddStringString;
+}
+
 static void string_sum_next_value(ml_string_sum_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (ml_is(Value, MLStringT)) {
-		ml_stringbuffer_write(State->Buffer, ml_string_value(Value), ml_string_length(Value));
-		State->Base.run = (void *)string_sum_iter_next;
-		return ml_iter_next((ml_state_t *)State, State->Iter);
+	if (is_not_string_add(State->Base.Context, Value)) {
+		ml_iter_state_t *State0 = State->State;
+		ml_value_t *Function = State0->Values[0];
+		State0->Values[1] = ml_stringbuffer_get_value(State->Buffer);
+		State0->Values[2] = Value;
+		State0->Base.run = (void *)reduce_call;
+		return ml_call(State, Function, 2, State0->Values + 1);
 	}
-	ml_iter_state_t *State0 = State->State;
-	ml_value_t *Function = State0->Values[0];
-	State0->Values[1] = ml_stringbuffer_get_value(State->Buffer);
-	State0->Values[2] = Value;
-	State0->Base.run = (void *)reduce_call;
-	return ml_call(State, Function, 2, State0->Values + 1);
+	ml_stringbuffer_write(State->Buffer, ml_string_value(Value), ml_string_length(Value));
+	State->Base.run = (void *)string_sum_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
 static void string_sum_iter_next(ml_string_sum_t *State, ml_value_t *Value) {
