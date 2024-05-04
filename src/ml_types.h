@@ -766,6 +766,15 @@ void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code);
 void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
 void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer);
 
+
+static inline ssize_t ml_stringbuffer_write_fast(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+	if (Buffer->Space < Length) return ml_stringbuffer_write(Buffer, String, Length);
+	memcpy(Buffer->Tail->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Length);
+	Buffer->Space -= Length;
+	Buffer->Length += Length;
+	return Length;
+}
+
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
