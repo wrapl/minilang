@@ -1396,17 +1396,14 @@ ML_METHOD("utf8", MLIntegerT) {
 	uint32_t Code = ml_integer_value(Args[0]);
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
-	int I = 0;
+	int I = 8;
 	while (Code > LeadByteMax) {
-		Val[I++] = (Code & 0x3F) | 0x80;
+		Val[--I] = (Code & 0x3F) | 0x80;
 		Code >>= 6;
-		LeadByteMax >>= (I == 1 ? 2 : 1);
+		LeadByteMax >>= (I == 7 ? 2 : 1);
 	}
-	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	char *S = snew(I + 1), *P = S;
-	while (I--) *P++ = Val[I];
-	*P = 0;
-	return ml_string(S, I);
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	return ml_string_copy(Val + I, 8 - I);
 }
 
 ML_METHOD("char", MLIntegerT) {
@@ -1416,17 +1413,14 @@ ML_METHOD("char", MLIntegerT) {
 	uint32_t Code = ml_integer_value(Args[0]);
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
-	int I = 0;
+	int I = 8;
 	while (Code > LeadByteMax) {
-		Val[I++] = (Code & 0x3F) | 0x80;
+		Val[--I] = (Code & 0x3F) | 0x80;
 		Code >>= 6;
-		LeadByteMax >>= (I == 1 ? 2 : 1);
+		LeadByteMax >>= (I == 7 ? 2 : 1);
 	}
-	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	char *S = snew(I + 1), *P = S;
-	while (I--) *P++ = Val[I];
-	*P = 0;
-	return ml_string(S, I);
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	return ml_string_copy(Val + I, 8 - I);
 }
 
 #ifdef ML_ICU
@@ -4079,7 +4073,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 	return Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
 }
 
-ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+ssize_t ml_stringbuffer_write_actual(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
 	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);
 	size_t Remaining = Length;
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
@@ -4124,7 +4118,7 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 	return Length;
 }
 
-void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
+void ml_stringbuffer_put_actual(ml_stringbuffer_t *Buffer, char Char) {
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	if (!Buffer->Space) {
 		Node = Node->Next = ml_stringbuffer_node();
@@ -4146,19 +4140,6 @@ char ml_stringbuffer_last(ml_stringbuffer_t *Buffer) {
 		return Prev->Chars[ML_STRINGBUFFER_NODE_SIZE - 1];
 	}
 	return Node->Chars[ML_STRINGBUFFER_NODE_SIZE - (Buffer->Space + 1)];
-}
-
-void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
-	char Val[8];
-	uint32_t LeadByteMax = 0x7F;
-	int I = 0;
-	while (Code > LeadByteMax) {
-		Val[I++] = (Code & 0x3F) | 0x80;
-		Code >>= 6;
-		LeadByteMax >>= (I == 1 ? 2 : 1);
-	}
-	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	while (I--) ml_stringbuffer_put(Buffer, Val[I]);
 }
 
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
