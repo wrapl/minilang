@@ -984,6 +984,12 @@ ML_METHODVX("append", MLStringBufferT, MLAnyT, MLFunctionT) {
 	return ml_call(Caller, Function, Count - 1, Args + 1);
 }
 
+/*ML_METHODVX("append", MLStringBufferT, MLFunctionT) {
+	ml_value_t *Function = Args[1];
+	Args[1] = Args[0];
+	return ml_call(Caller, Function, Count - 1, Args + 1);
+}*/
+
 ML_METHOD(MLIntegerT, MLStringT) {
 //!number
 //<String
