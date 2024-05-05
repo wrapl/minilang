@@ -1391,6 +1391,29 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLListMutableT) {
 	return MLNil;
 }
 
+ML_METHOD("take", MLListMutableT, MLListMutableT) {
+//<List
+//<Source
+//>nil
+// Appends the elements from :mini:`Source` onto :mini:`List`, leaving :mini:`Source` empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_list_t *Source = (ml_list_t *)Args[1];
+	if (!Source->Length) return (ml_value_t *)List;
+	Source->Head->Prev = List->Tail;
+	if (List->Tail) {
+		List->Tail->Next = Source->Head;
+	} else {
+		List->Head = Source->Head;
+	}
+	List->Tail = Source->Tail;
+	List->CachedNode = List->Head;
+	List->CachedIndex = 1;
+	List->Length += Source->Length;
+	Source->Head = Source->Tail = NULL;
+	Source->Length = 0;
+	return (ml_value_t *)List;
+}
+
 ML_METHOD("reverse", MLListMutableT) {
 //<List
 //>list
