@@ -757,6 +757,11 @@ struct ml_stringbuffer_node_t {
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ml_value_t *ml_stringbuffer();
+
+static inline int ml_stringbuffer_length(ml_stringbuffer_t *Buffer) {
+	return Buffer->Length;
+}
+
 char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 char ml_stringbuffer_last(ml_stringbuffer_t *Buffer);

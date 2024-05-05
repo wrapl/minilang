@@ -19,7 +19,7 @@ static void xe_node_build(xe_node_t *Node, ml_stringbuffer_t *Buffer, ml_value_t
 	if (ml_is(Value, MLStringT)) {
 		ml_stringbuffer_write(Buffer, ml_string_value(Value), ml_string_length(Value));
 	} else if (ml_is(Value, XENodeT)) {
-		if (Buffer->Length) ml_list_put(Node->Content, ml_stringbuffer_get_value(Buffer));
+		if (ml_stringbuffer_length(Buffer)) ml_list_put(Node->Content, ml_stringbuffer_get_value(Buffer));
 		ml_list_put(Node->Content, Value);
 	} else if (ml_is(Value, MLListT)) {
 		ML_LIST_FOREACH(Value, Iter) xe_node_build(Node, Buffer, Iter->Value);
@@ -42,7 +42,7 @@ ML_FUNCTIONX(XENode) {
 	Node->Content = ml_list();
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 1; I < Count; ++I) xe_node_build(Node, Buffer, Args[I]);
-	if (Buffer->Length) ml_list_put(Node->Content, ml_stringbuffer_get_value(Buffer));
+	if (ml_stringbuffer_length(Buffer)) ml_list_put(Node->Content, ml_stringbuffer_get_value(Buffer));
 	Node->Source = ml_debugger_source(Caller);
 	ML_RETURN(Node);
 }
@@ -478,7 +478,7 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					End = Next = parse_escape(End, Buffer);
 				} else if (End[0] == '<') {
 					ml_stringbuffer_write(Buffer, Next, End - Next);
-					if (Buffer->Length) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
+					if (ml_stringbuffer_length(Buffer)) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
 					Stream->Next = End + 1;
 					ml_value_t *Node = parse_node(Stream);
 					if (ml_is_error(Node)) return Node;
@@ -486,7 +486,7 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					End = Next = Stream->Next;
 				} else if (End[0] == '>') {
 					ml_stringbuffer_write(Buffer, Next, End - Next);
-					if (Buffer->Length) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
+					if (ml_stringbuffer_length(Buffer)) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
 					break;
 				} else {
 					++End;
@@ -571,7 +571,7 @@ ML_FUNCTION(XEParse) {
 			End = Next = parse_escape(End, Buffer);
 		} else if (End[0] == '<') {
 			ml_stringbuffer_write(Buffer, Next, End - Next);
-			if (Buffer->Length) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
+			if (ml_stringbuffer_length(Buffer)) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
 			Stream->Next = End + 1;
 			ml_value_t *Node = parse_node(Stream);
 			if (ml_is_error(Node)) return Node;
@@ -581,7 +581,7 @@ ML_FUNCTION(XEParse) {
 			++End;
 		}
 	}
-	if (Buffer->Length) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
+	if (ml_stringbuffer_length(Buffer)) ml_list_put(Content, ml_stringbuffer_get_value(Buffer));
 	return Content;
 }
 

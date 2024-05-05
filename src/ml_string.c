@@ -977,20 +977,11 @@ ML_METHOD("append", MLStringBufferT, MLUninitializedT) {
 	return ml_error("ValueError", "%s is uninitialized", ml_uninitialized_name(Args[1]));
 }
 
-ML_METHODVX("append", MLStringBufferT, MLAnyT, MLTypeT) {
-	ml_type_t *Type = (ml_type_t *)Args[2];
-	ml_value_t *Append = stringmap_search(Type->Exports, "append");
-	if (!Append) ML_RETURN(ml_no_method_error((ml_method_t *)AppendMethod, Count, Args));
-	for (int I = 2; I < Count; ++I) Args[I] = Args[I + 1];
-	return ml_call(Caller, Append, Count - 1, Args);
-}
-
-ML_METHODVX("append", MLStringBufferT, MLAnyT, MLModuleT) {
-	ml_module_t *Module = (ml_module_t *)Args[2];
-	ml_value_t *Append = stringmap_search(Module->Exports, "append");
-	if (!Append) ML_RETURN(ml_no_method_error((ml_method_t *)AppendMethod, Count, Args));
-	for (int I = 2; I < Count; ++I) Args[I] = Args[I + 1];
-	return ml_call(Caller, Append, Count - 1, Args);
+ML_METHODVX("append", MLStringBufferT, MLAnyT, MLFunctionT) {
+	ml_value_t *Function = Args[2];
+	Args[2] = Args[1];
+	Args[1] = Args[0];
+	return ml_call(Caller, Function, Count - 1, Args + 1);
 }
 
 ML_METHOD(MLIntegerT, MLStringT) {

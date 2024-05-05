@@ -569,7 +569,7 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 	for (enum_value_t **Ptr = Type->ByIndex; Value && *Ptr; ++Ptr) {
 		if ((Ptr[0]->Value & Value) == Ptr[0]->Value) {
 			Value &= ~Ptr[0]->Value;
-			if (Buffer->Length) ml_stringbuffer_put(Buffer, '|');
+			if (ml_stringbuffer_length(Buffer)) ml_stringbuffer_put(Buffer, '|');
 			const char *Name = ml_string_value(Ptr[0]->Name);
 			size_t Length = ml_string_length(Ptr[0]->Name);
 			ml_stringbuffer_write(Buffer, Name, Length);

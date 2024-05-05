@@ -2192,14 +2192,17 @@
     <member refid="group__strings_1ga164105119905996003a097f8864a333d" kind="function"><name>ml_regex_pattern</name></member>
     <member refid="group__strings_1ga3d67945bae6d7411d5ef1e0b82371407" kind="function"><name>ml_regex_match</name></member>
     <member refid="group__strings_1ga9eaad83d27d77c00d4c3f0b2ae1fbdd3" kind="function"><name>ml_stringbuffer</name></member>
+    <member refid="group__strings_1ga895958502be6d350fdb5e2463953b94d" kind="function"><name>ml_stringbuffer_length</name></member>
     <member refid="group__strings_1ga32ac71924bcbc14387fe015970e812a6" kind="function"><name>ml_stringbuffer_writer</name></member>
-    <member refid="group__strings_1ga127fd4df2e96d4e462e146120aad7f24" kind="function"><name>ml_stringbuffer_write</name></member>
     <member refid="group__strings_1ga3b910f14c86d7fdb18f3cf774475094d" kind="function"><name>ml_stringbuffer_printf</name></member>
-    <member refid="group__strings_1gacd4d69ebea6e4de2bf520a127f1db50a" kind="function"><name>ml_stringbuffer_put</name></member>
-    <member refid="group__strings_1ga091de766590ef18b48eeb64fdd39d936" kind="function"><name>ml_stringbuffer_last</name></member>
-    <member refid="group__strings_1gab5a92246f9bb2db6106fb1943df8ec79" kind="function"><name>ml_stringbuffer_put32</name></member>
+    <member refid="group__strings_1ga5461b2ddeff7e73aec9e57f9938763df" kind="function"><name>ml_stringbuffer_last</name></member>
     <member refid="group__strings_1ga3d289fad4e03330ff3f938ef9a544953" kind="function"><name>ml_stringbuffer_append</name></member>
     <member refid="group__strings_1gad6f6e5740e09fc100237cd7fbe1bdfac" kind="function"><name>ml_stringbuffer_clear</name></member>
+    <member refid="group__strings_1gaeba59fc8a8f7fd91120e49161a823ef3" kind="function"><name>ml_stringbuffer_put_actual</name></member>
+    <member refid="group__strings_1gafcef2e64b71dbd44defa8f8f254c6c07" kind="function"><name>ml_stringbuffer_put</name></member>
+    <member refid="group__strings_1ga6d6e21d0d3591a97edd65c0c77bcf851" kind="function"><name>ml_stringbuffer_write_actual</name></member>
+    <member refid="group__strings_1ga049b8ad5df446b3fc76a1d082a2dee3e" kind="function"><name>ml_stringbuffer_write</name></member>
+    <member refid="group__strings_1gaef9c2804dcfb1400cdc6c518acb98dd4" kind="function"><name>ml_stringbuffer_put32</name></member>
     <member refid="group__strings_1ga7f8281b09ed06b5c88db0b178eb2967b" kind="function"><name>ml_stringbuffer_simple_append</name></member>
     <member refid="group__strings_1ga43340f5bb19474b6e841313078519c8f" kind="function"><name>ml_stringbuffer_get_string</name></member>
     <member refid="group__strings_1gac641653a059a4d860d3842eb6c606a37" kind="function"><name>ml_stringbuffer_get_uncollectable</name></member>
@@ -2226,8 +2229,8 @@
     <member refid="group__lists_1ga33d25b87282ab468a44ad321478e6759" kind="function"><name>ml_list_iter_prev</name></member>
     <member refid="group__lists_1gac73e993951191ef83ee46a8617d9c949" kind="function"><name>ml_list_iter_valid</name></member>
     <member refid="group__lists_1ga180daa9ffd89687a9aaea09ff6eb64d3" kind="function"><name>ml_list_iter_update</name></member>
-    <member refid="group__methods_1ga5571269414087dfb17cd8d5d72504252" kind="function"><name>ml_method</name></member>
-    <member refid="group__methods_1gad9aa68147963a0690e92a916c727a989" kind="function"><name>ml_method_anon</name></member>
+    <member refid="group__methods_1ga24a660ca09a2087ddcbca0f87f855272" kind="function"><name>ml_method</name></member>
+    <member refid="group__methods_1gab1ff7f81d0396b2123a50db19370edbd" kind="function"><name>ml_method_anon</name></member>
     <member refid="group__methods_1ga19f325e8e1304f08be11e3609f0e8019" kind="function"><name>ml_method_name</name></member>
     <member refid="group__methods_1ga7993cead32f8dc82c0f45126da33139d" kind="function"><name>ml_method_by_name</name></member>
     <member refid="group__methods_1ga4f75a1ae7a10ad6b9915123cb149eaa4" kind="function"><name>ml_method_by_value</name></member>
@@ -2910,14 +2913,17 @@
     <member refid="group__strings_1ga164105119905996003a097f8864a333d" kind="function"><name>ml_regex_pattern</name></member>
     <member refid="group__strings_1ga3d67945bae6d7411d5ef1e0b82371407" kind="function"><name>ml_regex_match</name></member>
     <member refid="group__strings_1ga9eaad83d27d77c00d4c3f0b2ae1fbdd3" kind="function"><name>ml_stringbuffer</name></member>
+    <member refid="group__strings_1ga895958502be6d350fdb5e2463953b94d" kind="function"><name>ml_stringbuffer_length</name></member>
     <member refid="group__strings_1ga32ac71924bcbc14387fe015970e812a6" kind="function"><name>ml_stringbuffer_writer</name></member>
-    <member refid="group__strings_1ga127fd4df2e96d4e462e146120aad7f24" kind="function"><name>ml_stringbuffer_write</name></member>
     <member refid="group__strings_1ga3b910f14c86d7fdb18f3cf774475094d" kind="function"><name>ml_stringbuffer_printf</name></member>
-    <member refid="group__strings_1gacd4d69ebea6e4de2bf520a127f1db50a" kind="function"><name>ml_stringbuffer_put</name></member>
-    <member refid="group__strings_1ga091de766590ef18b48eeb64fdd39d936" kind="function"><name>ml_stringbuffer_last</name></member>
-    <member refid="group__strings_1gab5a92246f9bb2db6106fb1943df8ec79" kind="function"><name>ml_stringbuffer_put32</name></member>
+    <member refid="group__strings_1ga5461b2ddeff7e73aec9e57f9938763df" kind="function"><name>ml_stringbuffer_last</name></member>
     <member refid="group__strings_1ga3d289fad4e03330ff3f938ef9a544953" kind="function"><name>ml_stringbuffer_append</name></member>
     <member refid="group__strings_1gad6f6e5740e09fc100237cd7fbe1bdfac" kind="function"><name>ml_stringbuffer_clear</name></member>
+    <member refid="group__strings_1gaeba59fc8a8f7fd91120e49161a823ef3" kind="function"><name>ml_stringbuffer_put_actual</name></member>
+    <member refid="group__strings_1gafcef2e64b71dbd44defa8f8f254c6c07" kind="function"><name>ml_stringbuffer_put</name></member>
+    <member refid="group__strings_1ga6d6e21d0d3591a97edd65c0c77bcf851" kind="function"><name>ml_stringbuffer_write_actual</name></member>
+    <member refid="group__strings_1ga049b8ad5df446b3fc76a1d082a2dee3e" kind="function"><name>ml_stringbuffer_write</name></member>
+    <member refid="group__strings_1gaef9c2804dcfb1400cdc6c518acb98dd4" kind="function"><name>ml_stringbuffer_put32</name></member>
     <member refid="group__strings_1ga7f8281b09ed06b5c88db0b178eb2967b" kind="function"><name>ml_stringbuffer_simple_append</name></member>
     <member refid="group__strings_1ga43340f5bb19474b6e841313078519c8f" kind="function"><name>ml_stringbuffer_get_string</name></member>
     <member refid="group__strings_1gac641653a059a4d860d3842eb6c606a37" kind="function"><name>ml_stringbuffer_get_uncollectable</name></member>
@@ -2970,8 +2976,8 @@
     <member refid="group__methods_1ga156dd7b19b454f8ce3dce93bb30cddbc" kind="variable"><name>MLMethodDefine</name></member>
     <member refid="group__methods_1ga65beab28734e99107675e8f68e8f97af" kind="variable"><name>MLMethodDefault</name></member>
     <member refid="group__methods_1ga8107ad8b261da2afa16428f5b9f69ff3" kind="variable"><name>MLMethodT</name></member>
-    <member refid="group__methods_1ga5571269414087dfb17cd8d5d72504252" kind="function"><name>ml_method</name></member>
-    <member refid="group__methods_1gad9aa68147963a0690e92a916c727a989" kind="function"><name>ml_method_anon</name></member>
+    <member refid="group__methods_1ga24a660ca09a2087ddcbca0f87f855272" kind="function"><name>ml_method</name></member>
+    <member refid="group__methods_1gab1ff7f81d0396b2123a50db19370edbd" kind="function"><name>ml_method_anon</name></member>
     <member refid="group__methods_1ga19f325e8e1304f08be11e3609f0e8019" kind="function"><name>ml_method_name</name></member>
     <member refid="group__methods_1ga7993cead32f8dc82c0f45126da33139d" kind="function"><name>ml_method_by_name</name></member>
     <member refid="group__methods_1ga4f75a1ae7a10ad6b9915123cb149eaa4" kind="function"><name>ml_method_by_value</name></member>

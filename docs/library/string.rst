@@ -18,11 +18,7 @@ Indexing a string starts at :mini:`1`,  with the last character at :mini:`String
 
 When creating a substring,  the first index is inclusive and second index is exclusive. The index :mini:`0` refers to just beyond the last character and can be used to take a substring to the end of a string.
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: any, Arg₃: module, ...)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: any, Arg₃: type, ...)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: any, Arg₃: function, ...)`
    *TBD*
 
 

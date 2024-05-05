@@ -168,7 +168,7 @@ static void ml_stream_read_address_run(ml_read_state_t *State, ml_value_t *Value
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_address(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_address(State->Buffer) : MLNil);
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	size_t Remaining = State->Remaining;
 	Remaining -= Length;
@@ -186,7 +186,7 @@ static void ml_stream_read_buffer_run(ml_read_state_t *State, ml_value_t *Value)
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	size_t Remaining = State->Remaining;
 	Remaining -= Length;
@@ -204,7 +204,7 @@ static void ml_stream_read_string_run(ml_read_state_t *State, ml_value_t *Value)
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_string(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_string(State->Buffer) : MLNil);
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	size_t Remaining = State->Remaining;
 	UTF8_COUNT(State->Space, Length);
@@ -290,7 +290,7 @@ static void ml_stream_readx_address_run(ml_read_state_t *State, ml_value_t *Valu
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_address(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_address(State->Buffer) : MLNil);
 	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_address(State->Buffer));
 	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
@@ -306,7 +306,7 @@ static void ml_stream_readx_buffer_run(ml_read_state_t *State, ml_value_t *Value
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
 	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_buffer(State->Buffer));
 	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
@@ -322,7 +322,7 @@ static void ml_stream_readx_string_run(ml_read_state_t *State, ml_value_t *Value
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_string(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_string(State->Buffer) : MLNil);
 	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
 	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
@@ -434,7 +434,7 @@ static void ml_stream_readi_address_run(ml_read_state_t *State, ml_value_t *Valu
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_address(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_address(State->Buffer) : MLNil);
 	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
 	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_address(State->Buffer));
@@ -450,7 +450,7 @@ static void ml_stream_readi_buffer_run(ml_read_state_t *State, ml_value_t *Value
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_buffer(State->Buffer) : MLNil);
 	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
 	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_buffer(State->Buffer));
@@ -466,7 +466,7 @@ static void ml_stream_readi_string_run(ml_read_state_t *State, ml_value_t *Value
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_string(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_string(State->Buffer) : MLNil);
 	ml_stringbuffer_write(State->Buffer, (void *)(State->Chars + 64), Length);
 	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
@@ -595,7 +595,7 @@ static void ml_stream_rest_address_run(ml_read_state_t *State, ml_value_t *Value
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_address(State->Buffer) : ml_cstring(""));
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_address(State->Buffer) : ml_cstring(""));
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
@@ -605,7 +605,7 @@ static void ml_stream_rest_buffer_run(ml_read_state_t *State, ml_value_t *Value)
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_buffer(State->Buffer) : ml_cstring(""));
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_buffer(State->Buffer) : ml_cstring(""));
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
@@ -615,7 +615,7 @@ static void ml_stream_rest_string_run(ml_read_state_t *State, ml_value_t *Value)
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_to_string(State->Buffer) : ml_cstring(""));
+	if (!Length) ML_RETURN(ml_stringbuffer_length(State->Buffer) ? ml_stringbuffer_to_string(State->Buffer) : ml_cstring(""));
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);

@@ -2119,7 +2119,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 	ml_cbor_write_array(Writer, ml_list_length(Values) + 2);
 	ml_cbor_write_string(Writer, 1);
 	ml_cbor_write_raw(Writer, (unsigned char *)"!", 1);
-	ml_cbor_write_bytes(Writer, Buffer->Length);
+	ml_cbor_write_bytes(Writer, ml_stringbuffer_length(Buffer));
 	ml_stringbuffer_drain(Buffer, Writer, (void *)ml_cbor_write_raw);
 	ML_LIST_FOREACH(Values, Iter) ml_cbor_write(Writer, Iter->Value);
 }

@@ -3948,9 +3948,9 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			Parser->Next = End;
 			break;
 		} else if (C == '{') {
-			if (Buffer->Length) {
+			if (ml_stringbuffer_length(Buffer)) {
 				mlc_string_part_t *Part = new(mlc_string_part_t);
-				Part->Length = Buffer->Length;
+				Part->Length = ml_stringbuffer_length(Buffer);
 				Part->Chars = ml_stringbuffer_get_string(Buffer);
 				Part->Line = Parser->Source.Line;
 				Slot[0] = Part;
@@ -4022,9 +4022,9 @@ eoi:
 		Parser->Value = ml_stringbuffer_get_value(Buffer);
 		return (Parser->Token = MLT_VALUE);
 	} else {
-		if (Buffer->Length) {
+		if (ml_stringbuffer_length(Buffer)) {
 			mlc_string_part_t *Part = new(mlc_string_part_t);
-			Part->Length = Buffer->Length;
+			Part->Length = ml_stringbuffer_length(Buffer);
 			Part->Chars = ml_stringbuffer_get_string(Buffer);
 			Part->Line = Parser->Source.Line;
 			Slot[0] = Part;

@@ -56,7 +56,7 @@ JSON values are mapped to Minilang as follows:
    Decodes :mini:`Json` into a Minilang value.
 
 
-:mini:`fun json::append(Buffer: string::buffer, Value: any)`
+:mini:`meth json::encode(Buffer: string::buffer, Value: any)`
    *TBD*
 
 

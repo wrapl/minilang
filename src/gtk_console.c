@@ -327,7 +327,7 @@ static void console_show_value(GtkTreeStore *Store, GtkTreeIter *Iter, const cha
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_simple_append(Buffer, Value);
 	char *Display;
-	if (Buffer->Length < 64) {
+	if (ml_stringbuffer_length(Buffer) < 64) {
 		Display = ml_stringbuffer_get_string(Buffer);
 	} else {
 		Display = snew(68);

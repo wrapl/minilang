@@ -842,7 +842,7 @@ ml_cbor_t ml_cbor_encode(ml_value_t *Value) {
 	if (setjmp(Writer->OnError)) return (ml_cbor_t){{.Error = Writer->Error}, 0};
 	ml_cbor_writer_find_refs(Writer, Value);
 	ml_cbor_write(Writer, Value);
-	size_t Size = Buffer->Length;
+	size_t Size = ml_stringbuffer_length(Buffer);
 	if (!Size) return (ml_cbor_t){{.Error = ml_error("CBORError", "Empty CBOR encoding")}, 0};
 	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Buffer)}, Size};
 }
@@ -1118,7 +1118,7 @@ ML_METHOD(CborEncode, MLAnyT, MLExternalSetT) {
 	if (setjmp(Writer->OnError)) return Writer->Error;
 	ml_cbor_writer_find_refs(Writer, Value);
 	ml_cbor_write(Writer, Value);
-	int Length = Buffer->Length;
+	int Length = ml_stringbuffer_length(Buffer);
 	return ml_address(ml_stringbuffer_get_string(Buffer), Length);
 }
 

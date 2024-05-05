@@ -218,10 +218,10 @@ static ml_value_t *ml_xml_element_put_general(ml_xml_element_t *Element, ml_valu
 		ml_stringbuffer_write(Buffer, ml_string_value(Value), ml_string_length(Value));
 		return NULL;
 	} else if (ml_is(Value, MLXmlT)) {
-		if (Buffer->Length) {
+		if (ml_stringbuffer_length(Buffer)) {
 			ml_xml_node_t *Text = new(ml_xml_node_t);
 			Text->Base.Type = MLXmlTextT;
-			Text->Base.Length = Buffer->Length;
+			Text->Base.Length = ml_stringbuffer_length(Buffer);
 			Text->Base.Value = ml_stringbuffer_get_string(Buffer);
 			ml_xml_element_put(Element, Text);
 		}
@@ -285,10 +285,10 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 			if (Error) return Error;
 		}
 	}
-	if (Buffer->Length) {
+	if (ml_stringbuffer_length(Buffer)) {
 		ml_xml_node_t *Text = new(ml_xml_node_t);
 		Text->Base.Type = MLXmlTextT;
-		Text->Base.Length = Buffer->Length;
+		Text->Base.Length = ml_stringbuffer_length(Buffer);
 		Text->Base.Value = ml_stringbuffer_get_string(Buffer);
 		ml_xml_element_put(Element, Text);
 	}
@@ -314,7 +314,7 @@ ML_METHOD("attributes", MLXmlElementT) {
 static void ml_xml_element_text(ml_xml_element_t *Element, ml_stringbuffer_t *Buffer, const char *Sep, int SepLen) {
 	for (ml_xml_node_t *Node = Element->Head; Node; Node = Node->Next) {
 		if (Node->Base.Type == MLXmlTextT) {
-			if (Buffer->Length && SepLen) ml_stringbuffer_write(Buffer, Sep, SepLen);
+			if (ml_stringbuffer_length(Buffer) && SepLen) ml_stringbuffer_write(Buffer, Sep, SepLen);
 			ml_stringbuffer_write(Buffer, Node->Base.Value, Node->Base.Length);
 		} else if (Node->Base.Type == MLXmlElementT) {
 			ml_xml_element_text((ml_xml_element_t *)Node, Buffer, Sep, SepLen);
@@ -362,10 +362,10 @@ typedef struct {
 
 static ml_value_t *ml_xml_grow(ml_xml_grower_t *Grower, ml_value_t *Value) {
 	if (!Value) {
-		if (Grower->Buffer->Length) {
+		if (ml_stringbuffer_length(Grower->Buffer)) {
 			ml_xml_node_t *Text = new(ml_xml_node_t);
 			Text->Base.Type = MLXmlTextT;
-			Text->Base.Length = Grower->Buffer->Length;
+			Text->Base.Length = ml_stringbuffer_length(Grower->Buffer);
 			Text->Base.Value = ml_stringbuffer_get_string(Grower->Buffer);
 			Text->Parent = Grower->Parent;
 			Text->Prev = Grower->Tail;
@@ -373,10 +373,10 @@ static ml_value_t *ml_xml_grow(ml_xml_grower_t *Grower, ml_value_t *Value) {
 			Grower->Tail = Text;
 		}
 	} else if (ml_is(Value, MLXmlT)) {
-		if (Grower->Buffer->Length) {
+		if (ml_stringbuffer_length(Grower->Buffer)) {
 			ml_xml_node_t *Text = new(ml_xml_node_t);
 			Text->Base.Type = MLXmlTextT;
-			Text->Base.Length = Grower->Buffer->Length;
+			Text->Base.Length = ml_stringbuffer_length(Grower->Buffer);
 			Text->Base.Value = ml_stringbuffer_get_string(Grower->Buffer);
 			Text->Parent = Grower->Parent;
 			Text->Prev = Grower->Tail;
@@ -523,10 +523,10 @@ static void ml_xml_grow_state_value(ml_xml_grow_state_t *State, ml_value_t *Valu
 	if (ml_is(Value, MLStringT)) {
 		ml_stringbuffer_write(Buffer, ml_string_value(Value), ml_string_length(Value));
 	} else if (ml_is(Value, MLXmlElementT)) {
-		if (Buffer->Length) {
+		if (ml_stringbuffer_length(Buffer)) {
 			ml_xml_node_t *Text = new(ml_xml_node_t);
 			Text->Base.Type = MLXmlTextT;
-			Text->Base.Length = Buffer->Length;
+			Text->Base.Length = ml_stringbuffer_length(Buffer);
 			Text->Base.Value = ml_stringbuffer_get_string(Buffer);
 			ml_xml_element_put(Element, Text);
 		}
@@ -554,10 +554,10 @@ static void ml_xml_grow_state_next(ml_xml_grow_state_t *State, ml_value_t *Value
 	if (Value == MLNil) {
 		ml_stringbuffer_t *Buffer = State->Buffer;
 		ml_xml_element_t *Element = State->Element;
-		if (Buffer->Length) {
+		if (ml_stringbuffer_length(Buffer)) {
 			ml_xml_node_t *Text = new(ml_xml_node_t);
 			Text->Base.Type = MLXmlTextT;
-			Text->Base.Length = Buffer->Length;
+			Text->Base.Length = ml_stringbuffer_length(Buffer);
 			Text->Base.Value = ml_stringbuffer_get_string(Buffer);
 			ml_xml_element_put(Element, Text);
 		}
@@ -1383,10 +1383,10 @@ typedef struct {
 } xml_parser_t;
 
 static void xml_start_element(xml_parser_t *Parser, const XML_Char *Name, const XML_Char **Attrs) {
-	if (Parser->Buffer->Length) {
+	if (ml_stringbuffer_length(Parser->Buffer)) {
 		ml_xml_node_t *Text = new(ml_xml_node_t);
 		Text->Base.Type = MLXmlTextT;
-		Text->Base.Length = Parser->Buffer->Length;
+		Text->Base.Length = ml_stringbuffer_length(Parser->Buffer);
 		Text->Base.Value = ml_stringbuffer_get_string(Parser->Buffer);
 		if (Parser->Element) ml_xml_element_put(Parser->Element, Text);
 	}
@@ -1415,10 +1415,10 @@ static void xml_start_element(xml_parser_t *Parser, const XML_Char *Name, const 
 }
 
 static void xml_end_element(xml_parser_t *Parser, const XML_Char *Name) {
-	if (Parser->Buffer->Length) {
+	if (ml_stringbuffer_length(Parser->Buffer)) {
 		ml_xml_node_t *Text = new(ml_xml_node_t);
 		Text->Base.Type = MLXmlTextT;
-		Text->Base.Length = Parser->Buffer->Length;
+		Text->Base.Length = ml_stringbuffer_length(Parser->Buffer);
 		Text->Base.Value = ml_stringbuffer_get_string(Parser->Buffer);
 		ml_xml_element_put(Parser->Element, Text);
 	}
@@ -1553,10 +1553,10 @@ ML_METHODV(MLXmlT, MLSymbolT) {
 			if (Error) return Error;
 		}
 	}
-	if (Buffer->Length) {
+	if (ml_stringbuffer_length(Buffer)) {
 		ml_xml_node_t *Text = new(ml_xml_node_t);
 		Text->Base.Type = MLXmlTextT;
-		Text->Base.Length = Buffer->Length;
+		Text->Base.Length = ml_stringbuffer_length(Buffer);
 		Text->Base.Value = ml_stringbuffer_get_string(Buffer);
 		ml_xml_element_put(Element, Text);
 	}

@@ -798,19 +798,16 @@ ML_METHOD(MLJsonEncode, MLAnyT) {
 //<Value
 //>string|error
 // Encodes :mini:`Value` into JSON, raising an error if :mini:`Value` cannot be represented as JSON.
-	ML_CHECK_ARG_COUNT(1);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	return ml_json_encode(Buffer, Args[0]) ?: ml_stringbuffer_to_string(Buffer);
 }
 
-ML_FUNCTION(MLJsonAppend) {
-//@json::append
+ML_METHOD(MLJsonEncode, MLStringBufferT, MLAnyT) {
+//@json::encode
 //<Buffer
 //<Value
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLStringBufferT);
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	return ml_json_encode(Buffer, Args[1]) ?: MLSome;
+	return ml_json_encode(Buffer, Args[1]) ?: MLNil;
 }
 
 ML_FUNCTION(MLJson) {
@@ -887,7 +884,6 @@ static ml_value_t *ml_cbor_read_json(ml_cbor_reader_t *Reader, ml_value_t *Value
 void ml_json_init(stringmap_t *Globals) {
 #include "ml_json_init.c"
 	stringmap_insert(MLJsonT->Exports, "encode", MLJsonEncode);
-	stringmap_insert(MLJsonT->Exports, "append", MLJsonAppend);
 	stringmap_insert(MLJsonT->Exports, "decode", MLJsonDecode);
 	stringmap_insert(MLJsonT->Exports, "decoder", MLJsonDecoderT);
 	if (Globals) {
