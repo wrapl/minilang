@@ -3983,8 +3983,8 @@ ML_TYPE(MLStringBufferT, (MLStreamT), "stringbuffer");
 // A string buffer that automatically grows and shrinks as required.
 */
 
-ML_TYPE(MLStringBufferT, (), "stringbuffer",
-//!internal
+ML_TYPE(MLStringBufferT, (), "string::buffer",
+//@string::buffer
 // A string buffer that automatically grows and shrinks as required.
 	.Constructor = (ml_value_t *)MLStringBuffer
 );

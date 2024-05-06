@@ -68,6 +68,7 @@ hierarchy
       "enum":e -> "string::ctype":w;
       "function":e -> "regex":w;
       "stream":e -> "string::buffer":w;
+      "any":e -> "string::buffer":w;
       "any":e -> "stream":w;
       "enum":e -> "stream::seek":w;
       "function":e -> "stream::parser":w;

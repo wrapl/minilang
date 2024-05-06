@@ -881,6 +881,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`type string::buffer`
+   A string buffer that automatically grows and shrinks as required.
+
+
 :mini:`type string::buffer < stream`
    A string buffer that automatically grows and shrinks as required.
 

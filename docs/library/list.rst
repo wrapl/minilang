@@ -172,7 +172,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "k"
-      L:random :> "e"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -342,18 +342,22 @@ list
    Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
 
 
+:mini:`meth (List: list::mutable):take(Source: list::mutable): nil`
+   Appends the elements from :mini:`Source` onto :mini:`List`,  leaving :mini:`Source` empty.
+
+
 :mini:`type list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
 
-:mini:`type list::node::mutable`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::node::mutable < list::node`
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
