@@ -51,6 +51,23 @@ void ml_array_copy_data(ml_array_t *Source, char *Data);
 char *ml_array_flatten(ml_array_t *Source);
 int ml_array_copy(ml_array_t *Target, ml_array_t *Source);
 
+#define ml_array_data(ARRAY, ...) ({ \
+	ml_array_t *_Array = (ml_array_t *)(ARRAY); \
+	ml_array_dimension_t *Dimension = (ARRAY)->Dimensions; \
+	char *Address = ((->Base.Value; \
+	int Indices = {__VA_ARGS__}; \
+	for (int I = 0; I < (sizeof(Indices) / sizeof(int)); ++I) { \
+		int Index = Indices[I];  \
+		if (Dimension->Indices) { \
+			Address += Dimension->Stride * Dimension->Indices[Index]; \
+		} else { \
+			Address += Dimension->Stride * Index; \
+		} \
+		++Dimension; \
+	} \
+	Address; \
+})
+
 #define ML_ARRAY_ACCESSORS(CTYPE) \
 CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, ...); \
 void ml_array_set_ ## CTYPE (CTYPE Value, ml_array_t *Array, ...)
