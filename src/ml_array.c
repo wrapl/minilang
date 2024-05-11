@@ -337,6 +337,50 @@ int ml_array_size(ml_value_t *Value, int Dim) {
 	return Array->Dimensions[Dim].Size;
 }
 
+typedef struct {
+	void *Data;
+	int *Indices, *Limit;
+	void (*callback)(void *, int *, void *);
+} ml_array_foreach_t;
+
+static void ml_array_foreach_next(void *Data, ml_array_dimension_t *Dimension, int *Index, ml_array_foreach_t *Foreach) {
+	if (Foreach->Indices == Foreach->Limit) {
+		if (Dimension->Indices) {
+			int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				Foreach->callback(Data + Indices[I] * Dimension->Stride, Foreach->Indices, Foreach->Data);
+			}
+		} else {
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				Foreach->callback(Data + I * Dimension->Stride, Foreach->Indices, Foreach->Data);
+			}
+		}
+	} else {
+		if (Dimension->Indices) {
+			int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				ml_array_foreach_next(Data + Indices[I] * Dimension->Stride, Dimension + 1, Index + 1, Foreach);
+			}
+		} else {
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				ml_array_foreach_next(Data + I * Dimension->Stride, Dimension + 1, Index + 1, Foreach);
+			}
+		}
+	}
+}
+
+void ml_array_foreach(ml_array_t *Array, void *Data, void (*callback)(void *, int *, void *)) {
+	int Degree = Array->Degree;
+	if (!Degree) return;
+	int Indices[Degree];
+	ml_array_foreach_t Foreach = {Data, Indices, Indices + (Degree - 1), callback};
+	ml_array_foreach_next(Array->Base.Value, Array->Dimensions, Indices, &Foreach);
+}
+
 typedef struct ml_array_init_state_t {
 	ml_state_t Base;
 	char *Address;
@@ -6336,93 +6380,116 @@ ML_METHOD("where", MLArrayT) {
 	}
 }
 
-#define ML_ARRAY_GETTER_IMPL(CTYPE, ATYPE) \
+#define ML_ARRAY_ACCESSOR_IMPL(CTYPE, ATYPE) \
 static CTYPE ml_array_getter_ ## CTYPE ## _ ## ATYPE(void *Data) { \
 	return (CTYPE)(*(ATYPE *)Data); \
+} \
+\
+static void ml_array_setter_ ## CTYPE ## _ ## ATYPE(void *Data, CTYPE Value) { \
+	*(ATYPE *)Data = Value; \
 }
 
-#define ML_ARRAY_GETTERS_IMPL_BASE(CTYPE, FROM_VAL) \
+#define ML_ARRAY_ACCESSORS_IMPL_BASE(CTYPE, FROM_VAL, TO_VAL) \
 \
-typedef CTYPE (*ml_array_getter_ ## CTYPE)(void *Data); \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint8_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int8_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint16_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int16_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint32_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int32_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint64_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int64_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, float) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, double) \
 \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint8_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int8_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint16_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int16_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint32_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int32_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint64_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int64_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, float) \
-ML_ARRAY_GETTER_IMPL(CTYPE, double) \
-\
-static CTYPE ml_array_getter_ ## CTYPE ## _ ## any(void *Data) { \
+static CTYPE ml_array_getter_ ## CTYPE ## _any(void *Data) { \
 	return FROM_VAL(*(ml_value_t **)Data); \
+} \
+\
+static void ml_array_setter_ ## CTYPE ## _any(void *Data, CTYPE Value) { \
+	*(any *)Data = TO_VAL(Value); \
 }
 
 #ifdef ML_COMPLEX
 
-#define ML_ARRAY_GETTERS_IMPL(CTYPE, FROM_VAL) \
-ML_ARRAY_GETTERS_IMPL_BASE(CTYPE, FROM_VAL) \
-ML_ARRAY_GETTER_IMPL(CTYPE, complex_float) \
-ML_ARRAY_GETTER_IMPL(CTYPE, complex_double)
+#define ML_ARRAY_ACCESSORS_IMPL(CTYPE, FROM_VAL, TO_VAL) \
+ML_ARRAY_ACCESSORS_IMPL_BASE(CTYPE, FROM_VAL, TO_VAL) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, complex_float) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, complex_double)
 
 #else
 
-#define ML_ARRAY_GETTERS_IMPL(CTYPE, FROM_VAL) ML_ARRAY_GETTERS_IMPL_BASE(CTYPE, FROM_VAL)
+#define ML_ARRAY_ACCESSORS_IMPL(CTYPE, FROM_VAL) ML_ARRAY_ACCESSORS_IMPL_BASE(CTYPE, FROM_VAL)
 
 #endif
 
-ML_ARRAY_GETTERS_IMPL(uint8_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int8_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(uint16_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int16_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(uint32_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int32_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(uint64_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int64_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(float, ml_real_value)
-ML_ARRAY_GETTERS_IMPL(double, ml_real_value)
+ML_ARRAY_ACCESSORS_IMPL(uint8_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int8_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(uint16_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int16_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(uint32_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int32_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(uint64_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int64_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(float, ml_real_value, ml_real)
+ML_ARRAY_ACCESSORS_IMPL(double, ml_real_value, ml_real)
 
 #ifdef ML_COMPLEX
 
-ML_ARRAY_GETTERS_IMPL(complex_float, ml_complex_value)
-ML_ARRAY_GETTERS_IMPL(complex_double, ml_complex_value)
+ML_ARRAY_ACCESSORS_IMPL(complex_float, ml_complex_value, ml_complex)
+ML_ARRAY_ACCESSORS_IMPL(complex_double, ml_complex_value, ml_complex)
 
 #endif
 
-#define ML_ARRAY_GETTER_ANY_IMPL(TO_VAL, ATYPE) \
+#define ML_ARRAY_ACCESSOR_ANY_IMPL(TO_VAL, FROM_VAL, ATYPE) \
 static any ml_array_getter_any_ ## ATYPE(void *Data) { \
 	return TO_VAL(*(ATYPE *)Data); \
+} \
+\
+static void ml_array_setter_any_ ## ATYPE(void *Data, any Value) { \
+	*(ATYPE *)Data = FROM_VAL(Value); \
 }
 
 typedef any (*ml_array_getter_any)(void *Data);
 
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint8_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int8_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint16_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int16_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint32_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int32_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint64_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int64_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_real, float)
-ML_ARRAY_GETTER_ANY_IMPL(ml_real, double)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint8_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int8_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint16_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int16_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint32_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int32_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint64_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int64_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_real, ml_real_value, float)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_real, ml_real_value, double)
 
 #ifdef ML_COMPLEX
 
-ML_ARRAY_GETTER_ANY_IMPL(ml_complex, complex_float)
-ML_ARRAY_GETTER_ANY_IMPL(ml_complex, complex_double)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_complex, ml_complex_value, complex_float)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_complex, ml_complex_value, complex_double)
 
 #endif
 
-static ml_value_t *ml_array_getter_any_any(void *Data) {
-	return *(ml_value_t **)Data;
+static any ml_array_getter_any_any(void *Data) {
+	return *(any *)Data;
+}
+
+static void ml_array_setter_any_any(void *Data, any Value) {
+	*(any *)Data = Value;
+}
+
+#define ML_ARRAY_ACCESSOR_FNS(NAME, CTYPE) \
+ml_array_getter_ ## CTYPE ml_array_ ## CTYPE ## _getter(ml_array_format_t Format) { \
+	return MLArrayGetters ## NAME[Format]; \
+} \
+\
+ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format) { \
+	return MLArraySetters ## NAME[Format]; \
 }
 
 #ifdef ML_COMPLEX
 
-#define ML_ARRAY_GETTER_DECLS(NAME, CTYPE) \
+#define ML_ARRAY_ACCESSOR_DECLS(NAME, CTYPE) \
 static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_U8] = ml_array_getter_ ## CTYPE ## _uint8_t, \
 	[ML_ARRAY_FORMAT_I8] = ml_array_getter_ ## CTYPE ## _int8_t, \
@@ -6437,11 +6504,29 @@ static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_C32] = ml_array_getter_ ## CTYPE ## _complex_float, \
 	[ML_ARRAY_FORMAT_C64] = ml_array_getter_ ## CTYPE ## _complex_double, \
 	[ML_ARRAY_FORMAT_ANY] = ml_array_getter_ ## CTYPE ## _any, \
-}
+}; \
+\
+static ml_array_setter_ ## CTYPE MLArraySetters ## NAME[] = { \
+	[ML_ARRAY_FORMAT_U8] = ml_array_setter_ ## CTYPE ## _uint8_t, \
+	[ML_ARRAY_FORMAT_I8] = ml_array_setter_ ## CTYPE ## _int8_t, \
+	[ML_ARRAY_FORMAT_U16] = ml_array_setter_ ## CTYPE ## _uint16_t, \
+	[ML_ARRAY_FORMAT_I16] = ml_array_setter_ ## CTYPE ## _int16_t, \
+	[ML_ARRAY_FORMAT_U32] = ml_array_setter_ ## CTYPE ## _uint32_t, \
+	[ML_ARRAY_FORMAT_I32] = ml_array_setter_ ## CTYPE ## _int32_t, \
+	[ML_ARRAY_FORMAT_U64] = ml_array_setter_ ## CTYPE ## _uint64_t, \
+	[ML_ARRAY_FORMAT_I64] = ml_array_setter_ ## CTYPE ## _int64_t, \
+	[ML_ARRAY_FORMAT_F32] = ml_array_setter_ ## CTYPE ## _float, \
+	[ML_ARRAY_FORMAT_F64] = ml_array_setter_ ## CTYPE ## _double, \
+	[ML_ARRAY_FORMAT_C32] = ml_array_setter_ ## CTYPE ## _complex_float, \
+	[ML_ARRAY_FORMAT_C64] = ml_array_setter_ ## CTYPE ## _complex_double, \
+	[ML_ARRAY_FORMAT_ANY] = ml_array_setter_ ## CTYPE ## _any, \
+}; \
+\
+ML_ARRAY_ACCESSOR_FNS(NAME, CTYPE)
 
 #else
 
-#define ML_ARRAY_GETTER_DECLS(NAME, CTYPE) \
+#define ML_ARRAY_ACCESSOR_DECLS(NAME, CTYPE) \
 static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_I8] = ml_array_getter_ ## CTYPE ## _int8_t, \
 	[ML_ARRAY_FORMAT_U8] = ml_array_getter_ ## CTYPE ## _uint8_t, \
@@ -6454,29 +6539,48 @@ static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_F32] = ml_array_getter_ ## CTYPE ## _float, \
 	[ML_ARRAY_FORMAT_F64] = ml_array_getter_ ## CTYPE ## _double, \
 	[ML_ARRAY_FORMAT_ANY] = ml_array_getter_ ## CTYPE ## _any, \
-}
+}; \
+\
+static ml_array_setter_ ## CTYPE MLArraySetters ## NAME[] = { \
+	[ML_ARRAY_FORMAT_I8] = ml_array_setter_ ## CTYPE ## _int8_t, \
+	[ML_ARRAY_FORMAT_U8] = ml_array_setter_ ## CTYPE ## _uint8_t, \
+	[ML_ARRAY_FORMAT_I16] = ml_array_setter_ ## CTYPE ## _int16_t, \
+	[ML_ARRAY_FORMAT_U16] = ml_array_setter_ ## CTYPE ## _uint16_t, \
+	[ML_ARRAY_FORMAT_I32] = ml_array_setter_ ## CTYPE ## _int32_t, \
+	[ML_ARRAY_FORMAT_U32] = ml_array_setter_ ## CTYPE ## _uint32_t, \
+	[ML_ARRAY_FORMAT_I64] = ml_array_setter_ ## CTYPE ## _int64_t, \
+	[ML_ARRAY_FORMAT_U64] = ml_array_setter_ ## CTYPE ## _uint64_t, \
+	[ML_ARRAY_FORMAT_F32] = ml_array_setter_ ## CTYPE ## _float, \
+	[ML_ARRAY_FORMAT_F64] = ml_array_setter_ ## CTYPE ## _double, \
+	[ML_ARRAY_FORMAT_ANY] = ml_array_setter_ ## CTYPE ## _any, \
+}; \
+\
+ML_ARRAY_ACCESSOR_FNS(NAME, CTYPE)
 
 #endif
 
-ML_ARRAY_GETTER_DECLS(UInt8, uint8_t);
-ML_ARRAY_GETTER_DECLS(Int8, int8_t);
-ML_ARRAY_GETTER_DECLS(UInt16, uint16_t);
-ML_ARRAY_GETTER_DECLS(Int16, int16_t);
-ML_ARRAY_GETTER_DECLS(UInt32, uint32_t);
-ML_ARRAY_GETTER_DECLS(Int32, int32_t);
-ML_ARRAY_GETTER_DECLS(UInt64, uint64_t);
-ML_ARRAY_GETTER_DECLS(Int64, int64_t);
-ML_ARRAY_GETTER_DECLS(Float32, float);
-ML_ARRAY_GETTER_DECLS(Float64, double);
+ML_ARRAY_ACCESSOR_DECLS(UInt8, uint8_t);
+ML_ARRAY_ACCESSOR_DECLS(Int8, int8_t);
+ML_ARRAY_ACCESSOR_DECLS(UInt16, uint16_t);
+ML_ARRAY_ACCESSOR_DECLS(Int16, int16_t);
+ML_ARRAY_ACCESSOR_DECLS(UInt32, uint32_t);
+ML_ARRAY_ACCESSOR_DECLS(Int32, int32_t);
+ML_ARRAY_ACCESSOR_DECLS(UInt64, uint64_t);
+ML_ARRAY_ACCESSOR_DECLS(Int64, int64_t);
+ML_ARRAY_ACCESSOR_DECLS(Float32, float);
+ML_ARRAY_ACCESSOR_DECLS(Float64, double);
 
 #ifdef ML_COMPLEX
 
-ML_ARRAY_GETTER_DECLS(Complex32, complex_float);
-ML_ARRAY_GETTER_DECLS(Complex64, complex_double);
+ML_ARRAY_ACCESSOR_DECLS(Complex32, complex_float);
+ML_ARRAY_ACCESSOR_DECLS(Complex64, complex_double);
 
 #endif
 
-ML_ARRAY_GETTER_DECLS(Any, any);
+typedef any (*ml_array_getter_any)(void *);
+typedef void (*ml_array_setter_any)(void *, any);
+
+ML_ARRAY_ACCESSOR_DECLS(Any, any);
 
 static void **MLArrayGetters[] = {
 	[ML_ARRAY_FORMAT_U8] = (void *)MLArrayGettersUInt8,
@@ -6495,6 +6599,24 @@ static void **MLArrayGetters[] = {
 #endif
 	[ML_ARRAY_FORMAT_ANY] = (void *)MLArrayGettersAny
 };
+
+/*static void **MLArraySetters[] = {
+	[ML_ARRAY_FORMAT_U8] = (void *)MLArraySettersUInt8,
+	[ML_ARRAY_FORMAT_I8] = (void *)MLArraySettersInt8,
+	[ML_ARRAY_FORMAT_U16] = (void *)MLArraySettersUInt16,
+	[ML_ARRAY_FORMAT_I16] = (void *)MLArraySettersInt16,
+	[ML_ARRAY_FORMAT_U32] = (void *)MLArraySettersUInt32,
+	[ML_ARRAY_FORMAT_I32] = (void *)MLArraySettersInt32,
+	[ML_ARRAY_FORMAT_U64] = (void *)MLArraySettersUInt64,
+	[ML_ARRAY_FORMAT_I64] = (void *)MLArraySettersInt64,
+	[ML_ARRAY_FORMAT_F32] = (void *)MLArraySettersFloat32,
+	[ML_ARRAY_FORMAT_F64] = (void *)MLArraySettersFloat64,
+#ifdef ML_COMPLEX
+	[ML_ARRAY_FORMAT_C32] = (void *)MLArraySettersComplex32,
+	[ML_ARRAY_FORMAT_C64] = (void *)MLArraySettersComplex64,
+#endif
+	[ML_ARRAY_FORMAT_ANY] = (void *)MLArraySettersAny
+};*/
 
 #define ML_ARRAY_DOT(CTYPE) \
 static void ml_array_dot_ ## CTYPE( \

@@ -46,6 +46,16 @@ int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
 ml_value_t *ml_array_index(ml_array_t *Array, int Count, ml_value_t **Indices);
 
+void ml_array_foreach(ml_array_t *Array, void *Data, void (*callback)(void *, int *, void *));
+static inline char *ml_array_data(ml_array_t *Array) {
+	return Array->Base.Value;
+}
+static inline char *ml_array_step(ml_array_t *Array, char *Data, int Dim, int Index) {
+	int Stride = Array->Dimensions[Dim].Stride;
+	int *Indices = Array->Dimensions[Dim].Indices;
+	return Data + (Indices ? Indices[Index] : Index) * Stride;
+}
+
 size_t ml_array_data_size(ml_array_t *Source);
 void ml_array_copy_data(ml_array_t *Source, char *Data);
 char *ml_array_flatten(ml_array_t *Source);
@@ -70,7 +80,11 @@ int ml_array_copy(ml_array_t *Target, ml_array_t *Source);
 
 #define ML_ARRAY_ACCESSORS(CTYPE) \
 CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, ...); \
-void ml_array_set_ ## CTYPE (CTYPE Value, ml_array_t *Array, ...)
+void ml_array_set_ ## CTYPE (CTYPE Value, ml_array_t *Array, ...); \
+typedef CTYPE (*ml_array_getter_ ## CTYPE)(void *); \
+typedef void (*ml_array_setter_ ## CTYPE)(void *, CTYPE); \
+ml_array_getter_ ## CTYPE ml_array_ ## CTYPE ## _getter(ml_array_format_t Format); \
+ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format)
 
 ML_ARRAY_ACCESSORS(int8_t);
 ML_ARRAY_ACCESSORS(uint8_t);
