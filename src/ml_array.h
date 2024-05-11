@@ -50,10 +50,9 @@ void ml_array_foreach(ml_array_t *Array, void *Data, void (*callback)(void *, in
 static inline char *ml_array_data(ml_array_t *Array) {
 	return Array->Base.Value;
 }
-static inline char *ml_array_step(ml_array_t *Array, char *Data, int Dim, int Index) {
-	int Stride = Array->Dimensions[Dim].Stride;
-	int *Indices = Array->Dimensions[Dim].Indices;
-	return Data + (Indices ? Indices[Index] : Index) * Stride;
+static inline char *ml_array_step(char *Data, ml_array_dimension_t *Dimension, int Index) {
+	int *Indices = Dimension->Indices;
+	return Data + (Indices ? Indices[Index] : Index) * Dimension->Stride;
 }
 
 size_t ml_array_data_size(ml_array_t *Source);
