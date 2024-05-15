@@ -5,9 +5,9 @@
 void NAME ## _row_ ## LEFT ## _ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
-		int *LeftIndices = LeftDimension->Indices; \
+		const int *LeftIndices = LeftDimension->Indices; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				LEFT Left = *(LEFT *)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
 				RIGHT Right = *(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride); \
@@ -25,7 +25,7 @@ void NAME ## _row_ ## LEFT ## _ ## RIGHT(char *Target, ml_array_dimension_t *Lef
 	} else { \
 		int LeftStride = LeftDimension->Stride; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				LEFT Left = *(LEFT *)LeftData; \
 				RIGHT Right = *(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride); \
@@ -52,9 +52,9 @@ void NAME ## _row_ ## LEFT ## _ ## RIGHT(char *Target, ml_array_dimension_t *Lef
 void NAME ## _row_any_ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
-		int *LeftIndices = LeftDimension->Indices; \
+		const int *LeftIndices = LeftDimension->Indices; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Left = *(ml_value_t **)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
 				ml_value_t *Right = ml_number(*(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride)); \
@@ -72,7 +72,7 @@ void NAME ## _row_any_ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimensio
 	} else { \
 		int LeftStride = LeftDimension->Stride; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Left = *(ml_value_t **)LeftData; \
 				ml_value_t *Right = ml_number(*(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride)); \
@@ -99,9 +99,9 @@ void NAME ## _row_any_ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimensio
 void NAME ## _row_ ## LEFT ## _any(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
-		int *LeftIndices = LeftDimension->Indices; \
+		const int *LeftIndices = LeftDimension->Indices; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Left = ml_number(*(LEFT *)(LeftData + LeftIndices[I] * LeftDimension->Stride)); \
 				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
@@ -119,7 +119,7 @@ void NAME ## _row_ ## LEFT ## _any(char *Target, ml_array_dimension_t *LeftDimen
 	} else { \
 		int LeftStride = LeftDimension->Stride; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Left = ml_number(*(LEFT *)LeftData); \
 				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
@@ -144,9 +144,9 @@ void NAME ## _row_ ## LEFT ## _any(char *Target, ml_array_dimension_t *LeftDimen
 void NAME ## _row_any_any(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
-		int *LeftIndices = LeftDimension->Indices; \
+		const int *LeftIndices = LeftDimension->Indices; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
 				ml_value_t *Left = *(ml_value_t **)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
@@ -164,7 +164,7 @@ void NAME ## _row_any_any(char *Target, ml_array_dimension_t *LeftDimension, cha
 	} else { \
 		int LeftStride = LeftDimension->Stride; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
 				ml_value_t *Left = *(ml_value_t **)LeftData; \

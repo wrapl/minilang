@@ -11,9 +11,9 @@
 void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
-		int *TargetIndices = TargetDimension->Indices; \
+		const int *TargetIndices = TargetDimension->Indices; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				UPDATE(OP, (TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride), *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
 			} \
@@ -27,7 +27,7 @@ void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimensio
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				UPDATE(OP, (TARGET *)TargetData, *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
 				TargetData += TargetStride; \
@@ -50,9 +50,9 @@ void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimensio
 void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
-		int *TargetIndices = TargetDimension->Indices; \
+		const int *TargetIndices = TargetDimension->Indices; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t **Target = (ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride); \
 				ml_value_t *Source = ml_number(*(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
@@ -70,7 +70,7 @@ void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *Ta
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t **Target = (ml_value_t **)TargetData; \
 				ml_value_t *Source = ml_number(*(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
@@ -97,9 +97,9 @@ void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *Ta
 void NAME ## _row_ ## TARGET ## _any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
-		int *TargetIndices = TargetDimension->Indices; \
+		const int *TargetIndices = TargetDimension->Indices; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				TARGET Source = ml_number_value((TARGET)0, *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
 				UPDATE(OP, (TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride), Source); \
@@ -115,7 +115,7 @@ void NAME ## _row_ ## TARGET ## _any(ml_array_dimension_t *TargetDimension, char
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				TARGET Source = ml_number_value((TARGET)0, *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
 				UPDATE(OP, (TARGET *)TargetData, Source); \
@@ -138,9 +138,9 @@ void NAME ## _row_ ## TARGET ## _any(ml_array_dimension_t *TargetDimension, char
 void NAME ## _row_any_any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
-		int *TargetIndices = TargetDimension->Indices; \
+		const int *TargetIndices = TargetDimension->Indices; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Source = *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
 				ml_value_t **Target = (ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride); \
@@ -158,7 +158,7 @@ void NAME ## _row_any_any(ml_array_dimension_t *TargetDimension, char *TargetDat
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
+			const int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Source = *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
 				ml_value_t **Target = (ml_value_t **)TargetData; \

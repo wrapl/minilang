@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct {
 	int Size, Stride;
-	int *Indices;
+	const int *Indices;
 } ml_array_dimension_t;
 
 typedef enum {
@@ -51,7 +51,7 @@ static inline char *ml_array_data(ml_array_t *Array) {
 	return Array->Base.Value;
 }
 static inline char *ml_array_step(char *Data, ml_array_dimension_t *Dimension, int Index) {
-	int *Indices = Dimension->Indices;
+	const int *Indices = Dimension->Indices;
 	return Data + (Indices ? Indices[Index] : Index) * Dimension->Stride;
 }
 
@@ -60,11 +60,11 @@ void ml_array_copy_data(ml_array_t *Source, char *Data);
 char *ml_array_flatten(ml_array_t *Source);
 int ml_array_copy(ml_array_t *Target, ml_array_t *Source);
 
-#define ml_array_data(ARRAY, ...) ({ \
+#define ml_array_get(ARRAY, ...) ({ \
 	ml_array_t *_Array = (ml_array_t *)(ARRAY); \
 	ml_array_dimension_t *Dimension = (ARRAY)->Dimensions; \
-	char *Address = ((->Base.Value; \
-	int Indices = {__VA_ARGS__}; \
+	char *Address = Array->Base.Value; \
+	int Indices[] = {__VA_ARGS__}; \
 	for (int I = 0; I < (sizeof(Indices) / sizeof(int)); ++I) { \
 		int Index = Indices[I];  \
 		if (Dimension->Indices) { \

@@ -664,7 +664,7 @@ int GC_vasprintf(char **Ptr, const char *Format, va_list Args) {
 	va_list Copy;
 	va_copy(Copy, Args);
 	int Actual = vsnprintf(NULL, 0, Format, Args);
-	char *Output = *Ptr = GC_malloc_atomic(Actual);
+	char *Output = *Ptr = GC_malloc_atomic(Actual + 1);
 	vsprintf(Output, Format, Copy);
 	return Actual;
 }
