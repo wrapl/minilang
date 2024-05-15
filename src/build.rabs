@@ -229,6 +229,7 @@ let Options := [
 	"UUID",
 	"ICU",
 	"LIBS",
+	"UNWIND",
 	"BACKTRACE",
 	"MINIJS",
 	"RELAX_NAMES",
@@ -258,6 +259,9 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_UUID := 1
 	MINILANG_ICU := 1
 	MINILANG_ENCODINGS := 1
+	if PLATFORM = "Linux" then
+		MINILANG_UNWIND := 1
+	end
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 		MINILANG_MMAP := 1
@@ -288,6 +292,7 @@ MINILANG_TIMEZONES := old or defined("TIMEZONES")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
+MINILANG_UNWIND := old or defined("UNWIND")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
 MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
@@ -327,6 +332,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_RELAX_NAMES then
 		File:write("\n#define ML_RELAX_NAMES\n")
+	end
+	if MINILANG_UNWIND then
+		File:write("\n#define ML_UNWIND\n")
 	end
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
