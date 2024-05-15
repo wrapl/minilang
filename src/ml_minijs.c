@@ -231,7 +231,7 @@ static void ml_minijs_encode_array_ ## CTYPE(int Degree, ml_array_dimension_t *D
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				ml_minijs_encode_array_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json); \
 			} \
@@ -261,7 +261,7 @@ static void ml_minijs_encode_array_any(int Degree, ml_array_dimension_t *Dimensi
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
-			int *Indices = Dimension->Indices;
+			const int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
 				ml_minijs_encode_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json, Encoder);
 			}
