@@ -466,6 +466,10 @@ if MINILANG_STRUCTS then
 	Objects:put(file("ml_struct.o"))
 end
 
+if MINILANG_UNWIND then
+	LDFLAGS := old + ["-lunwind"]
+end
+
 if MINILANG_BACKTRACE then
 	let Dir := PATH / "libbacktrace"
 	let Lib := Dir / ".libs/libbacktrace.a" => fun() do
@@ -606,7 +610,6 @@ end
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	GC or LDFLAGS := old + ["-lgc"]
-	LDFLAGS := old + ["-lunwind"]
 elseif PLATFORM = "FreeBSD" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-I/usr/local/include"]
