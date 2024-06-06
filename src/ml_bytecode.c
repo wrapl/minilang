@@ -2160,17 +2160,17 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 }
 
 #define VLQ64_NEXT() ({ \
-	if (Length <= 0) return ml_error("CBORError", "Invalid closure info"); \
 	vlq_result_t Result = vlq64_decode(Bytes); \
 	Length -= Result.Count; \
+	if (Length < 0) return ml_error("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	Result.Value; \
 })
 
 #define VLQ64_NEXT_STRING() ({ \
-	if (Length <= 0) return ml_error("CBORError", "Invalid closure info"); \
 	vlq_result_t Result = vlq64_decode(Bytes); \
 	Length -= Result.Count; \
+	if (Result.Value < 0) return ml_error("CBORError", "Invalid closure info"); \
 	if (Length < Result.Value) return ml_error("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	char *String = snew(Length + 1); \

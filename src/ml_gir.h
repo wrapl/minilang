@@ -18,7 +18,7 @@ void ml_gir_loop_quit();
 
 void ml_gir_init(stringmap_t *Globals);
 
-ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Info);
+ml_value_t *ml_gir_instance_get(void *Handle, ml_type_t *Fallback);
 
 ml_value_t *ml_gir_struct_instance(ml_value_t *Struct, void *Value);
 void *ml_gir_struct_instance_value(ml_value_t *Value);

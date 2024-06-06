@@ -262,6 +262,10 @@
         (?![\w\.])
       </match>
     </context>
+    <context id="embedded-lang-hook">
+      <start>\%{def:never-match}</start>
+      <end></end>
+    </context>
     <context id="minilang">
       <include>
 <!--
@@ -279,6 +283,7 @@
         <context ref="operators"/>
         <context ref="float"/>
         <context ref="decimal-number"/>
+        <context ref="embedded-lang-hook"/>
       </include>
     </context>
   </definitions>
