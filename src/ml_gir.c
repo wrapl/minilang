@@ -2097,7 +2097,7 @@ static void callable_invoke(ffi_cif *Cif, void *Return, void **Params, callable_
 	ml_call(State, Instance->Function, Arg - Args, Args);
 	ml_scheduler_t *Scheduler = ml_context_get(Instance->Context, ML_SCHEDULER_INDEX);
 	while (!State->Value) Scheduler->run(Scheduler);
-	ml_value_t *Result = State->Value;
+	ml_value_t *Result = ml_deref(State->Value);
 	if (ml_is_error(Result)) ML_LOG_ERROR(Result, "Callback returned error");
 	for (gi_inst_t *Inst = Callback->InstOut; Inst->Opcode != GIB_DONE;) switch ((Inst++)->Opcode) {
 	case GIB_BOOLEAN: *(gboolean *)Return = ml_boolean_value(Result); break;
@@ -2112,12 +2112,63 @@ static void callable_invoke(ffi_cif *Cif, void *Return, void **Params, callable_
 	case GIB_FLOAT: *(gfloat *)Return = ml_real_value(Result); break;
 	case GIB_DOUBLE: *(gdouble *)Return = ml_real_value(Result); break;
 	case GIB_STRING: {
-		ml_value_t *Value = Result;
-		if (Value == MLNil) {
+		if (Result == MLNil) {
 			*(gchararray *)Return = NULL;
-		} else if (!ml_is(Value, MLStringT)) {
+		} else if (!ml_is(Result, MLStringT)) {
+			ML_LOG_ERROR(NULL, "Callback returned %s, expected string", ml_typeof(Result)->Name);
+			*(gchararray *)Return = NULL;
 		} else {
-			*(gchararray *)Return = (char *)ml_string_value(Value);
+			*(gchararray *)Return = (char *)ml_string_value(Result);
+		}
+		break;
+	}
+	case GIB_CALLBACK: {
+		ml_type_t *Expected = Callback->Aux[(Inst++)->Aux];
+		if (!ml_is(Result, Expected)) {
+			ML_LOG_ERROR(NULL, "Callback returned %s, expected %s", ml_typeof(Result)->Name, ml_type_name(Expected));
+			*(gpointer *)Return = NULL;
+		} else {
+			*(gpointer *)Return = ((callable_instance_t *)Result)->Function;
+		}
+		break;
+	}
+	case GIB_STRUCT: {
+		ml_type_t *Expected = Callback->Aux[(Inst++)->Aux];
+		if (!ml_is(Result, Expected)) {
+			ML_LOG_ERROR(NULL, "Callback returned %s, expected %s", ml_typeof(Result)->Name, ml_type_name(Expected));
+			*(gpointer *)Return = NULL;
+		} else {
+			*(gpointer *)Return = ((struct_instance_t *)Result)->Value;
+		}
+		break;
+	}
+	case GIB_UNION: {
+		ml_type_t *Expected = Callback->Aux[(Inst++)->Aux];
+		if (!ml_is(Result, Expected)) {
+			ML_LOG_ERROR(NULL, "Callback returned %s, expected %s", ml_typeof(Result)->Name, ml_type_name(Expected));
+			*(gpointer *)Return = NULL;
+		} else {
+			*(gpointer *)Return = ((union_instance_t *)Result)->Value;
+		}
+		break;
+	}
+	case GIB_ENUM: {
+		ml_type_t *Expected = Callback->Aux[(Inst++)->Aux];
+		if (!ml_is(Result, Expected)) {
+			ML_LOG_ERROR(NULL, "Callback returned %s, expected %s", ml_typeof(Result)->Name, ml_type_name(Expected));
+			*(gpointer *)Return = NULL;
+		} else {
+			*(gint64 *)Return = ((enum_value_t *)Result)->Value;
+		}
+		break;
+	}
+	case GIB_OBJECT: {
+		ml_type_t *Expected = Callback->Aux[(Inst++)->Aux];
+		if (!ml_is(Result, Expected)) {
+			ML_LOG_ERROR(NULL, "Callback returned %s, expected %s", ml_typeof(Result)->Name, ml_type_name(Expected));
+			*(gpointer *)Return = NULL;
+		} else {
+			*(gpointer *)Return = ((instance_t *)Result)->Handle;
 		}
 		break;
 	}
@@ -2168,12 +2219,17 @@ static GIBaseInfo *GValueInfo;
 	case GI_TYPE_TAG_FILENAME: (DEST++)->Opcode = GIB_STRING; break; \
 	case GI_TYPE_TAG_UNICHAR: (DEST++)->Opcode = GIB_UINT32; break;
 
-static ml_type_t *callable_info_compile(const char *TypeName, GICallableInfo *Info) {
+static ml_type_t *callable_info_compile(const char *TypeName, GICallableInfo *Info, ml_type_t *Receiver) {
 	int NumArgs = g_callable_info_get_n_args(Info);
 	arg_info_t Args[NumArgs];
 	memset(Args, 0, NumArgs * sizeof(arg_info_t));
 	int NumAux = 0, Provided = 0;
 	int InSize = 1, OutSize = 1;
+	if (Receiver) {
+		InSize += 2;
+		++NumAux;
+		++Provided;
+	}
 	for (int I = 0; I < NumArgs; ++I) {
 		g_callable_info_load_arg(Info, I, Args[I].Info);
 		GIArgInfo *ArgInfo = Args[I].Info;
@@ -2356,6 +2412,11 @@ static ml_type_t *callable_info_compile(const char *TypeName, GICallableInfo *In
 	default: // TODO: handle this.
 	}
 	g_base_info_unref(Return);
+	if (Receiver) {
+		(InstIn++)->Opcode = GIB_OBJECT;
+		(InstIn++)->Aux = NumAux;
+		Callback->Aux[NumAux++] = Receiver;
+	}
 	for (int I = 0; I < NumArgs; ++I) {
 		if (Args[I].SkipIn) {
 			(InstIn++)->Opcode = GIB_SKIP;
@@ -2475,7 +2536,7 @@ static ml_type_t *callable_info_compile(const char *TypeName, GICallableInfo *In
 static ml_type_t *callable_info_lookup(GICallableInfo *Info) {
 	const char *TypeName = g_base_info_get_name((GIBaseInfo *)Info);
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
-	if (!Slot[0]) Slot[0] = callable_info_compile(TypeName, Info);
+	if (!Slot[0]) Slot[0] = callable_info_compile(TypeName, Info, NULL);
 	return Slot[0];
 }
 
@@ -3718,7 +3779,7 @@ ML_METHODVX("implement", GirClassT, GirInterfaceT, MLNamesT) {
 			Offset = g_field_info_get_offset(FieldInfo);
 			g_base_info_unref(FieldInfo);
 		}
-		ml_type_t *Type = callable_info_compile(Name, (GICallableInfo *)VFunc);
+		ml_type_t *Type = callable_info_compile(Name, (GICallableInfo *)VFunc, (ml_type_t *)Class);
 		callable_instance_t *Instance = (callable_instance_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(callable_instance_t));
 		Instance->Type = (ml_type_t *)Type;
 		Instance->Context = Caller->Context;
