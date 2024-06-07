@@ -149,12 +149,19 @@ typedef struct {
 	ptrset_t Handlers[1];
 } instance_t;
 
-ML_TYPE(GirObjectT, (GirBaseInfoT), "object-type",
+ML_TYPE(GirInstanceT, (GirBaseInfoT), "instance-type");
+
+ML_METHOD("value", GirInstanceT) {
+	instance_t *Instance = (instance_t *)Args[0];
+	return ml_reference(&Instance->Value);
+}
+
+ML_TYPE(GirObjectT, (GirInstanceT), "object-type",
 // A gobject-introspection object type.
 	.call = (void *)ml_type_call
 );
 
-ML_TYPE(GirInterfaceT, (GirBaseInfoT), "interface-type",
+ML_TYPE(GirInterfaceT, (GirInstanceT), "interface-type",
 // A gobject-introspection interface type.
 	.call = (void *)ml_type_call
 );
@@ -183,6 +190,7 @@ ml_value_t *ml_gir_instance_get(void *Handle, ml_type_t *Fallback) {
 	if (Instance) return (ml_value_t *)Instance;
 	Instance = new(instance_t);
 	Instance->Handle = Handle;
+	Instance->Value = MLNil;
 	g_object_ref_sink(Handle);
 	GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
 	GIBaseInfo *Info = g_irepository_find_by_gtype(NULL, G_OBJECT_TYPE(Handle));
@@ -919,7 +927,9 @@ static ml_value_t *object_instance(interface_t *Object, int Count, ml_value_t **
 		int Index = 0;
 		ML_NAMES_FOREACH(Args[0], Iter) {
 			Names[Index] = ml_string_value(Iter->Value);
-			_ml_to_value(Args[Index + 1], Values + Index);
+			ml_value_t *Value = ml_deref(Args[Index + 1]);
+			if (ml_is_error(Value)) return Value;
+			_ml_to_value(Value, Values + Index);
 			++Index;
 		}
 		Instance->Handle = g_object_new_with_properties(Object->Base.Type, NumProperties, Names, Values);
@@ -928,6 +938,7 @@ static ml_value_t *object_instance(interface_t *Object, int Count, ml_value_t **
 	}
 	g_object_set_qdata(Instance->Handle, MLQuark, Instance);
 	g_object_ref_sink(Instance->Handle);
+	Instance->Value = MLNil;
 	GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
 	return (ml_value_t *)Instance;
 }
@@ -958,7 +969,7 @@ static ml_type_t *interface_info_lookup(GIInterfaceInfo *Info) {
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
 	if (!Slot[0]) {
 		interface_t *Object = new(interface_t);
-		Object->Base.Base.Type = GirObjectT;
+		Object->Base.Base.Type = GirInterfaceT;
 		Object->Base.Base.Name = TypeName;
 		Object->Base.Base.hash = ml_default_hash;
 		Object->Base.Base.call = ml_default_call;
@@ -1450,6 +1461,8 @@ static ml_value_t *object_property_deref(object_property_t *Property) {
 static void object_property_assign(ml_state_t *Caller, object_property_t *Property, ml_value_t *Value0) {
 	GValue Value[1];
 	memset(Value, 0, sizeof(GValue));
+	Value0 = ml_deref(Value0);
+	if (ml_is_error(Value0)) ML_RETURN(Value0);
 	_ml_to_value(Value0, Value);
 	g_object_set_property(Property->Object, Property->Name, Value);
 	ML_RETURN(Value0);
@@ -1470,16 +1483,6 @@ ML_METHOD("::", GirObjectInstanceT, MLStringT) {
 	Property->Object = Instance->Handle;
 	Property->Name = ml_string_value(Args[1]);
 	return (ml_value_t *)Property;
-}
-
-ML_INTERFACE(GirInstanceT, (), "instance");
-
-typedef struct {
-	ml_type_t Base;
-} ml_gir_type_t;
-
-static void instance_constructor_fn(ml_state_t *Caller, ml_gir_type_t *Class, int Count, ml_value_t **Args) {
-
 }
 
 #ifdef ML_SCHEDULER
@@ -1608,12 +1611,6 @@ static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t
 	GOutputStream *Stream = (GOutputStream *)Value->Handle;
 	g_output_stream_write_all_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, ml_gio_callback(Caller));
 }
-
-typedef struct ml_gir_value_t ml_gir_value_t;
-
-struct ml_gir_value_t {
-
-};
 
 void ml_gir_loop_init(ml_context_t *Context) {
 	MainLoop = g_main_loop_new(NULL, TRUE);
@@ -3659,7 +3656,7 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 	return (ml_value_t *)Function;
 }
 
-ML_TYPE(GirClassT, (GirObjectT), "gir::class",
+ML_TYPE(GirClassT, (GirInstanceT), "gir::class",
 	.call = (void *)ml_type_call
 );
 
@@ -3715,7 +3712,12 @@ ML_METHODVX("implement", GirClassT, GirInterfaceT, MLNamesT) {
 		GIVFuncInfo *VFunc = g_interface_info_find_vfunc(Info, Name);
 		if (!VFunc) ML_ERROR("NameError", "VFunc %s not found", Name);
 		gint Offset = g_vfunc_info_get_offset(VFunc);
-		if (Offset == 0xFFFF) ML_ERROR("NameError", "VFunc %s not found", Name);
+		if (Offset == 0xFFFF) {
+			GIFieldInfo *FieldInfo = g_struct_info_find_field(IfaceInfo, Name);
+			if (!FieldInfo) ML_ERROR("NameError", "VFunc %s not found", Name);
+			Offset = g_field_info_get_offset(FieldInfo);
+			g_base_info_unref(FieldInfo);
+		}
 		ml_type_t *Type = callable_info_compile(Name, (GICallableInfo *)VFunc);
 		callable_instance_t *Instance = (callable_instance_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(callable_instance_t));
 		Instance->Type = (ml_type_t *)Type;
@@ -3739,6 +3741,7 @@ ML_METHODVX("implement", GirClassT, GirInterfaceT, MLNamesT) {
 	GInterfaceInfo Impl = {(GInterfaceInitFunc)interface_init, NULL, VFuncs};
 
 	g_type_add_interface_static(Class->Type, Interface->Base.Type, &Impl);
+	ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Interface);
 
 	ML_RETURN(Class);
 }
