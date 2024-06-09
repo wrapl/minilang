@@ -98,25 +98,25 @@ static void ml_console_repl_run(ml_console_t *Console, ml_value_t *Result) {
 
 typedef struct {
 	ml_console_t *Console;
-	interactive_debugger_t *Debugger;
+	ml_interactive_debugger_t *Debugger;
 } ml_console_debugger_t;
 
 static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugger, const char *Name, const char *Source, int Line, int Eval) {
-	ml_value_t *Value = interactive_debugger_get(ConsoleDebugger->Debugger, Name);
+	ml_value_t *Value = ml_interactive_debugger_get(ConsoleDebugger->Debugger, Name);
 	if (Value) return Value;
 	return ml_compiler_lookup(ConsoleDebugger->Console->Compiler, Name, Source, Line, Eval);
 }
 
-static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
+static void ml_console_debug_enter(ml_console_t *Console, ml_interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
 	ml_console_debugger_t *ConsoleDebugger = new(ml_console_debugger_t);
 	ConsoleDebugger->Console = Console;
 	ConsoleDebugger->Debugger = Debugger;
 	printf("Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
 	ml_console(Console->Base.Context, (ml_getter_t)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
-	interactive_debugger_resume(Debugger, Index);
+	ml_interactive_debugger_resume(Debugger, Index);
 }
 
-static void ml_console_debug_exit(void *Data, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
+static void ml_console_debug_exit(void *Data, ml_interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
 	ML_RETURN(MLEndOfInput);
 }
 
@@ -129,7 +129,7 @@ void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, con
 	Console->Debugger = NULL;
 	ml_parser_t *Parser = ml_parser((void *)ml_console_line_read, Console);
 	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
-	ml_compiler_define(Compiler, "idebug", interactive_debugger(
+	ml_compiler_define(Compiler, "idebug", ml_interactive_debugger(
 		(void *)ml_console_debug_enter,
 		(void *)ml_console_debug_exit,
 		ml_console_log,

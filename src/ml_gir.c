@@ -54,7 +54,7 @@ typedef struct {
 	const char *Namespace;
 } typelib_t;
 
-ML_TYPE(GirTypelibT, (MLSequenceT), "typelib");
+ML_TYPE(MLGirTypelibT, (MLSequenceT), "typelib");
 //@gir
 // A gobject-introspection typelib.
 
@@ -105,7 +105,7 @@ ML_TYPE(TypelibIterT, (), "typelib-iter");
 
 ml_value_t *ml_gir_typelib(const char *Name, const char *Version) {
 	typelib_t *Typelib = new(typelib_t);
-	Typelib->Type = GirTypelibT;
+	Typelib->Type = MLGirTypelibT;
 	Typelib->Namespace = Name;
 	GError *Error = 0;
 	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, Version, 0, &Error);
@@ -113,11 +113,11 @@ ml_value_t *ml_gir_typelib(const char *Name, const char *Version) {
 	return (ml_value_t *)Typelib;
 }
 
-ML_METHOD(GirTypelibT, MLStringT) {
+ML_METHOD(MLGirTypelibT, MLStringT) {
 	return ml_gir_typelib(ml_string_value(Args[0]), NULL);
 }
 
-ML_METHOD(GirTypelibT, MLStringT, MLStringT) {
+ML_METHOD(MLGirTypelibT, MLStringT, MLStringT) {
 	return ml_gir_typelib(ml_string_value(Args[0]), ml_string_value(Args[1]));
 }
 
@@ -1188,7 +1188,7 @@ ml_value_t *ml_gir_import(ml_value_t *Typelib, const char *Name) {
 	}
 }
 
-ML_METHOD("::", GirTypelibT, MLStringT) {
+ML_METHOD("::", MLGirTypelibT, MLStringT) {
 //<Typelib
 //<Name
 //>any | error
@@ -4017,8 +4017,8 @@ void ml_gir_init(stringmap_t *Globals) {
 	g_irepository_require(NULL, "GObject", NULL, 0, &Error);
 	DestroyNotifyInfo = g_irepository_find_by_name(NULL, "GLib", "DestroyNotify");
 	GValueInfo = g_irepository_find_by_name(NULL, "GObject", "Value");
-	stringmap_insert(GirTypelibT->Exports, "class", GirClassT);
-	ml_typed_fn_set(GirTypelibT, ml_iterate, typelib_iterate);
+	stringmap_insert(MLGirTypelibT->Exports, "class", GirClassT);
+	ml_typed_fn_set(MLGirTypelibT, ml_iterate, typelib_iterate);
 	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
@@ -4032,9 +4032,9 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_type_add_parent((ml_type_t *)GOutputStreamT, MLStreamT);
 #ifdef ML_SCHEDULER
 	stringmap_insert(Globals, "sleep", MLSleep);
-	stringmap_insert(GirTypelibT->Exports, "install", GirInstall);
+	stringmap_insert(MLGirTypelibT->Exports, "install", GirInstall);
 #endif
-	stringmap_insert(Globals, "gir", GirTypelibT);
+	stringmap_insert(Globals, "gir", MLGirTypelibT);
 #ifdef ML_LIBRARY
 	ml_library_register("gir", GirModule);
 #endif

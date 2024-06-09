@@ -154,6 +154,7 @@ let InstallHeaders := [
 	"ml_compiler.h",
 	"ml_tasks.h",
 	"ml_console.h",
+	"ml_debugger.h",
 	"ml_file.h",
 	"ml_logging.h",
 	"ml_macros.h",

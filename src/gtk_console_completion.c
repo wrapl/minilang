@@ -84,7 +84,7 @@ static void gtk_console_completion_provider_populate(ConsoleCompletionProvider *
 			g_free(Name0);
 			if (!Value0) break;
 			if (ml_is(Value0, MLGlobalT)) Value0 = ml_global_get(Value0);
-			if (ml_is(Value0, GirTypelibT)) Value = ml_gir_import(Value0, Name);
+			if (ml_is(Value0, MLGirTypelibT)) Value = ml_gir_import(Value0, Name);
 			if (ml_is(Value0, MLTypeT)) Value = stringmap_search(((ml_type_t *)Value0)->Exports, Name);
 		} while (0);
 	}
@@ -97,7 +97,7 @@ static void gtk_console_completion_provider_populate(ConsoleCompletionProvider *
 		} else if (ml_is(Value, MLModuleT)) {
 			ml_module_t *Module = (ml_module_t *)Value;
 			stringmap_foreach(Module->Exports, Info, (void *)populate_fn);
-		} else if (ml_is(Value, GirTypelibT)) {
+		} else if (ml_is(Value, MLGirTypelibT)) {
 			const char *Namespace = ml_gir_get_namespace(Value);
 			int Total = g_irepository_get_n_infos(NULL, Namespace);
 			for (int I = 0; I < Total; ++I) {
