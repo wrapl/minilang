@@ -1235,18 +1235,12 @@ static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 	case G_TYPE_POINTER: return MLNil; //Std$Address$new(g_value_get_pointer(Value));
 	default: {
 		if (G_VALUE_HOLDS(Value, G_TYPE_OBJECT)) {
-			switch (g_base_info_get_type(Info)) {
-			case GI_INFO_TYPE_OBJECT: {
-				ml_type_t *Type = object_info_lookup(Info);
-				return ml_gir_instance_get(g_value_get_object(Value), Type);
+			ml_type_t *Type;
+			if (Info) switch (g_base_info_get_type(Info)) {
+			case GI_INFO_TYPE_OBJECT: Type = object_info_lookup(Info); break;
+			case GI_INFO_TYPE_INTERFACE: Type = interface_info_lookup(Info); break;
 			}
-			case GI_INFO_TYPE_INTERFACE: {
-				ml_type_t *Type = interface_info_lookup(Info);
-				return ml_gir_instance_get(g_value_get_object(Value), Type);
-			}
-			default:
-				return ml_gir_instance_get(g_value_get_object(Value), NULL);
-			}
+			return ml_gir_instance_get(g_value_get_object(Value), Type);
 		} else {
 			GIBaseInfo *InterfaceInfo = g_irepository_find_by_gtype(NULL, G_VALUE_TYPE(Value));
 			if (InterfaceInfo) {
