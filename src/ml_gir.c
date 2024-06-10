@@ -903,7 +903,6 @@ static void object_add_methods(interface_t *Object, GIObjectInfo *Info) {
 		GIFunctionInfo *MethodInfo = g_object_info_get_method(Info, I);
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
-		//if (!strcmp(MethodName, "query")) asm("int3");
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			method_register(MethodName, MethodInfo, (ml_type_t *)Object);
 		} else {
