@@ -138,8 +138,13 @@ ML_METHOD("::", GirModuleT, MLStringT) {
 #endif
 
 typedef struct {
+	ml_value_t *Getter, *Setter;
+} property_t;
+
+typedef struct {
 	baseinfo_t Base;
 	stringmap_t Signals[1];
+	stringmap_t Properties[1];
 } interface_t;
 
 typedef struct {
@@ -882,11 +887,27 @@ static void object_add_signals(interface_t *Object, GIObjectInfo *Info) {
 	}
 }
 
+static void object_add_properties(interface_t *Object, GIObjectInfo *Info) {
+	int NumProperties = g_object_info_get_n_properties(Info);
+	for (int I = 0; I < NumProperties; ++I) {
+		GIPropertyInfo *PropertyInfo = g_object_info_get_property(Info, I);
+		const char *PropertyName = g_base_info_get_name((GIBaseInfo *)PropertyInfo);
+		property_t *Property = new(property_t);
+		GIFunctionInfo *GetterInfo = g_property_info_get_getter(PropertyInfo);
+		if (GetterInfo) Property->Getter = function_info_compile(GetterInfo);
+		GIFunctionInfo *SetterInfo = g_property_info_get_setter(PropertyInfo);
+		if (SetterInfo) Property->Setter = function_info_compile(SetterInfo);
+		stringmap_insert(Object->Properties, PropertyName, Property);
+	}
+}
+
 static void object_add_methods(interface_t *Object, GIObjectInfo *Info) {
 	object_add_signals(Object, Info);
+	object_add_properties(Object, Info);
 	GIObjectInfo *ParentInfo = g_object_info_get_parent(Info);
 	while (ParentInfo) {
 		object_add_signals(Object, ParentInfo);
+		object_add_properties(Object, ParentInfo);
 		ml_type_t *Parent = object_info_lookup(ParentInfo);
 		ml_type_add_parent((ml_type_t *)Object, Parent);
 		ParentInfo = g_object_info_get_parent(ParentInfo);
@@ -1438,27 +1459,34 @@ ML_METHOD("disconnect", GirObjectInstanceT, MLIntegerT) {
 
 typedef struct {
 	ml_type_t *Type;
-	GObject *Object;
-	const char *Name;
+	//GObject *Object;
+	//const char *Name;
+	ml_value_t *Value;
+	property_t *Property;
 } object_property_t;
 
 static ml_value_t *object_property_deref(object_property_t *Property) {
-	GValue Value[1] = {G_VALUE_INIT};
+	/*GValue Value[1] = {G_VALUE_INIT};
 	g_object_get_property(Property->Object, Property->Name, Value);
 	if (G_VALUE_TYPE(Value) == 0) {
 		return ml_error("PropertyError", "Invalid property %s", Property->Name);
 	}
-	return _value_to_ml(Value, NULL);
+	return _value_to_ml(Value, NULL);*/
+	return ml_simple_call(Property->Property->Getter, 1, &Property->Value);
 }
 
 static void object_property_assign(ml_state_t *Caller, object_property_t *Property, ml_value_t *Value0) {
-	GValue Value[1];
+	/*GValue Value[1];
 	memset(Value, 0, sizeof(GValue));
 	Value0 = ml_deref(Value0);
 	if (ml_is_error(Value0)) ML_RETURN(Value0);
 	_ml_to_value(Value0, Value);
 	g_object_set_property(Property->Object, Property->Name, Value);
-	ML_RETURN(Value0);
+	ML_RETURN(Value0);*/
+	ml_value_t **Args = ml_alloc_args(2);
+	Args[0] = Property->Value;
+	Args[1] = Value0;
+	return ml_call(Caller, Property->Property->Setter, 2, Args);
 }
 
 ML_TYPE(GirObjectPropertyT, (), "object-property",
@@ -1471,10 +1499,15 @@ ML_METHOD("::", GirObjectInstanceT, MLStringT) {
 //<Property
 //>any
 	instance_t *Instance = (instance_t *)Args[0];
-	object_property_t *Property = new(object_property_t);
-	Property->Type = GirObjectPropertyT;
-	Property->Object = Instance->Handle;
-	Property->Name = ml_string_value(Args[1]);
+	const char *Name = ml_string_value(Args[1]);
+	property_t *Property = stringmap_search(Instance->Type->Properties, Name);
+	if (!Property) return ml_error("NameError", "Unknown property: %s", Name);
+	object_property_t *ObjectProperty = new(object_property_t);
+	ObjectProperty->Type = GirObjectPropertyT;
+	//ObjectProperty->Object = Instance->Handle;
+	//ObjectProperty->Name = ml_string_value(Args[1]);
+	ObjectProperty->Value = (ml_value_t *)Instance;
+	ObjectProperty->Property = Property;
 	return (ml_value_t *)Property;
 }
 
@@ -3713,6 +3746,11 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 ML_TYPE(GirClassT, (GirInstanceT), "gir::class",
 	.call = (void *)ml_type_call
 );
+
+typedef struct {
+	GObject Base;
+
+} gir_object_t;
 
 ML_METHODV(GirClassT) {
 	GType Parent = G_TYPE_OBJECT;
