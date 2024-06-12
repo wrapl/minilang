@@ -9,6 +9,7 @@
 #define asnew(T, N) ((T *)GC_MALLOC_ATOMIC((N) * sizeof(T)))
 #define bnew(N) GC_MALLOC(N)
 #define xnew(T, N, U) ((T *)GC_MALLOC(sizeof(T) + (N) * sizeof(U)))
+#define unew(T) ((T *)GC_MALLOC_UNCOLLECTABLE(sizeof(T)))
 
 #define PP_NARG(...) \
 	PP_NARG_(__VA_ARGS__,PP_RSEQ_N())
