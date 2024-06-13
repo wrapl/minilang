@@ -138,14 +138,12 @@ ML_METHOD("::", GirModuleT, MLStringT) {
 
 #endif
 
-typedef struct {
-	ml_value_t *Getter, *Setter;
-} property_t;
+//typedef struct { ml_value_t *Getter, *Setter; } property_t;
 
 typedef struct {
 	baseinfo_t Base;
 	stringmap_t Signals[1];
-	stringmap_t Properties[1];
+	//stringmap_t Properties[1];
 } interface_t;
 
 typedef struct {
@@ -937,7 +935,7 @@ static void object_add_signals(interface_t *Object, GIObjectInfo *Info) {
 	}
 }
 
-static void object_add_properties(interface_t *Object, GIObjectInfo *Info) {
+/*static void object_add_properties(interface_t *Object, GIObjectInfo *Info) {
 	int NumProperties = g_object_info_get_n_properties(Info);
 	for (int I = 0; I < NumProperties; ++I) {
 		GIPropertyInfo *PropertyInfo = g_object_info_get_property(Info, I);
@@ -949,15 +947,15 @@ static void object_add_properties(interface_t *Object, GIObjectInfo *Info) {
 		if (SetterInfo) Property->Setter = function_info_compile(SetterInfo);
 		stringmap_insert(Object->Properties, PropertyName, Property);
 	}
-}
+}*/
 
 static void object_add_methods(interface_t *Object, GIObjectInfo *Info) {
 	object_add_signals(Object, Info);
-	object_add_properties(Object, Info);
+	//object_add_properties(Object, Info);
 	GIObjectInfo *ParentInfo = g_object_info_get_parent(Info);
 	while (ParentInfo) {
 		object_add_signals(Object, ParentInfo);
-		object_add_properties(Object, ParentInfo);
+		//object_add_properties(Object, ParentInfo);
 		ml_type_t *Parent = object_info_lookup(ParentInfo);
 		ml_type_add_parent((ml_type_t *)Object, Parent);
 		ParentInfo = g_object_info_get_parent(ParentInfo);
@@ -1522,34 +1520,34 @@ ML_METHOD("disconnect", GirObjectInstanceT, MLIntegerT) {
 
 typedef struct {
 	ml_type_t *Type;
-	//GObject *Object;
-	//const char *Name;
-	ml_value_t *Value;
-	property_t *Property;
+	GObject *Object;
+	const char *Name;
+	//ml_value_t *Value;
+	//property_t *Property;
 } object_property_t;
 
 static ml_value_t *object_property_deref(object_property_t *Property) {
-	/*GValue Value[1] = {G_VALUE_INIT};
+	GValue Value[1] = {G_VALUE_INIT};
 	g_object_get_property(Property->Object, Property->Name, Value);
 	if (G_VALUE_TYPE(Value) == 0) {
 		return ml_error("PropertyError", "Invalid property %s", Property->Name);
 	}
-	return _value_to_ml(Value, NULL);*/
-	return ml_simple_call(Property->Property->Getter, 1, &Property->Value);
+	return _value_to_ml(Value, NULL);
+	//return ml_simple_call(Property->Property->Getter, 1, &Property->Value);
 }
 
 static void object_property_assign(ml_state_t *Caller, object_property_t *Property, ml_value_t *Value0) {
-	/*GValue Value[1];
+	GValue Value[1];
 	memset(Value, 0, sizeof(GValue));
 	Value0 = ml_deref(Value0);
 	if (ml_is_error(Value0)) ML_RETURN(Value0);
 	_ml_to_value(Value0, Value);
 	g_object_set_property(Property->Object, Property->Name, Value);
-	ML_RETURN(Value0);*/
-	ml_value_t **Args = ml_alloc_args(2);
-	Args[0] = Property->Value;
-	Args[1] = Value0;
-	return ml_call(Caller, Property->Property->Setter, 2, Args);
+	ML_RETURN(Value0);
+	//ml_value_t **Args = ml_alloc_args(2);
+	//Args[0] = Property->Value;
+	//Args[1] = Value0;
+	//return ml_call(Caller, Property->Property->Setter, 2, Args);
 }
 
 ML_TYPE(GirObjectPropertyT, (), "object-property",
@@ -1563,16 +1561,16 @@ ML_METHOD("::", GirObjectInstanceT, MLStringT) {
 //>any
 	instance_t *Instance = (instance_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	property_t *Property = stringmap_search(Instance->Type->Properties, Name);
-	if (!Property) return ml_error("NameError", "Unknown property: %s", Name);
-	object_property_t **Slot = (object_property_t **)stringmap_search(Instance->Properties, Name);
+	//property_t *Property = stringmap_search(Instance->Type->Properties, Name);
+	//if (!Property) return ml_error("NameError", "Unknown property: %s", Name);
+	object_property_t **Slot = (object_property_t **)stringmap_slot(Instance->Properties, Name);
 	if (!Slot[0]) {
 		object_property_t *ObjectProperty = new(object_property_t);
 		ObjectProperty->Type = GirObjectPropertyT;
-		//ObjectProperty->Object = Instance->Handle;
-		//ObjectProperty->Name = ml_string_value(Args[1]);
-		ObjectProperty->Value = (ml_value_t *)Instance;
-		ObjectProperty->Property = Property;
+		ObjectProperty->Object = Instance->Handle;
+		ObjectProperty->Name = ml_string_value(Args[1]);
+		//ObjectProperty->Value = (ml_value_t *)Instance;
+		//ObjectProperty->Property = Property;
 		Slot[0] = ObjectProperty;
 	}
 	return (ml_value_t *)Slot[0];
@@ -3815,48 +3813,102 @@ ML_TYPE(GirClassT, (GirInstanceT), "gir::class",
 );
 
 typedef struct {
+	interface_t Base;
+	GParamSpec **Properties;
+	int NumProperties;
+} class_t;
+
+typedef struct {
 	GObject Base;
-	GValue Properties[];
+	GValue *Properties;
 } gir_object_t;
+
+typedef struct {
+	GObjectClass Base;
+	class_t *Info;
+} gir_class_t;
 
 ML_GIR_TYPELIB(_GObject, "GObject", NULL);
 
 ML_GIR_IMPORT(GObjectT, _GObject, "Object");
 ML_GIR_IMPORT(GParamSpecT, _GObject, "ParamSpec");
 
+static void object_init(gir_object_t *Object, gir_class_t *Class) {
+	Object->Properties = g_malloc(Class->Info->NumProperties * sizeof(GValue));
+	memset(Object->Properties, 0, Class->Info->NumProperties * sizeof(GValue));
+	for (int I = 1; I < Class->Info->NumProperties; ++I) {
+		g_param_value_set_default(Class->Info->Properties[I], Object->Properties + I);
+	}
+}
+
+static void object_set_property(gir_object_t *Object, guint Id, const GValue *Value, GParamSpec *Spec) {
+	g_value_copy(Value, Object->Properties + Id);
+}
+
+static void object_get_property(gir_object_t *Object, guint Id, GValue *Value, GParamSpec *Spec) {
+	g_value_copy(Object->Properties + Id, Value);
+}
+
+static void class_init(gir_class_t *Class, class_t *Info) {
+	Class->Base.set_property = (void *)object_set_property;
+	Class->Base.get_property = (void *)object_get_property;
+	g_object_class_install_properties(&Class->Base, Info->NumProperties, Info->Properties);
+	Class->Info = Info;
+}
+
 ML_METHODV(GirClassT) {
 	interface_t *Parent = (interface_t *)GObjectT;
+	int NumProperties = 0;
 	for (int I = 0; I < Count; ++I) {
-		if (ml_is(Args[I], GirObjectT)) {
-			Parent = (interface_t *)GirObjectT;
+		/*if (ml_is(Args[I], GirObjectT)) {
+			Parent = (interface_t *)Args[I];
 		} else if (ml_is(Args[I], GirInterfaceT)) {
 
-		} else if (ml_is(Args[I], (ml_type_t *)GParamSpecT)) {
-
+		} else */if (ml_is(Args[I], (ml_type_t *)GParamSpecT)) {
+			++NumProperties;
 		} else {
-
+			return ml_error("TypeError", "Unsupported argument type %s to gir::class", ml_typeof(Args[I])->Name);
 		}
 	}
 
-	baseinfo_t *Class = new(baseinfo_t);
+	class_t *Class = unew(class_t);
+	Class->Properties = anew(GParamSpec *, NumProperties + 1);
+	Class->NumProperties = NumProperties + 1;
 
-	GC_asprintf((char **)&Class->Base.Name, "class-%lx", (uintptr_t)Class);
+	GParamSpec **Property = Class->Properties + 1;
+	for (int I = 0; I < Count; ++I) {
+		/*if (ml_is(Args[I], GirObjectT)) {
+			Parent = (interface_t *)Args[I];
+		} else if (ml_is(Args[I], GirInterfaceT)) {
+
+		} else */if (ml_is(Args[I], (ml_type_t *)GParamSpecT)) {
+			GParamSpec *Spec = ((struct_instance_t *)Args[I])->Value;
+			*Property++ = Spec;
+			GC_strdup(g_param_spec_get_name(Spec));
+		}
+	}
+
+	GC_asprintf((char **)&Class->Base.Base.Base.Name, "class-%lx", (uintptr_t)Class);
 
 	GTypeInfo TypeInfo[1] = {0,};
-	TypeInfo->class_size = sizeof(GObjectClass);
-	TypeInfo->instance_size = sizeof(GObject);
+	TypeInfo->class_size = sizeof(gir_class_t);
+	TypeInfo->class_init = (GClassInitFunc)class_init;
+	TypeInfo->instance_size = sizeof(gir_object_t);
+	TypeInfo->instance_init = (GInstanceInitFunc)object_init;
+	TypeInfo->class_data = Class;
 	GType Type = g_type_register_static(
 		((interface_t *)Parent)->Base.Type,
-		Class->Base.Name, TypeInfo, G_TYPE_FLAG_NONE
+		Class->Base.Base.Base.Name, TypeInfo, G_TYPE_FLAG_FINAL
 	);
+	stringmap_insert(TypeMap, Class->Base.Base.Base.Name, Class);
 
-	Class->Base.Type = GirClassT;
-	Class->Base.hash = ml_default_hash;
-	Class->Base.call = ml_default_call;
-	Class->Base.deref = ml_default_deref;
-	Class->Base.assign = ml_default_assign;
-	Class->Base.Constructor = ml_cfunction(Class, (ml_callback_t)object_instance);
-	Class->Type = Type;
+	Class->Base.Base.Base.Type = GirClassT;
+	Class->Base.Base.Base.hash = ml_default_hash;
+	Class->Base.Base.Base.call = ml_default_call;
+	Class->Base.Base.Base.deref = ml_default_deref;
+	Class->Base.Base.Base.assign = ml_default_assign;
+	Class->Base.Base.Base.Constructor = ml_cfunction(Class, (ml_callback_t)object_instance);
+	Class->Base.Base.Type = Type;
 	ml_type_init((ml_type_t *)Class, Parent, NULL);
 
 	return (ml_value_t *)Class;
@@ -3880,6 +3932,8 @@ ML_METHODVX("implement", GirClassT, GirInterfaceT, MLNamesT) {
 	interface_t *Interface = (interface_t *)Args[1];
 	GIInterfaceInfo *Info = g_irepository_find_by_gtype(NULL, Interface->Base.Type);
 	GIStructInfo *IfaceInfo = g_interface_info_get_iface_struct(Info);
+
+
 	iface_vfunc_t *VFuncs = GC_MALLOC_UNCOLLECTABLE((ml_names_length(Args[2]) + 1) * sizeof(iface_vfunc_t));
 
 	int I = 0;
@@ -3913,6 +3967,8 @@ ML_METHODVX("implement", GirClassT, GirInterfaceT, MLNamesT) {
 
 	g_base_info_unref(IfaceInfo);
 	g_base_info_unref(Info);
+
+	// TODO: Add interface properties to class
 
 	GInterfaceInfo Impl = {(GInterfaceInitFunc)interface_init, NULL, VFuncs};
 
@@ -4138,7 +4194,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
 	MLQuark = g_quark_from_static_string("<<minilang>>");
-	MLType = g_pointer_type_register_static("minilang");
+	MLType = g_pointer_type_register_static("Minilang");
 	ObjectInstanceNil = new(instance_t);
 	ObjectInstanceNil->Type = (interface_t *)GirObjectInstanceT;
 	//ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
