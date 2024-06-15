@@ -546,13 +546,17 @@ if MINILANG_TRE then
 ')
 		XMallocH:close
 		let XmallocC := file("tre/lib/xmalloc.c"):open("w"):close
-		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', {
+		let Options := {
 			"--prefix" is PATH,
 			"--enable-static",
 			"--enable-multibyte",
 			"--enable-wchar",
 			"--disable-shared"
-		})
+		}
+		if PLATFORM = "Android" then
+			Options["--build"] := '{MACHINE}-unknown-linux-gnu'
+		end
+		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', )
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
