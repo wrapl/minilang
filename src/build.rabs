@@ -556,7 +556,7 @@ if MINILANG_TRE then
 		if PLATFORM = "Android" then
 			Options["--build"] := '{MACHINE}-unknown-linux-gnu'
 		end
-		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', )
+		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', Options)
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
