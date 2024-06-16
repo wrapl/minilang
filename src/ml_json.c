@@ -588,7 +588,7 @@ static void json_decode_single_fn(json_decoder_t *Decoder, ml_value_t *Value) {
 
 ML_METHOD_ANON(MLJsonDecode, "json::decode");
 
-ML_METHOD(MLJsonDecode, MLStringT) {
+ML_METHOD(MLJsonDecode, MLAddressT) {
 //@json::decode
 //<Json
 //>any
@@ -596,7 +596,7 @@ ML_METHOD(MLJsonDecode, MLStringT) {
 	ml_value_t *Result = NULL;
 	json_decoder_t Decoder[1];
 	json_decoder_init(Decoder, (void *)json_decode_single_fn, &Result);
-	ml_value_t *Error = json_decoder_parse(Decoder, ml_string_value(Args[0]), ml_string_length(Args[0]));
+	ml_value_t *Error = json_decoder_parse(Decoder, ml_address_value(Args[0]), ml_address_length(Args[0]));
 	if (Error) return Error;
 	Error = json_decoder_finish(Decoder);
 	if (Error) return Error;

@@ -1565,7 +1565,7 @@ ML_METHODV(MLXmlT, MLSymbolT) {
 
 ML_METHOD_ANON(MLXmlParse, "xml::parse");
 
-ML_METHOD(MLXmlParse, MLStringT) {
+ML_METHOD(MLXmlParse, MLAddressT) {
 //@xml::parse
 //<String
 //>xml
@@ -1582,8 +1582,8 @@ ML_METHOD(MLXmlParse, MLStringT) {
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
-	const char *Text = ml_string_value(Args[0]);
-	size_t Length = ml_string_length(Args[0]);
+	const char *Text = ml_address_value(Args[0]);
+	size_t Length = ml_address_length(Args[0]);
 	if (XML_Parse(Handle, Text, Length, 1) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Handle);
 		return ml_error("XMLError", "%s", XML_ErrorString(Error));
