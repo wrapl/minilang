@@ -80,6 +80,8 @@ static char *path_join(const char *Base, const char *Rest, int Remove, int Space
 	if (Rest[0]) {
 		*End++ = '/';
 		strcpy(End, Rest);
+	} else {
+		*End = 0;
 	}
 	return Path;
 }
