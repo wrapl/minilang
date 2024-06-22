@@ -288,6 +288,7 @@ void ml_list_insert(ml_value_t *List0, ml_value_t *Value, ml_list_node_t *Next) 
 	}
 	Node->Prev = Next->Prev;
 	Next->Prev = Node;
+	Node->Next = Next;
 #ifdef ML_GENERICS
 	ml_list_update_generic(List, ml_typeof(Value));
 #endif
