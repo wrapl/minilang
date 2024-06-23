@@ -155,7 +155,9 @@ hierarchy
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;
       "any":e -> "gir::module":w;
-      "gir::baseinfo":e -> "gir::object":w;
+      "gir::baseinfo":e -> "gir::instance":w;
+      "gir::instance":e -> "gir::object":w;
+      "gir::instance":e -> "gir::interface":w;
       "any":e -> "gir::objectinstance":w;
       "gir::baseinfo":e -> "gir::struct":w;
       "any":e -> "gir::structinstance":w;
@@ -177,10 +179,10 @@ hierarchy
       "gir::baseinfo":e -> "gir::enum":w;
       "any":e -> "gir::enumvalue":w;
       "any":e -> "gir::objectproperty":w;
-      "any":e -> "gir::instance":w;
       "gir::baseinfo":e -> "gir::callback":w;
       "any":e -> "gir::callbackinstance":w;
       "function":e -> "gir::function":w;
+      "gir::instance":e -> "gir::class":w;
       "stream":e -> "file":w;
       "any":e -> "file::stat":w;
       "enum":e -> "file::mode":w;

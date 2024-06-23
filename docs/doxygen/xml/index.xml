@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.10.0" xml:lang="en-US">
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.11.0" xml:lang="en-US">
   <compound refid="structcoro__stack" kind="struct"><name>coro_stack</name>
     <member refid="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" kind="variable"><name>sptr</name></member>
     <member refid="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" kind="variable"><name>ssze</name></member>
@@ -62,7 +62,7 @@
   <compound refid="structml__array__dimension__t" kind="struct"><name>ml_array_dimension_t</name>
     <member refid="structml__array__dimension__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
     <member refid="structml__array__dimension__t_1a2bc9777201b278cf5e84e9124ffbba71" kind="variable"><name>Stride</name></member>
-    <member refid="structml__array__dimension__t_1a1d8839d8a03ff495c70687efa04e94e2" kind="variable"><name>Indices</name></member>
+    <member refid="structml__array__dimension__t_1a8bbba9edcd408e0d5889691f294e6d30" kind="variable"><name>Indices</name></member>
   </compound>
   <compound refid="structml__array__t" kind="struct"><name>ml_array_t</name>
     <member refid="structml__array__t_1ac9587e70fd201f287412492f9b82ff01" kind="variable"><name>Base</name></member>
@@ -1060,10 +1060,12 @@
     <member refid="linenoise_8h_1a63a5cb6aff2c705e71389d196878aec4" kind="function"><name>linenoiseSetMultiLine</name></member>
   </compound>
   <compound refid="minilang_8h" kind="file"><name>minilang.h</name>
+    <member refid="minilang_8h_1a75ae4649a603379555c4c435ded6fb07" kind="variable"><name>MLGlobals</name></member>
     <member refid="minilang_8h_1a63b501a210e2582c50d3608ceee4dea3" kind="function"><name>ml_init</name></member>
   </compound>
   <compound refid="ml__array_8h" kind="file"><name>ml_array.h</name>
     <member refid="ml__array_8h_1ad3bfbbf0e3632a5d3cbb42fee65305d4" kind="define"><name>MAX_FORMATS</name></member>
+    <member refid="ml__array_8h_1a08aec75f688d164f8f8d5fd4e63fcd16" kind="define"><name>ml_array_get</name></member>
     <member refid="ml__array_8h_1a05b46f42cc6d2601c83bd67c4276ac33" kind="define"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373" kind="enum"><name>ml_array_format_t</name></member>
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a6d2c17e1fda09f00b9e0e47651266ab9" kind="enumvalue"><name>ML_ARRAY_FORMAT_NONE</name></member>
@@ -1086,6 +1088,9 @@
     <member refid="ml__array_8h_1a2c74fe3d13c9294dfa0e24f926bc3cbf" kind="function"><name>ml_array_degree</name></member>
     <member refid="ml__array_8h_1a6c6130c9f4ea1156810402e2dd16f66c" kind="function"><name>ml_array_size</name></member>
     <member refid="ml__array_8h_1a04f775d73be07991ab6076362debe764" kind="function"><name>ml_array_index</name></member>
+    <member refid="ml__array_8h_1a6d42db08dbcb3a49100873bdeaebcd0e" kind="function"><name>ml_array_foreach</name></member>
+    <member refid="ml__array_8h_1a2a180d657d9d88453320f220124aaf8d" kind="function"><name>ml_array_data</name></member>
+    <member refid="ml__array_8h_1a75302de15dcdfe6fa479b97eb7bbbc98" kind="function"><name>ml_array_step</name></member>
     <member refid="ml__array_8h_1a6e12fef819367924e97c1ea11e3e2cd8" kind="function"><name>ml_array_data_size</name></member>
     <member refid="ml__array_8h_1ad6c1ed133dc4661584c86ec4f99a0ee5" kind="function"><name>ml_array_copy_data</name></member>
     <member refid="ml__array_8h_1a93d1894feb290af68a61215699cf5f39" kind="function"><name>ml_array_flatten</name></member>
@@ -1462,11 +1467,11 @@
     <member refid="ml__coroutine_8h_1ac0098ebcd0bf8073ccd09fb8c0ffe498" kind="function"><name>ml_coro_resume</name></member>
   </compound>
   <compound refid="ml__debugger_8h" kind="file"><name>ml_debugger.h</name>
-    <member refid="ml__debugger_8h_1aa6f883c01d6f2b0b58d53649815cf6bc" kind="typedef"><name>interactive_debugger_t</name></member>
-    <member refid="ml__debugger_8h_1adcc55fb4e62f2f33bc035755d78feec7" kind="function"><name>interactive_debugger</name></member>
-    <member refid="ml__debugger_8h_1a83697c97f07395b5bc252041c0a61c05" kind="function"><name>interactive_debugger_get</name></member>
-    <member refid="ml__debugger_8h_1a2484aadd307ca5dc801091967d382258" kind="function"><name>interactive_debugger_switch</name></member>
-    <member refid="ml__debugger_8h_1a8fb1edd94694628c6ccf8a62a2db65e0" kind="function"><name>interactive_debugger_resume</name></member>
+    <member refid="ml__debugger_8h_1aacbf9405e47fc809301884eeb46ccb15" kind="typedef"><name>ml_interactive_debugger_t</name></member>
+    <member refid="ml__debugger_8h_1a33905a2bccdb7c30dc6abc543172ab83" kind="function"><name>ml_interactive_debugger</name></member>
+    <member refid="ml__debugger_8h_1a8232ee6325a020216c8bc1f630b8d74e" kind="function"><name>ml_interactive_debugger_get</name></member>
+    <member refid="ml__debugger_8h_1a9f62a55c035162b6c8481b020241006d" kind="function"><name>ml_interactive_debugger_switch</name></member>
+    <member refid="ml__debugger_8h_1a4bddcde9c3a5ffab9a03975f54ae13e5" kind="function"><name>ml_interactive_debugger_resume</name></member>
   </compound>
   <compound refid="ml__expr__types_8h" kind="file"><name>ml_expr_types.h</name>
     <member refid="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884f" kind="enum"><name>ml_expr_type_t</name></member>
@@ -1533,7 +1538,7 @@
   <compound refid="ml__gir_8h" kind="file"><name>ml_gir.h</name>
     <member refid="ml__gir_8h_1a85b44e13eaacfcfe7c4ec0380cc6d0ce" kind="define"><name>ML_GIR_TYPELIB</name></member>
     <member refid="ml__gir_8h_1a3b47c2b2d63fb0f63caee7b44a1c6f16" kind="define"><name>ML_GIR_IMPORT</name></member>
-    <member refid="ml__gir_8h_1a388fd14f51eda8fa8a41974b9e844ad6" kind="variable"><name>GirTypelibT</name></member>
+    <member refid="ml__gir_8h_1acb1699aebfa71188d74572c7efa17df1" kind="variable"><name>MLGirTypelibT</name></member>
     <member refid="ml__gir_8h_1a2976138dbd61b8af54e6499ce759bcd4" kind="function"><name>ml_gir_typelib</name></member>
     <member refid="ml__gir_8h_1ac0cfbdb2f2d3b940b79562a7a1e6bb89" kind="function"><name>ml_gir_get_typelib</name></member>
     <member refid="ml__gir_8h_1a5cec099607e88367f8828ee03efe6952" kind="function"><name>ml_gir_get_namespace</name></member>
@@ -1542,7 +1547,7 @@
     <member refid="ml__gir_8h_1a84cf23e6320f30fd979eb2f548a56755" kind="function"><name>ml_gir_loop_run</name></member>
     <member refid="ml__gir_8h_1a2da3eb76546912b655e8af57183bf1bc" kind="function"><name>ml_gir_loop_quit</name></member>
     <member refid="ml__gir_8h_1a381b8fd55f3b3faec6f9a33e56854897" kind="function"><name>ml_gir_init</name></member>
-    <member refid="ml__gir_8h_1a5d1407bf2c55106633e042995b42d0d3" kind="function"><name>ml_gir_instance_get</name></member>
+    <member refid="ml__gir_8h_1a7256ebe368d8ef6645714b8ab5e83558" kind="function"><name>ml_gir_instance_get</name></member>
     <member refid="ml__gir_8h_1a65975dd1cb2428f877d8081a9dcc2750" kind="function"><name>ml_gir_struct_instance</name></member>
     <member refid="ml__gir_8h_1ab86b4eba3a54d819fd0a8453a43797d4" kind="function"><name>ml_gir_struct_instance_value</name></member>
     <member refid="ml__gir_8h_1ad94377c3c0b8d4637094d9d5959a0f72" kind="function"><name>ml_gir_enum_value</name></member>
@@ -1598,6 +1603,7 @@
     <member refid="ml__macros_8h_1a3555212b5ebd67956cbf283e7793fa7b" kind="define"><name>asnew</name></member>
     <member refid="ml__macros_8h_1a6fe85f1498ca0b0ad3600fb6c200d566" kind="define"><name>bnew</name></member>
     <member refid="ml__macros_8h_1a36acf6bdeb9778cf4deefff0700a2136" kind="define"><name>xnew</name></member>
+    <member refid="ml__macros_8h_1ac6c5a83ab5dbd8f090d1f66ea14418a7" kind="define"><name>unew</name></member>
     <member refid="ml__macros_8h_1a31b9bcd0e7f30adb8ed947d86d4ae11b" kind="define"><name>PP_NARG</name></member>
     <member refid="ml__macros_8h_1a1b4b6dfcca38ee665c4c88c07d58c4f0" kind="define"><name>PP_NARG_</name></member>
     <member refid="ml__macros_8h_1a31e17247ef3f8e15d6014770586b1201" kind="define"><name>PP_ARG_N</name></member>

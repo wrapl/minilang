@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="update__impl__integer_8h" kind="file" language="C++">
     <compoundname>update_impl_integer.h</compoundname>
     <includes refid="ml__array_8h" local="yes">../ml_array.h</includes>
@@ -519,9 +519,9 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="11"><highlight class="preprocessor">void<sp/>NAME<sp/>##<sp/>_row_<sp/>##<sp/>TARGET<sp/>##<sp/>_<sp/>##<sp/>SOURCE(ml_array_dimension_t<sp/>*TargetDimension,<sp/>char<sp/>*TargetData,<sp/>ml_array_dimension_t<sp/>*SourceDimension,<sp/>char<sp/>*SourceData)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="12"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Size<sp/>=<sp/>TargetDimension-&gt;Size;<sp/>\</highlight></codeline>
 <codeline lineno="13"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(TargetDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="14"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="14"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="15"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="16"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="16"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="17"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="18"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>UPDATE(OP,<sp/>(TARGET<sp/>*)(TargetData<sp/>+<sp/>TargetIndices[I]<sp/>*<sp/>TargetDimension-&gt;Stride),<sp/>*(SOURCE<sp/>*)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride));<sp/>\</highlight></codeline>
 <codeline lineno="19"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
@@ -535,7 +535,7 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="27"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>else<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="28"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>TargetStride<sp/>=<sp/>TargetDimension-&gt;Stride;<sp/>\</highlight></codeline>
 <codeline lineno="29"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="30"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="30"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="31"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="32"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>UPDATE(OP,<sp/>(TARGET<sp/>*)TargetData,<sp/>*(SOURCE<sp/>*)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride));<sp/>\</highlight></codeline>
 <codeline lineno="33"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>TargetData<sp/>+=<sp/>TargetStride;<sp/>\</highlight></codeline>
@@ -558,9 +558,9 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="50"><highlight class="preprocessor">void<sp/>NAME<sp/>##<sp/>_row_any_<sp/>##<sp/>SOURCE(ml_array_dimension_t<sp/>*TargetDimension,<sp/>char<sp/>*TargetData,<sp/>ml_array_dimension_t<sp/>*SourceDimension,<sp/>char<sp/>*SourceData)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="51"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Size<sp/>=<sp/>TargetDimension-&gt;Size;<sp/>\</highlight></codeline>
 <codeline lineno="52"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(TargetDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="53"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="53"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="54"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="55"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="55"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="56"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="57"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>**Target<sp/>=<sp/>(ml_value_t<sp/>**)(TargetData<sp/>+<sp/>TargetIndices[I]<sp/>*<sp/>TargetDimension-&gt;Stride);<sp/>\</highlight></codeline>
 <codeline lineno="58"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>*Source<sp/>=<sp/>ml_number(*(SOURCE<sp/>*)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride));<sp/>\</highlight></codeline>
@@ -578,7 +578,7 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="70"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>else<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="71"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>TargetStride<sp/>=<sp/>TargetDimension-&gt;Stride;<sp/>\</highlight></codeline>
 <codeline lineno="72"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="73"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="73"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="74"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="75"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>**Target<sp/>=<sp/>(ml_value_t<sp/>**)TargetData;<sp/>\</highlight></codeline>
 <codeline lineno="76"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>*Source<sp/>=<sp/>ml_number(*(SOURCE<sp/>*)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride));<sp/>\</highlight></codeline>
@@ -605,9 +605,9 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="97"><highlight class="preprocessor">void<sp/>NAME<sp/>##<sp/>_row_<sp/>##<sp/>TARGET<sp/>##<sp/>_any(ml_array_dimension_t<sp/>*TargetDimension,<sp/>char<sp/>*TargetData,<sp/>ml_array_dimension_t<sp/>*SourceDimension,<sp/>char<sp/>*SourceData)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="98"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Size<sp/>=<sp/>TargetDimension-&gt;Size;<sp/>\</highlight></codeline>
 <codeline lineno="99"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(TargetDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="100"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="100"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="101"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="102"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="102"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="103"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="104"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>TARGET<sp/>Source<sp/>=<sp/>ml_number_value((TARGET)0,<sp/>*(ml_value_t<sp/>**)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride));<sp/>\</highlight></codeline>
 <codeline lineno="105"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>UPDATE(OP,<sp/>(TARGET<sp/>*)(TargetData<sp/>+<sp/>TargetIndices[I]<sp/>*<sp/>TargetDimension-&gt;Stride),<sp/>Source);<sp/>\</highlight></codeline>
@@ -623,7 +623,7 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="115"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>else<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="116"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>TargetStride<sp/>=<sp/>TargetDimension-&gt;Stride;<sp/>\</highlight></codeline>
 <codeline lineno="117"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="118"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="118"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="119"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="120"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>TARGET<sp/>Source<sp/>=<sp/>ml_number_value((TARGET)0,<sp/>*(ml_value_t<sp/>**)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride));<sp/>\</highlight></codeline>
 <codeline lineno="121"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>UPDATE(OP,<sp/>(TARGET<sp/>*)TargetData,<sp/>Source);<sp/>\</highlight></codeline>
@@ -646,9 +646,9 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="138"><highlight class="preprocessor">void<sp/>NAME<sp/>##<sp/>_row_any_any(ml_array_dimension_t<sp/>*TargetDimension,<sp/>char<sp/>*TargetData,<sp/>ml_array_dimension_t<sp/>*SourceDimension,<sp/>char<sp/>*SourceData)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="139"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Size<sp/>=<sp/>TargetDimension-&gt;Size;<sp/>\</highlight></codeline>
 <codeline lineno="140"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(TargetDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="141"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="141"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*TargetIndices<sp/>=<sp/>TargetDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="142"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="143"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="143"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="144"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="145"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>*Source<sp/>=<sp/>*(ml_value_t<sp/>**)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride);<sp/>\</highlight></codeline>
 <codeline lineno="146"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>**Target<sp/>=<sp/>(ml_value_t<sp/>**)(TargetData<sp/>+<sp/>TargetIndices[I]<sp/>*<sp/>TargetDimension-&gt;Stride);<sp/>\</highlight></codeline>
@@ -666,7 +666,7 @@ update_row_fn_t Update ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 <codeline lineno="158"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>else<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="159"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>TargetStride<sp/>=<sp/>TargetDimension-&gt;Stride;<sp/>\</highlight></codeline>
 <codeline lineno="160"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(SourceDimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="161"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
+<codeline lineno="161"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>const<sp/>int<sp/>*SourceIndices<sp/>=<sp/>SourceDimension-&gt;Indices;<sp/>\</highlight></codeline>
 <codeline lineno="162"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>Size;<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
 <codeline lineno="163"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>*Source<sp/>=<sp/>*(ml_value_t<sp/>**)(SourceData<sp/>+<sp/>SourceIndices[I]<sp/>*<sp/>SourceDimension-&gt;Stride);<sp/>\</highlight></codeline>
 <codeline lineno="164"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_value_t<sp/>**Target<sp/>=<sp/>(ml_value_t<sp/>**)TargetData;<sp/>\</highlight></codeline>

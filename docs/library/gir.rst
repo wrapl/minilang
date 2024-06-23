@@ -13,15 +13,15 @@ gir
    *TBD*
 
 
+:mini:`meth :GirClassT()...`
+   *TBD*
+
+
 :mini:`type gir < sequence`
    A gobject-introspection typelib.
 
 
 :mini:`type gir::baseinfo < type`
-   *TBD*
-
-
-:mini:`meth (Arg₁: gir::baseinfo):name`
    *TBD*
 
 
@@ -35,6 +35,14 @@ gir
 
 :mini:`type gir::callbackinstance`
    A gobject-introspection callback instance.
+
+
+:mini:`type gir::class < gir::instance`
+   *TBD*
+
+
+:mini:`meth (Arg₁: gir::class):implement(Arg₂: gir::interface, Arg₃₁ is Value₁, ...)`
+   *TBD*
 
 
 :mini:`type gir::enum < gir::baseinfo`
@@ -117,8 +125,16 @@ gir
    *TBD*
 
 
-:mini:`type gir::instance`
+:mini:`type gir::instance < gir::baseinfo`
    *TBD*
+
+
+:mini:`meth (Arg₁: gir::instance):value`
+   *TBD*
+
+
+:mini:`type gir::interface < gir::instance`
+   A gobject-introspection interface type.
 
 
 :mini:`type gir::module`
@@ -129,7 +145,7 @@ gir
    *TBD*
 
 
-:mini:`type gir::object < gir::baseinfo`
+:mini:`type gir::object < gir::instance`
    A gobject-introspection object type.
 
 
@@ -165,10 +181,6 @@ gir
    A gobject-introspection struct instance.
 
 
-:mini:`meth (Struct: string::buffer):append(Arg₂: gir::structinstance): string`
-   *TBD*
-
-
 :mini:`meth (Typelib: gir::typelib) :: (Name: string): any | error`
    *TBD*
 
@@ -179,10 +191,6 @@ gir
 
 :mini:`type gir::unioninstance`
    A gobject-introspection struct instance.
-
-
-:mini:`meth (Union: string::buffer):append(Arg₂: gir::unioninstance): string`
-   *TBD*
 
 
 :mini:`meth integer(Value: gir::enumvalue): integer`
@@ -197,11 +205,11 @@ gir
    *TBD*
 
 
-:mini:`meth (Arg₁: string):GirTypelibT`
+:mini:`meth girtypelib(Arg₁: string)`
    *TBD*
 
 
-:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
+:mini:`meth girtypelib(Arg₁: string, Arg₂: string)`
    *TBD*
 
 

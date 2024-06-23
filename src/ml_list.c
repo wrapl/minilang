@@ -1620,6 +1620,9 @@ ML_METHODX("find", MLListT, MLAnyT) {
 //<Value
 //>integer|nil
 // Returns the first position where :mini:`List[Position] = Value`.
+//$= let L := list("cake")
+//$= L:find("a")
+//$= L:find("b")
 	ml_list_node_t *Node = ((ml_list_t *)Args[0])->Head;
 	if (!Node) ML_RETURN(MLNil);
 	ml_list_find_state_t *State = new(ml_list_find_state_t);
@@ -1645,26 +1648,56 @@ static void ml_list_bsearch_state_run(ml_list_bsearch_state_t *State, ml_value_t
 	if (ml_is_error(Value)) ML_RETURN(Caller);
 	int Compare = ml_integer_value(Value);
 	if (Compare < 0) {
-		if (State->Index - 1 > State->Min) {
+		if (State->Index > State->Min) {
 			State->Max = State->Index - 1;
 			State->Index = State->Min + (State->Max - State->Min) / 2;
 			State->Args[0] = State->Value;
 			State->Args[1] = ml_list_get(State->List, State->Index);
 			return ml_call(State, State->Compare, 2, State->Args);
 		}
-		ML_RETURN(ml_tuplev(2, ml_integer(State->Min), ml_integer(State->Min + 1)));
+		ML_RETURN(ml_tuplev(2, MLNil, ml_integer(State->Index)));
 	} else if (Compare > 0) {
-		if (State->Index + 1 < State->Max) {
+		if (State->Index < State->Max) {
 			State->Min = State->Index + 1;
 			State->Index = State->Min + (State->Max - State->Min) / 2;
 			State->Args[0] = State->Value;
 			State->Args[1] = ml_list_get(State->List, State->Index);
 			return ml_call(State, State->Compare, 2, State->Args);
 		}
-		ML_RETURN(ml_tuplev(2, ml_integer(State->Max - 1), ml_integer(State->Max)));
+		ML_RETURN(ml_tuplev(2, MLNil, ml_integer(State->Index + 1)));
 	} else {
 		ML_RETURN(ml_tuplev(2, ml_integer(State->Index), ml_integer(State->Index)));
 	}
+}
+
+extern ml_value_t *CompareMethod;
+
+ML_METHODX("bsearch", MLListT, MLAnyT) {
+//<List
+//<Value
+//>tuple[integer,integer]
+// Expects :mini:`List` is be already sorted according to :mini:`<>`. Returns :mini:`(I, J)` where :mini:`List[I] = Value <= List[J]`.
+// Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
+//$= let L := list("cake"):sort
+//$= L:bsearch("a", <>)
+//$= L:bsearch("b", <>)
+//$= L:bsearch("c", <>)
+//$= L:bsearch("z", <>)
+	int Length = ml_list_length(Args[0]);
+	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	ml_list_bsearch_state_t *State = new(ml_list_bsearch_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_bsearch_state_run;
+	State->List = Args[0];
+	State->Value = Args[1];
+	State->Compare = CompareMethod;
+	State->Min = 1;
+	State->Max = Length;
+	State->Index = State->Min + (State->Max - State->Min) / 2;
+	State->Args[0] = State->Value;
+	State->Args[1] = ml_list_get(State->List, State->Index);
+	return ml_call(State, State->Compare, 2, State->Args);
 }
 
 ML_METHODX("bsearch", MLListT, MLAnyT, MLFunctionT) {
@@ -1672,7 +1705,13 @@ ML_METHODX("bsearch", MLListT, MLAnyT, MLFunctionT) {
 //<Value
 //<Compare
 //>tuple[integer,integer]
-// Returns the first position where :mini:`List[Position] = Value`.
+// Expects :mini:`List` is be already sorted according to :mini:`Compare` (which should behave like :mini:`<>`). Returns :mini:`(I, J)` where :mini:`List[I] = Value <= List[J]`.
+// Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
+//$= let L := list("cake"):sort
+//$= L:bsearch("a", <>)
+//$= L:bsearch("b", <>)
+//$= L:bsearch("c", <>)
+//$= L:bsearch("z", <>)
 	int Length = ml_list_length(Args[0]);
 	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
 	ml_list_bsearch_state_t *State = new(ml_list_bsearch_state_t);
@@ -1684,7 +1723,7 @@ ML_METHODX("bsearch", MLListT, MLAnyT, MLFunctionT) {
 	State->Compare = Args[2];
 	State->Min = 1;
 	State->Max = Length;
-	State->Index = 1 + Length / 2;
+	State->Index = State->Min + (State->Max - State->Min) / 2;
 	State->Args[0] = State->Value;
 	State->Args[1] = ml_list_get(State->List, State->Index);
 	return ml_call(State, State->Compare, 2, State->Args);

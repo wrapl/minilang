@@ -20,6 +20,10 @@ JSON values are mapped to Minilang as follows:
 * *array* |harr| :mini:`list`
 * *object* |harr| :mini:`map`
 
+:mini:`meth json::decode(Json: address): any`
+   Decodes :mini:`Json` into a Minilang value.
+
+
 :mini:`meth json::encode(Value: any): string | error`
    Encodes :mini:`Value` into JSON,  raising an error if :mini:`Value` cannot be represented as JSON.
 
@@ -50,10 +54,6 @@ JSON values are mapped to Minilang as follows:
 
 :mini:`meth json::decode(Stream: stream): any`
    Decodes the content of :mini:`Json` into a Minilang value.
-
-
-:mini:`meth json::decode(Json: string): any`
-   Decodes :mini:`Json` into a Minilang value.
 
 
 :mini:`meth json::encode(Buffer: string::buffer, Value: any)`
