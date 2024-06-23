@@ -136,10 +136,10 @@ list
    .. code-block:: mini
 
       let L := list("cake"):sort :> ["a", "c", "e", "k"]
-      L:bsearch("a", <>) :> (1, 1)
-      L:bsearch("b", <>) :> (nil, 2)
-      L:bsearch("c", <>) :> (2, 2)
-      L:bsearch("z", <>) :> (nil, 5)
+      L:bsearch("a") :> (1, 1)
+      L:bsearch("b") :> (nil, 2)
+      L:bsearch("c") :> (2, 2)
+      L:bsearch("z") :> (nil, 5)
 
 
 :mini:`meth (List: list):bsearch(Value: any, Compare: function): tuple[integer, integer]`
@@ -203,7 +203,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "a"
+      L:random :> "k"
       L:random :> "c"
 
 

@@ -1679,10 +1679,10 @@ ML_METHODX("bsearch", MLListT, MLAnyT) {
 // Expects :mini:`List` is be already sorted according to :mini:`<>`. Returns :mini:`(I, J)` where :mini:`List[I] = Value <= List[J]`.
 // Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
 //$= let L := list("cake"):sort
-//$= L:bsearch("a", <>)
-//$= L:bsearch("b", <>)
-//$= L:bsearch("c", <>)
-//$= L:bsearch("z", <>)
+//$= L:bsearch("a")
+//$= L:bsearch("b")
+//$= L:bsearch("c")
+//$= L:bsearch("z")
 	int Length = ml_list_length(Args[0]);
 	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
 	ml_list_bsearch_state_t *State = new(ml_list_bsearch_state_t);
