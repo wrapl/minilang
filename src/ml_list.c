@@ -270,32 +270,6 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	List->CachedIndex = ++List->Length;
 }
 
-void ml_list_insert(ml_value_t *List0, ml_value_t *Value, ml_list_node_t *Next) {
-	ml_list_t *List = (ml_list_t *)List0;
-	ml_list_node_t *Node = new(ml_list_node_t);
-	Node->Type = MLListNodeMutableT;
-	Node->Value = Value;
-	ml_type_t *Type0 = ml_typeof(Value);
-	if (Type0 == MLUninitializedT) {
-		ml_uninitialized_use(Value, &Node->Value);
-		Type0 = MLAnyT;
-	}
-	if (Next->Prev) {
-		Next->Prev->Next = Node;
-	} else {
-		List->Head = Node;
-		if (!List->Tail) List->Tail = Node;
-	}
-	Node->Prev = Next->Prev;
-	Next->Prev = Node;
-	Node->Next = Next;
-#ifdef ML_GENERICS
-	ml_list_update_generic(List, ml_typeof(Value));
-#endif
-	List->CachedNode = List->Tail;
-	List->CachedIndex = ++List->Length;
-}
-
 ml_value_t *ml_list_pop(ml_value_t *List0) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = List->Head;
@@ -1659,15 +1633,87 @@ ML_METHODX("find", MLListT, MLAnyT) {
 	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
-static void ml_list_delete(ml_list_t *List, ml_list_node_t *Node) {
-	ml_list_node_t *Prev = Node->Prev;
-	ml_list_node_t *Next = Node->Next;
-	if (Prev) Prev->Next = Next; else List->Head = Next;
-	if (Next) Next->Prev = Prev; else List->Tail = Prev;
-	List->CachedNode = List->Head;
-	List->CachedIndex = 1;
-	--List->Length;
-	--Node->Index;
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *List, *Value, *Compare;
+	ml_value_t *Args[2];
+	int Index, Min, Max;
+} ml_list_bsearch_state_t;
+
+static void ml_list_bsearch_state_run(ml_list_bsearch_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	int Compare = ml_integer_value(Value);
+	if (Compare < 0) {
+		if (State->Index - 1 > State->Min) {
+			State->Max = State->Index - 1;
+			State->Index = State->Min + (State->Max - State->Min) / 2;
+			State->Args[0] = State->Value;
+			State->Args[1] = ml_list_get(State->List, State->Index);
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		ML_RETURN(ml_tuplev(2, ml_integer(State->Min), ml_integer(State->Min + 1)));
+	} else if (Compare > 0) {
+		if (State->Index + 1 < State->Max) {
+			State->Min = State->Index + 1;
+			State->Index = State->Min + (State->Max - State->Min) / 2;
+			State->Args[0] = State->Value;
+			State->Args[1] = ml_list_get(State->List, State->Index);
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		ML_RETURN(ml_tuplev(2, ml_integer(State->Max - 1), ml_integer(State->Max)));
+	} else {
+		ML_RETURN(ml_tuplev(2, ml_integer(State->Index), ml_integer(State->Index)));
+	}
+}
+
+ML_METHODX("bsearch", MLListT, MLAnyT, MLFunctionT) {
+//<List
+//<Value
+//<Compare
+//>tuple[integer,integer]
+// Returns the first position where :mini:`List[Position] = Value`.
+	int Length = ml_list_length(Args[0]);
+	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	ml_list_bsearch_state_t *State = new(ml_list_bsearch_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_bsearch_state_run;
+	State->List = Args[0];
+	State->Value = Args[1];
+	State->Compare = Args[2];
+	State->Min = 1;
+	State->Max = Length;
+	State->Index = 1 + Length / 2;
+	State->Args[0] = State->Value;
+	State->Args[1] = ml_list_get(State->List, State->Index);
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+static void ml_list_insert(ml_value_t *List0, ml_value_t *Value, ml_list_node_t *Next) {
+	ml_list_t *List = (ml_list_t *)List0;
+	ml_list_node_t *Node = new(ml_list_node_t);
+	Node->Type = MLListNodeMutableT;
+	Node->Value = Value;
+	ml_type_t *Type0 = ml_typeof(Value);
+	if (Type0 == MLUninitializedT) {
+		ml_uninitialized_use(Value, &Node->Value);
+		Type0 = MLAnyT;
+	}
+	if (Next->Prev) {
+		Next->Prev->Next = Node;
+	} else {
+		List->Head = Node;
+		if (!List->Tail) List->Tail = Node;
+	}
+	Node->Prev = Next->Prev;
+	Next->Prev = Node;
+	Node->Next = Next;
+#ifdef ML_GENERICS
+	ml_list_update_generic(List, ml_typeof(Value));
+#endif
+	List->CachedNode = List->Tail;
+	List->CachedIndex = ++List->Length;
 }
 
 ML_METHOD("insert", MLListMutableT, MLIntegerT, MLAnyT) {
@@ -1696,6 +1742,17 @@ ML_METHOD("insert", MLListMutableT, MLIntegerT, MLAnyT) {
 		ml_list_insert((ml_value_t *)List, Args[2], Next);
 		return (ml_value_t *)List;
 	}
+}
+
+static void ml_list_delete(ml_list_t *List, ml_list_node_t *Node) {
+	ml_list_node_t *Prev = Node->Prev;
+	ml_list_node_t *Next = Node->Next;
+	if (Prev) Prev->Next = Next; else List->Head = Next;
+	if (Next) Next->Prev = Prev; else List->Tail = Prev;
+	List->CachedNode = List->Head;
+	List->CachedIndex = 1;
+	--List->Length;
+	--Node->Index;
 }
 
 ML_METHOD("delete", MLListMutableT, MLIntegerT) {
