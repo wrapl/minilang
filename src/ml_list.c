@@ -1597,6 +1597,7 @@ ML_METHODX("sort", MLListMutableT, MLFunctionT) {
 typedef struct {
 	ml_state_t Base;
 	ml_list_node_t *Node;
+	ml_value_t *Compare;
 	ml_value_t *Args[2];
 	int Index;
 } ml_list_find_state_t;
@@ -1612,7 +1613,7 @@ static void ml_list_find_state_run(ml_list_find_state_t *State, ml_value_t *Valu
 	State->Node = Node;
 	State->Args[1] = Node->Value;
 	++State->Index;
-	return ml_call(State, EqualMethod, 2, State->Args);
+	return ml_call(State, State->Compare, 2, State->Args);
 }
 
 ML_METHODX("find", MLListT, MLAnyT) {
@@ -1630,6 +1631,30 @@ ML_METHODX("find", MLListT, MLAnyT) {
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_list_find_state_run;
 	State->Args[0] = Args[1];
+	State->Compare = EqualMethod;
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	State->Index = 1;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("find", MLListT, MLAnyT, MLFunctionT) {
+//<List
+//<Value
+//<Compare
+//>integer|nil
+// Returns the first position where :mini:`Compare(Value, List[Position])` returns a non-nil value.
+//$= let L := list("cake")
+//$= L:find("b", <)
+//$= L:find("b", >)
+	ml_list_node_t *Node = ((ml_list_t *)Args[0])->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_list_find_state_t *State = new(ml_list_find_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_find_state_run;
+	State->Args[0] = Args[1];
+	State->Compare = Args[2];
 	State->Node = Node;
 	State->Args[1] = Node->Value;
 	State->Index = 1;
@@ -1641,9 +1666,9 @@ typedef struct {
 	ml_value_t *List, *Value, *Compare;
 	ml_value_t *Args[2];
 	int Index, Min, Max;
-} ml_list_bsearch_state_t;
+} ml_list_bfind_state_t;
 
-static void ml_list_bsearch_state_run(ml_list_bsearch_state_t *State, ml_value_t *Value) {
+static void ml_list_bfind_state_run(ml_list_bfind_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Caller);
 	int Compare = ml_integer_value(Value);
@@ -1672,23 +1697,23 @@ static void ml_list_bsearch_state_run(ml_list_bsearch_state_t *State, ml_value_t
 
 extern ml_value_t *CompareMethod;
 
-ML_METHODX("bsearch", MLListT, MLAnyT) {
+ML_METHODX("bfind", MLListT, MLAnyT) {
 //<List
 //<Value
 //>tuple[integer,integer]
 // Expects :mini:`List` is be already sorted according to :mini:`<>`. Returns :mini:`(I, J)` where :mini:`List[I] = Value <= List[J]`.
 // Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
 //$= let L := list("cake"):sort
-//$= L:bsearch("a")
-//$= L:bsearch("b")
-//$= L:bsearch("c")
-//$= L:bsearch("z")
+//$= L:bfind("a")
+//$= L:bfind("b")
+//$= L:bfind("c")
+//$= L:bfind("z")
 	int Length = ml_list_length(Args[0]);
 	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
-	ml_list_bsearch_state_t *State = new(ml_list_bsearch_state_t);
+	ml_list_bfind_state_t *State = new(ml_list_bfind_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_bsearch_state_run;
+	State->Base.run = (ml_state_fn)ml_list_bfind_state_run;
 	State->List = Args[0];
 	State->Value = Args[1];
 	State->Compare = CompareMethod;
@@ -1700,7 +1725,7 @@ ML_METHODX("bsearch", MLListT, MLAnyT) {
 	return ml_call(State, State->Compare, 2, State->Args);
 }
 
-ML_METHODX("bsearch", MLListT, MLAnyT, MLFunctionT) {
+ML_METHODX("bfind", MLListT, MLAnyT, MLFunctionT) {
 //<List
 //<Value
 //<Compare
@@ -1708,16 +1733,16 @@ ML_METHODX("bsearch", MLListT, MLAnyT, MLFunctionT) {
 // Expects :mini:`List` is be already sorted according to :mini:`Compare` (which should behave like :mini:`<>`). Returns :mini:`(I, J)` where :mini:`List[I] = Value <= List[J]`.
 // Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
 //$= let L := list("cake"):sort
-//$= L:bsearch("a", <>)
-//$= L:bsearch("b", <>)
-//$= L:bsearch("c", <>)
-//$= L:bsearch("z", <>)
+//$= L:bfind("a", <>)
+//$= L:bfind("b", <>)
+//$= L:bfind("c", <>)
+//$= L:bfind("z", <>)
 	int Length = ml_list_length(Args[0]);
 	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
-	ml_list_bsearch_state_t *State = new(ml_list_bsearch_state_t);
+	ml_list_bfind_state_t *State = new(ml_list_bfind_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_bsearch_state_run;
+	State->Base.run = (ml_state_fn)ml_list_bfind_state_run;
 	State->List = Args[0];
 	State->Value = Args[1];
 	State->Compare = Args[2];
