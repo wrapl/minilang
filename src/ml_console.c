@@ -10,6 +10,7 @@
 #endif
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 typedef struct {
 	ml_state_t Base;
@@ -18,6 +19,9 @@ typedef struct {
 	const char *Prompt;
 	const char *DefaultPrompt, *ContinuePrompt;
 	ml_debugger_t *Debugger;
+	FILE *Input, *Output;
+	char *InputLine;
+	size_t InputSize;
 } ml_console_t;
 
 #ifdef __MINGW32__
@@ -37,7 +41,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 }
 #endif
 
-static const char *ml_console_line_read(ml_console_t *Console) {
+static const char *ml_console_terminal_read(ml_console_t *Console) {
 #ifdef ML_THREADS
 	ml_scheduler_t *Scheduler = ml_context_get(Console->Base.Context, ML_SCHEDULER_INDEX);
 	if (Scheduler) ml_scheduler_split(Scheduler);
@@ -48,19 +52,38 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 	if (!ml_read_line(stdin, 0, &Line)) return NULL;
 #else
 	const char *Line = linenoise(Console->Prompt);
-	if (!Line) return NULL;
-	linenoiseHistoryAdd(Line);
+	Console->Prompt = Console->ContinuePrompt;
 #endif
 #ifdef ML_THREADS
 	if (Scheduler) ml_scheduler_join(Scheduler);
 #endif
+	if (!Line) return NULL;
+	linenoiseHistoryAdd(Line);
 	int Length = strlen(Line);
 	char *Buffer = snew(Length + 2);
 	memcpy(Buffer, Line, Length);
 	Buffer[Length] = '\n';
 	Buffer[Length + 1] = 0;
-	Console->Prompt = Console->ContinuePrompt;
 	return Buffer;
+}
+
+static const char *ml_console_file_read(ml_console_t *Console) {
+#ifdef ML_THREADS
+	ml_scheduler_t *Scheduler = ml_context_get(Console->Base.Context, ML_SCHEDULER_INDEX);
+	if (Scheduler) ml_scheduler_split(Scheduler);
+#endif
+	fputs(Console->Prompt, Console->Output);
+	Console->Prompt = Console->ContinuePrompt;
+	//fprintf(stderr, "Waiting for input\n");
+	ssize_t Size = getline(&Console->InputLine, &Console->InputSize, Console->Input);
+	if (Size < 0) fprintf(stderr, "Error reading: %s\n", strerror(errno));
+	//fprintf(stderr, "Read input length %ld\n", Size);
+#ifdef ML_THREADS
+	if (Scheduler) ml_scheduler_join(Scheduler);
+#endif
+	//fprintf(stderr, "Acquired scheduler\n");
+	if (Size < 0) return NULL;
+	return Console->InputLine;
 }
 
 static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
@@ -68,22 +91,22 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 	return 0;
 }
 
-static void ml_console_log(void *Data, ml_value_t *Value) {
+static void ml_console_log(ml_console_t *Console, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 	error:
-		printf("%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		fprintf(Console->Output, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
 		ml_source_t Source;
 		int Level = 0;
 		while (ml_error_source(Value, Level++, &Source)) {
-			printf("\t%s:%d\n", Source.Name, Source.Line);
+			fprintf(Console->Output, "\t%s:%d\n", Source.Name, Source.Line);
 		}
 	} else {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 		Value = ml_stringbuffer_simple_append(Buffer, Value);
 		if (ml_is_error(Value)) goto error;
-		ml_stringbuffer_drain(Buffer, stdout, (void *)ml_stringbuffer_print);
-		puts("");
-		fflush(stdout);
+		ml_stringbuffer_drain(Buffer, Console->Output, (void *)ml_stringbuffer_print);
+		fputs("\n", Console->Output);
+		fflush(Console->Output);
 	}
 }
 
@@ -91,7 +114,7 @@ static void ml_console_repl_run(ml_console_t *Console, ml_value_t *Result) {
 	if (Result == MLEndOfInput) return;
 	Console->Prompt = Console->DefaultPrompt;
 	Result = ml_deref(Result);
-	ml_console_log(NULL, Result);
+	ml_console_log(Console, Result);
 	if (ml_is_error(Result)) ml_parser_reset(Console->Parser);
 	return ml_command_evaluate((ml_state_t *)Console, Console->Parser, Console->Compiler);
 }
@@ -111,7 +134,7 @@ static void ml_console_debug_enter(ml_console_t *Console, ml_interactive_debugge
 	ml_console_debugger_t *ConsoleDebugger = new(ml_console_debugger_t);
 	ConsoleDebugger->Console = Console;
 	ConsoleDebugger->Debugger = Debugger;
-	printf("Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
+	fprintf(Console->Output, "Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
 	ml_console(Console->Base.Context, (ml_getter_t)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
 	ml_interactive_debugger_resume(Debugger, Index);
 }
@@ -127,19 +150,44 @@ void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, con
 	Console->Prompt = Console->DefaultPrompt = DefaultPrompt;
 	Console->ContinuePrompt = ContinuePrompt;
 	Console->Debugger = NULL;
-	ml_parser_t *Parser = ml_parser((void *)ml_console_line_read, Console);
+	ml_parser_t *Parser = ml_parser((void *)ml_console_terminal_read, Console);
 	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
 	ml_compiler_define(Compiler, "idebug", ml_interactive_debugger(
 		(void *)ml_console_debug_enter,
 		(void *)ml_console_debug_exit,
-		ml_console_log,
+		(void *)ml_console_log,
 		Console,
 		GlobalGet,
 		Globals
 	));
-
 	ml_parser_source(Parser, (ml_source_t){"<console>", 1});
 	Console->Parser = Parser;
 	Console->Compiler = Compiler;
+	Console->Output = stdout;
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
+}
+
+void ml_file_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt, FILE *Input, FILE *Output) {
+	ml_console_t *Console = new(ml_console_t);
+	Console->Base.run = (void *)ml_console_repl_run;
+	Console->Base.Context = Context;
+	Console->Prompt = Console->DefaultPrompt = DefaultPrompt;
+	Console->ContinuePrompt = ContinuePrompt;
+	Console->Debugger = NULL;
+	ml_parser_t *Parser = ml_parser((void *)ml_console_file_read, Console);
+	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
+	ml_compiler_define(Compiler, "idebug", ml_interactive_debugger(
+		(void *)ml_console_debug_enter,
+		(void *)ml_console_debug_exit,
+		(void *)ml_console_log,
+		Console,
+		GlobalGet,
+		Globals
+	));
+	ml_parser_source(Parser, (ml_source_t){"<console>", 1});
+	Console->Parser = Parser;
+	Console->Compiler = Compiler;
+	Console->Input = Input;
+	Console->Output = Output;
 	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }

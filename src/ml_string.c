@@ -3993,8 +3993,10 @@ static GC_descr StringBufferDesc = 0;
 
 #ifdef ML_THREADSAFE
 static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
+static size_t _Atomic StringBufferNodeCount = 0;
 #else
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
+static size_t StringBufferNodeCount = 0;
 #endif
 
 static ml_stringbuffer_node_t *ml_stringbuffer_node() {
@@ -4003,6 +4005,7 @@ static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 	do {
 		if (!Next) {
 			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			++StringBufferNodeCount;
 			break;
 		}
 		CacheNext = Next->Next;
@@ -4029,6 +4032,10 @@ static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
 	Node->Next = StringBufferNodeCache;
 	StringBufferNodeCache = Node;
 #endif
+}
+
+ML_FUNCTION(MLStringBufferCount) {
+	return ml_integer(StringBufferNodeCount);
 }
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
@@ -4431,6 +4438,7 @@ void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
+	stringmap_insert(MLStringBufferT->Exports, "count", MLStringBufferCount);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);

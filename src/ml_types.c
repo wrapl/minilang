@@ -3250,6 +3250,21 @@ ML_FUNCTION(MLMemCollect) {
 	return MLNil;
 }
 
+ML_FUNCTION(MLMemUsage) {
+//!memory
+//@usage
+	GC_word HeapSize, FreeBytes, UnmappedBytes, BytesSinceGC, TotalBytes;
+	GC_get_heap_usage_safe(&HeapSize, &FreeBytes, &UnmappedBytes, &BytesSinceGC, &TotalBytes);
+	return ml_tuplev(5, ml_integer(HeapSize), ml_integer(FreeBytes), ml_integer(UnmappedBytes), ml_integer(BytesSinceGC), ml_integer(TotalBytes));
+}
+
+ML_FUNCTION(MLMemDump) {
+//!memory
+//@dump
+	GC_dump();
+	return MLNil;
+}
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value;

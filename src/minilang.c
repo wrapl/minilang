@@ -15,6 +15,7 @@
 #include "ml_sequence.h"
 #include "ml_stream.h"
 #include "ml_logging.h"
+#include <sys/fcntl.h>
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -182,6 +183,32 @@ static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 extern ml_cfunction_t MLMemTrace[];
 extern ml_cfunction_t MLMemSize[];
 extern ml_cfunction_t MLMemCollect[];
+extern ml_cfunction_t MLMemUsage[];
+extern ml_cfunction_t MLMemDump[];
+
+typedef struct {
+	ml_state_t Base;
+	FILE *File;
+} console_state_t;
+
+static void console_run(console_state_t *State, ml_value_t *Value) {
+	ml_file_console(State->Base.Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ", State->File, State->File);
+}
+
+ML_FUNCTIONX(MLConsole) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
+	int Fd = ml_integer_value(Args[0]);
+	fcntl(Fd, F_SETFL, fcntl(Fd, F_GETFL) & ~O_NONBLOCK);
+	console_state_t *State = new(console_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)console_run;
+	State->File = fdopen(Fd, "r+");
+	ml_scheduler_t *Scheduler = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	Scheduler->add(Scheduler, (ml_state_t *)State, MLNil);
+	ML_RETURN(MLNil);
+}
 
 int main(int Argc, const char *Argv[]) {
 	ml_init(Argv[0], MLGlobals);
@@ -214,7 +241,10 @@ int main(int Argc, const char *Argv[]) {
 		"trace", MLMemTrace,
 		"size", MLMemSize,
 		"collect", MLMemCollect,
+		"usage", MLMemUsage,
+		"dump", MLMemDump,
 	NULL));
+	stringmap_insert(MLGlobals, "console", MLConsole);
 	stringmap_insert(MLGlobals, "callcc", MLCallCC);
 	stringmap_insert(MLGlobals, "markcc", MLMarkCC);
 	stringmap_insert(MLGlobals, "calldc", MLCallDC);
@@ -384,7 +414,6 @@ int main(int Argc, const char *Argv[]) {
 				}
 				break;
 #endif
-			case 'z': GC_disable(); break;
 #ifdef ML_GIR
 			case 'g':
 				UseGirLoop = 1;
@@ -403,6 +432,26 @@ int main(int Argc, const char *Argv[]) {
 				BreakOnExit = 1;
 				break;
 #endif
+			case '-': {
+				if (!strcmp(Argv[I] + 2, "gc:disable")) {
+					GC_disable();
+				} else if (!strcmp(Argv[I] + 2, "gc:maxheap")) {
+					if (++I < Argc) {
+						char *End;
+						size_t Limit = strtol(Argv[I], &End, 10);
+						switch (*End) {
+						case 'k': Limit <<= 10; break;
+						case 'M': Limit <<= 20; break;
+						case 'G': Limit <<= 30; break;
+						}
+						GC_set_max_heap_size(Limit);
+					} else {
+						fprintf(stderr, "Error: slice size required\n");
+						exit(-1);
+					}
+				}
+				break;
+			}
 			}
 		} else {
 			MainModule = Argv[I];

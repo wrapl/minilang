@@ -3391,8 +3391,11 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 					GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
 					switch (g_base_info_get_type(InterfaceInfo)) {
 					case GI_INFO_TYPE_STRUCT:
+					case GI_INFO_TYPE_UNION:
 					case GI_INFO_TYPE_ENUM:
-					case GI_INFO_TYPE_FLAGS: {
+					case GI_INFO_TYPE_FLAGS:
+					case GI_INFO_TYPE_OBJECT:
+					case GI_INFO_TYPE_INTERFACE: {
 						NumAux++;
 						OutSize += 2;
 						break;
@@ -3757,11 +3760,29 @@ static ml_value_t *function_info_compile(GIFunctionInfo *Info) {
 						Function->Aux[NumAux++] = struct_info_lookup((GIStructInfo *)InterfaceInfo);
 						break;
 					}
+					case GI_INFO_TYPE_UNION: {
+						(InstOut++)->Opcode = GIB_UNION;
+						(InstOut++)->Aux = NumAux;
+						Function->Aux[NumAux++] = union_info_lookup((GIUnionInfo *)InterfaceInfo);
+						break;
+					}
 					case GI_INFO_TYPE_ENUM:
 					case GI_INFO_TYPE_FLAGS: {
 						(InstOut++)->Opcode = GIB_ENUM;
 						(InstOut++)->Aux = NumAux;
 						Function->Aux[NumAux++] = enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+						break;
+					}
+					case GI_INFO_TYPE_OBJECT: {
+						(InstOut++)->Opcode = GIB_OBJECT;
+						(InstOut++)->Aux = NumAux;
+						Function->Aux[NumAux++] = object_info_lookup((GIObjectInfo *)InterfaceInfo);
+						break;
+					}
+					case GI_INFO_TYPE_INTERFACE: {
+						(InstOut++)->Opcode = GIB_OBJECT;
+						(InstOut++)->Aux = NumAux;
+						Function->Aux[NumAux++] = interface_info_lookup((GIInterfaceInfo *)InterfaceInfo);
 						break;
 					}
 					}
