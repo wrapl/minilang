@@ -12,7 +12,7 @@ typedef struct {
 
 #define WEAKMAP_INIT (weakmap_t){NULL, 0, 0}
 
-void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *));
+void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *, int));
 
 int weakmap_foreach(weakmap_t *Map, void *Data, int (*callback)(const char *, void *, void *));
 

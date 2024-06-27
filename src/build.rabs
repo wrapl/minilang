@@ -141,7 +141,8 @@ let Objects := [
 	file("ml_time.o"),
 	file("ml_types.o"),
 	file("sha256.o"),
-	file("stringmap.o")
+	file("stringmap.o"),
+	file("weakmap.o")
 ]
 
 let Libraries := []
@@ -165,7 +166,8 @@ let InstallHeaders := [
 	"ml_stream.h",
 	"ml_time.h",
 	"ml_types.h",
-	"stringmap.h"
+	"stringmap.h",
+	"weakmap.h"
 ]
 
 var GC
