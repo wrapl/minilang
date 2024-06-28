@@ -236,11 +236,11 @@ let Options := [
 	"BACKTRACE",
 	"MINIJS",
 	"RELAX_NAMES",
-	"GTK_CONSOLE",
 	"COROUTINES",
 	"ENCODINGS",
 	"STRUCTS",
-	"MMAP"
+	"MMAP",
+	"STRINGCACHE"
 ]
 
 MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
@@ -262,6 +262,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_UUID := 1
 	MINILANG_ICU := 1
 	MINILANG_ENCODINGS := 1
+	:>MINILANG_STRINGCACHE := 1
 	if PLATFORM = "Linux" then
 		MINILANG_UNWIND := 1
 	end
@@ -304,6 +305,7 @@ MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
 MINILANG_STRUCTS := old or defined("STRUCTS")
 MINILANG_MMAP := old or defined("MMAP")
+MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -612,6 +614,10 @@ if MINILANG_ENCODINGS then
 	Objects:put(file("ml_base16.o"), file("ml_base64.o"))
 	CFLAGS := old + ["-DML_ENCODINGS"]
 	InstallHeaders:put("ml_base16.h", "ml_base64.h")
+end
+
+if MINILANG_STRINGCACHE then
+	CFLAGS := old + ["-DML_STRINGCACHE"]
 end
 
 if PLATFORM = "Linux" then

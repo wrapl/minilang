@@ -677,17 +677,39 @@ int GC_asprintf(char **Ptr, const char *Format, ...) {
 	return Result;
 }
 
+#ifdef ML_STRINGCACHE
+
+#define ML_STRINGCACHE_MAX 64
+
+#include "weakmap.h"
+
+static weakmap_t StringCache[1] = {WEAKMAP_INIT};
+
+static void *_ml_string(const char *Value, int Length) {
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Value, Length);
+	Copy[Length] = 0;
+	ml_string_t *String = new(ml_string_t);
+	String->Type = MLStringT;
+	String->Value = Copy;
+	String->Length = Length;
+	return String;
+}
+
+#endif
+
+static ml_string_t MLEmptyString[1] = {{MLStringT, "", 0, 0}};
+
 ml_value_t *ml_string(const char *Value, int Length) {
-	Value = Value ?: "";
-	if (Length >= 0) {
-		if (Value[Length]) {
-			char *Copy = snew(Length + 1);
-			memcpy(Copy, Value, Length);
-			Copy[Length] = 0;
-			Value = Copy;
-		}
+	if (!Length || !Value) return (ml_value_t *)MLEmptyString;
+	if (Length > 0 && Value[Length]) {
+		char *Copy = snew(Length + 1);
+		memcpy(Copy, Value, Length);
+		Copy[Length] = 0;
+		Value = Copy;
 	} else {
 		Length = strlen(Value);
+		if (!Length) return (ml_value_t *)MLEmptyString;
 	}
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
@@ -728,7 +750,16 @@ ml_value_t *ml_string_checked(const char *Value, int Length) {
 }
 
 ml_value_t *ml_string_copy(const char *Value, int Length) {
-	if (Length < 0) Length = Value ? strlen(Value) : 0;
+	if (!Length || !Value) return (ml_value_t *)MLEmptyString;
+	if (Length < 0) {
+		Length = strlen(Value);
+		if (!Length) return (ml_value_t *)MLEmptyString;
+	}
+#ifdef ML_STRINGCACHE
+	if (Length < ML_STRINGCACHE_MAX) {
+		return weakmap_insert(StringCache, Value, Length, _ml_string);
+	}
+#endif
 	char *Copy = snew(Length + 1);
 	memcpy(Copy, Value, Length);
 	Copy[Length] = 0;
@@ -1693,6 +1724,13 @@ ML_FUNCTION(MLAddStringString) {
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
+#ifdef ML_STRINGCACHE
+	if (Length < ML_STRINGCACHE_MAX) {
+		char Chars[ML_STRINGCACHE_MAX];
+		memcpy(mempcpy(Chars, ml_string_value(Args[0]), Length1), ml_string_value(Args[1]), Length2);
+		return weakmap_insert(StringCache, Chars, Length, _ml_string);
+	}
+#endif
 	char *Chars = snew(Length + 1);
 	memcpy(Chars, ml_string_value(Args[0]), Length1);
 	memcpy(Chars + Length1, ml_string_value(Args[1]), Length2);
@@ -4204,17 +4242,6 @@ char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
 	return String;
 }
 
-ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
-	size_t Length = Buffer->Length;
-	if (Length == 0) {
-		return ml_cstring("");
-	} else {
-		char *Chars = snew(Length + 1);
-		ml_stringbuffer_finish(Buffer, Chars);
-		return ml_string_unchecked(Chars, Length);
-	}
-}
-
 ml_value_t *ml_stringbuffer_to_address(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	char *Chars = snew(Length + 1);
@@ -4231,9 +4258,21 @@ ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) {
 
 ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
+	if (Length == 0) return (ml_value_t *)MLEmptyString;
+#ifdef ML_STRINGCACHE
+	if (Length < ML_STRINGCACHE_MAX) {
+		ml_value_t *String = weakmap_insert(StringCache, Buffer->Head->Chars, Length, _ml_string);
+		ml_stringbuffer_clear(Buffer);
+		return String;
+	}
+#endif
 	char *Chars = snew(Length + 1);
-	if (Length) ml_stringbuffer_finish(Buffer, Chars);
+	ml_stringbuffer_finish(Buffer, Chars);
 	return ml_string(Chars, Length);
+}
+
+ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
+	return ml_stringbuffer_to_string(Buffer);
 }
 
 typedef struct {
