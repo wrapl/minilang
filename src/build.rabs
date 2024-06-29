@@ -59,6 +59,8 @@ end
 
 print('CC_TYPE = {CC_TYPE}\n')
 
+EXT_CFLAGS := CFLAGS + []
+
 if CC_TYPE = "GCC" then
 	CFLAGS := old + [
 		"-march=native",
@@ -262,7 +264,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_UUID := 1
 	MINILANG_ICU := 1
 	MINILANG_ENCODINGS := 1
-	:>MINILANG_STRINGCACHE := 1
+	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
 	if PLATFORM = "Linux" then
 		MINILANG_UNWIND := 1
 	end
@@ -532,7 +534,8 @@ if MINILANG_TRE then
 	let Dir := file("tre")
 	let Lib := file("tre/lib/.libs/libtre.a")[GC] => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
-		execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzPf - --strip-components=1")
+		:>execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzPf - --strip-components=1")
+		execute("git clone https://github.com/laurikari/tre.git .")
 		execute("patch", "-p0", "-i", file("tre.patch"))
 		let XMallocH := file("tre/lib/xmalloc.h"):open("w")
 		XMallocH:write(
@@ -560,7 +563,9 @@ if MINILANG_TRE then
 		if PLATFORM = "Android" then
 			Options["--build"] := '{MACHINE}-unknown-linux-gnu'
 		end
-		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', Options)
+		
+		execute("autoreconf", "-vfi")
+		execute('CC={CC} CFLAGS=\"{EXT_CFLAGS}\" ./configure', Options)
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
@@ -583,7 +588,7 @@ if MINILANG_TIMEZONES then
 		file("timelib"):rmdir
 		execute("git clone https://github.com/derickr/timelib.git", Dir)
 		file("timelib"):chdir
-		let Flags := '\"{CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"'
+		let Flags := '\"{EXT_CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"'
 		execute('make timelib.a CFLAGS={Flags} CPPFLAGS={Flags}')
 	end
 	PREBUILDS := old + [Lib]
