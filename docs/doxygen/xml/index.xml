@@ -1119,7 +1119,7 @@
     <member refid="ml__bytecode_8h_1a9c1fe69ad43d4ca74b84303a0ed64f2f" kind="define"><name>SHA256_BLOCK_SIZE</name></member>
     <member refid="ml__bytecode_8h_1a8fafeeaa6bd4a9faa04b8d48cd5c998f" kind="define"><name>ML_CLOSURE_EXTRA_ARGS</name></member>
     <member refid="ml__bytecode_8h_1a2034278a8d739716f77813b1d126995a" kind="define"><name>ML_CLOSURE_NAMED_ARGS</name></member>
-    <member refid="ml__bytecode_8h_1af2167a0459dd06975bb544c9cb7fb948" kind="define"><name>ML_CLOSURE_RELAX_NAMES</name></member>
+    <member refid="ml__bytecode_8h_1a78645c1bdf96a4d99411439e085e3ead" kind="define"><name>ML_CLOSURE_RESERVED</name></member>
     <member refid="ml__bytecode_8h_1a601506bb82cbc380a381e13c432190fb" kind="define"><name>ML_CLOSURE_LABELLED</name></member>
     <member refid="ml__bytecode_8h_1a04c7676c86b287663df133ab8b6baff9" kind="define"><name>ML_CLOSURE_HASHED</name></member>
     <member refid="ml__bytecode_8h_1afeebe8ec4cef80b0ef9b6a7d44c34dc8" kind="typedef"><name>ml_closure_t</name></member>
@@ -1256,7 +1256,6 @@
     <member refid="group__compiler_1ga7d31978754889d76d09308e7d26d4a72" kind="function"><name>ml_parser_value</name></member>
     <member refid="group__compiler_1ga2e099dfd7a9ea8fb2ccc9507d1eb4e77" kind="function"><name>ml_parser_clear</name></member>
     <member refid="group__compiler_1ga918fe73bcd762c02b77f3f60e3959745" kind="function"><name>ml_parse_warn</name></member>
-    <member refid="group__compiler_1gad09d2507c55f652701547cec4179bfc9" kind="function"><name>ml_parse_expr</name></member>
     <member refid="group__compiler_1ga24984cd2745e2a7855b6fe3bc97e616f" kind="function"><name>ml_accept_file</name></member>
     <member refid="group__compiler_1gad269e62dec932327a3da8c705c40c8bc" kind="function"><name>ml_parser_escape</name></member>
     <member refid="group__compiler_1gae99e4850da50bffac4cb32d47bc06552" kind="function"><name>ml_parser_special</name></member>
@@ -1455,6 +1454,7 @@
   </compound>
   <compound refid="ml__console_8h" kind="file"><name>ml_console.h</name>
     <member refid="ml__console_8h_1adba2de47cca2c7641d00e01cb879eef9" kind="function"><name>ml_console</name></member>
+    <member refid="ml__console_8h_1a664503765cdc4bc4fad63ee57af9e50f" kind="function"><name>ml_file_console</name></member>
   </compound>
   <compound refid="ml__coroutine_8h" kind="file"><name>ml_coroutine.h</name>
     <member refid="ml__coroutine_8h_1a07d50a1203ab330563fad757fe3e3459" kind="define"><name>ML_COFUNCTION2</name></member>
@@ -2358,7 +2358,7 @@
   <compound refid="weakmap_8h" kind="file"><name>weakmap.h</name>
     <member refid="weakmap_8h_1a49bc5df3d133fbffb650adee512a33b4" kind="define"><name>WEAKMAP_INIT</name></member>
     <member refid="weakmap_8h_1a7429fbd1d4989b2c532e6ab51e14f702" kind="typedef"><name>weakmap_node_t</name></member>
-    <member refid="weakmap_8h_1a5d8d20e3f701522ed4890b89becbddf3" kind="function"><name>weakmap_insert</name></member>
+    <member refid="weakmap_8h_1aa879a039d43c8032a588f6797eb4c2c4" kind="function"><name>weakmap_insert</name></member>
     <member refid="weakmap_8h_1a7c69ee9d2e5df48f9527fa0290fbbb10" kind="function"><name>weakmap_foreach</name></member>
   </compound>
   <compound refid="whereami_8h" kind="file"><name>whereami.h</name>
@@ -2489,7 +2489,6 @@
     <member refid="group__compiler_1ga7d31978754889d76d09308e7d26d4a72" kind="function"><name>ml_parser_value</name></member>
     <member refid="group__compiler_1ga2e099dfd7a9ea8fb2ccc9507d1eb4e77" kind="function"><name>ml_parser_clear</name></member>
     <member refid="group__compiler_1ga918fe73bcd762c02b77f3f60e3959745" kind="function"><name>ml_parse_warn</name></member>
-    <member refid="group__compiler_1gad09d2507c55f652701547cec4179bfc9" kind="function"><name>ml_parse_expr</name></member>
     <member refid="group__compiler_1ga24984cd2745e2a7855b6fe3bc97e616f" kind="function"><name>ml_accept_file</name></member>
     <member refid="group__compiler_1gad269e62dec932327a3da8c705c40c8bc" kind="function"><name>ml_parser_escape</name></member>
     <member refid="group__compiler_1gae99e4850da50bffac4cb32d47bc06552" kind="function"><name>ml_parser_special</name></member>

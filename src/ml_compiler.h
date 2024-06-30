@@ -110,7 +110,6 @@ ml_value_t *ml_parser_value(ml_parser_t *Parser);
 const char *ml_parser_clear(ml_parser_t *Parser);
 //void ml_parse_error(ml_parser_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
 void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, ...);
-mlc_expr_t *ml_parse_expr(ml_parser_t *Parser);
 mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 
 void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data);

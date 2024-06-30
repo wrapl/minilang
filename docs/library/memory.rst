@@ -13,6 +13,14 @@ memory
    Call garbage collector.
 
 
+:mini:`fun dump()`
+   *TBD*
+
+
+:mini:`fun usage()`
+   *TBD*
+
+
 :mini:`fun size(Value: any): list[map]`
    Returns information about the blocks of memory referenced by :mini:`Value`.
 

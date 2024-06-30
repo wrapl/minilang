@@ -1231,28 +1231,6 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		}
 		Frame->Stack[NumParams] = Options;
 		++NumParams;
-	} else if (Flags & ML_CLOSURE_RELAX_NAMES) {
-		for (; I < Count; ++I) {
-			ml_value_t *Arg = ml_deref(Args[I]);
-			if (ml_is_error(Arg)) ML_RETURN(Arg);
-#ifdef ML_NANBOXING
-			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
-#else
-			if (Arg->Type == MLNamesT) {
-#endif
-				ML_NAMES_CHECKX_ARG_COUNT(I);
-				ML_NAMES_FOREACH(Arg, Node) {
-					const char *Name = ml_string_value(Node->Value);
-					int Index = (intptr_t)stringmap_search(Info->Params, Name);
-					if (Index) {
-						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
-					} else {
-						++I;
-					}
-				}
-				break;
-			}
-		}
 	} else {
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = ml_deref(Args[I]);
@@ -1269,7 +1247,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
-						ML_ERROR("NameError", "Unknown named parameters %s", Name);
+						++I;
 					}
 				}
 				break;
@@ -1595,10 +1573,6 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 }
 
 void ml_closure_relax_names(ml_value_t *Value) {
-	if (ml_is(Value, MLClosureT)) {
-		ml_closure_t *Closure = (ml_closure_t *)Value;
-		Closure->Info->Flags |= ML_CLOSURE_RELAX_NAMES;
-	}
 }
 
 static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {

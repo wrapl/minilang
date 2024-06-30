@@ -29,3 +29,7 @@ minilang
    Prints :mini:`Values` to standard output,  converting to strings if necessary.
 
 
+:mini:`fun mlconsole(Arg₁: integer)`
+   *TBD*
+
+

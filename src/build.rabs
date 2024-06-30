@@ -237,7 +237,6 @@ let Options := [
 	"UNWIND",
 	"BACKTRACE",
 	"MINIJS",
-	"RELAX_NAMES",
 	"COROUTINES",
 	"ENCODINGS",
 	"STRUCTS",
@@ -301,7 +300,6 @@ MINILANG_LIBS := old or defined("LIBS")
 MINILANG_UNWIND := old or defined("UNWIND")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
-MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
@@ -336,9 +334,6 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_THREADS then
 		File:write("\n#define ML_THREADS\n")
-	end
-	if MINILANG_RELAX_NAMES then
-		File:write("\n#define ML_RELAX_NAMES\n")
 	end
 	if MINILANG_UNWIND then
 		File:write("\n#define ML_UNWIND\n")

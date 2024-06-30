@@ -40,6 +40,29 @@ struct mlc_expected_delimiter_t {
 	ml_token_t Token;
 };
 
+#ifdef ML_ASYNC_PARSER
+
+#include "coro.h"
+
+typedef struct ml_parser_coro_t ml_parser_coro_t;
+
+struct ml_parser_coro_t {
+	coro_context Context;
+	ml_parser_coro_t *Next;
+};
+
+#ifdef ML_THREADSAFE
+
+static ml_parser_coro_t * _Atomic CoroutineCache = NULL;
+
+#else
+
+static ml_parser_coro_t *CoroutineCache = NULL;
+
+#endif
+
+#endif
+
 struct ml_parser_t {
 	ml_type_t *Type;
 	const char *Next;
@@ -58,6 +81,9 @@ struct ml_parser_t {
 	int Line;
 	jmp_buf OnError;
 	ml_token_t Token;
+#ifdef ML_ASYNC_PARSER
+	ml_parser_coro_t *Coroutine;
+#endif
 };
 
 struct ml_compiler_t {
@@ -3106,9 +3132,6 @@ void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Fla
 		if (Param->Type) HasParamTypes = 1;
 		DeclSlot = &Decl->Next;
 	}
-#ifdef ML_RELAX_NAMES
-	Info->Flags |= ML_CLOSURE_RELAX_NAMES;
-#endif
 	Info->NumParams = NumParams;
 	SubFunction->Top = SubFunction->Size = NumParams;
 	SubFunction->Next = anew(ml_inst_t, 128);
@@ -3821,6 +3844,14 @@ ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	return Parser;
 }
 
+static inline const char *ml_parser_do_read(ml_parser_t *Parser) {
+#ifdef ML_ASYNC_PARSER
+
+#else
+	return Parser->Read(Parser->ReadData);
+#endif
+}
+
 static mlc_expr_t *ml_accept_block(ml_parser_t *Parser);
 static void ml_accept_eoi(ml_parser_t *Parser);
 
@@ -3938,7 +3969,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 	for (;;) {
 		char C = *End++;
 		if (!C) {
-			End = Parser->Read(Parser->ReadData);
+			End = ml_parser_do_read(Parser);
 			if (!End) {
 				ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
 				Parser->Next = "";
@@ -4295,7 +4326,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 		};
 		goto *Labels[CharTypes[(unsigned char)Char]];
 		DO_CHAR_EOI:
-			Next = Parser->Read(Parser->ReadData);
+			Next = ml_parser_do_read(Parser);
 			if (Next) continue;
 			Parser->Next = "";
 			Parser->Token = MLT_EOI;
@@ -4385,7 +4416,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			return ml_accept_string(Parser);
 		DO_CHAR_DQUOTE: {
 			Parser->Next = Next + 1;
-			int Length = ml_scan_string(Parser);;
+			int Length = ml_scan_string(Parser);
 			Parser->Value = ml_string(Parser->Ident, Length);
 			Parser->Token = MLT_VALUE;
 			return Parser->Token;
@@ -4467,7 +4498,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 						++Parser->Line;
 						break;
 					case 0:
-						Next = Parser->Read(Parser->ReadData);
+						Next = ml_parser_do_read(Parser);
 						if (!Next) {
 							Parser->Next = Next = "";
 							ml_parse_warn(Parser, "ParseError", "End of input in comment");
@@ -6276,7 +6307,7 @@ mlc_expr_t *ml_accept_file(ml_parser_t *Parser) {
 	return Expr;
 }
 
-mlc_expr_t *ml_parse_expr(ml_parser_t *Parser) {
+static mlc_expr_t *ml_parse_expr(ml_parser_t *Parser) {
 	if (setjmp(Parser->OnError)) return NULL;
 	ml_skip_eol(Parser);
 	return ml_parse_expression(Parser, EXPR_DEFAULT);
