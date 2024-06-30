@@ -31,7 +31,7 @@ buffer
 
 
 :mini:`meth (Buffer: buffer):put16(Value: integer): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as an 16-bit signed value. Follows the platform byte order.
+   Puts :mini:`Value` in :mini:`Buffer` as an 16-bit signed value. Uses platform byte order.
 
    .. code-block:: mini
 
@@ -55,7 +55,7 @@ buffer
 
 
 :mini:`meth (Buffer: buffer):put32(Value: integer): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as an 32-bit signed value. Follows the platform byte order.
+   Puts :mini:`Value` in :mini:`Buffer` as an 32-bit signed value. Uses platform byte order.
 
    .. code-block:: mini
 
@@ -79,7 +79,7 @@ buffer
 
 
 :mini:`meth (Buffer: buffer):put64(Value: integer): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as an 64-bit signed value. Follows the platform byte order.
+   Puts :mini:`Value` in :mini:`Buffer` as an 64-bit signed value. Uses platform byte order.
 
    .. code-block:: mini
 
@@ -111,23 +111,55 @@ buffer
 
 
 :mini:`meth (Buffer: buffer):putf32(Value: real): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Follows the platform endiness.
+   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses platform endiness.
 
    .. code-block:: mini
 
       buffer(4):putf32(1.23456789) :> <4:52069E3F>
 
 
+:mini:`meth (Buffer: buffer):putf32b(Value: real): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses little endiness.
+
+   .. code-block:: mini
+
+      buffer(4):putf32b(1.23456789) :> <4:3F9E0652>
+
+
+:mini:`meth (Buffer: buffer):putf32l(Value: real): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses little endiness.
+
+   .. code-block:: mini
+
+      buffer(4):putf32l(1.23456789) :> <4:52069E3F>
+
+
 :mini:`meth (Buffer: buffer):putf64(Value: real): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as a double precision floating point value. Follows the platform endiness.
+   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses platform endiness.
 
    .. code-block:: mini
 
       buffer(8):putf64(1.23456789) :> <8:1BDE8342CAC0F33F>
 
 
+:mini:`meth (Buffer: buffer):putf64b(Value: real): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses little endiness.
+
+   .. code-block:: mini
+
+      buffer(8):putf64b(1.23456789) :> <8:3FF3C0CA4283DE1B>
+
+
+:mini:`meth (Buffer: buffer):putf64l(Value: real): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses little endiness.
+
+   .. code-block:: mini
+
+      buffer(8):putf64l(1.23456789) :> <8:1BDE8342CAC0F33F>
+
+
 :mini:`meth (Buffer: buffer):putu16(Value: integer): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as an 16-bit unsigned value. Follows the platform byte order.
+   Puts :mini:`Value` in :mini:`Buffer` as an 16-bit unsigned value. Uses platform byte order.
 
    .. code-block:: mini
 
@@ -151,7 +183,7 @@ buffer
 
 
 :mini:`meth (Buffer: buffer):putu32(Value: integer): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as an 32-bit unsigned value. Follows the platform byte order.
+   Puts :mini:`Value` in :mini:`Buffer` as an 32-bit unsigned value. Uses platform byte order.
 
    .. code-block:: mini
 
@@ -175,7 +207,7 @@ buffer
 
 
 :mini:`meth (Buffer: buffer):putu64(Value: integer): buffer`
-   Puts :mini:`Value` in :mini:`Buffer` as an 64-bit unsigned value. Follows the platform byte order.
+   Puts :mini:`Value` in :mini:`Buffer` as an 64-bit unsigned value. Uses platform byte order.
 
    .. code-block:: mini
 
@@ -211,6 +243,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:60000105D17F00004D4C537472696E67>
+      buffer(16) :> <16:80E1AE152E7F00006E6F64655F74202A>
 
 

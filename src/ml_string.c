@@ -545,7 +545,7 @@ ML_METHOD("put" #WIDTH, MLBufferT, MLIntegerT) { \
 //<Buffer
 //<Value
 //>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit signed value. Follows the platform byte order.
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit signed value. Uses platform byte order.
 //$= buffer(SIZE):putWIDTH(12345)
 */ \
 	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
@@ -590,7 +590,7 @@ ML_METHOD("putu" #WIDTH, MLBufferT, MLIntegerT) { \
 //<Buffer
 //<Value
 //>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit unsigned value. Follows the platform byte order.
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit unsigned value. Uses platform byte order.
 //$= buffer(SIZE):putuWIDTH(12345)
 */ \
 	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
@@ -633,31 +633,59 @@ ML_BUFFER_PUT_INT(16, 2)
 ML_BUFFER_PUT_INT(32, 4)
 ML_BUFFER_PUT_INT(64, 8)
 
-ML_METHOD("putf32", MLBufferT, MLRealT) {
-//!buffer
+#define ML_BUFFER_PUT_REAL(WIDTH, SIZE, CTYPE) \
+\
+ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT) { \
+/*!buffer
+//@putfWIDTH
 //<Buffer
 //<Value
 //>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Follows the platform endiness.
-//$= buffer(4):putf32(1.23456789)
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 4) return ml_error("SizeError", "Not enough space");
-	*(float *)Buffer->Value = ml_real_value(Args[1]);
-	return Args[0];
+// Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses platform endiness.
+//$= buffer(SIZE):putfWIDTH(1.23456789)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	*(CTYPE *)Buffer->Value = ml_real_value(Args[1]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putf" #WIDTH "l", MLBufferT, MLRealT) { \
+/*!buffer
+//@putfWIDTHl
+//<Buffer
+//<Value
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses little endiness.
+//$= buffer(SIZE):putfWIDTHl(1.23456789)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	X.R = ml_real_value(Args[1]); \
+	*(uint ## WIDTH ## _t *)Buffer->Value = HOST_TO_LE(__builtin_bswap ## WIDTH)(X.I);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putf" #WIDTH "b", MLBufferT, MLRealT) { \
+/*!buffer
+//@putfWIDTHb
+//<Buffer
+//<Value
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Uses little endiness.
+//$= buffer(SIZE):putfWIDTHb(1.23456789)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	X.R = ml_real_value(Args[1]); \
+	*(uint ## WIDTH ## _t *)Buffer->Value = HOST_TO_BE(__builtin_bswap ## WIDTH)(X.I);  \
+	return Args[0]; \
 }
 
-ML_METHOD("putf64", MLBufferT, MLRealT) {
-//!buffer
-//<Buffer
-//<Value
-//>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as a double precision floating point value. Follows the platform endiness.
-//$= buffer(8):putf64(1.23456789)
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 8) return ml_error("SizeError", "Not enough space");
-	*(double *)Buffer->Value = ml_real_value(Args[1]);
-	return Args[0];
-}
+ML_BUFFER_PUT_REAL(32, 4, float)
+ML_BUFFER_PUT_REAL(64, 8, double)
 
 ML_METHOD("put", MLBufferT, MLAddressT) {
 //!buffer
