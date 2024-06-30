@@ -26,6 +26,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`type byte::order < enum`
+   * :mini:`::LittleEndian`
+   * :mini:`::BigEndian`
+
+
 :mini:`meth (N: integer) * (String: string): string`
    Returns :mini:`String` concatentated :mini:`N` times.
 
@@ -885,11 +890,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
-:mini:`type string::buffer`
+:mini:`type string::buffer < stream`
    A string buffer that automatically grows and shrinks as required.
 
 
-:mini:`type string::buffer < stream`
+:mini:`type string::buffer`
    A string buffer that automatically grows and shrinks as required.
 
 

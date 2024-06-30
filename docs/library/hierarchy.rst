@@ -62,6 +62,7 @@ hierarchy
       "any":e -> "ref":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
+      "enum":e -> "byte::order":w;
       "address":e -> "string":w;
       "sequence":e -> "string":w;
       "enum":e -> "string::norm":w;

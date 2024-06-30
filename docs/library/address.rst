@@ -171,7 +171,7 @@ address
 
 
 :mini:`meth (Address: address):get16: integer`
-   Returns the signed 16-bit value at :mini:`Address`. Currently follows the platform endiness.
+   Returns the signed 16-bit value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
@@ -180,8 +180,19 @@ address
       A:get16 :> 25928
 
 
+:mini:`meth (Address: address):get16(Order: byte::order): integer`
+   Returns the signed 16-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:get16(address::LE) :> 25928
+      A:get16(address::BE) :> 18533
+
+
 :mini:`meth (Address: address):get32: integer`
-   Returns the signed 32-bit value at :mini:`Address`. Currently follows the platform endiness.
+   Returns the signed 32-bit value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
@@ -190,14 +201,36 @@ address
       A:get32 :> 1819043144
 
 
+:mini:`meth (Address: address):get32(Order: byte::order): integer`
+   Returns the signed 32-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:get32(address::LE) :> 1819043144
+      A:get32(address::BE) :> 1214606444
+
+
 :mini:`meth (Address: address):get64: integer`
-   Returns the signed 64-bit value at :mini:`Address`. Currently follows the platform endiness.
+   Returns the signed 64-bit value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
       let A := address("Hello world!\n")
       :> <13:48656C6C6F20776F726C64210A>
       A:get64 :> 8031924123371070792
+
+
+:mini:`meth (Address: address):get64(Order: byte::order): integer`
+   Returns the signed 64-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:get64(address::LE) :> 8031924123371070792
+      A:get64(address::BE) :> 5216694956355254127
 
 
 :mini:`meth (Address: address):get8: integer`
@@ -211,7 +244,7 @@ address
 
 
 :mini:`meth (Address: address):getf32: real`
-   Returns the single precision floating point value at :mini:`Address`. Currently follows the platform endiness.
+   Returns the 32-bit floating point value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
@@ -220,14 +253,36 @@ address
       A:getf32 :> 1.14313912243758e+27
 
 
+:mini:`meth (Address: address):getf32(Order: byte::order): real`
+   Returns the 32-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getf32(address::LE) :> 1.14313912243758e+27
+      A:getf32(address::BE) :> 234929.6875
+
+
 :mini:`meth (Address: address):getf64: real`
-   Returns the double precision floating point value at :mini:`Address`. Currently follows the platform endiness.
+   Returns the 64-bit floating point value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
       let A := address("Hello world!\n")
       :> <13:48656C6C6F20776F726C64210A>
       A:getf64 :> 8.76577647882785e+228
+
+
+:mini:`meth (Address: address):getf64(Order: byte::order): real`
+   Returns the 64-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getf64(address::LE) :> 8.76577647882785e+228
+      A:getf64(address::BE) :> 5.83203948069194e+40
 
 
 :mini:`meth (Address: address):gets: string`
@@ -250,8 +305,8 @@ address
       A:gets(5) :> "Hello"
 
 
-:mini:`meth (Address: address):getu16: integer`
-   Returns the unsigned 16-bit value at :mini:`Address`. Currently follows the platform endiness.
+:mini:`meth (Address: address):getu16(Order: any): integer`
+   Returns the unsigned 16-bit value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
@@ -260,8 +315,19 @@ address
       A:getu16 :> 25928
 
 
-:mini:`meth (Address: address):getu32: integer`
-   Returns the unsigned 32-bit value at :mini:`Address`. Currently follows the platform endiness.
+:mini:`meth (Address: address):getu16(Arg₂: byte::order): integer`
+   Returns the unsigned 16-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getu16(address::LE) :> 25928
+      A:getu16(address::BE) :> 18533
+
+
+:mini:`meth (Address: address):getu32(Order: any): integer`
+   Returns the unsigned 32-bit value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
@@ -270,17 +336,36 @@ address
       A:getu32 :> 1819043144
 
 
-:mini:`meth (Address: address):getu64: integer`
-   Returns the unsigned 64-bit value at :mini:`Address`. Currently follows the platform endiness.
-   .. warning::
-   
-      Minilang currently uses signed 64-bit integers so this method will produce incorrect results if the actual value is too large to fit. This may change in future implementations or if arbitrary precision integers are added to the runtime.
+:mini:`meth (Address: address):getu32(Arg₂: byte::order): integer`
+   Returns the unsigned 32-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getu32(address::LE) :> 1819043144
+      A:getu32(address::BE) :> 1214606444
+
+
+:mini:`meth (Address: address):getu64(Order: any): integer`
+   Returns the unsigned 64-bit value at :mini:`Address`. Uses the platform byte order.
 
    .. code-block:: mini
 
       let A := address("Hello world!\n")
       :> <13:48656C6C6F20776F726C64210A>
       A:getu64 :> 8031924123371070792
+
+
+:mini:`meth (Address: address):getu64(Arg₂: byte::order): integer`
+   Returns the unsigned 64-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getu64(address::LE) :> 8031924123371070792
+      A:getu64(address::BE) :> 5216694956355254127
 
 
 :mini:`meth (Address: address):getu8: integer`
