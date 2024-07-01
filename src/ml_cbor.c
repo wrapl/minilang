@@ -1064,6 +1064,20 @@ static void ML_TYPED_FN(ml_cbor_write, CborTagT, ml_cbor_writer_t *Writer, cbor_
 	ml_cbor_write(Writer, Arg->Value);
 }
 
+ML_FUNCTION(CborWritePositive) {
+//@cbor::write_positive
+//<Buffer:string::buffer
+//<Value:integer
+//>Buffer
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringBufferT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_cbor_writer_t Writer[1] = {{Buffer, (void *)ml_stringbuffer_write}};
+	minicbor_write_positive(Writer, ml_integer_value(Args[1]));
+	return (ml_value_t *)Buffer;
+}
+
 ML_METHOD_ANON(CborEncode, "cbor::encode");
 
 ML_METHOD(CborEncode, MLAnyT) {

@@ -175,10 +175,8 @@ let InstallHeaders := [
 var GC
 
 if MINILANG_STATICGC or defined("STATICGC") then
-	let Dir := file("gc")
-	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
-		Dir:rmdir:mkdir:chdir
-		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.6/gc-8.2.6.tar.gz -O- | tar xvzP --strip-components=1")
+	let Lib := file("lib/libgc.a") => fun(Lib) do
+		file("gc"):mkdir:chdir
 		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
@@ -197,14 +195,15 @@ if MINILANG_STATICGC or defined("STATICGC") then
 				"--disable-thread-local-alloc"
 			})
 		end
-		execute('CC={CC} ./configure', Configuration)
+		execute("autoreconf", "-vfi", file("gc/configure.ac"):dirname)
+		execute('CC={CC}', file("gc/configure"), Configuration)
 		execute("make clean")
 		execute("make -j4")
-		execute("make install")
+		execute('make -j4 PREFIX={PATH} install')
 	end
 	GC := Lib
 	PREBUILDS := old + [Lib]
-	let Lib2 := file("gc/.libs/libgccpp.a")[Lib]
+	let Lib2 := file("lib/libgccpp.a")[Lib]
 	Libraries:put(Lib, Lib2)
 	:>LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
 end
@@ -425,14 +424,6 @@ if MINILANG_LIGHTNING or defined("LIGHTNING") then
 end
 
 if MINILANG_CBOR then
-	let Minicbor := meta("minicbor";) do
-		let Dir := PATH/"minicbor"
-		Dir:rmdir
-		execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
-		Dir:chdir
-		execute("git checkout 22661fb")
-	end
-	PREBUILDS := old + [Minicbor]
 	CFLAGS := old + ["-DML_CBOR"]
 	Objects:put(file("ml_cbor.o"))
 	InstallHeaders:put("ml_cbor.h")
@@ -473,17 +464,15 @@ if MINILANG_UNWIND then
 end
 
 if MINILANG_BACKTRACE then
-	let Dir := PATH / "libbacktrace"
-	let Lib := Dir / ".libs/libbacktrace.a" => fun() do
-		Dir:rmdir
-		execute("git clone https://github.com/ianlancetaylor/libbacktrace.git", Dir)
-		Dir:chdir
-		execute("./configure")
+	let Lib := file("lib/libbacktrace.a") => fun() do
+		file("libbacktrace"):mkdir:chdir
+		execute(file("libbacktrace/configure"), '--prefix={PATH}')
 		execute("make clean")
 		execute("make -j4")
+		execute('make -j4 PREFIX={PATH} install')
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-I{Dir}']
+	CFLAGS := old + ['-I{file("libbacktrace")}']
 	LDFLAGS := old + [Lib]
 end
 
@@ -526,28 +515,8 @@ if PLATFORM = "Linux" and MACHINE = "x86_64" and CC != "clang" then
 end
 
 if MINILANG_TRE then
-	let Dir := file("tre")
-	let Lib := file("tre/lib/.libs/libtre.a")[GC] => fun(Lib) do
-		Dir:rmdir:mkdir:chdir
-		:>execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzPf - --strip-components=1")
-		execute("git clone https://github.com/laurikari/tre.git .")
-		execute("patch", "-p0", "-i", file("tre.patch"))
-		let XMallocH := file("tre/lib/xmalloc.h"):open("w")
-		XMallocH:write(
-'#ifndef XMALLOC_H
-#define XMALLOC_H
-
-#include <gc/gc.h>
-
-#define xmalloc(N) GC_malloc(N)
-#define xcalloc(C, N) GC_malloc((C) * (N))
-#define xrealloc(P, N) GC_realloc(P, N)
-#define xfree(P)
-
-#endif
-')
-		XMallocH:close
-		let XmallocC := file("tre/lib/xmalloc.c"):open("w"):close
+	let Lib := file("lib/libtre.a")[GC] => fun(Lib) do
+		file("tre"):mkdir:chdir
 		let Options := {
 			"--prefix" is PATH,
 			"--enable-static",
@@ -559,12 +528,13 @@ if MINILANG_TRE then
 			Options["--build"] := '{MACHINE}-unknown-linux-gnu'
 		end
 		
-		execute("autoreconf", "-vfi")
-		execute('CC={CC} CFLAGS=\"{EXT_CFLAGS}\" ./configure', Options)
+		execute("autoreconf", "-vfi", file("tre/configure.ac"):dirname)
+		execute('CC={CC} CFLAGS=\"{EXT_CFLAGS}\"', file("tre/configure"), Options)
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
 		execute('make -j4 -C lib PREFIX={PATH} install')
+		execute('make -j4 -C local_includes PREFIX={PATH} install')
 	end
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ["-DML_TRE"]
@@ -581,7 +551,7 @@ if MINILANG_TIMEZONES then
 	let Header := file("timelib_mem.h")
 	let Lib := file("timelib/timelib.a")[GC, Header] => fun(Target) do
 		file("timelib"):rmdir
-		execute("git clone https://github.com/derickr/timelib.git", Dir)
+		execute("cp", "-r", file("timelib/Makefile"):dirname, "timelib")
 		file("timelib"):chdir
 		let Flags := '\"{EXT_CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"'
 		execute('make timelib.a CFLAGS={Flags} CPPFLAGS={Flags}')
