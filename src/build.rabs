@@ -59,6 +59,8 @@ end
 
 print('CC_TYPE = {CC_TYPE}\n')
 
+EXT_CFLAGS := CFLAGS + []
+
 if CC_TYPE = "GCC" then
 	CFLAGS := old + [
 		"-march=native",
@@ -141,7 +143,8 @@ let Objects := [
 	file("ml_time.o"),
 	file("ml_types.o"),
 	file("sha256.o"),
-	file("stringmap.o")
+	file("stringmap.o"),
+	file("weakmap.o")
 ]
 
 let Libraries := []
@@ -154,6 +157,7 @@ let InstallHeaders := [
 	"ml_compiler.h",
 	"ml_tasks.h",
 	"ml_console.h",
+	"ml_debugger.h",
 	"ml_file.h",
 	"ml_logging.h",
 	"ml_macros.h",
@@ -164,16 +168,15 @@ let InstallHeaders := [
 	"ml_stream.h",
 	"ml_time.h",
 	"ml_types.h",
-	"stringmap.h"
+	"stringmap.h",
+	"weakmap.h"
 ]
 
 var GC
 
 if MINILANG_STATICGC or defined("STATICGC") then
-	let Dir := file("gc")
-	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
-		Dir:rmdir:mkdir:chdir
-		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.6/gc-8.2.6.tar.gz -O- | tar xvzP --strip-components=1")
+	let Lib := file("lib/libgc.a") => fun(Lib) do
+		file("gc"):mkdir:chdir
 		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
@@ -192,14 +195,15 @@ if MINILANG_STATICGC or defined("STATICGC") then
 				"--disable-thread-local-alloc"
 			})
 		end
-		execute('CC={CC} ./configure', Configuration)
+		execute("autoreconf", "-vfi", file("gc/configure.ac"):dirname)
+		execute('CC={CC}', file("gc/configure"), Configuration)
 		execute("make clean")
 		execute("make -j4")
-		execute("make install")
+		execute('make -j4 PREFIX={PATH} install')
 	end
 	GC := Lib
 	PREBUILDS := old + [Lib]
-	let Lib2 := file("gc/.libs/libgccpp.a")[Lib]
+	let Lib2 := file("lib/libgccpp.a")[Lib]
 	Libraries:put(Lib, Lib2)
 	:>LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
 end
@@ -229,14 +233,14 @@ let Options := [
 	"UUID",
 	"ICU",
 	"LIBS",
+	"UNWIND",
 	"BACKTRACE",
 	"MINIJS",
-	"RELAX_NAMES",
-	"GTK_CONSOLE",
 	"COROUTINES",
 	"ENCODINGS",
 	"STRUCTS",
-	"MMAP"
+	"MMAP",
+	"STRINGCACHE"
 ]
 
 MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
@@ -258,6 +262,10 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_UUID := 1
 	MINILANG_ICU := 1
 	MINILANG_ENCODINGS := 1
+	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
+	if PLATFORM = "Linux" then
+		MINILANG_UNWIND := 1
+	end
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 		MINILANG_MMAP := 1
@@ -288,14 +296,15 @@ MINILANG_TIMEZONES := old or defined("TIMEZONES")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
+MINILANG_UNWIND := old or defined("UNWIND")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
-MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
 MINILANG_STRUCTS := old or defined("STRUCTS")
 MINILANG_MMAP := old or defined("MMAP")
+MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -325,8 +334,8 @@ file("ml_config.h") => fun(Target) do
 	if MINILANG_THREADS then
 		File:write("\n#define ML_THREADS\n")
 	end
-	if MINILANG_RELAX_NAMES then
-		File:write("\n#define ML_RELAX_NAMES\n")
+	if MINILANG_UNWIND then
+		File:write("\n#define ML_UNWIND\n")
 	end
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
@@ -415,14 +424,6 @@ if MINILANG_LIGHTNING or defined("LIGHTNING") then
 end
 
 if MINILANG_CBOR then
-	let Minicbor := meta("minicbor";) do
-		let Dir := PATH/"minicbor"
-		Dir:rmdir
-		execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
-		Dir:chdir
-		execute("git checkout 22661fb")
-	end
-	PREBUILDS := old + [Minicbor]
 	CFLAGS := old + ["-DML_CBOR"]
 	Objects:put(file("ml_cbor.o"))
 	InstallHeaders:put("ml_cbor.h")
@@ -458,18 +459,20 @@ if MINILANG_STRUCTS then
 	Objects:put(file("ml_struct.o"))
 end
 
+if MINILANG_UNWIND then
+	LDFLAGS := old + ["-lunwind"]
+end
+
 if MINILANG_BACKTRACE then
-	let Dir := PATH / "libbacktrace"
-	let Lib := Dir / ".libs/libbacktrace.a" => fun() do
-		Dir:rmdir
-		execute("git clone https://github.com/ianlancetaylor/libbacktrace.git", Dir)
-		Dir:chdir
-		execute("./configure")
+	let Lib := file("lib/libbacktrace.a") => fun() do
+		file("libbacktrace"):mkdir:chdir
+		execute(file("libbacktrace/configure"), '--prefix={PATH}')
 		execute("make clean")
 		execute("make -j4")
+		execute('make -j4 PREFIX={PATH} install')
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-I{Dir}']
+	CFLAGS := old + ['-I{file("libbacktrace")}']
 	LDFLAGS := old + [Lib]
 end
 
@@ -512,38 +515,26 @@ if PLATFORM = "Linux" and MACHINE = "x86_64" and CC != "clang" then
 end
 
 if MINILANG_TRE then
-	let Dir := file("tre")
-	let Lib := file("tre/lib/.libs/libtre.a")[GC] => fun(Lib) do
-		Dir:rmdir:mkdir:chdir
-		execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzPf - --strip-components=1")
-		execute("patch", "-p0", "-i", file("tre.patch"))
-		let XMallocH := file("tre/lib/xmalloc.h"):open("w")
-		XMallocH:write(
-'#ifndef XMALLOC_H
-#define XMALLOC_H
-
-#include <gc/gc.h>
-
-#define xmalloc(N) GC_malloc(N)
-#define xcalloc(C, N) GC_malloc((C) * (N))
-#define xrealloc(P, N) GC_realloc(P, N)
-#define xfree(P)
-
-#endif
-')
-		XMallocH:close
-		let XmallocC := file("tre/lib/xmalloc.c"):open("w"):close
-		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', {
+	let Lib := file("lib/libtre.a")[GC] => fun(Lib) do
+		file("tre"):mkdir:chdir
+		let Options := {
 			"--prefix" is PATH,
 			"--enable-static",
 			"--enable-multibyte",
 			"--enable-wchar",
 			"--disable-shared"
-		})
+		}
+		if PLATFORM = "Android" then
+			Options["--build"] := '{MACHINE}-unknown-linux-gnu'
+		end
+		
+		execute("autoreconf", "-vfi", file("tre/configure.ac"):dirname)
+		execute('CC={CC} CFLAGS=\"{EXT_CFLAGS}\"', file("tre/configure"), Options)
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
 		execute("make clean")
 		execute("make -j4 -C lib")
 		execute('make -j4 -C lib PREFIX={PATH} install')
+		execute('make -j4 -C local_includes PREFIX={PATH} install')
 	end
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ["-DML_TRE"]
@@ -560,9 +551,9 @@ if MINILANG_TIMEZONES then
 	let Header := file("timelib_mem.h")
 	let Lib := file("timelib/timelib.a")[GC, Header] => fun(Target) do
 		file("timelib"):rmdir
-		execute("git clone https://github.com/derickr/timelib.git", Dir)
+		execute("cp", "-r", file("timelib/Makefile"):dirname, "timelib")
 		file("timelib"):chdir
-		let Flags := '\"{CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"'
+		let Flags := '\"{EXT_CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"'
 		execute('make timelib.a CFLAGS={Flags} CPPFLAGS={Flags}')
 	end
 	PREBUILDS := old + [Lib]
@@ -595,10 +586,13 @@ if MINILANG_ENCODINGS then
 	InstallHeaders:put("ml_base16.h", "ml_base64.h")
 end
 
+if MINILANG_STRINGCACHE then
+	CFLAGS := old + ["-DML_STRINGCACHE"]
+end
+
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	GC or LDFLAGS := old + ["-lgc"]
-	LDFLAGS := old + ["-lunwind"]
 elseif PLATFORM = "FreeBSD" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-I/usr/local/include"]

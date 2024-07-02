@@ -2,3 +2,4 @@ Iterators
 =========
 
 .. doxygengroup:: iterators
+   :members:

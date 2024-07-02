@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="ml__debugger_8h" kind="file" language="C++">
     <compoundname>ml_debugger.h</compoundname>
     <includes refid="stringmap_8h" local="yes">stringmap.h</includes>
@@ -81,32 +81,32 @@
       </node>
     </incdepgraph>
     <sectiondef kind="typedef">
-      <memberdef kind="typedef" id="ml__debugger_8h_1aa6f883c01d6f2b0b58d53649815cf6bc" prot="public" static="no">
-        <type>struct interactive_debugger_t</type>
-        <definition>typedef struct interactive_debugger_t interactive_debugger_t</definition>
+      <memberdef kind="typedef" id="ml__debugger_8h_1aacbf9405e47fc809301884eeb46ccb15" prot="public" static="no">
+        <type>struct ml_interactive_debugger_t</type>
+        <definition>typedef struct ml_interactive_debugger_t ml_interactive_debugger_t</definition>
         <argsstring></argsstring>
-        <name>interactive_debugger_t</name>
+        <name>ml_interactive_debugger_t</name>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_debugger.h" line="11" column="37" bodyfile="src/ml_debugger.h" bodystart="11" bodyend="-1"/>
+        <location file="src/ml_debugger.h" line="11" column="40" bodyfile="src/ml_debugger.h" bodystart="11" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="ml__debugger_8h_1adcc55fb4e62f2f33bc035755d78feec7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__debugger_8h_1a33905a2bccdb7c30dc6abc543172ab83" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t * interactive_debugger</definition>
-        <argsstring>(void(*enter)(void *Data, interactive_debugger_t *Debugger, ml_source_t Source, int Index), void(*exit)(void *Data, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index), void(*log)(void *Data, ml_value_t *Value), void *Data, ml_getter_t GlobalGet, void *Globals) __attribute__((malloc))</argsstring>
-        <name>interactive_debugger</name>
+        <definition>ml_value_t * ml_interactive_debugger</definition>
+        <argsstring>(void(*enter)(void *Data, ml_interactive_debugger_t *Debugger, ml_source_t Source, int Index), void(*exit)(void *Data, ml_interactive_debugger_t *Debugger, ml_state_t *Caller, int Index), void(*log)(void *Data, ml_value_t *Value), void *Data, ml_getter_t GlobalGet, void *Globals) __attribute__((malloc))</argsstring>
+        <name>ml_interactive_debugger</name>
         <param>
-          <type>void(*)(void *Data, interactive_debugger_t *Debugger, <ref refid="structml__source__t" kindref="compound">ml_source_t</ref> Source, int Index)</type>
+          <type>void(*)(void *Data, ml_interactive_debugger_t *Debugger, <ref refid="structml__source__t" kindref="compound">ml_source_t</ref> Source, int Index)</type>
           <declname>enter</declname>
         </param>
         <param>
-          <type>void(*)(void *Data, interactive_debugger_t *Debugger, <ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *Caller, int Index)</type>
+          <type>void(*)(void *Data, ml_interactive_debugger_t *Debugger, <ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *Caller, int Index)</type>
           <declname>exit</declname>
         </param>
         <param>
@@ -133,13 +133,13 @@
         </inbodydescription>
         <location file="src/ml_debugger.h" line="13" column="12" declfile="src/ml_debugger.h" declline="13" declcolumn="12"/>
       </memberdef>
-      <memberdef kind="function" id="ml__debugger_8h_1a83697c97f07395b5bc252041c0a61c05" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__debugger_8h_1a8232ee6325a020216c8bc1f630b8d74e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t * interactive_debugger_get</definition>
-        <argsstring>(interactive_debugger_t *Debugger, const char *Name)</argsstring>
-        <name>interactive_debugger_get</name>
+        <definition>ml_value_t * ml_interactive_debugger_get</definition>
+        <argsstring>(ml_interactive_debugger_t *Debugger, const char *Name)</argsstring>
+        <name>ml_interactive_debugger_get</name>
         <param>
-          <type>interactive_debugger_t *</type>
+          <type>ml_interactive_debugger_t *</type>
           <declname>Debugger</declname>
         </param>
         <param>
@@ -154,13 +154,13 @@
         </inbodydescription>
         <location file="src/ml_debugger.h" line="22" column="12" declfile="src/ml_debugger.h" declline="22" declcolumn="12"/>
       </memberdef>
-      <memberdef kind="function" id="ml__debugger_8h_1a2484aadd307ca5dc801091967d382258" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__debugger_8h_1a9f62a55c035162b6c8481b020241006d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
-        <definition>ml_source_t interactive_debugger_switch</definition>
-        <argsstring>(interactive_debugger_t *Debugger, int Index)</argsstring>
-        <name>interactive_debugger_switch</name>
+        <definition>ml_source_t ml_interactive_debugger_switch</definition>
+        <argsstring>(ml_interactive_debugger_t *Debugger, int Index)</argsstring>
+        <name>ml_interactive_debugger_switch</name>
         <param>
-          <type>interactive_debugger_t *</type>
+          <type>ml_interactive_debugger_t *</type>
           <declname>Debugger</declname>
         </param>
         <param>
@@ -175,13 +175,13 @@
         </inbodydescription>
         <location file="src/ml_debugger.h" line="23" column="13" declfile="src/ml_debugger.h" declline="23" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__debugger_8h_1a8fb1edd94694628c6ccf8a62a2db65e0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__debugger_8h_1a4bddcde9c3a5ffab9a03975f54ae13e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
-        <definition>void interactive_debugger_resume</definition>
-        <argsstring>(interactive_debugger_t *Debugger, int Index)</argsstring>
-        <name>interactive_debugger_resume</name>
+        <definition>void ml_interactive_debugger_resume</definition>
+        <argsstring>(ml_interactive_debugger_t *Debugger, int Index)</argsstring>
+        <name>ml_interactive_debugger_resume</name>
         <param>
-          <type>interactive_debugger_t *</type>
+          <type>ml_interactive_debugger_t *</type>
           <declname>Debugger</declname>
         </param>
         <param>
@@ -212,20 +212,20 @@
 <codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
 <codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="10"><highlight class="normal"></highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">interactive_debugger_t<sp/>interactive_debugger_t;</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_interactive_debugger_t<sp/>ml_interactive_debugger_t;</highlight></codeline>
 <codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*interactive_debugger(</highlight></codeline>
-<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*enter)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>interactive_debugger_t<sp/>*Debugger,<sp/><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index),</highlight></codeline>
-<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*exit)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>interactive_debugger_t<sp/>*Debugger,<sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index),</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_interactive_debugger(</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*enter)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_interactive_debugger_t<sp/>*Debugger,<sp/><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index),</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*exit)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_interactive_debugger_t<sp/>*Debugger,<sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index),</highlight></codeline>
 <codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*log)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value),</highlight></codeline>
 <codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,</highlight></codeline>
 <codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_getter_t<sp/>GlobalGet,</highlight></codeline>
 <codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Globals</highlight></codeline>
 <codeline lineno="20"><highlight class="normal">)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
 <codeline lineno="21"><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*interactive_debugger_get(interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>interactive_debugger_switch(interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index);</highlight></codeline>
-<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>interactive_debugger_resume(interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_interactive_debugger_get(ml_interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>ml_interactive_debugger_switch(ml_interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_interactive_debugger_resume(ml_interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index);</highlight></codeline>
 <codeline lineno="25"><highlight class="normal"></highlight></codeline>
 <codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="27"><highlight class="normal">}</highlight></codeline>

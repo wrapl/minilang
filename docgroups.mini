@@ -14,6 +14,7 @@ for Group in Groups do
 	File:write(Group:title, "\n")
 	File:write(Group:length * "=", "\n")
 	File:write("\n")
-	File:write('.. doxygengroup:: {Group}')
+	File:write('.. doxygengroup:: {Group}\n')
+	File:write('   :members:\n')
 	File:close
 end

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="ml__bytecode_8h" kind="file" language="C++">
     <compoundname>ml_bytecode.h</compoundname>
     <includes refid="ml__types_8h" local="yes">ml_types.h</includes>
@@ -145,8 +145,8 @@
         </inbodydescription>
         <location file="src/ml_bytecode.h" line="41" column="9" bodyfile="src/ml_bytecode.h" bodystart="41" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="define" id="ml__bytecode_8h_1af2167a0459dd06975bb544c9cb7fb948" prot="public" static="no">
-        <name>ML_CLOSURE_RELAX_NAMES</name>
+      <memberdef kind="define" id="ml__bytecode_8h_1a78645c1bdf96a4d99411439e085e3ead" prot="public" static="no">
+        <name>ML_CLOSURE_RESERVED</name>
         <initializer>4</initializer>
         <briefdescription>
         </briefdescription>
@@ -531,7 +531,7 @@
 <codeline lineno="39"><highlight class="normal"></highlight></codeline>
 <codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_EXTRA_ARGS<sp/>1</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_NAMED_ARGS<sp/>2</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_RELAX_NAMES<sp/>4</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_RESERVED<sp/>4</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_LABELLED<sp/>8</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLOSURE_HASHED<sp/>16</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="45"><highlight class="normal"></highlight></codeline>

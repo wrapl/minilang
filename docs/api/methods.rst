@@ -2,3 +2,4 @@ Methods
 =======
 
 .. doxygengroup:: methods
+   :members:

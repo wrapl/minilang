@@ -2,3 +2,4 @@ Functions
 =========
 
 .. doxygengroup:: functions
+   :members:

@@ -2,3 +2,4 @@ Cbor
 ====
 
 .. doxygengroup:: cbor
+   :members:

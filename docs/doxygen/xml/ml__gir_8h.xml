@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="ml__gir_8h" kind="file" language="C++">
     <compoundname>ml_gir.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
@@ -137,11 +137,11 @@
       </memberdef>
     </sectiondef>
     <sectiondef kind="var">
-      <memberdef kind="variable" id="ml__gir_8h_1a388fd14f51eda8fa8a41974b9e844ad6" prot="public" static="no" extern="yes" mutable="no">
+      <memberdef kind="variable" id="ml__gir_8h_1acb1699aebfa71188d74572c7efa17df1" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
-        <definition>ml_type_t GirTypelibT[]</definition>
+        <definition>ml_type_t MLGirTypelibT[]</definition>
         <argsstring>[]</argsstring>
-        <name>GirTypelibT</name>
+        <name>MLGirTypelibT</name>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -284,18 +284,18 @@
         </inbodydescription>
         <location file="src/ml_gir.h" line="19" column="6" declfile="src/ml_gir.h" declline="19" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__gir_8h_1a5d1407bf2c55106633e042995b42d0d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__gir_8h_1a7256ebe368d8ef6645714b8ab5e83558" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
         <definition>ml_value_t * ml_gir_instance_get</definition>
-        <argsstring>(void *Handle, GIBaseInfo *Info)</argsstring>
+        <argsstring>(void *Handle, ml_type_t *Fallback)</argsstring>
         <name>ml_gir_instance_get</name>
         <param>
           <type>void *</type>
           <declname>Handle</declname>
         </param>
         <param>
-          <type>GIBaseInfo *</type>
-          <declname>Info</declname>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Fallback</declname>
         </param>
         <briefdescription>
         </briefdescription>
@@ -393,7 +393,7 @@
 <codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;minilang.h&quot;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;girepository.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="6"><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>GirTypelibT[];</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLGirTypelibT[];</highlight></codeline>
 <codeline lineno="8"><highlight class="normal"></highlight></codeline>
 <codeline lineno="9"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_gir_typelib(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Version);</highlight></codeline>
 <codeline lineno="10"><highlight class="normal"></highlight></codeline>
@@ -407,7 +407,7 @@
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>
 <codeline lineno="19"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_gir_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="20"><highlight class="normal"></highlight></codeline>
-<codeline lineno="21"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_gir_instance_get(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Handle,<sp/>GIBaseInfo<sp/>*Info);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_gir_instance_get(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Handle,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Fallback);</highlight></codeline>
 <codeline lineno="22"><highlight class="normal"></highlight></codeline>
 <codeline lineno="23"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_gir_struct_instance(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Struct,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
 <codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*ml_gir_struct_instance_value(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>

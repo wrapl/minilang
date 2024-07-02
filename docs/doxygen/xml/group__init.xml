@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="group__init" kind="group">
     <compoundname>init</compoundname>
     <title>Init</title>
@@ -19,7 +19,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1379" column="6" declfile="src/ml_types.h" declline="1379" declcolumn="6"/>
+        <location file="src/ml_types.h" line="1411" column="6" declfile="src/ml_types.h" declline="1411" declcolumn="6"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

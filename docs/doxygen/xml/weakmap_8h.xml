@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="weakmap_8h" kind="file" language="C++">
     <compoundname>weakmap.h</compoundname>
     <includes local="no">stdlib.h</includes>
@@ -44,10 +44,10 @@
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="weakmap_8h_1a5d8d20e3f701522ed4890b89becbddf3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="weakmap_8h_1aa879a039d43c8032a588f6797eb4c2c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void *</type>
         <definition>void * weakmap_insert</definition>
-        <argsstring>(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *))</argsstring>
+        <argsstring>(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *, int))</argsstring>
         <name>weakmap_insert</name>
         <param>
           <type><ref refid="structweakmap__t" kindref="compound">weakmap_t</ref> *</type>
@@ -62,7 +62,7 @@
           <declname>Length</declname>
         </param>
         <param>
-          <type>void *(*)(const char *)</type>
+          <type>void *(*)(const char *, int)</type>
           <declname>missing</declname>
         </param>
         <briefdescription>
@@ -118,7 +118,7 @@
 <codeline lineno="12"><highlight class="normal"></highlight></codeline>
 <codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>WEAKMAP_INIT<sp/>(weakmap_t){NULL,<sp/>0,<sp/>0}</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="14"><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*weakmap_insert(<ref refid="structweakmap__t" kindref="compound">weakmap_t</ref><sp/>*Map,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*(*missing)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*weakmap_insert(<ref refid="structweakmap__t" kindref="compound">weakmap_t</ref><sp/>*Map,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*(*missing)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal">));</highlight></codeline>
 <codeline lineno="16"><highlight class="normal"></highlight></codeline>
 <codeline lineno="17"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>weakmap_foreach(<ref refid="structweakmap__t" kindref="compound">weakmap_t</ref><sp/>*Map,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>

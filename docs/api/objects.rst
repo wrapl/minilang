@@ -2,3 +2,4 @@ Objects
 =======
 
 .. doxygengroup:: objects
+   :members:

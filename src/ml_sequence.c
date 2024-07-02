@@ -1284,6 +1284,69 @@ static void reduce_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_iter_state_t *State;
+	ml_stringbuffer_t Buffer[1];
+} ml_string_sum_t;
+
+static void string_sum_iter_next(ml_string_sum_t *State, ml_value_t *Value);
+
+extern ml_cfunction_t MLAddStringString[1];
+
+static __attribute__ ((noinline)) int is_not_string_add(ml_context_t *Context, ml_value_t *Value) {
+	ml_value_t *Args[2] = {ml_cstring(""), Value};
+	ml_value_t *Method = ml_method_search(ml_context_get(Context, ML_METHODS_INDEX), (ml_method_t *)AddMethod, 2, Args);
+	return Method != (ml_value_t *)MLAddStringString;
+}
+
+static void string_sum_next_value(ml_string_sum_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (is_not_string_add(State->Base.Context, Value)) {
+		ml_iter_state_t *State0 = State->State;
+		ml_value_t *Function = State0->Values[0];
+		State0->Values[1] = ml_stringbuffer_get_value(State->Buffer);
+		State0->Values[2] = Value;
+		State0->Base.run = (void *)reduce_call;
+		return ml_call(State, Function, 2, State0->Values + 1);
+	}
+	ml_stringbuffer_write(State->Buffer, ml_string_value(Value), ml_string_length(Value));
+	State->Base.run = (void *)string_sum_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void string_sum_iter_next(ml_string_sum_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
+	State->Base.run = (void *)string_sum_next_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void reduce_first_value_sum(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_is(Value, MLStringT)) {
+		ml_string_sum_t *Sum = new(ml_string_sum_t);
+		Sum->Base.Caller = State->Base.Caller;
+		Sum->Base.Context = State->Base.Context;
+		Sum->Base.run = (void *)string_sum_iter_next;
+		Sum->State = State;
+		Sum->Iter = State->Iter;
+		ml_stringbuffer_write(Sum->Buffer, ml_string_value(Value), ml_string_length(Value));
+		return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+	}
+	State->Values[1] = Value;
+	State->Base.run = (void *)reduce_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void reduce_iterate_sum(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
+	State->Base.run = (void *)reduce_first_value_sum;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
 ML_FUNCTIONX(Reduce) {
 //<Initial?:any
 //<Sequence:sequence
@@ -1356,7 +1419,7 @@ ML_FUNCTIONX(Sum) {
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (void *)reduce_iterate;
+	State->Base.run = (void *)reduce_iterate_sum;
 	State->Values[0] = AddMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }

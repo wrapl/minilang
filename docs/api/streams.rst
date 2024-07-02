@@ -2,3 +2,4 @@ Streams
 =======
 
 .. doxygengroup:: streams
+   :members:

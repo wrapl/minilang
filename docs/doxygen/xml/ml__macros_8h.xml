@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="ml__macros_8h" kind="file" language="C++">
     <compoundname>ml_macros.h</compoundname>
     <includes local="no">gc/gc.h</includes>
@@ -91,6 +91,18 @@
         </inbodydescription>
         <location file="src/ml_macros.h" line="11" column="9" bodyfile="src/ml_macros.h" bodystart="11" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="define" id="ml__macros_8h_1ac6c5a83ab5dbd8f090d1f66ea14418a7" prot="public" static="no">
+        <name>unew</name>
+        <param><defname>T</defname></param>
+        <initializer>((T *)GC_MALLOC_UNCOLLECTABLE(sizeof(T)))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_macros.h" line="12" column="9" bodyfile="src/ml_macros.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
       <memberdef kind="define" id="ml__macros_8h_1a31b9bcd0e7f30adb8ed947d86d4ae11b" prot="public" static="no">
         <name>PP_NARG</name>
         <param><defname>...</defname></param>
@@ -101,7 +113,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_macros.h" line="13" column="9" bodyfile="src/ml_macros.h" bodystart="13" bodyend="14"/>
+        <location file="src/ml_macros.h" line="14" column="9" bodyfile="src/ml_macros.h" bodystart="14" bodyend="15"/>
       </memberdef>
       <memberdef kind="define" id="ml__macros_8h_1a1b4b6dfcca38ee665c4c88c07d58c4f0" prot="public" static="no">
         <name>PP_NARG_</name>
@@ -113,7 +125,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_macros.h" line="15" column="9" bodyfile="src/ml_macros.h" bodystart="15" bodyend="16"/>
+        <location file="src/ml_macros.h" line="16" column="9" bodyfile="src/ml_macros.h" bodystart="16" bodyend="17"/>
       </memberdef>
       <memberdef kind="define" id="ml__macros_8h_1a31e17247ef3f8e15d6014770586b1201" prot="public" static="no">
         <name>PP_ARG_N</name>
@@ -189,7 +201,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_macros.h" line="24" column="9" bodyfile="src/ml_macros.h" bodystart="17" bodyend="-1"/>
+        <location file="src/ml_macros.h" line="25" column="9" bodyfile="src/ml_macros.h" bodystart="18" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="ml__macros_8h_1a15967218850ac6ac5ffd777368fec7fd" prot="public" static="no">
         <name>PP_RSEQ_N</name>
@@ -207,7 +219,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_macros.h" line="25" column="9" bodyfile="src/ml_macros.h" bodystart="25" bodyend="32"/>
+        <location file="src/ml_macros.h" line="26" column="9" bodyfile="src/ml_macros.h" bodystart="26" bodyend="33"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -226,29 +238,30 @@
 <codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>asnew(T,<sp/>N)<sp/>((T<sp/>*)GC_MALLOC_ATOMIC((N)<sp/>*<sp/>sizeof(T)))</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>bnew(N)<sp/>GC_MALLOC(N)</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>xnew(T,<sp/>N,<sp/>U)<sp/>((T<sp/>*)GC_MALLOC(sizeof(T)<sp/>+<sp/>(N)<sp/>*<sp/>sizeof(U)))</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_NARG(...)<sp/>\</highlight></codeline>
-<codeline lineno="14"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>PP_NARG_(__VA_ARGS__,PP_RSEQ_N())</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_NARG_(...)<sp/>\</highlight></codeline>
-<codeline lineno="16"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>PP_ARG_N(__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_ARG_N(<sp/>\</highlight></codeline>
-<codeline lineno="18"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_1,<sp/>_2,<sp/>_3,<sp/>_4,<sp/>_5,<sp/>_6,<sp/>_7,<sp/>_8,<sp/>_9,_10,<sp/>\</highlight></codeline>
-<codeline lineno="19"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,<sp/>\</highlight></codeline>
-<codeline lineno="20"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,<sp/>\</highlight></codeline>
-<codeline lineno="21"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_31,_32,_33,_34,_35,_36,_37,_38,_39,_40,<sp/>\</highlight></codeline>
-<codeline lineno="22"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_41,_42,_43,_44,_45,_46,_47,_48,_49,_50,<sp/>\</highlight></codeline>
-<codeline lineno="23"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_51,_52,_53,_54,_55,_56,_57,_58,_59,_60,<sp/>\</highlight></codeline>
-<codeline lineno="24"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_61,_62,_63,N,...)<sp/>N</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_RSEQ_N()<sp/>\</highlight></codeline>
-<codeline lineno="26"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>63,62,61,60,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
-<codeline lineno="27"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>59,58,57,56,55,54,53,52,51,50,<sp/>\</highlight></codeline>
-<codeline lineno="28"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>49,48,47,46,45,44,43,42,41,40,<sp/>\</highlight></codeline>
-<codeline lineno="29"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>39,38,37,36,35,34,33,32,31,30,<sp/>\</highlight></codeline>
-<codeline lineno="30"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>29,28,27,26,25,24,23,22,21,20,<sp/>\</highlight></codeline>
-<codeline lineno="31"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>19,18,17,16,15,14,13,12,11,10,<sp/>\</highlight></codeline>
-<codeline lineno="32"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>9,8,7,6,5,4,3,2,1,0</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>unew(T)<sp/>((T<sp/>*)GC_MALLOC_UNCOLLECTABLE(sizeof(T)))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_NARG(...)<sp/>\</highlight></codeline>
+<codeline lineno="15"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>PP_NARG_(__VA_ARGS__,PP_RSEQ_N())</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_NARG_(...)<sp/>\</highlight></codeline>
+<codeline lineno="17"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>PP_ARG_N(__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_ARG_N(<sp/>\</highlight></codeline>
+<codeline lineno="19"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_1,<sp/>_2,<sp/>_3,<sp/>_4,<sp/>_5,<sp/>_6,<sp/>_7,<sp/>_8,<sp/>_9,_10,<sp/>\</highlight></codeline>
+<codeline lineno="20"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,<sp/>\</highlight></codeline>
+<codeline lineno="21"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,<sp/>\</highlight></codeline>
+<codeline lineno="22"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_31,_32,_33,_34,_35,_36,_37,_38,_39,_40,<sp/>\</highlight></codeline>
+<codeline lineno="23"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_41,_42,_43,_44,_45,_46,_47,_48,_49,_50,<sp/>\</highlight></codeline>
+<codeline lineno="24"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_51,_52,_53,_54,_55,_56,_57,_58,_59,_60,<sp/>\</highlight></codeline>
+<codeline lineno="25"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_61,_62,_63,N,...)<sp/>N</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PP_RSEQ_N()<sp/>\</highlight></codeline>
+<codeline lineno="27"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>63,62,61,60,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="28"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>59,58,57,56,55,54,53,52,51,50,<sp/>\</highlight></codeline>
+<codeline lineno="29"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>49,48,47,46,45,44,43,42,41,40,<sp/>\</highlight></codeline>
+<codeline lineno="30"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>39,38,37,36,35,34,33,32,31,30,<sp/>\</highlight></codeline>
+<codeline lineno="31"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>29,28,27,26,25,24,23,22,21,20,<sp/>\</highlight></codeline>
+<codeline lineno="32"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>19,18,17,16,15,14,13,12,11,10,<sp/>\</highlight></codeline>
+<codeline lineno="33"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>9,8,7,6,5,4,3,2,1,0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_macros.h"/>
   </compounddef>

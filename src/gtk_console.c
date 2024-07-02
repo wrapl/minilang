@@ -42,7 +42,7 @@ struct gtk_console_t {
 	GtkSourceBuffer *SourceBuffer;
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
-	interactive_debugger_t *Debugger;
+	ml_interactive_debugger_t *Debugger;
 	const char *ConfigPath;
 	const char *FontName;
 	GKeyFile *Config;
@@ -72,7 +72,7 @@ static char *stpcpy(char *Dest, const char *Source) {
 
 static ml_value_t *console_global_get(gtk_console_t *Console, const char *Name, const char *Source, int Line, int Eval) {
 	if (Console->Debugger) {
-		ml_value_t *Value = interactive_debugger_get(Console->Debugger, Name);
+		ml_value_t *Value = ml_interactive_debugger_get(Console->Debugger, Name);
 		if (Value) return Value;
 	}
 	ml_value_t *Value = stringmap_search(Console->Globals, Name);
@@ -241,16 +241,16 @@ typedef struct {
 static void console_breakpoint_toggle(GtkSourceView *View, GtkTextIter *Iter, GdkEvent *Event, console_open_file_t *OpenFile) {
 	GtkTextBuffer *Buffer = gtk_text_iter_get_buffer(Iter);
 	GSList *Marks = gtk_source_buffer_get_source_marks_at_iter(GTK_SOURCE_BUFFER(Buffer), Iter, "breakpoint");
-	interactive_debugger_t *Debugger = OpenFile->Console->Debugger;
+	ml_interactive_debugger_t *Debugger = OpenFile->Console->Debugger;
 	ml_value_t *BreakpointFn = NULL;
 	if (Marks) {
 		GtkTextMark *Mark = GTK_TEXT_MARK(Marks->data);
 		gtk_text_buffer_delete_mark(Buffer, Mark);
-		if (Debugger) BreakpointFn = interactive_debugger_get(Debugger, "breakpoint_clear");
+		if (Debugger) BreakpointFn = ml_interactive_debugger_get(Debugger, "breakpoint_clear");
 		g_slist_free(Marks);
 	} else {
 		gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(Buffer), NULL, "breakpoint", Iter);
-		if (Debugger) BreakpointFn = interactive_debugger_get(Debugger, "breakpoint_set");
+		if (Debugger) BreakpointFn = ml_interactive_debugger_get(Debugger, "breakpoint_set");
 	}
 	if (BreakpointFn) {
 		ml_value_t **Args = ml_alloc_args(2);
@@ -327,7 +327,7 @@ static void console_show_value(GtkTreeStore *Store, GtkTreeIter *Iter, const cha
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_simple_append(Buffer, Value);
 	char *Display;
-	if (Buffer->Length < 64) {
+	if (ml_stringbuffer_length(Buffer) < 64) {
 		Display = ml_stringbuffer_get_string(Buffer);
 	} else {
 		Display = snew(68);
@@ -391,7 +391,7 @@ static void console_show_thread(gtk_console_t *Console, const char *SourceName, 
 	} else {
 		SourceView = console_open_source(Console, SourceName);
 	}
-	ml_value_t *BreakpointSet = interactive_debugger_get(Console->Debugger, "breakpoint_set");
+	ml_value_t *BreakpointSet = ml_interactive_debugger_get(Console->Debugger, "breakpoint_set");
 	stringmap_foreach(Console->OpenFiles, BreakpointSet, (void *)console_debug_set_breakpoints);
 	int PageNum = gtk_notebook_page_num(Console->Notebook, gtk_widget_get_parent(SourceView));
 	gtk_notebook_set_current_page(Console->Notebook, PageNum);
@@ -403,8 +403,8 @@ static void console_show_thread(gtk_console_t *Console, const char *SourceName, 
 	gtk_text_buffer_place_cursor(Buffer, LineBeg);
 	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(SourceView), LineBeg, 0.0, FALSE, 0.0, 0.0);
 	gtk_tree_store_clear(Console->FrameStore);
-	ml_value_t *FramesGet = interactive_debugger_get(Console->Debugger, "frames");
-	ml_value_t *LocalsGet = interactive_debugger_get(Console->Debugger, "locals");
+	ml_value_t *FramesGet = ml_interactive_debugger_get(Console->Debugger, "frames");
+	ml_value_t *LocalsGet = ml_interactive_debugger_get(Console->Debugger, "locals");
 	ml_value_t *Frames = ml_simple_call(FramesGet, 0, NULL);
 	ml_value_t **Args = ml_alloc_args(1);
 	int Depth = 0;
@@ -431,14 +431,14 @@ static void console_thread_activated(GtkTreeView *ThreadView, GtkTreePath *Path,
 	GtkTreeIter Iter[1];
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(Console->ThreadStore), Iter, Path);
 	gtk_tree_model_get(GTK_TREE_MODEL(Console->ThreadStore), Iter, 0, &Index, 1, &SourceName, 2, &Line, -1);
-	ml_value_t *ThreadSet = interactive_debugger_get(Console->Debugger, "thread");
+	ml_value_t *ThreadSet = ml_interactive_debugger_get(Console->Debugger, "thread");
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = ml_integer(Index);
 	ml_simple_call(ThreadSet, 1, Args);
 	console_show_thread(Console, SourceName, Line);
 }
 
-static void console_debug_enter(gtk_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
+static void console_debug_enter(gtk_console_t *Console, ml_interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
 	gtk_widget_show(Console->DebugButtons);
 	Console->Debugger = Debugger;
 	gtk_console_printf(Console, "Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
@@ -449,7 +449,7 @@ static void console_debug_enter(gtk_console_t *Console, interactive_debugger_t *
 	console_show_thread(Console, Source.Name, Source.Line);
 }
 
-static void console_debug_exit(gtk_console_t *Console, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
+static void console_debug_exit(gtk_console_t *Console, ml_interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
 	GtkTreeIter Iter[1];
 	GtkTreeModel *Model = GTK_TREE_MODEL(Console->ThreadStore);
 	if (gtk_tree_model_get_iter_first(Model, Iter)) do {
@@ -468,7 +468,7 @@ static void console_debug_exit(gtk_console_t *Console, interactive_debugger_t *D
 		GtkTreeSelection *Selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(Console->ThreadView));
 		gtk_tree_selection_unselect_all(Selection);
 	}
-	return interactive_debugger_resume(Debugger, Index);
+	return ml_interactive_debugger_resume(Debugger, Index);
 }
 
 static void console_clear(GtkWidget *Button, gtk_console_t *Console) {
@@ -1061,7 +1061,7 @@ gtk_console_t *gtk_console(ml_state_t *Caller, ml_getter_t GlobalGet, void *Glob
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window, NULL));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView, NULL));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView, NULL));
-	stringmap_insert(Console->Globals, "idebug", interactive_debugger(
+	stringmap_insert(Console->Globals, "idebug", ml_interactive_debugger(
 		(void *)console_debug_enter,
 		(void *)console_debug_exit,
 		(void *)gtk_console_log,

@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+extern stringmap_t MLGlobals[];
+
 void ml_init(const char *ExecName, stringmap_t *Globals);
 
 #ifdef __cplusplus

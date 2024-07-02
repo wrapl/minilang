@@ -257,42 +257,6 @@ ML_METHOD("get8", MLAddressT) {
 	return ml_integer(*(int8_t *)Address->Value);
 }
 
-ML_METHOD("get16", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the signed 16-bit value at :mini:`Address`. Currently follows the platform endiness.
-//$= let A := address("Hello world!\n")
-//$= A:get16
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 2) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(int16_t *)Address->Value);
-}
-
-ML_METHOD("get32", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the signed 32-bit value at :mini:`Address`. Currently follows the platform endiness.
-//$= let A := address("Hello world!\n")
-//$= A:get32
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(int32_t *)Address->Value);
-}
-
-ML_METHOD("get64", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the signed 64-bit value at :mini:`Address`. Currently follows the platform endiness.
-//$= let A := address("Hello world!\n")
-//$= A:get64
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(int64_t *)Address->Value);
-}
-
 ML_METHOD("getu8", MLAddressT) {
 //!address
 //<Address
@@ -303,69 +267,6 @@ ML_METHOD("getu8", MLAddressT) {
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint8_t *)Address->Value);
-}
-
-ML_METHOD("getu16", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the unsigned 16-bit value at :mini:`Address`. Currently follows the platform endiness.
-//$= let A := address("Hello world!\n")
-//$= A:getu16
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 2) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(uint16_t *)Address->Value);
-}
-
-ML_METHOD("getu32", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the unsigned 32-bit value at :mini:`Address`. Currently follows the platform endiness.
-//$= let A := address("Hello world!\n")
-//$= A:getu32
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(uint32_t *)Address->Value);
-}
-
-ML_METHOD("getu64", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the unsigned 64-bit value at :mini:`Address`. Currently follows the platform endiness.
-// .. warning::
-//
-//    Minilang currently uses signed 64-bit integers so this method will produce incorrect results if the actual value is too large to fit. This may change in future implementations or if arbitrary precision integers are added to the runtime.
-//$= let A := address("Hello world!\n")
-//$= A:getu64
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(uint64_t *)Address->Value);
-}
-
-ML_METHOD("getf32", MLAddressT) {
-//!address
-//<Address
-//>real
-// Returns the single precision floating point value at :mini:`Address`. Currently follows the platform endiness.
-//$= let A := address("Hello world!\n")
-//$= A:getf32
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_real(*(float *)Address->Value);
-}
-
-ML_METHOD("getf64", MLAddressT) {
-//!address
-//<Address
-//>real
-// Returns the double precision floating point value at :mini:`Address`. Currently follows the platform endiness.
-//$= let A := address("Hello world!\n")
-//$= A:getf64
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_real(*(double *)Address->Value);
 }
 
 ML_METHOD("gets", MLAddressT) {
@@ -508,74 +409,264 @@ ML_METHOD("put8", MLBufferT, MLIntegerT) {
 //$= buffer(1):put8(64)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
-	*(int8_t *)Buffer->Value = ml_integer_value(Args[1]);
+	*(int8_t *)Buffer->Value = (int8_t)ml_integer_value(Args[1]);
 	return Args[0];
 }
 
-ML_METHOD("put16", MLBufferT, MLIntegerT) {
+ML_METHOD("putu8", MLBufferT, MLIntegerT) {
 //!buffer
 //<Buffer
 //<Value
 //>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as an 16-bit signed value. Currently follows the platform endiness.
-//$= buffer(2):put16(12345)
+// Puts :mini:`Value` in :mini:`Buffer` as an 8-bit unsigned value.
+//$= buffer(1):put8(64)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 2) return ml_error("SizeError", "Not enough space");
-	*(int16_t *)Buffer->Value = ml_integer_value(Args[1]);
+	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
+	*(uint8_t *)Buffer->Value = (uint8_t)ml_integer_value(Args[1]);
 	return Args[0];
 }
 
-ML_METHOD("put32", MLBufferT, MLIntegerT) {
-//!buffer
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+#define ML_BIG_ENDIAN(WIDTH)
+#define ML_LITTLE_ENDIAN(WIDTH) __builtin_bswap ## WIDTH
+
+#else
+
+#define ML_BIG_ENDIAN(WIDTH) __builtin_bswap ## WIDTH
+#define ML_LITTLE_ENDIAN(WIDTH)
+
+#endif
+
+ML_ENUM(MLByteOrderT, "address::byteorder",
+	"LittleEndian",
+	"BigEndian"
+);
+
+#define ML_BUFFER_INT_METHODS(WIDTH, SIZE) \
+\
+ML_METHOD("get" #WIDTH, MLAddressT) { \
+/*!address
+//@getWIDTH
+//<Address
+//>integer
+// Returns the signed WIDTH-bit value at :mini:`Address`. Uses the platform byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getWIDTH
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	return ml_integer(*(int ## WIDTH ## _t *)Address->Value); \
+} \
+\
+ML_METHOD("get" #WIDTH, MLAddressT, MLByteOrderT) { \
+/*!address
+//@getWIDTH
+//<Address
+//<Order
+//>integer
+// Returns the signed WIDTH-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getWIDTH(address::LE)
+//$= A:getWIDTH(address::BE)
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	if (ml_enum_value_value(Args[1]) == 2) { \
+		return ml_integer(ML_BIG_ENDIAN(WIDTH)(*(int ## WIDTH ## _t *)Address->Value)); \
+	} else { \
+		return ml_integer(ML_LITTLE_ENDIAN(WIDTH)(*(int ## WIDTH ## _t *)Address->Value)); \
+	} \
+} \
+\
+ML_METHOD("getu" #WIDTH, MLAddressT) { \
+/*!address
+//@getuWIDTH
+//<Address
+//<Order
+//>integer
+// Returns the unsigned WIDTH-bit value at :mini:`Address`. Uses the platform byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getuWIDTH
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read");  \
+	return ml_integer(*(uint ## WIDTH ##_t *)Address->Value); \
+} \
+\
+ML_METHOD("getu" #WIDTH, MLAddressT, MLByteOrderT) { \
+/*!address
+//@getuWIDTH
+//<Address
+//>integer
+// Returns the unsigned WIDTH-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getuWIDTH(address::LE)
+//$= A:getuWIDTH(address::BE)
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read");  \
+	if (ml_enum_value_value(Args[1]) == 2) { \
+		return ml_integer(ML_BIG_ENDIAN(WIDTH)(*(uint ## WIDTH ##_t *)Address->Value)); \
+	} else { \
+		return ml_integer(ML_LITTLE_ENDIAN(WIDTH)(*(uint ## WIDTH ##_t *)Address->Value)); \
+	} \
+} \
+\
+ML_METHOD("put" #WIDTH, MLBufferT, MLIntegerT) { \
+/*!buffer
+//@putWIDTH
 //<Buffer
 //<Value
 //>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as an 32-bit signed value. Currently follows the platform endiness.
-//$= buffer(4):put32(12345678)
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 4) return ml_error("SizeError", "Not enough space");
-	*(int32_t *)Buffer->Value = ml_integer_value(Args[1]);
-	return Args[0];
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit signed value. Uses the platform byte order.
+//$= buffer(SIZE):putWIDTH(12345)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	*(int ## WIDTH ##_t *)Buffer->Value = (int ## WIDTH ##_t)ml_integer_value(Args[1]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("put" #WIDTH, MLBufferT, MLIntegerT, MLByteOrderT) { \
+/*!buffer
+//@putWIDTH
+//<Buffer
+//<Value
+//<Order
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit signed value. Uses :mini:`Order` byte order.
+//$= buffer(SIZE):putWIDTH(12345, address::LE)
+//$= buffer(SIZE):putWIDTH(12345, address::BE)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		*(int ## WIDTH ##_t *)Buffer->Value = ML_BIG_ENDIAN(WIDTH)((int ## WIDTH ##_t)ml_integer_value(Args[1]));  \
+	} else { \
+		*(int ## WIDTH ##_t *)Buffer->Value = ML_LITTLE_ENDIAN(WIDTH)((int ## WIDTH ##_t)ml_integer_value(Args[1]));  \
+	} \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putu" #WIDTH, MLBufferT, MLIntegerT) { \
+/*!buffer
+//@putuWIDTH
+//<Buffer
+//<Value
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit unsigned value. Uses the platform byte order.
+//$= buffer(SIZE):putuWIDTH(12345)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	*(uint ## WIDTH ##_t *)Buffer->Value = (uint ## WIDTH ##_t)ml_integer_value(Args[1]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putu" #WIDTH, MLBufferT, MLIntegerT, MLByteOrderT) { \
+/*!buffer
+//@putuWIDTH
+//<Buffer
+//<Value
+//<Order
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit unsigned value. Uses :mini:`Order` byte order.
+//$= buffer(SIZE):putuWIDTH(12345, address::LE)
+//$= buffer(SIZE):putuWIDTH(12345, address::BE)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		*(uint ## WIDTH ##_t *)Buffer->Value = ML_BIG_ENDIAN(WIDTH)((uint ## WIDTH ##_t)ml_integer_value(Args[1]));  \
+	} else { \
+		*(uint ## WIDTH ##_t *)Buffer->Value = ML_LITTLE_ENDIAN(WIDTH)((uint ## WIDTH ##_t)ml_integer_value(Args[1]));  \
+	} \
+	return Args[0]; \
 }
 
-ML_METHOD("put64", MLBufferT, MLIntegerT) {
-//!buffer
+ML_BUFFER_INT_METHODS(16, 2)
+ML_BUFFER_INT_METHODS(32, 4)
+ML_BUFFER_INT_METHODS(64, 8)
+
+#define ML_BUFFER_REAL_METHODS(WIDTH, SIZE, CTYPE) \
+\
+ML_METHOD("getf" #WIDTH, MLAddressT) { \
+/*!address
+//@getfWIDTH
+//<Address
+//>real
+// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses the platform byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getfWIDTH
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	return ml_real(*(CTYPE *)Address->Value); \
+} \
+\
+ML_METHOD("getf" #WIDTH, MLAddressT, MLByteOrderT) { \
+/*!address
+//@getfWIDTH
+//<Address
+//<Order
+//>real
+// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getfWIDTH(address::LE)
+//$= A:getfWIDTH(address::BE)
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	if (ml_enum_value_value(Args[1]) == 2) { \
+		X.I = ML_BIG_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)Address->Value); \
+	} else { \
+		X.I = ML_LITTLE_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)Address->Value); \
+	} \
+	return ml_real(X.R); \
+} \
+\
+ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT) { \
+/*!buffer
+//@putfWIDTH
 //<Buffer
 //<Value
 //>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as an 64-bit signed value. Currently follows the platform endiness.
-//$= buffer(8):put64(123456789123)
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 8) return ml_error("SizeError", "Not enough space");
-	*(int64_t *)Buffer->Value = ml_integer_value(Args[1]);
-	return Args[0];
+// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses the platform byte order.
+//$= buffer(SIZE):putfWIDTH(1.23456789)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	*(CTYPE *)Buffer->Value = ml_real_value(Args[1]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT, MLByteOrderT) { \
+/*!buffer
+//@putfWIDTH
+//<Buffer
+//<Value
+//<Order
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses little endian byte order.
+//$= buffer(SIZE):putfWIDTH(1.23456789, address::LE)
+//$= buffer(SIZE):putfWIDTH(1.23456789, address::BE)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	X.R = ml_real_value(Args[1]); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		*(uint ## WIDTH ## _t *)Buffer->Value = ML_BIG_ENDIAN(WIDTH)(X.I);  \
+	} else { \
+		*(uint ## WIDTH ## _t *)Buffer->Value = ML_LITTLE_ENDIAN(WIDTH)(X.I);  \
+	} \
+	return Args[0]; \
 }
 
-ML_METHOD("putf32", MLBufferT, MLRealT) {
-//!buffer
-//<Buffer
-//<Value
-//>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Currently follows the platform endiness.
-//$= buffer(4):putf32(1.23456789)
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 4) return ml_error("SizeError", "Not enough space");
-	*(float *)Buffer->Value = ml_real_value(Args[1]);
-	return Args[0];
-}
-
-ML_METHOD("putf64", MLBufferT, MLRealT) {
-//!buffer
-//<Buffer
-//<Value
-//>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as a double precision floating point value. Currently follows the platform endiness.
-//$= buffer(8):putf64(1.23456789)
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 8) return ml_error("SizeError", "Not enough space");
-	*(double *)Buffer->Value = ml_real_value(Args[1]);
-	return Args[0];
-}
+ML_BUFFER_REAL_METHODS(32, 4, float)
+ML_BUFFER_REAL_METHODS(64, 8, double)
 
 ML_METHOD("put", MLBufferT, MLAddressT) {
 //!buffer
@@ -664,7 +755,7 @@ int GC_vasprintf(char **Ptr, const char *Format, va_list Args) {
 	va_list Copy;
 	va_copy(Copy, Args);
 	int Actual = vsnprintf(NULL, 0, Format, Args);
-	char *Output = *Ptr = GC_malloc_atomic(Actual);
+	char *Output = *Ptr = GC_malloc_atomic(Actual + 1);
 	vsprintf(Output, Format, Copy);
 	return Actual;
 }
@@ -677,17 +768,39 @@ int GC_asprintf(char **Ptr, const char *Format, ...) {
 	return Result;
 }
 
+#ifdef ML_STRINGCACHE
+
+#define ML_STRINGCACHE_MAX 64
+
+#include "weakmap.h"
+
+static weakmap_t StringCache[1] = {WEAKMAP_INIT};
+
+static void *_ml_string(const char *Value, int Length) {
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Value, Length);
+	Copy[Length] = 0;
+	ml_string_t *String = new(ml_string_t);
+	String->Type = MLStringT;
+	String->Value = Copy;
+	String->Length = Length;
+	return String;
+}
+
+#endif
+
+static ml_string_t MLEmptyString[1] = {{MLStringT, "", 0, 0}};
+
 ml_value_t *ml_string(const char *Value, int Length) {
-	Value = Value ?: "";
-	if (Length >= 0) {
-		if (Value[Length]) {
-			char *Copy = snew(Length + 1);
-			memcpy(Copy, Value, Length);
-			Copy[Length] = 0;
-			Value = Copy;
-		}
-	} else {
+	if (!Length || !Value) return (ml_value_t *)MLEmptyString;
+	if (Length > 0 && Value[Length]) {
+		char *Copy = snew(Length + 1);
+		memcpy(Copy, Value, Length);
+		Copy[Length] = 0;
+		Value = Copy;
+	} else if (Length < 0) {
 		Length = strlen(Value);
+		if (!Length) return (ml_value_t *)MLEmptyString;
 	}
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
@@ -728,7 +841,16 @@ ml_value_t *ml_string_checked(const char *Value, int Length) {
 }
 
 ml_value_t *ml_string_copy(const char *Value, int Length) {
-	if (Length < 0) Length = Value ? strlen(Value) : 0;
+	if (!Length || !Value) return (ml_value_t *)MLEmptyString;
+	if (Length < 0) {
+		Length = strlen(Value);
+		if (!Length) return (ml_value_t *)MLEmptyString;
+	}
+#ifdef ML_STRINGCACHE
+	if (Length < ML_STRINGCACHE_MAX) {
+		return weakmap_insert(StringCache, Value, Length, _ml_string);
+	}
+#endif
 	char *Copy = snew(Length + 1);
 	memcpy(Copy, Value, Length);
 	Copy[Length] = 0;
@@ -976,6 +1098,19 @@ ML_METHOD("append", MLStringBufferT, MLUninitializedT) {
 	ml_stringbuffer_printf(Buffer, "uninitialized value %s @ %s:%d", ml_uninitialized_name(Args[1]), Source.Name, Source.Line);
 	return ml_error("ValueError", "%s is uninitialized", ml_uninitialized_name(Args[1]));
 }
+
+ML_METHODVX("append", MLStringBufferT, MLAnyT, MLFunctionT) {
+	ml_value_t *Function = Args[2];
+	Args[2] = Args[1];
+	Args[1] = Args[0];
+	return ml_call(Caller, Function, Count - 1, Args + 1);
+}
+
+/*ML_METHODVX("append", MLStringBufferT, MLFunctionT) {
+	ml_value_t *Function = Args[1];
+	Args[1] = Args[0];
+	return ml_call(Caller, Function, Count - 1, Args + 1);
+}*/
 
 ML_METHOD(MLIntegerT, MLStringT) {
 //!number
@@ -1380,17 +1515,14 @@ ML_METHOD("utf8", MLIntegerT) {
 	uint32_t Code = ml_integer_value(Args[0]);
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
-	int I = 0;
+	int I = 8;
 	while (Code > LeadByteMax) {
-		Val[I++] = (Code & 0x3F) | 0x80;
+		Val[--I] = (Code & 0x3F) | 0x80;
 		Code >>= 6;
-		LeadByteMax >>= (I == 1 ? 2 : 1);
+		LeadByteMax >>= (I == 7 ? 2 : 1);
 	}
-	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	char *S = snew(I + 1), *P = S;
-	while (I--) *P++ = Val[I];
-	*P = 0;
-	return ml_string(S, I);
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	return ml_string_copy(Val + I, 8 - I);
 }
 
 ML_METHOD("char", MLIntegerT) {
@@ -1400,17 +1532,14 @@ ML_METHOD("char", MLIntegerT) {
 	uint32_t Code = ml_integer_value(Args[0]);
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
-	int I = 0;
+	int I = 8;
 	while (Code > LeadByteMax) {
-		Val[I++] = (Code & 0x3F) | 0x80;
+		Val[--I] = (Code & 0x3F) | 0x80;
 		Code >>= 6;
-		LeadByteMax >>= (I == 1 ? 2 : 1);
+		LeadByteMax >>= (I == 7 ? 2 : 1);
 	}
-	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	char *S = snew(I + 1), *P = S;
-	while (I--) *P++ = Val[I];
-	*P = 0;
-	return ml_string(S, I);
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	return ml_string_copy(Val + I, 8 - I);
 }
 
 #ifdef ML_ICU
@@ -1672,16 +1801,27 @@ ML_METHOD("offset", MLStringT, MLIntegerT) {
 	const char *Start = ml_string_value(Args[0]);
 	return ml_integer(Index.Chars - Start);
 }
-
+/*
 ML_METHOD("+", MLStringT, MLStringT) {
 //<A
 //<B
 //>string
 // Returns :mini:`A` and :mini:`B` concatentated.
 //$= "Hello" + " " + "world"
+*/
+
+ML_FUNCTION(MLAddStringString) {
+//!internal
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
+#ifdef ML_STRINGCACHE
+	if (Length < ML_STRINGCACHE_MAX) {
+		char Chars[ML_STRINGCACHE_MAX];
+		memcpy(mempcpy(Chars, ml_string_value(Args[0]), Length1), ml_string_value(Args[1]), Length2);
+		return weakmap_insert(StringCache, Chars, Length, _ml_string);
+	}
+#endif
 	char *Chars = snew(Length + 1);
 	memcpy(Chars, ml_string_value(Args[0]), Length1);
 	memcpy(Chars + Length1, ml_string_value(Args[1]), Length2);
@@ -3972,8 +4112,8 @@ ML_TYPE(MLStringBufferT, (MLStreamT), "stringbuffer");
 // A string buffer that automatically grows and shrinks as required.
 */
 
-ML_TYPE(MLStringBufferT, (), "stringbuffer",
-//!internal
+ML_TYPE(MLStringBufferT, (), "string::buffer",
+//@string::buffer
 // A string buffer that automatically grows and shrinks as required.
 	.Constructor = (ml_value_t *)MLStringBuffer
 );
@@ -3982,8 +4122,10 @@ static GC_descr StringBufferDesc = 0;
 
 #ifdef ML_THREADSAFE
 static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
+static size_t _Atomic StringBufferNodeCount = 0;
 #else
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
+static size_t StringBufferNodeCount = 0;
 #endif
 
 static ml_stringbuffer_node_t *ml_stringbuffer_node() {
@@ -3992,6 +4134,7 @@ static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 	do {
 		if (!Next) {
 			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			++StringBufferNodeCount;
 			break;
 		}
 		CacheNext = Next->Next;
@@ -4018,6 +4161,10 @@ static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
 	Node->Next = StringBufferNodeCache;
 	StringBufferNodeCache = Node;
 #endif
+}
+
+ML_FUNCTION(MLStringBufferCount) {
+	return ml_integer(StringBufferNodeCount);
 }
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
@@ -4059,7 +4206,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 	return Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
 }
 
-ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+ssize_t ml_stringbuffer_write_actual(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
 	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);
 	size_t Remaining = Length;
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
@@ -4104,7 +4251,7 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 	return Length;
 }
 
-void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
+void ml_stringbuffer_put_actual(ml_stringbuffer_t *Buffer, char Char) {
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	if (!Buffer->Space) {
 		Node = Node->Next = ml_stringbuffer_node();
@@ -4126,19 +4273,6 @@ char ml_stringbuffer_last(ml_stringbuffer_t *Buffer) {
 		return Prev->Chars[ML_STRINGBUFFER_NODE_SIZE - 1];
 	}
 	return Node->Chars[ML_STRINGBUFFER_NODE_SIZE - (Buffer->Space + 1)];
-}
-
-void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
-	char Val[8];
-	uint32_t LeadByteMax = 0x7F;
-	int I = 0;
-	while (Code > LeadByteMax) {
-		Val[I++] = (Code & 0x3F) | 0x80;
-		Code >>= 6;
-		LeadByteMax >>= (I == 1 ? 2 : 1);
-	}
-	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	while (I--) ml_stringbuffer_put(Buffer, Val[I]);
 }
 
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
@@ -4199,17 +4333,6 @@ char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
 	return String;
 }
 
-ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
-	size_t Length = Buffer->Length;
-	if (Length == 0) {
-		return ml_cstring("");
-	} else {
-		char *Chars = snew(Length + 1);
-		ml_stringbuffer_finish(Buffer, Chars);
-		return ml_string_unchecked(Chars, Length);
-	}
-}
-
 ml_value_t *ml_stringbuffer_to_address(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	char *Chars = snew(Length + 1);
@@ -4226,9 +4349,58 @@ ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) {
 
 ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
+	if (Length == 0) return (ml_value_t *)MLEmptyString;
+#ifdef ML_STRINGCACHE
+	if (Length < ML_STRINGCACHE_MAX) {
+		ml_value_t *String = weakmap_insert(StringCache, Buffer->Head->Chars, Length, _ml_string);
+		ml_stringbuffer_clear(Buffer);
+		return String;
+	}
+#endif
 	char *Chars = snew(Length + 1);
-	if (Length) ml_stringbuffer_finish(Buffer, Chars);
+	ml_stringbuffer_finish(Buffer, Chars);
 	return ml_string(Chars, Length);
+}
+
+ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
+	return ml_stringbuffer_to_string(Buffer);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Args[2];
+} ml_stringbuffer_grow_t;
+
+static void ml_stringbuffer_grow_next(ml_stringbuffer_grow_t *State, ml_value_t *Value);
+
+static void ml_stringbuffer_grow_append(ml_stringbuffer_grow_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_stringbuffer_grow_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ml_stringbuffer_grow_value(ml_stringbuffer_grow_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_stringbuffer_grow_append;
+	State->Args[1] = Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+static void ml_stringbuffer_grow_next(ml_stringbuffer_grow_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Args[0]);
+	State->Base.run = (void *)ml_stringbuffer_grow_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODX("grow", MLStringBufferT, MLSequenceT) {
+	ml_stringbuffer_grow_t *Grow = new(ml_stringbuffer_grow_t);
+	Grow->Base.Caller = Caller;
+	Grow->Base.Context = Caller->Context;
+	Grow->Base.run = (void *)ml_stringbuffer_grow_next;
+	Grow->Args[0] = Args[0];
+	return ml_iterate((ml_state_t *)Grow, Args[1]);
 }
 
 ML_METHOD("rest", MLStringBufferT) {
@@ -4396,6 +4568,7 @@ void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
+	stringmap_insert(MLStringBufferT->Exports, "count", MLStringBufferCount);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
@@ -4404,6 +4577,9 @@ void ml_string_init() {
 	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
 	stringmap_insert(MLRegexT->Exports, "escape", MLRegexEscape);
 #include "ml_string_init.c"
+	stringmap_insert(MLAddressT->Exports, "LE", ml_enum_value(MLByteOrderT, 1));
+	stringmap_insert(MLAddressT->Exports, "BE", ml_enum_value(MLByteOrderT, 2));
+	ml_method_definev(ml_method("+"), (ml_value_t *)MLAddStringString, NULL, MLStringT, MLStringT, NULL);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};
 	ml_type_add_parent(MLStringT, ml_generic_type(3, TArgs));

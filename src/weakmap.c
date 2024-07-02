@@ -24,7 +24,7 @@ static inline const char *weakmap_copy_key(const char *Key, int Length) {
 }
 
 static void *weakmap_grow(weakmap_t *Map, size_t Size) {
-	fprintf(stderr, "Growing map from %ld -> %ld\n", Map->Mask + 1, Size);
+	//fprintf(stderr, "Growing map from %ld -> %ld\n", Map->Mask + 1, Size);
 	weakmap_node_t *Nodes = GC_malloc_atomic(Size * sizeof(weakmap_node_t));
 	memset(Nodes, 0, Size * sizeof(weakmap_node_t));
 	weakmap_node_t *Old = Map->Nodes;
@@ -53,7 +53,7 @@ static void *weakmap_grow(weakmap_t *Map, size_t Size) {
 		*Node = Insert;
 		GC_general_register_disappearing_link(&Node->Value, Node->Value);
 	}
-	fprintf(stderr, "\t -> %ld\n", Map->Space);
+	//fprintf(stderr, "\t -> %ld\n", Map->Space);
 	Map->Nodes = Nodes;
 	Map->Mask = Mask;
 	Map->Space = Space;
@@ -73,7 +73,7 @@ static void *weakmap_value(weakmap_node_t *Node) {
 #define INIT_SIZE 64
 #define MIN_SPACE 8
 
-void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *)) {
+void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *, int)) {
 	size_t Hash = weakmap_hash(Key, Length);
 	if (!Map->Nodes) {
 		weakmap_node_t *Nodes = Map->Nodes = GC_malloc_atomic(INIT_SIZE * sizeof(weakmap_node_t));
@@ -84,7 +84,7 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 		weakmap_node_t *Node = Nodes + Index;
 		Node->Key = weakmap_copy_key(Key, Length);
 		Node->Hash = Hash;
-		void *Result = Node->Value = missing(Node->Key);
+		void *Result = Node->Value = missing(Node->Key, Length);
 		GC_general_register_disappearing_link(&Node->Value, Result);
 		return Result;
 	}
@@ -114,8 +114,8 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	Insert.Hash = Hash;
 	Insert.Key = weakmap_copy_key(Key, Length);
 	Insert.Offset = Offset;
-	void *Result = Insert.Value = missing(Insert.Key);
-	fprintf(stderr, "Creating missing value for key %s: space %ld ->", Insert.Key, Map->Space);
+	void *Result = Insert.Value = missing(Insert.Key, Length);
+	//fprintf(stderr, "Creating missing value for key %s: space %ld ->", Insert.Key, Map->Space);
 	//GC_register_finalizer(Result, (GC_finalization_proc)weakmap_delete, Map, NULL, NULL);
 	while (Node->Value) {
 		if (Node->Offset < Insert.Offset) {
@@ -131,7 +131,7 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	if (!Node->Key) --Map->Space;
 	*Node = Insert;
 	GC_general_register_disappearing_link(&Node->Value, Node->Value);
-	fprintf(stderr, "%ld\n", Map->Space);
+	//fprintf(stderr, "%ld\n", Map->Space);
 	return Result;
 }
 
@@ -159,7 +159,7 @@ ML_METHOD("append", MLStringBufferT, WeakMapTokenT) {
 	return MLSome;
 }
 
-static void *weak_map_token(const char *Name) {
+static void *weak_map_token(const char *Name, int Length) {
 	static size_t Last = 0;
 	ml_weakmap_token_t *Token = new(ml_weakmap_token_t);
 	Token->Type = WeakMapTokenT;

@@ -337,6 +337,50 @@ int ml_array_size(ml_value_t *Value, int Dim) {
 	return Array->Dimensions[Dim].Size;
 }
 
+typedef struct {
+	void *Data;
+	int *Indices, *Limit;
+	void (*callback)(void *, int *, void *);
+} ml_array_foreach_t;
+
+static void ml_array_foreach_next(void *Data, ml_array_dimension_t *Dimension, int *Index, ml_array_foreach_t *Foreach) {
+	if (Foreach->Indices == Foreach->Limit) {
+		if (Dimension->Indices) {
+			const int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				Foreach->callback(Data + Indices[I] * Dimension->Stride, Foreach->Indices, Foreach->Data);
+			}
+		} else {
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				Foreach->callback(Data + I * Dimension->Stride, Foreach->Indices, Foreach->Data);
+			}
+		}
+	} else {
+		if (Dimension->Indices) {
+			const int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				ml_array_foreach_next(Data + Indices[I] * Dimension->Stride, Dimension + 1, Index + 1, Foreach);
+			}
+		} else {
+			for (int I = 0; I < Dimension->Size; ++I) {
+				*Index = I;
+				ml_array_foreach_next(Data + I * Dimension->Stride, Dimension + 1, Index + 1, Foreach);
+			}
+		}
+	}
+}
+
+void ml_array_foreach(ml_array_t *Array, void *Data, void (*callback)(void *, int *, void *)) {
+	int Degree = Array->Degree;
+	if (!Degree) return;
+	int Indices[Degree];
+	ml_array_foreach_t Foreach = {Data, Indices, Indices + (Degree - 1), callback};
+	ml_array_foreach_next(Array->Base.Value, Array->Dimensions, Indices, &Foreach);
+}
+
 typedef struct ml_array_init_state_t {
 	ml_state_t Base;
 	char *Address;
@@ -966,7 +1010,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
 	int Count = Indexer->Target->Size = ml_list_length(Index);
 	if (!Count) return (ml_value_t *)MLArrayNil;
-	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
+	int *Indices = (int *)snew(Count * sizeof(int));
+	Indexer->Target->Indices = Indices;
 	int *IndexPtr = Indices;
 	ml_value_t *Index0 = ((ml_list_t *)Index)->Head->Value;
 	if (ml_is(Index0, MLTupleT)) {
@@ -1035,7 +1080,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_integer_r
 	int Size = Indexer->Target->Size = (Max - Min) / Step + 1;
 	if (Size < 0) return (ml_value_t *)MLArrayNil;
 	if (Indexer->Source->Indices) {
-		int *Indices = Indexer->Target->Indices = (int *)snew(Size * sizeof(int));
+		int *Indices = (int *)snew(Size * sizeof(int));
+		Indexer->Target->Indices = Indices;
 		int *IndexPtr = Indices;
 		for (int I = Min; I <= Max; I += Step) {
 			*IndexPtr++ = Indexer->Source->Indices[I];
@@ -1065,7 +1111,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerIntervalT, ml_intege
 	int Size = Indexer->Target->Size = (Max - Min) / Step + 1;
 	if (Size < 0) return (ml_value_t *)MLArrayNil;
 	if (Indexer->Source->Indices) {
-		int *Indices = Indexer->Target->Indices = (int *)snew(Size * sizeof(int));
+		int *Indices = (int *)snew(Size * sizeof(int));
+		Indexer->Target->Indices = Indices;
 		int *IndexPtr = Indices;
 		for (int I = Min; I <= Max; I += Step) {
 			*IndexPtr++ = Indexer->Source->Indices[I];
@@ -1106,7 +1153,7 @@ static int ml_array_count_nonzero_ ## CTYPE(void *Address, int Degree, ml_array_
 		int Size = Dimension->Size; \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				if (*(CTYPE *)(Address + Indices[I] * Stride) != ZERO) ++Count; \
 			} \
@@ -1119,7 +1166,7 @@ static int ml_array_count_nonzero_ ## CTYPE(void *Address, int Degree, ml_array_
 		int Size = Dimension->Size; \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices;\
+			const int *Indices = Dimension->Indices;\
 			for (int I = 0; I < Size; ++I) { \
 				Count += ml_array_count_nonzero_ ## CTYPE(Address + Indices[I] * Stride, Degree - 1, Dimension + 1); \
 			} \
@@ -1137,7 +1184,7 @@ static int *ml_array_offsets_nonzero_ ## CTYPE(int *Offsets, void *Address, int 
 		int Size = Dimension->Size; \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				if (*(CTYPE *)(Address + Indices[I] * Stride) != ZERO) *Offsets++ = Offset + Indices[I] * Source->Stride; \
 			} \
@@ -1150,7 +1197,7 @@ static int *ml_array_offsets_nonzero_ ## CTYPE(int *Offsets, void *Address, int 
 		int Size = Dimension->Size; \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices;\
+			const int *Indices = Dimension->Indices;\
 			for (int I = 0; I < Size; ++I) { \
 				Offsets = ml_array_offsets_nonzero_ ## CTYPE(Offsets, Address + Indices[I] * Stride, Degree - 1, Dimension + 1, Offset + Indices[I] * Source->Stride, Source + 1); \
 			} \
@@ -1263,7 +1310,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt8T, ml_array
 	}
 	int Count = Indexer->Target->Size = ml_array_count_nonzero(Array);
 	if (!Count) return (ml_value_t *)MLArrayNil;
-	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
+	int *Indices = (int *)snew(Count * sizeof(int));
+	Indexer->Target->Indices = Indices;
 	ml_array_offsets_nonzero(Array, Indices, Indexer->Source);
 	int First = Indices[0];
 	for (int I = 0; I < Count; ++I) Indices[I] -= First;
@@ -1277,7 +1325,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt8T, ml_array
 static int *ml_array_to_indices(int *Indices, int Degree, ml_array_dimension_t *TargetDimension, int Offset, ml_array_dimension_t *IndexDimension, void *IndexData) {
 	if (Degree == 0) {
 		if (IndexDimension->Indices) {
-			int *IndexIndices = IndexDimension->Indices;
+			const int *IndexIndices = IndexDimension->Indices;
 			for (int I = 0; I < IndexDimension->Size; ++I) {
 				int N = *(int32_t *)(IndexData + IndexIndices[I] * IndexDimension->Stride) - 1;
 				if (N < 0 || N >= TargetDimension[I].Size) return NULL;
@@ -1293,9 +1341,9 @@ static int *ml_array_to_indices(int *Indices, int Degree, ml_array_dimension_t *
 		*Indices++ = Offset;
 	} else {
 		if (IndexDimension->Indices) {
-			int *IndexIndices = IndexDimension->Indices;
+			const int *IndexIndices = IndexDimension->Indices;
 			if (TargetDimension->Indices) {
-				int *TargetIndices = TargetDimension->Indices;
+				const int *TargetIndices = TargetDimension->Indices;
 				for (int I = 0; I < IndexDimension->Size; ++I) {
 					Indices = ml_array_to_indices(Indices, Degree - 1,
 						TargetDimension + 1,
@@ -1318,7 +1366,7 @@ static int *ml_array_to_indices(int *Indices, int Degree, ml_array_dimension_t *
 			}
 		} else {
 			if (TargetDimension->Indices) {
-				int *TargetIndices = TargetDimension->Indices;
+				const int *TargetIndices = TargetDimension->Indices;
 				for (int I = 0; I < IndexDimension->Size; ++I) {
 					Indices = ml_array_to_indices(Indices, Degree - 1,
 						TargetDimension + 1,
@@ -1356,7 +1404,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt32T, ml_arra
 		Count *= Array->Dimensions[I].Size;
 	}
 	Indexer->Target->Size = Count;
-	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
+	int *Indices = (int *)snew(Count * sizeof(int));
+	Indexer->Target->Indices = Indices;
 	if (!ml_array_to_indices(Indices, Degree, Indexer->Source, 0, Array->Dimensions, Array->Base.Value)) {
 		return ml_error("IndexError", "Index out of bounds");
 	}
@@ -1542,7 +1591,7 @@ ML_ARRAY_ITER_FN(AnyT, any, , );
 
 typedef struct {
 	char *Value;
-	int *Indices;
+	const int *Indices;
 	int Size, Stride, Index;
 } ml_array_iter_dim_t;
 
@@ -1751,9 +1800,9 @@ static void update_array(update_row_fn_t Update, ml_array_dimension_t *TargetDim
 	}
 	int Size = TargetDimension->Size;
 	if (TargetDimension->Indices) {
-		int *TargetIndices = TargetDimension->Indices;
+		const int *TargetIndices = TargetDimension->Indices;
 		if (SourceDimension->Indices) {
-			int *SourceIndices = SourceDimension->Indices;
+			const int *SourceIndices = SourceDimension->Indices;
 			for (int I = 0; I < Size; ++I) {
 				update_array(Update, TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride);
 			}
@@ -1767,7 +1816,7 @@ static void update_array(update_row_fn_t Update, ml_array_dimension_t *TargetDim
 	} else {
 		int TargetStride = TargetDimension->Stride;
 		if (SourceDimension->Indices) {
-			int *SourceIndices = SourceDimension->Indices;
+			const int *SourceIndices = SourceDimension->Indices;
 			for (int I = 0; I < Size; ++I) {
 				update_array(Update, TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride);
 				TargetData += TargetStride;
@@ -1787,7 +1836,7 @@ static void update_prefix(update_row_fn_t Update, int PrefixDegree, ml_array_dim
 	if (PrefixDegree == 0) return update_array(Update, TargetDimension, TargetData, SourceDegree, SourceDimension, SourceData);
 	int Size = TargetDimension->Size;
 	if (TargetDimension->Indices) {
-		int *TargetIndices = TargetDimension->Indices;
+		const int *TargetIndices = TargetDimension->Indices;
 		for (int I = Size; --I >= 0;) {
 			update_prefix(Update, PrefixDegree - 1, TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree, SourceDimension, SourceData);
 		}
@@ -1962,9 +2011,9 @@ static void compare_array(compare_row_fn_t Compare, ml_array_dimension_t *Target
 	int Size = LeftDimension->Size;
 	int TargetStride = TargetDimension->Stride;
 	if (LeftDimension->Indices) {
-		int *LeftIndices = LeftDimension->Indices;
+		const int *LeftIndices = LeftDimension->Indices;
 		if (RightDimension->Indices) {
-			int *RightIndices = RightDimension->Indices;
+			const int *RightIndices = RightDimension->Indices;
 			for (int I = 0; I < Size; ++I) {
 				compare_array(Compare, TargetDimension + 1, TargetData, LeftDimension + 1, LeftData + LeftIndices[I] * LeftDimension->Stride, RightDegree - 1, RightDimension + 1, RightData + RightIndices[I] * RightDimension->Stride);
 				TargetData += TargetStride;
@@ -1980,7 +2029,7 @@ static void compare_array(compare_row_fn_t Compare, ml_array_dimension_t *Target
 	} else {
 		int LeftStride = LeftDimension->Stride;
 		if (RightDimension->Indices) {
-			int *RightIndices = RightDimension->Indices;
+			const int *RightIndices = RightDimension->Indices;
 			for (int I = 0; I < Size; ++I) {
 				compare_array(Compare, TargetDimension + 1, TargetData, LeftDimension + 1, LeftData, RightDegree - 1, RightDimension + 1, RightData + RightIndices[I] * RightDimension->Stride);
 				LeftData += LeftStride;
@@ -2003,7 +2052,7 @@ static void compare_prefix(compare_row_fn_t Compare, ml_array_dimension_t *Targe
 	int Size = LeftDimension->Size;
 	int TargetStride = TargetDimension->Stride;
 	if (LeftDimension->Indices) {
-		int *LeftIndices = LeftDimension->Indices;
+		const int *LeftIndices = LeftDimension->Indices;
 		for (int I = Size; --I >= 0;) {
 			compare_prefix(Compare, TargetDimension + 1, TargetData, PrefixDegree - 1, LeftDimension + 1, LeftData + LeftIndices[I] * LeftDimension->Stride, RightDegree, RightDimension, RightData);
 			TargetData += TargetStride;
@@ -2098,7 +2147,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	ml_stringbuffer_write(Buffer, "<", 1); \
 	int Stride = Dimension->Stride; \
 	if (Degree == 1) { \
-		int *Indices = Dimension->Indices; \
+		const int *Indices = Dimension->Indices; \
 		if (Dimension->Indices) { \
 			APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
 			for (int I = 1; I < Dimension->Size; ++I) { \
@@ -2114,7 +2163,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			} \
 		} \
 	} else { \
-		int *Indices = Dimension->Indices; \
+		const int *Indices = Dimension->Indices; \
 		if (Dimension->Indices) { \
 			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
 			for (int I = 1; I < Dimension->Size; ++I) { \
@@ -2199,7 +2248,7 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 static long hash_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address) { \
 	int Stride = Dimension->Stride; \
 	if (Dimension->Indices) { \
-		int *Indices = Dimension->Indices; \
+		const int *Indices = Dimension->Indices; \
 		if (Dimension->Size) { \
 			if (Degree == 1) { \
 				long Hash = HASH(*(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
@@ -2427,7 +2476,7 @@ static void partial_sums_ ## CTYPE(int Target, int Degree, ml_array_dimension_t 
 	} else if (Target == Degree) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 1; I < Dimension->Size; ++I) { \
 				partial_sums_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, (Indices[I] - Indices[I - 1]) * Stride); \
 			} \
@@ -2440,7 +2489,7 @@ static void partial_sums_ ## CTYPE(int Target, int Degree, ml_array_dimension_t 
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				partial_sums_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, LastRow); \
 			} \
@@ -2459,7 +2508,7 @@ static void partial_prods_ ## CTYPE(int Target, int Degree, ml_array_dimension_t
 	} else if (Target == Degree) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 1; I < Dimension->Size; ++I) { \
 				partial_prods_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, (Indices[I] - Indices[I - 1]) * Stride); \
 			} \
@@ -2472,7 +2521,7 @@ static void partial_prods_ ## CTYPE(int Target, int Degree, ml_array_dimension_t
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				partial_prods_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, LastRow); \
 			} \
@@ -2492,7 +2541,7 @@ static CTYPE1 compute_sums_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensio
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Sum += compute_sums_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
 			} \
@@ -2505,7 +2554,7 @@ static CTYPE1 compute_sums_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensio
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Sum += *(CTYPE2 *)(Address + Indices[I] * Stride); \
 			} \
@@ -2526,7 +2575,7 @@ static void fill_sums_ ## CTYPE2(int TargetDegree, ml_array_dimension_t *TargetD
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *Indices = SourceDimension->Indices; \
+			const int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
 				fill_sums_ ## CTYPE2(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
@@ -2546,7 +2595,7 @@ static CTYPE1 compute_prods_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensi
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Prod *= compute_prods_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
 			} \
@@ -2559,7 +2608,7 @@ static CTYPE1 compute_prods_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensi
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Prod *= *(CTYPE2 *)(Address + Indices[I] * Stride); \
 			} \
@@ -2580,7 +2629,7 @@ static void fill_prods_ ## CTYPE2(int TargetDegree, ml_array_dimension_t *Target
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *Indices = SourceDimension->Indices; \
+			const int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
 				fill_prods_ ## CTYPE2(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
@@ -2602,7 +2651,7 @@ static CTYPE compute_mins_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension,
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Min2 = compute_mins_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
 				if (Min2 < Min) Min = Min2; \
@@ -2617,7 +2666,7 @@ static CTYPE compute_mins_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension,
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Min2 = *(CTYPE *)(Address + Indices[I] * Stride); \
 				if (Min2 < Min) Min = Min2; \
@@ -2640,7 +2689,7 @@ static void fill_mins_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDi
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *Indices = SourceDimension->Indices; \
+			const int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
 				fill_mins_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
@@ -2659,7 +2708,7 @@ static CTYPE find_mins_ ## CTYPE(uint32_t *Target, int Degree, ml_array_dimensio
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Min2 = find_mins_ ## CTYPE(Target + 1, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Min); \
 				if (Min2 < Min) { Min = Min2; *Target = I + 1; } \
@@ -2674,7 +2723,7 @@ static CTYPE find_mins_ ## CTYPE(uint32_t *Target, int Degree, ml_array_dimensio
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Min2 = *(CTYPE *)(Address + Indices[I] * Stride); \
 				if (Min2 < Min) { Min = Min2; *Target = I + 1; } \
@@ -2698,7 +2747,7 @@ static void index_mins_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetD
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *Indices = SourceDimension->Indices; \
+			const int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
 				index_mins_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
@@ -2718,7 +2767,7 @@ static CTYPE compute_maxs_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension,
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Max2 = compute_maxs_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
 				if (Max2 > Max) Max = Max2; \
@@ -2733,7 +2782,7 @@ static CTYPE compute_maxs_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension,
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Max2 = *(CTYPE *)(Address + Indices[I] * Stride); \
 				if (Max2 > Max) Max = Max2; \
@@ -2756,7 +2805,7 @@ static void fill_maxs_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDi
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *Indices = SourceDimension->Indices; \
+			const int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
 				fill_maxs_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
@@ -2775,7 +2824,7 @@ static CTYPE find_maxs_ ## CTYPE(uint32_t *Target, int Degree, ml_array_dimensio
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Max2 = find_maxs_ ## CTYPE(Target + 1, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Max); \
 				if (Max2 > Max) { Max = Max2; *Target = I + 1; } \
@@ -2790,7 +2839,7 @@ static CTYPE find_maxs_ ## CTYPE(uint32_t *Target, int Degree, ml_array_dimensio
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				CTYPE Max2 = *(CTYPE *)(Address + Indices[I] * Stride); \
 				if (Max2 > Max) { Max = Max2; *Target = I + 1; } \
@@ -2814,7 +2863,7 @@ static void index_maxs_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetD
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
-			int *Indices = SourceDimension->Indices; \
+			const int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
 				index_maxs_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
@@ -2886,7 +2935,7 @@ static double compute_norm_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensio
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Sum += compute_norm_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, P); \
 			} \
@@ -2899,7 +2948,7 @@ static double compute_norm_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensio
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Sum += pow(NORM(*(CTYPE2 *)(Address + Indices[I] * Stride)), P); \
 			} \
@@ -2918,7 +2967,7 @@ static double compute_norm0_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensi
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Sum += compute_norm0_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, P); \
 			} \
@@ -2931,7 +2980,7 @@ static double compute_norm0_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimensi
 	} else { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
 				Sum *= pow(NORM(*(CTYPE2 *)(Address + Indices[I] * Stride)), P); \
 			} \
@@ -3010,7 +3059,7 @@ static char *array_flatten_to(char *Target, int Size, int Degree, int FlatDegree
 			}
 		} else {
 			int Stride = Dimension->Stride;
-			int *Indices = Dimension->Indices;
+			const int *Indices = Dimension->Indices;
 			switch (Size) {
 			case 1:
 				for (int I = Dimension->Size; --I >= 0;) {
@@ -3054,7 +3103,7 @@ static char *array_flatten_to(char *Target, int Size, int Degree, int FlatDegree
 		return Target;
 	} else {
 		int Stride = Dimension->Stride;
-		int *Indices = Dimension->Indices;
+		const int *Indices = Dimension->Indices;
 		for (int I = Dimension->Size; --I >= 0;) {
 			Target = array_flatten_to(Target, Size, Degree - 1, FlatDegree, Dimension + 1, Source + Stride * *Indices++);
 		}
@@ -6123,7 +6172,7 @@ static void ml_array_where_nonzero_ ## CTYPE(ml_array_where_nonzero_t *Where, vo
 		int Size = Dimension->Size; \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices; \
+			const int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				if (*(CTYPE *)(Address + Indices[I] * Stride) != ZERO) { \
 					ml_value_t *Index = ml_tuple(Where->Degree); \
@@ -6150,7 +6199,7 @@ static void ml_array_where_nonzero_ ## CTYPE(ml_array_where_nonzero_t *Where, vo
 		int Size = Dimension->Size; \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
-			int *Indices = Dimension->Indices;\
+			const int *Indices = Dimension->Indices;\
 			for (int I = 0; I < Size; ++I) { \
 				Where->Indices[Degree - 1] = ml_integer(I + 1); \
 				ml_array_where_nonzero_ ## CTYPE(Where, Address + Indices[I] * Stride, Degree + 1, Dimension + 1); \
@@ -6168,7 +6217,7 @@ static void ml_array_where_nonzero1_ ## CTYPE(ml_value_t *Result, void *Address,
 	int Size = Dimension->Size; \
 	int Stride = Dimension->Stride; \
 	if (Dimension->Indices) { \
-		int *Indices = Dimension->Indices; \
+		const int *Indices = Dimension->Indices; \
 		for (int I = 0; I < Size; ++I) { \
 			if (*(CTYPE *)(Address + Indices[I] * Stride) != ZERO) { \
 				ml_list_put(Result, ml_integer(I + 1)); \
@@ -6336,93 +6385,116 @@ ML_METHOD("where", MLArrayT) {
 	}
 }
 
-#define ML_ARRAY_GETTER_IMPL(CTYPE, ATYPE) \
+#define ML_ARRAY_ACCESSOR_IMPL(CTYPE, ATYPE) \
 static CTYPE ml_array_getter_ ## CTYPE ## _ ## ATYPE(void *Data) { \
 	return (CTYPE)(*(ATYPE *)Data); \
+} \
+\
+static void ml_array_setter_ ## CTYPE ## _ ## ATYPE(void *Data, CTYPE Value) { \
+	*(ATYPE *)Data = Value; \
 }
 
-#define ML_ARRAY_GETTERS_IMPL_BASE(CTYPE, FROM_VAL) \
+#define ML_ARRAY_ACCESSORS_IMPL_BASE(CTYPE, FROM_VAL, TO_VAL) \
 \
-typedef CTYPE (*ml_array_getter_ ## CTYPE)(void *Data); \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint8_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int8_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint16_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int16_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint32_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int32_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, uint64_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, int64_t) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, float) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, double) \
 \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint8_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int8_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint16_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int16_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint32_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int32_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, uint64_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, int64_t) \
-ML_ARRAY_GETTER_IMPL(CTYPE, float) \
-ML_ARRAY_GETTER_IMPL(CTYPE, double) \
-\
-static CTYPE ml_array_getter_ ## CTYPE ## _ ## any(void *Data) { \
+static CTYPE ml_array_getter_ ## CTYPE ## _any(void *Data) { \
 	return FROM_VAL(*(ml_value_t **)Data); \
+} \
+\
+static void ml_array_setter_ ## CTYPE ## _any(void *Data, CTYPE Value) { \
+	*(any *)Data = TO_VAL(Value); \
 }
 
 #ifdef ML_COMPLEX
 
-#define ML_ARRAY_GETTERS_IMPL(CTYPE, FROM_VAL) \
-ML_ARRAY_GETTERS_IMPL_BASE(CTYPE, FROM_VAL) \
-ML_ARRAY_GETTER_IMPL(CTYPE, complex_float) \
-ML_ARRAY_GETTER_IMPL(CTYPE, complex_double)
+#define ML_ARRAY_ACCESSORS_IMPL(CTYPE, FROM_VAL, TO_VAL) \
+ML_ARRAY_ACCESSORS_IMPL_BASE(CTYPE, FROM_VAL, TO_VAL) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, complex_float) \
+ML_ARRAY_ACCESSOR_IMPL(CTYPE, complex_double)
 
 #else
 
-#define ML_ARRAY_GETTERS_IMPL(CTYPE, FROM_VAL) ML_ARRAY_GETTERS_IMPL_BASE(CTYPE, FROM_VAL)
+#define ML_ARRAY_ACCESSORS_IMPL(CTYPE, FROM_VAL, TO_VAL) ML_ARRAY_ACCESSORS_IMPL_BASE(CTYPE, FROM_VAL, TO_VAL)
 
 #endif
 
-ML_ARRAY_GETTERS_IMPL(uint8_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int8_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(uint16_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int16_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(uint32_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int32_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(uint64_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(int64_t, ml_integer_value)
-ML_ARRAY_GETTERS_IMPL(float, ml_real_value)
-ML_ARRAY_GETTERS_IMPL(double, ml_real_value)
+ML_ARRAY_ACCESSORS_IMPL(uint8_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int8_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(uint16_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int16_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(uint32_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int32_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(uint64_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(int64_t, ml_integer_value, ml_integer)
+ML_ARRAY_ACCESSORS_IMPL(float, ml_real_value, ml_real)
+ML_ARRAY_ACCESSORS_IMPL(double, ml_real_value, ml_real)
 
 #ifdef ML_COMPLEX
 
-ML_ARRAY_GETTERS_IMPL(complex_float, ml_complex_value)
-ML_ARRAY_GETTERS_IMPL(complex_double, ml_complex_value)
+ML_ARRAY_ACCESSORS_IMPL(complex_float, ml_complex_value, ml_complex)
+ML_ARRAY_ACCESSORS_IMPL(complex_double, ml_complex_value, ml_complex)
 
 #endif
 
-#define ML_ARRAY_GETTER_ANY_IMPL(TO_VAL, ATYPE) \
+#define ML_ARRAY_ACCESSOR_ANY_IMPL(TO_VAL, FROM_VAL, ATYPE) \
 static any ml_array_getter_any_ ## ATYPE(void *Data) { \
 	return TO_VAL(*(ATYPE *)Data); \
+} \
+\
+static void ml_array_setter_any_ ## ATYPE(void *Data, any Value) { \
+	*(ATYPE *)Data = FROM_VAL(Value); \
 }
 
 typedef any (*ml_array_getter_any)(void *Data);
 
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint8_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int8_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint16_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int16_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint32_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int32_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, uint64_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_integer, int64_t)
-ML_ARRAY_GETTER_ANY_IMPL(ml_real, float)
-ML_ARRAY_GETTER_ANY_IMPL(ml_real, double)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint8_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int8_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint16_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int16_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint32_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int32_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, uint64_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_integer, ml_integer_value, int64_t)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_real, ml_real_value, float)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_real, ml_real_value, double)
 
 #ifdef ML_COMPLEX
 
-ML_ARRAY_GETTER_ANY_IMPL(ml_complex, complex_float)
-ML_ARRAY_GETTER_ANY_IMPL(ml_complex, complex_double)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_complex, ml_complex_value, complex_float)
+ML_ARRAY_ACCESSOR_ANY_IMPL(ml_complex, ml_complex_value, complex_double)
 
 #endif
 
-static ml_value_t *ml_array_getter_any_any(void *Data) {
-	return *(ml_value_t **)Data;
+static any ml_array_getter_any_any(void *Data) {
+	return *(any *)Data;
+}
+
+static void ml_array_setter_any_any(void *Data, any Value) {
+	*(any *)Data = Value;
+}
+
+#define ML_ARRAY_ACCESSOR_FNS(NAME, CTYPE) \
+ml_array_getter_ ## CTYPE ml_array_ ## CTYPE ## _getter(ml_array_format_t Format) { \
+	return MLArrayGetters ## NAME[Format]; \
+} \
+\
+ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format) { \
+	return MLArraySetters ## NAME[Format]; \
 }
 
 #ifdef ML_COMPLEX
 
-#define ML_ARRAY_GETTER_DECLS(NAME, CTYPE) \
+#define ML_ARRAY_ACCESSOR_DECLS(NAME, CTYPE) \
 static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_U8] = ml_array_getter_ ## CTYPE ## _uint8_t, \
 	[ML_ARRAY_FORMAT_I8] = ml_array_getter_ ## CTYPE ## _int8_t, \
@@ -6437,11 +6509,29 @@ static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_C32] = ml_array_getter_ ## CTYPE ## _complex_float, \
 	[ML_ARRAY_FORMAT_C64] = ml_array_getter_ ## CTYPE ## _complex_double, \
 	[ML_ARRAY_FORMAT_ANY] = ml_array_getter_ ## CTYPE ## _any, \
-}
+}; \
+\
+static ml_array_setter_ ## CTYPE MLArraySetters ## NAME[] = { \
+	[ML_ARRAY_FORMAT_U8] = ml_array_setter_ ## CTYPE ## _uint8_t, \
+	[ML_ARRAY_FORMAT_I8] = ml_array_setter_ ## CTYPE ## _int8_t, \
+	[ML_ARRAY_FORMAT_U16] = ml_array_setter_ ## CTYPE ## _uint16_t, \
+	[ML_ARRAY_FORMAT_I16] = ml_array_setter_ ## CTYPE ## _int16_t, \
+	[ML_ARRAY_FORMAT_U32] = ml_array_setter_ ## CTYPE ## _uint32_t, \
+	[ML_ARRAY_FORMAT_I32] = ml_array_setter_ ## CTYPE ## _int32_t, \
+	[ML_ARRAY_FORMAT_U64] = ml_array_setter_ ## CTYPE ## _uint64_t, \
+	[ML_ARRAY_FORMAT_I64] = ml_array_setter_ ## CTYPE ## _int64_t, \
+	[ML_ARRAY_FORMAT_F32] = ml_array_setter_ ## CTYPE ## _float, \
+	[ML_ARRAY_FORMAT_F64] = ml_array_setter_ ## CTYPE ## _double, \
+	[ML_ARRAY_FORMAT_C32] = ml_array_setter_ ## CTYPE ## _complex_float, \
+	[ML_ARRAY_FORMAT_C64] = ml_array_setter_ ## CTYPE ## _complex_double, \
+	[ML_ARRAY_FORMAT_ANY] = ml_array_setter_ ## CTYPE ## _any, \
+}; \
+\
+ML_ARRAY_ACCESSOR_FNS(NAME, CTYPE)
 
 #else
 
-#define ML_ARRAY_GETTER_DECLS(NAME, CTYPE) \
+#define ML_ARRAY_ACCESSOR_DECLS(NAME, CTYPE) \
 static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_I8] = ml_array_getter_ ## CTYPE ## _int8_t, \
 	[ML_ARRAY_FORMAT_U8] = ml_array_getter_ ## CTYPE ## _uint8_t, \
@@ -6454,29 +6544,48 @@ static ml_array_getter_ ## CTYPE MLArrayGetters ## NAME[] = { \
 	[ML_ARRAY_FORMAT_F32] = ml_array_getter_ ## CTYPE ## _float, \
 	[ML_ARRAY_FORMAT_F64] = ml_array_getter_ ## CTYPE ## _double, \
 	[ML_ARRAY_FORMAT_ANY] = ml_array_getter_ ## CTYPE ## _any, \
-}
+}; \
+\
+static ml_array_setter_ ## CTYPE MLArraySetters ## NAME[] = { \
+	[ML_ARRAY_FORMAT_I8] = ml_array_setter_ ## CTYPE ## _int8_t, \
+	[ML_ARRAY_FORMAT_U8] = ml_array_setter_ ## CTYPE ## _uint8_t, \
+	[ML_ARRAY_FORMAT_I16] = ml_array_setter_ ## CTYPE ## _int16_t, \
+	[ML_ARRAY_FORMAT_U16] = ml_array_setter_ ## CTYPE ## _uint16_t, \
+	[ML_ARRAY_FORMAT_I32] = ml_array_setter_ ## CTYPE ## _int32_t, \
+	[ML_ARRAY_FORMAT_U32] = ml_array_setter_ ## CTYPE ## _uint32_t, \
+	[ML_ARRAY_FORMAT_I64] = ml_array_setter_ ## CTYPE ## _int64_t, \
+	[ML_ARRAY_FORMAT_U64] = ml_array_setter_ ## CTYPE ## _uint64_t, \
+	[ML_ARRAY_FORMAT_F32] = ml_array_setter_ ## CTYPE ## _float, \
+	[ML_ARRAY_FORMAT_F64] = ml_array_setter_ ## CTYPE ## _double, \
+	[ML_ARRAY_FORMAT_ANY] = ml_array_setter_ ## CTYPE ## _any, \
+}; \
+\
+ML_ARRAY_ACCESSOR_FNS(NAME, CTYPE)
 
 #endif
 
-ML_ARRAY_GETTER_DECLS(UInt8, uint8_t);
-ML_ARRAY_GETTER_DECLS(Int8, int8_t);
-ML_ARRAY_GETTER_DECLS(UInt16, uint16_t);
-ML_ARRAY_GETTER_DECLS(Int16, int16_t);
-ML_ARRAY_GETTER_DECLS(UInt32, uint32_t);
-ML_ARRAY_GETTER_DECLS(Int32, int32_t);
-ML_ARRAY_GETTER_DECLS(UInt64, uint64_t);
-ML_ARRAY_GETTER_DECLS(Int64, int64_t);
-ML_ARRAY_GETTER_DECLS(Float32, float);
-ML_ARRAY_GETTER_DECLS(Float64, double);
+ML_ARRAY_ACCESSOR_DECLS(UInt8, uint8_t);
+ML_ARRAY_ACCESSOR_DECLS(Int8, int8_t);
+ML_ARRAY_ACCESSOR_DECLS(UInt16, uint16_t);
+ML_ARRAY_ACCESSOR_DECLS(Int16, int16_t);
+ML_ARRAY_ACCESSOR_DECLS(UInt32, uint32_t);
+ML_ARRAY_ACCESSOR_DECLS(Int32, int32_t);
+ML_ARRAY_ACCESSOR_DECLS(UInt64, uint64_t);
+ML_ARRAY_ACCESSOR_DECLS(Int64, int64_t);
+ML_ARRAY_ACCESSOR_DECLS(Float32, float);
+ML_ARRAY_ACCESSOR_DECLS(Float64, double);
 
 #ifdef ML_COMPLEX
 
-ML_ARRAY_GETTER_DECLS(Complex32, complex_float);
-ML_ARRAY_GETTER_DECLS(Complex64, complex_double);
+ML_ARRAY_ACCESSOR_DECLS(Complex32, complex_float);
+ML_ARRAY_ACCESSOR_DECLS(Complex64, complex_double);
 
 #endif
 
-ML_ARRAY_GETTER_DECLS(Any, any);
+typedef any (*ml_array_getter_any)(void *);
+typedef void (*ml_array_setter_any)(void *, any);
+
+ML_ARRAY_ACCESSOR_DECLS(Any, any);
 
 static void **MLArrayGetters[] = {
 	[ML_ARRAY_FORMAT_U8] = (void *)MLArrayGettersUInt8,
@@ -6496,6 +6605,24 @@ static void **MLArrayGetters[] = {
 	[ML_ARRAY_FORMAT_ANY] = (void *)MLArrayGettersAny
 };
 
+/*static void **MLArraySetters[] = {
+	[ML_ARRAY_FORMAT_U8] = (void *)MLArraySettersUInt8,
+	[ML_ARRAY_FORMAT_I8] = (void *)MLArraySettersInt8,
+	[ML_ARRAY_FORMAT_U16] = (void *)MLArraySettersUInt16,
+	[ML_ARRAY_FORMAT_I16] = (void *)MLArraySettersInt16,
+	[ML_ARRAY_FORMAT_U32] = (void *)MLArraySettersUInt32,
+	[ML_ARRAY_FORMAT_I32] = (void *)MLArraySettersInt32,
+	[ML_ARRAY_FORMAT_U64] = (void *)MLArraySettersUInt64,
+	[ML_ARRAY_FORMAT_I64] = (void *)MLArraySettersInt64,
+	[ML_ARRAY_FORMAT_F32] = (void *)MLArraySettersFloat32,
+	[ML_ARRAY_FORMAT_F64] = (void *)MLArraySettersFloat64,
+#ifdef ML_COMPLEX
+	[ML_ARRAY_FORMAT_C32] = (void *)MLArraySettersComplex32,
+	[ML_ARRAY_FORMAT_C64] = (void *)MLArraySettersComplex64,
+#endif
+	[ML_ARRAY_FORMAT_ANY] = (void *)MLArraySettersAny
+};*/
+
 #define ML_ARRAY_DOT(CTYPE) \
 static void ml_array_dot_ ## CTYPE( \
 	void *DataA, ml_array_dimension_t *DimA, ml_array_getter_ ## CTYPE GetterA, \
@@ -6507,9 +6634,9 @@ static void ml_array_dot_ ## CTYPE( \
 	int StrideA = DimA->Stride; \
 	int StrideB = DimB->Stride; \
 	if (DimA->Indices) { \
-		int *IndicesA = DimA->Indices; \
+		const int *IndicesA = DimA->Indices; \
 		if (DimB->Indices) { \
-			int *IndicesB = DimB->Indices; \
+			const int *IndicesB = DimB->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				CTYPE ValueA = GetterA(DataA + IndicesA[I] * StrideA); \
 				CTYPE ValueB = GetterB(DataB + IndicesB[I] * StrideB); \
@@ -6525,7 +6652,7 @@ static void ml_array_dot_ ## CTYPE( \
 		} \
 	} else { \
 		if (DimB->Indices) { \
-			int *IndicesB = DimB->Indices; \
+			const int *IndicesB = DimB->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				CTYPE ValueA = GetterA(DataA); \
 				CTYPE ValueB = GetterB(DataB + IndicesB[I] * StrideB); \
@@ -6555,9 +6682,9 @@ static void ml_array_dot_any(
 	int StrideA = DimA->Stride;
 	int StrideB = DimB->Stride;
 	if (DimA->Indices) {
-		int *IndicesA = DimA->Indices;
+		const int *IndicesA = DimA->Indices;
 		if (DimB->Indices) {
-			int *IndicesB = DimB->Indices;
+			const int *IndicesB = DimB->Indices;
 			Args[0] = GetterA(DataA + IndicesA[0] * StrideA);
 			Args[1] = GetterB(DataB + IndicesB[0] * StrideB);
 			Args[0] = ml_simple_call(MulMethod, 2, Args);
@@ -6581,7 +6708,7 @@ static void ml_array_dot_any(
 		}
 	} else {
 		if (DimB->Indices) {
-			int *IndicesB = DimB->Indices;
+			const int *IndicesB = DimB->Indices;
 			Args[0] = GetterA(DataA);
 			Args[1] = GetterB(DataB + IndicesB[0] * StrideB);
 			Args[0] = ml_simple_call(MulMethod, 2, Args);
@@ -6642,7 +6769,7 @@ static void ml_array_dot_fill(
 		int StrideA = DimA->Stride;
 		int StrideC = DimC->Stride;
 		if (DimA->Indices) {
-			int *Indices = DimA->Indices;
+			const int *Indices = DimA->Indices;
 			for (int I = 0; I < DimA->Size; ++I) {
 				ml_array_dot_fill(
 					DataA + (Indices[I]) * StrideA, DimA + 1, GetterA, DegreeA - 1,
@@ -6666,7 +6793,7 @@ static void ml_array_dot_fill(
 		int StrideB = DimB->Stride;
 		int StrideC = (DimC + DegreeC - 1)->Stride;
 		if (DimB->Indices) {
-			int *Indices = DimB->Indices;
+			const int *Indices = DimB->Indices;
 			for (int I = 0; I < DimB->Size; ++I) {
 				ml_array_dot_fill(
 					DataA, DimA, GetterA, DegreeA,
@@ -6742,7 +6869,7 @@ static void ml_array_infix_fill(
 		int StrideA = DimA->Stride;
 		int StrideC = DimC->Stride;
 		if (DimA->Indices) {
-			int *Indices = DimA->Indices;
+			const int *Indices = DimA->Indices;
 			for (int I = 0; I < DimA->Size; ++I) {
 				ml_array_infix_fill(
 					DataA + (Indices[I]) * StrideA, DimA + 1, GetterA, DegreeA - 1,
@@ -6766,7 +6893,7 @@ static void ml_array_infix_fill(
 		int StrideB = DimB->Stride;
 		int StrideC = (DimC + DegreeC - 1)->Stride;
 		if (DimB->Indices) {
-			int *Indices = DimB->Indices;
+			const int *Indices = DimB->Indices;
 			for (int I = 0; I < DimB->Size; ++I) {
 				ml_array_infix_fill(
 					DataA, DimA, GetterA, DegreeA,
@@ -6993,7 +7120,8 @@ ML_METHOD("@", MLMatrixT, MLVectorT) {
 		double Projection[N], *Result = anew(double, N);
 		ml_array_getter_double GetterB = MLArrayGetters[ML_ARRAY_FORMAT_F64][B->Format];
 		char *BData = B->Base.Value;
-		int Stride = B->Dimensions->Stride, *Indices = B->Dimensions->Indices;
+		int Stride = B->Dimensions->Stride;
+		const int *Indices = B->Dimensions->Indices;
 		if (Indices) {
 			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * Indices[I]);
 		} else {
@@ -7020,7 +7148,8 @@ ML_METHOD("@", MLMatrixT, MLVectorT) {
 		complex double Projection[N], *Result = anew(complex double, N);
 		ml_array_getter_complex_double GetterB = MLArrayGetters[ML_ARRAY_FORMAT_C64][B->Format];
 		char *BData = B->Base.Value;
-		int Stride = B->Dimensions->Stride, *Indices = B->Dimensions->Indices;
+		int Stride = B->Dimensions->Stride;
+		const int *Indices = B->Dimensions->Indices;
 		if (Indices) {
 			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * Indices[I]);
 		} else {
@@ -7047,7 +7176,8 @@ ML_METHOD("@", MLMatrixT, MLVectorT) {
 		ml_value_t *Projection[N], **Result = anew(ml_value_t *, N);
 		ml_array_getter_any GetterB = MLArrayGetters[ML_ARRAY_FORMAT_ANY][B->Format];
 		char *BData = B->Base.Value;
-		int Stride = B->Dimensions->Stride, *Indices = B->Dimensions->Indices;
+		int Stride = B->Dimensions->Stride;
+		const int *Indices = B->Dimensions->Indices;
 		if (Indices) {
 			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * Indices[I]);
 		} else {
@@ -7492,9 +7622,9 @@ ML_METHOD("tr", MLMatrixT) {
 		int Stride0 = Source->Dimensions[0].Stride;
 		int Stride1 = Source->Dimensions[1].Stride;
 		if (Source->Dimensions[0].Indices) {
-			int *Indices0 = Source->Dimensions[0].Indices;
+			const int *Indices0 = Source->Dimensions[0].Indices;
 			if (Source->Dimensions[1].Indices) {
-				int *Indices1 = Source->Dimensions[1].Indices;
+				const int *Indices1 = Source->Dimensions[1].Indices;
 				for (int I = 0; I < N; ++I) {
 					Trace += get(Data + (Indices0[I] * Stride0) + (Indices1[I] * Stride1));
 				}
@@ -7504,7 +7634,7 @@ ML_METHOD("tr", MLMatrixT) {
 				}
 			}
 		} else if (Source->Dimensions[1].Indices) {
-			int *Indices1 = Source->Dimensions[1].Indices;
+			const int *Indices1 = Source->Dimensions[1].Indices;
 			for (int I = 0; I < N; ++I) {
 				Trace += get(Data + (I * Stride0) + (Indices1[I] * Stride1));
 			}
@@ -7522,9 +7652,9 @@ ML_METHOD("tr", MLMatrixT) {
 		int Stride0 = Source->Dimensions[0].Stride;
 		int Stride1 = Source->Dimensions[1].Stride;
 		if (Source->Dimensions[0].Indices) {
-			int *Indices0 = Source->Dimensions[0].Indices;
+			const int *Indices0 = Source->Dimensions[0].Indices;
 			if (Source->Dimensions[1].Indices) {
-				int *Indices1 = Source->Dimensions[1].Indices;
+				const int *Indices1 = Source->Dimensions[1].Indices;
 				for (int I = 0; I < N; ++I) {
 					Trace += get(Data + (Indices0[I] * Stride0) + (Indices1[I] * Stride1));
 				}
@@ -7534,7 +7664,7 @@ ML_METHOD("tr", MLMatrixT) {
 				}
 			}
 		} else if (Source->Dimensions[1].Indices) {
-			int *Indices1 = Source->Dimensions[1].Indices;
+			const int *Indices1 = Source->Dimensions[1].Indices;
 			for (int I = 0; I < N; ++I) {
 				Trace += get(Data + (I * Stride0) + (Indices1[I] * Stride1));
 			}
@@ -7551,9 +7681,9 @@ ML_METHOD("tr", MLMatrixT) {
 		int Stride0 = Source->Dimensions[0].Stride;
 		int Stride1 = Source->Dimensions[1].Stride;
 		if (Source->Dimensions[0].Indices) {
-			int *Indices0 = Source->Dimensions[0].Indices;
+			const int *Indices0 = Source->Dimensions[0].Indices;
 			if (Source->Dimensions[1].Indices) {
-				int *Indices1 = Source->Dimensions[1].Indices;
+				const int *Indices1 = Source->Dimensions[1].Indices;
 				Args2[0] = *(ml_value_t **)(Data + (Indices0[0] * Stride0) + (Indices1[0] * Stride1));
 				for (int I = 1; I < N; ++I) {
 					Args2[1] = *(ml_value_t **)(Data + (Indices0[I] * Stride0) + (Indices1[I] * Stride1));
@@ -7567,7 +7697,7 @@ ML_METHOD("tr", MLMatrixT) {
 				}
 			}
 		} else if (Source->Dimensions[1].Indices) {
-			int *Indices1 = Source->Dimensions[1].Indices;
+			const int *Indices1 = Source->Dimensions[1].Indices;
 			Args2[0] = *(ml_value_t **)(Data + (0 * Stride0) + (Indices1[0] * Stride1));
 			for (int I = 1; I < N; ++I) {
 				Args2[1] = *(ml_value_t **)(Data + (I * Stride0) + (Indices1[I] * Stride1));
@@ -7617,7 +7747,7 @@ static void ml_cbor_write_array_typed(int Degree, size_t FlatSize, ml_array_dime
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
-			int *Indices = Dimension->Indices;
+			const int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
 				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address + Indices[I] * Stride, Writer);
 			}
@@ -7636,7 +7766,7 @@ static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension,
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
-			int *Indices = Dimension->Indices;
+			const int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
 				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Writer);
 			}

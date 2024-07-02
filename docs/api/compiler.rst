@@ -2,3 +2,4 @@ Compiler
 ========
 
 .. doxygengroup:: compiler
+   :members:

@@ -15,6 +15,7 @@
 #include "ml_sequence.h"
 #include "ml_stream.h"
 #include "ml_logging.h"
+#include <sys/fcntl.h>
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -95,10 +96,10 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "minilang"
 
-static stringmap_t Globals[1] = {STRINGMAP_INIT};
+stringmap_t MLGlobals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name, const char *Source, int Line, int Mode) {
-	return stringmap_search(Globals, Name);
+	return stringmap_search(MLGlobals, Name);
 }
 
 ML_FUNCTION(MLNow) {
@@ -182,75 +183,104 @@ static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 extern ml_cfunction_t MLMemTrace[];
 extern ml_cfunction_t MLMemSize[];
 extern ml_cfunction_t MLMemCollect[];
+extern ml_cfunction_t MLMemUsage[];
+extern ml_cfunction_t MLMemDump[];
+
+typedef struct {
+	ml_state_t Base;
+	FILE *File;
+} console_state_t;
+
+static void console_run(console_state_t *State, ml_value_t *Value) {
+	ml_file_console(State->Base.Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ", State->File, State->File);
+}
+
+ML_FUNCTIONX(MLConsole) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
+	int Fd = ml_integer_value(Args[0]);
+	fcntl(Fd, F_SETFL, fcntl(Fd, F_GETFL) & ~O_NONBLOCK);
+	console_state_t *State = new(console_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)console_run;
+	State->File = fdopen(Fd, "r+");
+	ml_scheduler_t *Scheduler = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	Scheduler->add(Scheduler, (ml_state_t *)State, MLNil);
+	ML_RETURN(MLNil);
+}
 
 int main(int Argc, const char *Argv[]) {
-	ml_init(Argv[0], Globals);
-	ml_sequence_init(Globals);
-	ml_object_init(Globals);
-	ml_time_init(Globals);
+	ml_init(Argv[0], MLGlobals);
+	ml_sequence_init(MLGlobals);
+	ml_object_init(MLGlobals);
+	ml_time_init(MLGlobals);
 #ifdef ML_STRUCT
-	ml_struct_init(Globals);
+	ml_struct_init(MLGlobals);
 #endif
 
 #ifdef ML_SCHEDULER
-	ml_tasks_init(Globals);
+	ml_tasks_init(MLGlobals);
 #endif
 #ifdef ML_AST
-	ml_ast_init(Globals);
+	ml_ast_init(MLGlobals);
 #endif
 #ifdef ML_BACKTRACE
-	stringmap_insert(Globals, "backtrace", MLBacktrace);
+	stringmap_insert(MLGlobals, "backtrace", MLBacktrace);
 #endif
-	stringmap_insert(Globals, "now", MLNow);
-	stringmap_insert(Globals, "clock", MLClock);
-	stringmap_insert(Globals, "print", MLPrint);
-	stringmap_insert(Globals, "locale", MLLocale);
-	stringmap_insert(Globals, "raise", MLRaise);
-	stringmap_insert(Globals, "halt", MLHalt);
-	stringmap_insert(Globals, "break", MLBreak);
-	stringmap_insert(Globals, "debugger", MLDebugger);
-	stringmap_insert(Globals, "trace", MLTrace);
-	stringmap_insert(Globals, "memory", ml_module("memory",
+	stringmap_insert(MLGlobals, "now", MLNow);
+	stringmap_insert(MLGlobals, "clock", MLClock);
+	stringmap_insert(MLGlobals, "print", MLPrint);
+	stringmap_insert(MLGlobals, "locale", MLLocale);
+	stringmap_insert(MLGlobals, "raise", MLRaise);
+	stringmap_insert(MLGlobals, "halt", MLHalt);
+	stringmap_insert(MLGlobals, "break", MLBreak);
+	stringmap_insert(MLGlobals, "debugger", MLDebugger);
+	stringmap_insert(MLGlobals, "trace", MLTrace);
+	stringmap_insert(MLGlobals, "memory", ml_module("memory",
 		"trace", MLMemTrace,
 		"size", MLMemSize,
 		"collect", MLMemCollect,
+		"usage", MLMemUsage,
+		"dump", MLMemDump,
 	NULL));
-	stringmap_insert(Globals, "callcc", MLCallCC);
-	stringmap_insert(Globals, "markcc", MLMarkCC);
-	stringmap_insert(Globals, "calldc", MLCallDC);
-	stringmap_insert(Globals, "swapcc", MLSwapCC);
-	stringmap_insert(Globals, "channel", MLChannelT);
-	stringmap_insert(Globals, "semaphore", MLSemaphoreT);
-	stringmap_insert(Globals, "condition", MLConditionT);
-	stringmap_insert(Globals, "rwlock", MLRWLockT);
+	stringmap_insert(MLGlobals, "console", MLConsole);
+	stringmap_insert(MLGlobals, "callcc", MLCallCC);
+	stringmap_insert(MLGlobals, "markcc", MLMarkCC);
+	stringmap_insert(MLGlobals, "calldc", MLCallDC);
+	stringmap_insert(MLGlobals, "swapcc", MLSwapCC);
+	stringmap_insert(MLGlobals, "channel", MLChannelT);
+	stringmap_insert(MLGlobals, "semaphore", MLSemaphoreT);
+	stringmap_insert(MLGlobals, "condition", MLConditionT);
+	stringmap_insert(MLGlobals, "rwlock", MLRWLockT);
 #ifdef ML_SCHEDULER_
-	stringmap_insert(Globals, "atomic", MLAtomic);
+	stringmap_insert(MLGlobals, "atomic", MLAtomic);
 #endif
-	stringmap_insert(Globals, "finalize", MLFinalizer);
-	stringmap_insert(Globals, "context", MLContextKeyT);
-	stringmap_insert(Globals, "parser", MLParserT);
-	stringmap_insert(Globals, "compiler", MLCompilerT);
-	stringmap_insert(Globals, "macro", MLMacroT);
-	stringmap_insert(Globals, "variable", MLVariableT);
-	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
-	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
+	stringmap_insert(MLGlobals, "finalize", MLFinalizer);
+	stringmap_insert(MLGlobals, "context", MLContextKeyT);
+	stringmap_insert(MLGlobals, "parser", MLParserT);
+	stringmap_insert(MLGlobals, "compiler", MLCompilerT);
+	stringmap_insert(MLGlobals, "macro", MLMacroT);
+	stringmap_insert(MLGlobals, "variable", MLVariableT);
+	stringmap_insert(MLGlobals, "global", ml_stringmap_globals(MLGlobals));
+	stringmap_insert(MLGlobals, "globals", ml_cfunction(MLGlobals, (void *)ml_globals));
 
-	ml_logging_init(Globals);
+	ml_logging_init(MLGlobals);
 
 #ifdef ML_LIBRARY
-	ml_library_init(Globals);
+	ml_library_init(MLGlobals);
 	ml_module_t *Sys = ml_library_internal("sys");
-	stringmap_insert(Globals, "sys", Sys);
+	stringmap_insert(MLGlobals, "sys", Sys);
 	ml_module_t *Std = ml_library_internal("std");
-	stringmap_insert(Globals, "std", Std);
+	stringmap_insert(MLGlobals, "std", Std);
 	ml_module_t *Fmt = ml_library_internal("fmt");
-	stringmap_insert(Globals, "fmt", Fmt);
+	stringmap_insert(MLGlobals, "fmt", Fmt);
 	ml_module_t *IO = ml_library_internal("io");
-	stringmap_insert(Globals, "io", IO);
+	stringmap_insert(MLGlobals, "io", IO);
 	ml_module_t *Util = ml_library_internal("util");
-	stringmap_insert(Globals, "util", Util);
+	stringmap_insert(MLGlobals, "util", Util);
 	ml_module_t *Enc = ml_library_internal("enc");
-	stringmap_insert(Globals, "enc", Enc);
+	stringmap_insert(MLGlobals, "enc", Enc);
 #define SYS_EXPORTS Sys->Exports
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports
@@ -258,19 +288,19 @@ int main(int Argc, const char *Argv[]) {
 #define UTIL_EXPORTS Util->Exports
 #define ENC_EXPORTS Enc->Exports
 #else
-#define SYS_EXPORTS Globals
-#define STD_EXPORTS Globals
-#define FMT_EXPORTS Globals
-#define IO_EXPORTS Globals
-#define UTIL_EXPORTS Globals
-#define ENC_EXPORTS Globals
+#define SYS_EXPORTS MLGlobals
+#define STD_EXPORTS MLGlobals
+#define FMT_EXPORTS MLGlobals
+#define IO_EXPORTS MLGlobals
+#define UTIL_EXPORTS MLGlobals
+#define ENC_EXPORTS MLGlobals
 #endif
 
 	ml_stream_init(IO_EXPORTS);
-	ml_file_init(Globals);
-	ml_socket_init(Globals);
+	ml_file_init(MLGlobals);
+	ml_socket_init(MLGlobals);
 #ifdef ML_MMAP
-	ml_mmap_init(Globals);
+	ml_mmap_init(MLGlobals);
 #endif
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
@@ -285,23 +315,23 @@ int main(int Argc, const char *Argv[]) {
 	ml_xe_init(FMT_EXPORTS);
 #endif
 #ifdef ML_MATH
-	ml_math_init(Globals);
-	ml_array_init(Globals);
-	ml_polynomial_init(Globals);
+	ml_math_init(MLGlobals);
+	ml_array_init(MLGlobals);
+	ml_polynomial_init(MLGlobals);
 #endif
 #ifdef ML_GIR
 	int UseGirLoop = 0;
-	ml_gir_init(Globals);
+	ml_gir_init(MLGlobals);
 #endif
 #ifdef ML_GTK_CONSOLE
 	int GtkConsole = 0;
 	gtk_console_init();
 #endif
 #ifdef ML_MODULES
-	ml_module_init(Globals);
+	ml_module_init(MLGlobals);
 #endif
 #ifdef ML_TABLES
-	ml_table_init(Globals);
+	ml_table_init(MLGlobals);
 #endif
 #ifdef ML_PQUEUES
 	ml_pqueue_init(UTIL_EXPORTS);
@@ -384,7 +414,6 @@ int main(int Argc, const char *Argv[]) {
 				}
 				break;
 #endif
-			case 'z': GC_disable(); break;
 #ifdef ML_GIR
 			case 'g':
 				UseGirLoop = 1;
@@ -403,6 +432,26 @@ int main(int Argc, const char *Argv[]) {
 				BreakOnExit = 1;
 				break;
 #endif
+			case '-': {
+				if (!strcmp(Argv[I] + 2, "gc:disable")) {
+					GC_disable();
+				} else if (!strcmp(Argv[I] + 2, "gc:maxheap")) {
+					if (++I < Argc) {
+						char *End;
+						size_t Limit = strtol(Argv[I], &End, 10);
+						switch (*End) {
+						case 'k': Limit <<= 10; break;
+						case 'M': Limit <<= 20; break;
+						case 'G': Limit <<= 30; break;
+						}
+						GC_set_max_heap_size(Limit);
+					} else {
+						fprintf(stderr, "Error: slice size required\n");
+						exit(-1);
+					}
+				}
+				break;
+			}
 			}
 		} else {
 			MainModule = Argv[I];
@@ -432,7 +481,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(Main, (ml_getter_t)stringmap_global_get, Globals);
+		gtk_console_t *Console = gtk_console(Main, (ml_getter_t)ml_stringmap_global_get, MLGlobals);
 		gtk_console_show(Console, NULL);
 		if (MainModule) gtk_console_load_file(Console, MainModule, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
@@ -477,7 +526,7 @@ int main(int Argc, const char *Argv[]) {
 		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
 #endif
 	} else {
-		ml_console(Main->Context, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
+		ml_console(Main->Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ");
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
 		if (UseGirLoop) {

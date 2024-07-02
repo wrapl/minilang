@@ -62,12 +62,14 @@ hierarchy
       "any":e -> "ref":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
+      "enum":e -> "byte::order":w;
       "address":e -> "string":w;
       "sequence":e -> "string":w;
       "enum":e -> "string::norm":w;
       "enum":e -> "string::ctype":w;
       "function":e -> "regex":w;
       "stream":e -> "string::buffer":w;
+      "any":e -> "string::buffer":w;
       "any":e -> "stream":w;
       "enum":e -> "stream::seek":w;
       "function":e -> "stream::parser":w;
@@ -154,7 +156,9 @@ hierarchy
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;
       "any":e -> "gir::module":w;
-      "gir::baseinfo":e -> "gir::object":w;
+      "gir::baseinfo":e -> "gir::instance":w;
+      "gir::instance":e -> "gir::object":w;
+      "gir::instance":e -> "gir::interface":w;
       "any":e -> "gir::objectinstance":w;
       "gir::baseinfo":e -> "gir::struct":w;
       "any":e -> "gir::structinstance":w;
@@ -176,10 +180,10 @@ hierarchy
       "gir::baseinfo":e -> "gir::enum":w;
       "any":e -> "gir::enumvalue":w;
       "any":e -> "gir::objectproperty":w;
-      "any":e -> "gir::instance":w;
       "gir::baseinfo":e -> "gir::callback":w;
       "any":e -> "gir::callbackinstance":w;
       "function":e -> "gir::function":w;
+      "gir::instance":e -> "gir::class":w;
       "stream":e -> "file":w;
       "any":e -> "file::stat":w;
       "enum":e -> "file::mode":w;

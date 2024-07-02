@@ -80,6 +80,8 @@ static char *path_join(const char *Base, const char *Rest, int Remove, int Space
 	if (Rest[0]) {
 		*End++ = '/';
 		strcpy(End, Rest);
+	} else {
+		*End = 0;
 	}
 	return Path;
 }
@@ -240,7 +242,7 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 	}
 	ml_parser_source(Parser, (ml_source_t){FileName, LineNo});
 	ml_parser_input(Parser, Line);
-	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)stringmap_global_get, Globals);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
 	ml_importer_t *Importer = new(ml_importer_t);
 	Importer->Type = MLImporterT;
 	int FileNameLength = strlen(FileName);

@@ -2,3 +2,4 @@ Math
 ====
 
 .. doxygengroup:: math
+   :members:

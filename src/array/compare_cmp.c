@@ -10,9 +10,9 @@
 int cmp_row_ ## LEFT ## _ ## RIGHT(ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
-		int *LeftIndices = LeftDimension->Indices; \
+		const int *LeftIndices = LeftDimension->Indices; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				LTYPE Left = LCONV(*(LEFT *)(LeftData + LeftIndices[I] * LeftDimension->Stride)); \
 				RTYPE Right = RCONV(*(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride)); \
@@ -32,7 +32,7 @@ int cmp_row_ ## LEFT ## _ ## RIGHT(ml_array_dimension_t *LeftDimension, char *Le
 	} else { \
 		int LeftStride = LeftDimension->Stride; \
 		if (RightDimension->Indices) { \
-			int *RightIndices = RightDimension->Indices; \
+			const int *RightIndices = RightDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				LTYPE Left = LCONV(*(LEFT *)LeftData); \
 				RTYPE Right = RCONV(*(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride)); \
@@ -202,9 +202,9 @@ static int cmp_array(int Op, int Degree, ml_array_dimension_t *LeftDimension, ch
 	}
 	int Size = LeftDimension->Size;
 	if (LeftDimension->Indices) {
-		int *LeftIndices = LeftDimension->Indices;
+		const int *LeftIndices = LeftDimension->Indices;
 		if (RightDimension->Indices) {
-			int *RightIndices = RightDimension->Indices;
+			const int *RightIndices = RightDimension->Indices;
 			for (int I = 0; I < Size; ++I) {
 				int Result = cmp_array(Op, Degree - 1, LeftDimension + 1, LeftData + LeftIndices[I] * LeftDimension->Stride, RightDimension + 1, RightData + RightIndices[I] * RightDimension->Stride);
 				if (Result) return Result;
@@ -220,7 +220,7 @@ static int cmp_array(int Op, int Degree, ml_array_dimension_t *LeftDimension, ch
 	} else {
 		int LeftStride = LeftDimension->Stride;
 		if (RightDimension->Indices) {
-			int *RightIndices = RightDimension->Indices;
+			const int *RightIndices = RightDimension->Indices;
 			for (int I = 0; I < Size; ++I) {
 				int Result = cmp_array(Op, Degree - 1, LeftDimension + 1, LeftData, RightDimension + 1, RightData + RightIndices[I] * RightDimension->Stride);
 				if (Result) return Result;

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxyfile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="doxyfile.xsd" version="1.10.0" xml:lang="en-US">
+<doxyfile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="doxyfile.xsd" version="1.11.0" xml:lang="en-US">
   <option  id='DOXYFILE_ENCODING' default='yes' type='string'><value><![CDATA[UTF-8]]></value></option>
   <option  id='PROJECT_NAME' default='no' type='string'><value><![CDATA[Minilang]]></value></option>
   <option  id='PROJECT_NUMBER' default='yes' type='string'><value><![CDATA[]]></value></option>
@@ -52,7 +52,7 @@
   <option  id='EXTENSION_MAPPING' default='yes' type='stringlist'>
   </option>
   <option  id='MARKDOWN_SUPPORT' default='yes' type='bool'><value>YES</value></option>
-  <option  id='TOC_INCLUDE_HEADINGS' default='yes' type='int'><value>5</value></option>
+  <option  id='TOC_INCLUDE_HEADINGS' default='no' type='int'><value>5</value></option>
   <option  id='MARKDOWN_ID_STYLE' default='yes' type='string'><value>DOXYGEN</value></option>
   <option  id='AUTOLINK_SUPPORT' default='yes' type='bool'><value>YES</value></option>
   <option  id='BUILTIN_STL_SUPPORT' default='yes' type='bool'><value>NO</value></option>
@@ -69,7 +69,7 @@
   <option  id='NUM_PROC_THREADS' default='yes' type='int'><value>1</value></option>
   <option  id='TIMESTAMP' default='yes' type='string'><value>NO</value></option>
   <option  id='EXTRACT_ALL' default='yes' type='bool'><value>NO</value></option>
-  <option  id='EXTRACT_PRIVATE' default='yes' type='bool'><value>NO</value></option>
+  <option  id='EXTRACT_PRIVATE' default='no' type='bool'><value>YES</value></option>
   <option  id='EXTRACT_PRIV_VIRTUAL' default='yes' type='bool'><value>NO</value></option>
   <option  id='EXTRACT_PACKAGE' default='yes' type='bool'><value>NO</value></option>
   <option  id='EXTRACT_STATIC' default='yes' type='bool'><value>NO</value></option>
@@ -86,11 +86,11 @@
   <option  id='HIDE_SCOPE_NAMES' default='no' type='bool'><value>YES</value></option>
   <option  id='HIDE_COMPOUND_REFERENCE' default='yes' type='bool'><value>NO</value></option>
   <option  id='SHOW_HEADERFILE' default='yes' type='bool'><value>YES</value></option>
-  <option  id='SHOW_INCLUDE_FILES' default='yes' type='bool'><value>YES</value></option>
+  <option  id='SHOW_INCLUDE_FILES' default='no' type='bool'><value>NO</value></option>
   <option  id='SHOW_GROUPED_MEMB_INC' default='yes' type='bool'><value>NO</value></option>
   <option  id='FORCE_LOCAL_INCLUDES' default='yes' type='bool'><value>NO</value></option>
   <option  id='INLINE_INFO' default='yes' type='bool'><value>YES</value></option>
-  <option  id='SORT_MEMBER_DOCS' default='yes' type='bool'><value>YES</value></option>
+  <option  id='SORT_MEMBER_DOCS' default='no' type='bool'><value>NO</value></option>
   <option  id='SORT_BRIEF_DOCS' default='yes' type='bool'><value>NO</value></option>
   <option  id='SORT_MEMBERS_CTORS_1ST' default='yes' type='bool'><value>NO</value></option>
   <option  id='SORT_GROUP_NAMES' default='yes' type='bool'><value>NO</value></option>
@@ -271,6 +271,8 @@
   <option  id='RTF_HYPERLINKS' default='yes' type='bool'><value>NO</value></option>
   <option  id='RTF_STYLESHEET_FILE' default='yes' type='string'><value><![CDATA[]]></value></option>
   <option  id='RTF_EXTENSIONS_FILE' default='yes' type='string'><value><![CDATA[]]></value></option>
+  <option  id='RTF_EXTRA_FILES' default='yes' type='stringlist'>
+  </option>
   <option  id='GENERATE_MAN' default='yes' type='bool'><value>NO</value></option>
   <option  id='MAN_OUTPUT' default='yes' type='string'><value><![CDATA[man]]></value></option>
   <option  id='MAN_EXTENSION' default='yes' type='string'><value><![CDATA[.3]]></value></option>

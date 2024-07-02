@@ -1734,7 +1734,7 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 }
 */
 
-#ifdef Linux
+#ifdef ML_UNWIND
 
 #define UNW_LOCAL_ONLY
 #include <libunwind.h>
@@ -1819,7 +1819,7 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 }
 
 void ml_runtime_init(const char *ExecName) {
-#ifdef Linux
+#ifdef ML_UNWIND
 	signal(SIGSEGV, error_handler);
 #endif
 	GC_set_warn_proc(ml_gc_warn_fn);

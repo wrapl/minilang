@@ -9,6 +9,10 @@ xml
 
 .. rst-class:: mini-api
 
+:mini:`meth xml::parse(String: address): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
 :mini:`meth xml::parse(Stream: stream): xml`
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
@@ -21,10 +25,6 @@ xml
       import: xml("fmt/xml")
       xml::escape("\'1 + 2 > 3 & 2 < 4\'")
       :> "\'1 + 2 &gt; 3 &amp; 2 &lt; 4\'"
-
-
-:mini:`meth xml::parse(String: string): xml`
-   Returns :mini:`String` parsed into an XML node.
 
 
 :mini:`type xml`

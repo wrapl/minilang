@@ -1231,28 +1231,6 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		}
 		Frame->Stack[NumParams] = Options;
 		++NumParams;
-	} else if (Flags & ML_CLOSURE_RELAX_NAMES) {
-		for (; I < Count; ++I) {
-			ml_value_t *Arg = ml_deref(Args[I]);
-			if (ml_is_error(Arg)) ML_RETURN(Arg);
-#ifdef ML_NANBOXING
-			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
-#else
-			if (Arg->Type == MLNamesT) {
-#endif
-				ML_NAMES_CHECKX_ARG_COUNT(I);
-				ML_NAMES_FOREACH(Arg, Node) {
-					const char *Name = ml_string_value(Node->Value);
-					int Index = (intptr_t)stringmap_search(Info->Params, Name);
-					if (Index) {
-						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
-					} else {
-						++I;
-					}
-				}
-				break;
-			}
-		}
 	} else {
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = ml_deref(Args[I]);
@@ -1269,7 +1247,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
-						ML_ERROR("NameError", "Unknown named parameters %s", Name);
+						++I;
 					}
 				}
 				break;
@@ -1595,10 +1573,6 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 }
 
 void ml_closure_relax_names(ml_value_t *Value) {
-	if (ml_is(Value, MLClosureT)) {
-		ml_closure_t *Closure = (ml_closure_t *)Value;
-		Closure->Info->Flags |= ML_CLOSURE_RELAX_NAMES;
-	}
 }
 
 static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {
@@ -2119,7 +2093,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 	ml_cbor_write_array(Writer, ml_list_length(Values) + 2);
 	ml_cbor_write_string(Writer, 1);
 	ml_cbor_write_raw(Writer, (unsigned char *)"!", 1);
-	ml_cbor_write_bytes(Writer, Buffer->Length);
+	ml_cbor_write_bytes(Writer, ml_stringbuffer_length(Buffer));
 	ml_stringbuffer_drain(Buffer, Writer, (void *)ml_cbor_write_raw);
 	ML_LIST_FOREACH(Values, Iter) ml_cbor_write(Writer, Iter->Value);
 }
@@ -2160,17 +2134,17 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 }
 
 #define VLQ64_NEXT() ({ \
-	if (Length <= 0) return ml_error("CBORError", "Invalid closure info"); \
 	vlq_result_t Result = vlq64_decode(Bytes); \
 	Length -= Result.Count; \
+	if (Length < 0) return ml_error("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	Result.Value; \
 })
 
 #define VLQ64_NEXT_STRING() ({ \
-	if (Length <= 0) return ml_error("CBORError", "Invalid closure info"); \
 	vlq_result_t Result = vlq64_decode(Bytes); \
 	Length -= Result.Count; \
+	if (Result.Value < 0) return ml_error("CBORError", "Invalid closure info"); \
 	if (Length < Result.Value) return ml_error("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	char *String = snew(Length + 1); \

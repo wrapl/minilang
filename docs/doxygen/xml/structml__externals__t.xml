@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="structml__externals__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_externals_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1312" column="11" bodyfile="src/ml_types.h" bodystart="1312" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1344" column="11" bodyfile="src/ml_types.h" bodystart="1344" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__externals__t_1abf11e46310f5d0222cf54fa4d2ceb2fa" prot="public" static="no" mutable="no">
         <type><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1313" column="16" bodyfile="src/ml_types.h" bodystart="1313" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1345" column="16" bodyfile="src/ml_types.h" bodystart="1345" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__externals__t_1ab7510851e5c35085463777b14b19706e" prot="public" static="no" mutable="no">
         <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1314" column="11" bodyfile="src/ml_types.h" bodystart="1314" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1346" column="11" bodyfile="src/ml_types.h" bodystart="1346" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__externals__t_1ad221667156a88d2210ab522cd4857bd7" prot="public" static="no" mutable="no">
         <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1315" column="13" bodyfile="src/ml_types.h" bodystart="1315" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1347" column="13" bodyfile="src/ml_types.h" bodystart="1347" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -115,7 +115,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1311" column="1" bodyfile="src/ml_types.h" bodystart="1311" bodyend="1316"/>
+    <location file="src/ml_types.h" line="1343" column="1" bodyfile="src/ml_types.h" bodystart="1343" bodyend="1348"/>
     <listofallmembers>
       <member refid="structml__externals__t_1ad221667156a88d2210ab522cd4857bd7" prot="public" virt="non-virtual"><scope>ml_externals_t</scope><name>Names</name></member>
       <member refid="structml__externals__t_1abf11e46310f5d0222cf54fa4d2ceb2fa" prot="public" virt="non-virtual"><scope>ml_externals_t</scope><name>Next</name></member>

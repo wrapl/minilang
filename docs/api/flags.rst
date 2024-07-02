@@ -2,3 +2,4 @@ Flags
 =====
 
 .. doxygengroup:: flags
+   :members:

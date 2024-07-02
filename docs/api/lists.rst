@@ -2,3 +2,4 @@ Lists
 =====
 
 .. doxygengroup:: lists
+   :members:

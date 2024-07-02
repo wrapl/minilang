@@ -2,3 +2,4 @@ Types
 =====
 
 .. doxygengroup:: types
+   :members:

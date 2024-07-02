@@ -2,3 +2,4 @@ Logging
 =======
 
 .. doxygengroup:: logging
+   :members:

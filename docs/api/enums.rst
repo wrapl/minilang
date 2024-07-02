@@ -2,3 +2,4 @@ Enums
 =====
 
 .. doxygengroup:: enums
+   :members:

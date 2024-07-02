@@ -757,14 +757,46 @@ struct ml_stringbuffer_node_t {
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ml_value_t *ml_stringbuffer();
+
+static inline int ml_stringbuffer_length(ml_stringbuffer_t *Buffer) {
+	return Buffer->Length;
+}
+
 char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length);
-ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
-void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char);
 char ml_stringbuffer_last(ml_stringbuffer_t *Buffer);
-void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code);
 void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
 void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer);
+
+void ml_stringbuffer_put_actual(ml_stringbuffer_t *Buffer, char Char);
+static inline void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
+	if (!Buffer->Space) return ml_stringbuffer_put_actual(Buffer, Char);
+	Buffer->Tail->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;
+	Buffer->Space -= 1;
+	Buffer->Length += 1;
+}
+
+ssize_t ml_stringbuffer_write_actual(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
+static inline ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+	if (Buffer->Space < Length) return ml_stringbuffer_write_actual(Buffer, String, Length);
+	memcpy(Buffer->Tail->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Length);
+	Buffer->Space -= Length;
+	Buffer->Length += Length;
+	return Length;
+}
+
+static inline void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 8;
+	while (Code > LeadByteMax) {
+		Val[--I] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 7 ? 2 : 1);
+	}
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	ml_stringbuffer_write(Buffer, Val + I, 8 - I);
+}
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
@@ -914,8 +946,8 @@ struct ml_method_t {
 
 extern ml_type_t MLMethodT[];
 
-ml_value_t *ml_method(const char *Name);
-ml_value_t *ml_method_anon(const char *Name);
+ml_value_t *ml_method(const char *Name) __attribute__ ((const));
+ml_value_t *ml_method_anon(const char *Name) __attribute__ ((malloc));
 const char *ml_method_name(const ml_value_t *Value) __attribute__((pure));
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));

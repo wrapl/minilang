@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.10.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
   <compounddef id="group__names" kind="group">
     <compoundname>names</compoundname>
     <title>Names</title>
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1141" column="18" declfile="src/ml_types.h" declline="1141" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1173" column="18" declfile="src/ml_types.h" declline="1173" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -30,7 +30,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1143" column="12" declfile="src/ml_types.h" declline="1143" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1175" column="12" declfile="src/ml_types.h" declline="1175" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__names_1ga5e126a6d8e278926855cca8f1830a6e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -51,7 +51,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1144" column="6" declfile="src/ml_types.h" declline="1144" declcolumn="6"/>
+        <location file="src/ml_types.h" line="1176" column="6" declfile="src/ml_types.h" declline="1176" declcolumn="6"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -64,7 +64,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1145" column="9" bodyfile="src/ml_types.h" bodystart="1145" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1177" column="9" bodyfile="src/ml_types.h" bodystart="1177" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__names_1gaf9e68a97ed911530e76a3eb562a01d0b" prot="public" static="no">
         <name>ML_NAMES_CHECK_ARG_COUNT</name>
@@ -81,7 +81,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1147" column="9" bodyfile="src/ml_types.h" bodystart="1147" bodyend="1152"/>
+        <location file="src/ml_types.h" line="1179" column="9" bodyfile="src/ml_types.h" bodystart="1179" bodyend="1184"/>
       </memberdef>
       <memberdef kind="define" id="group__names_1ga37dc66bd2e5157f6d5801bb4705ad9d8" prot="public" static="no">
         <name>ML_NAMES_CHECKX_ARG_COUNT</name>
@@ -98,7 +98,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1154" column="9" bodyfile="src/ml_types.h" bodystart="1154" bodyend="1159"/>
+        <location file="src/ml_types.h" line="1186" column="9" bodyfile="src/ml_types.h" bodystart="1186" bodyend="1191"/>
       </memberdef>
       <memberdef kind="define" id="group__names_1ga1a287bc72e9a9d425b1261d1a8ac5e32" prot="public" static="no">
         <name>ML_NAMES_FOREACH</name>
@@ -111,7 +111,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1161" column="9" bodyfile="src/ml_types.h" bodystart="1161" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1193" column="9" bodyfile="src/ml_types.h" bodystart="1193" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

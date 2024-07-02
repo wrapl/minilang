@@ -2,3 +2,4 @@ Maps
 ====
 
 .. doxygengroup:: maps
+   :members:

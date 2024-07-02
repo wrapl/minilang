@@ -2,3 +2,4 @@ Modules
 =======
 
 .. doxygengroup:: modules
+   :members:

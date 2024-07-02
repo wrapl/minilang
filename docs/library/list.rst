@@ -129,6 +129,32 @@ list
    Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
+:mini:`meth (List: list):bfind(Value: any): tuple[integer, integer]`
+   Expects :mini:`List` is be already sorted according to :mini:`<>`. Returns :mini:`(I,  J)` where :mini:`List[I] = Value <= List[J]`.
+   Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
+
+   .. code-block:: mini
+
+      let L := list("cake"):sort :> ["a", "c", "e", "k"]
+      L:bfind("a") :> (1, 1)
+      L:bfind("b") :> (nil, 2)
+      L:bfind("c") :> (2, 2)
+      L:bfind("z") :> (nil, 5)
+
+
+:mini:`meth (List: list):bfind(Value: any, Compare: function): tuple[integer, integer]`
+   Expects :mini:`List` is be already sorted according to :mini:`Compare` (which should behave like :mini:`<>`). Returns :mini:`(I,  J)` where :mini:`List[I] = Value <= List[J]`.
+   Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
+
+   .. code-block:: mini
+
+      let L := list("cake"):sort :> ["a", "c", "e", "k"]
+      L:bfind("a", <>) :> (1, 1)
+      L:bfind("b", <>) :> (nil, 2)
+      L:bfind("c", <>) :> (2, 2)
+      L:bfind("z", <>) :> (nil, 5)
+
+
 :mini:`meth (List: list):count: integer`
    Returns the length of :mini:`List`
 
@@ -139,6 +165,22 @@ list
 
 :mini:`meth (List: list):find(Value: any): integer | nil`
    Returns the first position where :mini:`List[Position] = Value`.
+
+   .. code-block:: mini
+
+      let L := list("cake") :> ["c", "a", "k", "e"]
+      L:find("a") :> 2
+      L:find("b") :> nil
+
+
+:mini:`meth (List: list):find(Value: any, Compare: function): integer | nil`
+   Returns the first position where :mini:`Compare(Value,  List[Position])` returns a non-nil value.
+
+   .. code-block:: mini
+
+      let L := list("cake") :> ["c", "a", "k", "e"]
+      L:find("b", <) :> 3
+      L:find("b", >) :> 2
 
 
 :mini:`meth (List: list):first`
@@ -172,7 +214,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "a"
-      L:random :> "e"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -250,6 +292,17 @@ list
 
       let L := [1, 2, 3]
       L:grow(4 .. 6) :> [1, 2, 3, 4, 5, 6]
+
+
+:mini:`meth (List: list::mutable):insert(Index: integer, Value: any): list`
+   Inserts :mini:`Value` in the :mini:`Index`-th position in :mini:`List`.
+
+   .. code-block:: mini
+
+      let L := list("cake") :> ["c", "a", "k", "e"]
+      L:insert(2, "b") :> ["c", "b", "a", "k", "e"]
+      L:insert(-2, "f") :> ["c", "b", "a", "f", "k", "e"]
+      L :> ["c", "b", "a", "f", "k", "e"]
 
 
 :mini:`meth (List: list::mutable):permutations: sequence`
@@ -342,18 +395,22 @@ list
    Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
 
 
+:mini:`meth (List: list::mutable):take(Source: list::mutable): nil`
+   Appends the elements from :mini:`Source` onto :mini:`List`,  leaving :mini:`Source` empty.
+
+
 :mini:`type list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
 
-:mini:`type list::node::mutable`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::node::mutable < list::node`
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
