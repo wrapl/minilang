@@ -998,8 +998,14 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	return Next;
 }
 
+int ml_scheduler_queue_size(ml_scheduler_queue_t *Queue) {
+	int Size = 0;
+	for (ml_queue_block_t *Block = Queue->ReadBlock; Block; Block = Block->Next) Size += QUEUE_BLOCK_SIZE;
+	return Size;
+}
+
 int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue) {
-	return Queue->Fill;
+	return ml_scheduler_queue_size(Queue) - QUEUE_BLOCK_SIZE - Queue->Space + Queue->Fill;
 }
 
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
