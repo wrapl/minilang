@@ -175,8 +175,9 @@ let InstallHeaders := [
 var GC
 
 if MINILANG_STATICGC or defined("STATICGC") then
+	file("gc"):mkdir
 	let Lib := file("lib/libgc.a") => fun(Lib) do
-		file("gc"):mkdir:chdir
+		file("gc"):chdir
 		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
@@ -464,8 +465,9 @@ if MINILANG_UNWIND then
 end
 
 if MINILANG_BACKTRACE then
+	file("libbacktrace"):mkdir
 	let Lib := file("lib/libbacktrace.a") => fun() do
-		file("libbacktrace"):mkdir:chdir
+		file("libbacktrace"):chdir
 		execute(file("libbacktrace/configure"), '--prefix={PATH}')
 		execute("make clean")
 		execute("make -j4")
@@ -515,8 +517,9 @@ if PLATFORM = "Linux" and MACHINE = "x86_64" and CC != "clang" then
 end
 
 if MINILANG_TRE then
+	file("tre"):mkdir
 	let Lib := file("lib/libtre.a")[GC] => fun(Lib) do
-		file("tre"):mkdir:chdir
+		file("tre"):chdir
 		let Options := {
 			"--prefix" is PATH,
 			"--enable-static",
@@ -546,15 +549,40 @@ if MINILANG_PQUEUES then
 	CFLAGS := old + ["-DML_PQUEUES"]
 	InstallHeaders:put("ml_pqueue.h")
 end
-
 if MINILANG_TIMEZONES then
-	let Header := file("timelib_mem.h")
-	let Lib := file("timelib/timelib.a")[GC, Header] => fun(Target) do
-		file("timelib"):rmdir
-		execute("cp", "-r", file("timelib/Makefile"):dirname, "timelib")
-		file("timelib"):chdir
-		let Flags := '\"{EXT_CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"'
-		execute('make timelib.a CFLAGS={Flags} CPPFLAGS={Flags}')
+	let Header := file("timelib_mem.h")	
+	let TimelibObjects := [
+		file("timelib/parse_iso_intervals.o"),
+		file("timelib/parse_date.o"),
+		file("timelib/unixtime2tm.o"),
+		file("timelib/tm2unixtime.o"),
+		file("timelib/dow.o"),
+		file("timelib/parse_tz.o"),
+		file("timelib/parse_zoneinfo.o"),
+		file("timelib/timelib.o"),
+		file("timelib/astro.o"),
+		file("timelib/interval.o"),
+		file("timelib/parse_posix.o")
+	]
+	file("timelib"):mkdir
+	let Lib := scope("timelib";) do
+		REFLAGS := ["-I", file("timelib/timelib.h"):dirname]
+		file("timelib/parse_date.c")[file("timelib/timezonemap.h"), file("timelib/parse_date.re")] => fun() do
+			execute('re2c {REFLAGS} -d -b {file("timelib/parse_date.re")} > {file("timelib/parse_date.c")}')
+		end
+		file("timelib/parse_iso_intervals.c")[file("timelib/parse_iso_intervals.re")] => fun() do
+			execute('re2c {REFLAGS} -d -b {file("timelib/parse_iso_intervals.re")} > {file("timelib/parse_iso_intervals.c")}')
+		end
+	
+		CFLAGS := EXT_CFLAGS + [
+			"-DHAVE_STDINT_H",
+			"-DHAVE_GETTIMEOFDAY",
+			"-DHAVE_UNISTD_H",
+			"-DHAVE_DIRENT_H",
+			"-I", file("timelib/timelib.h"):dirname,
+			"--include", Header
+		]
+		c_library(file("timelib.a"), TimelibObjects)[GC, Header]
 	end
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ["-DML_TIMEZONES"]
