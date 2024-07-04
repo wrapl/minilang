@@ -1,0 +1,1 @@
+#!/usr/bin/env -S minilang -g -m util/gtk_console
