@@ -132,7 +132,7 @@ static void ml_parent_state_run(ml_import_state_t *State, ml_value_t *Value) {
 		if (Import) {
 			ML_RETURN(Import);
 		} else {
-			ML_ERROR("ModuleError", "Module %s not found in %s", State->Name, State->Path ?: "<library>");
+			ML_ERROR("ModuleError", "Module %s/%s not found in %s", State->Name, State->Import, State->Path ?: "<library>");
 		}
 	} else {
 		ml_value_t **Args = ml_alloc_args(2);
@@ -190,7 +190,7 @@ ml_value_t *ml_library_load0(const char *Path, const char *Name) {
 
 static int ml_library_test_file(const char *FileName) {
 	struct stat Stat[1];
-	return !stat(FileName, Stat);
+	return !lstat(FileName, Stat);
 }
 
 static ml_value_t *ml_library_default_load0(const char *FileName, ml_value_t **Slot) {
@@ -314,7 +314,7 @@ ML_METHODX("::", MLModuleDirT, MLStringT) {
 
 static int ml_library_dir_test(const char *FileName) {
 	struct stat Stat[1];
-	return !stat(FileName, Stat) && S_ISDIR(Stat->st_mode);
+	return !lstat(FileName, Stat) && S_ISDIR(Stat->st_mode);
 }
 
 static void ml_library_dir_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
@@ -377,7 +377,7 @@ static void ml_library_path_add_default(void) {
 	strcpy(LibPath + ExecutablePathLength, "/lib/minilang");
 	//printf("Looking for library path at %s\n", LibPath);
 	struct stat Stat[1];
-	if (!stat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
+	if (!lstat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
 		ml_library_path_add(LibPath);
 	}
 }

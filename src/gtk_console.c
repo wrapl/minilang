@@ -66,6 +66,8 @@ static char *stpcpy(char *Dest, const char *Source) {
 	while (*Source) *Dest++ = *Source++;
 	return Dest;
 }
+
+#define lstat stat
 #endif
 
 static ml_value_t *console_global_get(gtk_console_t *Console, const char *Name, const char *Source, int Line, int Eval) {
