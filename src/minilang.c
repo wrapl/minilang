@@ -492,7 +492,8 @@ int main(int Argc, const char *Argv[]) {
 	if (MainModule) {
 #ifdef ML_LIBRARY
 		if (LoadModule) {
-			ml_library_load(Main, NULL, MainModule);
+			ml_result_state_t *State = ml_result_state(Main->Context);
+			ml_library_load((ml_state_t *)State, NULL, MainModule);
 		} else {
 #endif
 		ml_call_state_t *State = ml_call_state(Main, 1);
