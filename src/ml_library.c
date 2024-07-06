@@ -190,7 +190,7 @@ ml_value_t *ml_library_load0(const char *Path, const char *Name) {
 
 static int ml_library_test_file(const char *FileName) {
 	struct stat Stat[1];
-	return !stat(FileName, Stat);
+	return !lstat(FileName, Stat);
 }
 
 static ml_value_t *ml_library_default_load0(const char *FileName, ml_value_t **Slot) {
@@ -314,7 +314,7 @@ ML_METHODX("::", MLModuleDirT, MLStringT) {
 
 static int ml_library_dir_test(const char *FileName) {
 	struct stat Stat[1];
-	return !stat(FileName, Stat) && S_ISDIR(Stat->st_mode);
+	return !lstat(FileName, Stat) && S_ISDIR(Stat->st_mode);
 }
 
 static void ml_library_dir_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
@@ -377,7 +377,7 @@ static void ml_library_path_add_default(void) {
 	strcpy(LibPath + ExecutablePathLength, "/lib/minilang");
 	//printf("Looking for library path at %s\n", LibPath);
 	struct stat Stat[1];
-	if (!stat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
+	if (!lstat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
 		ml_library_path_add(LibPath);
 	}
 }

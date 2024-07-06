@@ -4,6 +4,11 @@
     <compoundname>src</compoundname>
     <innerdir refid="dir_c440a0232048a2af23c47d1be7b434ce">src/array</innerdir>
     <innerdir refid="dir_f5f4ff3311de724cc1cde742592e824c">src/dynasm</innerdir>
+    <innerdir refid="dir_e4a05ceba4adabcef89e57aaa41bc97b">src/gc</innerdir>
+    <innerdir refid="dir_4f5a303f03761a42637c3e44e4d7e6cc">src/libbacktrace</innerdir>
+    <innerdir refid="dir_a0f64db5dc41747a9ce94e2908107f5c">src/minicbor</innerdir>
+    <innerdir refid="dir_a3fff897d25e0ee97425de049617c46d">src/timelib</innerdir>
+    <innerdir refid="dir_24ea3af21ee7c3599962d07428bbcbdc">src/tre</innerdir>
     <innerfile refid="coro_8h">coro.h</innerfile>
     <innerfile refid="dap_8h">dap.h</innerfile>
     <innerfile refid="gtk__console_8h">gtk_console.h</innerfile>
