@@ -61,3 +61,7 @@ cbor
    *TBD*
 
 
+:mini:`fun cbor::write_positive(Buffer: string::buffer, Value: integer): Buffer`
+   *TBD*
+
+

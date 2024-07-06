@@ -583,7 +583,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "e"
       random([]) :> nil
 
 

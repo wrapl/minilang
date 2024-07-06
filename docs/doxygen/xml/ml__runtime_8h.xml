@@ -340,7 +340,7 @@
       <member refid="group__runtime_1gad2ca04d78c9fa90c543e797ce81d056d" kind="define"><name>ML_STATE_FN</name></member>
     </sectiondef>
     <sectiondef kind="enum">
-      <member refid="group__runtime_1ga385c44f6fb256e5716a2302a5b940388" kind="enum"><name></name></member>
+      <member refid="group__runtime_1gac36f475ca5b446f4fde4c9b90bec77c8" kind="enum"><name></name></member>
     </sectiondef>
     <sectiondef kind="typedef">
       <member refid="group__runtime_1gad422db96e7445bb8df941890132ae087" kind="typedef"><name>ml_config_fn</name></member>
@@ -422,6 +422,7 @@
       <member refid="group__runtime_1gae463f4081ce3aeea4307fcd312b46f32" kind="function"><name>ml_scheduler_queue</name></member>
       <member refid="group__runtime_1ga31ba6714ae657c236e00de7756640226" kind="function"><name>ml_scheduler_queue_counter</name></member>
       <member refid="group__runtime_1gaaf797229254739c2050961b77ca44ab8" kind="function"><name>ml_default_queue_init</name></member>
+      <member refid="group__runtime_1ga0632948ec79ffc043157d9463da2c3b1" kind="function"><name>ml_scheduler_queue_size</name></member>
       <member refid="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" kind="function"><name>ml_scheduler_queue_fill</name></member>
       <member refid="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" kind="function"><name>ml_scheduler_queue_next</name></member>
       <member refid="group__runtime_1ga9b45bd192553d70ee559f868029a28af" kind="function"><name>ml_scheduler_queue_add</name></member>
@@ -698,54 +699,55 @@
 <codeline lineno="273"><highlight class="normal"></highlight></codeline>
 <codeline lineno="274"><highlight class="normal">ml_scheduler_queue_t<sp/>*ml_default_queue_init(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Slice);</highlight></codeline>
 <codeline lineno="275"><highlight class="normal"></highlight></codeline>
-<codeline lineno="276"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_scheduler_queue_fill(ml_scheduler_queue_t<sp/>*Queue);</highlight></codeline>
-<codeline lineno="277"><highlight class="normal"></highlight></codeline>
-<codeline lineno="278"><highlight class="normal"><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref><sp/>ml_scheduler_queue_next(ml_scheduler_queue_t<sp/>*Queue);</highlight></codeline>
-<codeline lineno="279"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_scheduler_queue_add(ml_scheduler_queue_t<sp/>*Queue,<sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="280"><highlight class="normal"></highlight></codeline>
-<codeline lineno="281"><highlight class="normal"><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref><sp/>ml_scheduler_queue_next_wait(ml_scheduler_queue_t<sp/>*Queue);</highlight></codeline>
-<codeline lineno="282"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_scheduler_queue_add_signal(ml_scheduler_queue_t<sp/>*Queue,<sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="283"><highlight class="normal"></highlight></codeline>
-<codeline lineno="284"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_SCHEDULER</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="285"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref><sp/>MLAtomic[];</highlight></codeline>
-<codeline lineno="286"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="287"><highlight class="normal"></highlight></codeline>
-<codeline lineno="288"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref><sp/>MLFinalizer[];</highlight></codeline>
-<codeline lineno="289"><highlight class="normal"></highlight></codeline>
-<codeline lineno="290"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_STATE_FN2(NAME,<sp/>FUNCTION)<sp/>\</highlight></codeline>
-<codeline lineno="291"><highlight class="preprocessor">static<sp/>void<sp/>FUNCTION(ml_state_t<sp/>*State,<sp/>ml_value_t<sp/>*Value);<sp/>\</highlight></codeline>
-<codeline lineno="292"><highlight class="preprocessor">\</highlight></codeline>
-<codeline lineno="293"><highlight class="preprocessor">static<sp/>ml_state_t<sp/>NAME[1]<sp/>=<sp/>{{MLStateT,<sp/>NULL,<sp/>FUNCTION,<sp/>&amp;MLRootContext}};<sp/>\</highlight></codeline>
-<codeline lineno="294"><highlight class="preprocessor">\</highlight></codeline>
-<codeline lineno="295"><highlight class="preprocessor">static<sp/>void<sp/>FUNCTION(ml_state_t<sp/>*State,<sp/>ml_value_t<sp/>*Value)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="296"><highlight class="normal"></highlight></codeline>
-<codeline lineno="297"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_STATE_FN(NAME)<sp/>ML_STATE_FN2(NAME,<sp/>CONCAT3(ml_state_fn_,<sp/>__LINE__,<sp/>__COUNTER__))</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="298"><highlight class="normal"></highlight></codeline>
-<codeline lineno="299"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_THREADS</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="300"><highlight class="normal"></highlight></codeline>
-<codeline lineno="301"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_threads_set_max_count(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Max);</highlight></codeline>
-<codeline lineno="302"><highlight class="normal"></highlight></codeline>
-<codeline lineno="303"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_scheduler_split(<ref refid="structml__scheduler__t" kindref="compound">ml_scheduler_t</ref><sp/>*Scheduler);</highlight></codeline>
-<codeline lineno="304"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_scheduler_join(<ref refid="structml__scheduler__t" kindref="compound">ml_scheduler_t</ref><sp/>*Scheduler);</highlight></codeline>
-<codeline lineno="305"><highlight class="normal"></highlight></codeline>
-<codeline lineno="306"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="307"><highlight class="normal"></highlight></codeline>
-<codeline lineno="308"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Locks</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="309"><highlight class="normal"></highlight></codeline>
-<codeline lineno="310"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSemaphoreT[];</highlight></codeline>
-<codeline lineno="311"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLConditionT[];</highlight></codeline>
-<codeline lineno="312"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLRWLockT[];</highlight></codeline>
-<codeline lineno="313"><highlight class="normal"></highlight></codeline>
-<codeline lineno="314"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Channels</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="315"><highlight class="normal"></highlight></codeline>
-<codeline lineno="316"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLChannelT[];</highlight></codeline>
-<codeline lineno="317"><highlight class="normal"></highlight></codeline>
-<codeline lineno="318"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="319"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="320"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="321"><highlight class="normal"></highlight></codeline>
-<codeline lineno="323"><highlight class="normal"></highlight></codeline>
-<codeline lineno="324"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="276"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_scheduler_queue_size(ml_scheduler_queue_t<sp/>*Queue);</highlight></codeline>
+<codeline lineno="277"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_scheduler_queue_fill(ml_scheduler_queue_t<sp/>*Queue);</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"></highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref><sp/>ml_scheduler_queue_next(ml_scheduler_queue_t<sp/>*Queue);</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_scheduler_queue_add(ml_scheduler_queue_t<sp/>*Queue,<sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"></highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref><sp/>ml_scheduler_queue_next_wait(ml_scheduler_queue_t<sp/>*Queue);</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_scheduler_queue_add_signal(ml_scheduler_queue_t<sp/>*Queue,<sp/><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"></highlight></codeline>
+<codeline lineno="285"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_SCHEDULER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="286"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref><sp/>MLAtomic[];</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="288"><highlight class="normal"></highlight></codeline>
+<codeline lineno="289"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__cfunctionx__t" kindref="compound">ml_cfunctionx_t</ref><sp/>MLFinalizer[];</highlight></codeline>
+<codeline lineno="290"><highlight class="normal"></highlight></codeline>
+<codeline lineno="291"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_STATE_FN2(NAME,<sp/>FUNCTION)<sp/>\</highlight></codeline>
+<codeline lineno="292"><highlight class="preprocessor">static<sp/>void<sp/>FUNCTION(ml_state_t<sp/>*State,<sp/>ml_value_t<sp/>*Value);<sp/>\</highlight></codeline>
+<codeline lineno="293"><highlight class="preprocessor">\</highlight></codeline>
+<codeline lineno="294"><highlight class="preprocessor">static<sp/>ml_state_t<sp/>NAME[1]<sp/>=<sp/>{{MLStateT,<sp/>NULL,<sp/>FUNCTION,<sp/>&amp;MLRootContext}};<sp/>\</highlight></codeline>
+<codeline lineno="295"><highlight class="preprocessor">\</highlight></codeline>
+<codeline lineno="296"><highlight class="preprocessor">static<sp/>void<sp/>FUNCTION(ml_state_t<sp/>*State,<sp/>ml_value_t<sp/>*Value)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="297"><highlight class="normal"></highlight></codeline>
+<codeline lineno="298"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_STATE_FN(NAME)<sp/>ML_STATE_FN2(NAME,<sp/>CONCAT3(ml_state_fn_,<sp/>__LINE__,<sp/>__COUNTER__))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="299"><highlight class="normal"></highlight></codeline>
+<codeline lineno="300"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_THREADS</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="301"><highlight class="normal"></highlight></codeline>
+<codeline lineno="302"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_threads_set_max_count(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Max);</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"></highlight></codeline>
+<codeline lineno="304"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_scheduler_split(<ref refid="structml__scheduler__t" kindref="compound">ml_scheduler_t</ref><sp/>*Scheduler);</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_scheduler_join(<ref refid="structml__scheduler__t" kindref="compound">ml_scheduler_t</ref><sp/>*Scheduler);</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"></highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="308"><highlight class="normal"></highlight></codeline>
+<codeline lineno="309"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Locks</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="310"><highlight class="normal"></highlight></codeline>
+<codeline lineno="311"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSemaphoreT[];</highlight></codeline>
+<codeline lineno="312"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLConditionT[];</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLRWLockT[];</highlight></codeline>
+<codeline lineno="314"><highlight class="normal"></highlight></codeline>
+<codeline lineno="315"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Channels</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="316"><highlight class="normal"></highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLChannelT[];</highlight></codeline>
+<codeline lineno="318"><highlight class="normal"></highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="320"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="322"><highlight class="normal"></highlight></codeline>
+<codeline lineno="324"><highlight class="normal"></highlight></codeline>
+<codeline lineno="325"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_runtime.h"/>
   </compounddef>
