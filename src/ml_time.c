@@ -6,7 +6,7 @@
 #include <ctype.h>
 
 #ifdef ML_TIMEZONES
-#include <timelib/timelib.h>
+#include "timelib/timelib.h"
 #endif
 
 #ifdef ML_CBOR

@@ -998,6 +998,10 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	return Next;
 }
 
+int ml_scheduler_queue_size(ml_scheduler_queue_t *Queue) {
+	return Queue->Space + Queue->Fill;
+}
+
 int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue) {
 	return Queue->Fill;
 }
