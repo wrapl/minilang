@@ -3956,8 +3956,6 @@ ML_METHODVX("implement", GirClassT, GirInterfaceT, MLNamesT) {
 	interface_t *Interface = (interface_t *)Args[1];
 	GIInterfaceInfo *Info = g_irepository_find_by_gtype(NULL, Interface->Base.Type);
 	GIStructInfo *IfaceInfo = g_interface_info_get_iface_struct(Info);
-
-
 	iface_vfunc_t *VFuncs = GC_MALLOC_UNCOLLECTABLE((ml_names_length(Args[2]) + 1) * sizeof(iface_vfunc_t));
 
 	int I = 0;

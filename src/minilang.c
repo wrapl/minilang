@@ -471,7 +471,7 @@ int main(int Argc, const char *Argv[]) {
 		}
 #endif
 	}
-	ml_scheduler_t *Scheduler = ml_context_get(Main->Context, ML_SCHEDULER_INDEX);
+	//ml_scheduler_t *Scheduler = ml_context_get(Main->Context, ML_SCHEDULER_INDEX);
 #endif
 #ifdef ML_THREADS
 	ml_default_thread_init(Main->Context);
@@ -504,10 +504,14 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
 		if (UseGirLoop) {
+			ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
 			for (;;) Scheduler->run(Scheduler);
 		} else
 #endif
-		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
+		if (SliceSize) while (!MainResult) {
+			ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
+			Scheduler->run(Scheduler);
+		}
 #endif
 #ifdef GC_DEBUG
 		if (BreakOnExit) GC_generate_random_backtrace();
@@ -520,20 +524,28 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
 		if (UseGirLoop) {
+			ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
 			for (;;) Scheduler->run(Scheduler);
 		} else
 #endif
-		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
+		if (SliceSize) while (!MainResult) {
+			ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
+			Scheduler->run(Scheduler);
+		}
 #endif
 	} else {
 		ml_console(Main->Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ");
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
 		if (UseGirLoop) {
+			ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
 			for (;;) Scheduler->run(Scheduler);
 		} else
 #endif
-		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
+		if (SliceSize) while (!MainResult) {
+			ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
+			Scheduler->run(Scheduler);
+		}
 #endif
 #ifdef GC_DEBUG
 		if (BreakOnExit) GC_generate_random_backtrace();
