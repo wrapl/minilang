@@ -671,3 +671,7 @@ end
 install(LIBMINILANG, InstallLib / "libminilang.a")
 
 subdir("test")
+
+if defined("INSTALL") then
+	DEFAULT[INSTALL]
+end

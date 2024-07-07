@@ -271,8 +271,7 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 		ml_library_entry_t init = dlsym(Handle, "ml_library_entry");
 		if (init) {
 			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
-			init(Caller, Slot);
-			ML_RETURN(Slot[0]);
+			return init(Caller, Slot);
 		}
 		dlclose(Handle);
 		ML_ERROR("LibraryError", "init function missing from %s", FileName);
