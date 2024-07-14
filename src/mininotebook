@@ -12,12 +12,15 @@ class: cell(:notebook, :state, :widget, :input, :output,
 	init is fun(Cell, Notebook) do
 		Cell:notebook := Notebook
 		Cell:state := cell::state::Ready
-		let Widget := Cell:widget := gtk::Box::new(gtk::Orientation::vertical, 2)
+		let Box := gtk::Box::new(gtk::Orientation::vertical, 2)
 		let Input := Cell:input := source::View::new()
 		let Output := Cell:output := gtk::TextView::new()
-		Widget:append(Input)
-		Widget:append(Output)
+		Box:append(Input)
+		Box:append(Output)
+		let Widget := Cell:widget := gtk::Frame::new(nil)
+		Widget:set_child(Box)
 		Input:connect("notify::has-focus";) do
+			print('Focusing on cell\n')
 			Notebook:active := Cell
 		end
 	end
@@ -39,6 +42,47 @@ meth :add_cell(Notebook: notebook) do
 	Notebook:cells:put(Cell)
 	Notebook:box:append(Cell:widget)
 	Cell:widget:set_visible(true)
+	Cell:input:grab_focus
+	ret Cell
+end
+
+meth :run_cell(Notebook: notebook) do
+	let Cell := Notebook:active or ret
+	let N := Notebook:cells:find(Cell)
+	let Next := Notebook:cells[N + 1] or Notebook:add_cell
+	Next:input:grab_focus
+	let Start := gtk::TextIter()
+	let End := gtk::TextIter()
+	let Input := Cell:input:get_buffer
+	Input:get_bounds(Start, End)
+	let Text := Cell:input:get_buffer:get_text(Start, End, false)
+	let Output := Cell:output:get_buffer
+	(Notebook:queue)(;) do
+		let Parser := Notebook:parser
+		let Compiler := Notebook:compiler
+		print('Input = {Text}\n')
+		Parser:input(Text)
+		let Buffer := string::buffer()
+		var Sep := ""
+		loop
+			let Result := Parser:evaluate(Compiler)
+			until Result = compiler::EOI
+			Buffer:write(Sep)
+			Buffer:write(Result)
+			Sep := "\n"
+		on Error do
+			print(Error)
+			Buffer:write(Sep)
+			Buffer:write(Error)
+			exit
+		end
+		Parser:reset
+		let Result := Buffer:rest
+		print('Output = {Result}\n')
+		Output:set_text(Result, Result:size)
+	on Error do
+		print(Error)
+	end
 end
 
 let Window := gtk::Window::new()
@@ -61,3 +105,9 @@ Window:set_visible(true)
 AddButton:connect("clicked"; Button) do
 	Notebook:add_cell
 end
+
+RunButton:connect("clicked"; Button) do
+	Notebook:run_cell
+end
+
+callcc(0)
