@@ -1,0 +1,63 @@
+#!/usr/bin/env -S minilang
+import: gtk("gir/Gtk@4.0")
+import: gobject("gir/GObject")
+import: gio("gir/Gio")
+import: source("gir/GtkSource@5")
+import: event("event")
+
+gtk::init()
+
+class: cell(:notebook, :state, :widget, :input, :output,
+	state is enum("Ready", "Busy", "Done"),
+	init is fun(Cell, Notebook) do
+		Cell:notebook := Notebook
+		Cell:state := cell::state::Ready
+		let Widget := Cell:widget := gtk::Box::new(gtk::Orientation::vertical, 2)
+		let Input := Cell:input := source::View::new()
+		let Output := Cell:output := gtk::TextView::new()
+		Widget:append(Input)
+		Widget:append(Output)
+		Input:connect("notify::has-focus";) do
+			Notebook:active := Cell
+		end
+	end
+)
+
+class: notebook(:active, :cells, :widget, :box, :compiler, :parser, :queue,
+	init is fun(Notebook) do
+		Notebook:cells := []
+		Notebook:compiler := compiler(globals())
+		Notebook:parser := parser()
+		Notebook:queue := task::queue(1)
+		let Scrolled := Notebook:widget := gtk::ScrolledWindow::new()
+		Scrolled:set_child(Notebook:box := gtk::Box::new(gtk::Orientation::vertical, 5))
+	end
+)
+
+meth :add_cell(Notebook: notebook) do
+	let Cell := cell(Notebook)
+	Notebook:cells:put(Cell)
+	Notebook:box:append(Cell:widget)
+	Cell:widget:set_visible(true)
+end
+
+let Window := gtk::Window::new()
+
+let Header := gtk::HeaderBar::new()
+
+let AddButton := gtk::Button::new_from_icon_name("list-add-symbolic")
+let RunButton := gtk::Button::new_from_icon_name("system-run-symbolic")
+
+Header:pack_start(AddButton)
+Header:pack_start(RunButton)
+
+let Notebook := notebook()
+
+Window:set_title("Minilang Notebook")
+Window:set_titlebar(Header)
+Window:set_child(Notebook:widget)
+Window:set_visible(true)
+
+AddButton:connect("clicked"; Button) do
+	Notebook:add_cell
+end
