@@ -139,11 +139,17 @@ FileDialog:set_modal(true)
 LoadButton:connect("clicked"; Button) do
 	FileDialog:open(Window, nil; Object, Result) do
 		let File := FileDialog:open_finish(Result)
-		print('Selected = {File:get_path}\n')
+		let Path := File:get_path
+		print('Selected = {Path}\n')
 	end
 end
 
 SaveButton:connect("clicked"; Button) do
+	FileDialog:save(Window, nil; Object, Result) do
+		let File := FileDialog:save_finish(Result)
+		let Path := File:get_path
+		print('Selected = {Path}\n')
+	end
 end
 
 AddButton:connect("clicked"; Button) do
@@ -153,5 +159,14 @@ end
 RunButton:connect("clicked"; Button) do
 	Notebook:run_cell
 end
+
+let ShortcutController := gtk::ShortcutController::new()
+
+ShortcutController:add_shortcut(gtk::Shortcut::new(gtk::ShortcutTrigger::parse_string("<Control><Shift>r"), gtk::CallbackAction::new(; Widget, Args))) do
+	print('Callback {Widget}, {Args}\n')
+	Notebook:run_cell
+end
+
+Window:add_controller(ShortcutController)
 
 callcc(0)
