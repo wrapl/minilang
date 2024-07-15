@@ -4272,15 +4272,17 @@ static int ml_scan_raw_string(ml_parser_t *Parser) {
 static inthash_t IdentCache[1] = {INTHASH_INIT};
 
 static const char *ml_ident(const char *Next, int Length) {
-	int Shift = 8 - Length;
-	if (Shift < 0) {
+	uintptr_t Key = 0;
+	switch (Length) {
+	case 0: return "";
+	case 1 ... 8: memcpy(&Key, Next, Length); break;
+	default: {
 		char *Ident = snew(Length + 1);
 		memcpy(Ident, Next, Length);
 		Ident[Length] = 0;
 		return Ident;
 	}
-	uintptr_t Key = 0;
-	memcpy(&Key, Next, Length);
+	}
 	char *Ident = inthash_search_inline(IdentCache, Key);
 	if (!Ident) {
 		Ident = snew(Length + 1);
