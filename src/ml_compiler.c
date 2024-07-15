@@ -4279,8 +4279,8 @@ static const char *ml_ident(const char *Next, int Length) {
 		Ident[Length] = 0;
 		return Ident;
 	}
-	uintptr_t Key = *(uintptr_t *)Next;
-	Key &= (uintptr_t)-1 >> (8 * Shift);
+	uintptr_t Key = 0;
+	memcpy(&Key, Next, Length);
 	char *Ident = inthash_search_inline(IdentCache, Key);
 	if (!Ident) {
 		Ident = snew(Length + 1);
