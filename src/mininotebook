@@ -7,41 +7,67 @@ import: event("event")
 
 gtk::init()
 
+let LanguageManager := source::LanguageManager::get_default()
+let StyleSchemeManager := source::StyleSchemeManager::get_default()
+
+let Minilang := LanguageManager:get_language("minilang")
+var StyleScheme := StyleSchemeManager:get_scheme("tango")
+
 class: cell(:notebook, :state, :widget, :input, :output,
 	state is enum("Ready", "Busy", "Done"),
-	init is fun(Cell, Notebook) do
-		Cell:notebook := Notebook
-		Cell:state := cell::state::Ready
-		let Box := gtk::Box::new(gtk::Orientation::vertical, 2)
-		let Input := Cell:input := source::View::new()
-		let Output := Cell:output := gtk::TextView::new()
-		Box:append(Input)
-		Box:append(Output)
-		let Widget := Cell:widget := gtk::Frame::new(nil)
-		Widget:set_child(Box)
-		Input:connect("notify::has-focus";) do
-			print('Focusing on cell\n')
-			Notebook:active := Cell
-		end
-	end
+	init is :init
 )
 
-class: notebook(:active, :cells, :widget, :box, :compiler, :parser, :queue,
-	init is fun(Notebook) do
-		Notebook:cells := []
-		Notebook:compiler := compiler(globals())
-		Notebook:parser := parser()
-		Notebook:queue := task::queue(1)
-		let Scrolled := Notebook:widget := gtk::ScrolledWindow::new()
-		Scrolled:set_child(Notebook:box := gtk::Box::new(gtk::Orientation::vertical, 5))
+class: notebook(:active, :cells, :widget, :box, :compiler, :parser, :queue, init is :init)
+
+meth :init(Cell: cell, Notebook: notebook) do
+	Cell:notebook := Notebook
+	Cell:state := cell::state::Ready
+	let Box := gtk::Box::new(gtk::Orientation::vertical, 2)
+	let Input := Cell:input := source::View::new()
+	Input:set_monospace(true)
+	Input:set_wrap_mode(gtk::WrapMode::word)
+	Input:set_show_line_numbers(true)
+	Input:set_indent_on_tab(true)
+	Input:set_tab_width(4)
+	with Buffer := Input:get_buffer do
+		Buffer:set_language(Minilang)
+		Buffer:set_highlight_syntax(true)
+		Buffer:set_style_scheme(StyleScheme)
 	end
-)
+	let Output := Cell:output := gtk::TextView::new()
+	Output:set_monospace(true)
+	Output:set_wrap_mode(gtk::WrapMode::word)
+	Box:append(Input)
+	Box:append(gtk::Separator::new(gtk::Orientation::horizontal))
+	Box:append(Output)
+	let Widget := Cell:widget := gtk::Frame::new(nil)
+	Widget:set_margin_start(20)
+	Widget:set_margin_end(20)
+	Widget:set_child(Box)
+	Input:connect("notify::has-focus";) do
+		print('Focusing on cell\n')
+		Notebook:active := Cell
+	end
+end
+
+meth :init(Notebook: notebook) do
+	Notebook:cells := []
+	Notebook:compiler := compiler(globals())
+	Notebook:parser := parser()
+	Notebook:queue := task::queue(1)
+	let Scrolled := Notebook:widget := gtk::ScrolledWindow::new()
+	let Box := Notebook:box := gtk::Box::new(gtk::Orientation::vertical, 20)
+	Box:set_margin_top(20)
+	Box:set_margin_bottom(20)
+	Scrolled:set_child(Box)
+end
 
 meth :add_cell(Notebook: notebook) do
 	let Cell := cell(Notebook)
 	Notebook:cells:put(Cell)
-	Notebook:box:append(Cell:widget)
 	Cell:widget:set_visible(true)
+	Notebook:box:append(Cell:widget)
 	Cell:input:grab_focus
 	ret Cell
 end
@@ -86,14 +112,19 @@ meth :run_cell(Notebook: notebook) do
 end
 
 let Window := gtk::Window::new()
+Window:set_default_size(600, 800)
 
 let Header := gtk::HeaderBar::new()
 
+let LoadButton := gtk::Button::new_from_icon_name("document-open-symbolic")
+let SaveButton := gtk::Button::new_from_icon_name("document-save-symbolic")
 let AddButton := gtk::Button::new_from_icon_name("list-add-symbolic")
 let RunButton := gtk::Button::new_from_icon_name("system-run-symbolic")
 
 Header:pack_start(AddButton)
 Header:pack_start(RunButton)
+Header:pack_start(LoadButton)
+Header:pack_start(SaveButton)
 
 let Notebook := notebook()
 
@@ -101,6 +132,19 @@ Window:set_title("Minilang Notebook")
 Window:set_titlebar(Header)
 Window:set_child(Notebook:widget)
 Window:set_visible(true)
+
+let FileDialog := gtk::FileDialog::new()
+FileDialog:set_modal(true)
+
+LoadButton:connect("clicked"; Button) do
+	FileDialog:open(Window, nil; Object, Result) do
+		let File := FileDialog:open_finish(Result)
+		print('Selected = {File:get_path}\n')
+	end
+end
+
+SaveButton:connect("clicked"; Button) do
+end
 
 AddButton:connect("clicked"; Button) do
 	Notebook:add_cell

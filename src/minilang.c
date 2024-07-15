@@ -490,9 +490,11 @@ int main(int Argc, const char *Argv[]) {
 	} else {
 		ml_console(Main->Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ");
 	}
+#ifdef ML_SCHEDULER
 	for (;;) {
 		ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
 		Scheduler->run(Scheduler);
 	}
+#endif
 	return 0;
 }
