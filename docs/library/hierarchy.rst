@@ -271,6 +271,8 @@ hierarchy
       "any":e -> "ast::ifcase":w;
       "enum":e -> "paramkind":w;
       "list":e -> "ast::names":w;
+      "sequence":e -> "array::list":w;
+      "any":e -> "array::list::iter":w;
       "address":e -> "array":w;
       "sequence":e -> "array":w;
       "array":e -> "array::mutable":w;
