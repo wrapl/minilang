@@ -193,7 +193,7 @@ meth :load(Notebook: notebook, Path: string) do
 		Cell:input:get_buffer:set_text(Text, Text:size)
 	end
 	Notebook:filename := Path
-	Window:set_title(Path:after("/", -1))
+	Window:set_title(Path:after("/", -1) or Path)
 end
 
 meth :save(Notebook: notebook) do
@@ -219,7 +219,7 @@ meth :save_as(Notebook: notebook) do
 		let Path := File:get_path
 		print('Selected = {Path}\n')
 		Notebook:filename := Path
-		Window:set_title(Path:after("/", -1))
+		Window:set_title(Path:after("/", -1) or Path)
 		Notebook:save
 	end
 end
