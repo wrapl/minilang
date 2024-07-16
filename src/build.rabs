@@ -644,6 +644,10 @@ MINICONSOLE := (BIN_DIR / "miniconsole")[file("miniconsole")] => fun(Target) do
 	file("miniconsole"):copy(Target)
 	execute("chmod", "+x", Target)
 end
+MININOTEBOOK := (BIN_DIR / "mininotebook")[file("mininotebook")] => fun(Target) do
+	file("mininotebook"):copy(Target)
+	execute("chmod", "+x", Target)
+end
 MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
 
 if PLATFORM = "Linux" or PLATFORM = "Android" then
@@ -652,7 +656,7 @@ if PLATFORM = "Linux" or PLATFORM = "Android" then
 	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
 end
 
-DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINICONSOLE, MINIPP]
+DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINICONSOLE, MININOTEBOOK, MINIPP]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 
@@ -663,6 +667,7 @@ let InstallLib := PREFIX / "lib"
 install(MINILANG, InstallBin / "minilang", "+x")
 install(MINIDBG, InstallBin / "minidbg", "+x")
 install(MINICONSOLE, InstallBin / "miniconsole", "+x")
+install(MININOTEBOOK, InstallBin / "mininotebook", "+x")
 
 for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
