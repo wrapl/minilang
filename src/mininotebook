@@ -1,11 +1,23 @@
 #!/usr/bin/env -S minilang
 import: gtk("gir/Gtk@4.0")
+import: gdk("gir/Gdk@4.0")
 import: gobject("gir/GObject")
 import: gio("gir/Gio")
 import: source("gir/GtkSource@5")
 import: event("event")
+import: xml("fmt/xml")
 
 gtk::init()
+
+let CssProvider := gtk::CssProvider::new()
+
+CssProvider:load_from_string('
+	frame.active \{
+		border: 2px solid red;
+	}
+')
+
+gtk::StyleContext::add_provider_for_display(gdk::Display::get_default(), CssProvider, 800)
 
 let LanguageManager := source::LanguageManager::get_default()
 let StyleSchemeManager := source::StyleSchemeManager::get_default()
@@ -18,7 +30,7 @@ class: cell(:notebook, :state, :widget, :input, :output,
 	init is :init
 )
 
-class: notebook(:active, :cells, :widget, :box, :compiler, :parser, :queue, init is :init)
+class: notebook(:active, :cells, :widget, :box, :compiler, :parser, :queue, :filename, init is :init)
 
 meth :init(Cell: cell, Notebook: notebook) do
 	Cell:notebook := Notebook
@@ -30,6 +42,34 @@ meth :init(Cell: cell, Notebook: notebook) do
 	Input:set_show_line_numbers(true)
 	Input:set_indent_on_tab(true)
 	Input:set_tab_width(4)
+	let EventController := gtk::EventControllerKey::new()
+	EventController:connect("key-pressed"; Controller, KeyVal, KeyCode, State) do
+		switch State: gdk::ModifierType
+		case ("control_mask", "shift_mask") do
+			print('KeyEvent 1: {KeyVal}, {KeyCode}, {State}\n')
+		case "control_mask" do
+			print('KeyEvent 2: {KeyVal}, {KeyCode}, {State}\n')
+			switch KeyVal: integer
+			case gdk::KEY_Return do
+				Notebook:run_cell
+				ret true
+			case gdk::KEY_Up do
+				let N := Notebook:cells:find(Cell)
+				Notebook:cells[N - 1]{}:input{}:grab_focus
+				ret true
+			case gdk::KEY_Down do
+				let N := Notebook:cells:find(Cell)
+				Notebook:cells[N + 1]{}:input{}:grab_focus
+				ret true
+			case gdk::KEY_s do
+				Notebook:save
+			end
+		else
+			print('KeyEvent 0: {KeyVal}, {KeyCode}, {State}\n')
+		end
+		ret false
+	end
+	Input:add_controller(EventController)
 	with Buffer := Input:get_buffer do
 		Buffer:set_language(Minilang)
 		Buffer:set_highlight_syntax(true)
@@ -47,7 +87,9 @@ meth :init(Cell: cell, Notebook: notebook) do
 	Widget:set_child(Box)
 	Input:connect("notify::has-focus";) do
 		print('Focusing on cell\n')
+		Notebook:active{}:widget{}:remove_css_class("active")
 		Notebook:active := Cell
+		Cell:widget:add_css_class("active")
 	end
 end
 
@@ -66,7 +108,6 @@ end
 meth :add_cell(Notebook: notebook) do
 	let Cell := cell(Notebook)
 	Notebook:cells:put(Cell)
-	Cell:widget:set_visible(true)
 	Notebook:box:append(Cell:widget)
 	Cell:input:grab_focus
 	ret Cell
@@ -118,6 +159,7 @@ let Header := gtk::HeaderBar::new()
 
 let LoadButton := gtk::Button::new_from_icon_name("document-open-symbolic")
 let SaveButton := gtk::Button::new_from_icon_name("document-save-symbolic")
+let SaveAsButton := gtk::Button::new_from_icon_name("document-save-as-symbolic")
 let AddButton := gtk::Button::new_from_icon_name("list-add-symbolic")
 let RunButton := gtk::Button::new_from_icon_name("system-run-symbolic")
 
@@ -125,31 +167,78 @@ Header:pack_start(AddButton)
 Header:pack_start(RunButton)
 Header:pack_start(LoadButton)
 Header:pack_start(SaveButton)
+Header:pack_start(SaveAsButton)
 
 let Notebook := notebook()
 
-Window:set_title("Minilang Notebook")
+Window:set_title("<Untitled Notebook>")
 Window:set_titlebar(Header)
 Window:set_child(Notebook:widget)
 Window:set_visible(true)
 
+Window:connect("close-request"; Window) do
+	halt()
+end
+
 let FileDialog := gtk::FileDialog::new()
 FileDialog:set_modal(true)
+
+meth :load(Notebook: notebook, Path: string) do
+	let Reader := file(Path, "r")
+	let Root := xml(Reader)
+	Reader:close
+	for Node in Root / "cells" / "cell" do
+		let Cell := Notebook:add_cell
+		let Text := Node:text
+		Cell:input:get_buffer:set_text(Text, Text:size)
+	end
+	Notebook:filename := Path
+	Window:set_title(Path:after("/", -1))
+end
+
+meth :save(Notebook: notebook) do
+	Notebook:filename or ret Notebook:save_as
+	let Cells := xml::element("cells")
+	let Start := gtk::TextIter()
+	let End := gtk::TextIter()
+	for Cell in Notebook:cells do
+		let Input := Cell:input:get_buffer
+		Input:get_bounds(Start, End)
+		let Text := Cell:input:get_buffer:get_text(Start, End, false)
+		Cells:put(xml::element("cell", xml::element("input", Text)))
+	end
+	let Root := xml::element("notebook", Cells)
+	let Writer := file(Notebook:filename, "w")
+	Writer:write(Root)
+	Writer:close
+end
+
+meth :save_as(Notebook: notebook) do
+	FileDialog:save(Window, nil; Object, Result) do
+		let File := FileDialog:save_finish(Result)
+		let Path := File:get_path
+		print('Selected = {Path}\n')
+		Notebook:filename := Path
+		Window:set_title(Path:after("/", -1))
+		Notebook:save
+	end
+end
 
 LoadButton:connect("clicked"; Button) do
 	FileDialog:open(Window, nil; Object, Result) do
 		let File := FileDialog:open_finish(Result)
 		let Path := File:get_path
 		print('Selected = {Path}\n')
+		Notebook:load(Path)
 	end
 end
 
 SaveButton:connect("clicked"; Button) do
-	FileDialog:save(Window, nil; Object, Result) do
-		let File := FileDialog:save_finish(Result)
-		let Path := File:get_path
-		print('Selected = {Path}\n')
-	end
+	Notebook:save
+end
+
+SaveAsButton:connect("clicked"; Button) do
+	Notebook:save_as
 end
 
 AddButton:connect("clicked"; Button) do
@@ -160,13 +249,10 @@ RunButton:connect("clicked"; Button) do
 	Notebook:run_cell
 end
 
-let ShortcutController := gtk::ShortcutController::new()
-
-ShortcutController:add_shortcut(gtk::Shortcut::new(gtk::ShortcutTrigger::parse_string("<Control><Shift>r"), gtk::CallbackAction::new(; Widget, Args))) do
-	print('Callback {Widget}, {Args}\n')
-	Notebook:run_cell
+if Args[1] then
+	Notebook:load(Args[1])
+else
+	Notebook:add_cell
 end
-
-Window:add_controller(ShortcutController)
 
 callcc(0)
