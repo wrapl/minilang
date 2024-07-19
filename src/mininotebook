@@ -13,7 +13,7 @@ let CssProvider := gtk::CssProvider::new()
 
 CssProvider:load_from_string('
 	frame.active \{
-		border: 2px solid red;
+		border-color: red;
 	}
 ')
 
@@ -254,5 +254,6 @@ if Args[1] then
 else
 	Notebook:add_cell
 end
+Notebook:cells[1]:input:grab_focus
 
 callcc(0)

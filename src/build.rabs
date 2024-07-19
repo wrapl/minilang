@@ -214,7 +214,6 @@ let Options := [
 	"MATH",
 	"AST",
 	"COMPLEX",
-	"GIR",
 	"CBOR",
 	"JSON",
 	"XML",
@@ -277,7 +276,6 @@ MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
-MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
@@ -285,7 +283,7 @@ MINILANG_XE := old or defined("XE")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
-MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_GIR or MINILANG_THREADS or old or defined("SCHEDULER")
+MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or old or defined("SCHEDULER")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
@@ -300,12 +298,12 @@ MINILANG_LIBS := old or defined("LIBS")
 MINILANG_UNWIND := old or defined("UNWIND")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
-MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
 MINILANG_STRUCTS := old or defined("STRUCTS")
 MINILANG_MMAP := old or defined("MMAP")
 MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
+MINILANG_FLINT := old or defined("FLINT")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -340,6 +338,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
+	end
+	if MINILANG_FLINT then
+		File:write("\n#define ML_FLINT\n")
 	end
 	File:write("\n#endif")
 	File:close
@@ -389,21 +390,6 @@ if MINILANG_AST then
 	Objects:put(file("ml_ast.o"))
 	CFLAGS := old + ["-DML_AST"]
 	InstallHeaders:put("ml_ast.h")
-end
-
-if MINILANG_GTK_CONSOLE then
-	MINILANG_GIR := 1
-	Objects:put(file("gtk_console.o"), file("gtk_console_completion.o"))
-	CFLAGS := old + ["-DML_GTK_CONSOLE", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
-	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
-	InstallHeaders:put("gtk_console.h")
-end
-
-if MINILANG_GIR then
-	Objects:put(file("ml_gir.o"))
-	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
-	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0 gio-2.0")]
-	InstallHeaders:put("ml_gir.h")
 end
 
 if MINILANG_LIGHTNING or defined("LIGHTNING") then
@@ -616,6 +602,10 @@ end
 
 if MINILANG_STRINGCACHE then
 	CFLAGS := old + ["-DML_STRINGCACHE"]
+end
+
+if MINILANG_FLINT then
+	LDFLAGS := old + ["-lflint"]
 end
 
 if PLATFORM = "Linux" then

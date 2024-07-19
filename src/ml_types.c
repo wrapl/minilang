@@ -156,6 +156,16 @@ ML_METHOD("constructor", MLTypeT) {
 	return Type->Constructor;
 }
 
+int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
+	const ml_type_t *Type = ml_typeof(Value);
+	if (Type == Expected) return 1;
+#ifdef ML_GENERICS
+	if (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
+	if (Type == Expected) return 1;
+#endif
+	return (uintptr_t)inthash_search(Type->Parents, (uintptr_t)Expected);
+}
+
 #ifdef ML_GENERICS
 
 ML_TYPE(MLTypeGenericT, (MLTypeT), "generic-type");
