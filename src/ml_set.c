@@ -731,7 +731,7 @@ ML_METHODX("append", MLStringBufferT, MLSetT) {
 //<Set
 // Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`"[" + repr(V/1) + ", " + repr(V/2) + ", " + ... + repr(V/n) + "]"`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
 //$- let B := string::buffer()
-//$- B:append({1, 2, 3, 4})
+//$- B:append(set(1 .. 4))
 //$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_set_t *Set = (ml_set_t *)Args[1];
@@ -762,7 +762,7 @@ ML_METHODX("append", MLStringBufferT, MLSetT, MLStringT) {
 //<Sep
 // Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`repr(V/1) + Sep + repr(V/2) + Sep + ... + repr(V/n)`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
 //$- let B := string::buffer()
-//$- B:append({1, 2, 3, 4}, " - ")
+//$- B:append(set(1 .. 4), " - ")
 //$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_set_t *Set = (ml_set_t *)Args[1];

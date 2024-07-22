@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="375" column="11" bodyfile="src/ml_types.h" bodystart="375" bodyend="-1"/>
+        <location file="src/ml_types.h" line="367" column="11" bodyfile="src/ml_types.h" bodystart="367" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cfunctionx__t_1ae65d32df8f009f9d7f4ce76b367c9687" prot="public" static="no" mutable="no">
         <type>ml_callbackx_t</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="376" column="16" bodyfile="src/ml_types.h" bodystart="376" bodyend="-1"/>
+        <location file="src/ml_types.h" line="368" column="16" bodyfile="src/ml_types.h" bodystart="368" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cfunctionx__t_1a93462051e04a57e2459e6a2ab149a01c" prot="public" static="no" mutable="no">
         <type>void *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="377" column="6" bodyfile="src/ml_types.h" bodystart="377" bodyend="-1"/>
+        <location file="src/ml_types.h" line="369" column="6" bodyfile="src/ml_types.h" bodystart="369" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cfunctionx__t_1acf4bd6e1b9e491ae82464869f0ea1a0f" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="378" column="12" bodyfile="src/ml_types.h" bodystart="378" bodyend="-1"/>
+        <location file="src/ml_types.h" line="370" column="12" bodyfile="src/ml_types.h" bodystart="370" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cfunctionx__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="379" column="5" bodyfile="src/ml_types.h" bodystart="379" bodyend="-1"/>
+        <location file="src/ml_types.h" line="371" column="5" bodyfile="src/ml_types.h" bodystart="371" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -144,7 +144,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="374" column="1" bodyfile="src/ml_types.h" bodystart="374" bodyend="380"/>
+    <location file="src/ml_types.h" line="366" column="1" bodyfile="src/ml_types.h" bodystart="366" bodyend="372"/>
     <listofallmembers>
       <member refid="structml__cfunctionx__t_1ae65d32df8f009f9d7f4ce76b367c9687" prot="public" virt="non-virtual"><scope>ml_cfunctionx_t</scope><name>Callback</name></member>
       <member refid="structml__cfunctionx__t_1a93462051e04a57e2459e6a2ab149a01c" prot="public" virt="non-virtual"><scope>ml_cfunctionx_t</scope><name>Data</name></member>

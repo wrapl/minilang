@@ -80,6 +80,8 @@ hierarchy
       "stream::fd":e -> "socket":w;
       "socket":e -> "socket::local":w;
       "socket":e -> "socket::inet":w;
+      "sequence":e -> "slice":w;
+      "any":e -> "slice::index":w;
       "sequence":e -> "set":w;
       "set":e -> "set::mutable":w;
       "enum":e -> "set::order":w;
@@ -271,8 +273,6 @@ hierarchy
       "any":e -> "ast::ifcase":w;
       "enum":e -> "paramkind":w;
       "list":e -> "ast::names":w;
-      "sequence":e -> "array::list":w;
-      "any":e -> "array::list::iter":w;
       "address":e -> "array":w;
       "sequence":e -> "array":w;
       "array":e -> "array::mutable":w;

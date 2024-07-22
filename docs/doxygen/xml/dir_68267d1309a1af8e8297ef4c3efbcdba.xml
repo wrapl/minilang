@@ -51,6 +51,7 @@
     <innerfile refid="ml__runtime_8h">ml_runtime.h</innerfile>
     <innerfile refid="ml__sequence_8h">ml_sequence.h</innerfile>
     <innerfile refid="ml__set_8h">ml_set.h</innerfile>
+    <innerfile refid="ml__slice_8h">ml_slice.h</innerfile>
     <innerfile refid="ml__socket_8h">ml_socket.h</innerfile>
     <innerfile refid="ml__stream_8h">ml_stream.h</innerfile>
     <innerfile refid="ml__string_8h">ml_string.h</innerfile>

@@ -3638,6 +3638,7 @@
   </compound>
   <compound refid="ml__logging_8h" kind="file"><name>ml_logging.h</name>
     <member refid="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
+    <member refid="group__logging_1ga8b196e830508b498e21565222c8db52f" kind="define"><name>ML_LOG_FATAL</name></member>
     <member refid="group__logging_1gaebf88e6908ef617953afa05f50e1916f" kind="define"><name>ML_LOG_ERROR</name></member>
     <member refid="group__logging_1gada7629204b251e9a90e20978e8b28759" kind="define"><name>ML_LOG_WARN</name></member>
     <member refid="group__logging_1ga9f77e3b7c700fbd00198de7b6bcd4090" kind="define"><name>ML_LOG_INFO</name></member>
@@ -3978,6 +3979,9 @@
   <compound refid="ml__set_8h" kind="file"><name>ml_set.h</name>
     <member refid="ml__set_8h_1ac48418bc4ae83889942da63bd2962cfa" kind="function"><name>ml_set_init</name></member>
   </compound>
+  <compound refid="ml__slice_8h" kind="file"><name>ml_slice.h</name>
+    <member refid="ml__slice_8h_1ac2895aa0f011c4cd7b915173e0aac477" kind="function"><name>ml_slice_init</name></member>
+  </compound>
   <compound refid="ml__socket_8h" kind="file"><name>ml_socket.h</name>
     <member refid="ml__socket_8h_1a7dc5521230bf40c328708eb9a97a5bfe" kind="variable"><name>MLSocketT</name></member>
     <member refid="ml__socket_8h_1af3e565f784a0ec99e1503cad4b3280a3" kind="function"><name>ml_socket_init</name></member>
@@ -4163,6 +4167,7 @@
     <member refid="group__strings_1gaf4ce606a5976bcbb41b451750bd530fa" kind="variable"><name>MLRegexT</name></member>
     <member refid="group__strings_1ga4ff94a55fc6e37c8a8084c88224c8838" kind="variable"><name>MLStringBufferT</name></member>
     <member refid="group__lists_1ga9f2ae09d61ca4a50043f754671d75dac" kind="variable"><name>MLListT</name></member>
+    <member refid="group__slices_1ga4354fe24c95ac91712ccde8ab036734d" kind="variable"><name>MLSliceT</name></member>
     <member refid="group__methods_1ga156dd7b19b454f8ce3dce93bb30cddbc" kind="variable"><name>MLMethodDefine</name></member>
     <member refid="group__methods_1ga65beab28734e99107675e8f68e8f97af" kind="variable"><name>MLMethodDefault</name></member>
     <member refid="group__methods_1ga8107ad8b261da2afa16428f5b9f69ff3" kind="variable"><name>MLMethodT</name></member>
@@ -4192,7 +4197,7 @@
     <member refid="group__types_1gaf6122bf865bcb36a39bc84af16d2f2fa" kind="function"><name>ml_typeof</name></member>
     <member refid="group__types_1ga33a98fd43f27d80564146dcdad09ca35" kind="function"><name>ml_deref</name></member>
     <member refid="group__types_1ga0c41a0ba85daa12de59e8306e4d68ad6" kind="function"><name>ml_typeof_deref</name></member>
-    <member refid="group__types_1ga5ce3902ca097a016e92358d2ebb6549c" kind="function"><name>ml_is</name></member>
+    <member refid="group__types_1ga25a23b0074c466c759ee3988068b4d78" kind="function"><name>ml_is</name></member>
     <member refid="group__types_1gaa58ad31c484662813dc95ef0410ebb90" kind="function"><name>ml_hash_chain</name></member>
     <member refid="group__types_1gafb4546b63a830ae505c51c66e3734a4f" kind="function"><name>ml_hash</name></member>
     <member refid="group__types_1ga7e2f917c975783372ba1f6aec5dabfb4" kind="function"><name>ml_typed_fn_get</name></member>
@@ -5571,6 +5576,7 @@
   <compound refid="group__logging" kind="group"><name>logging</name>
     <member refid="group__logging_1gad85d5ad7f21721364ba021b14fbbbf5d" kind="enum"><name>ml_log_level_t</name></member>
     <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dac6a407dfde69d0401eab64e1bf59e4c2" kind="enumvalue"><name>ML_LOG_LEVEL_NONE</name></member>
+    <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dabf37bd6f25d5aaa64b6cf416b201c8f2" kind="enumvalue"><name>ML_LOG_LEVEL_FATAL</name></member>
     <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da0ba31a6ceea68f5ea68d20d40c59df6d" kind="enumvalue"><name>ML_LOG_LEVEL_ERROR</name></member>
     <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da719389ac7b2c759bdc6d6a77959eaede" kind="enumvalue"><name>ML_LOG_LEVEL_WARN</name></member>
     <member refid="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dac9889f39811527db27b832ff64117f3b" kind="enumvalue"><name>ML_LOG_LEVEL_INFO</name></member>
@@ -5585,6 +5591,7 @@
     <member refid="group__logging_1ga8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
     <member refid="group__logging_1ga59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
     <member refid="group__logging_1ga15120c861e87028b63c4e797d55eb3a5" kind="define"><name>ML_LOGGER</name></member>
+    <member refid="group__logging_1ga8b196e830508b498e21565222c8db52f" kind="define"><name>ML_LOG_FATAL</name></member>
     <member refid="group__logging_1gaebf88e6908ef617953afa05f50e1916f" kind="define"><name>ML_LOG_ERROR</name></member>
     <member refid="group__logging_1gada7629204b251e9a90e20978e8b28759" kind="define"><name>ML_LOG_WARN</name></member>
     <member refid="group__logging_1ga9f77e3b7c700fbd00198de7b6bcd4090" kind="define"><name>ML_LOG_INFO</name></member>
@@ -5831,7 +5838,7 @@
     <member refid="group__types_1gaf6122bf865bcb36a39bc84af16d2f2fa" kind="function"><name>ml_typeof</name></member>
     <member refid="group__types_1ga33a98fd43f27d80564146dcdad09ca35" kind="function"><name>ml_deref</name></member>
     <member refid="group__types_1ga0c41a0ba85daa12de59e8306e4d68ad6" kind="function"><name>ml_typeof_deref</name></member>
-    <member refid="group__types_1ga5ce3902ca097a016e92358d2ebb6549c" kind="function"><name>ml_is</name></member>
+    <member refid="group__types_1ga25a23b0074c466c759ee3988068b4d78" kind="function"><name>ml_is</name></member>
     <member refid="group__types_1gaa58ad31c484662813dc95ef0410ebb90" kind="function"><name>ml_hash_chain</name></member>
     <member refid="group__types_1gafb4546b63a830ae505c51c66e3734a4f" kind="function"><name>ml_hash</name></member>
     <member refid="group__types_1ga7e2f917c975783372ba1f6aec5dabfb4" kind="function"><name>ml_typed_fn_get</name></member>
@@ -6030,6 +6037,9 @@
     <member refid="group__lists_1gab5aff1e40936cafd7d8732c9d75f2852" kind="define"><name>ml_list_append</name></member>
     <member refid="group__lists_1ga1789c9ac0f3d673b6a0f5798913d1e80" kind="define"><name>ML_LIST_FOREACH</name></member>
     <member refid="group__lists_1ga4e28a43d7fae21259fdb7ff92b1dfd57" kind="define"><name>ML_LIST_REVERSE</name></member>
+  </compound>
+  <compound refid="group__slices" kind="group"><name>slices</name>
+    <member refid="group__slices_1ga4354fe24c95ac91712ccde8ab036734d" kind="variable"><name>MLSliceT</name></member>
   </compound>
   <compound refid="group__methods" kind="group"><name>methods</name>
     <member refid="group__methods_1ga8b6c7254a59c415e36424ece80842f85" kind="typedef"><name>ml_method_t</name></member>

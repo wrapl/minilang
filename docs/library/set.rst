@@ -223,7 +223,7 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:random :> "e"
-      S:random :> "c"
+      S:random :> "k"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -235,11 +235,23 @@ set
 
 
 :mini:`meth (Buffer: string::buffer):append(Set: set)`
-   Appends a representation of :mini:`Set` to :mini:`Buffer`.
+   Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`"[" + repr(V₁) + ",  " + repr(V₂) + ",  " + ... + repr(Vₙ) + "]"`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
+
+   .. code-block:: mini
+
+      let B := string::buffer()
+      B:append(set(1 .. 4))
+      B:rest :> "{1, 2, 3, 4}"
 
 
 :mini:`meth (Buffer: string::buffer):append(Set: set, Sep: string)`
-   Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
+   Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`repr(V₁) + Sep + repr(V₂) + Sep + ... + repr(Vₙ)`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
+
+   .. code-block:: mini
+
+      let B := string::buffer()
+      B:append(set(1 .. 4), " - ")
+      B:rest :> "1 - 2 - 3 - 4"
 
 
 :mini:`type set::mutable < set`
