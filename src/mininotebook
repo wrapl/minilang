@@ -194,6 +194,10 @@ meth :load(Notebook: notebook, Path: string) do
 	end
 	Notebook:filename := Path
 	Window:set_title(Path:after("/", -1) or Path)
+on Error do
+	Notebook:add_cell
+	Notebook:filename := Path
+	Window:set_title(Path:after("/", -1) or Path)
 end
 
 meth :save(Notebook: notebook) do

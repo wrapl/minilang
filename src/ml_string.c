@@ -892,7 +892,16 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+#ifdef ML_FLINT
+	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
+		ml_stringbuffer_printf(Buffer, "%d", (int32_t)(intptr_t)Args[1]);
+	} else {
+		const char *Str = fmpz_get_str(NULL, 10, ((ml_integer_t *)Args[1])->Value);
+		ml_stringbuffer_write(Buffer, Str, strlen(Str));
+	}
+#else
 	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
+#endif
 	return MLSome;
 }
 
@@ -903,8 +912,17 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 //<Base
 // Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	int64_t Value = ml_integer_value_fast(Args[1]);
 	int Base = ml_integer_value_fast(Args[2]);
+#ifdef ML_FLINT
+	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
+		goto int32;
+	} else {
+		const char *Str = fmpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
+		ml_stringbuffer_write(Buffer, Str, strlen(Str));
+	}
+#endif
+int32:
+	int64_t Value = ml_integer_value_fast(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;

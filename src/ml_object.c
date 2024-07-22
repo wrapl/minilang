@@ -694,7 +694,11 @@ typedef struct {
 } ml_enum_t;
 
 static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
+#ifdef ML_FLINT
+	return (long)Value->Base.Type + fmpz_get_si(Value->Base.Value);
+#else
 	return (long)Value->Base.Type + Value->Base.Value;
+#endif
 }
 
 #ifdef ML_NANBOXING
@@ -727,7 +731,11 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 		ml_enum_value_t *Value = Enum->Values;
 		int64_t Index = ml_integer_value_fast(Arg);
 		for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++Value) {
+#ifdef ML_FLINT
+			if (fmpz_get_si(Value->Base.Value) == Index) ML_RETURN(Value);
+#else
 			if (Value->Base.Value == Index) ML_RETURN(Value);
+#endif
 		}
 		ML_ERROR("EnumError", "Invalid enum index");
 	} else {
@@ -765,7 +773,11 @@ static ml_value_t *ml_enum_string_fn(void *Type, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I, ++Value) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Args[I];
+#ifdef ML_FLINT
+		fmpz_set_ui(Value->Base.Value, I + 1);
+#else
 		Value->Base.Value = I + 1;
+#endif
 		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
 	}
 	return (ml_value_t *)Enum;
@@ -789,7 +801,11 @@ static ml_value_t *ml_enum_names_fn(void *Type, int Count, ml_value_t **Args) {
 	ML_NAMES_FOREACH(Args[0], Iter) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Iter->Value;
+#ifdef ML_FLINT
+		fmpz_set_ui(Value->Base.Value, ml_integer_value(Args[++Index]));
+#else
 		Value->Base.Value = ml_integer_value(Args[++Index]);
+#endif
 		stringmap_insert(Enum->Base.Exports, ml_string_value(Iter->Value), Value);
 		++Value;
 	}
@@ -942,7 +958,11 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 		ml_value_t *Name = ml_string(String, -1);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
+#ifdef ML_FLINT
+		fmpz_set_ui(Value->Base.Value, ++Index);
+#else
 		Value->Base.Value = ++Index;
+#endif
 		stringmap_insert(Enum->Base.Exports, String, Value);
 		++Value;
 	}
@@ -974,7 +994,11 @@ ml_type_t *ml_enum_cyclic(const char *TypeName, ...) {
 		ml_value_t *Name = ml_string(String, -1);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
+#ifdef ML_FLINT
+		fmpz_set_ui(Value->Base.Value, ++Index);
+#else
 		Value->Base.Value = ++Index;
+#endif
 		stringmap_insert(Enum->Base.Exports, String, Value);
 		++Value;
 	}
@@ -1008,7 +1032,11 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 		ml_value_t *Name = ml_string(String, -1);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
+#ifdef ML_FLINT
+		fmpz_set_ui(Value->Base.Value, va_arg(Args, int));
+#else
 		Value->Base.Value = va_arg(Args, int);
+#endif
 		stringmap_insert(Enum->Base.Exports, String, Value);
 		++Value;
 	}
@@ -1020,13 +1048,21 @@ ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Value) {
 	const ml_enum_t *Enum = (ml_enum_t *)Type;
 	const ml_enum_value_t *EnumValue = Enum->Values;
 	for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++EnumValue) {
+#ifdef ML_FLINT
+		if (fmpz_get_si(EnumValue->Base.Value) == Value) return (ml_value_t *)EnumValue;
+#else
 		if (EnumValue->Base.Value == Value) return (ml_value_t *)EnumValue;
+#endif
 	}
 	return ml_error("EnumError", "Invalid enum index");
 }
 
 int64_t ml_enum_value_value(ml_value_t *Value) {
+#ifdef ML_FLINT
+	return fmpz_get_si(((ml_enum_value_t *)Value)->Base.Value);
+#else
 	return ((ml_enum_value_t *)Value)->Base.Value;
+#endif
 }
 
 const char *ml_enum_value_name(ml_value_t *Value) {
@@ -1287,7 +1323,11 @@ ML_METHOD("<>", MLIntegerT, MLEnumValueT) {
 
 ML_METHOD("+", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+#ifdef ML_FLINT
+	int64_t Value = fmpz_get_si(A->Base.Value) + ml_integer_value(Args[1]);
+#else
 	int64_t Value = A->Base.Value + ml_integer_value(Args[1]);
+#endif
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1300,7 +1340,11 @@ ML_METHOD("+", MLEnumValueT, MLIntegerT) {
 
 ML_METHOD("+", MLIntegerT, MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[1];
+#ifdef ML_FLINT
+	int64_t Value = fmpz_get_si(A->Base.Value) + ml_integer_value(Args[0]);
+#else
 	int64_t Value = A->Base.Value + ml_integer_value(Args[0]);
+#endif
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1313,7 +1357,11 @@ ML_METHOD("+", MLIntegerT, MLEnumValueT) {
 
 ML_METHOD("-", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+#ifdef ML_FLINT
+	int64_t Value = fmpz_get_si(A->Base.Value) - ml_integer_value(Args[1]);
+#else
 	int64_t Value = A->Base.Value - ml_integer_value(Args[1]);
+#endif
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1326,7 +1374,11 @@ ML_METHOD("-", MLEnumValueT, MLIntegerT) {
 
 ML_METHOD("next", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+#ifdef ML_FLINT
+	int64_t Value = fmpz_get_si(A->Base.Value) + 1;
+#else
 	int64_t Value = A->Base.Value + 1;
+#endif
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1339,7 +1391,11 @@ ML_METHOD("next", MLEnumValueT) {
 
 ML_METHOD("prev", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
+#ifdef ML_FLINT
+	int64_t Value = fmpz_get_si(A->Base.Value) - 1;
+#else
 	int64_t Value = A->Base.Value - 1;
+#endif
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;

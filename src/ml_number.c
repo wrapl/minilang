@@ -55,6 +55,25 @@ static int ML_TYPED_FN(ml_value_is_constant, MLNumberT, ml_value_t *Value) {
 	return 1;
 }
 
+#define ml_neg(X) (-(X))
+#define ml_complement(X) (~(X))
+
+#define ml_add(X, Y) ((X) + (Y))
+#define ml_sub(X, Y) ((X) - (Y))
+#define ml_mul(X, Y) ((X) * (Y))
+#define ml_div(X, Y) ((X) / (Y))
+
+#define ml_and(X, Y) ((X) & (Y))
+#define ml_or(X, Y) ((X) | (Y))
+#define ml_xor(X, Y) ((X) ^ (Y))
+
+#define ml_eq(X, Y) ((X) == (Y))
+#define ml_neq(X, Y) ((X) != (Y))
+#define ml_lt(X, Y) ((X) < (Y))
+#define ml_gt(X, Y) ((X) > (Y))
+#define ml_lte(X, Y) ((X) <= (Y))
+#define ml_gte(X, Y) ((X) >= (Y))
+
 #ifdef ML_COMPLEX
 
 static long ml_complex_hash(ml_complex_t *Complex, ml_hash_chain_t *Chain) {
@@ -93,7 +112,11 @@ complex double ml_complex_value(const ml_value_t *Value) {
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if (Tag == 0) {
 		if (Value->Type == MLInt64T) {
+#ifdef ML_FLINT
+			return fmpz_get_d(((ml_integer_t *)Value)->Value);
+#else
 			return ((ml_integer_t *)Value)->Value;
+#endif
 		} else if (Value->Type == MLComplexT) {
 			return ((ml_complex_t *)Value)->Value;
 		}
@@ -116,14 +139,14 @@ complex double ml_complex_value(const ml_value_t *Value) {
 #endif
 }
 
-#define ml_arith_method_complex(NAME, SYMBOL) \
+#define ml_arith_method_complex(NAME, FUNC) \
 ML_METHOD(#NAME, MLComplexT) { \
 /*<A
 //>complex
 // Returns :mini:`NAMEA`.
 */\
 	complex double ComplexA = ml_complex_value(Args[0]); \
-	complex double ComplexB = SYMBOL(ComplexA); \
+	complex double ComplexB = ml_ ## FUNC(ComplexA); \
 	if (fabs(cimag(ComplexB)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexB)); \
 	} else { \
@@ -131,7 +154,7 @@ ML_METHOD(#NAME, MLComplexT) { \
 	} \
 }
 
-#define ml_arith_method_complex_complex(NAME, SYMBOL) \
+#define ml_arith_method_complex_complex(NAME, FUNC) \
 ML_METHOD(#NAME, MLComplexT, MLComplexT) { \
 /*<A
 //<B
@@ -140,7 +163,7 @@ ML_METHOD(#NAME, MLComplexT, MLComplexT) { \
 */\
 	complex double ComplexA = ml_complex_value(Args[0]); \
 	complex double ComplexB = ml_complex_value(Args[1]); \
-	complex double ComplexC = ComplexA SYMBOL ComplexB; \
+	complex double ComplexC = ml_ ## FUNC(ComplexA, ComplexB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
 	} else { \
@@ -148,7 +171,7 @@ ML_METHOD(#NAME, MLComplexT, MLComplexT) { \
 	} \
 }
 
-#define ml_arith_method_complex_integer(NAME, SYMBOL) \
+#define ml_arith_method_complex_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLComplexT, MLIntegerT) { \
 /*<A
 //<B
@@ -157,7 +180,7 @@ ML_METHOD(#NAME, MLComplexT, MLIntegerT) { \
 */\
 	complex double ComplexA = ml_complex_value(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	complex double ComplexC = ComplexA SYMBOL IntegerB; \
+	complex double ComplexC = ml_ ## FUNC(ComplexA, IntegerB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
 	} else { \
@@ -165,7 +188,7 @@ ML_METHOD(#NAME, MLComplexT, MLIntegerT) { \
 	} \
 }
 
-#define ml_arith_method_integer_complex(NAME, SYMBOL) \
+#define ml_arith_method_integer_complex(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT, MLComplexT) { \
 /*<A
 //<B
@@ -174,7 +197,7 @@ ML_METHOD(#NAME, MLIntegerT, MLComplexT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	complex double ComplexB = ml_complex_value(Args[1]); \
-	complex double ComplexC = IntegerA SYMBOL ComplexB; \
+	complex double ComplexC = ml_ ## FUNC(IntegerA, ComplexB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
 	} else { \
@@ -182,7 +205,7 @@ ML_METHOD(#NAME, MLIntegerT, MLComplexT) { \
 	} \
 }
 
-#define ml_arith_method_complex_real(NAME, SYMBOL) \
+#define ml_arith_method_complex_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLComplexT, MLDoubleT) { \
 /*<A
 //<B
@@ -191,7 +214,7 @@ ML_METHOD(#NAME, MLComplexT, MLDoubleT) { \
 */\
 	complex double ComplexA = ml_complex_value(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
-	complex double ComplexC = ComplexA SYMBOL RealB; \
+	complex double ComplexC = ml_ ## FUNC(ComplexA, RealB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
 	} else { \
@@ -199,7 +222,7 @@ ML_METHOD(#NAME, MLComplexT, MLDoubleT) { \
 	} \
 }
 
-#define ml_arith_method_real_complex(NAME, SYMBOL) \
+#define ml_arith_method_real_complex(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT, MLComplexT) { \
 /*<A
 //<B
@@ -208,7 +231,7 @@ ML_METHOD(#NAME, MLDoubleT, MLComplexT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	complex double ComplexB = ml_complex_value(Args[1]); \
-	complex double ComplexC = RealA SYMBOL ComplexB; \
+	complex double ComplexC = ml_ ## FUNC(RealA, ComplexB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
 	} else { \
@@ -276,7 +299,11 @@ ML_TYPE(MLInt32T, (MLIntegerT), "int32",
 );
 
 static long ml_int64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+#ifdef ML_FLINT
+	return fmpz_get_si(((ml_integer_t *)Value)->Value);
+#else
 	return ((ml_integer_t *)Value)->Value;
+#endif
 }
 
 ML_TYPE(MLInt64T, (MLIntegerT), "int64",
@@ -288,7 +315,11 @@ ML_TYPE(MLInt64T, (MLIntegerT), "int64",
 ml_value_t *ml_int64(int64_t Integer) {
 	ml_integer_t *Value = new(ml_integer_t);
 	Value->Type = MLInt64T;
+#ifdef ML_FLINT
+	fmpz_set_si(Value->Value, Integer);
+#else
 	Value->Value = Integer;
+#endif
 	return (ml_value_t *)Value;
 }
 
@@ -297,7 +328,11 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if ((Tag == 0) && ml_is_subtype(Value->Type, MLInt64T)) {
+#ifdef ML_FLINT
+		return fmpz_get_si(((ml_integer_t *)Value)->Value);
+#else
 		return ((ml_integer_t *)Value)->Value;
+#endif
 	}
 	return 0;
 }
@@ -309,7 +344,11 @@ ML_METHOD(MLRealT, MLInt32T) {
 
 ML_METHOD(MLRealT, MLInt64T) {
 //!internal
+#ifdef ML_FLINT
+	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
+#else
 	return ml_real(((ml_integer_t *)Args[0])->Value);
+#endif
 }
 
 #else
@@ -386,7 +425,12 @@ double ml_real_value(const ml_value_t *Value) {
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if (Tag == 0) {
 		if (Value->Type == MLInt64T) {
+#ifdef ML_FLINT
+			return fmpz_get_d(((ml_integer_t *)Value)->Value);
+#else
 			return ((ml_integer_t *)Value)->Value;
+#endif
+
 		}
 	}
 	return 0;
@@ -399,7 +443,11 @@ ML_METHOD(MLDoubleT, MLInt32T) {
 
 ML_METHOD(MLDoubleT, MLInt64T) {
 //!internal
+#ifdef ML_FLINT
+	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
+#else
 	return ml_real(((ml_integer_t *)Args[0])->Value);
+#endif
 }
 
 #else
@@ -439,17 +487,98 @@ ML_METHOD(MLIntegerT, MLDoubleT) {
 	return ml_integer(ml_double_value_fast(Args[0]));
 }
 
-#define ml_arith_method_integer(NAME, SYMBOL) \
+#ifdef ML_RATIONAL
+
+#ifdef ML_NANBOXING
+
+static inline ml_value_t *ml_rat48(int32_t Num, uint32_t Den) {
+	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)(Den && 0xFFFF) << 32) + (uint32_t)Num);
+}
+
+ml_value_t *ml_rational(fmpq Value) {
+
+}
+
+#else
+
+#endif
+
+#endif
+
+#ifdef ML_FLINT
+
+static void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest) {
+	if (__builtin_expect(!!ml_tag(Source), 1)) {
+		fmpz_init_set_si(Dest, (int32_t)(intptr_t)Source);
+	} else {
+		Dest[0] = ((ml_integer_t *)Source)->Value[0];
+	}
+}
+
+static ml_value_t *ml_integer_fmpz(fmpz_t Source) {
+	if (fmpz_fits_si(Source)) {
+		return ml_integer(fmpz_get_si(Source));
+	} else {
+		ml_integer_t *Value = new(ml_integer_t);
+		Value->Type = MLInt64T;
+		Value->Value[0] = Source[0];
+		return (ml_value_t *)Value;
+	}
+}
+
+#define ml_arith_method_integer(NAME, FUNC) \
+ML_METHOD(#NAME, MLIntegerT) { \
+/*<A
+//>integer
+// Returns :mini:`NAMEA`.
+*/\
+	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA); \
+	fmpz_t Result; fmpz_init(Result); \
+	fmpz_ ## FUNC(Result, IntegerA); \
+	return ml_integer_fmpz(Result); \
+}
+
+#define ml_arith_method_integer_integer(NAME, FUNC) \
+ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`A NAME B`.
+*/\
+	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA); \
+	fmpz_t IntegerB; ml_integer_fmpz_init(Args[1], IntegerB); \
+	fmpz_t Result; fmpz_init(Result); \
+	fmpz_ ## FUNC(Result, IntegerA, IntegerB); \
+	return ml_integer_fmpz(Result); \
+}
+
+#define ml_arith_method_integer_integer_bitwise(NAME, FUNC, OP) \
+ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
+/*<A
+//<B
+//>integer
+// Returns the bitwise OP of :mini:`A` and :mini:`B`.
+*/\
+	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA); \
+	fmpz_t IntegerB; ml_integer_fmpz_init(Args[1], IntegerB); \
+	fmpz_t Result; fmpz_init(Result); \
+	fmpz_ ## FUNC(Result, IntegerA, IntegerB); \
+	return ml_integer_fmpz(Result); \
+}
+
+#else
+
+#define ml_arith_method_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT) { \
 /*<A
 //>integer
 // Returns :mini:`NAMEA`.
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	return ml_integer(SYMBOL(IntegerA)); \
+	return ml_integer(ml_ ## FUNC(IntegerA)); \
 }
 
-#define ml_arith_method_integer_integer(NAME, SYMBOL) \
+#define ml_arith_method_integer_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
@@ -458,10 +587,10 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	return ml_integer(IntegerA SYMBOL IntegerB); \
+	return ml_integer(ml_ ## FUNC(IntegerA, IntegerB)); \
 }
 
-#define ml_arith_method_integer_integer_bitwise(NAME, SYMBOL, OP) \
+#define ml_arith_method_integer_integer_bitwise(NAME, FUNC, OP) \
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
@@ -470,20 +599,22 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	return ml_integer(IntegerA SYMBOL IntegerB); \
+	return ml_integer(ml_ ## FUNC(IntegerA, IntegerB)); \
 }
 
-#define ml_arith_method_real(NAME, SYMBOL) \
+#endif
+
+#define ml_arith_method_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT) { \
 /*<A
 //>real
 // Returns :mini:`NAMEA`.
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
-	return ml_real(SYMBOL(RealA)); \
+	return ml_real(ml_ ## FUNC(RealA)); \
 }
 
-#define ml_arith_method_real_real(NAME, SYMBOL) \
+#define ml_arith_method_real_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 /*<A
 //<B
@@ -492,10 +623,10 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
-	return ml_real(RealA SYMBOL RealB); \
+	return ml_real(ml_ ## FUNC(RealA, RealB)); \
 }
 
-#define ml_arith_method_real_integer(NAME, SYMBOL) \
+#define ml_arith_method_real_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 /*<A
 //<B
@@ -504,10 +635,10 @@ ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	return ml_real(RealA SYMBOL IntegerB); \
+	return ml_real(ml_ ## FUNC(RealA, IntegerB)); \
 }
 
-#define ml_arith_method_integer_real(NAME, SYMBOL) \
+#define ml_arith_method_integer_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 /*<A
 //<B
@@ -516,49 +647,49 @@ ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
-	return ml_real(IntegerA SYMBOL RealB); \
+	return ml_real(ml_ ## FUNC(IntegerA, RealB)); \
 }
 
 #ifdef ML_COMPLEX
 
-#define ml_arith_method_number(NAME, SYMBOL) \
-ml_arith_method_integer(NAME, SYMBOL) \
-ml_arith_method_real(NAME, SYMBOL) \
-ml_arith_method_complex(NAME, SYMBOL)
+#define ml_arith_method_number(NAME, FUNC) \
+ml_arith_method_integer(NAME, FUNC) \
+ml_arith_method_real(NAME, FUNC) \
+ml_arith_method_complex(NAME, FUNC)
 
-#define ml_arith_method_number_number(NAME, SYMBOL) \
-ml_arith_method_integer_integer(NAME, SYMBOL) \
-ml_arith_method_real_real(NAME, SYMBOL) \
-ml_arith_method_real_integer(NAME, SYMBOL) \
-ml_arith_method_integer_real(NAME, SYMBOL) \
-ml_arith_method_complex_complex(NAME, SYMBOL) \
-ml_arith_method_complex_real(NAME, SYMBOL) \
-ml_arith_method_complex_integer(NAME, SYMBOL) \
-ml_arith_method_integer_complex(NAME, SYMBOL) \
-ml_arith_method_real_complex(NAME, SYMBOL) \
+#define ml_arith_method_number_number(NAME, FUNC) \
+ml_arith_method_integer_integer(NAME, FUNC) \
+ml_arith_method_real_real(NAME, FUNC) \
+ml_arith_method_real_integer(NAME, FUNC) \
+ml_arith_method_integer_real(NAME, FUNC) \
+ml_arith_method_complex_complex(NAME, FUNC) \
+ml_arith_method_complex_real(NAME, FUNC) \
+ml_arith_method_complex_integer(NAME, FUNC) \
+ml_arith_method_integer_complex(NAME, FUNC) \
+ml_arith_method_real_complex(NAME, FUNC) \
 
 #else
 
-#define ml_arith_method_number(NAME, SYMBOL) \
-ml_arith_method_integer(NAME, SYMBOL) \
-ml_arith_method_real(NAME, SYMBOL)
+#define ml_arith_method_number(NAME, FUNC) \
+ml_arith_method_integer(NAME, FUNC) \
+ml_arith_method_real(NAME, FUNC)
 
-#define ml_arith_method_number_number(NAME, SYMBOL) \
-ml_arith_method_integer_integer(NAME, SYMBOL) \
-ml_arith_method_real_real(NAME, SYMBOL) \
-ml_arith_method_real_integer(NAME, SYMBOL) \
-ml_arith_method_integer_real(NAME, SYMBOL)
+#define ml_arith_method_number_number(NAME, FUNC) \
+ml_arith_method_integer_integer(NAME, FUNC) \
+ml_arith_method_real_real(NAME, FUNC) \
+ml_arith_method_real_integer(NAME, FUNC) \
+ml_arith_method_integer_real(NAME, FUNC)
 
 #endif
 
-ml_arith_method_number(-, -)
-ml_arith_method_number_number(+, +)
-ml_arith_method_number_number(-, -)
-ml_arith_method_number_number(*, *)
-ml_arith_method_integer(~, ~);
-ml_arith_method_integer_integer_bitwise(/\\, &, and);
-ml_arith_method_integer_integer_bitwise(\\/, |, or);
-ml_arith_method_integer_integer_bitwise(><, ^, xor);
+ml_arith_method_number(-, neg)
+ml_arith_method_number_number(+, add)
+ml_arith_method_number_number(-, sub)
+ml_arith_method_number_number(*, mul)
+ml_arith_method_integer(~, complement);
+ml_arith_method_integer_integer_bitwise(/\\, and, and);
+ml_arith_method_integer_integer_bitwise(\\/, or, or);
+ml_arith_method_integer_integer_bitwise(><, xor, xor);
 
 ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 //<A
@@ -668,18 +799,18 @@ ML_METHOD("--", MLDoubleT) {
 	return ml_real(ml_double_value_fast(Args[0]) - 1);
 }
 
-ml_arith_method_real_real(/, /)
-ml_arith_method_real_integer(/, /)
-ml_arith_method_integer_real(/, /)
+ml_arith_method_real_real(/, div)
+ml_arith_method_real_integer(/, div)
+ml_arith_method_integer_real(/, div)
 
 #ifdef ML_COMPLEX
 
-ml_arith_method_complex_complex(/, /)
-ml_arith_method_complex_integer(/, /)
-ml_arith_method_integer_complex(/, /)
-ml_arith_method_complex_real(/, /)
-ml_arith_method_real_complex(/, /)
-ml_arith_method_complex(~, ~);
+ml_arith_method_complex_complex(/, div)
+ml_arith_method_complex_integer(/, div)
+ml_arith_method_integer_complex(/, div)
+ml_arith_method_complex_real(/, div)
+ml_arith_method_real_complex(/, div)
+ml_arith_method_complex(~, complement);
 
 #endif
 
@@ -692,6 +823,18 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 //$= type(N)
 //$= let R := 10 / 3
 //$= type(R)
+#ifdef ML_FLINT
+	fmpq_t Quotient; fmpq_init(Quotient);
+	ml_integer_fmpz_init(Args[1], fmpq_denref(Quotient));
+	if (!Quotient->den) return ml_error("ValueError", "Division by 0");
+	ml_integer_fmpz_init(Args[0], fmpq_numref(Quotient));
+	fmpz_t Result; fmpz_init(Result);
+	if (fmpz_divides(Result, fmpq_denref(Quotient), fmpq_numref(Quotient))) {
+		return ml_integer_fmpz(Result);
+	} else {
+		return ml_real(fmpq_get_d(Quotient));
+	}
+#else
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
@@ -700,6 +843,7 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 	} else {
 		return ml_real((double)IntegerA / (double)IntegerB);
 	}
+#endif
 }
 
 ML_METHOD("%", MLIntegerT, MLIntegerT) {
@@ -746,13 +890,16 @@ ML_METHOD("div", MLIntegerT, MLIntegerT) {
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
-	long A = IntegerA;
-	long B = IntegerB;
-	long Q = A / B;
-	if (A < 0 && B * Q != A) {
-		if (B < 0) ++Q; else --Q;
+	ldiv_t Div = ldiv(IntegerA, IntegerB);
+	if (Div.rem < 0) {
+		if (IntegerB < 0) {
+			return ml_integer(Div.quot + 1);
+		} else {
+			return ml_integer(Div.quot - 1);
+		}
+	} else {
+		return ml_integer(Div.quot);
 	}
-	return ml_integer(Q);
 }
 
 ML_METHOD("mod", MLIntegerT, MLIntegerT) {
@@ -793,7 +940,7 @@ ML_METHOD("bsr", MLIntegerT) {
 	return ml_integer(A ? 64 - __builtin_clzl(A) : 0);
 }
 
-#define ml_comp_method_integer_integer(NAME, SYMBOL) \
+#define ml_comp_method_integer_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
@@ -802,10 +949,10 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	return IntegerA SYMBOL IntegerB ? Args[1] : MLNil; \
+	return ml_ ## FUNC(IntegerA, IntegerB) ? Args[1] : MLNil; \
 }
 
-#define ml_comp_method_real_real(NAME, SYMBOL) \
+#define ml_comp_method_real_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 /*<A
 //<B
@@ -814,10 +961,10 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
-	return RealA SYMBOL RealB ? Args[1] : MLNil; \
+	return ml_ ## FUNC(RealA, RealB) ? Args[1] : MLNil; \
 }
 
-#define ml_comp_method_real_integer(NAME, SYMBOL) \
+#define ml_comp_method_real_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 /*<A
 //<B
@@ -826,10 +973,10 @@ ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	return RealA SYMBOL IntegerB ? Args[1] : MLNil; \
+	return ml_ ## FUNC(RealA, IntegerB) ? Args[1] : MLNil; \
 }
 
-#define ml_comp_method_integer_real(NAME, SYMBOL) \
+#define ml_comp_method_integer_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 /*<A
 //<B
@@ -838,23 +985,23 @@ ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
-	return IntegerA SYMBOL RealB ? Args[1] : MLNil; \
+	return ml_ ## FUNC(IntegerA, RealB) ? Args[1] : MLNil; \
 }
 
-#define ml_comp_method_number_number(NAME, SYMBOL) \
-ml_comp_method_integer_integer(NAME, SYMBOL) \
-ml_comp_method_real_real(NAME, SYMBOL) \
-ml_comp_method_real_integer(NAME, SYMBOL) \
-ml_comp_method_integer_real(NAME, SYMBOL)
+#define ml_comp_method_number_number(NAME, FUNC) \
+ml_comp_method_integer_integer(NAME, FUNC) \
+ml_comp_method_real_real(NAME, FUNC) \
+ml_comp_method_real_integer(NAME, FUNC) \
+ml_comp_method_integer_real(NAME, FUNC)
 
-ml_comp_method_number_number(=, ==)
-ml_comp_method_number_number(!=, !=)
-ml_comp_method_number_number(<, <)
-ml_comp_method_number_number(>, >)
-ml_comp_method_number_number(<=, <=)
-ml_comp_method_number_number(>=, >=)
+ml_comp_method_number_number(=, eq)
+ml_comp_method_number_number(!=, neq)
+ml_comp_method_number_number(<, lt)
+ml_comp_method_number_number(>, gt)
+ml_comp_method_number_number(<=, lte)
+ml_comp_method_number_number(>=, gte)
 
-#define ml_select_method_integer_integer(NAME, SYMBOL) \
+#define ml_select_method_integer_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
@@ -863,10 +1010,10 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	return IntegerA SYMBOL IntegerB ? Args[0] : Args[1]; \
+	return ml_ ## FUNC(IntegerA, IntegerB) ? Args[0] : Args[1]; \
 }
 
-#define ml_select_method_real_real(NAME, SYMBOL) \
+#define ml_select_method_real_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 /*<A
 //<B
@@ -875,10 +1022,10 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
-	return RealA SYMBOL RealB ? Args[0] : Args[1]; \
+	return ml_ ## FUNC(RealA, RealB) ? Args[0] : Args[1]; \
 }
 
-#define ml_select_method_real_integer(NAME, SYMBOL) \
+#define ml_select_method_real_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 /*<A
 //<B
@@ -887,10 +1034,10 @@ ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-	return RealA SYMBOL IntegerB ? Args[0] : Args[1]; \
+	return ml_ ## FUNC(RealA, IntegerB) ? Args[0] : Args[1]; \
 }
 
-#define ml_select_method_integer_real(NAME, SYMBOL) \
+#define ml_select_method_integer_real(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 /*<A
 //<B
@@ -899,17 +1046,17 @@ ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
-	return IntegerA SYMBOL RealB ? Args[0] : Args[1]; \
+	return ml_ ## FUNC(IntegerA, RealB) ? Args[0] : Args[1]; \
 }
 
-#define ml_select_method_number_number(NAME, SYMBOL) \
-ml_select_method_integer_integer(NAME, SYMBOL) \
-ml_select_method_real_real(NAME, SYMBOL) \
-ml_select_method_real_integer(NAME, SYMBOL) \
-ml_select_method_integer_real(NAME, SYMBOL)
+#define ml_select_method_number_number(NAME, FUNC) \
+ml_select_method_integer_integer(NAME, FUNC) \
+ml_select_method_real_real(NAME, FUNC) \
+ml_select_method_real_integer(NAME, FUNC) \
+ml_select_method_integer_real(NAME, FUNC)
 
-ml_select_method_number_number(min, <);
-ml_select_method_number_number(max, >);
+ml_select_method_number_number(min, lt);
+ml_select_method_number_number(max, gt);
 
 #ifdef ML_NANBOXING
 

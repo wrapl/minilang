@@ -13,6 +13,7 @@
 #include "ml_string.h"
 #include "ml_method.h"
 #include "ml_list.h"
+#include "ml_slice.h"
 #include "ml_map.h"
 #include "ml_set.h"
 
@@ -3309,11 +3310,21 @@ ML_METHOD("get", MLWeakRefT) {
 	return Ref->Value ?: MLNil;
 }
 
+static void *GC_calloc(size_t N, size_t S) {
+	return GC_malloc(N * S);
+}
+
+static void GC_nop(void *Ptr) {
+}
+
 void ml_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_JIT
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+#ifdef ML_FLINT
+	__flint_set_memory_functions(GC_malloc, GC_calloc, GC_realloc, GC_nop);
+#endif
 	ml_method_init();
 #include "ml_types_init.c"
 #ifdef ML_GENERICS
@@ -3341,6 +3352,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_number_init();
 	ml_string_init();
 	ml_list_init();
+	ml_slice_init();
 	ml_map_init();
 	ml_set_init();
 	ml_compiler_init();
@@ -3401,6 +3413,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "regex", MLRegexT);
 		stringmap_insert(Globals, "tuple", MLTupleT);
 		stringmap_insert(Globals, "list", MLListT);
+		stringmap_insert(Globals, "slice", MLSliceT);
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "set", MLSetT);
 		stringmap_insert(Globals, "error", MLErrorValueT);

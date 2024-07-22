@@ -538,16 +538,33 @@ extern ml_type_t MLDoubleT[];
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
+#ifdef ML_FLINT
+
+#include <flint/flint.h>
+#include <flint/fmpz.h>
+#include <flint/fmpq.h>
+
+extern ml_type_t MLRationalT[];
+
 typedef struct {
 	ml_type_t *Type;
+	fmpq_t Value;
+} ml_rational_t;
+
+ml_value_t *ml_rational(fmpq_t Value);
+
+#endif
+
+typedef struct {
+	ml_type_t *Type;
+#ifdef ML_FLINT
+	fmpz_t Value;
+#else
 	int64_t Value;
+#endif
 } ml_integer_t;
 
 #ifdef ML_NANBOXING
-
-static inline int ml_is_int32(ml_value_t *Value) {
-	return ml_tag(Value) == 1;
-}
 
 static inline ml_value_t *ml_int32(int32_t Integer) {
 	return (ml_value_t *)(((uint64_t)1 << 48) + (uint32_t)Integer);
@@ -576,7 +593,11 @@ static inline int ml_is_double(ml_value_t *Value) {
 
 static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	if (__builtin_expect(!!ml_tag(Value), 1)) return (int32_t)(intptr_t)Value;
+#ifdef ML_FLINT
+	return fmpz_get_si(((ml_integer_t *)Value)->Value);
+#else
 	return ((ml_integer_t *)Value)->Value;
+#endif
 }
 
 static inline double ml_double_value_fast(const ml_value_t *Value) {
@@ -916,6 +937,16 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 
 #define ML_LIST_REVERSE(LIST, ITER) \
 	for (ml_list_node_t *ITER = ((ml_list_t *)LIST)->Tail; ITER; ITER = ITER->Prev)
+
+/// @}
+
+/// \defgroup slices
+/// @{
+///
+
+// Slices //
+
+extern ml_type_t MLSliceT[];
 
 /// @}
 

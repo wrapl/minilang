@@ -1000,7 +1000,7 @@ ML_METHOD("append", MLStringBufferT, MLListT) {
 		}
 	}
 	ml_stringbuffer_put(Buffer, ']');
-	return (ml_value_t *)Buffer;
+	return (ml_value_t *)MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
@@ -1023,7 +1023,7 @@ ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
 			ml_stringbuffer_simple_append(Buffer, Node->Value);
 		}
 	}
-	return (ml_value_t *)Buffer;
+	return (ml_value_t *)MLSome;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
@@ -1115,14 +1115,14 @@ ML_METHOD("pop", MLListMutableT) {
 //<List
 //>any | nil
 // Removes and returns the first element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
-	return ml_list_pop(Args[0]) ?: MLNil;
+	return ml_list_pop(Args[0]);
 }
 
 ML_METHOD("pull", MLListMutableT) {
 //<List
 //>any | nil
 // Removes and returns the last element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
-	return ml_list_pull(Args[0]) ?: MLNil;
+	return ml_list_pull(Args[0]);
 }
 
 ML_METHOD("empty", MLListMutableT) {

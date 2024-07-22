@@ -137,6 +137,7 @@ let Objects := [
 	file("ml_runtime.o"),
 	file("ml_sequence.o"),
 	file("ml_set.o"),
+	file("ml_slice.o"),
 	file("ml_socket.o"),
 	file("ml_stream.o"),
 	file("ml_string.o"),
@@ -214,6 +215,7 @@ let Options := [
 	"MATH",
 	"AST",
 	"COMPLEX",
+	"RATIONAL",
 	"CBOR",
 	"JSON",
 	"XML",
@@ -286,7 +288,6 @@ MINILANG_THREADS := old or defined("THREADS")
 MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or old or defined("SCHEDULER")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
-MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_MUTABLES := old or defined("MUTABLES")
@@ -304,6 +305,7 @@ MINILANG_STRUCTS := old or defined("STRUCTS")
 MINILANG_MMAP := old or defined("MMAP")
 MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
 MINILANG_FLINT := old or defined("FLINT")
+MINILANG_NANBOXING := old or defined("NANBOXING")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -317,6 +319,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_NANBOXING then
 		File:write("\n#define ML_NANBOXING\n")
+	end
+	if MINILANG_FLINT then
+		File:write("\n#define ML_FLINT\n")
 	end
 	if MINILANG_COMPLEX then
 		File:write("\n#define ML_COMPLEX\n")
@@ -338,9 +343,6 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
-	end
-	if MINILANG_FLINT then
-		File:write("\n#define ML_FLINT\n")
 	end
 	File:write("\n#endif")
 	File:close
