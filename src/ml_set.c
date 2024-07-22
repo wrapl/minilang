@@ -700,56 +700,85 @@ ML_METHOD("from", MLSetT, MLAnyT) {
 	return (ml_value_t *)From;
 }
 
-ML_METHOD("append", MLStringBufferT, MLSetT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_set_node_t *Node;
+	ml_value_t *Args[2];
+	const char *Seperator;
+	const char *Terminator;
+	size_t SeperatorLength;
+	size_t TerminatorLength;
+} ml_set_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_set_append_state_run(ml_set_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_set_node_t *Node = State->Node->Next;
+	if (!Node) {
+		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
+	State->Node = Node;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLSetT) {
 //<Buffer
 //<Set
-// Appends a representation of :mini:`Set` to :mini:`Buffer`.
+// Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`"[" + repr(V/1) + ", " + repr(V/2) + ", " + ... + repr(V/n) + "]"`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
+//$- let B := string::buffer()
+//$- B:append({1, 2, 3, 4})
+//$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_put(Buffer, '{');
 	ml_set_t *Set = (ml_set_t *)Args[1];
 	ml_set_node_t *Node = Set->Head;
-	if (Node) {
-		ml_stringbuffer_simple_append(Buffer, Node->Key);
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_simple_append(Buffer, Node->Key);
-		}
+	if (!Node) {
+		ml_stringbuffer_write(Buffer, "{}", 2);
+		ML_RETURN(MLSome);
 	}
-	ml_stringbuffer_put(Buffer, '}');
-	return MLSome;
+	ml_stringbuffer_put(Buffer, '{');
+	ml_set_append_state_t *State = new(ml_set_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_append_state_run;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ", ";
+	State->SeperatorLength = 2;
+	State->Terminator = "}";
+	State->TerminatorLength = 1;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
-typedef struct ml_set_stringer_t {
-	const char *Seperator;
-	ml_stringbuffer_t *Buffer;
-	int SeperatorLength, First;
-	ml_value_t *Error;
-} ml_set_stringer_t;
-
-static int ml_set_stringer(ml_value_t *Key, ml_set_stringer_t *Stringer) {
-	if (Stringer->First) {
-		Stringer->First = 0;
-	} else {
-		ml_stringbuffer_write(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
-	}
-	Stringer->Error = ml_stringbuffer_simple_append(Stringer->Buffer, Key);
-	if (ml_is_error(Stringer->Error)) return 1;
-	return 0;
-}
-
-ML_METHOD("append", MLStringBufferT, MLSetT, MLStringT) {
+ML_METHODX("append", MLStringBufferT, MLSetT, MLStringT) {
 //<Buffer
 //<Set
 //<Sep
-// Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
-	ml_set_stringer_t Stringer[1] = {{
-		ml_string_value(Args[2]),
-		(ml_stringbuffer_t *)Args[0],
-		ml_string_length(Args[2]),
-		1
-	}};
-	if (ml_set_foreach(Args[1], Stringer, (void *)ml_set_stringer)) return Stringer->Error;
-	return MLSome;
+// Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`repr(V/1) + Sep + repr(V/2) + Sep + ... + repr(V/n)`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
+//$- let B := string::buffer()
+//$- B:append({1, 2, 3, 4}, " - ")
+//$= B:rest
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_set_t *Set = (ml_set_t *)Args[1];
+	ml_set_node_t *Node = Set->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_set_append_state_t *State = new(ml_set_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_append_state_run;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ml_string_value(Args[2]);
+	State->SeperatorLength = ml_string_length(Args[2]);
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLSetNodeT, ml_state_t *Caller, ml_set_node_t *Node) {

@@ -981,7 +981,33 @@ ML_METHODX(">=", MLListT, MLListT) {
 	return ml_call(State, GreaterMethod, 2, State->Args);
 }
 
-ML_METHOD("append", MLStringBufferT, MLListT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_list_node_t *Node;
+	ml_value_t *Args[2];
+	const char *Seperator;
+	const char *Terminator;
+	size_t SeperatorLength;
+	size_t TerminatorLength;
+} ml_list_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_list_append_state_run(ml_list_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_list_node_t *Node = State->Node->Next;
+	if (!Node) {
+		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLListT) {
 //<Buffer
 //<List
 // Appends a representation of :mini:`List` to :mini:`Buffer` of the form :mini:`"[" + repr(V/1) + ", " + repr(V/2) + ", " + ... + repr(V/n) + "]"`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
@@ -989,21 +1015,29 @@ ML_METHOD("append", MLStringBufferT, MLListT) {
 //$- B:append([1, 2, 3, 4])
 //$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_put(Buffer, '[');
 	ml_list_t *List = (ml_list_t *)Args[1];
 	ml_list_node_t *Node = List->Head;
-	if (Node) {
-		ml_stringbuffer_simple_append(Buffer, Node->Value);
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_simple_append(Buffer, Node->Value);
-		}
+	if (!Node) {
+		ml_stringbuffer_write(Buffer, "[]", 2);
+		ML_RETURN(MLSome);
 	}
-	ml_stringbuffer_put(Buffer, ']');
-	return (ml_value_t *)MLSome;
+	ml_stringbuffer_put(Buffer, '[');
+	ml_list_append_state_t *State = new(ml_list_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_append_state_run;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ", ";
+	State->SeperatorLength = 2;
+	State->Terminator = "]";
+	State->TerminatorLength = 1;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
-ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
+ML_METHODX("append", MLStringBufferT, MLListT, MLStringT) {
 //<Buffer
 //<List
 //<Sep
@@ -1012,18 +1046,20 @@ ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
 //$- B:append([1, 2, 3, 4], " - ")
 //$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	const char *Seperator = ml_string_value(Args[2]);
-	size_t SeperatorLength = ml_string_length(Args[2]);
 	ml_list_t *List = (ml_list_t *)Args[1];
 	ml_list_node_t *Node = List->Head;
-	if (Node) {
-		ml_stringbuffer_simple_append(Buffer, Node->Value);
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_write(Buffer, Seperator, SeperatorLength);
-			ml_stringbuffer_simple_append(Buffer, Node->Value);
-		}
-	}
-	return (ml_value_t *)MLSome;
+	if (!Node) ML_RETURN(MLNil);
+	ml_list_append_state_t *State = new(ml_list_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_append_state_run;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ml_string_value(Args[2]);
+	State->SeperatorLength = ml_string_length(Args[2]);
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {

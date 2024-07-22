@@ -1304,68 +1304,100 @@ ML_METHOD("from", MLMapT, MLAnyT) {
 	return (ml_value_t *)From;
 }
 
-ML_METHOD("append", MLStringBufferT, MLMapT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_map_node_t *Node;
+	ml_value_t *Args[2];
+	const char *Seperator;
+	const char *Equals;
+	const char *Terminator;
+	size_t SeperatorLength;
+	size_t EqualsLength;
+	size_t TerminatorLength;
+} ml_map_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_map_append_state_value(ml_map_append_state_t *State, ml_value_t *Value);
+
+static void ml_map_append_state_key(ml_map_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_map_node_t *Node = State->Node;
+	if (Node->Value == MLSome) return ml_map_append_state_value(State, Value);
+	ml_stringbuffer_write(State->Buffer, State->Equals, State->EqualsLength);
+	State->Base.run = (ml_state_fn)ml_map_append_state_value;
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+static void ml_map_append_state_value(ml_map_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_map_node_t *Node = State->Node->Next;
+	if (!Node) {
+		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
+	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Node = Node;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLMapT) {
 //<Buffer
 //<Map
 // Appends a representation of :mini:`Map` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_put(Buffer, '{');
 	ml_map_t *Map = (ml_map_t *)Args[1];
 	ml_map_node_t *Node = Map->Head;
-	if (Node) {
-		ml_stringbuffer_simple_append(Buffer, Node->Key);
-		if (Node->Value != MLSome) {
-			ml_stringbuffer_write(Buffer, " is ", 4);
-			ml_stringbuffer_simple_append(Buffer, Node->Value);
-		}
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_simple_append(Buffer, Node->Key);
-			if (Node->Value != MLSome) {
-				ml_stringbuffer_write(Buffer, " is ", 4);
-				ml_stringbuffer_simple_append(Buffer, Node->Value);
-			}
-		}
+	if (!Node) {
+		ml_stringbuffer_write(Buffer, "{}", 2);
+		ML_RETURN(MLSome);
 	}
-	ml_stringbuffer_put(Buffer, '}');
-	return MLSome;
+	ml_stringbuffer_put(Buffer, '{');
+	ml_map_append_state_t *State = new(ml_map_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ", ";
+	State->SeperatorLength = 2;
+	State->Equals = " is ";
+	State->EqualsLength = 4;
+	State->Terminator = "}";
+	State->TerminatorLength = 1;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
-typedef struct ml_map_stringer_t {
-	const char *Seperator, *Equals;
-	ml_stringbuffer_t *Buffer;
-	int SeperatorLength, EqualsLength, First;
-	ml_value_t *Error;
-} ml_map_stringer_t;
-
-static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t *Stringer) {
-	if (Stringer->First) {
-		Stringer->First = 0;
-	} else {
-		ml_stringbuffer_write(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
-	}
-	Stringer->Error = ml_stringbuffer_simple_append(Stringer->Buffer, Key);
-	if (ml_is_error(Stringer->Error)) return 1;
-	ml_stringbuffer_write(Stringer->Buffer, Stringer->Equals, Stringer->EqualsLength);
-	Stringer->Error = ml_stringbuffer_simple_append(Stringer->Buffer, Value);
-	if (ml_is_error(Stringer->Error)) return 1;
-	return 0;
-}
-
-ML_METHOD("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
+ML_METHODX("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
 //<Buffer
 //<Map
 //<Sep
 //<Conn
 // Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
-	ml_map_stringer_t Stringer[1] = {{
-		ml_string_value(Args[2]), ml_string_value(Args[3]),
-		(ml_stringbuffer_t *)Args[0],
-		ml_string_length(Args[2]), ml_string_length(Args[3]),
-		1
-	}};
-	if (ml_map_foreach(Args[1], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
-	return MLSome;
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_map_t *Map = (ml_map_t *)Args[1];
+	ml_map_node_t *Node = Map->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_map_append_state_t *State = new(ml_map_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ml_string_value(Args[2]);
+	State->SeperatorLength = ml_string_length(Args[2]);
+	State->Equals = ml_string_value(Args[3]);
+	State->EqualsLength = ml_string_length(Args[3]);
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
