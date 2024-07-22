@@ -13,6 +13,7 @@ ml_log_level_t MLLogLevel = ML_LOG_LEVEL_INFO;
 
 static const char *MLLogLevelNames[] = {
 	[ML_LOG_LEVEL_NONE] = "NONE",
+	[ML_LOG_LEVEL_FATAL] = "\e[31mFATAL\e[0m",
 	[ML_LOG_LEVEL_ERROR] = "\e[31mERROR\e[0m",
 	[ML_LOG_LEVEL_WARN] = "\e[35mWARN\e[0m",
 	[ML_LOG_LEVEL_INFO] = "\e[32mINFO\e[0m",
@@ -166,6 +167,7 @@ static int ml_config_log_ ## NAME(ml_context_t *Context) { \
 	return MLLogLevel >= ML_LOG_LEVEL_ ## LEVEL; \
 }
 
+ML_CONFIG_LOG_LEVEL(fatal, FATAL);
 ML_CONFIG_LOG_LEVEL(error, ERROR);
 ML_CONFIG_LOG_LEVEL(warn, WARN);
 ML_CONFIG_LOG_LEVEL(info, INFO);
@@ -198,6 +200,7 @@ typedef struct {
 static mlc_expr_t *ml_log_macro_fn(mlc_expr_t *Expr, mlc_expr_t *Child, ml_log_info_t *Info) {
 	static const char *Conditions[] = {
 		[ML_LOG_LEVEL_NONE] = "",
+		[ML_LOG_LEVEL_FATAL] = "LOG>=FATAL",
 		[ML_LOG_LEVEL_ERROR] = "LOG>=ERROR",
 		[ML_LOG_LEVEL_WARN] = "LOG>=WARN",
 		[ML_LOG_LEVEL_INFO] = "LOG>=INFO",
@@ -256,6 +259,7 @@ void ml_logger_init(ml_logger_t *Logger, const char *Name) {
 	}
 	GC_asprintf((char **)&Logger->AnsiName, "\e[38;2;%d;%d;%dm%s\e[0m", R, G, B, Name);
 	ml_value_t *LogFn = ml_cfunctionx(Logger, (ml_callbackx_t)ml_log_fn);
+	Logger->Loggers[ML_LOG_LEVEL_FATAL] = ml_log_macro(LogFn, ML_LOG_LEVEL_FATAL);
 	Logger->Loggers[ML_LOG_LEVEL_ERROR] = ml_log_macro(LogFn, ML_LOG_LEVEL_ERROR);
 	Logger->Loggers[ML_LOG_LEVEL_WARN] = ml_log_macro(LogFn, ML_LOG_LEVEL_WARN);
 	Logger->Loggers[ML_LOG_LEVEL_INFO] = ml_log_macro(LogFn, ML_LOG_LEVEL_INFO);
@@ -294,6 +298,7 @@ ML_METHOD("::", MLLoggerT, MLStringT) {
 //>logger::fn
 	ml_logger_t *Logger = (ml_logger_t *)Args[0];
 	const char *Level = ml_string_value(Args[1]);
+	if (!strcasecmp(Level, "fatal")) return Logger->Loggers[ML_LOG_LEVEL_FATAL];
 	if (!strcasecmp(Level, "error")) return Logger->Loggers[ML_LOG_LEVEL_ERROR];
 	if (!strcasecmp(Level, "warn")) return Logger->Loggers[ML_LOG_LEVEL_WARN];
 	if (!strcasecmp(Level, "info")) return Logger->Loggers[ML_LOG_LEVEL_INFO];
@@ -316,6 +321,7 @@ ML_FUNCTION(MLLoggerLevel) {
 		if (!strcasecmp(Level, "all")) MLLogLevel = ML_LOG_LEVEL_ALL;
 	}
 	switch (MLLogLevel) {
+	case ML_LOG_LEVEL_FATAL: return ml_cstring("Fatal");
 	case ML_LOG_LEVEL_ERROR: return ml_cstring("Error");
 	case ML_LOG_LEVEL_WARN: return ml_cstring("Warn");
 	case ML_LOG_LEVEL_INFO: return ml_cstring("Info");
@@ -330,6 +336,7 @@ ml_logger_t MLLoggerDefault[1];
 void ml_logging_init(stringmap_t *Globals) {
 #include "ml_logging_init.c"
 	ml_logger_init(MLLoggerDefault, "main");
+	ml_config_register("LOG>=FATAL", ml_config_log_fatal);
 	ml_config_register("LOG>=ERROR", ml_config_log_error);
 	ml_config_register("LOG>=WARN", ml_config_log_warn);
 	ml_config_register("LOG>=INFO", ml_config_log_info);
