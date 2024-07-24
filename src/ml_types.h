@@ -946,7 +946,28 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 
 // Slices //
 
+typedef struct { ml_value_t *Value; } ml_slice_node_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_slice_node_t *Nodes;
+	size_t Capacity, Offset, Length;
+} ml_slice_t;
+
 extern ml_type_t MLSliceT[];
+
+ml_value_t *ml_slice(size_t Capacity);
+void ml_slice_put(ml_value_t *Slice, ml_value_t *Value);
+void ml_slice_push(ml_value_t *Slice, ml_value_t *Value);
+ml_value_t *ml_slice_pop(ml_value_t *Slice);
+ml_value_t *ml_slice_pull(ml_value_t *Slice);
+
+static inline ml_slice_node_t *ml_slice_head(ml_slice_t *Slice) {
+	return Slice->Nodes + Slice->Offset;
+}
+
+#define ML_SLICE_FOREACH(SLICE, ITER) \
+	for (ml_slice_node_t *ITER = ml_slice_head((ml_slice_t *)SLICE); ITER->Value; ++ITER)
 
 /// @}
 

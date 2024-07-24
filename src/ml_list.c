@@ -7,47 +7,6 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "list"
 
-static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
-	int Length = List->Length;
-	if (Index <= 0) Index += Length + 1;
-	if (Index > Length) return NULL;
-	if (Index == Length) return List->Tail;
-	if (Index < 1) return NULL;
-	if (Index == 1) return List->Head;
-	int CachedIndex = List->CachedIndex;
-	switch (Index - CachedIndex) {
-	case -1: {
-		List->CachedIndex = Index;
-		return (List->CachedNode = List->CachedNode->Prev);
-	}
-	case 0: return List->CachedNode;
-	case 1: {
-		List->CachedIndex = Index;
-		return (List->CachedNode = List->CachedNode->Next);
-	}
-	}
-	List->CachedIndex = Index;
-	ml_list_node_t *Node;
-	if (2 * Index < CachedIndex) {
-		Node = List->Head;
-		int Steps = Index - 1;
-		do Node = Node->Next; while (--Steps);
-	} else if (Index < CachedIndex) {
-		Node = List->CachedNode;
-		int Steps = CachedIndex - Index;
-		do Node = Node->Prev; while (--Steps);
-	} else if (2 * Index < CachedIndex + Length) {
-		Node = List->CachedNode;
-		int Steps = Index - CachedIndex;
-		do Node = Node->Next; while (--Steps);
-	} else {
-		Node = List->Tail;
-		int Steps = Length - Index;
-		do Node = Node->Prev; while (--Steps);
-	}
-	return (List->CachedNode = Node);
-}
-
 ML_TYPE(MLListT, (MLSequenceT), "list"
 // A list of elements.
 );
@@ -120,6 +79,47 @@ ML_TYPE(MLListNodeMutableT, (), "list::node",
 );
 
 #endif
+
+static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
+	int Length = List->Length;
+	if (Index <= 0) Index += Length + 1;
+	if (Index > Length) return NULL;
+	if (Index == Length) return List->Tail;
+	if (Index < 1) return NULL;
+	if (Index == 1) return List->Head;
+	int CachedIndex = List->CachedIndex;
+	switch (Index - CachedIndex) {
+	case -1: {
+		List->CachedIndex = Index;
+		return (List->CachedNode = List->CachedNode->Prev);
+	}
+	case 0: return List->CachedNode;
+	case 1: {
+		List->CachedIndex = Index;
+		return (List->CachedNode = List->CachedNode->Next);
+	}
+	}
+	List->CachedIndex = Index;
+	ml_list_node_t *Node;
+	if (2 * Index < CachedIndex) {
+		Node = List->Head;
+		int Steps = Index - 1;
+		do Node = Node->Next; while (--Steps);
+	} else if (Index < CachedIndex) {
+		Node = List->CachedNode;
+		int Steps = CachedIndex - Index;
+		do Node = Node->Prev; while (--Steps);
+	} else if (2 * Index < CachedIndex + Length) {
+		Node = List->CachedNode;
+		int Steps = Index - CachedIndex;
+		do Node = Node->Next; while (--Steps);
+	} else {
+		Node = List->Tail;
+		int Steps = Length - Index;
+		do Node = Node->Prev; while (--Steps);
+	}
+	return (List->CachedNode = Node);
+}
 
 static void ML_TYPED_FN(ml_iter_next, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
 	ml_list_node_t *Next = Node->Next;

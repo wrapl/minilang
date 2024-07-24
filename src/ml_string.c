@@ -920,8 +920,8 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 		const char *Str = fmpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
 		ml_stringbuffer_write(Buffer, Str, strlen(Str));
 	}
+int32:;
 #endif
-int32:
 	int64_t Value = ml_integer_value_fast(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
 	int Max = 65;
