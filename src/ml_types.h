@@ -956,7 +956,8 @@ typedef struct {
 
 extern ml_type_t MLSliceT[];
 
-ml_value_t *ml_slice(size_t Capacity);
+ml_value_t *ml_slice(size_t Capacity) __attribute__((malloc));
+void ml_slice_grow(ml_value_t *Slice, int Count);
 void ml_slice_put(ml_value_t *Slice, ml_value_t *Value);
 void ml_slice_push(ml_value_t *Slice, ml_value_t *Value);
 ml_value_t *ml_slice_pop(ml_value_t *Slice);

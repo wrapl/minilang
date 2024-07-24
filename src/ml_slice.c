@@ -149,13 +149,34 @@ ML_METHODVX(MLSliceT, MLSequenceT) {
 	return ml_call(State, Precount, 1, State->Values);
 }
 
+void ml_slice_grow(ml_value_t *Slice0, int Count) {
+	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	size_t Offset = Slice->Offset;
+	size_t Length = Slice->Length;
+	size_t Capacity = Slice->Capacity + Count;
+	ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
+	memcpy(Nodes + Offset, Slice->Nodes + Offset, Length * sizeof(ml_slice_node_t));
+	Slice->Nodes = Nodes;
+	Slice->Capacity = Capacity;
+}
+
+static void slice_grow_precount(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_value_t *Sequence = State->Values[1];
+	size_t Precount = ml_integer_value(Value);
+	if (Precount > 0) ml_slice_grow(State->Values[0], Precount);
+	State->Base.run = (ml_state_fn)slice_iterate;
+	return ml_iterate((ml_state_t *)State, Sequence);
+}
+
 ML_METHODVX("grow", MLSliceMutableT, MLSequenceT) {
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)slice_iterate;
+	State->Base.run = (void *)slice_grow_precount;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = Args[0];
-	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
+	State->Values[1] = ml_chained(Count - 1, Args + 1);
+	return ml_call(State, Precount, 1, State->Values + 1);
 }
 
 void ml_slice_put(ml_value_t *Slice0, ml_value_t *Value) {
@@ -174,6 +195,7 @@ void ml_slice_put(ml_value_t *Slice0, ml_value_t *Value) {
 		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
 		memcpy(Nodes, Slice->Nodes, Length * sizeof(ml_slice_node_t));
 		Slice->Nodes = Nodes;
+		Slice->Capacity = Capacity;
 		Slice->Nodes[Length].Value = Value;
 	}
 	++Slice->Length;
@@ -194,6 +216,7 @@ void ml_slice_push(ml_value_t *Slice0, ml_value_t *Value) {
 			ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
 			memcpy(Nodes + Offset, Slice->Nodes, Length * sizeof(ml_slice_node_t));
 			Slice->Nodes = Nodes;
+			Slice->Capacity = Capacity;
 		}
 	}
 	Slice->Offset = --Offset;
