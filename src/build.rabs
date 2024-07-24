@@ -176,6 +176,7 @@ let InstallHeaders := [
 var GC
 
 if MINILANG_STATICGC or defined("STATICGC") then
+	NOPARALLELMARK := defined("NOPARALLELMARK")
 	file("gc"):mkdir
 	let Lib := file("lib/libgc.a") => fun(Lib) do
 		file("gc"):chdir
@@ -183,13 +184,16 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			"--prefix" is PATH,
 			"--enable-static",
 			"--disable-shared",
-			:>"--disable-parallel-mark",
 			"--enable-threads=pthreads",
+			:>"--disable-parallel-mark",
 			"--enable-large-config",
 			:>"--enable-redirect-malloc",
 			"--enable-cplusplus",
 			"--enable-mmap"
 		}
+		if NOPARALLELMARK then
+			Configuration["--disable-parallel-mark"] := some
+		end
 		if GC_DEBUG then
 			Configuration:grow({
 				"--enable-gc-debug",
@@ -518,7 +522,7 @@ if MINILANG_TRE then
 		if PLATFORM = "Android" then
 			Options["--build"] := '{MACHINE}-unknown-linux-gnu'
 		end
-		
+
 		execute("autoreconf", "-vfi", file("tre/configure.ac"):dirname)
 		execute('CC={CC} CFLAGS=\"{EXT_CFLAGS}\"', file("tre/configure"), Options)
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
@@ -538,7 +542,7 @@ if MINILANG_PQUEUES then
 	InstallHeaders:put("ml_pqueue.h")
 end
 if MINILANG_TIMEZONES then
-	let Header := file("timelib_mem.h")	
+	let Header := file("timelib_mem.h")
 	let TimelibObjects := [
 		file("timelib/parse_iso_intervals.o"),
 		file("timelib/parse_date.o"),
@@ -561,7 +565,7 @@ if MINILANG_TIMEZONES then
 		file("timelib/parse_iso_intervals.c")[file("timelib/parse_iso_intervals.re")] => fun() do
 			execute('re2c {REFLAGS} -d -b {file("timelib/parse_iso_intervals.re")} > {file("timelib/parse_iso_intervals.c")}')
 		end
-	
+
 		CFLAGS := EXT_CFLAGS + [
 			"-DHAVE_STDINT_H",
 			"-DHAVE_GETTIMEOFDAY",
