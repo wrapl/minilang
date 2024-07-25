@@ -1,3 +1,4 @@
+#include "ml_slice.h"
 #include "minilang.h"
 #include "ml_macros.h"
 #include <string.h>
@@ -7,6 +8,7 @@
 #define ML_CATEGORY "slice"
 
 ML_TYPE(MLSliceT, (MLSequenceT), "slice");
+// A list of elements.
 
 #ifdef ML_MUTABLES
 ML_TYPE(MLSliceMutableT, (MLSliceT), "slice::mutable");
@@ -312,6 +314,20 @@ ML_METHOD("[]", MLSliceT, MLIntegerT) {
 	return Slice->Nodes[Slice->Offset + Index - 1].Value;
 }
 
+ML_METHOD("[]", MLSliceT, MLIntegerT, MLIntegerT) {
+	ml_slice_t *Source = (ml_slice_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
+	if (Start <= 0) Start += Source->Length + 1;
+	if (End <= 0) End += Source->Length + 1;
+	if (Start <= 0 || End < Start || End > Source->Length + 1) return MLNil;
+	size_t Length = End - Start;
+	ml_slice_t *Slice = (ml_slice_t *)ml_slice(Length);
+	memcpy(Slice->Nodes, Source->Nodes + Source->Offset + Start - 1, Length * sizeof(ml_slice_node_t));
+	Slice->Length = Length;
+	return (ml_value_t *)Slice;
+}
+
 #endif
 
 ML_METHOD("[]", MLSliceMutableT, MLIntegerT) {
@@ -327,26 +343,36 @@ ML_METHOD("[]", MLSliceMutableT, MLIntegerT) {
 	return (ml_value_t *)Iter;
 }
 
-#ifdef ML_MUTABLES
-
-ML_METHOD("[]", MLSliceT, MLIntegerT, MLIntegerT) {
-
-}
-
-#endif
-
 typedef struct {
 	ml_type_t *Type;
-	ml_slice_t *Slice;
-	size_t Index, Length;
+	ml_slice_t *Source;
+	size_t Start, Length;
 } ml_slice_slice_t;
 
-static ml_value_t *ml_slice_slice_deref(ml_slice_slice_t *Slice) {
-
+static ml_value_t *ml_slice_slice_deref(ml_slice_slice_t *Ref) {
+	ml_slice_t *Source = Ref->Source;
+	size_t Start = Ref->Start - 1;
+	size_t Length = Ref->Length;
+	if (Start + Length > Source->Length) return MLNil;
+	ml_slice_t *Slice = (ml_slice_t *)ml_slice(Length);
+	memcpy(Slice->Nodes, Source->Nodes + Source->Offset + Start, Length * sizeof(ml_slice_node_t));
+	Slice->Length = Length;
+	return (ml_value_t *)Slice;
 }
 
-static void ml_slice_slice_assign(ml_state_t *Caller, ml_slice_slice_t *Slice, ml_value_t *Packed) {
-
+static void ml_slice_slice_assign(ml_state_t *Caller, ml_slice_slice_t *Ref, ml_value_t *Packed) {
+	ml_slice_t *Source = Ref->Source;
+	size_t Start = Ref->Start - 1;
+	size_t Length = Ref->Length;
+	if (Length > Source->Length - Start) {
+		Length = Source->Length - Start;
+	}
+	ml_slice_node_t *Node = Source->Nodes + Start;
+	for (int Index = 1; Index <= Length; ++Index) {
+		Node->Value = ml_unpack(Packed, Index);
+		++Node;
+	}
+	ML_RETURN(Packed);
 }
 
 ML_TYPE(MLSliceSliceT, (), "slice::slice",
@@ -355,7 +381,18 @@ ML_TYPE(MLSliceSliceT, (), "slice::slice",
 );
 
 ML_METHOD("[]", MLSliceMutableT, MLIntegerT, MLIntegerT) {
-	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	ml_slice_t *Source = (ml_slice_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
+	if (Start <= 0) Start += Source->Length + 1;
+	if (End <= 0) End += Source->Length + 1;
+	if (Start <= 0 || End < Start || End > Source->Length + 1) return MLNil;
+	ml_slice_slice_t *Slice = new(ml_slice_slice_t);
+	Slice->Type = MLSliceSliceT;
+	Slice->Source = Source;
+	Slice->Start = Start;
+	Slice->Length = End - Start;
+	return (ml_value_t *)Slice;
 }
 
 typedef struct {

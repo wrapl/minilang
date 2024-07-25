@@ -7,9 +7,8 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "list"
 
-ML_TYPE(MLListT, (MLSequenceT), "list"
+ML_TYPE(MLListT, (MLSequenceT), "list");
 // A list of elements.
-);
 
 #ifdef ML_MUTABLES
 ML_TYPE(MLListMutableT, (MLListT), "list::mutable");
@@ -526,6 +525,29 @@ ML_METHOD("[]", MLListT, MLIntegerT) {
 	return (ml_value_t *)ml_list_index(List, Index) ?: MLNil;
 }
 
+#ifdef ML_MUTABLES
+
+ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
+//!internal
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_value_t *SubList = ml_list();
+	ml_list_node_t *Node = ml_list_index(List, Start);
+	int Length = End - Start;
+	while (Node && Length) {
+		ml_list_put(SubList, Node->Value);
+		Node = Node->Next;
+		--Length;
+	}
+	return SubList;
+}
+
+#endif
+
 typedef struct {
 	ml_type_t *Type;
 	ml_list_node_t *Head;
@@ -583,25 +605,6 @@ ML_METHOD("[]", MLListMutableT, MLIntegerT, MLIntegerT) {
 	Slice->Length = End - Start;
 	return (ml_value_t *)Slice;
 }
-
-#ifdef ML_MUTABLES
-
-ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
-//!internal
-	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += List->Length + 1;
-	if (End <= 0) End += List->Length + 1;
-	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
-	ml_list_slice_t *Slice = new(ml_list_slice_t);
-	Slice->Type = MLListSliceT;
-	Slice->Head = ml_list_index(List, Start);
-	Slice->Length = End - Start;
-	return ml_deref((ml_value_t *)Slice);
-}
-
-#endif
 
 ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
 //<List
