@@ -1109,6 +1109,7 @@ typedef struct {
 } ml_list_skip_t;
 
 ML_TYPE(MLListSkipT, (MLSequenceT), "list::skip");
+//!internal
 
 static void ML_TYPED_FN(ml_iterate, MLListSkipT, ml_state_t *Caller, ml_list_skip_t *Skip) {
 	if (Skip->Count < 0) ML_RETURN(MLNil);

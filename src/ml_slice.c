@@ -248,13 +248,23 @@ ml_value_t *ml_slice_pull(ml_value_t *Slice0) {
 	return Value;
 }
 
-static void ML_TYPED_FN(ml_iterate, MLSliceT, ml_state_t *Caller, ml_slice_t *Slice) {
-	if (!Slice->Length) ML_RETURN(MLNil);
-	ml_slice_index_t *Iter = new(ml_slice_index_t);
-	Iter->Type = MLSliceIndexT;
-	Iter->Slice = Slice;
-	Iter->Index = 1;
-	ML_RETURN(Iter);
+ml_value_t *ml_slice_get(ml_value_t *Slice0, int Index) {
+	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	if (Index <= 0 || Index > Slice->Length) return NULL;
+	return Slice->Nodes[Slice->Offset + Index].Value;
+}
+
+ml_value_t *ml_slice_set(ml_value_t *Slice0, int Index, ml_value_t *Value) {
+	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	if (Index <= 0 || Index > Slice->Length) return NULL;
+	ml_value_t *Old = Slice->Nodes[Slice->Offset + Index].Value;
+	Slice->Nodes[Slice->Offset + Index].Value = Value;
+	return Old;
+}
+
+int ml_slice_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, void *)) {
+	ML_SLICE_FOREACH(Value, Node) if (callback(Node->Value, Data)) return 1;
+	return 0;
 }
 
 ML_METHOD("length", MLSliceT) {
@@ -267,26 +277,6 @@ ML_METHOD("capacity", MLSliceT) {
 
 ML_METHOD("offset", MLSliceT) {
 	return ml_integer(((ml_slice_t *)Args[0])->Offset);
-}
-
-ML_METHODV("push", MLSliceT) {
-	ml_value_t *Slice = Args[0];
-	for (int I = 1; I < Count; ++I) ml_slice_push(Slice, Args[I]);
-	return Args[0];
-}
-
-ML_METHODV("put", MLSliceT) {
-	ml_value_t *Slice = Args[0];
-	for (int I = 1; I < Count; ++I) ml_slice_put(Slice, Args[I]);
-	return Args[0];
-}
-
-ML_METHOD("pop", MLSliceT) {
-	return ml_slice_pop(Args[0]);
-}
-
-ML_METHOD("pull", MLSliceT) {
-	return ml_slice_pull(Args[0]);
 }
 
 ML_METHOD("[]", MLSliceT, MLIntegerT) {
@@ -381,6 +371,63 @@ ML_METHODX("append", MLStringBufferT, MLSliceT, MLStringT) {
 	State->Args[0] = (ml_value_t *)Buffer;
 	State->Args[1] = Node->Value;
 	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLSliceT, ml_state_t *Caller, ml_slice_t *Slice) {
+	if (!Slice->Length) ML_RETURN(MLNil);
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceIndexT;
+	Iter->Slice = Slice;
+	Iter->Index = 1;
+	ML_RETURN(Iter);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_slice_t *Slice;
+	size_t Count;
+} ml_slice_skip_t;
+
+ML_TYPE(MLSliceSkipT, (MLSequenceT), "slice::skip");;
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLSliceSkipT, ml_state_t *Caller, ml_slice_skip_t *Skip) {
+	//if (Skip->Count < 0) ML_RETURN(MLNil);
+	if (Skip->Count >= Skip->Slice->Length) ML_RETURN(MLNil);
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceIndexT;
+	Iter->Slice = Skip->Slice;
+	Iter->Index = Skip->Count + 1;
+	ML_RETURN(Iter);
+}
+
+ML_METHOD("skip", MLSliceT, MLIntegerT) {
+//!internal
+	ml_slice_skip_t *Skip = new(ml_slice_skip_t);
+	Skip->Type = MLSliceSkipT;
+	Skip->Slice = (ml_slice_t *)Args[0];
+	Skip->Count = ml_integer_value(Args[1]);
+	return (ml_value_t *)Skip;
+}
+
+ML_METHODV("push", MLSliceT) {
+	ml_value_t *Slice = Args[0];
+	for (int I = 1; I < Count; ++I) ml_slice_push(Slice, Args[I]);
+	return Args[0];
+}
+
+ML_METHODV("put", MLSliceT) {
+	ml_value_t *Slice = Args[0];
+	for (int I = 1; I < Count; ++I) ml_slice_put(Slice, Args[I]);
+	return Args[0];
+}
+
+ML_METHOD("pop", MLSliceT) {
+	return ml_slice_pop(Args[0]);
+}
+
+ML_METHOD("pull", MLSliceT) {
+	return ml_slice_pull(Args[0]);
 }
 
 typedef struct {
