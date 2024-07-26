@@ -620,6 +620,16 @@ ML_METHOD("empty", MLSliceMutableT) {
 	return (ml_value_t *)Slice;
 }
 
+ML_METHOD("+", MLSliceT, MLSliceT) {
+	ml_slice_t *Slice1 = (ml_slice_t *)Args[0];
+	ml_slice_t *Slice2 = (ml_slice_t *)Args[1];
+	ml_slice_t *Slice = (ml_slice_t *)ml_slice(Slice1->Length + Slice2->Length);
+	void *Rest = mempcpy(Slice->Nodes, Slice1->Nodes + Slice1->Offset, Slice1->Length * sizeof(ml_slice_node_t));
+	memcpy(Rest, Slice2->Nodes + Slice2->Offset, Slice2->Length * sizeof(ml_slice_node_t *));
+	Slice->Length = Slice1->Length + Slice2->Length;
+	return (ml_value_t *)Slice;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_slice_t *Slice;
