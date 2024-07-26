@@ -261,6 +261,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_XML := 1
 	MINILANG_LIBRARY := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
+	:>MINILANG_TIMESCHED := not defined("NOTIMESCHED")
 	MINILANG_TRE := not defined("NOTRE")
 	MINILANG_GENERICS := not defined("NOGENERICS")
 	MINILANG_MUTABLES := 1
@@ -290,6 +291,7 @@ MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
 MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or old or defined("SCHEDULER")
+MINILANG_TIMESCHED := old or defined("TIMESCHED")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_TRE := old or defined("TRE")
@@ -320,6 +322,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_SCHEDULER then
 		File:write("\n#define ML_SCHEDULER\n")
+	end
+	if MINILANG_TIMESCHED then
+		File:write("\n#define ML_TIMESCHED\n")
 	end
 	if MINILANG_NANBOXING then
 		File:write("\n#define ML_NANBOXING\n")

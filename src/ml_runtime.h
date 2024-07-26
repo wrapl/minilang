@@ -237,6 +237,8 @@ extern ml_cfunctionx_t MLTrace[];
 
 // Preemption //
 
+extern volatile int MLPreempt;
+
 typedef struct ml_scheduler_t ml_scheduler_t;
 
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);

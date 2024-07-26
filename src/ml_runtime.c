@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include "ml_types.h"
 #include "ml_logging.h"
+#include <sys/time.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "runtime"
@@ -959,6 +960,8 @@ static int ml_config_debugger(ml_context_t *Context) {
 
 // Schedulers //
 
+volatile int MLPreempt = 0;
+
 #ifdef ML_SCHEDULER
 
 typedef struct ml_queue_block_t ml_queue_block_t;
@@ -994,7 +997,11 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	}
 	++Queue->Space;
 	--Queue->Fill;
+#ifdef ML_TIMESCHED
+	MLPreempt = 0;
+#else
 	Queue->Counter = Queue->Slice;
+#endif
 	return Next;
 }
 
@@ -1102,7 +1109,14 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	pthread_cond_init(Queue->Available, NULL);
 #endif
 	Queue->Slice = Slice;
+#ifdef ML_TIMESCHED
+	struct itimerval Interval = {0,};
+	Interval.it_interval.tv_usec = Slice;
+	Interval.it_value.tv_usec = Slice;
+	setitimer(ITIMER_REAL, &Interval, NULL);
+#else
 	Queue->Counter = Slice;
+#endif
 	return Queue;
 }
 
@@ -1111,23 +1125,11 @@ uint64_t *ml_scheduler_queue_counter(ml_scheduler_queue_t *Queue) {
 }
 
 ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice) {
-	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
-	Queue->Base.add = (ml_scheduler_add_fn)ml_scheduler_queue_add_signal;
-	Queue->Base.run = (ml_scheduler_run_fn)ml_scheduler_queue_run;
-	ml_queue_block_t *Block = new(ml_queue_block_t);
-	Block->Next = Block;
-	Queue->WriteBlock = Queue->ReadBlock = Block;
-	Queue->WriteIndex = Queue->ReadIndex = QUEUE_BLOCK_SIZE - 1;
-	Queue->Space = QUEUE_BLOCK_SIZE;
-	Queue->Fill = 0;
-#ifdef ML_THREADS
-	pthread_mutex_init(Queue->Lock, NULL);
-	pthread_cond_init(Queue->Available, NULL);
-#endif
-	Queue->Slice = Slice;
-	Queue->Counter = Slice;
+	ml_scheduler_queue_t *Queue = ml_scheduler_queue(Slice);
 	ml_context_set(Context, ML_SCHEDULER_INDEX, Queue);
+#ifndef ML_TIMESCHED
 	ml_context_set(Context, ML_COUNTER_INDEX, &Queue->Counter);
+#endif
 	//CurrentScheduler = (ml_scheduler_t *)Queue;
 	return Queue;
 }
@@ -1822,7 +1824,17 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 	ml_log(MLLoggerDefault, ML_LOG_LEVEL_WARN, NULL, "", 0, Format, Arg);
 }
 
+static void ml_preempt(int Signal) {
+	MLPreempt = 1;
+}
+
 void ml_runtime_init(const char *ExecName) {
+#ifdef ML_TIMESCHED
+	struct sigaction Action = {0,};
+	Action.sa_handler = ml_preempt;
+	Action.sa_flags = SA_RESTART;
+	sigaction(SIGALRM, &Action, NULL);
+#endif
 #ifdef ML_UNWIND
 	signal(SIGSEGV, error_handler);
 #endif

@@ -125,7 +125,9 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
+#ifndef ML_TIMESCHED
 	uint64_t *Counter;
+#endif
 #endif
 	unsigned int Line;
 	unsigned int Reentry:1;
@@ -146,7 +148,9 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
 	Frame->Base.Context = Caller->Context;
 #ifdef ML_SCHEDULER
+#ifndef ML_TIMESCHED
 	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+#endif
 #endif
 	Frame->Reuse = 0;
 	ml_state_schedule((ml_state_t *)Frame, Count ? Args[0] : MLNil);
@@ -219,7 +223,11 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #ifndef DEBUG_VERSION
 
 #ifdef ML_SCHEDULER
+#ifdef ML_TIMESCHED
+#define CHECK_COUNTER if (__builtin_expect(MLPreempt, 0)) goto DO_SWAP;
+#else
 #define CHECK_COUNTER if (__builtin_expect(--Counter == 0, 0)) goto DO_SWAP;
+#endif
 #else
 #define CHECK_COUNTER
 #endif
@@ -322,10 +330,13 @@ size_t ml_count_cached_frames() {
 extern ml_value_t *SymbolMethod;
 
 #ifdef ML_SCHEDULER
+#ifdef ML_TIMESCHED
+#define ML_STORE_COUNTER() {}
+#else
 #define ML_STORE_COUNTER() Frame->Counter[0] = Counter
+#endif
 #else
 #define ML_STORE_COUNTER() {}
-
 #endif
 
 static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
@@ -518,7 +529,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	CALL_LABELS(CALL_METHOD);
 	CALL_LABELS(TAIL_CALL_METHOD);
 #ifdef ML_SCHEDULER
+#ifndef ML_TIMESCHED
 	uint64_t Counter = Frame->Counter[0];
+#endif
 #endif
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -1267,7 +1280,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Inst = Info->Entry;
 	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
+#ifndef ML_TIMESCHED
 	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+#endif
 #endif
 #ifdef DEBUG_VERSION
 	Frame->Debugger = Debugger;
