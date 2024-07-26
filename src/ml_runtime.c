@@ -25,6 +25,7 @@ static uint64_t DefaultCounter = UINT_MAX;
 
 static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Value) {
 	DefaultCounter = UINT_MAX;
+	MLPreempt = 0;
 	State->run(State, Value);
 	return 0;
 }
