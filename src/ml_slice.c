@@ -646,23 +646,111 @@ ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLIntegerT) {
 	int Start = ml_integer_value_fast(Args[1]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
+	if (Start > Length + 1) return MLNil;
 	int Remove = ml_integer_value_fast(Args[2]);
 	if (Remove < 0) return MLNil;
-	if (Remove == 0) {
-		if (Start > Length + 1) return MLNil;
-		return ml_slice(0);
-	}
 	int End = Start + Remove - 1;
 	if (End > Length) return MLNil;
+	if (Remove == 0) return ml_slice(0);
 	ml_slice_t *Removed = (ml_slice_t *)ml_slice(Remove);
 	ml_slice_node_t *Nodes0 = Slice->Nodes + Offset + Start - 1;
 	memcpy(Removed->Nodes, Nodes0, Remove * sizeof(ml_slice_node_t));
 	Removed->Length = Remove;
-	int After = Slice->Length - End;
+	int After = Length - End;
 	memmove(Nodes0, Nodes0 + Remove, After * sizeof(ml_slice_node_t));
 	memset(Nodes0 + After, 0, Remove * sizeof(ml_slice_node_t));
 	Slice->Length -= Remove;
 	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLIntegerT, MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Offset = Slice->Offset;
+	size_t Length = Slice->Length;
+	int Start = ml_integer_value_fast(Args[1]);
+	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > Length + 1) return MLNil;
+	int Remove = ml_integer_value_fast(Args[2]);
+	if (Remove < 0) return MLNil;
+	int End = Start + Remove - 1;
+	if (End > Length) return MLNil;
+	ml_slice_t *Source = (ml_slice_t *)Args[3];
+	int Insert = Source->Length;
+	ml_slice_t *Removed = (ml_slice_t *)ml_slice(Remove);
+	ml_slice_node_t *Nodes0 = Slice->Nodes + Offset + Start - 1;
+	memcpy(Removed->Nodes, Nodes0, Remove * sizeof(ml_slice_node_t));
+	Removed->Length = Remove;
+	int After = Length - End;
+	if (Offset + Length + Insert - Remove <= Slice->Capacity) {
+		memmove(Nodes0 + Insert, Nodes0 + Remove, After * sizeof(ml_slice_node_t));
+		memcpy(Nodes0, Source->Nodes + Source->Offset, Insert * sizeof(ml_slice_node_t));
+		int Extra = Remove - Insert;
+		if (Extra > 0) memset(Nodes0 + Insert + After, 0, Extra * sizeof(ml_slice_node_t));
+		Slice->Length -= Extra;
+	} else if (Offset >= Insert - Remove) {
+		int Extra = Insert - Remove;
+		Nodes0 = Slice->Nodes + Offset;
+		memmove(Nodes0 - Extra, Nodes0, (Start - 1) * sizeof(ml_slice_node_t));
+		Offset -= Extra;
+		Slice->Offset = Offset;
+		Nodes0 = Slice->Nodes + Offset + Start - 1;
+		memcpy(Nodes0, Source->Nodes + Source->Offset, Insert * sizeof(ml_slice_node_t));
+		Slice->Length += Extra;
+	} else {
+		size_t Capacity = Length + Insert - Remove;
+		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
+		void *Next = mempcpy(Nodes, Slice->Nodes + Offset, (Start - 1) * sizeof(ml_slice_node_t));
+		Next = mempcpy(Next, Source->Nodes + Source->Offset, Insert * sizeof(ml_slice_node_t));
+		memcpy(Next, Nodes0 + Remove, After * sizeof(ml_slice_node_t));
+		Slice->Length = Slice->Capacity = Capacity;
+		Slice->Nodes = Nodes;
+		Slice->Offset = 0;
+	}
+	Source->Offset = Source->Length = Source->Capacity = 0;
+	Source->Nodes = Empty;
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Offset = Slice->Offset;
+	size_t Length = Slice->Length;
+	int Start = ml_integer_value_fast(Args[1]);
+	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > Length + 1) return MLNil;
+	int End = Start - 1;
+	if (End > Length) return MLNil;
+	ml_slice_t *Source = (ml_slice_t *)Args[2];
+	int Insert = Source->Length;
+	ml_slice_node_t *Nodes0 = Slice->Nodes + Offset + Start - 1;
+	int After = Length - End;
+	if (Offset + Length + Insert <= Slice->Capacity) {
+		memmove(Nodes0 + Insert, Nodes0, After * sizeof(ml_slice_node_t));
+		memcpy(Nodes0, Source->Nodes + Source->Offset, Insert * sizeof(ml_slice_node_t));
+		Slice->Length += Insert;
+	} else if (Offset >= Insert) {
+		Nodes0 = Slice->Nodes + Offset;
+		memmove(Nodes0 - Insert, Nodes0, (Start - 1) * sizeof(ml_slice_node_t));
+		Offset -= Insert;
+		Slice->Offset = Offset;
+		Nodes0 = Slice->Nodes + Offset + Start - 1;
+		memcpy(Nodes0, Source->Nodes + Source->Offset, Insert * sizeof(ml_slice_node_t));
+		Slice->Length += Insert;
+	} else {
+		size_t Capacity = Length + Insert;
+		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
+		void *Next = mempcpy(Nodes, Slice->Nodes + Offset, (Start - 1) * sizeof(ml_slice_node_t));
+		Next = mempcpy(Next, Source->Nodes + Source->Offset, Insert * sizeof(ml_slice_node_t));
+		memcpy(Next, Nodes0, After * sizeof(ml_slice_node_t));
+		Slice->Length = Slice->Capacity = Capacity;
+		Slice->Nodes = Nodes;
+		Slice->Offset = 0;
+	}
+	Source->Offset = Source->Length = Source->Capacity = 0;
+	Source->Nodes = Empty;
+	return (ml_value_t *)MLNil;
 }
 
 typedef struct {

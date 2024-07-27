@@ -1211,14 +1211,12 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT) {
 	int Start = ml_integer_value_fast(Args[1]);
 	if (Start <= 0) Start += List->Length + 1;
 	if (Start <= 0) return MLNil;
+	if (Start > List->Length + 1) return MLNil;
 	int Remove = ml_integer_value_fast(Args[2]);
 	if (Remove < 0) return MLNil;
-	if (Remove == 0) {
-		if (Start > List->Length + 1) return MLNil;
-		return ml_list();
-	}
 	int End = Start + Remove - 1;
 	if (End > List->Length) return MLNil;
+	if (Remove == 0) return ml_list();
 	ml_list_t *Removed = (ml_list_t *)ml_list();
 	if (Start == 1) {
 		if (End == List->Length) {
@@ -1279,8 +1277,11 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT, MLListMutableT) {
 	int Start = ml_integer_value_fast(Args[1]);
 	if (Start <= 0) Start += List->Length + 1;
 	if (Start <= 0) return MLNil;
+	if (Start > List->Length + 1) return MLNil;
 	int Remove = ml_integer_value_fast(Args[2]);
 	if (Remove < 0) return MLNil;
+	int End = Start + Remove - 1;
+	if (End > List->Length) return MLNil;
 	ml_list_t *Source = (ml_list_t *)Args[3];
 	ml_list_t *Removed = (ml_list_t *)ml_list();
 	if (Remove == 0) {
@@ -1313,8 +1314,6 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT, MLListMutableT) {
 		List->CachedNode = List->Head;
 		List->CachedIndex = 1;
 	} else {
-		int End = Start + Remove - 1;
-		if (End > List->Length) return MLNil;
 		if (Start == 1) {
 			if (End == List->Length) {
 				*Removed = *List;
@@ -1401,8 +1400,8 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLListMutableT) {
 	int Start = ml_integer_value_fast(Args[1]);
 	if (Start <= 0) Start += List->Length + 1;
 	if (Start <= 0) return MLNil;
-	ml_list_t *Source = (ml_list_t *)Args[2];
 	if (Start > List->Length + 1) return MLNil;
+	ml_list_t *Source = (ml_list_t *)Args[2];
 	if (!Source->Length) return MLNil;
 	if (Start == 1) {
 		Source->Tail->Next = List->Head;
