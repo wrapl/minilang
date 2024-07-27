@@ -753,6 +753,19 @@ ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLSliceMutableT) {
 	return (ml_value_t *)MLNil;
 }
 
+ML_METHOD("reverse", MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	ml_slice_node_t *A = Slice->Nodes + Slice->Offset;
+	ml_slice_node_t *B = A + Slice->Length - 1;
+	while (B > A) {
+		ml_value_t *Temp = A->Value;
+		A->Value = B->Value;
+		B->Value = Temp;
+		++A; --B;
+	}
+	return (ml_value_t *)Slice;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_slice_t *Slice;
