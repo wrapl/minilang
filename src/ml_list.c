@@ -1213,56 +1213,56 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT) {
 	if (Start <= 0) return MLNil;
 	int Remove = ml_integer_value_fast(Args[2]);
 	if (Remove < 0) return MLNil;
-	ml_list_t *Removed = (ml_list_t *)ml_list();
 	if (Remove == 0) {
 		if (Start > List->Length + 1) return MLNil;
-	} else {
-		int End = Start + Remove - 1;
-		if (End > List->Length) return MLNil;
-		if (Start == 1) {
-			if (End == List->Length) {
-				*Removed = *List;
-				List->Head = List->Tail = NULL;
-				List->Length = 0;
-			} else {
-				ml_list_node_t *EndNode = ml_list_index(List, End);
-				ml_list_node_t *NextNode = EndNode->Next;
-				EndNode->Next = NULL;
-				Removed->CachedNode = Removed->Head = List->Head;
-				Removed->Tail = EndNode;
-				Removed->Length = Remove;
-				List->Head = NextNode;
-				NextNode->Prev = NULL;
-				List->CachedNode = List->Head;
-				List->CachedIndex = 1;
-				List->Length -= Remove;
-			}
+		return ml_list();
+	}
+	int End = Start + Remove - 1;
+	if (End > List->Length) return MLNil;
+	ml_list_t *Removed = (ml_list_t *)ml_list();
+	if (Start == 1) {
+		if (End == List->Length) {
+			*Removed = *List;
+			List->Head = List->Tail = NULL;
+			List->Length = 0;
 		} else {
-			ml_list_node_t *StartNode = ml_list_index(List, Start);
-			ml_list_node_t *PrevNode = StartNode->Prev;
-			StartNode->Prev = NULL;
-			if (End == List->Length) {
-				Removed->CachedNode = Removed->Head = StartNode;
-				Removed->Tail = List->Tail;
-				Removed->Length = Remove;
-				List->Tail = PrevNode;
-				PrevNode->Next = NULL;
-				List->CachedNode = List->Head;
-				List->CachedIndex = 1;
-				List->Length -= Remove;
-			} else {
-				ml_list_node_t *EndNode = ml_list_index(List, End);
-				ml_list_node_t *NextNode = EndNode->Next;
-				EndNode->Next = NULL;
-				Removed->CachedNode = Removed->Head = StartNode;
-				Removed->Tail = EndNode;
-				Removed->Length = Remove;
-				NextNode->Prev = PrevNode;
-				PrevNode->Next = NextNode;
-				List->CachedNode = List->Head;
-				List->CachedIndex = 1;
-				List->Length -= Remove;
-			}
+			ml_list_node_t *EndNode = ml_list_index(List, End);
+			ml_list_node_t *NextNode = EndNode->Next;
+			EndNode->Next = NULL;
+			Removed->CachedNode = Removed->Head = List->Head;
+			Removed->Tail = EndNode;
+			Removed->Length = Remove;
+			List->Head = NextNode;
+			NextNode->Prev = NULL;
+			List->CachedNode = List->Head;
+			List->CachedIndex = 1;
+			List->Length -= Remove;
+		}
+	} else {
+		ml_list_node_t *StartNode = ml_list_index(List, Start);
+		ml_list_node_t *PrevNode = StartNode->Prev;
+		StartNode->Prev = NULL;
+		if (End == List->Length) {
+			Removed->CachedNode = Removed->Head = StartNode;
+			Removed->Tail = List->Tail;
+			Removed->Length = Remove;
+			List->Tail = PrevNode;
+			PrevNode->Next = NULL;
+			List->CachedNode = List->Head;
+			List->CachedIndex = 1;
+			List->Length -= Remove;
+		} else {
+			ml_list_node_t *EndNode = ml_list_index(List, End);
+			ml_list_node_t *NextNode = EndNode->Next;
+			EndNode->Next = NULL;
+			Removed->CachedNode = Removed->Head = StartNode;
+			Removed->Tail = EndNode;
+			Removed->Length = Remove;
+			NextNode->Prev = PrevNode;
+			PrevNode->Next = NextNode;
+			List->CachedNode = List->Head;
+			List->CachedIndex = 1;
+			List->Length -= Remove;
 		}
 	}
 	return (ml_value_t *)Removed;
