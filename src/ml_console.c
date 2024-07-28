@@ -43,7 +43,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 
 static const char *ml_console_terminal_read(ml_console_t *Console) {
 #ifdef ML_THREADS
-	ml_scheduler_t *Scheduler = ml_context_get(Console->Base.Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t *Scheduler = ml_context_get_static(Console->Base.Context, ML_SCHEDULER_INDEX);
 	if (Scheduler) ml_scheduler_split(Scheduler);
 #endif
 #ifdef __MINGW32__
@@ -69,7 +69,7 @@ static const char *ml_console_terminal_read(ml_console_t *Console) {
 
 static const char *ml_console_file_read(ml_console_t *Console) {
 #ifdef ML_THREADS
-	ml_scheduler_t *Scheduler = ml_context_get(Console->Base.Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t *Scheduler = ml_context_get_static(Console->Base.Context, ML_SCHEDULER_INDEX);
 	if (Scheduler) ml_scheduler_split(Scheduler);
 #endif
 	fputs(Console->Prompt, Console->Output);

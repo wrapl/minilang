@@ -188,7 +188,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				ml_simple_inline(Preprocessor->Output->Writer, 1, BackSlash);
 			} else {
 				Input->Line = Escape + 1;
-				ml_result_state_t *State = ml_result_state(&MLRootContext);
+				ml_result_state_t *State = ml_result_state(MLRootContext);
 				ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 #ifdef ML_SCHEDULER
 				/*while (!State->Value) {

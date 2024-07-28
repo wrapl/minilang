@@ -272,7 +272,7 @@ static void add_field(ml_context_t *Context, ml_class_t *Class, ml_value_t *Meth
 	Info->Index = Index;
 	const char *Name = ml_method_name(Method);
 	if (Name) stringmap_insert(Class->Names, Name, Info);
-	ml_methods_t *Methods = Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = ml_context_get_static(Context, ML_METHODS_INDEX);
 	ml_type_t *Types[1] = {(ml_type_t *)Class};
 	ml_method_insert(Methods, (ml_method_t *)Info->Method, get_field_fn(Index), 1, NULL, Types);
 }
@@ -297,7 +297,7 @@ ml_type_t *ml_class(const char *Name) {
 }
 
 void ml_class_add_parent(ml_context_t *Context, ml_type_t *Class0, ml_type_t *Parent0) {
-	Context = Context ?: &MLRootContext;
+	Context = Context ?: MLRootContext;
 	ml_class_t *Class = (ml_class_t *)Class0;
 	ml_class_t *Parent = (ml_class_t *)Parent0;
 	for (ml_field_info_t *Info = Parent->Fields; Info; Info = Info->Next) {
@@ -307,7 +307,7 @@ void ml_class_add_parent(ml_context_t *Context, ml_type_t *Class0, ml_type_t *Pa
 }
 
 void ml_class_add_field(ml_context_t *Context, ml_type_t *Class0, ml_value_t *Field, ml_type_t *Type) {
-	Context = Context ?: &MLRootContext;
+	Context = Context ?: MLRootContext;
 	add_field(Context, (ml_class_t *)Class0, Field, Type);
 }
 

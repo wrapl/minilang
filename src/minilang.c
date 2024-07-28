@@ -102,6 +102,12 @@ static ml_value_t *global_get(void *Data, const char *Name, const char *Source, 
 	return stringmap_search(MLGlobals, Name);
 }
 
+#ifdef ML_CONTEXT_SECTION
+
+__attribute__ ((section("ml_context_section"))) void *MLContextTest = NULL;
+
+#endif
+
 ML_FUNCTION(MLNow) {
 //@now
 	return ml_integer(time(NULL));
@@ -230,7 +236,7 @@ ML_FUNCTIONX(MLConsole) {
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)console_run;
 	State->File = fdopen(Fd, "r+");
-	ml_scheduler_t *Scheduler = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t *Scheduler = ml_context_get_static(Caller->Context, ML_SCHEDULER_INDEX);
 	Scheduler->add(Scheduler, (ml_state_t *)State, MLNil);
 	ML_RETURN(MLNil);
 }
@@ -492,7 +498,7 @@ int main(int Argc, const char *Argv[]) {
 	}
 #ifdef ML_SCHEDULER
 	for (;;) {
-		ml_scheduler_t *Scheduler = Main->Context->Values[ML_SCHEDULER_INDEX];
+		ml_scheduler_t *Scheduler = ml_context_get_static(Main->Context, ML_SCHEDULER_INDEX);
 		Scheduler->run(Scheduler);
 	}
 #endif

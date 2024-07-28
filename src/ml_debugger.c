@@ -358,7 +358,7 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	stringmap_insert(Debugger->Globals, "thread", ml_cfunction(Debugger, (void *)debugger_thread));
 
 	ml_state_t *State = ml_state(Caller);
-	ml_context_set(State->Context, ML_DEBUGGER_INDEX, Debugger);
+	ml_context_set_static(State->Context, ML_DEBUGGER_INDEX, Debugger);
 	if (ml_is(Args[0], MLStringT)) {
 		ml_call_state_t *State2 = ml_call_state(State, 1);
 		ml_value_t *Args2 = ml_list();

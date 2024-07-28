@@ -34,7 +34,7 @@ struct ml_methods_t {
 
 static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count, ml_value_t **Args) {
 	ml_state_t *State = ml_state(Caller);
-	State->Context->Values[ML_METHODS_INDEX] = Methods;
+	ml_context_set_static(State->Context, ML_METHODS_INDEX, Methods);
 	ml_value_t *Function = ml_deref(Args[Count - 1]);
 	return ml_call(State, Function, Count - 1, Args);
 }
@@ -53,7 +53,7 @@ ML_FUNCTIONX(MLMethodContext) {
 // Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodContextT;
-	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];
+	Methods->Parent = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	ML_RETURN(Methods);
 }
 
@@ -66,8 +66,8 @@ ML_FUNCTIONX(MLMethodIsolate) {
 	ml_state_t *State = ml_state(Caller);
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodContextT;
-	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];
-	State->Context->Values[ML_METHODS_INDEX] = Methods;
+	Methods->Parent = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	ml_context_set_static(State->Context, ML_METHODS_INDEX, Methods);
 	ml_value_t *Function = ml_deref(Args[Count - 1]);
 	return ml_call(State, Function, Count - 1, Args);
 }
@@ -81,8 +81,8 @@ static void ml_method_isolated_call(ml_state_t *Caller, ml_method_isolated_t *Is
 	ml_state_t *State = ml_state(Caller);
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodContextT;
-	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];
-	State->Context->Values[ML_METHODS_INDEX] = Methods;
+	Methods->Parent = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	ml_context_set_static(State->Context, ML_METHODS_INDEX, Methods);
 	return ml_call(State, Isolated->Function, Count, Args);
 }
 
@@ -118,11 +118,11 @@ void ml_methods_prevent_changes(ml_methods_t *Methods, int PreventChanges) {
 ml_methods_t *ml_methods_context(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodContextT;
-	Methods->Parent = Context->Values[ML_METHODS_INDEX];
+	Methods->Parent = ml_context_get_static(Context, ML_METHODS_INDEX);
 #ifdef ML_THREADSAFE
 	Methods->Lock[0] = (atomic_flag)ATOMIC_FLAG_INIT;
 #endif
-	Context->Values[ML_METHODS_INDEX] = Methods;
+	ml_context_set_static(Context, ML_METHODS_INDEX, Methods);
 	return Methods;
 }
 
@@ -395,7 +395,7 @@ ML_METHOD_ANON(MLMethodDefault, "method::default");
 
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	while (Methods->Parent && !inthash_contains_inline(Methods->Definitions, (uintptr_t)Method)) {
 		Methods = Methods->Parent;
 	}
@@ -612,7 +612,7 @@ ML_METHOD("append", MLStringBufferT, MLMethodAnonT) {
 	ml_value_t *Matches = ml_list();
 	ml_type_t **Types = (ml_type_t **)Args + 1;
 	--Count;
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = ml_context_get(Caller->Context, ML_METHODS_INDEX);
 	do {
 		ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
 		while (Definition) {
@@ -693,7 +693,7 @@ ML_METHODVX(MLMethodDefine, MLMethodT) {
 //<Function:function
 //>Function
 // Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);
 	int NumTypes = Count - 2;
@@ -722,7 +722,7 @@ ML_METHODVX(MLMethodDefine, MLTypeT) {
 //<Function:function
 //>Function
 // Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);
 	Args[0] = ((ml_type_t *)Args[0])->Constructor;
@@ -746,7 +746,7 @@ ML_METHODVX(MLMethodDefine, MLTypeT) {
 
 ML_METHODX("list", MLMethodT) {
 	ml_value_t *Results = ml_map();
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	do {
 		for (ml_method_definition_t *Definition = (ml_method_definition_t *)inthash_search(Methods->Definitions, (uintptr_t)Args[0]); Definition; Definition = Definition->Next) {
 			ml_value_t *Signature = ml_tuple(Definition->Count + !!Definition->Variadic);
@@ -818,7 +818,7 @@ ML_METHODVX("[]", MLMethodT) {
 		Args[I] = ml_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
 	}
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, (ml_type_t **)Args, Hash);
 	if (!Cached) {
 		int Length = 4;
@@ -858,7 +858,7 @@ ML_FUNCTION(MLMethodList) {
 }
 
 void ml_method_init() {
-	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
+	ml_context_set_static(MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
 	stringmap_insert(MLMethodT->Exports, "define", MLMethodDefine);
 	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);

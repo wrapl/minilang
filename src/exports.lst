@@ -5,5 +5,7 @@
 		stringmap_*;
 		inthash_*;
 		GC_*;
+		__start_ml_context_section;
+		__stop_ml_context_section;
 	};
 };

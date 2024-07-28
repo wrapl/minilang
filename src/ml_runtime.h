@@ -34,6 +34,38 @@ struct ml_context_t {
 	void *Values[];
 };
 
+extern ml_context_t *MLRootContext;
+
+ml_context_t *ml_context(ml_context_t *Parent) __attribute__((malloc));
+
+#ifdef ML_CONTEXT_SECTION
+
+extern __attribute__ ((section("ml_context_section"))) void *ML_METHODS_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_VARIABLES_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_DEBUGGER_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_SCHEDULER_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_COUNTER_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_THREAD_INDEX[];
+
+extern __attribute__ ((section("ml_context_section"))) void *__start_ml_context_section[];
+extern __attribute__ ((section("ml_context_section"))) void *__stop_ml_context_section[];
+
+static inline void *ml_context_get_static(ml_context_t *Context, void **Index) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	return Context->Values[Index - __start_ml_context_section];
+#pragma GCC diagnostic pop
+}
+
+static inline void ml_context_set_static(ml_context_t *Context, void **Index, void *Value) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	Context->Values[Index - __start_ml_context_section] = Value;
+#pragma GCC diagnostic pop
+}
+
+#else
+
 enum {
 	ML_METHODS_INDEX,
 	ML_VARIABLES_INDEX,
@@ -44,15 +76,31 @@ enum {
 	ML_CONTEXT_SIZE
 };
 
-extern ml_context_t MLRootContext;
+static inline void *ml_context_get_static(ml_context_t *Context, int Index) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	return Context->Values[Index];
+#pragma GCC diagnostic pop
+}
 
-ml_context_t *ml_context(ml_context_t *Parent) __attribute__((malloc));
+static inline void ml_context_set_static(ml_context_t *Context, int Index, void *Value) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	Context->Values[Index] = Value;
+#pragma GCC diagnostic pop
+}
+
+#endif
 
 int ml_context_index();
 
-#define ml_context_get(CONTEXT, INDEX) ((CONTEXT)->Size <= (INDEX) ? NULL : (CONTEXT)->Values[(INDEX)])
+static inline void *ml_context_get_dynamic(ml_context_t *Context, int Index) {
+	return Context->Size <= Index ? NULL : Context->Values[Index];
+}
 
-void ml_context_set(ml_context_t *Context, int Index, void *Value);
+static inline void ml_context_set_dynamic(ml_context_t *Context, int Index, void *Value) {
+	if (Context->Size > Index) Context->Values[Index] = Value;
+}
 
 typedef int (*ml_config_fn)(ml_context_t *Context);
 
@@ -259,7 +307,7 @@ struct ml_scheduler_t {
 };
 
 static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
-	ml_scheduler_t *Scheduler = (ml_scheduler_t *)State->Context->Values[ML_SCHEDULER_INDEX];
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
 	Scheduler->add(Scheduler, State, Value);
 }
 

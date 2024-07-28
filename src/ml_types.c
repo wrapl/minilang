@@ -3322,6 +3322,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+	ml_runtime_init(ExecName);
 #ifdef ML_FLINT
 	__flint_set_memory_functions(GC_malloc, GC_calloc, GC_realloc, GC_nop);
 #endif
@@ -3356,7 +3357,6 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_map_init();
 	ml_set_init();
 	ml_compiler_init();
-	ml_runtime_init(ExecName);
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);

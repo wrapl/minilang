@@ -149,7 +149,7 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame
 	Frame->Base.Context = Caller->Context;
 #ifdef ML_SCHEDULER
 #ifndef ML_TIMESCHED
-	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+	Frame->Counter = (uint64_t *)ml_context_get_static(Caller->Context, ML_COUNTER_INDEX);
 #endif
 #endif
 	Frame->Reuse = 0;
@@ -387,7 +387,7 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 	DO_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
-		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+		ml_methods_t *Methods = ml_context_get_static(Frame->Base.Context, ML_METHODS_INDEX); \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
 			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
@@ -412,7 +412,7 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 	DO_TAIL_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
-		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+		ml_methods_t *Methods = ml_context_get_static(Frame->Base.Context, ML_METHODS_INDEX); \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
 			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
@@ -1164,7 +1164,7 @@ static void ml_closure_call_debug(ml_state_t *Caller, ml_closure_t *Closure, int
 
 static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, int Count, ml_value_t **Args) {
 	ml_closure_info_t *Info = Closure->Info;
-	ml_debugger_t *Debugger = (ml_debugger_t *)Caller->Context->Values[ML_DEBUGGER_INDEX];
+	ml_debugger_t *Debugger = (ml_debugger_t *)ml_context_get_static(Caller->Context, ML_DEBUGGER_INDEX);
 #ifndef DEBUG_VERSION
 	if (Debugger) return ml_closure_call_debug(Caller, Closure, Count, Args);
 #endif
@@ -1281,7 +1281,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
 #ifndef ML_TIMESCHED
-	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+	Frame->Counter = (uint64_t *)ml_context_get_static(Caller->Context, ML_COUNTER_INDEX);
 #endif
 #endif
 #ifdef DEBUG_VERSION
@@ -2430,7 +2430,7 @@ ML_FUNCTION(DecodeFrame) {
 		Frame->Base.Caller = MLEndState;
 	}
 	Frame->Base.run = (ml_state_fn)ml_frame_run;
-	Frame->Base.Context = &MLRootContext;
+	Frame->Base.Context = MLRootContext;
 	Frame->Inst = Info->Entry + ml_integer_value(Args[2]);
 	Frame->OnError = Info->Entry + ml_integer_value(Args[3]);
 	Frame->Source = ml_string_value(Args[4]);

@@ -1297,7 +1297,7 @@ extern ml_cfunction_t MLAddStringString[1];
 
 static __attribute__ ((noinline)) int is_not_string_add(ml_context_t *Context, ml_value_t *Value) {
 	ml_value_t *Args[2] = {ml_cstring(""), Value};
-	ml_value_t *Method = ml_method_search(ml_context_get(Context, ML_METHODS_INDEX), (ml_method_t *)AddMethod, 2, Args);
+	ml_value_t *Method = ml_method_search(ml_context_get_static(Context, ML_METHODS_INDEX), (ml_method_t *)AddMethod, 2, Args);
 	return Method != (ml_value_t *)MLAddStringString;
 }
 

@@ -1605,7 +1605,7 @@ static gir_scheduler_t *gir_scheduler(ml_context_t *Context) {
 	Scheduler->Base.run = (ml_scheduler_run_fn)ml_gir_queue_run;
 	Scheduler->Queue = ml_default_queue_init(Context, 256);
 	Scheduler->MainContext = g_main_context_default();
-	ml_context_set(Context, ML_SCHEDULER_INDEX, Scheduler);
+	ml_context_set_static(Context, ML_SCHEDULER_INDEX, Scheduler);
 	return Scheduler;
 }
 
