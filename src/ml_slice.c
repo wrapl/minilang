@@ -13,7 +13,7 @@ ML_TYPE(MLSliceT, (MLSequenceT), "slice");
 #ifdef ML_MUTABLES
 ML_TYPE(MLSliceMutableT, (MLSliceT), "slice::mutable");
 #else
-#define MLSliceMutableT MLListT
+#define MLSliceMutableT MLSliceT
 #endif
 
 #ifdef ML_GENERICS
@@ -235,15 +235,17 @@ ml_value_t *ml_slice_pull(ml_value_t *Slice0) {
 
 ml_value_t *ml_slice_get(ml_value_t *Slice0, int Index) {
 	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	if (Index <= 0) Index += Slice->Length + 1;
 	if (Index <= 0 || Index > Slice->Length) return NULL;
-	return Slice->Nodes[Slice->Offset + Index].Value;
+	return Slice->Nodes[Slice->Offset + Index - 1].Value;
 }
 
 ml_value_t *ml_slice_set(ml_value_t *Slice0, int Index, ml_value_t *Value) {
 	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	if (Index <= 0) Index += Slice->Length + 1;
 	if (Index <= 0 || Index > Slice->Length) return NULL;
 	ml_value_t *Old = Slice->Nodes[Slice->Offset + Index].Value;
-	Slice->Nodes[Slice->Offset + Index].Value = Value;
+	Slice->Nodes[Slice->Offset + Index - 1].Value = Value;
 	return Old;
 }
 
@@ -881,6 +883,132 @@ ML_METHODX("sort", MLSliceT, MLFunctionT) {
 	State->BlockSize = 1;
 	State->Args[0] = Source[0].Value;
 	State->Args[1] = Source[1].Value;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_slice_node_t *Node;
+	ml_value_t *Compare;
+	ml_value_t *Args[2];
+	int Index;
+} ml_slice_find_state_t;
+
+extern ml_value_t *EqualMethod;
+
+static void ml_slice_find_state_run(ml_slice_find_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	if (Value != MLNil) ML_RETURN(ml_integer(State->Index));
+	ml_slice_node_t *Node = State->Node + 1;
+	if (!Node->Value) ML_RETURN(MLNil);
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	++State->Index;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("find", MLSliceT, MLAnyT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) ML_RETURN(MLNil);
+	ml_slice_node_t *Node = Slice->Nodes + Slice->Offset;
+	ml_slice_find_state_t *State = new(ml_slice_find_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_find_state_run;
+	State->Args[0] = Args[1];
+	State->Compare = EqualMethod;
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	State->Index = 1;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("find", MLSliceT, MLAnyT, MLFunctionT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) ML_RETURN(MLNil);
+	ml_slice_node_t *Node = Slice->Nodes + Slice->Offset;
+	ml_slice_find_state_t *State = new(ml_slice_find_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_find_state_run;
+	State->Args[0] = Args[1];
+	State->Compare = Args[2];
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	State->Index = 1;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Slice, *Value, *Compare;
+	ml_value_t *Args[2];
+	int Index, Min, Max;
+} ml_slice_bfind_state_t;
+
+static void ml_slice_bfind_state_run(ml_slice_bfind_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	int Compare = ml_integer_value(Value);
+	if (Compare < 0) {
+		if (State->Index > State->Min) {
+			State->Max = State->Index - 1;
+			State->Index = State->Min + (State->Max - State->Min) / 2;
+			State->Args[0] = State->Value;
+			State->Args[1] = ml_slice_get(State->Slice, State->Index);
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		ML_RETURN(ml_tuplev(2, MLNil, ml_integer(State->Index)));
+	} else if (Compare > 0) {
+		if (State->Index < State->Max) {
+			State->Min = State->Index + 1;
+			State->Index = State->Min + (State->Max - State->Min) / 2;
+			State->Args[0] = State->Value;
+			State->Args[1] = ml_slice_get(State->Slice, State->Index);
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		ML_RETURN(ml_tuplev(2, MLNil, ml_integer(State->Index + 1)));
+	} else {
+		ML_RETURN(ml_tuplev(2, ml_integer(State->Index), ml_integer(State->Index)));
+	}
+}
+
+extern ml_value_t *CompareMethod;
+
+ML_METHODX("bfind", MLSliceT, MLAnyT) {
+	int Length = ml_slice_length(Args[0]);
+	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	ml_slice_bfind_state_t *State = new(ml_slice_bfind_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_bfind_state_run;
+	State->Slice = Args[0];
+	State->Value = Args[1];
+	State->Compare = CompareMethod;
+	State->Min = 1;
+	State->Max = Length;
+	State->Index = State->Min + (State->Max - State->Min) / 2;
+	State->Args[0] = State->Value;
+	State->Args[1] = ml_slice_get(State->Slice, State->Index);
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("bfind", MLSliceT, MLAnyT, MLFunctionT) {
+	int Length = ml_slice_length(Args[0]);
+	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	ml_slice_bfind_state_t *State = new(ml_slice_bfind_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_bfind_state_run;
+	State->Slice = Args[0];
+	State->Value = Args[1];
+	State->Compare = Args[2];
+	State->Min = 1;
+	State->Max = Length;
+	State->Index = State->Min + (State->Max - State->Min) / 2;
+	State->Args[0] = State->Value;
+	State->Args[1] = ml_slice_get(State->Slice, State->Index);
 	return ml_call(State, State->Compare, 2, State->Args);
 }
 

@@ -1697,7 +1697,7 @@ ML_METHODX("find", MLListT, MLAnyT, MLFunctionT) {
 	State->Node = Node;
 	State->Args[1] = Node->Value;
 	State->Index = 1;
-	return ml_call(State, EqualMethod, 2, State->Args);
+	return ml_call(State, State->Compare, 2, State->Args);
 }
 
 typedef struct {

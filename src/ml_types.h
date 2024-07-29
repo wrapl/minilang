@@ -967,6 +967,10 @@ static inline ml_slice_node_t *ml_slice_head(ml_slice_t *Slice) {
 	return Slice->Nodes + Slice->Offset;
 }
 
+static inline size_t ml_slice_length(ml_value_t *Value) {
+	return ((ml_slice_t *)Value)->Length;
+}
+
 #define ML_SLICE_FOREACH(SLICE, ITER) \
 	for (ml_slice_node_t *ITER = ml_slice_head((ml_slice_t *)SLICE); ITER->Value; ++ITER)
 
