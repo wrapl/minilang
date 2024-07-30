@@ -1119,10 +1119,12 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 #endif
 	Queue->Slice = Slice;
 #ifdef ML_TIMESCHED
-	struct itimerval Interval = {0,};
-	Interval.it_interval.tv_usec = Slice;
-	Interval.it_value.tv_usec = Slice;
-	setitimer(ITIMER_REAL, &Interval, NULL);
+	if (Slice) {
+		struct itimerval Interval = {0,};
+		Interval.it_interval.tv_usec = Slice;
+		Interval.it_value.tv_usec = Slice;
+		setitimer(ITIMER_REAL, &Interval, NULL);
+	}
 #else
 	Queue->Counter = Slice;
 #endif
