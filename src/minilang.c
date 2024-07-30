@@ -378,7 +378,7 @@ int main(int Argc, const char *Argv[]) {
 	int LoadModule = 0;
 #endif
 #ifdef ML_SCHEDULER
-	int SliceSize = 256;
+	int SliceSize = 250;
 #endif
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
