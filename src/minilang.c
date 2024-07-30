@@ -104,7 +104,7 @@ static ml_value_t *global_get(void *Data, const char *Name, const char *Source, 
 
 #ifdef ML_CONTEXT_SECTION
 
-__attribute__ ((section("ml_context_section"))) void *MLContextTest = NULL;
+__attribute__ ((section("ml_context_section"))) void *MLContextTest[1] = {NULL};
 
 #endif
 
