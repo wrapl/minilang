@@ -42,10 +42,12 @@ __attribute__ ((section("ml_context_section"))) void *ML_COUNTER_INDEX[1];
 __attribute__ ((section("ml_context_section"))) void *ML_THREAD_INDEX[1];
 
 static int MLContextSize = 0;
+static uint64_t MLContextReserved = 0;
 
 #else
 
 static int MLContextSize = ML_CONTEXT_SIZE;
+static uint64_t MLContextReserved = (1 << ML_CONTEXT_SIZE) - 1;
 
 #endif
 
@@ -58,7 +60,18 @@ ml_context_t *ml_context(ml_context_t *Parent) {
 }
 
 int ml_context_index() {
-	return MLContextSize++;
+	int Index = MLContextSize++;
+	MLContextReserved |= (1 << Index);
+	return Index;
+}
+
+void ml_context_reserve(int Index) {
+	if (MLContextReserved & (1 << Index)) {
+		ML_LOG_FATAL(NULL, "Context index %d already reserved", Index);
+		abort();
+	}
+	MLContextReserved |= (1 << Index);
+	if (MLContextSize < Index + 1) MLContextSize = Index + 1;
 }
 
 /*void ml_context_set(ml_context_t *Context, int Index, void *Value) {
@@ -1842,6 +1855,7 @@ static void ml_preempt(int Signal) {
 void ml_runtime_init(const char *ExecName) {
 #ifdef ML_CONTEXT_SECTION
 	MLContextSize = __stop_ml_context_section - __start_ml_context_section;
+	MLContextReserved = (1 << MLContextSize) - 1;
 	//fprintf(stderr, "Context section size = %d\n", MLContextSize);
 #endif
 	MLRootContext = xnew(ml_context_t, MLContextSize, void *);

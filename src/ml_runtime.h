@@ -93,6 +93,7 @@ static inline void ml_context_set_static(ml_context_t *Context, int Index, void 
 #endif
 
 int ml_context_index();
+void ml_context_reserve(int Index);
 
 static inline void *ml_context_get_dynamic(ml_context_t *Context, int Index) {
 	return Context->Size <= Index ? NULL : Context->Values[Index];
