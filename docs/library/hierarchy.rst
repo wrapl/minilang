@@ -81,7 +81,11 @@ hierarchy
       "socket":e -> "socket::local":w;
       "socket":e -> "socket::inet":w;
       "sequence":e -> "slice":w;
+      "slice":e -> "slice::mutable":w;
       "any":e -> "slice::index":w;
+      "any":e -> "slice::slice":w;
+      "any":e -> "slice::iter":w;
+      "slice::iter":e -> "slice::mutable::iter":w;
       "sequence":e -> "set":w;
       "set":e -> "set::mutable":w;
       "enum":e -> "set::order":w;
@@ -150,7 +154,6 @@ hierarchy
       "list::node":e -> "list::node::mutable":w;
       "any":e -> "list::node::mutable":w;
       "any":e -> "list::slice":w;
-      "sequence":e -> "list::skip":w;
       "function":e -> "importer":w;
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;

@@ -898,6 +898,16 @@
     <member refid="structml__set__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
     <member refid="structml__set__t_1a8e0c8267c109b3360503553133355dbc" kind="variable"><name>Order</name></member>
   </compound>
+  <compound refid="structml__slice__node__t" kind="struct"><name>ml_slice_node_t</name>
+    <member refid="structml__slice__node__t_1a022b24deb82c844e73083ad06165b5bd" kind="variable"><name>Value</name></member>
+  </compound>
+  <compound refid="structml__slice__t" kind="struct"><name>ml_slice_t</name>
+    <member refid="structml__slice__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
+    <member refid="structml__slice__t_1ad2d3545c4abbcedba2b4ab5394b454d4" kind="variable"><name>Nodes</name></member>
+    <member refid="structml__slice__t_1a6734bdfeb331b64313d219bc7caa8497" kind="variable"><name>Capacity</name></member>
+    <member refid="structml__slice__t_1a63a2e91d18fabd71e0759c2406145574" kind="variable"><name>Offset</name></member>
+    <member refid="structml__slice__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" kind="variable"><name>Length</name></member>
+  </compound>
   <compound refid="structml__source__t" kind="struct"><name>ml_source_t</name>
     <member refid="structml__source__t_1a760b4e07b204e4852e7fb55e25567623" kind="variable"><name>Name</name></member>
     <member refid="structml__source__t_1af5b2cae791582f6f4f975f6b25290977" kind="variable"><name>Line</name></member>
@@ -3880,7 +3890,6 @@
   <compound refid="ml__runtime_8h" kind="file"><name>ml_runtime.h</name>
     <member refid="group__runtime_1gacb4dbc9c60321a197cb4e383665d732b" kind="define"><name>ML_ARG_CACHE_SIZE</name></member>
     <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
-    <member refid="group__runtime_1ga9389dff42b52f0da9eba7898a7eb48ba" kind="define"><name>ml_context_get</name></member>
     <member refid="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" kind="define"><name>ml_simple_inline</name></member>
     <member refid="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" kind="define"><name>SIZE_BITS</name></member>
     <member refid="group__runtime_1ga1c4e727662d91855584cc5f105ead657" kind="define"><name>MLC_DECL_CONSTANT</name></member>
@@ -3904,7 +3913,7 @@
     <member refid="group__runtime_1ga9a618bc907f32ab1a951daf88104a16f" kind="typedef"><name>ml_scheduler_run_fn</name></member>
     <member refid="group__runtime_1ga30ea21a83c14f17753fc1265cb952c75" kind="typedef"><name>ml_scheduler_queue_t</name></member>
     <member refid="group__runtime_1ga9e4a5e05bc20f28d92db209c48002871" kind="variable"><name>MLArgCache</name></member>
-    <member refid="group__runtime_1gac1ad2e5f00dcb7ffab65bf1b58334aef" kind="variable"><name>MLRootContext</name></member>
+    <member refid="group__runtime_1gaa218c763307ca29dd84576370a50eb48" kind="variable"><name>MLRootContext</name></member>
     <member refid="group__runtime_1gac966d41213fdc6f77ddf16aebce9dd49" kind="variable"><name>MLStateT</name></member>
     <member refid="group__runtime_1gae93298a2a171a33887cb2a01118a1921" kind="variable"><name>MLEndState</name></member>
     <member refid="group__runtime_1ga00a9b3bf3ee5760cb85991433fbc144e" kind="variable"><name>MLComparisonStateT</name></member>
@@ -3916,14 +3925,19 @@
     <member refid="group__runtime_1ga16993d79f433ea0ed22112f642d760a7" kind="variable"><name>MLBreak</name></member>
     <member refid="group__runtime_1ga1469287b038effd0be7808b4a280ac84" kind="variable"><name>MLDebugger</name></member>
     <member refid="group__runtime_1ga5a6fb7f85d840ea54b9354edd6582bd4" kind="variable"><name>MLTrace</name></member>
+    <member refid="group__runtime_1gab9461a8bafcc66cb62b4f16bd39f2e60" kind="variable"><name>MLPreempt</name></member>
     <member refid="group__runtime_1gab8ee5ad682037d14be38199f6aa7f853" kind="variable"><name>MLFinalizer</name></member>
     <member refid="group__runtime_1ga08a8099ffaf70d61df6e251d359e2f1b" kind="variable"><name>MLSemaphoreT</name></member>
     <member refid="group__runtime_1gae0f4fd68326b1c45a0264f7804668ae0" kind="variable"><name>MLConditionT</name></member>
     <member refid="group__runtime_1ga4af60912290c5530a4a08a4318627fd0" kind="variable"><name>MLRWLockT</name></member>
     <member refid="group__runtime_1gaf27023974e1446cef64248000038ae5c" kind="variable"><name>MLChannelT</name></member>
     <member refid="group__runtime_1ga69d173bc33563bcb8f5f311e3526ed59" kind="function"><name>ml_context</name></member>
+    <member refid="group__runtime_1ga4a1a480970aa6181fbb40238529db6d8" kind="function"><name>ml_context_get_static</name></member>
+    <member refid="group__runtime_1ga7dfe46df3f5f96297888aaba00e84488" kind="function"><name>ml_context_set_static</name></member>
     <member refid="group__runtime_1ga70f324714e575500eea732499c6a9456" kind="function"><name>ml_context_index</name></member>
-    <member refid="group__runtime_1gad9c4b6c86988ef02c3dcbd73882e92b6" kind="function"><name>ml_context_set</name></member>
+    <member refid="group__runtime_1gaceeb85407e4fcda473783d1f7321c549" kind="function"><name>ml_context_reserve</name></member>
+    <member refid="group__runtime_1gaf927b09ab94aed4dd94dbbeb6ebe6793" kind="function"><name>ml_context_get_dynamic</name></member>
+    <member refid="group__runtime_1ga423cc023a235bd02a443b7f6fc37d5a5" kind="function"><name>ml_context_set_dynamic</name></member>
     <member refid="group__runtime_1gad9cfdc978865bc3d4f509b2af310f149" kind="function"><name>ml_config_register</name></member>
     <member refid="group__runtime_1ga35e789ee30e220733088c39ae4194b18" kind="function"><name>ml_config_lookup</name></member>
     <member refid="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" kind="function"><name>ml_state</name></member>
@@ -4080,6 +4094,7 @@
     <member refid="group__lists_1gab5aff1e40936cafd7d8732c9d75f2852" kind="define"><name>ml_list_append</name></member>
     <member refid="group__lists_1ga1789c9ac0f3d673b6a0f5798913d1e80" kind="define"><name>ML_LIST_FOREACH</name></member>
     <member refid="group__lists_1ga4e28a43d7fae21259fdb7ff92b1dfd57" kind="define"><name>ML_LIST_REVERSE</name></member>
+    <member refid="group__slices_1ga73740fa93215fe850c454a4787850b01" kind="define"><name>ML_SLICE_FOREACH</name></member>
     <member refid="group__methods_1gaebec330325aff5cbc7d9c9248e2cae4a" kind="define"><name>ML_CATEGORY</name></member>
     <member refid="group__methods_1ga272af7e1f8cd6268a34791a598cf78e7" kind="define"><name>ML_METHOD</name></member>
     <member refid="group__methods_1ga4f204e431d9b7659aee5b331d1b48862" kind="define"><name>ML_METHODX</name></member>
@@ -4297,6 +4312,14 @@
     <member refid="group__lists_1ga33d25b87282ab468a44ad321478e6759" kind="function"><name>ml_list_iter_prev</name></member>
     <member refid="group__lists_1gac73e993951191ef83ee46a8617d9c949" kind="function"><name>ml_list_iter_valid</name></member>
     <member refid="group__lists_1ga180daa9ffd89687a9aaea09ff6eb64d3" kind="function"><name>ml_list_iter_update</name></member>
+    <member refid="group__slices_1ga745059c951100e5f7921fd47f6e5bf13" kind="function"><name>ml_slice</name></member>
+    <member refid="group__slices_1gae84c0ce798ef0bb3490d26dadd66dad1" kind="function"><name>ml_slice_grow</name></member>
+    <member refid="group__slices_1ga787205110e0f761867251c282876b396" kind="function"><name>ml_slice_put</name></member>
+    <member refid="group__slices_1ga846d3888dcd3d7017821eb8c2334993f" kind="function"><name>ml_slice_push</name></member>
+    <member refid="group__slices_1gaff0676d5591f27deff5c4e78fc87c0f1" kind="function"><name>ml_slice_pop</name></member>
+    <member refid="group__slices_1gae52448269042036bccfbe3fe15e49f39" kind="function"><name>ml_slice_pull</name></member>
+    <member refid="group__slices_1ga91092264abf8f4383d51d2b2a13c5a8a" kind="function"><name>ml_slice_head</name></member>
+    <member refid="group__slices_1ga78119aee60a73cd77971c8a6f9b431ed" kind="function"><name>ml_slice_length</name></member>
     <member refid="group__methods_1ga24a660ca09a2087ddcbca0f87f855272" kind="function"><name>ml_method</name></member>
     <member refid="group__methods_1gab1ff7f81d0396b2123a50db19370edbd" kind="function"><name>ml_method_anon</name></member>
     <member refid="group__methods_1ga19f325e8e1304f08be11e3609f0e8019" kind="function"><name>ml_method_name</name></member>
@@ -5704,7 +5727,7 @@
     <member refid="group__runtime_1ga9a618bc907f32ab1a951daf88104a16f" kind="typedef"><name>ml_scheduler_run_fn</name></member>
     <member refid="group__runtime_1ga30ea21a83c14f17753fc1265cb952c75" kind="typedef"><name>ml_scheduler_queue_t</name></member>
     <member refid="group__runtime_1ga9e4a5e05bc20f28d92db209c48002871" kind="variable"><name>MLArgCache</name></member>
-    <member refid="group__runtime_1gac1ad2e5f00dcb7ffab65bf1b58334aef" kind="variable"><name>MLRootContext</name></member>
+    <member refid="group__runtime_1gaa218c763307ca29dd84576370a50eb48" kind="variable"><name>MLRootContext</name></member>
     <member refid="group__runtime_1gac966d41213fdc6f77ddf16aebce9dd49" kind="variable"><name>MLStateT</name></member>
     <member refid="group__runtime_1gae93298a2a171a33887cb2a01118a1921" kind="variable"><name>MLEndState</name></member>
     <member refid="group__runtime_1ga00a9b3bf3ee5760cb85991433fbc144e" kind="variable"><name>MLComparisonStateT</name></member>
@@ -5716,14 +5739,19 @@
     <member refid="group__runtime_1ga16993d79f433ea0ed22112f642d760a7" kind="variable"><name>MLBreak</name></member>
     <member refid="group__runtime_1ga1469287b038effd0be7808b4a280ac84" kind="variable"><name>MLDebugger</name></member>
     <member refid="group__runtime_1ga5a6fb7f85d840ea54b9354edd6582bd4" kind="variable"><name>MLTrace</name></member>
+    <member refid="group__runtime_1gab9461a8bafcc66cb62b4f16bd39f2e60" kind="variable"><name>MLPreempt</name></member>
     <member refid="group__runtime_1gab8ee5ad682037d14be38199f6aa7f853" kind="variable"><name>MLFinalizer</name></member>
     <member refid="group__runtime_1ga08a8099ffaf70d61df6e251d359e2f1b" kind="variable"><name>MLSemaphoreT</name></member>
     <member refid="group__runtime_1gae0f4fd68326b1c45a0264f7804668ae0" kind="variable"><name>MLConditionT</name></member>
     <member refid="group__runtime_1ga4af60912290c5530a4a08a4318627fd0" kind="variable"><name>MLRWLockT</name></member>
     <member refid="group__runtime_1gaf27023974e1446cef64248000038ae5c" kind="variable"><name>MLChannelT</name></member>
     <member refid="group__runtime_1ga69d173bc33563bcb8f5f311e3526ed59" kind="function"><name>ml_context</name></member>
+    <member refid="group__runtime_1ga4a1a480970aa6181fbb40238529db6d8" kind="function"><name>ml_context_get_static</name></member>
+    <member refid="group__runtime_1ga7dfe46df3f5f96297888aaba00e84488" kind="function"><name>ml_context_set_static</name></member>
     <member refid="group__runtime_1ga70f324714e575500eea732499c6a9456" kind="function"><name>ml_context_index</name></member>
-    <member refid="group__runtime_1gad9c4b6c86988ef02c3dcbd73882e92b6" kind="function"><name>ml_context_set</name></member>
+    <member refid="group__runtime_1gaceeb85407e4fcda473783d1f7321c549" kind="function"><name>ml_context_reserve</name></member>
+    <member refid="group__runtime_1gaf927b09ab94aed4dd94dbbeb6ebe6793" kind="function"><name>ml_context_get_dynamic</name></member>
+    <member refid="group__runtime_1ga423cc023a235bd02a443b7f6fc37d5a5" kind="function"><name>ml_context_set_dynamic</name></member>
     <member refid="group__runtime_1gad9cfdc978865bc3d4f509b2af310f149" kind="function"><name>ml_config_register</name></member>
     <member refid="group__runtime_1ga35e789ee30e220733088c39ae4194b18" kind="function"><name>ml_config_lookup</name></member>
     <member refid="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" kind="function"><name>ml_state</name></member>
@@ -5774,7 +5802,6 @@
     <member refid="group__runtime_1ga65a6bbf10f06668af40d245980e4a673" kind="function"><name>ml_scheduler_queue_add_signal</name></member>
     <member refid="group__runtime_1gacb4dbc9c60321a197cb4e383665d732b" kind="define"><name>ML_ARG_CACHE_SIZE</name></member>
     <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
-    <member refid="group__runtime_1ga9389dff42b52f0da9eba7898a7eb48ba" kind="define"><name>ml_context_get</name></member>
     <member refid="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" kind="define"><name>ml_simple_inline</name></member>
     <member refid="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" kind="define"><name>SIZE_BITS</name></member>
     <member refid="group__runtime_1ga1c4e727662d91855584cc5f105ead657" kind="define"><name>MLC_DECL_CONSTANT</name></member>
@@ -6040,6 +6067,15 @@
   </compound>
   <compound refid="group__slices" kind="group"><name>slices</name>
     <member refid="group__slices_1ga4354fe24c95ac91712ccde8ab036734d" kind="variable"><name>MLSliceT</name></member>
+    <member refid="group__slices_1ga745059c951100e5f7921fd47f6e5bf13" kind="function"><name>ml_slice</name></member>
+    <member refid="group__slices_1gae84c0ce798ef0bb3490d26dadd66dad1" kind="function"><name>ml_slice_grow</name></member>
+    <member refid="group__slices_1ga787205110e0f761867251c282876b396" kind="function"><name>ml_slice_put</name></member>
+    <member refid="group__slices_1ga846d3888dcd3d7017821eb8c2334993f" kind="function"><name>ml_slice_push</name></member>
+    <member refid="group__slices_1gaff0676d5591f27deff5c4e78fc87c0f1" kind="function"><name>ml_slice_pop</name></member>
+    <member refid="group__slices_1gae52448269042036bccfbe3fe15e49f39" kind="function"><name>ml_slice_pull</name></member>
+    <member refid="group__slices_1ga91092264abf8f4383d51d2b2a13c5a8a" kind="function"><name>ml_slice_head</name></member>
+    <member refid="group__slices_1ga78119aee60a73cd77971c8a6f9b431ed" kind="function"><name>ml_slice_length</name></member>
+    <member refid="group__slices_1ga73740fa93215fe850c454a4787850b01" kind="define"><name>ML_SLICE_FOREACH</name></member>
   </compound>
   <compound refid="group__methods" kind="group"><name>methods</name>
     <member refid="group__methods_1ga8b6c7254a59c415e36424ece80842f85" kind="typedef"><name>ml_method_t</name></member>

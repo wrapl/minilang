@@ -179,7 +179,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:find("b", <) :> 3
+      L:find("b", <) :> 1
       L:find("b", >) :> 2
 
 
@@ -213,8 +213,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
-      L:random :> "c"
+      L:random :> "a"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -414,10 +414,6 @@ list
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
-
-
-:mini:`type list::skip < sequence`
-   *TBD*
 
 
 :mini:`type list::slice`

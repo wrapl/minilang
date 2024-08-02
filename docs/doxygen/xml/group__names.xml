@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1196" column="18" declfile="src/ml_types.h" declline="1196" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1222" column="18" declfile="src/ml_types.h" declline="1222" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -30,7 +30,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1198" column="12" declfile="src/ml_types.h" declline="1198" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1224" column="12" declfile="src/ml_types.h" declline="1224" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__names_1ga5e126a6d8e278926855cca8f1830a6e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -51,7 +51,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1199" column="6" declfile="src/ml_types.h" declline="1199" declcolumn="6"/>
+        <location file="src/ml_types.h" line="1225" column="6" declfile="src/ml_types.h" declline="1225" declcolumn="6"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -64,7 +64,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1200" column="9" bodyfile="src/ml_types.h" bodystart="1200" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1226" column="9" bodyfile="src/ml_types.h" bodystart="1226" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__names_1gaf9e68a97ed911530e76a3eb562a01d0b" prot="public" static="no">
         <name>ML_NAMES_CHECK_ARG_COUNT</name>
@@ -81,7 +81,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1202" column="9" bodyfile="src/ml_types.h" bodystart="1202" bodyend="1207"/>
+        <location file="src/ml_types.h" line="1228" column="9" bodyfile="src/ml_types.h" bodystart="1228" bodyend="1233"/>
       </memberdef>
       <memberdef kind="define" id="group__names_1ga37dc66bd2e5157f6d5801bb4705ad9d8" prot="public" static="no">
         <name>ML_NAMES_CHECKX_ARG_COUNT</name>
@@ -98,7 +98,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1209" column="9" bodyfile="src/ml_types.h" bodystart="1209" bodyend="1214"/>
+        <location file="src/ml_types.h" line="1235" column="9" bodyfile="src/ml_types.h" bodystart="1235" bodyend="1240"/>
       </memberdef>
       <memberdef kind="define" id="group__names_1ga1a287bc72e9a9d425b1261d1a8ac5e32" prot="public" static="no">
         <name>ML_NAMES_FOREACH</name>
@@ -111,7 +111,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1216" column="9" bodyfile="src/ml_types.h" bodystart="1216" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1242" column="9" bodyfile="src/ml_types.h" bodystart="1242" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
