@@ -184,6 +184,9 @@ void ml_slice_put(ml_value_t *Slice0, ml_value_t *Value) {
 		Slice->Nodes[Length].Value = Value;
 	}
 	++Slice->Length;
+#ifdef ML_GENERICS
+	ml_slice_update_generic(Slice, ml_typeof(Value));
+#endif
 }
 
 void ml_slice_push(ml_value_t *Slice0, ml_value_t *Value) {
@@ -207,6 +210,9 @@ void ml_slice_push(ml_value_t *Slice0, ml_value_t *Value) {
 	Slice->Offset = --Offset;
 	Slice->Nodes[Offset].Value = Value;
 	++Slice->Length;
+#ifdef ML_GENERICS
+	ml_slice_update_generic(Slice, ml_typeof(Value));
+#endif
 }
 
 ml_value_t *ml_slice_pop(ml_value_t *Slice0) {
@@ -286,23 +292,71 @@ ML_METHOD("last", MLSliceT) {
 
 typedef struct {
 	ml_state_t Base;
+	ml_slice_t *Slice;
+	ml_value_t *Keep, *Drop;
+	ml_slice_node_t *Node;
 	ml_value_t *Filter;
+	ml_value_t *Args[1];
 } ml_slice_filter_state_t;
 
 static void ml_slice_filter_state_run(ml_slice_filter_state_t *State, ml_value_t *Result) {
-
+	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+	ml_slice_node_t *Node = State->Node;
+	ml_slice_put(Result == MLNil ? State->Drop : State->Keep, Node->Value);
+	++Node;
+	if (!Node->Value) {
+		*State->Slice = *(ml_slice_t *)State->Keep;
+		ML_CONTINUE(State->Base.Caller, State->Drop);
+	}
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Filter, 1, State->Args);
 }
 
 ML_METHODX("filter", MLSliceMutableT, MLFunctionT) {
-
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) ML_RETURN(Slice);
+	ml_slice_filter_state_t *State = new(ml_slice_filter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_filter_state_run;
+	State->Slice = Slice;
+	State->Node = Slice->Nodes + Slice->Offset;
+	State->Keep = ml_slice(0);
+	State->Drop = ml_slice(0);
+	State->Filter = Args[1];
+	State->Args[0] = State->Node->Value;
+	return ml_call(State, State->Filter, 1, State->Args);
 }
 
 static void ml_slice_remove_state_run(ml_slice_filter_state_t *State, ml_value_t *Result) {
-
+	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+	ml_slice_node_t *Node = State->Node;
+	ml_slice_put(Result == MLNil ? State->Keep : State->Drop, Node->Value);
+	++Node;
+	if (!Node->Value) {
+		*State->Slice = *(ml_slice_t *)State->Keep;
+		ML_CONTINUE(State->Base.Caller, State->Drop);
+	}
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Filter, 1, State->Args);
 }
 
 ML_METHODX("remove", MLSliceMutableT, MLFunctionT) {
-
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) ML_RETURN(Slice);
+	ml_slice_filter_state_t *State = new(ml_slice_filter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_remove_state_run;
+	State->Slice = Slice;
+	State->Node = Slice->Nodes + Slice->Offset;
+	State->Keep = ml_slice(0);
+	State->Drop = ml_slice(0);
+	State->Filter = Args[1];
+	State->Args[0] = State->Node->Value;
+	return ml_call(State, State->Filter, 1, State->Args);
 }
 
 #ifdef ML_MUTABLES
@@ -487,7 +541,7 @@ typedef struct {
 ML_TYPE(MLSliceIterT, (), "slice::iter");
 
 #ifdef ML_MUTABLES
-ML_TYPE(MLSliceMutableIterT, (MLSliceIndexT), "slice::mutable::iter");
+ML_TYPE(MLSliceMutableIterT, (MLSliceIterT), "slice::mutable::iter");
 #else
 #define MLSliceMutableIterT MLSliceIterT
 #endif
@@ -1012,14 +1066,23 @@ ML_METHODX("bfind", MLSliceT, MLAnyT, MLFunctionT) {
 	return ml_call(State, State->Compare, 2, State->Args);
 }
 
+ML_METHOD("insert", MLSliceMutableT, MLIntegerT, MLAnyT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	int Length = Slice->Length;
+	if (Index <= 0) Index += Length + 1;
+	if (Index <= 0 || Index > Length) return MLNil;
+	return (ml_value_t *)Slice;
+}
+
 void ml_slice_init() {
 #include "ml_slice_init.c"
-//	stringmap_insert(MLSliceT->Exports, "mutable", MLSliceMutableT);
-//	MLSliceMutableT->Constructor = MLSliceT->Constructor;
-//#ifdef ML_GENERICS
-//	ml_type_add_rule(MLSliceT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
-//#ifdef ML_MUTABLES
-//	ml_type_add_rule(MLSliceMutableT, MLSliceT, ML_TYPE_ARG(1), NULL);
-//#endif
-//#endif
+	stringmap_insert(MLSliceT->Exports, "mutable", MLSliceMutableT);
+	MLSliceMutableT->Constructor = MLSliceT->Constructor;
+#ifdef ML_GENERICS
+	ml_type_add_rule(MLSliceT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+#ifdef ML_MUTABLES
+	ml_type_add_rule(MLSliceMutableT, MLSliceT, ML_TYPE_ARG(1), NULL);
+#endif
+#endif
 }
