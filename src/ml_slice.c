@@ -246,6 +246,22 @@ void ml_slice_insert(ml_value_t *Slice0, int Index, ml_value_t *Value) {
 #endif
 }
 
+ml_value_t *ml_slice_delete(ml_value_t *Slice0, int Index) {
+	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	size_t Offset = Slice->Offset;
+	size_t Length = Slice->Length;
+	ml_slice_node_t *Nodes = Slice->Nodes + Offset;
+	ml_value_t *Value = Nodes[Index - 1].Value;
+	if (Index > Length / 2) {
+		memmove(Nodes + (Index - 1), Nodes + Index, (Length - Index) * sizeof(ml_slice_node_t));
+	} else {
+		Slice->Offset = Offset + 1;
+		memmove(Nodes + 1, Nodes, (Index - 1) * sizeof(ml_slice_node_t));
+	}
+	Slice->Length = Length - 1;
+	return Value;
+}
+
 ml_value_t *ml_slice_pop(ml_value_t *Slice0) {
 	ml_slice_t *Slice = (ml_slice_t *)Slice0;
 	size_t Length = Slice->Length;
@@ -1105,6 +1121,15 @@ ML_METHOD("insert", MLSliceMutableT, MLIntegerT, MLAnyT) {
 	if (Index <= 0 || Index > Length) return MLNil;
 	ml_slice_insert((ml_value_t *)Slice, Index, Args[2]);
 	return (ml_value_t *)Slice;
+}
+
+ML_METHOD("delete", MLSliceMutableT, MLIntegerT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	int Length = Slice->Length;
+	if (Index <= 0) Index += Length + 1;
+	if (Index <= 0 || Index > Length) return MLNil;
+	return ml_slice_delete((ml_value_t *)Slice, Index);
 }
 
 void ml_slice_init() {
