@@ -183,7 +183,7 @@ void ml_slice_put(ml_value_t *Slice0, ml_value_t *Value) {
 		Slice->Capacity = Capacity;
 		Slice->Nodes[Length].Value = Value;
 	}
-	++Slice->Length;
+	Slice->Length = Length + 1;
 #ifdef ML_GENERICS
 	ml_slice_update_generic(Slice, ml_typeof(Value));
 #endif
@@ -209,7 +209,38 @@ void ml_slice_push(ml_value_t *Slice0, ml_value_t *Value) {
 	}
 	Slice->Offset = --Offset;
 	Slice->Nodes[Offset].Value = Value;
-	++Slice->Length;
+	Slice->Length = Length + 1;
+#ifdef ML_GENERICS
+	ml_slice_update_generic(Slice, ml_typeof(Value));
+#endif
+}
+
+void ml_slice_insert(ml_value_t *Slice0, int Index, ml_value_t *Value) {
+	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	size_t Offset = Slice->Offset;
+	size_t Length = Slice->Length;
+	size_t Capacity = Slice->Capacity;
+	if (Length == Capacity) {
+		Capacity += (Capacity >> 1) + 4;
+		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
+		Offset = (Capacity - Length - 1) / 2;
+		ml_slice_node_t *Next = mempcpy(Nodes + Offset, Slice->Nodes, (Index - 1) * sizeof(ml_slice_node_t));
+		(Next++)->Value = Value;
+		memcpy(Next, Slice->Nodes + (Index - 1), (Length - (Index - 1)) * sizeof(ml_slice_node_t));
+		Slice->Nodes = Nodes;
+		Slice->Capacity = Capacity;
+		Slice->Offset = Offset;
+	} else if (!Offset || (Index > Length / 2)) {
+		ml_slice_node_t *Nodes = Slice->Nodes + Offset;
+		memmove(Nodes + Index, Nodes + (Index - 1), (Length - (Index - 1)) * sizeof(ml_slice_node_t));
+		Nodes[Index - 1].Value = Value;
+	} else {
+		Slice->Offset = --Offset;
+		ml_slice_node_t *Nodes = Slice->Nodes + Offset;
+		memmove(Nodes, Nodes + 1, (Index - 1) * sizeof(ml_slice_node_t));
+		Nodes[Index - 1].Value = Value;
+	}
+	Slice->Length = Length + 1;
 #ifdef ML_GENERICS
 	ml_slice_update_generic(Slice, ml_typeof(Value));
 #endif
@@ -1072,6 +1103,7 @@ ML_METHOD("insert", MLSliceMutableT, MLIntegerT, MLAnyT) {
 	int Length = Slice->Length;
 	if (Index <= 0) Index += Length + 1;
 	if (Index <= 0 || Index > Length) return MLNil;
+	ml_slice_insert((ml_value_t *)Slice, Index, Args[2]);
 	return (ml_value_t *)Slice;
 }
 
