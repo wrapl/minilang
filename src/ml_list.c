@@ -2065,17 +2065,17 @@ typedef struct {
 	ml_list_node_t **Nodes;
 	int Index, Length;
 	int P[];
-} ml_permutations_t;
+} ml_list_permutations_t;
 
-ML_TYPE(MLPermutationsT, (MLSequenceT), "list::permutations");
+ML_TYPE(MLListPermutationsT, (MLSequenceT), "list::permutations");
 //!internal
 
-static void ML_TYPED_FN(ml_iterate, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+static void ML_TYPED_FN(ml_iterate, MLListPermutationsT, ml_state_t *Caller, ml_list_permutations_t *Permutations) {
 	Permutations->Index = 1;
 	ML_RETURN(Permutations);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+static void ML_TYPED_FN(ml_iter_next, MLListPermutationsT, ml_state_t *Caller, ml_list_permutations_t *Permutations) {
 	int N = Permutations->Length;
 	int *P = Permutations->P;
 	int Index = 1;
@@ -2107,11 +2107,11 @@ static void ML_TYPED_FN(ml_iter_next, MLPermutationsT, ml_state_t *Caller, ml_pe
 	ML_RETURN(Permutations);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+static void ML_TYPED_FN(ml_iter_key, MLListPermutationsT, ml_state_t *Caller, ml_list_permutations_t *Permutations) {
 	ML_RETURN(ml_integer(Permutations->Index));
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+static void ML_TYPED_FN(ml_iter_value, MLListPermutationsT, ml_state_t *Caller, ml_list_permutations_t *Permutations) {
 	ML_RETURN(Permutations->List);
 }
 
@@ -2121,8 +2121,8 @@ ML_METHOD("permutations", MLListMutableT) {
 // Returns a sequence of all permutations of :mini:`List`, performed in-place.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	int N = List->Length;
-	ml_permutations_t *Permutations = xnew(ml_permutations_t, N + 1, int);
-	Permutations->Type = MLPermutationsT;
+	ml_list_permutations_t *Permutations = xnew(ml_list_permutations_t, N + 1, int);
+	Permutations->Type = MLListPermutationsT;
 	Permutations->Length = N;
 	ml_list_node_t **Nodes = Permutations->Nodes = anew(ml_list_node_t *, N);
 	ml_list_node_t *Node = List->Head;

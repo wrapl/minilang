@@ -8,7 +8,7 @@
 #define ML_CATEGORY "slice"
 
 ML_TYPE(MLSliceT, (MLSequenceT), "slice");
-// A list of elements.
+// A slice of elements.
 
 #ifdef ML_MUTABLES
 ML_TYPE(MLSliceMutableT, (MLSliceT), "slice::mutable");
@@ -1197,6 +1197,127 @@ ML_METHODX("pull", MLSliceMutableT, MLFunctionT) {
 	State->Index = Slice->Length;
 	State->Limit = 1;
 	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+ML_METHOD("permute", MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int N = Slice->Length;
+	if (N <= 1) return (ml_value_t *)Slice;
+	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
+	for (int I = N; --I > 0;) {
+		int Divisor = RAND_MAX / (I + 1), J;
+		do J = random() / Divisor; while (J > I);
+		if (J != I) {
+			ml_value_t *Old = Nodes[J].Value;
+			Nodes[J].Value = Nodes[I].Value;
+			Nodes[I].Value = Old;
+		}
+	}
+	return (ml_value_t *)Slice;
+}
+
+ML_METHOD("shuffle", MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int N = Slice->Length;
+	if (N <= 1) return (ml_value_t *)Slice;
+	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
+	for (int I = N; --I > 0;) {
+		int Divisor = RAND_MAX / (I + 1), J;
+		do J = random() / Divisor; while (J > I);
+		if (J != I) {
+			ml_value_t *Old = Nodes[J].Value;
+			Nodes[J].Value = Nodes[I].Value;
+			Nodes[I].Value = Old;
+		}
+	}
+	return (ml_value_t *)Slice;
+}
+
+ML_METHOD("cycle", MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int N = Slice->Length;
+	if (N <= 1) return (ml_value_t *)Slice;
+	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
+	for (int I = N; --I > 0;) {
+		int Divisor = RAND_MAX / (I + 1), J;
+		do J = random() / Divisor; while (J >= I);
+		if (J != I) {
+			ml_value_t *Old = Nodes[J].Value;
+			Nodes[J].Value = Nodes[I].Value;
+			Nodes[I].Value = Old;
+		}
+	}
+	return (ml_value_t *)Slice;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_slice_t *Slice;
+	ml_slice_node_t *Nodes;
+	int Index, Length;
+	int P[];
+} ml_slice_permutations_t;
+
+ML_TYPE(MLSlicePermutationsT, (MLSequenceT), "slice::permutations");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLSlicePermutationsT, ml_state_t *Caller, ml_slice_permutations_t *Permutations) {
+	Permutations->Index = 1;
+	ML_RETURN(Permutations);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLSlicePermutationsT, ml_state_t *Caller, ml_slice_permutations_t *Permutations) {
+	int N = Permutations->Length;
+	int *P = Permutations->P;
+	int Index = 1;
+	while (!P[Index]) {
+		P[Index] = Index;
+		++Index;
+	}
+	if (Index == N) ML_RETURN(MLNil);
+	--P[Index];
+	int J = Index % 2 ? P[Index] : 0;
+	ml_slice_node_t *Nodes = Permutations->Nodes;
+	ml_value_t *Value = Nodes[Index].Value;
+	Nodes[Index].Value = Nodes[J].Value;
+	Nodes[J].Value = Value;
+	++Permutations->Index;
+	ML_RETURN(Permutations);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSlicePermutationsT, ml_state_t *Caller, ml_slice_permutations_t *Permutations) {
+	ML_RETURN(ml_integer(Permutations->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSlicePermutationsT, ml_state_t *Caller, ml_slice_permutations_t *Permutations) {
+	ML_RETURN(Permutations->Slice);
+}
+
+ML_METHOD("permutations", MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int N = Slice->Length;
+	ml_slice_permutations_t *Permutations = xnew(ml_slice_permutations_t, N + 1, int);
+	Permutations->Type = MLSlicePermutationsT;
+	Permutations->Length = N;
+	Permutations->Nodes = Slice->Nodes + Slice->Offset;
+	for (int I = 0; I < N; ++I) Permutations->P[I] = I;
+	Permutations->P[N] = N;
+	Permutations->Slice = Slice;
+	return (ml_value_t *)Permutations;
+}
+
+ML_METHOD("random", MLSliceT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int Limit = Slice->Length;
+	if (Limit <= 0) return MLNil;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceIndexT;
+	Iter->Slice = Slice;
+	Iter->Index = Random + 1;
+	return (ml_value_t *)Iter;
 }
 
 void ml_slice_init() {
