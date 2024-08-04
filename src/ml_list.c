@@ -752,8 +752,8 @@ ML_METHODX("=", MLListT, MLListT) {
 	State->Default = (ml_value_t *)B;
 	State->A = A->Head;
 	State->B = B->Head;
-	State->Args[0] = A->Head->Value;
-	State->Args[1] = B->Head->Value;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
 	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
@@ -786,8 +786,8 @@ ML_METHODX("!=", MLListT, MLListT) {
 	State->Default = MLNil;
 	State->A = A->Head;
 	State->B = B->Head;
-	State->Args[0] = A->Head->Value;
-	State->Args[1] = B->Head->Value;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
 	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
@@ -853,8 +853,8 @@ ML_METHODX("<", MLListT, MLListT) {
 	}
 	State->A = A->Head;
 	State->B = B->Head;
-	State->Args[0] = A->Head->Value;
-	State->Args[1] = B->Head->Value;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
 	return ml_call(State, LessMethod, 2, State->Args);
 }
 
@@ -895,8 +895,8 @@ ML_METHODX("<=", MLListT, MLListT) {
 	}
 	State->A = A->Head;
 	State->B = B->Head;
-	State->Args[0] = A->Head->Value;
-	State->Args[1] = B->Head->Value;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
 	return ml_call(State, LessMethod, 2, State->Args);
 }
 
@@ -920,7 +920,7 @@ ML_METHODX(">", MLListT, MLListT) {
 		if (!B->Length) ML_RETURN(MLNil);
 		ML_RETURN(MLNil);
 	}
-	if (!B->Length) ML_RETURN(A);
+	if (!B->Length) ML_RETURN(B);
 	ml_list_compare_state_t *State = new(ml_list_compare_state_t);
 	State->Base.Base.Type = MLComparisonStateT;
 	State->Base.Base.Caller = Caller;
@@ -937,8 +937,8 @@ ML_METHODX(">", MLListT, MLListT) {
 	}
 	State->A = A->Head;
 	State->B = B->Head;
-	State->Args[0] = A->Head->Value;
-	State->Args[1] = B->Head->Value;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
 	return ml_call(State, GreaterMethod, 2, State->Args);
 }
 
@@ -979,8 +979,8 @@ ML_METHODX(">=", MLListT, MLListT) {
 	}
 	State->A = A->Head;
 	State->B = B->Head;
-	State->Args[0] = A->Head->Value;
-	State->Args[1] = B->Head->Value;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
 	return ml_call(State, GreaterMethod, 2, State->Args);
 }
 

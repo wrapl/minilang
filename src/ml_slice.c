@@ -501,6 +501,239 @@ ML_METHOD("[]", MLSliceMutableT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Slice;
 }
 
+extern ml_value_t *EqualMethod;
+extern ml_value_t *LessMethod;
+extern ml_value_t *GreaterMethod;
+extern ml_value_t *NotEqualMethod;
+extern ml_value_t *LessEqualMethod;
+extern ml_value_t *GreaterEqualMethod;
+
+typedef struct {
+	ml_comparison_state_t Base;
+	ml_value_t *Result, *Order, *Default;
+	ml_slice_node_t *A, *B;
+	ml_value_t *Args[2];
+} ml_slice_compare_state_t;
+
+static void ml_slice_compare_equal_run(ml_slice_compare_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (Result == MLNil) ML_RETURN(State->Result);
+	ml_slice_node_t *A = ++State->A;
+	ml_slice_node_t *B = ++State->B;
+	if (!A->Value || !B->Value) ML_RETURN(State->Default);
+	State->Args[0] = A->Value;
+	State->Args[1] = B->Value;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+ML_METHODX("=", MLSliceT, MLSliceT) {
+	ml_slice_t *A = (ml_slice_t *)Args[0];
+	ml_slice_t *B = (ml_slice_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
+	if (A->Length != B->Length) ML_RETURN(MLNil);
+	if (!A->Length) ML_RETURN(B);
+	ml_slice_compare_state_t *State = new(ml_slice_compare_state_t);
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_equal_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
+	State->Result = MLNil;
+	State->Default = (ml_value_t *)B;
+	State->A = A->Nodes + A->Offset;
+	State->B = B->Nodes + B->Offset;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+ML_METHODX("!=", MLSliceT, MLSliceT) {
+	ml_slice_t *A = (ml_slice_t *)Args[0];
+	ml_slice_t *B = (ml_slice_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
+	if (A->Length != B->Length) ML_RETURN(B);
+	if (!A->Length) ML_RETURN(MLNil);
+	ml_slice_compare_state_t *State = new(ml_slice_compare_state_t);
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_equal_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
+	State->Result = (ml_value_t *)B;
+	State->Default = MLNil;
+	State->A = A->Nodes + A->Offset;
+	State->B = B->Nodes + B->Offset;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+static void ml_slice_compare_order_run(ml_slice_compare_state_t *State, ml_value_t *Result);
+
+static void ml_slice_compare_order2_run(ml_slice_compare_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (Result == MLNil) ML_RETURN(MLNil);
+	ml_slice_node_t *A = ++State->A;
+	ml_slice_node_t *B = ++State->B;
+	if (!A->Value || !B->Value) ML_RETURN(State->Default);
+	State->Args[0] = A->Value;
+	State->Args[1] = B->Value;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_order_run;
+	return ml_call(State, State->Order, 2, State->Args);
+}
+
+static void ml_slice_compare_order_run(ml_slice_compare_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (Result != MLNil) ML_RETURN(State->Result);
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_order2_run;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+ML_METHODX("<", MLSliceT, MLSliceT) {
+	ml_slice_t *A = (ml_slice_t *)Args[0];
+	ml_slice_t *B = (ml_slice_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
+	if (!A->Length) {
+		if (!B->Length) ML_RETURN(MLNil);
+		ML_RETURN(B);
+	}
+	if (!B->Length) ML_RETURN(MLNil);
+	ml_slice_compare_state_t *State = new(ml_slice_compare_state_t);
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
+	State->Result = (ml_value_t *)B;
+	State->Order = LessMethod;
+	if (A->Length >= B->Length) {
+		State->Default = MLNil;
+	} else {
+		State->Default = (ml_value_t *)B;
+	}
+	State->A = A->Nodes + A->Offset;
+	State->B = B->Nodes + B->Offset;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
+	return ml_call(State, LessMethod, 2, State->Args);
+}
+
+ML_METHODX("<=", MLSliceT, MLSliceT) {
+	ml_slice_t *A = (ml_slice_t *)Args[0];
+	ml_slice_t *B = (ml_slice_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
+	if (!A->Length) {
+		if (!B->Length) ML_RETURN(B);
+		ML_RETURN(B);
+	}
+	if (!B->Length) ML_RETURN(MLNil);
+	ml_slice_compare_state_t *State = new(ml_slice_compare_state_t);
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
+	State->Result = (ml_value_t *)B;
+	State->Order = LessMethod;
+	if (A->Length > B->Length) {
+		State->Default = MLNil;
+	} else {
+		State->Default = (ml_value_t *)B;
+	}
+	State->A = A->Nodes + A->Offset;
+	State->B = B->Nodes + B->Offset;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
+	return ml_call(State, LessMethod, 2, State->Args);
+}
+
+ML_METHODX(">", MLSliceT, MLSliceT) {
+	ml_slice_t *A = (ml_slice_t *)Args[0];
+	ml_slice_t *B = (ml_slice_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(MLNil);
+	}
+	if (!A->Length) {
+		if (!B->Length) ML_RETURN(MLNil);
+		ML_RETURN(MLNil);
+	}
+	if (!B->Length) ML_RETURN(B);
+	ml_slice_compare_state_t *State = new(ml_slice_compare_state_t);
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
+	State->Result = (ml_value_t *)B;
+	State->Order = GreaterMethod;
+	if (A->Length <= B->Length) {
+		State->Default = MLNil;
+	} else {
+		State->Default = (ml_value_t *)B;
+	}
+	State->A = A->Nodes + A->Offset;
+	State->B = B->Nodes + B->Offset;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
+	return ml_call(State, GreaterMethod, 2, State->Args);
+}
+
+ML_METHODX(">=", MLSliceT, MLSliceT) {
+	ml_slice_t *A = (ml_slice_t *)Args[0];
+	ml_slice_t *B = (ml_slice_t *)Args[1];
+	for (ml_state_t *State = Caller; State && State->Type == MLComparisonStateT; State = State->Caller) {
+		ml_comparison_state_t *Previous = (ml_comparison_state_t *)State;
+		if (Previous->A == (ml_value_t *)A && Previous->B == (ml_value_t *)B) ML_RETURN(B);
+	}
+	if (!A->Length) {
+		if (!B->Length) ML_RETURN(B);
+		ML_RETURN(MLNil);
+	}
+	if (!B->Length) ML_RETURN(B);
+	ml_slice_compare_state_t *State = new(ml_slice_compare_state_t);
+	State->Base.Base.Type = MLComparisonStateT;
+	State->Base.Base.Caller = Caller;
+	State->Base.Base.Context = Caller->Context;
+	State->Base.Base.run = (ml_state_fn)ml_slice_compare_order_run;
+	State->Base.A = (ml_value_t *)A;
+	State->Base.B = (ml_value_t *)B;
+	State->Result = (ml_value_t *)B;
+	State->Order = GreaterMethod;
+	if (A->Length < B->Length) {
+		State->Default = MLNil;
+	} else {
+		State->Default = (ml_value_t *)B;
+	}
+	State->A = A->Nodes + A->Offset;
+	State->B = B->Nodes + B->Offset;
+	State->Args[0] = State->A->Value;
+	State->Args[1] = State->B->Value;
+	return ml_call(State, GreaterMethod, 2, State->Args);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;
@@ -528,12 +761,6 @@ static void ml_slice_append_state_run(ml_slice_append_state_t *State, ml_value_t
 }
 
 ML_METHODX("append", MLStringBufferT, MLSliceT) {
-//<Buffer
-//<Slice
-// Appends a representation of :mini:`Slice` to :mini:`Buffer` of the form :mini:`"[" + repr(V/1) + ", " + repr(V/2) + ", " + ... + repr(V/n) + "]"`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
-//$- let B := string::buffer()
-//$- B:append([1, 2, 3, 4])
-//$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_slice_t *Slice = (ml_slice_t *)Args[1];
 	if (!Slice->Length) {
@@ -558,13 +785,6 @@ ML_METHODX("append", MLStringBufferT, MLSliceT) {
 }
 
 ML_METHODX("append", MLStringBufferT, MLSliceT, MLStringT) {
-//<Buffer
-//<Slice
-//<Sep
-// Appends a representation of :mini:`Slice` to :mini:`Buffer` of the form :mini:`repr(V/1) + Sep + repr(V/2) + Sep + ... + repr(V/n)`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
-//$- let B := string::buffer()
-//$- B:append([1, 2, 3, 4], " - ")
-//$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_slice_t *Slice = (ml_slice_t *)Args[1];
 	if (!Slice->Length) ML_RETURN(MLNil);
@@ -1318,6 +1538,121 @@ ML_METHOD("random", MLSliceT) {
 	Iter->Slice = Slice;
 	Iter->Index = Random + 1;
 	return (ml_value_t *)Iter;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Visitor, *Dest;
+	ml_slice_node_t *Node;
+	ml_value_t *Args[1];
+} ml_slice_visit_t;
+
+static void ml_slice_visit_run(ml_slice_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_slice_node_t *Node = State->Node + 1;
+	if (!Node->Value) ML_RETURN(MLNil);
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Visitor, 1, State->Args);
+}
+
+ML_METHODX("visit", MLVisitorT, MLSliceT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_slice_t *Slice = (ml_slice_t *)Args[1];
+	ml_slice_node_t *Node = Slice->Nodes + Slice->Offset;
+	if (!Node->Value) ML_RETURN(MLNil);
+	ml_slice_visit_t *State = new(ml_slice_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_visit_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static void ml_slice_copy_run(ml_slice_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_slice_put(State->Dest, Value);
+	ml_slice_node_t *Node = State->Node + 1;
+	if (!Node->Value) ML_RETURN(State->Dest);
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Visitor, 1, State->Args);
+}
+
+ML_METHODX("copy", MLVisitorT, MLSliceT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_slice_t *Slice = (ml_slice_t *)Args[1];
+	ml_value_t *Dest = ml_slice(Slice->Length);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
+	ml_slice_node_t *Node = Slice->Nodes + Slice->Offset;
+	if (!Node->Value) ML_RETURN(Dest);
+	ml_slice_visit_t *State = new(ml_slice_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_copy_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static void ml_slice_const_run(ml_slice_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_slice_put(State->Dest, Value);
+	ml_slice_node_t *Node = State->Node + 1;
+	if (!Node->Value) {
+#ifdef ML_GENERICS
+		if (State->Dest->Type->Type == MLTypeGenericT) {
+			ml_type_t *TArgs[2];
+			ml_find_generic_parent(State->Dest->Type, MLSliceMutableT, 2, TArgs);
+			TArgs[0] = MLSliceT;
+			State->Dest->Type = ml_generic_type(2, TArgs);
+		} else {
+#endif
+			State->Dest->Type = MLSliceT;
+#ifdef ML_GENERICS
+		}
+#endif
+		ML_RETURN(State->Dest);
+	}
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Visitor, 1, State->Args);
+}
+
+ML_METHODX("const", MLVisitorT, MLSliceMutableT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_slice_t *Slice = (ml_slice_t *)Args[1];
+	ml_value_t *Dest = ml_slice(Slice->Length);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
+	ml_slice_node_t *Node = Slice->Nodes + Slice->Offset;
+	if (!Node->Value) ML_RETURN(Dest);
+	ml_slice_visit_t *State = new(ml_slice_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_const_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLSliceMutableT, ml_value_t *Slice) {
+	return 0;
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLSliceT, ml_value_t *Slice) {
+	ML_SLICE_FOREACH(Slice, Iter) {
+		if (!ml_value_is_constant(Iter->Value)) return 0;
+	}
+	return 1;
 }
 
 void ml_slice_init() {
