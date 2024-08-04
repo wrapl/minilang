@@ -78,6 +78,8 @@ if CC_TYPE = "GCC" then
 elseif CC_TYPE = "CLANG" then
 	CFLAGS := old + [
 		:>"-Werror=bad-function-cast",
+		"-fcf-protection=none",
+		"-finline-max-stacksize=64",
 		"-Wno-initializer-overrides"
 	]
 end

@@ -447,13 +447,26 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 		ML_ERROR("CallError", "%d arguments required", N); \
 	}
 
+#ifdef NOT__clang__
+
+#define ML_CONTINUE(STATE, VALUE) { \
+	ml_state_t *__State = (ml_state_t *)(STATE); \
+	ml_value_t *__Value = (ml_value_t *)(VALUE); \
+	ml_state_schedule(__State, __Value); \
+	return; \
+}
+
+#else
+
 #define ML_CONTINUE(STATE, VALUE) { \
 	ml_state_t *__State = (ml_state_t *)(STATE); \
 	ml_value_t *__Value = (ml_value_t *)(VALUE); \
 	return __State->run(__State, __Value); \
 }
 
-#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
+#endif
+
+#define ML_RETURN(VALUE) ML_CONTINUE(Caller, VALUE)
 #define ML_ERROR(ARGS...) ML_RETURN(ml_error(ARGS))
 
 /// @}

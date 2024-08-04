@@ -449,7 +449,8 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 
 extern ml_value_t *AppendMethod;
 
-static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
+static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
+	DEBUG_STRUCT(frame) *Frame = (DEBUG_STRUCT(frame) *)State;
 	static const void *Labels[] = {
 		[MLI_AND] = &&DO_AND,
 		[MLI_ASSIGN] = &&DO_ASSIGN,

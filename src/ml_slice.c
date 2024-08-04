@@ -250,13 +250,16 @@ ml_value_t *ml_slice_delete(ml_value_t *Slice0, int Index) {
 	ml_slice_t *Slice = (ml_slice_t *)Slice0;
 	size_t Offset = Slice->Offset;
 	size_t Length = Slice->Length;
+	if (Index <= 0 || Index > Length) return MLNil;
 	ml_slice_node_t *Nodes = Slice->Nodes + Offset;
 	ml_value_t *Value = Nodes[Index - 1].Value;
 	if (Index > Length / 2) {
 		memmove(Nodes + (Index - 1), Nodes + Index, (Length - Index) * sizeof(ml_slice_node_t));
+		Nodes[Length - 1].Value = NULL;
 	} else {
 		Slice->Offset = Offset + 1;
 		memmove(Nodes + 1, Nodes, (Index - 1) * sizeof(ml_slice_node_t));
+		Nodes[0].Value = NULL;
 	}
 	Slice->Length = Length - 1;
 	return Value;
@@ -1130,6 +1133,70 @@ ML_METHOD("delete", MLSliceMutableT, MLIntegerT) {
 	if (Index <= 0) Index += Length + 1;
 	if (Index <= 0 || Index > Length) return MLNil;
 	return ml_slice_delete((ml_value_t *)Slice, Index);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Slice;
+	ml_value_t *Fn;
+	ml_value_t *Args[1];
+	int Index, Limit;
+} ml_slice_remove_state_t;
+
+static void ml_slice_pop_state_run(ml_slice_remove_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value != MLNil) {
+		ML_RETURN(ml_slice_delete(State->Slice, State->Index));
+	}
+	if (State->Index >= State->Limit) ML_RETURN(MLNil);
+	Value = ml_slice_get(State->Slice, ++State->Index);
+	if (!Value) ML_ERROR("StateError", "Invalid slice state");
+	State->Args[0] = Value;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+ML_METHODX("pop", MLSliceMutableT, MLFunctionT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) ML_RETURN(MLNil);
+	ml_slice_remove_state_t *State = new(ml_slice_remove_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_pop_state_run;
+	State->Slice = (ml_value_t *)Slice;
+	State->Fn = Args[1];
+	State->Args[0] = ml_slice_get((ml_value_t *)Slice, 1);
+	State->Index = 1;
+	State->Limit = Slice->Length;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_slice_pull_state_run(ml_slice_remove_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value != MLNil) {
+		ML_RETURN(ml_slice_delete(State->Slice, State->Index));
+	}
+	if (State->Index <= State->Limit) ML_RETURN(MLNil);
+	Value = ml_slice_get(State->Slice, --State->Index);
+	if (!Value) ML_ERROR("StateError", "Invalid slice state");
+	State->Args[0] = Value;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+ML_METHODX("pull", MLSliceMutableT, MLFunctionT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) ML_RETURN(MLNil);
+	ml_slice_remove_state_t *State = new(ml_slice_remove_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_pull_state_run;
+	State->Slice = (ml_value_t *)Slice;
+	State->Fn = Args[1];
+	State->Args[0] = ml_slice_get((ml_value_t *)Slice, Slice->Length);
+	State->Index = Slice->Length;
+	State->Limit = 1;
+	return ml_call(State, State->Fn, 1, State->Args);
 }
 
 void ml_slice_init() {
