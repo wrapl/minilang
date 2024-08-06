@@ -86,6 +86,24 @@ ML_METHOD(MLVariableT, MLAnyT, MLTypeT) {
 	return ml_variable(Args[0], (ml_type_t *)Args[1]);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLVariableT, ml_variable_t *Variable) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("var"));
+	ml_list_put(Result, Variable->Value);
+	if (Variable->VarType) ml_list_put(Result, (ml_value_t *)Variable->VarType);
+	return Result;
+}
+
+ML_DESERIALIZER("var") {
+	ML_CHECK_ARG_COUNT(1);
+	ml_type_t *VarType = NULL;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLTypeT);
+		VarType = (ml_type_t *)Args[1];
+	}
+	return ml_variable(Args[0], VarType);
+}
+
 #endif
 
 #ifdef ML_JIT
@@ -2152,7 +2170,7 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 #define VLQ64_NEXT() ({ \
 	vlq_result_t Result = vlq64_decode(Bytes); \
 	Length -= Result.Count; \
-	if (Length < 0) return ml_error("CBORError", "Invalid closure info"); \
+	if (Length < 0) ML_ERROR("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	Result.Value; \
 })
@@ -2160,8 +2178,8 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 #define VLQ64_NEXT_STRING() ({ \
 	vlq_result_t Result = vlq64_decode(Bytes); \
 	Length -= Result.Count; \
-	if (Result.Value < 0) return ml_error("CBORError", "Invalid closure info"); \
-	if (Length < Result.Value) return ml_error("CBORError", "Invalid closure info"); \
+	if (Result.Value < 0) ML_ERROR("CBORError", "Invalid closure info"); \
+	if (Length < Result.Value) ML_ERROR("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	char *String = snew(Length + 1); \
 	memcpy(String, Bytes, Result.Value); \
@@ -2172,7 +2190,7 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 })
 
 #define NEXT_VALUE(DEST) { \
-	ML_CHECK_ARG_COUNT(Index + 1); \
+	ML_CHECKX_ARG_COUNT(Index + 1); \
 	ml_value_t *Value = Args[Index++]; \
 	if (ml_typeof(Value) == MLUninitializedT) { \
 		ml_uninitialized_use(Value, &DEST); \
@@ -2180,14 +2198,33 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 	DEST = Value; \
 }
 
-ML_FUNCTION(DecodeClosureInfo) {
+#define CHECK_UNKNOWN -1
+#define CHECK_INVALID -2
+
+#define VLQ64_NEXT_INST() ({ \
+	size_t Index = VLQ64_NEXT(); \
+	if (Index >= NumInsts) return ml_error("CBORError", "Invalid bytecode"); \
+	switch (Checks[Index].State) { \
+	case CHECK_UNKNOWN: Checks[Index].State = CHECK_TARGET; break; \
+	case CHECK_VALID: case CHECK_TARGET: break; \
+	case CHECK_INVALID: return ml_error("CBORError", "Invalid bytecode"); \
+	} \
+	Code + Index; \
+})
+
+#define CHECK_INST_SPACE(N) { \
+	if (InstSpace < N) return ml_error("CBORError", "Invalid bytecode"); \
+}
+
+ML_FUNCTIONZ(DecodeClosureInfo) {
 //!internal
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLAddressT);
+	ML_CHECKX_ARG_COUNT(1);
+	Args[0] = ml_deref(Args[0]);
+	ML_CHECKX_ARG_TYPE(0, MLAddressT);
 	const unsigned char *Bytes = (const unsigned char *)ml_address_value(Args[0]);
 	int Length = ml_address_length(Args[0]);
 	int Version = VLQ64_NEXT();
-	if (Version != ML_BYTECODE_VERSION) return ml_error("CBORError", "Bytecode version mismatch");
+	if (Version != ML_BYTECODE_VERSION) ML_ERROR("CBORError", "Bytecode version mismatch");
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Type = MLClosureInfoT;
 	Info->Name = VLQ64_NEXT_STRING();
@@ -2202,6 +2239,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 		stringmap_insert(Info->Params, Param, (void *)(uintptr_t)(I + 1));
 	}
 	int NumDecls = VLQ64_NEXT();
+	if (NumDecls > Length / 4) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_decl_t *Decls = anew(ml_decl_t, NumDecls);
 	for (int I = 0; I < NumDecls; ++I) {
 		Decls[I].Ident = VLQ64_NEXT_STRING();
@@ -2215,13 +2253,19 @@ ML_FUNCTION(DecodeClosureInfo) {
 	int DeclIndex = VLQ64_NEXT();
 	Info->Decls = DeclIndex >= 0 ? &Decls[DeclIndex] : NULL;
 	int NumInsts = VLQ64_NEXT();
+	if (NumInsts > Length + 1) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
 	ml_inst_t *Halt = Info->Halt = Code + NumInsts;
 	ml_inst_t *Inst = Code;
-	Info->Return = Inst + VLQ64_NEXT();
+	Info->Return = Code + VLQ64_NEXT();
 	int Line = VLQ64_NEXT() + Info->StartLine;
 	int EndLine = Info->StartLine;
 	int Index = 1;
+	//int *Checks = asnew(int, NumInsts);
+	//for (int I = 0; I < NumInsts; ++I) Checks[I] = CHECK_UNKNOWN;
+	//int *Check = Checks;
+	//int InstSpace = NumInsts;
+	//int Top = 0;
 	while (Inst < Halt) {
 		ml_opcode_t Opcode = (ml_opcode_t)VLQ64_NEXT();
 		if (Opcode == MLI_LINK) {
@@ -2229,6 +2273,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 			if (Line > EndLine) EndLine = Line;
 			continue;
 		}
+
 		Inst->Opcode = Opcode;
 		Inst->Line = Line;
 		switch (MLInstTypes[Opcode]) {
@@ -2307,7 +2352,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 		}
 	}
 	Info->EndLine = EndLine;
-	return (ml_value_t *)Info;
+	ML_RETURN(Info);
 }
 
 ML_FUNCTION(DecodeClosure) {

@@ -434,6 +434,10 @@ int main(int Argc, const char *Argv[]) {
 				}
 				break;
 #endif
+			case 'D': {
+				ml_log_level_set(ML_LOG_LEVEL_DEBUG);
+				break;
+			}
 #ifdef GC_DEBUG
 			case 'B':
 				BreakOnExit = 1;

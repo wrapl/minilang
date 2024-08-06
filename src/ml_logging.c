@@ -333,6 +333,31 @@ ML_FUNCTION(MLLoggerLevel) {
 
 ml_logger_t MLLoggerDefault[1];
 
+typedef struct ml_log_level_watch_t ml_log_level_watch_t;
+
+struct ml_log_level_watch_t {
+	ml_log_level_watch_t *Next;
+	ml_log_level_fn Fn;
+	void *Data;
+};
+
+static ml_log_level_watch_t *MLLogLevelWatches = NULL;
+
+void ml_log_level_watch(ml_log_level_fn Fn, void *Data) {
+	ml_log_level_watch_t *Watch = new(ml_log_level_watch_t);
+	Watch->Fn = Fn;
+	Watch->Data = Data;
+	Watch->Next = MLLogLevelWatches;
+	MLLogLevelWatches = Watch;
+}
+
+void ml_log_level_set(ml_log_level_t Level) {
+	MLLogLevel = Level;
+	for (ml_log_level_watch_t *Watch = MLLogLevelWatches; Watch; Watch = Watch->Next) {
+		Watch->Fn(Level, Watch->Data);
+	}
+}
+
 void ml_logging_init(stringmap_t *Globals) {
 #include "ml_logging_init.c"
 	ml_logger_init(MLLoggerDefault, "main");

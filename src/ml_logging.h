@@ -67,6 +67,11 @@ void ml_logger_init(ml_logger_t *Logger, const char *Name);
 
 void ml_logging_init(stringmap_t *Globals);
 
+typedef void (*ml_log_level_fn)(ml_log_level_t Level, void *Data);
+
+void ml_log_level_watch(ml_log_level_fn Fn, void *Data);
+void ml_log_level_set(ml_log_level_t Level);
+
 #ifdef __cplusplus
 }
 #endif
