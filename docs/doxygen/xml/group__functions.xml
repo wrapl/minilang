@@ -643,19 +643,19 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="450" column="9" bodyfile="src/ml_types.h" bodystart="450" bodyend="454"/>
+        <location file="src/ml_types.h" line="461" column="9" bodyfile="src/ml_types.h" bodystart="461" bodyend="465"/>
       </memberdef>
       <memberdef kind="define" id="group__functions_1ga072501492fac8511b802686bfe2ab31b" prot="public" static="no">
         <name>ML_RETURN</name>
         <param><defname>VALUE</defname></param>
-        <initializer>return Caller-&gt;run(Caller, (<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *)(VALUE))</initializer>
+        <initializer>ML_CONTINUE(Caller, VALUE)</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="456" column="9" bodyfile="src/ml_types.h" bodystart="456" bodyend="-1"/>
+        <location file="src/ml_types.h" line="469" column="9" bodyfile="src/ml_types.h" bodystart="469" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__functions_1gabf98d973af18ea2e26ac3f4c9ea309d7" prot="public" static="no">
         <name>ML_ERROR</name>
@@ -667,7 +667,7 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="457" column="9" bodyfile="src/ml_types.h" bodystart="457" bodyend="-1"/>
+        <location file="src/ml_types.h" line="470" column="9" bodyfile="src/ml_types.h" bodystart="470" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

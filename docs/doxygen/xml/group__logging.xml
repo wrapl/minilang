@@ -113,6 +113,19 @@
         </inbodydescription>
         <location file="src/ml_logging.h" line="36" column="23" declfile="src/ml_logging.h" declline="36" declcolumn="23"/>
       </memberdef>
+      <memberdef kind="typedef" id="group__logging_1ga6f197920c6dd5296a58eca3b241c98e1" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* ml_log_level_fn) (ml_log_level_t Level, void *Data)</definition>
+        <argsstring>)(ml_log_level_t Level, void *Data)</argsstring>
+        <name>ml_log_level_fn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="70" column="9" bodyfile="src/ml_logging.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
     </sectiondef>
     <sectiondef kind="var">
       <memberdef kind="variable" id="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" prot="public" static="no" extern="yes" mutable="no">
@@ -197,6 +210,44 @@
         <inbodydescription>
         </inbodydescription>
         <location file="src/ml_logging.h" line="68" column="6" declfile="src/ml_logging.h" declline="68" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__logging_1gae64f8d93cf616e6fa14dd1e9ea535fb6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_log_level_watch</definition>
+        <argsstring>(ml_log_level_fn Fn, void *Data)</argsstring>
+        <name>ml_log_level_watch</name>
+        <param>
+          <type>ml_log_level_fn</type>
+          <declname>Fn</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="72" column="6" declfile="src/ml_logging.h" declline="72" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__logging_1ga175c5bbea91a77974d728688699a5a0c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_log_level_set</definition>
+        <argsstring>(ml_log_level_t Level)</argsstring>
+        <name>ml_log_level_set</name>
+        <param>
+          <type>ml_log_level_t</type>
+          <declname>Level</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="73" column="6" declfile="src/ml_logging.h" declline="73" declcolumn="6"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">

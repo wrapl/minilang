@@ -116,6 +116,7 @@
       <member refid="group__logging_1ga1b1a74cc75665cf0796bc796cb496078" kind="typedef"><name>ml_logger_t</name></member>
       <member refid="group__logging_1ga3801ca2abfc03b2781896138f8fe6428" kind="typedef"><name>ml_logger_fn</name></member>
       <member refid="group__logging_1ga0d57f9581b804027a60b4c23f950e607" kind="typedef"><name>MLLogLevel</name></member>
+      <member refid="group__logging_1ga6f197920c6dd5296a58eca3b241c98e1" kind="typedef"><name>ml_log_level_fn</name></member>
     </sectiondef>
     <sectiondef kind="var">
       <member refid="group__logging_1gae141b3a092df79ec95c287e3e7fea98b" kind="variable"><name>ml_log</name></member>
@@ -125,6 +126,8 @@
       <member refid="group__logging_1ga9084628ba013ca3cef24798656fa35e0" kind="function"><name>ml_logger</name></member>
       <member refid="group__logging_1ga8060269338d356d34e36691c2b7077f4" kind="function"><name>ml_logger_init</name></member>
       <member refid="group__logging_1ga59673295603f23e896e0c1ec708b33f5" kind="function"><name>ml_logging_init</name></member>
+      <member refid="group__logging_1gae64f8d93cf616e6fa14dd1e9ea535fb6" kind="function"><name>ml_log_level_watch</name></member>
+      <member refid="group__logging_1ga175c5bbea91a77974d728688699a5a0c" kind="function"><name>ml_log_level_set</name></member>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -197,12 +200,17 @@
 <codeline lineno="67"><highlight class="normal"></highlight></codeline>
 <codeline lineno="68"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_logging_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="69"><highlight class="normal"></highlight></codeline>
-<codeline lineno="70"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="71"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="72"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="73"><highlight class="normal"></highlight></codeline>
-<codeline lineno="75"><highlight class="normal"></highlight></codeline>
-<codeline lineno="76"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_log_level_fn)(ml_log_level_t<sp/>Level,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_log_level_watch(ml_log_level_fn<sp/>Fn,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_log_level_set(ml_log_level_t<sp/>Level);</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_logging.h"/>
   </compounddef>
