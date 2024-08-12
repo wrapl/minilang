@@ -242,7 +242,7 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 	}
 	ml_parser_source(Parser, (ml_source_t){FileName, LineNo});
 	ml_parser_input(Parser, Line);
-	mlc_expr_t *Expr = ml_accept_file(Parser);
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
 	if (!Expr) ML_RETURN(ml_parser_value(Parser));
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
 	ml_importer_t *Importer = new(ml_importer_t);

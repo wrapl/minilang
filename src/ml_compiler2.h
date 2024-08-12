@@ -82,7 +82,7 @@ typedef struct mlc_define_t mlc_define_t;
 
 struct mlc_expr_t {
 	ml_type_t *Type;
-	void (*compile)(mlc_function_t *, mlc_expr_t *, int);
+	void (*compile)(mlc_function_t *, const mlc_expr_t *, int);
 	mlc_expr_t *Next;
 	const char *Source;
 	int StartLine;
@@ -111,7 +111,7 @@ struct mlc_function_t {
 struct mlc_define_t {
 	mlc_define_t *Next;
 	const char *Ident;
-	mlc_expr_t *Expr;
+	const mlc_expr_t *Expr;
 	ml_value_t *List;
 	long Hash;
 };
@@ -286,7 +286,7 @@ typedef struct ml_macro_t ml_macro_t;
 struct ml_macro_t {
 	ml_type_t *Type;
 	ml_value_t *Function;
-	mlc_expr_t *(*function)(mlc_expr_t *Expr, mlc_expr_t *Child, void *Data);
+	const mlc_expr_t *(*function)(const mlc_expr_t *Expr, const mlc_expr_t *Child, void *Data);
 	void *Data;
 };
 
@@ -304,7 +304,7 @@ struct mlc_frame_t {
 	void *Data[];
 };
 
-void mlc_expr_error(mlc_function_t *Function, mlc_expr_t *Expr, ml_value_t *Error);
+void mlc_expr_error(mlc_function_t *Function, const mlc_expr_t *Expr, ml_value_t *Error);
 
 #define MLC_EXPR_ERROR(EXPR, ERROR) return mlc_expr_error(Function, (mlc_expr_t *)(EXPR), ERROR)
 
@@ -325,14 +325,14 @@ ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int Line, ml_opcode_t Opcode,
 void mlc_fix_links(ml_inst_t *Start, ml_inst_t *Target);
 
 void mlc_inc_top(mlc_function_t *Function);
-void mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
+void mlc_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
 
-ml_value_t *ml_macrox(mlc_expr_t *(*function)(mlc_expr_t *, mlc_expr_t *, void *), void *Data);
+ml_value_t *ml_macrox(const mlc_expr_t *(*function)(const mlc_expr_t *, const mlc_expr_t *, void *), void *Data);
 
-extern void ml_unknown_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
-extern void ml_register_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
-extern void ml_blank_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
-extern void ml_nil_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
+extern void ml_unknown_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
+extern void ml_register_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
+extern void ml_blank_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
+extern void ml_nil_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
 extern void ml_value_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Expr, int Flags);
 extern void ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t *Expr, int Flags);
 extern void ml_or_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
@@ -364,12 +364,12 @@ extern void ml_def_in_expr_compile(mlc_function_t *Function, mlc_local_expr_t *E
 extern void ml_def_unpack_expr_compile(mlc_function_t *Function, mlc_local_expr_t *Expr, int Flags);
 extern void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, int Flags);
 extern void ml_assign_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
-extern void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
-extern void ml_recur_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
-extern void ml_it_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags);
+extern void ml_old_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
+extern void ml_recur_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
+extern void ml_it_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
 extern void ml_delegate_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
 extern void ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
-extern void mlc_inline_call_expr_compile(mlc_function_t *Function, ml_value_t *Value, mlc_expr_t *Expr, mlc_expr_t *Child, int Flags);
+extern void mlc_inline_call_expr_compile(mlc_function_t *Function, ml_value_t *Value, const mlc_expr_t *Expr, mlc_expr_t *Child, int Flags);
 extern void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
 extern void ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, int Flags);
 extern void ml_guard_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);

@@ -83,7 +83,7 @@ static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	return ml_call(State, Value, 0, NULL);
 }
 
-void ml_module_compile2(ml_state_t *Caller, const char *Path, mlc_expr_t *Expr, ml_compiler_t *Compiler, ml_value_t **Slot, int Flags) {
+void ml_module_compile2(ml_state_t *Caller, const char *Path, const mlc_expr_t *Expr, ml_compiler_t *Compiler, ml_value_t **Slot, int Flags) {
 	ml_mini_module_t *Module;
 	if ((Flags & MLMF_USE_GLOBALS) && Slot[0] && ml_typeof(Slot[0]) == MLMiniModuleT) {
 		Module = (ml_mini_module_t *)Slot[0];
@@ -105,7 +105,7 @@ void ml_module_compile2(ml_state_t *Caller, const char *Path, mlc_expr_t *Expr, 
 }
 
 
-void ml_module_compile(ml_state_t *Caller, const char *Path, mlc_expr_t *Expr, ml_compiler_t *Compiler, ml_value_t **Slot) {
+void ml_module_compile(ml_state_t *Caller, const char *Path, const mlc_expr_t *Expr, ml_compiler_t *Compiler, ml_value_t **Slot) {
 	return ml_module_compile2(Caller, Path, Expr, Compiler, Slot, 0);
 }
 
