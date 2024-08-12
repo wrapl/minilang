@@ -691,6 +691,14 @@ ml_arith_method_integer_integer_bitwise(/\\, and, and);
 ml_arith_method_integer_integer_bitwise(\\/, or, or);
 ml_arith_method_integer_integer_bitwise(><, xor, xor);
 
+ML_METHOD("popcount", MLIntegerT) {
+//<A
+//>integer
+// Returns the number of bits set in :mini:`A`.
+	int64_t A = ml_integer_value_fast(Args[0]);
+	return ml_integer(__builtin_popcount(A));
+}
+
 ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 //<A
 //<B
