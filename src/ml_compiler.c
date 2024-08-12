@@ -4631,7 +4631,6 @@ static void ml_accept_eoi(ml_parser_t *Parser) {
 
 static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl);
 static mlc_expr_t *ml_parse_term(ml_parser_t *Parser, int MethDecl);
-static mlc_expr_t *ml_accept_block(ml_parser_t *Parser);
 
 static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_token_t EndToken) {
 	ML_EXPR(FunExpr, fun, fun);
@@ -6304,7 +6303,7 @@ static mlc_expr_t *ml_accept_block(ml_parser_t *Parser) {
 
 const mlc_expr_t *ml_accept_file(ml_parser_t *Parser) {
 	if (setjmp(Parser->OnError)) return NULL;
-	mlc_expr_t *Expr = ml_accept_block(Parser);
+	const mlc_expr_t *Expr = ml_accept_block(Parser);
 	ml_accept_eoi(Parser);
 	return Expr;
 }
