@@ -1223,20 +1223,21 @@ ML_FUNCTION(RandomPermutation) {
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value_fast(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
-	ml_value_t *Permutation = ml_list();
-	ml_list_put(Permutation, ml_integer(1));
+	int *Values = asnew(int, Limit);
+	Values[0] = 1;
 	for (int I = 2; I <= Limit; ++I) {
 		int Divisor = RAND_MAX / I, J;
 		do J = random() / Divisor; while (J >= I);
-		++J;
-		if (J == I) {
-			ml_list_put(Permutation, ml_integer(I));
+		if (J + 1 == I) {
+			Values[I - 1] = I;
 		} else {
-			ml_value_t *Old = ml_list_get(Permutation, J);
-			ml_list_set(Permutation, J, ml_integer(I));
-			ml_list_put(Permutation, Old);
+			int Old = Values[J];
+			Values[J] = I;
+			Values[I - 1] = Old;
 		}
 	}
+	ml_value_t *Permutation = ml_list();
+	for (int I = 0; I < Limit; ++I) ml_list_put(Permutation, ml_integer(Values[I]));
 	return Permutation;
 }
 
@@ -1248,18 +1249,23 @@ ML_FUNCTION(RandomCycle) {
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value_fast(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
-	ml_value_t *Permutation = ml_list();
-	ml_list_put(Permutation, ml_integer(1));
-	if (Limit == 1) return Permutation;
-	ml_list_push(Permutation, ml_integer(2));
+	if (Limit == 1) {
+		ml_value_t *Permutation = ml_list();
+		ml_list_put(Permutation, ml_integer(1));
+		return Permutation;
+	}
+	int *Values = asnew(int, Limit);
+	Values[0] = 2;
+	Values[1] = 1;
 	for (int I = 2; I < Limit; ++I) {
 		int Divisor = RAND_MAX / I, J;
 		do J = random() / Divisor; while (J >= I);
-		++J;
-		ml_value_t *Old = ml_list_get(Permutation, J);
-		ml_list_set(Permutation, J, ml_integer(I + 1));
-		ml_list_put(Permutation, Old);
+		int Old = Values[J];
+		Values[J] = I + 1;
+		Values[I] = Old;
 	}
+	ml_value_t *Permutation = ml_list();
+	for (int I = 0; I < Limit; ++I) ml_list_put(Permutation, ml_integer(Values[I]));
 	return Permutation;
 }
 
