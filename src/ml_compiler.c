@@ -3224,7 +3224,7 @@ void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int
 					} else if (Decl->Flags & MLC_DECL_FORWARD) {
 						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCALI, 2);
 						LocalInst[1].Count = Index - Function->Top;
-						LocalInst[2].Chars = Decl->Ident;
+						LocalInst[2].Decls = Decl;
 					} else {
 						if (Flags & MLCF_LOCAL) {
 							MLC_RETURN(ml_integer(Index));

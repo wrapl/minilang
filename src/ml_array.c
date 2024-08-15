@@ -7351,8 +7351,10 @@ ML_ARRAY_PAIRWISE("**", *)
 ML_ARRAY_PAIRWISE("//", /)
 
 ML_TYPE(MLPermutationT, (MLVectorUInt32T), "integer::permutation");
+// A permutation of numbers :mini:`1 .. N` (each number occurs exactly once).
 
 ML_FUNCTION(RandomPermutation) {
+//!number
 //@integer::random_permutation
 //<Max:number
 //>permutation
@@ -7379,6 +7381,7 @@ ML_FUNCTION(RandomPermutation) {
 }
 
 ML_FUNCTION(RandomCycle) {
+//!number
 //@integer::random_cycle
 //<Max:number
 //>permutation

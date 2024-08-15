@@ -738,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1601332596>>
+      A:minidx(2) :> <<2 1> <1 1853187685>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1344,14 +1344,6 @@ array
       array::cat(2, A, B) :> <<1 2 3 7 8 9> <4 5 6 10 11 12>>
 
 
-:mini:`fun integer::random_cycle(Max: integer): permutation`
-   Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
-
-
-:mini:`fun integer::random_permutation(Max: integer): permutation`
-   Returns a random permutation of :mini:`1,  ...,  Max`.
-
-
 :mini:`meth (A: integer) != (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
@@ -1626,7 +1618,7 @@ array
 
 
 :mini:`type permutation < vector::uint32`
-   *TBD*
+   A permutation of numbers :mini:`1 .. N` (each number occurs exactly once).
 
 
 :mini:`meth (A: real) != (B: array): array`
@@ -1769,9 +1761,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:C02EFF43457600003A696E7465676572>
+      :> <16:A038E651AC740000204F6E4572726F72>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<11968 17407> <30277 0>> <<26938 29806> <26469 29285>>>
+      :> <<<14496 20966> <29868 0>> <<20256 17774> <29298 29295>>>
 
 
 :mini:`type vector < array`

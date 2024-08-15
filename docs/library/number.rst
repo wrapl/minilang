@@ -284,7 +284,15 @@ number
    Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
 
 
+:mini:`fun integer::random_cycle(Max: integer): permutation`
+   Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
+
+
 :mini:`fun integer::random_permutation(Max: integer): list`
+   Returns a random permutation of :mini:`1,  ...,  Max`.
+
+
+:mini:`fun integer::random_permutation(Max: integer): permutation`
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
@@ -547,12 +555,12 @@ number
    *TBD*
 
 
-:mini:`def real::NaN: real`
-   Not a number.
-
-
 :mini:`def real::Inf: real`
    Positive infinity.
+
+
+:mini:`def real::NaN: real`
+   Not a number.
 
 
 :mini:`meth real(String: string): real | error`

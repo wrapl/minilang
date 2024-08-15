@@ -951,7 +951,7 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 	DO_LOCALI: {
 		ml_value_t **Slot = &Top[Inst[1].Count];
 		Result = Slot[0];
-		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Chars, (ml_source_t){Frame->Source, Inst->Line});
+		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Decls->Ident, (ml_source_t){Frame->Source, Inst->Line});
 		ADVANCE(Inst + 3);
 	}
 	DO_TUPLE_NEW: {
