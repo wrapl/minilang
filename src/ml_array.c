@@ -306,6 +306,28 @@ ml_array_t *ml_array_alloc(ml_array_format_t Format, int Degree) {
 	return Array;
 }
 
+ml_array_t *ml_array_const_alloc(ml_array_format_t Format, int Degree) {
+	ml_array_t *Array = xnew(ml_array_t, Degree, ml_array_dimension_t);
+	if (Degree == 1) {
+		Array->Base.Type = MLVectorMutableTypes[Format];
+	} else if (Degree == 2) {
+		Array->Base.Type = MLMatrixMutableTypes[Format];
+	} else {
+		Array->Base.Type = MLArrayMutableTypes[Format];
+	}
+	Array->Degree = Degree;
+	Array->Format = Format;
+	return Array;
+}
+
+static ml_array_t *ml_array_sub_alloc(ml_array_t *Source, int Degree) {
+	if (ml_is_subtype(Source->Base.Type, MLArrayMutableT)) {
+		return ml_array_alloc(Source->Format, Degree);
+	} else {
+		return ml_array_const_alloc(Source->Format, Degree);
+	}
+}
+
 static void *array_alloc(ml_array_format_t Format, size_t Size) {
 	if (Format == ML_ARRAY_FORMAT_ANY) return anew(ml_value_t *, Size / sizeof(ml_value_t *));
 	return snew(Size);
@@ -583,13 +605,11 @@ ML_FUNCTION(MLArrayWrap) {
 	int Degree = ml_list_length(Args[2]);
 	if (!Degree) return ml_error("ValueError", "Dimensions must not be empty");
 	if (Degree != ml_list_length(Args[3])) return ml_error("ValueError", "Dimensions and strides must have same length");
-	ml_array_t *Array = ml_array_alloc(Format, Degree);
-	if (!ml_is(Args[1], MLBufferT)) {
-		switch (Degree) {
-		case 1: Array->Base.Type = MLVectorTypes[Format]; break;
-		case 2: Array->Base.Type = MLMatrixTypes[Format]; break;
-		default: Array->Base.Type = MLArrayTypes[Format]; break;
-		}
+	ml_array_t *Array;
+	if (ml_is(Args[1], MLBufferT)) {
+		Array = ml_array_alloc(Format, Degree);
+	} else {
+		Array = ml_array_const_alloc(Format, Degree);
 	}
 	size_t Total = 0;
 	for (int I = 0; I < Degree; ++I) {
@@ -650,7 +670,7 @@ ML_METHOD("count", MLArrayT) {
 
 static ml_array_t *ml_array_transpose(ml_array_t *Source) {
 	int Degree = Source->Degree;
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree);
 	for (int I = 0; I < Degree; ++I) {
 		Target->Dimensions[I] = Source->Dimensions[Degree - I - 1];
 	}
@@ -680,7 +700,7 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 	int Degree = Source->Degree;
 	if (Degree > 64) return ml_error("ArrayError", "Not implemented for degree > 64 yet");
 	if (ml_list_length(Args[1]) != Degree) return ml_error("ArrayError", "List length must match degree");
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree);
 	ml_array_dimension_t *TargetDimension = Target->Dimensions;
 	size_t Bits = (1 << Degree) - 1;
 	ML_LIST_FOREACH(Args[1], Iter) {
@@ -712,7 +732,7 @@ ML_METHODV("permute", MLArrayT, MLIntegerT) {
 	int Degree = Source->Degree;
 	if (Degree > 64) return ml_error("ArrayError", "Not implemented for degree > 64 yet");
 	if (Count - 1 != Degree) return ml_error("ArrayError", "List length must match degree");
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree);
 	ml_array_dimension_t *TargetDimension = Target->Dimensions;
 	size_t Bits = (1 << Degree) - 1;
 	for (int I = 1; I < Count; ++I) {
@@ -753,7 +773,7 @@ ML_METHOD("swap", MLArrayT, MLIntegerT, MLIntegerT) {
 	if (IndexB <= 0) IndexB += (Degree + 1);
 	if (IndexA < 1 || IndexA > Degree) return ml_error("ArrayError", "Invalid index");
 	if (IndexB < 1 || IndexB > Degree) return ml_error("ArrayError", "Invalid index");
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree);
 	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = Source->Dimensions[I];
 	Target->Dimensions[IndexA - 1] = Source->Dimensions[IndexB - 1];
 	Target->Dimensions[IndexB - 1] = Source->Dimensions[IndexA - 1];
@@ -771,7 +791,7 @@ ML_METHOD("reverse", MLArrayT, MLIntegerT) {
 	int Index = ml_integer_value(Args[1]);
 	if (Index <= 0) Index += (Degree + 1);
 	if (Index < 1 || Index > Degree) return ml_error("ArrayError", "Invalid index");
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree);
 	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = Source->Dimensions[I];
 	ml_array_dimension_t *Dimension = &Target->Dimensions[Index - 1];
 	Target->Base = Source->Base;
@@ -802,7 +822,7 @@ ML_METHOD("expand", MLArrayT, MLListT) {
 		if (J < 1 || J >= Degree + 1) return ml_error("ArrayError", "Invalid index");
 		Expands[J - 1] += 1;
 	}
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree);
 	ml_array_dimension_t *Dim = Target->Dimensions;
 	for (int I = 0; I < Degree; ++I) {
 		for (int J = 0; J < Expands[I]; ++J) {
@@ -842,7 +862,7 @@ ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
 		Total *= Size;
 	}
 	if (Source->Dimensions[Expand].Size != Total) return ml_error("ArrayError", "Invalid size");
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree + ml_list_length(Args[2]) - 1);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree + ml_list_length(Args[2]) - 1);
 	ml_array_dimension_t *SourceDimension = Source->Dimensions + Degree;
 	ml_array_dimension_t *TargetDimension = Target->Dimensions + Target->Degree;
 	for (int I = Expand + 1; I < Degree; ++I) *--TargetDimension = *--SourceDimension;
@@ -874,7 +894,7 @@ ML_METHOD("join", MLArrayT, MLIntegerT, MLIntegerT) {
 	--Start;
 	int End = Start + Join - 1;
 	if (End >= Degree) return ml_error("IntervalError", "Invalid run");
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree + 1 - Join);
+	ml_array_t *Target = ml_array_sub_alloc(Source, Degree + 1 - Join);
 	ml_array_dimension_t *SourceDimension = Source->Dimensions + Degree;
 	ml_array_dimension_t *TargetDimension = Target->Dimensions + Target->Degree;
 	for (int I = End + 1; I < Degree; ++I) *--TargetDimension = *--SourceDimension;
@@ -1300,7 +1320,29 @@ static int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimen
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
+	int Degree = Array->Degree;
+	if (Indexer->Source + Degree > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
+	for (int I = 0; I < Degree; ++I) {
+		if (Array->Dimensions[I].Size != Indexer->Source[I].Size) {
+			return ml_error("ShapeError", "Array sizes do not match");
+		}
+	}
+	int Count = Indexer->Target->Size = ml_array_count_nonzero(Array);
+	if (!Count) return (ml_value_t *)MLArrayNil;
+	int *Indices = (int *)snew(Count * sizeof(int));
+	Indexer->Target->Indices = Indices;
+	ml_array_offsets_nonzero(Array, Indices, Indexer->Source);
+	int First = Indices[0];
+	for (int I = 0; I < Count; ++I) Indices[I] -= First;
+	Indexer->Target->Stride = 1;
+	Indexer->Address += First;
+	++Indexer->Target;
+	Indexer->Source += Degree;
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayUInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
 	int Degree = Array->Degree;
 	if (Indexer->Source + Degree > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
 	for (int I = 0; I < Degree; ++I) {
@@ -1392,7 +1434,33 @@ static int *ml_array_to_indices(int *Indices, int Degree, ml_array_dimension_t *
 	return Indices;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt32T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayUInt32T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
+	int Degree = Array->Degree - 1;
+	int Total = Degree + Array->Dimensions[Degree].Size;
+	if (Indexer->Source + Total > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
+	int Count = 1;
+	for (int I = 0; I < Degree; ++I) {
+		if (Array->Dimensions[I].Size != Indexer->Source[I].Size) {
+			return ml_error("ShapeError", "Array sizes do not match");
+		}
+		Count *= Array->Dimensions[I].Size;
+	}
+	Indexer->Target->Size = Count;
+	int *Indices = (int *)snew(Count * sizeof(int));
+	Indexer->Target->Indices = Indices;
+	if (!ml_array_to_indices(Indices, Degree, Indexer->Source, 0, Array->Dimensions, Array->Base.Value)) {
+		return ml_error("IndexError", "Index out of bounds");
+	}
+	int First = Indices[0];
+	for (int I = 0; I < Count; ++I) Indices[I] -= First;
+	Indexer->Target->Stride = 1;
+	Indexer->Address += First;
+	++Indexer->Target;
+	Indexer->Source += Total;
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt32T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
 	int Degree = Array->Degree - 1;
 	int Total = Degree + Array->Dimensions[Degree].Size;
 	if (Indexer->Source + Total > Indexer->Limit) return ml_error("IntervalError", "Too many indices");
@@ -1457,7 +1525,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 		Ref->Array->Base.Value = Indexer->Address;
 		return (ml_value_t *)Ref;
 	} else {
-		ml_array_t *Val = ml_array_alloc(Source->Format, Degree);
+		ml_array_t *Val = ml_array_const_alloc(Source->Format, Degree);
 		for (int I = 0; I < Degree; ++I) Val->Dimensions[I] = TargetDimensions[I];
 		Val->Base.Value = Indexer->Address;
 		return (ml_value_t *)Val;
@@ -3176,7 +3244,7 @@ ML_METHOD("reshape", MLArrayT, MLListT) {
 	for (int I = 0; I < SourceDegree; ++I) SourceCount *= Source->Dimensions[I].Size;
 	if (TargetCount != SourceCount) return ml_error("ArrayError", "Incompatible shapes");
 
-	ml_array_t *Target = ml_array_alloc(Source->Format, TargetDegree);
+	ml_array_t *Target = ml_array_sub_alloc(Source, TargetDegree);
 	Target->Base.Value = ml_array_flatten(Source);
 	size_t DataSize = MLArraySizes[Target->Format];
 	int I = TargetDegree;
@@ -4638,7 +4706,7 @@ ML_ARITH_METHOD_MINMAX(max, MAX)
 
 #ifdef ML_COMPLEX
 
-ML_METHOD("^", MLArrayMutableComplexT, MLComplexT) {
+ML_METHOD("^", MLArrayComplexT, MLComplexT) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
 	complex_double B = ml_complex_value(Args[1]);
@@ -4652,7 +4720,7 @@ ML_METHOD("^", MLArrayMutableComplexT, MLComplexT) {
 
 #else
 
-ML_METHOD("^", MLArrayMutableRealT, MLRealT) {
+ML_METHOD("^", MLArrayRealT, MLRealT) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
 	double B = ml_real_value(Args[1]);
@@ -5646,12 +5714,7 @@ ML_METHOD("const", MLVisitorT, MLArrayT) {
 	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
 	if (Source->Degree == -1) return (ml_value_t *)Source;
-	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree);
-	switch (Target->Degree) {
-	case 1: Target->Base.Type = MLVectorTypes[Target->Format]; break;
-	case 2: Target->Base.Type = MLMatrixTypes[Target->Format]; break;
-	default: Target->Base.Type = MLArrayTypes[Target->Format]; break;
-	}
+	ml_array_t *Target = ml_array_const_alloc(Source->Format, Source->Degree);
 	inthash_insert(Visitor->Cache, (uintptr_t)Source, Target);
 	if (Source->Format == ML_ARRAY_FORMAT_ANY) {
 		ml_array_copy(Target, Source);
@@ -7287,6 +7350,98 @@ ML_ARRAY_PAIRWISE("--", -)
 ML_ARRAY_PAIRWISE("**", *)
 ML_ARRAY_PAIRWISE("//", /)
 
+ML_TYPE(MLPermutationT, (MLVectorUInt32T), "integer::permutation");
+
+ML_FUNCTION(RandomPermutation) {
+//@integer::random_permutation
+//<Max:number
+//>permutation
+// Returns a random permutation of :mini:`1, ..., Max`.
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	int Limit = ml_integer_value_fast(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
+	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
+	Values[0] = 1;
+	for (int I = 2; I <= Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J >= I);
+		if (J + 1 == I) {
+			Values[I - 1] = I;
+		} else {
+			int Old = Values[J];
+			Values[J] = I;
+			Values[I - 1] = Old;
+		}
+	}
+	Permutation->Base.Type = MLPermutationT;
+	return (ml_value_t *)Permutation;
+}
+
+ML_FUNCTION(RandomCycle) {
+//@integer::random_cycle
+//<Max:number
+//>permutation
+// Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	int Limit = ml_integer_value_fast(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
+	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
+	if (Limit == 1) {
+		Values[0] = 1;
+		return (ml_value_t *)Permutation;
+	}
+	Values[0] = 2;
+	Values[1] = 1;
+	for (int I = 2; I < Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J >= I);
+		int Old = Values[J];
+		Values[J] = I + 1;
+		Values[I] = Old;
+	}
+	Permutation->Base.Type = MLPermutationT;
+	return (ml_value_t *)Permutation;
+}
+
+ML_METHOD("[]", MLListT, MLVectorT) {
+//<List
+//<Indices
+//>list
+// Returns a list containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_value_t *Result = ml_list();
+	ml_array_t *Indices = (ml_array_t *)Args[1];
+	ml_array_getter_uint32_t get = ml_array_uint32_t_getter(Indices->Format);
+	void *Next = (void *)Indices->Base.Value;
+	int Stride = Indices->Dimensions[0].Stride;
+	int Size = Indices->Dimensions[0].Size;
+	if (ml_list_length(Args[1]) <= 3) {
+		while (--Size >= 0) {
+			int Index = get(Next);
+			Next += Stride;
+			ml_list_put(Result, ml_list_get((ml_value_t *)List, Index) ?: MLNil);
+		}
+	} else {
+		int N = List->Length;
+		ml_value_t *Values[N];
+		ml_list_node_t *Node = List->Head;
+		for (int I = 0; I < N; ++I, Node = Node->Next) Values[I] = Node->Value;
+		while (--Size >= 0) {
+			int Index = get(Next);
+			Next += Stride;
+			if (Index <= 0) Index += N;
+			if (Index <= 0 || Index > N) {
+				ml_list_put(Result, MLNil);
+			} else {
+				ml_list_put(Result, Values[Index - 1]);
+			}
+		}
+	}
+	return Result;
+}
+
 static int ml_lu_decomp_real(double **A, int *P, int N) {
 	for (int I = 0; I <= N; ++I) P[I] = I;
 	for (int I = 0; I < N; ++I) {
@@ -7716,7 +7871,7 @@ ML_METHOD("tr", MLMatrixT) {
 	}
 }
 
-ML_METHOD("softmax", MLVectorMutableRealT) {
+ML_METHOD("softmax", MLVectorRealT) {
 //<Vector
 //>vector
 // Returns :mini:`softmax(Vector)`.
@@ -7931,20 +8086,20 @@ ML_FUNCTION(MLCborReadComplex64) {
 
 void ml_array_init(stringmap_t *Globals) {
 #include "ml_array_init.c"
-	ml_method_by_name("set", UpdateSetRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("add", UpdateAddRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("mul", UpdateMulRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("sub", UpdateSubRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("div", UpdateDivRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("+", UpdateAddRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("*", UpdateMulRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("-", UpdateSubRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("/", UpdateDivRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("/\\", UpdateAndRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("\\/", UpdateOrRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("min", UpdateMinRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
-	ml_method_by_name("max", UpdateMaxRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("set", UpdateSetRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("add", UpdateAddRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("mul", UpdateMulRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("sub", UpdateSubRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("div", UpdateDivRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("+", UpdateAddRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("*", UpdateMulRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("-", UpdateSubRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("/", UpdateDivRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("/\\", UpdateAndRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("\\/", UpdateOrRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("min", UpdateMinRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("max", UpdateMaxRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("=", CompareEqRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("!=", CompareNeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("<", CompareLtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);

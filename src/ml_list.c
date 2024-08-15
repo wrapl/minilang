@@ -689,10 +689,26 @@ ML_METHOD("[]", MLListT, MLListT) {
 // Returns a list containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_value_t *Result = ml_list();
-	ML_LIST_FOREACH(Args[1], Iter) {
-		int Index = ml_integer_value(Iter->Value);
-		ml_list_node_t *Node = ml_list_index(List, Index);
-		ml_list_put(Result, Node ? Node->Value : MLNil);
+	if (ml_list_length(Args[1]) <= 3) {
+		ML_LIST_FOREACH(Args[1], Iter) {
+			int Index = ml_integer_value(Iter->Value);
+			ml_list_node_t *Node = ml_list_index(List, Index);
+			ml_list_put(Result, Node ? Node->Value : MLNil);
+		}
+	} else {
+		int N = List->Length;
+		ml_value_t *Values[N];
+		ml_list_node_t *Node = List->Head;
+		for (int I = 0; I < N; ++I, Node = Node->Next) Values[I] = Node->Value;
+		ML_LIST_FOREACH(Args[1], Iter) {
+			int Index = ml_integer_value(Iter->Value);
+			if (Index <= 0) Index += N;
+			if (Index <= 0 || Index > N) {
+				ml_list_put(Result, MLNil);
+			} else {
+				ml_list_put(Result, Values[Index - 1]);
+			}
+		}
 	}
 	return Result;
 }
@@ -2027,6 +2043,38 @@ ML_METHOD("shuffle", MLListMutableT) {
 	List->Tail = Node;
 	return (ml_value_t *)List;
 }
+
+#ifdef ML_MATH
+
+#include "ml_array.h"
+
+extern ml_type_t MLPermutationT[];
+
+ML_METHOD("shuffle", MLListMutableT, MLPermutationT) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_array_t *Permutation = (ml_array_t *)Args[1];
+	if (Permutation->Dimensions[0].Size != List->Length) {
+		return ml_error("ShapeError", "Permutation length does not match list");
+	}
+	int N = List->Length;
+	ml_list_node_t *Nodes[N], *Node = List->Head;
+	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
+	uint32_t *Indices = (uint32_t *)Permutation->Base.Value;
+	ml_list_node_t **Next = &List->Head, *Prev = NULL;
+	for (int I = 0; I < N; ++I) {
+		ml_list_node_t *Node = Nodes[*Indices++ - 1];
+		Node->Prev = Prev;
+		*Next = Prev = Node;
+		Next = &Node->Next;
+	}
+	*Next = NULL;
+	List->Tail = Prev;
+	List->CachedIndex = 1;
+	List->CachedNode = List->Head;
+	return (ml_value_t *)List;
+}
+
+#endif
 
 ML_METHOD("cycle", MLListMutableT) {
 //!list

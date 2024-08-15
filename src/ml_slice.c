@@ -305,6 +305,21 @@ ml_value_t *ml_slice_set(ml_value_t *Slice0, int Index, ml_value_t *Value) {
 	return Old;
 }
 
+ml_value_t *ml_slice_index(ml_value_t *Slice0, int Index) {
+	ml_slice_t *Slice = (ml_slice_t *)Slice0;
+	if (Index <= 0) Index += Slice->Length + 1;
+	if (Index <= 0 || Index > Slice->Length) return MLNil;
+	if (ml_is_subtype(Slice->Type, MLSliceMutableT)) {
+		ml_slice_index_t *Iter = new(ml_slice_index_t);
+		Iter->Type = MLSliceIndexT;
+		Iter->Slice = Slice;
+		Iter->Index = Index;
+		return (ml_value_t *)Iter;
+	} else {
+		return Slice->Nodes[Slice->Offset + Index - 1].Value;
+	}
+}
+
 int ml_slice_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, void *)) {
 	ML_SLICE_FOREACH(Value, Node) if (callback(Node->Value, Data)) return 1;
 	return 0;

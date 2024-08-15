@@ -1215,6 +1215,11 @@ ML_FUNCTION(RandomInteger) {
 	}
 }
 
+extern ml_cfunction_t RandomPermutation[1];
+extern ml_cfunction_t RandomCycle[1];
+
+#ifndef ML_MATH
+
 ML_FUNCTION(RandomPermutation) {
 //@integer::random_permutation
 //<Max:number
@@ -1269,6 +1274,7 @@ ML_FUNCTION(RandomCycle) {
 	return Permutation;
 }
 
+#endif
 
 ML_FUNCTION(RandomReal) {
 //@real::random
