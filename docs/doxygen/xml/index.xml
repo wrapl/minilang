@@ -771,7 +771,7 @@
   <compound refid="structml__macro__t" kind="struct"><name>ml_macro_t</name>
     <member refid="structml__macro__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
     <member refid="structml__macro__t_1a6443c4e99156544c144fd14905683ce1" kind="variable"><name>Function</name></member>
-    <member refid="structml__macro__t_1a2bd2cf87bae44092995c8859dfdb304a" kind="variable"><name>function</name></member>
+    <member refid="structml__macro__t_1a7c0fe4512b8c59b834208d1786017ef8" kind="variable"><name>function</name></member>
     <member refid="structml__macro__t_1a93462051e04a57e2459e6a2ab149a01c" kind="variable"><name>Data</name></member>
   </compound>
   <compound refid="structml__map__iter__t" kind="struct"><name>ml_map_iter_t</name>
@@ -1008,13 +1008,13 @@
   <compound refid="structmlc__define__t" kind="struct"><name>mlc_define_t</name>
     <member refid="structmlc__define__t_1a04ff08c02a7ea0e95629b1ab79a5d482" kind="variable"><name>Next</name></member>
     <member refid="structmlc__define__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" kind="variable"><name>Ident</name></member>
-    <member refid="structmlc__define__t_1a2ebabbbf2f4b784c39233f2cc8fb2450" kind="variable"><name>Expr</name></member>
+    <member refid="structmlc__define__t_1a87a5103b049030e4dab9d7afd5b7cb76" kind="variable"><name>Expr</name></member>
     <member refid="structmlc__define__t_1a0b1c0d43d5102cc48de52bf7295fc19f" kind="variable"><name>List</name></member>
     <member refid="structmlc__define__t_1a295be8ec098a21a7f81d0932be0d327e" kind="variable"><name>Hash</name></member>
   </compound>
   <compound refid="structmlc__expr__t" kind="struct"><name>mlc_expr_t</name>
     <member refid="structmlc__expr__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
-    <member refid="structmlc__expr__t_1ac7b43545bf15e0be52f667e6a9b2b932" kind="variable"><name>compile</name></member>
+    <member refid="structmlc__expr__t_1ab7238b512899fba6f4820bb780d3f933" kind="variable"><name>compile</name></member>
     <member refid="structmlc__expr__t_1a867a1226be13a7cb5f6a6e6fb83b19ad" kind="variable"><name>Next</name></member>
     <member refid="structmlc__expr__t_1acf4bd6e1b9e491ae82464869f0ea1a0f" kind="variable"><name>Source</name></member>
     <member refid="structmlc__expr__t_1a9855686941541467b60594248301314f" kind="variable"><name>StartLine</name></member>
@@ -3322,14 +3322,14 @@
     <member refid="group__compiler_1ga7d31978754889d76d09308e7d26d4a72" kind="function"><name>ml_parser_value</name></member>
     <member refid="group__compiler_1ga2e099dfd7a9ea8fb2ccc9507d1eb4e77" kind="function"><name>ml_parser_clear</name></member>
     <member refid="group__compiler_1ga918fe73bcd762c02b77f3f60e3959745" kind="function"><name>ml_parse_warn</name></member>
-    <member refid="group__compiler_1ga24984cd2745e2a7855b6fe3bc97e616f" kind="function"><name>ml_accept_file</name></member>
+    <member refid="group__compiler_1gaa73e5c712ea0f3a0449e8e65204df7bc" kind="function"><name>ml_accept_file</name></member>
     <member refid="group__compiler_1gad269e62dec932327a3da8c705c40c8bc" kind="function"><name>ml_parser_escape</name></member>
     <member refid="group__compiler_1gae99e4850da50bffac4cb32d47bc06552" kind="function"><name>ml_parser_special</name></member>
     <member refid="group__compiler_1ga4cfb7ffa6b49913edd1651f902d37af4" kind="function"><name>ml_macro_subst</name></member>
     <member refid="group__compiler_1gaceebb4b34496f860ad324a481160ad0e" kind="function"><name>ml_compiler</name></member>
     <member refid="group__compiler_1ga6722f8c4ed47f1afaf236d05a3cbdccc" kind="function"><name>ml_compiler_define</name></member>
     <member refid="group__compiler_1gaabd07d7c8fcde0f46187e19c511cc1b3" kind="function"><name>ml_compiler_lookup</name></member>
-    <member refid="group__compiler_1ga7a6d0d3f8e6c7093f6c7504f66355f47" kind="function"><name>ml_function_compile</name></member>
+    <member refid="group__compiler_1ga55bee9157ae10af96b1ea982dd3c22f3" kind="function"><name>ml_function_compile</name></member>
     <member refid="group__compiler_1ga4368e311e7391106a3a9c5908ce815fc" kind="function"><name>ml_command_evaluate</name></member>
     <member refid="group__compiler_1ga74a69436921639e9cb02c285852ce333" kind="function"><name>ml_load_file</name></member>
     <member refid="group__compiler_1gac6d491e41f0debbe3329b73134e8d1d6" kind="function"><name>ml_stringmap_globals</name></member>
@@ -3456,18 +3456,18 @@
     <member refid="ml__compiler2_8h_1a7b3b5ce948f972f406b157ccf5618f04" kind="typedef"><name>ml_macro_t</name></member>
     <member refid="ml__compiler2_8h_1a0cb338a4803bd2838bc2b3033bfcb0c2" kind="typedef"><name>mlc_frame_fn</name></member>
     <member refid="ml__compiler2_8h_1ad2e69e6765536243b05209d780a2b105" kind="function"><name>mlc_expr_type</name></member>
-    <member refid="ml__compiler2_8h_1ab740dbc448370206f116a32a31ae5702" kind="function"><name>mlc_expr_error</name></member>
+    <member refid="ml__compiler2_8h_1a7c794d886eba08ad763ec84a59d49b20" kind="function"><name>mlc_expr_error</name></member>
     <member refid="ml__compiler2_8h_1a99d78e5a53e8d645c32ccabf3d44f3cd" kind="function"><name>mlc_pop</name></member>
     <member refid="ml__compiler2_8h_1ad15244da3ff103f30e5da65ca2b87494" kind="function"><name>mlc_return</name></member>
     <member refid="ml__compiler2_8h_1a728a04ce3c934b78bf17889230c50abc" kind="function"><name>ml_inst_alloc</name></member>
     <member refid="ml__compiler2_8h_1abaf52dfb8c7f47f05c0dc4c12ca082da" kind="function"><name>mlc_fix_links</name></member>
     <member refid="ml__compiler2_8h_1a4ce145bb445abd04547bba3e60834a6f" kind="function"><name>mlc_inc_top</name></member>
-    <member refid="ml__compiler2_8h_1a04f8ae472e7289d054f1e6448189edfc" kind="function"><name>mlc_compile</name></member>
-    <member refid="ml__compiler2_8h_1a3dfec9e1cf171075ef709e7644847b92" kind="function"><name>ml_macrox</name></member>
-    <member refid="ml__compiler2_8h_1a781a628ef095b4a5fb3069c99bd44acc" kind="function"><name>ml_unknown_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1ad91a67fb4fd624f82f1f65b06075e2ab" kind="function"><name>ml_register_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1a5be9b41cff8ca6dc78e8a44737b63c59" kind="function"><name>ml_blank_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1ab83ea00b53d82ad5cba8f8f56f70e875" kind="function"><name>ml_nil_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1a54f8a23737141eb7e0adcf738b0b3f77" kind="function"><name>mlc_compile</name></member>
+    <member refid="ml__compiler2_8h_1a503a41406fd904718e54a6c21913c2f1" kind="function"><name>ml_macrox</name></member>
+    <member refid="ml__compiler2_8h_1a43b7020da73e0cc3116b44ff4568c045" kind="function"><name>ml_unknown_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1a1cd31cb9568963d69125b5d20bf4c8ed" kind="function"><name>ml_register_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1a0c0614d3e4052aef85707dcc3f8f3d1d" kind="function"><name>ml_blank_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1a204dbf184454e9ab54188ec19ceb34c7" kind="function"><name>ml_nil_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1a4d4cae086cb22558a24330fec742670c" kind="function"><name>ml_value_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1aeb030f05d1238920d17988ba0567731b" kind="function"><name>ml_if_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1afa30512ce0f4790d64bb29f046c6c2a6" kind="function"><name>ml_or_expr_compile</name></member>
@@ -3499,12 +3499,12 @@
     <member refid="ml__compiler2_8h_1ae7ffa3c0a27e6975fe3f2e6a66eafc40" kind="function"><name>ml_def_unpack_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1a1c1d33b5d17b245b6da475d6e053889e" kind="function"><name>ml_block_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1a880a4f0bc34b912e33a26ba59fb45bad" kind="function"><name>ml_assign_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1a0a4ab096d06c4cab5562f0a941e181d3" kind="function"><name>ml_old_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1a32fb273c08c3c512773a18f7cf041b10" kind="function"><name>ml_recur_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1a43ee561967880ad01712152040e0da8d" kind="function"><name>ml_it_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1ac7da7da024e0db8953a5e4f53087ebdf" kind="function"><name>ml_old_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1a70ae81daa6eb96b8fdec31a8b3590548" kind="function"><name>ml_recur_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1ab9a9791c15710ebdbb0411952f02b7dd" kind="function"><name>ml_it_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1a1a34cee22c0894048542c26ab0fe0624" kind="function"><name>ml_delegate_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1a884912c6eb627d3d25e90214aceb876b" kind="function"><name>ml_inline_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1ae81b9730449cd29d5b25cf7d4d8b2324" kind="function"><name>mlc_inline_call_expr_compile</name></member>
+    <member refid="ml__compiler2_8h_1a5c231e07524bcb0b6a89d7f405ee5a34" kind="function"><name>mlc_inline_call_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1ad88179c45385ab68a27d2de7f8b8cf5d" kind="function"><name>ml_call_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1abefd37e0dbbbd66b31573112aeb68ae2" kind="function"><name>ml_const_call_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1afb4a55a2a332abb6a35f925fac0df001" kind="function"><name>ml_guard_expr_compile</name></member>
@@ -3732,8 +3732,8 @@
   <compound refid="ml__module_8h" kind="file"><name>ml_module.h</name>
     <member refid="ml__module_8h_1a8af693f1c83832574033beac634e723d" kind="define"><name>MLMF_USE_GLOBALS</name></member>
     <member refid="ml__module_8h_1a7ab176a0a552db81c63b22d8dc800a21" kind="function"><name>ml_module_init</name></member>
-    <member refid="ml__module_8h_1a1a0240b825f741723cae0d0a2301b9a7" kind="function"><name>ml_module_compile</name></member>
-    <member refid="ml__module_8h_1a56ffda5918807013dbc82173b40c0178" kind="function"><name>ml_module_compile2</name></member>
+    <member refid="ml__module_8h_1a68a0312f030e8c307d2ba07bb6a17fd1" kind="function"><name>ml_module_compile</name></member>
+    <member refid="ml__module_8h_1a907699bff5f5abecf195d375e984a8d4" kind="function"><name>ml_module_compile2</name></member>
   </compound>
   <compound refid="ml__number_8h" kind="file"><name>ml_number.h</name>
     <member refid="ml__number_8h_1a666d7344191479fae801a53791283736" kind="function"><name>ml_number_init</name></member>
@@ -5576,14 +5576,14 @@
     <member refid="group__compiler_1ga7d31978754889d76d09308e7d26d4a72" kind="function"><name>ml_parser_value</name></member>
     <member refid="group__compiler_1ga2e099dfd7a9ea8fb2ccc9507d1eb4e77" kind="function"><name>ml_parser_clear</name></member>
     <member refid="group__compiler_1ga918fe73bcd762c02b77f3f60e3959745" kind="function"><name>ml_parse_warn</name></member>
-    <member refid="group__compiler_1ga24984cd2745e2a7855b6fe3bc97e616f" kind="function"><name>ml_accept_file</name></member>
+    <member refid="group__compiler_1gaa73e5c712ea0f3a0449e8e65204df7bc" kind="function"><name>ml_accept_file</name></member>
     <member refid="group__compiler_1gad269e62dec932327a3da8c705c40c8bc" kind="function"><name>ml_parser_escape</name></member>
     <member refid="group__compiler_1gae99e4850da50bffac4cb32d47bc06552" kind="function"><name>ml_parser_special</name></member>
     <member refid="group__compiler_1ga4cfb7ffa6b49913edd1651f902d37af4" kind="function"><name>ml_macro_subst</name></member>
     <member refid="group__compiler_1gaceebb4b34496f860ad324a481160ad0e" kind="function"><name>ml_compiler</name></member>
     <member refid="group__compiler_1ga6722f8c4ed47f1afaf236d05a3cbdccc" kind="function"><name>ml_compiler_define</name></member>
     <member refid="group__compiler_1gaabd07d7c8fcde0f46187e19c511cc1b3" kind="function"><name>ml_compiler_lookup</name></member>
-    <member refid="group__compiler_1ga7a6d0d3f8e6c7093f6c7504f66355f47" kind="function"><name>ml_function_compile</name></member>
+    <member refid="group__compiler_1ga55bee9157ae10af96b1ea982dd3c22f3" kind="function"><name>ml_function_compile</name></member>
     <member refid="group__compiler_1ga4368e311e7391106a3a9c5908ce815fc" kind="function"><name>ml_command_evaluate</name></member>
     <member refid="group__compiler_1ga74a69436921639e9cb02c285852ce333" kind="function"><name>ml_load_file</name></member>
     <member refid="group__compiler_1gac6d491e41f0debbe3329b73134e8d1d6" kind="function"><name>ml_stringmap_globals</name></member>

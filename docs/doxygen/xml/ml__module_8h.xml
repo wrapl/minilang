@@ -131,18 +131,22 @@
         </inbodydescription>
         <location file="src/ml_module.h" line="8" column="6" declfile="src/ml_module.h" declline="8" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__module_8h_1a1a0240b825f741723cae0d0a2301b9a7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__module_8h_1a68a0312f030e8c307d2ba07bb6a17fd1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_module_compile</definition>
-        <argsstring>(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot)</argsstring>
+        <argsstring>(ml_state_t *Caller, const char *Path, const mlc_expr_t *Expr, ml_compiler_t *Compiler, ml_value_t **Slot)</argsstring>
         <name>ml_module_compile</name>
         <param>
           <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
           <declname>Caller</declname>
         </param>
         <param>
-          <type>ml_parser_t *</type>
-          <declname>Parser</declname>
+          <type>const char *</type>
+          <declname>Path</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <declname>Expr</declname>
         </param>
         <param>
           <type>ml_compiler_t *</type>
@@ -160,18 +164,22 @@
         </inbodydescription>
         <location file="src/ml_module.h" line="10" column="6" declfile="src/ml_module.h" declline="10" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__module_8h_1a56ffda5918807013dbc82173b40c0178" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__module_8h_1a907699bff5f5abecf195d375e984a8d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_module_compile2</definition>
-        <argsstring>(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot, int Flags)</argsstring>
+        <argsstring>(ml_state_t *Caller, const char *Path, const mlc_expr_t *Expr, ml_compiler_t *Compiler, ml_value_t **Slot, int Flags)</argsstring>
         <name>ml_module_compile2</name>
         <param>
           <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
           <declname>Caller</declname>
         </param>
         <param>
-          <type>ml_parser_t *</type>
-          <declname>Parser</declname>
+          <type>const char *</type>
+          <declname>Path</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <declname>Expr</declname>
         </param>
         <param>
           <type>ml_compiler_t *</type>
@@ -208,8 +216,8 @@
 <codeline lineno="7"><highlight class="normal"></highlight></codeline>
 <codeline lineno="8"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_module_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="9"><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_module_compile(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/>ml_parser_t<sp/>*Parser,<sp/>ml_compiler_t<sp/>*Compiler,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_module_compile2(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/>ml_parser_t<sp/>*Parser,<sp/>ml_compiler_t<sp/>*Compiler,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_module_compile(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/>ml_compiler_t<sp/>*Compiler,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_module_compile2(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/>ml_compiler_t<sp/>*Compiler,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="12"><highlight class="normal"></highlight></codeline>
 <codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>

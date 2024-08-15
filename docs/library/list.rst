@@ -214,7 +214,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "k"
-      L:random :> "a"
+      L:random :> "c"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -369,6 +369,10 @@ list
 
 :mini:`meth (List: list::mutable):shuffle: list`
    Shuffles :mini:`List` in place.
+
+
+:mini:`meth (Arg₁: list::mutable):shuffle(Arg₂: permutation)`
+   *TBD*
 
 
 :mini:`meth (List: list::mutable):sort: List`

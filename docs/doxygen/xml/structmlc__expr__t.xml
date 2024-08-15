@@ -17,10 +17,10 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="84" column="11" bodyfile="src/ml_compiler2.h" bodystart="84" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structmlc__expr__t_1ac7b43545bf15e0be52f667e6a9b2b932" prot="public" static="no" mutable="no">
+      <memberdef kind="variable" id="structmlc__expr__t_1ab7238b512899fba6f4820bb780d3f933" prot="public" static="no" mutable="no">
         <type>void(*</type>
-        <definition>void(* compile) (mlc_function_t *, mlc_expr_t *, int)</definition>
-        <argsstring>)(mlc_function_t *, mlc_expr_t *, int)</argsstring>
+        <definition>void(* compile) (mlc_function_t *, const mlc_expr_t *, int)</definition>
+        <argsstring>)(mlc_function_t *, const mlc_expr_t *, int)</argsstring>
         <name>compile</name>
         <qualifiedname>mlc_expr_t::compile</qualifiedname>
         <briefdescription>
@@ -139,7 +139,7 @@
     </collaborationgraph>
     <location file="src/ml_compiler2.h" line="83" column="1" bodyfile="src/ml_compiler2.h" bodystart="83" bodyend="90"/>
     <listofallmembers>
-      <member refid="structmlc__expr__t_1ac7b43545bf15e0be52f667e6a9b2b932" prot="public" virt="non-virtual"><scope>mlc_expr_t</scope><name>compile</name></member>
+      <member refid="structmlc__expr__t_1ab7238b512899fba6f4820bb780d3f933" prot="public" virt="non-virtual"><scope>mlc_expr_t</scope><name>compile</name></member>
       <member refid="structmlc__expr__t_1a1cb2ca00844a248a8fa9c8c6f2a22098" prot="public" virt="non-virtual"><scope>mlc_expr_t</scope><name>EndLine</name></member>
       <member refid="structmlc__expr__t_1a867a1226be13a7cb5f6a6e6fb83b19ad" prot="public" virt="non-virtual"><scope>mlc_expr_t</scope><name>Next</name></member>
       <member refid="structmlc__expr__t_1acf4bd6e1b9e491ae82464869f0ea1a0f" prot="public" virt="non-virtual"><scope>mlc_expr_t</scope><name>Source</name></member>

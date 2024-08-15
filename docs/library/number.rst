@@ -503,6 +503,10 @@ number
    Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
 
 
+:mini:`meth (A: integer):popcount: integer`
+   Returns the number of bits set in :mini:`A`.
+
+
 :mini:`meth real(Arg₁: integer)`
    *TBD*
 

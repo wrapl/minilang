@@ -504,5 +504,6 @@ hierarchy
       "matrix::any":e -> "matrix::mutable::any":w;
       "matrix::mutable":e -> "matrix::mutable::any":w;
       "array::mutable::any":e -> "matrix::mutable::any":w;
+      "vector::uint32":e -> "permutation":w;
    }
 

@@ -1183,17 +1183,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="121" column="16" declfile="src/ml_compiler2.h" declline="121" declcolumn="16"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1ab740dbc448370206f116a32a31ae5702" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a7c794d886eba08ad763ec84a59d49b20" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void mlc_expr_error</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, ml_value_t *Error)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, ml_value_t *Error)</argsstring>
         <name>mlc_expr_error</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -1313,17 +1313,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="327" column="6" declfile="src/ml_compiler2.h" declline="327" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1a04f8ae472e7289d054f1e6448189edfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a54f8a23737141eb7e0adcf738b0b3f77" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void mlc_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>mlc_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -1338,13 +1338,13 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="328" column="6" declfile="src/ml_compiler2.h" declline="328" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1a3dfec9e1cf171075ef709e7644847b92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a503a41406fd904718e54a6c21913c2f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
         <definition>ml_value_t * ml_macrox</definition>
-        <argsstring>(mlc_expr_t *(*function)(mlc_expr_t *, mlc_expr_t *, void *), void *Data)</argsstring>
+        <argsstring>(const mlc_expr_t *(*function)(const mlc_expr_t *, const mlc_expr_t *, void *), void *Data)</argsstring>
         <name>ml_macrox</name>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *(*)(<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *, <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *, void *)</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *(*)(const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *, const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *, void *)</type>
           <declname>function</declname>
         </param>
         <param>
@@ -1359,17 +1359,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="330" column="12" declfile="src/ml_compiler2.h" declline="330" declcolumn="12"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1a781a628ef095b4a5fb3069c99bd44acc" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a43b7020da73e0cc3116b44ff4568c045" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_unknown_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>ml_unknown_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -1384,17 +1384,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="332" column="13" declfile="src/ml_compiler2.h" declline="332" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1ad91a67fb4fd624f82f1f65b06075e2ab" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a1cd31cb9568963d69125b5d20bf4c8ed" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_register_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>ml_register_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -1409,17 +1409,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="333" column="13" declfile="src/ml_compiler2.h" declline="333" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1a5be9b41cff8ca6dc78e8a44737b63c59" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a0c0614d3e4052aef85707dcc3f8f3d1d" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_blank_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>ml_blank_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -1434,17 +1434,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="334" column="13" declfile="src/ml_compiler2.h" declline="334" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1ab83ea00b53d82ad5cba8f8f56f70e875" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a204dbf184454e9ab54188ec19ceb34c7" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_nil_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>ml_nil_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -2234,17 +2234,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="366" column="13" declfile="src/ml_compiler2.h" declline="366" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1a0a4ab096d06c4cab5562f0a941e181d3" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1ac7da7da024e0db8953a5e4f53087ebdf" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_old_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>ml_old_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -2259,17 +2259,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="367" column="13" declfile="src/ml_compiler2.h" declline="367" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1a32fb273c08c3c512773a18f7cf041b10" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a70ae81daa6eb96b8fdec31a8b3590548" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_recur_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>ml_recur_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -2284,17 +2284,17 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="368" column="13" declfile="src/ml_compiler2.h" declline="368" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1a43ee561967880ad01712152040e0da8d" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1ab9a9791c15710ebdbb0411952f02b7dd" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_it_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, mlc_expr_t *Expr, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags)</argsstring>
         <name>ml_it_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
           <declname>Function</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -2359,10 +2359,10 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="371" column="13" declfile="src/ml_compiler2.h" declline="371" declcolumn="13"/>
       </memberdef>
-      <memberdef kind="function" id="ml__compiler2_8h_1ae81b9730449cd29d5b25cf7d4d8b2324" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ml__compiler2_8h_1a5c231e07524bcb0b6a89d7f405ee5a34" prot="public" static="no" extern="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void mlc_inline_call_expr_compile</definition>
-        <argsstring>(mlc_function_t *Function, ml_value_t *Value, mlc_expr_t *Expr, mlc_expr_t *Child, int Flags)</argsstring>
+        <argsstring>(mlc_function_t *Function, ml_value_t *Value, const mlc_expr_t *Expr, mlc_expr_t *Child, int Flags)</argsstring>
         <name>mlc_inline_call_expr_compile</name>
         <param>
           <type><ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *</type>
@@ -2373,7 +2373,7 @@
           <declname>Value</declname>
         </param>
         <param>
-          <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
+          <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
           <declname>Expr</declname>
         </param>
         <param>
@@ -2782,7 +2782,7 @@
 <codeline lineno="82"><highlight class="normal"></highlight></codeline>
 <codeline lineno="83" refid="structmlc__expr__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>{</highlight></codeline>
 <codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>void<sp/>(*compile)(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*,<sp/>int);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>void<sp/>(*compile)(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*,<sp/>int);</highlight></codeline>
 <codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Next;</highlight></codeline>
 <codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source;</highlight></codeline>
 <codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>StartLine;</highlight></codeline>
@@ -2811,7 +2811,7 @@
 <codeline lineno="111" refid="structmlc__define__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref><sp/>{</highlight></codeline>
 <codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__define__t" kindref="compound">mlc_define_t</ref><sp/>*Next;</highlight></codeline>
 <codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Ident;</highlight></codeline>
-<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr;</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr;</highlight></codeline>
 <codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*List;</highlight></codeline>
 <codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>Hash;</highlight></codeline>
 <codeline lineno="117"><highlight class="normal">};</highlight></codeline>
@@ -2986,7 +2986,7 @@
 <codeline lineno="286" refid="structml__macro__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__macro__t" kindref="compound">ml_macro_t</ref><sp/>{</highlight></codeline>
 <codeline lineno="287"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
 <codeline lineno="288"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Function;</highlight></codeline>
-<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*(*function)(<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*(*function)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
 <codeline lineno="290"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data;</highlight></codeline>
 <codeline lineno="291"><highlight class="normal">};</highlight></codeline>
 <codeline lineno="292"><highlight class="normal"></highlight></codeline>
@@ -3004,7 +3004,7 @@
 <codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data[];</highlight></codeline>
 <codeline lineno="305"><highlight class="normal">};</highlight></codeline>
 <codeline lineno="306"><highlight class="normal"></highlight></codeline>
-<codeline lineno="307"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_expr_error(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Error);</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_expr_error(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Error);</highlight></codeline>
 <codeline lineno="308"><highlight class="normal"></highlight></codeline>
 <codeline lineno="309"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MLC_EXPR_ERROR(EXPR,<sp/>ERROR)<sp/>return<sp/>mlc_expr_error(Function,<sp/>(mlc_expr_t<sp/>*)(EXPR),<sp/>ERROR)</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="310"><highlight class="normal"></highlight></codeline>
@@ -3025,14 +3025,14 @@
 <codeline lineno="325"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_fix_links(<ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*Start,<sp/><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref><sp/>*Target);</highlight></codeline>
 <codeline lineno="326"><highlight class="normal"></highlight></codeline>
 <codeline lineno="327"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_inc_top(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function);</highlight></codeline>
-<codeline lineno="328"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="329"><highlight class="normal"></highlight></codeline>
-<codeline lineno="330"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_macrox(<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*(*function)(<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*),<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_macrox(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*(*function)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*),<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
 <codeline lineno="331"><highlight class="normal"></highlight></codeline>
-<codeline lineno="332"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_unknown_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
-<codeline lineno="333"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_register_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
-<codeline lineno="334"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_blank_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
-<codeline lineno="335"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_nil_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_unknown_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_register_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_blank_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="335"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_nil_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="336"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_value_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__value__expr__t" kindref="compound">mlc_value_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="337"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_if_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__if__expr__t" kindref="compound">mlc_if_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="338"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_or_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
@@ -3064,12 +3064,12 @@
 <codeline lineno="364"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_def_unpack_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__local__expr__t" kindref="compound">mlc_local_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="365"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_block_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__block__expr__t" kindref="compound">mlc_block_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="366"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_assign_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
-<codeline lineno="367"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_old_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
-<codeline lineno="368"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_recur_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
-<codeline lineno="369"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_it_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="367"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_old_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="368"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_recur_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="369"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_it_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="370"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_delegate_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="371"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_inline_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
-<codeline lineno="372"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_inline_call_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
+<codeline lineno="372"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mlc_inline_call_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Expr,<sp/><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref><sp/>*Child,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="373"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_call_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="374"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_const_call_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__parent__value__expr__t" kindref="compound">mlc_parent_value_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
 <codeline lineno="375"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_guard_expr_compile(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref><sp/>*Function,<sp/><ref refid="structmlc__parent__expr__t" kindref="compound">mlc_parent_expr_t</ref><sp/>*Expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Flags);</highlight></codeline>
