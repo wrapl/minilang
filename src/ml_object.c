@@ -702,7 +702,7 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 #ifdef ML_NANBOXING
-#define MLIntegerT MLInt64T
+#define MLIntegerT MLInteger64T
 #endif
 
 ML_TYPE(MLEnumValueT, (MLIntegerT), "enum-value");

@@ -111,7 +111,7 @@ complex double ml_complex_value(const ml_value_t *Value) {
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if (Tag == 0) {
-		if (Value->Type == MLInt64T) {
+		if (Value->Type == MLInteger64T) {
 #ifdef ML_FLINT
 			return fmpz_get_d(((ml_integer_t *)Value)->Value);
 #else
@@ -276,11 +276,11 @@ ML_DEF(NaN);
 
 #ifdef ML_NANBOXING
 
-static long ml_int32_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+static long ml_integer32_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return (int32_t)(intptr_t)Value;
 }
 
-static void ml_int32_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+static void ml_integer32_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	long Index = (int32_t)(intptr_t)Value;
 	if (Index <= 0) Index += Count + 1;
 	if (Index <= 0) ML_RETURN(MLNil);
@@ -291,14 +291,14 @@ static void ml_int32_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_v
 ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer");
 //!internal
 
-ML_TYPE(MLInt32T, (MLIntegerT), "int32",
+ML_TYPE(MLInteger32T, (MLIntegerT), "integer32",
 //!internal
-	.hash = (void *)ml_int32_hash,
-	.call = (void *)ml_int32_call,
+	.hash = (void *)ml_integer32_hash,
+	.call = (void *)ml_integer32_call,
 	.NoInherit = 1
 );
 
-static long ml_int64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #ifdef ML_FLINT
 	return fmpz_get_si(((ml_integer_t *)Value)->Value);
 #else
@@ -306,15 +306,15 @@ static long ml_int64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #endif
 }
 
-ML_TYPE(MLInt64T, (MLIntegerT), "int64",
+ML_TYPE(MLInteger64T, (MLIntegerT), "integer64",
 //!internal
-	.hash = (void *)ml_int64_hash,
+	.hash = (void *)ml_integer64_hash,
 	.NoInherit = 1
 );
 
-ml_value_t *ml_int64(int64_t Integer) {
+ml_value_t *ml_integer64(int64_t Integer) {
 	ml_integer_t *Value = new(ml_integer_t);
-	Value->Type = MLInt64T;
+	Value->Type = MLInteger64T;
 #ifdef ML_FLINT
 	fmpz_set_si(Value->Value, Integer);
 #else
@@ -327,7 +327,7 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
-	if ((Tag == 0) && ml_is_subtype(Value->Type, MLInt64T)) {
+	if ((Tag == 0) && ml_is_subtype(Value->Type, MLInteger64T)) {
 #ifdef ML_FLINT
 		return fmpz_get_si(((ml_integer_t *)Value)->Value);
 #else
@@ -337,12 +337,12 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	return 0;
 }
 
-ML_METHOD(MLRealT, MLInt32T) {
+ML_METHOD(MLRealT, MLInteger32T) {
 //!internal
 	return ml_real((int32_t)(intptr_t)Args[0]);
 }
 
-ML_METHOD(MLRealT, MLInt64T) {
+ML_METHOD(MLRealT, MLInteger64T) {
 //!internal
 #ifdef ML_FLINT
 	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
@@ -424,7 +424,7 @@ double ml_real_value(const ml_value_t *Value) {
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if (Tag == 0) {
-		if (Value->Type == MLInt64T) {
+		if (Value->Type == MLInteger64T) {
 #ifdef ML_FLINT
 			return fmpz_get_d(((ml_integer_t *)Value)->Value);
 #else
@@ -436,12 +436,12 @@ double ml_real_value(const ml_value_t *Value) {
 	return 0;
 }
 
-ML_METHOD(MLDoubleT, MLInt32T) {
+ML_METHOD(MLDoubleT, MLInteger32T) {
 //!internal
 	return ml_real((int32_t)(intptr_t)Args[0]);
 }
 
-ML_METHOD(MLDoubleT, MLInt64T) {
+ML_METHOD(MLDoubleT, MLInteger64T) {
 //!internal
 #ifdef ML_FLINT
 	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
@@ -520,7 +520,7 @@ static ml_value_t *ml_integer_fmpz(fmpz_t Source) {
 		return ml_integer(fmpz_get_si(Source));
 	} else {
 		ml_integer_t *Value = new(ml_integer_t);
-		Value->Type = MLInt64T;
+		Value->Type = MLInteger64T;
 		Value->Value[0] = Source[0];
 		return (ml_value_t *)Value;
 	}
@@ -1068,9 +1068,9 @@ ml_select_method_number_number(max, gt);
 
 #ifdef ML_NANBOXING
 
-#define NegOne ml_int32(-1)
-#define One ml_int32(1)
-#define Zero ml_int32(0)
+#define NegOne ml_integer32(-1)
+#define One ml_integer32(1)
+#define Zero ml_integer32(0)
 
 #else
 

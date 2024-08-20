@@ -686,6 +686,9 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
+		for (ml_state_t *State = Frame->Base.Caller; State; State = State->Caller) {
+			ml_error_trace_add(Result, ml_debugger_source(State));
+		}
 		Result = ml_error_unwrap(Result);
 		ml_value_t **Old = Frame->Stack + Inst[2].Count;
 		while (Top > Old) *--Top = NULL;

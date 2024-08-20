@@ -72,9 +72,9 @@ struct ml_type_t {
 	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
-	int Rank:30;
-	int Interface:1;
-	int NoInherit:1;
+	unsigned int Rank:30;
+	unsigned int Interface:1;
+	unsigned int NoInherit:1;
 };
 
 extern ml_type_t MLTypeT[];
@@ -195,9 +195,15 @@ extern ml_type_t MLVisitorT[];
 
 #ifdef ML_NANBOXING
 
-extern ml_type_t MLInt32T[];
-extern ml_type_t MLInt64T[];
+extern ml_type_t MLInteger32T[];
+extern ml_type_t MLInteger64T[];
 extern ml_type_t MLDoubleT[];
+
+#ifdef ML_RATIONAL
+
+extern ml_type_t MLRational48T[];
+
+#endif
 
 __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
@@ -219,27 +225,15 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 	if (__builtin_expect(Tag == 0, 1)) {
 		return Value->Type;
 	} else if (Tag == 1) {
-		return MLInt32T;
+		return MLInteger32T;
+#ifdef ML_RATIONAL
+	} else if (Tag == 2) {
+		return MLRational48T;
+#endif
 	} else {
 		return MLDoubleT;
 	}
 }
-
-/*static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
-	unsigned Tag = ml_tag(Value);
-	if (__builtin_expect(Tag == 0, 1)) {
-		ml_type_t *Type = Value->Type;
-		ml_value_t *(*Deref)(ml_value_t *) = Type->deref;
-		if (__builtin_expect(Deref != ml_default_deref, 0)) {
-			return ml_typeof(Deref(Value));
-		}
-		return Type;
-	} else if (Tag == 1) {
-		return MLInt32T;
-	} else {
-		return MLDoubleT;
-	}
-}*/
 
 #define ml_typeof_deref(VALUE) ml_typeof(ml_deref(VALUE))
 
@@ -548,6 +542,12 @@ extern ml_type_t MLRealT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLDoubleT[];
 
+#ifdef ML_RATIONAL
+
+extern ml_type_t MLRationalT[];
+
+#endif
+
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
@@ -556,15 +556,6 @@ double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 #include <flint/flint.h>
 #include <flint/fmpz.h>
 #include <flint/fmpq.h>
-
-extern ml_type_t MLRationalT[];
-
-typedef struct {
-	ml_type_t *Type;
-	fmpq_t Value;
-} ml_rational_t;
-
-ml_value_t *ml_rational(fmpq_t Value);
 
 #endif
 
@@ -579,17 +570,17 @@ typedef struct {
 
 #ifdef ML_NANBOXING
 
-static inline ml_value_t *ml_int32(int32_t Integer) {
+static inline ml_value_t *ml_integer32(int32_t Integer) {
 	return (ml_value_t *)(((uint64_t)1 << 48) + (uint32_t)Integer);
 }
 
-ml_value_t *ml_int64(int64_t Integer);
+ml_value_t *ml_integer64(int64_t Integer);
 
 static inline ml_value_t *ml_integer(int64_t Integer) {
 	if (Integer >= INT32_MIN && Integer <= INT32_MAX) {
-		return ml_int32(Integer);
+		return ml_integer32(Integer);
 	} else {
-		return ml_int64(Integer);
+		return ml_integer64(Integer);
 	}
 }
 
@@ -599,6 +590,14 @@ static inline ml_value_t *ml_real(double Value) {
 	Boxed.Bits += 0x07000000000000;
 	return Boxed.Value;
 }
+
+#ifdef ML_RATIONAL
+
+static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+
+}
+
+#endif
 
 static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;

@@ -1178,9 +1178,9 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 
 #ifdef ML_NANBOXING
 
-#define NegOne ml_int32(-1)
-#define One ml_int32(1)
-#define Zero ml_int32(0)
+#define NegOne ml_integer32(-1)
+#define One ml_integer32(1)
+#define Zero ml_integer32(0)
 
 #else
 

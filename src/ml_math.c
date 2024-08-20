@@ -275,8 +275,8 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns the greatest common divisor of :mini:`A` and :mini:`B`.
-	long A = labs(ml_integer_value_fast(Args[0]));
-	long B = labs(ml_integer_value_fast(Args[1]));
+	unsigned long A = labs(ml_integer_value_fast(Args[0]));
+	unsigned long B = labs(ml_integer_value_fast(Args[1]));
 	if (A == 0) return Args[1];
 	if (B == 0) return Args[0];
 	int Shift = __builtin_ctzl(A | B);
