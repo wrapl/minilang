@@ -971,7 +971,9 @@ ML_FUNCTIONX(MLTrace) {
 	ml_value_t *Trace = ml_list();
 	for (ml_state_t *State = Caller; State; State = State->Caller) {
 		ml_source_t Source = ml_debugger_source(State);
-		ml_list_put(Trace, ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+		if (strcmp(Source.Name, "<unknown>")) {
+			ml_list_put(Trace, ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+		}
 	}
 	ML_RETURN(Trace);
 }
