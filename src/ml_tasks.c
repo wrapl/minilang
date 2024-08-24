@@ -1,6 +1,7 @@
 #include "ml_tasks.h"
 #include "minilang.h"
 #include "ml_macros.h"
+#include "ml_logging.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "tasks"
@@ -313,6 +314,8 @@ struct ml_task_pending_t {
 typedef struct {
 	ml_state_t Base;
 	ml_task_pending_t *Head, *Tail;
+	ml_state_t Empty[1];
+	ml_value_t *Callback;
 	int NumRunning, MaxRunning;
 	int NumPending, MaxPending;
 } ml_task_queue_t;
@@ -351,13 +354,22 @@ ML_TYPE(MLTaskQueueT, (MLFunctionT), "task::queue",
 );
 
 static void ml_task_queue_run(ml_task_queue_t *Queue, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Task returned error");
 	ml_task_pending_t *Pending = Queue->Head;
 	if (Pending) {
 		if (!(Queue->Head = Pending->Next)) Queue->Tail = NULL;
 		return ml_call(Pending->Task, Pending->Fn, Pending->Count, Pending->Args);
-	} else {
-		--Queue->NumRunning;
+	} else if (--Queue->NumRunning == 0) {
+		if (Queue->Callback) {
+			ml_value_t **Args = ml_alloc_args(1);
+			Args[0] = (ml_value_t *)Queue;
+			return ml_call(Queue->Empty, Queue->Callback, 1, Args);
+		}
 	}
+}
+
+static void ml_task_queue_empty(ml_task_queue_t *Queue, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Empty callback returned error");
 }
 
 ML_METHOD(MLTaskQueueT, MLIntegerT) {
@@ -371,6 +383,23 @@ ML_METHOD(MLTaskQueueT, MLIntegerT) {
 	Queue->MaxRunning = ml_integer_value(Args[0]);
 	Queue->NumRunning = 0;
 	return (ml_value_t *)Queue;
+}
+
+ML_METHODX(MLTaskQueueT, MLIntegerT, MLFunctionT) {
+//@task::queue
+//<MaxRunning
+//<Callback
+//>task::queue
+// Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
+	ml_task_queue_t *Queue = new(ml_task_queue_t);
+	Queue->Base.Type = MLTaskQueueT;
+	Queue->Base.run = (ml_state_fn)ml_task_queue_run;
+	Queue->MaxRunning = ml_integer_value(Args[0]);
+	Queue->NumRunning = 0;
+	Queue->Empty->Context = Caller->Context;
+	Queue->Empty->run = (ml_state_fn)ml_task_queue_empty;
+	Queue->Callback = Args[1];
+	ML_RETURN(Queue);
 }
 
 ML_METHOD("cancel", MLTaskQueueT) {
