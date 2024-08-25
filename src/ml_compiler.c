@@ -77,6 +77,7 @@ struct ml_parser_t {
 	};
 	ml_value_t *Warnings;
 	mlc_expected_delimiter_t *ExpectedDelimiter;
+	stringmap_t *EscapeFns;
 	ml_source_t Source;
 	int Line;
 	jmp_buf OnError;
@@ -1862,7 +1863,7 @@ ML_TYPE(MLExprT, (), "expr");
 //!macro
 // An expression value used by the compiler to implement macros.
 
-static ml_value_t *ml_expr_value(mlc_expr_t *Expr) {
+ml_value_t *ml_expr_value(mlc_expr_t *Expr) {
 	Expr->Type = MLExprT;
 	return (ml_value_t *)Expr;
 }
@@ -3829,18 +3830,21 @@ static ml_value_t *ml_parser_default_special(void *Data) {
 	return ml_error("ParseError", "Parser does support special values");
 }
 
+static stringmap_t MLEscapeFns[1] = {STRINGMAP_INIT};
+
 ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLParserT;
 	Parser->Token = MLT_NONE;
 	Parser->Next = "";
 	Parser->Source.Name = "";
-	Parser->Source.Line = 0;
-	Parser->Line = 0;
+	Parser->Source.Line = 1;
+	Parser->Line = 1;
 	Parser->ReadData = Data;
 	Parser->Read = Read ?: ml_parser_no_input;
 	Parser->Escape = ml_parser_default_escape;
 	Parser->Special = ml_parser_default_special;
+	Parser->EscapeFns = MLEscapeFns;
 	return Parser;
 }
 
@@ -3857,6 +3861,10 @@ static void ml_accept_eoi(ml_parser_t *Parser);
 
 const char *ml_parser_name(ml_parser_t *Parser) {
 	return Parser->Source.Name;
+}
+
+inline ml_source_t ml_parser_position(ml_parser_t *Parser) {
+	return Parser->Source;
 }
 
 ml_source_t ml_parser_source(ml_parser_t *Parser, ml_source_t Source) {
@@ -3885,7 +3893,6 @@ ml_value_t *ml_parser_warnings(ml_parser_t *Parser) {
 
 void ml_parser_input(ml_parser_t *Parser, const char *Text) {
 	Parser->Next = Text;
-	++Parser->Line;
 }
 
 const char *ml_parser_clear(ml_parser_t *Parser) {
@@ -4158,6 +4165,15 @@ static inline int ml_isdigit(char C) {
 
 #include "keywords.c"
 
+void ml_parser_add_escape(ml_parser_t *Parser, const char *Prefix, ml_parser_escape_t Fn) {
+	if (!Parser) {
+		stringmap_insert(MLEscapeFns, Prefix, Fn);
+	} else {
+		if (Parser->EscapeFns == MLEscapeFns) Parser->EscapeFns = stringmap_copy(MLEscapeFns);
+		stringmap_insert(Parser->EscapeFns, Prefix, Fn);
+	}
+}
+
 static stringmap_t StringFns[1] = {STRINGMAP_INIT};
 
 void ml_string_fn_register(const char *Prefix, string_fn_t Fn) {
@@ -4366,7 +4382,10 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			//memcpy(Ident, Next, Length);
 			//Ident[Length] = 0;
 			if (End[0] == '\"') {
-				string_fn_t StringFn = stringmap_search(StringFns, Ident);
+				Parser->Ident = Ident;
+				Parser->Token = MLT_ESCAPE;
+				Parser->Next = End + 1;
+				/*string_fn_t StringFn = stringmap_search(StringFns, Ident);
 				if (!StringFn) {
 					ml_parse_warn(Parser, "ParseError", "Unknown string prefix: %s", Ident);
 					StringFn = ml_string;
@@ -4380,7 +4399,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 					longjmp(Parser->OnError, 1);
 				}
 				Parser->Value = Value;
-				Parser->Token = MLT_VALUE;
+				Parser->Token = MLT_VALUE;*/
 				return Parser->Token;
 			}
 			Parser->Next = End;
@@ -4483,6 +4502,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				Parser->Next = Next + 1;
 				return Parser->Token;
 			} else if (Char == '\\') {
+				Parser->Ident = "";
 				Parser->Token = MLT_ESCAPE;
 				Parser->Next = Next + 1;
 				return Parser->Token;
@@ -5539,12 +5559,17 @@ with_name:
 	}
 	case MLT_ESCAPE: {
 		ml_next(Parser);
-		ml_value_t *Value = Parser->Escape(Parser->EscapeData);
-		if (ml_is(Value, MLExprT)) return (mlc_expr_t *)Value;
-		if (ml_is_error(Value)) {
-			ml_parse_warn(Parser, ml_error_type(Value), "%s", ml_error_message(Value));
+		ml_parser_escape_t Escape = stringmap_search(Parser->EscapeFns, Parser->Ident);
+		if (!Escape) {
+			ml_parse_warn(Parser, "ParseError", "Unknown string prefix: %s", Parser->Ident);
 		} else {
-			ml_parse_warn(Parser, "ParseError", "Expected expression not %s", ml_typeof(Value)->Name);
+			ml_value_t *Value = Escape(Parser);
+			if (ml_is(Value, MLExprT)) return (mlc_expr_t *)Value;
+			if (ml_is_error(Value)) {
+				ml_parse_warn(Parser, ml_error_type(Value), "%s", ml_error_message(Value));
+			} else {
+				ml_parse_warn(Parser, "ParseError", "Expected expression not %s", ml_typeof(Value)->Name);
+			}
 		}
 		mlc_expr_t *Expr = new(mlc_expr_t);
 		Expr->Source = Parser->Source.Name;
@@ -7281,6 +7306,6 @@ void ml_compiler_init() {
 	stringmap_insert(MLMacroT->Exports, "list", MLListBuilder);
 	stringmap_insert(MLMacroT->Exports, "map", MLMapBuilder);
 	stringmap_insert(MLMacroT->Exports, "call", MLCallBuilder);
-	stringmap_insert(StringFns, "r", ml_regex);
-	stringmap_insert(StringFns, "ri", ml_regexi);
+	ml_string_fn_register("r", ml_regex);
+	ml_string_fn_register("ri", ml_regexi);
 }

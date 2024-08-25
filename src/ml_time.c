@@ -1,6 +1,7 @@
 #include "ml_time.h"
 #include "ml_macros.h"
 #include "ml_object.h"
+#include "ml_compiler2.h"
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
@@ -100,6 +101,28 @@ ml_value_t *ml_time_parse(const char *Value, int Length) {
 		Time->Value->tv_sec = timegm(&TM) - Offset;
 	}
 	return (ml_value_t *)Time;
+}
+
+ml_value_t *ml_parser_escape_time(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser), *End = Next;
+	while (End[0] != '\"') {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		++End;
+	}
+	int Length = End - Next;
+	ml_parser_input(Parser, End + 1);
+	ml_value_t *Value = ml_time_parse(Next, Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
 }
 
 ML_METHOD(MLTimeT, MLStringT) {
@@ -602,6 +625,31 @@ static ml_value_t *ml_time_zone_parse(const char *Id, int Length) {
 	return ml_time_zone(Id);
 }
 
+ml_value_t *ml_parser_escape_time_zone(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser), *End = Next;
+	while (End[0] != '\"') {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		++End;
+	}
+	int Length = End - Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Next, Length);
+	Raw[Length] = 0;
+	ml_parser_input(Parser, End + 1);
+	ml_value_t *Value = ml_time_zone(Raw);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
+}
+
 static ml_value_t *ml_time_zone_deref(ml_time_zone_t *TimeZone) {
 	if (!TimeZone->Info) {
 		int Error = 0;
@@ -1020,4 +1068,6 @@ void ml_time_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_TIME_STRING, ml_cbor_read_time_fn);
 	ml_cbor_default_tag(ML_CBOR_TAG_TIME_EPOCH, ml_cbor_read_time_fn);
 #endif
+	ml_parser_add_escape(NULL, "T", ml_parser_escape_time);
+	ml_parser_add_escape(NULL, "TZ", ml_parser_escape_time_zone);
 }

@@ -306,6 +306,8 @@ struct mlc_frame_t {
 
 void mlc_expr_error(mlc_function_t *Function, const mlc_expr_t *Expr, ml_value_t *Error);
 
+ml_value_t *ml_expr_value(mlc_expr_t *Expr);
+
 #define MLC_EXPR_ERROR(EXPR, ERROR) return mlc_expr_error(Function, (mlc_expr_t *)(EXPR), ERROR)
 
 #define MLC_FRAME(TYPE, RUN) TYPE *Frame = (TYPE *)mlc_frame_alloc(Function, sizeof(TYPE), (mlc_frame_fn)RUN)

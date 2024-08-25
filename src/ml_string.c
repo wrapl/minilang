@@ -2,6 +2,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_object.h"
+#include "ml_compiler2.h"
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
@@ -3846,6 +3847,58 @@ ml_value_t *ml_regexi(const char *Pattern0, int Length) {
 	return (ml_value_t *)Regex;
 }
 
+static ml_value_t *ml_parser_escape_regex(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser), *End = Next;
+	while (End[0] != '\"') {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		if (End[0] == '\\') ++End;
+		++End;
+	}
+	int Length = End - Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Next, Length);
+	Raw[Length] = 0;
+	ml_parser_input(Parser, End + 1);
+	ml_value_t *Value = ml_regex(Raw, Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
+}
+
+static ml_value_t *ml_parser_escape_regexi(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser), *End = Next;
+	while (End[0] != '\"') {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		if (End[0] == '\\') ++End;
+		++End;
+	}
+	int Length = End - Next, Length0 = strlen("(?i)");
+	char *Raw = snew(Length0 + Length + 1);
+	memcpy(stpcpy(Raw, "(?i)"), Next, Length);
+	Raw[Length0 + Length] = 0;
+	ml_parser_input(Parser, End + 1);
+	ml_value_t *Value = ml_regex(Raw, Length0 + Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
+}
+
 const char *ml_regex_pattern(const ml_value_t *Value) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	return Regex->Pattern;
@@ -4625,4 +4678,6 @@ void ml_string_init() {
 	stringmap_insert(MLStringT->Exports, "norm", MLStringNormT);
 	stringmap_insert(MLStringT->Exports, "ctype", MLStringCTypeT);
 #endif
+	ml_parser_add_escape(NULL, "r", ml_parser_escape_regex);
+	ml_parser_add_escape(NULL, "ri", ml_parser_escape_regexi);
 }

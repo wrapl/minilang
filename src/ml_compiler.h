@@ -105,6 +105,7 @@ ml_value_t *ml_parser_warnings(ml_parser_t *Parser);
  */
 void ml_parser_input(ml_parser_t *Parser, const char *Text);
 const char *ml_parser_name(ml_parser_t *Parser);
+ml_source_t ml_parser_position(ml_parser_t *Parser);
 ml_source_t ml_parser_source(ml_parser_t *Parser, ml_source_t Source);
 ml_value_t *ml_parser_value(ml_parser_t *Parser);
 const char *ml_parser_clear(ml_parser_t *Parser);
@@ -114,6 +115,10 @@ const mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 
 void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data);
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data);
+
+typedef ml_value_t *(*ml_parser_escape_t)(ml_parser_t *Parser);
+
+void ml_parser_add_escape(ml_parser_t *Parser, const char *Prefix, ml_parser_escape_t Fn);
 
 ml_value_t *ml_macro_subst(mlc_expr_t *Child, int Count, const char **Names, ml_value_t **Exprs);
 

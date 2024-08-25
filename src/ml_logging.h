@@ -16,9 +16,10 @@ typedef enum {
 	ML_LOG_LEVEL_FATAL = 1,
 	ML_LOG_LEVEL_ERROR = 2,
 	ML_LOG_LEVEL_WARN = 3,
-	ML_LOG_LEVEL_INFO = 4,
-	ML_LOG_LEVEL_DEBUG = 5,
-	ML_LOG_LEVEL_ALL = 6
+	ML_LOG_LEVEL_MESSAGE = 4,
+	ML_LOG_LEVEL_INFO = 5,
+	ML_LOG_LEVEL_DEBUG = 6,
+	ML_LOG_LEVEL_ALL = 7
 } ml_log_level_t;
 
 typedef struct ml_logger_t ml_logger_t;
@@ -52,6 +53,10 @@ extern ml_logger_t MLLoggerDefault[];
 #define ML_LOG_WARN(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_WARN) { \
 		ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}
+#define ML_LOG_MESSAGE(ERROR, FORMAT, ...) \
+	if (MLLogLevel >= ML_LOG_LEVEL_MESSAGE) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_MESSAGE, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
 	}
 #define ML_LOG_INFO(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_INFO) { \

@@ -1,5 +1,6 @@
 #include "ml_uuid.h"
 #include "ml_macros.h"
+#include "ml_compiler2.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "uuid"
@@ -31,6 +32,31 @@ ml_value_t *ml_uuid_parse(const char *Value, int Length) {
 		return ml_error("UUIDError", "Invalid UUID string");
 	}
 	return (ml_value_t *)UUID;
+}
+
+ml_value_t *ml_parser_escape_uuid(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser), *End = Next;
+	while (End[0] != '\"') {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		++End;
+	}
+	int Length = End - Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Next, Length);
+	Raw[Length] = 0;
+	ml_parser_input(Parser, End + 1);
+	ml_value_t *Value = ml_uuid_parse(Raw, Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
 }
 
 static int ML_TYPED_FN(ml_value_is_constant, MLUUIDT, ml_value_t *Value) {
@@ -142,4 +168,5 @@ void ml_uuid_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_UUID, ml_cbor_read_uuid_fn);
 	ml_externals_default_add("uuid", MLUUIDT);
 #endif
+	ml_parser_add_escape(NULL, "U", ml_parser_escape_uuid);
 }
