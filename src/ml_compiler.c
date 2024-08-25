@@ -3901,6 +3901,10 @@ const char *ml_parser_clear(ml_parser_t *Parser) {
 	return Next;
 }
 
+const char *ml_parser_read(ml_parser_t *Parser) {
+	return Parser->Read(Parser->ReadData);
+}
+
 /*void ml_parse_error(ml_parser_t *Parser, const char *Error, const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
@@ -4174,11 +4178,11 @@ void ml_parser_add_escape(ml_parser_t *Parser, const char *Prefix, ml_parser_esc
 	}
 }
 
-static stringmap_t StringFns[1] = {STRINGMAP_INIT};
+//static stringmap_t StringFns[1] = {STRINGMAP_INIT};
 
-void ml_string_fn_register(const char *Prefix, string_fn_t Fn) {
-	stringmap_insert(StringFns, Prefix, Fn);
-}
+//void ml_string_fn_register(const char *Prefix, string_fn_t Fn) {
+//	stringmap_insert(StringFns, Prefix, Fn);
+//}
 
 static inline char *ml_scan_utf8(char *D, uint32_t Code) {
 	char Val[8];
@@ -7306,6 +7310,6 @@ void ml_compiler_init() {
 	stringmap_insert(MLMacroT->Exports, "list", MLListBuilder);
 	stringmap_insert(MLMacroT->Exports, "map", MLMapBuilder);
 	stringmap_insert(MLMacroT->Exports, "call", MLCallBuilder);
-	ml_string_fn_register("r", ml_regex);
-	ml_string_fn_register("ri", ml_regexi);
+	//ml_string_fn_register("r", ml_regex);
+	//ml_string_fn_register("ri", ml_regexi);
 }

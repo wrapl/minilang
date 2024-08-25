@@ -1057,11 +1057,11 @@ void ml_time_init(stringmap_t *Globals) {
 	stringmap_insert(MLTimeT->Exports, "month", MLTimeMonthT);
 	ml_method_by_value(MLTimeT->Constructor, NULL, ml_identity, MLTimeT, NULL);
 	if (Globals) stringmap_insert(Globals, "time", MLTimeT);
-	ml_string_fn_register("T", ml_time_parse);
+	//ml_string_fn_register("T", ml_time_parse);
 #ifdef ML_TIMEZONES
 	stringmap_insert(MLTimeT->Exports, "zone", MLTimeZoneT);
 	MLTimeZoneT->Type = MLTimeZoneTypeT;
-	ml_string_fn_register("TZ", ml_time_zone_parse);
+	//ml_string_fn_register("TZ", ml_time_zone_parse);
 #endif
 	ml_externals_default_add("time", MLTimeT);
 #ifdef ML_CBOR
