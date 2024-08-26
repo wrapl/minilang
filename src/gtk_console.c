@@ -805,7 +805,7 @@ gtk_console_t *gtk_console(ml_state_t *Caller, ml_getter_t GlobalGet, void *Glob
 	Console->HistoryEnd = 0;
 	Console->Parser = ml_parser(NULL, NULL);
 	Console->Compiler = ml_compiler((ml_getter_t)console_global_get, Console);
-	ml_parser_source(Console->Parser, (ml_source_t){Console->Name, 0});
+	ml_parser_source(Console->Parser, (ml_source_t){Console->Name, 1});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 	GC_asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");

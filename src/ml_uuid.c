@@ -47,7 +47,7 @@ ml_value_t *ml_parser_escape_uuid(ml_parser_t *Parser) {
 	char *Raw = snew(Length + 1);
 	memcpy(Raw, Next, Length);
 	Raw[Length] = 0;
-	ml_parser_input(Parser, End + 1);
+	ml_parser_input(Parser, End + 1, 0);
 	ml_value_t *Value = ml_uuid_parse(Raw, Length);
 	if (ml_is_error(Value)) return Value;
 	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);

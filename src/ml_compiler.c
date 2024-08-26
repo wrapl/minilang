@@ -3891,8 +3891,9 @@ ml_value_t *ml_parser_warnings(ml_parser_t *Parser) {
 	return Parser->Warnings;
 }
 
-void ml_parser_input(ml_parser_t *Parser, const char *Text) {
+void ml_parser_input(ml_parser_t *Parser, const char *Text, int Advance) {
 	Parser->Next = Text;
+	Parser->Line += Advance;
 }
 
 const char *ml_parser_clear(ml_parser_t *Parser) {
@@ -6481,7 +6482,16 @@ ML_METHOD("input", MLParserT, MLStringT) {
 //<String
 //>compiler
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
-	ml_parser_input(Parser, ml_string_value(Args[1]));
+	ml_parser_input(Parser, ml_string_value(Args[1]), 0);
+	return Args[0];
+}
+
+ML_METHOD("input", MLParserT, MLStringT, MLIntegerT) {
+//<Parser
+//<String
+//>compiler
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	ml_parser_input(Parser, ml_string_value(Args[1]), ml_integer_value(Args[2]));
 	return Args[0];
 }
 

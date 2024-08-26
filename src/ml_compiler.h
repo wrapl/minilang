@@ -103,7 +103,7 @@ ml_value_t *ml_parser_warnings(ml_parser_t *Parser);
  * @param Parser Parser.
  * @param Text Source text.
  */
-void ml_parser_input(ml_parser_t *Parser, const char *Text);
+void ml_parser_input(ml_parser_t *Parser, const char *Text, int Advance);
 const char *ml_parser_name(ml_parser_t *Parser);
 ml_source_t ml_parser_position(ml_parser_t *Parser);
 ml_source_t ml_parser_source(ml_parser_t *Parser, ml_source_t Source);

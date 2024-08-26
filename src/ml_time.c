@@ -113,7 +113,7 @@ ml_value_t *ml_parser_escape_time(ml_parser_t *Parser) {
 		++End;
 	}
 	int Length = End - Next;
-	ml_parser_input(Parser, End + 1);
+	ml_parser_input(Parser, End + 1, 0);
 	ml_value_t *Value = ml_time_parse(Next, Length);
 	if (ml_is_error(Value)) return Value;
 	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
@@ -638,7 +638,7 @@ ml_value_t *ml_parser_escape_time_zone(ml_parser_t *Parser) {
 	char *Raw = snew(Length + 1);
 	memcpy(Raw, Next, Length);
 	Raw[Length] = 0;
-	ml_parser_input(Parser, End + 1);
+	ml_parser_input(Parser, End + 1, 0);
 	ml_value_t *Value = ml_time_zone(Raw);
 	if (ml_is_error(Value)) return Value;
 	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);

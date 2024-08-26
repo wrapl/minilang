@@ -495,7 +495,7 @@ int main(int Argc, const char *Argv[]) {
 	} else if (Command) {
 		ml_parser_t *Parser = ml_parser(NULL, NULL);
 		ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
-		ml_parser_input(Parser, Command);
+		ml_parser_input(Parser, Command, 0);
 		ml_command_evaluate(Main, Parser, Compiler);
 	} else {
 		ml_console(Main->Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ");
