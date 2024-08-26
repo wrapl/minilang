@@ -3938,9 +3938,14 @@ void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, .
 	));
 }
 
+static ml_value_t *ml_parser_escape_other(ml_parser_t *Parser) {
+	return Parser->Escape(Parser->EscapeData);
+}
+
 void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data) {
 	Parser->Escape = Escape;
 	Parser->EscapeData = Data;
+	ml_parser_add_escape(Parser, "", ml_parser_escape_other);
 }
 
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data) {
