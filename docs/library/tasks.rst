@@ -88,6 +88,10 @@ tasks
    Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
 
 
+:mini:`meth task::queue(MaxRunning: integer, Callback: function): task::queue`
+   Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
+
+
 :mini:`meth (Arg₁: task::queue):cancel`
    *TBD*
 

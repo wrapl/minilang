@@ -336,7 +336,7 @@ xml
 
 
 :mini:`type xml::text < xml, string`
-   A XML text node.
+   An XML text node.
 
 
 :mini:`meth (Xml: xml::text):text: string`

@@ -244,7 +244,7 @@ math
    .. code-block:: mini
 
       let N := 2 ^ 2 :> 4
-      type(N) :> <<int32>>
+      type(N) :> <<integer32>>
       let R := 2 ^ -1 :> 0.5
       type(R) :> <<double>>
 

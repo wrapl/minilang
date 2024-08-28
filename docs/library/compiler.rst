@@ -145,6 +145,10 @@ compiler
    *TBD*
 
 
+:mini:`meth (Parser: parser):input(String: string, Arg₃: integer): compiler`
+   *TBD*
+
+
 :mini:`meth (Parser: parser):parse: expr`
    *TBD*
 

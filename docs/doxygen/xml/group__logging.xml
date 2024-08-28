@@ -40,9 +40,17 @@
           <detaileddescription>
           </detaileddescription>
         </enumvalue>
+        <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da65e5a719fb7d86fc887bdc29e860759b" prot="public">
+          <name>ML_LOG_LEVEL_MESSAGE</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
         <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dac9889f39811527db27b832ff64117f3b" prot="public">
           <name>ML_LOG_LEVEL_INFO</name>
-          <initializer>= 4</initializer>
+          <initializer>= 5</initializer>
           <briefdescription>
           </briefdescription>
           <detaileddescription>
@@ -50,7 +58,7 @@
         </enumvalue>
         <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5da8090a7ffa0915d58c3ed4c4092cf4edb" prot="public">
           <name>ML_LOG_LEVEL_DEBUG</name>
-          <initializer>= 5</initializer>
+          <initializer>= 6</initializer>
           <briefdescription>
           </briefdescription>
           <detaileddescription>
@@ -58,7 +66,7 @@
         </enumvalue>
         <enumvalue id="group__logging_1ggad85d5ad7f21721364ba021b14fbbbf5dab92b65b1dd4c7ba4d26609f20a4638f4" prot="public">
           <name>ML_LOG_LEVEL_ALL</name>
-          <initializer>= 6</initializer>
+          <initializer>= 7</initializer>
           <briefdescription>
           </briefdescription>
           <detaileddescription>
@@ -70,7 +78,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="14" column="1" bodyfile="src/ml_logging.h" bodystart="14" bodyend="22"/>
+        <location file="src/ml_logging.h" line="14" column="1" bodyfile="src/ml_logging.h" bodystart="14" bodyend="23"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="typedef">
@@ -85,7 +93,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="24" column="26" bodyfile="src/ml_logging.h" bodystart="24" bodyend="-1"/>
+        <location file="src/ml_logging.h" line="25" column="26" bodyfile="src/ml_logging.h" bodystart="25" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="group__logging_1ga3801ca2abfc03b2781896138f8fe6428" prot="public" static="no">
         <type>void(*</type>
@@ -98,7 +106,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="34" column="9" bodyfile="src/ml_logging.h" bodystart="34" bodyend="-1"/>
+        <location file="src/ml_logging.h" line="35" column="9" bodyfile="src/ml_logging.h" bodystart="35" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="group__logging_1ga0d57f9581b804027a60b4c23f950e607" prot="public" static="no" extern="yes">
         <type>void ml_log_level_t</type>
@@ -111,7 +119,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="36" column="23" declfile="src/ml_logging.h" declline="36" declcolumn="23"/>
+        <location file="src/ml_logging.h" line="37" column="23" declfile="src/ml_logging.h" declline="37" declcolumn="23"/>
       </memberdef>
       <memberdef kind="typedef" id="group__logging_1ga6f197920c6dd5296a58eca3b241c98e1" prot="public" static="no">
         <type>void(*</type>
@@ -124,7 +132,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="70" column="9" bodyfile="src/ml_logging.h" bodystart="70" bodyend="-1"/>
+        <location file="src/ml_logging.h" line="75" column="9" bodyfile="src/ml_logging.h" bodystart="75" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="var">
@@ -139,7 +147,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="37" column="21" declfile="src/ml_logging.h" declline="37" declcolumn="21"/>
+        <location file="src/ml_logging.h" line="38" column="21" declfile="src/ml_logging.h" declline="38" declcolumn="21"/>
       </memberdef>
       <memberdef kind="variable" id="group__logging_1gaa8c901d37ef198c7100a86a593925b15" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__logger__t" kindref="compound">ml_logger_t</ref></type>
@@ -152,7 +160,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="38" column="20" declfile="src/ml_logging.h" declline="38" declcolumn="20"/>
+        <location file="src/ml_logging.h" line="39" column="20" declfile="src/ml_logging.h" declline="39" declcolumn="20"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -171,7 +179,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="65" column="13" declfile="src/ml_logging.h" declline="65" declcolumn="13"/>
+        <location file="src/ml_logging.h" line="70" column="13" declfile="src/ml_logging.h" declline="70" declcolumn="13"/>
       </memberdef>
       <memberdef kind="function" id="group__logging_1ga8060269338d356d34e36691c2b7077f4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -192,7 +200,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="66" column="6" declfile="src/ml_logging.h" declline="66" declcolumn="6"/>
+        <location file="src/ml_logging.h" line="71" column="6" declfile="src/ml_logging.h" declline="71" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__logging_1ga59673295603f23e896e0c1ec708b33f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -209,7 +217,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="68" column="6" declfile="src/ml_logging.h" declline="68" declcolumn="6"/>
+        <location file="src/ml_logging.h" line="73" column="6" declfile="src/ml_logging.h" declline="73" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__logging_1gae64f8d93cf616e6fa14dd1e9ea535fb6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -230,7 +238,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="72" column="6" declfile="src/ml_logging.h" declline="72" declcolumn="6"/>
+        <location file="src/ml_logging.h" line="77" column="6" declfile="src/ml_logging.h" declline="77" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__logging_1ga175c5bbea91a77974d728688699a5a0c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -247,7 +255,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="73" column="6" declfile="src/ml_logging.h" declline="73" declcolumn="6"/>
+        <location file="src/ml_logging.h" line="78" column="6" declfile="src/ml_logging.h" declline="78" declcolumn="6"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -260,7 +268,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="41" column="9" bodyfile="src/ml_logging.h" bodystart="41" bodyend="-1"/>
+        <location file="src/ml_logging.h" line="42" column="9" bodyfile="src/ml_logging.h" bodystart="42" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__logging_1ga8b196e830508b498e21565222c8db52f" prot="public" static="no">
         <name>ML_LOG_FATAL</name>
@@ -276,7 +284,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="44" column="9" bodyfile="src/ml_logging.h" bodystart="44" bodyend="47"/>
+        <location file="src/ml_logging.h" line="45" column="9" bodyfile="src/ml_logging.h" bodystart="45" bodyend="48"/>
       </memberdef>
       <memberdef kind="define" id="group__logging_1gaebf88e6908ef617953afa05f50e1916f" prot="public" static="no">
         <name>ML_LOG_ERROR</name>
@@ -292,7 +300,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="48" column="9" bodyfile="src/ml_logging.h" bodystart="48" bodyend="51"/>
+        <location file="src/ml_logging.h" line="49" column="9" bodyfile="src/ml_logging.h" bodystart="49" bodyend="52"/>
       </memberdef>
       <memberdef kind="define" id="group__logging_1gada7629204b251e9a90e20978e8b28759" prot="public" static="no">
         <name>ML_LOG_WARN</name>
@@ -308,7 +316,23 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="52" column="9" bodyfile="src/ml_logging.h" bodystart="52" bodyend="55"/>
+        <location file="src/ml_logging.h" line="53" column="9" bodyfile="src/ml_logging.h" bodystart="53" bodyend="56"/>
+      </memberdef>
+      <memberdef kind="define" id="group__logging_1ga7db9f7d052dc2fe8d91acf22dfebcf1f" prot="public" static="no">
+        <name>ML_LOG_MESSAGE</name>
+        <param><defname>ERROR</defname></param>
+        <param><defname>FORMAT</defname></param>
+        <param><defname>...</defname></param>
+        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_MESSAGE) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_MESSAGE, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_logging.h" line="57" column="9" bodyfile="src/ml_logging.h" bodystart="57" bodyend="60"/>
       </memberdef>
       <memberdef kind="define" id="group__logging_1ga9f77e3b7c700fbd00198de7b6bcd4090" prot="public" static="no">
         <name>ML_LOG_INFO</name>
@@ -324,7 +348,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="56" column="9" bodyfile="src/ml_logging.h" bodystart="56" bodyend="59"/>
+        <location file="src/ml_logging.h" line="61" column="9" bodyfile="src/ml_logging.h" bodystart="61" bodyend="64"/>
       </memberdef>
       <memberdef kind="define" id="group__logging_1gaef503c71d4eaacaad1ea793deb302716" prot="public" static="no">
         <name>ML_LOG_DEBUG</name>
@@ -340,7 +364,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_logging.h" line="60" column="9" bodyfile="src/ml_logging.h" bodystart="60" bodyend="63"/>
+        <location file="src/ml_logging.h" line="65" column="9" bodyfile="src/ml_logging.h" bodystart="65" bodyend="68"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

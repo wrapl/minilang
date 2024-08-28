@@ -376,7 +376,7 @@ number
    .. code-block:: mini
 
       let N := 10 / 2 :> 5
-      type(N) :> <<int32>>
+      type(N) :> <<integer32>>
       let R := 10 / 3 :> 3.33333333333333
       type(R) :> <<double>>
 

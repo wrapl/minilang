@@ -135,7 +135,7 @@ ML_FUNCTION(MLXmlEscape) {
 }
 
 ML_TYPE(MLXmlTextT, (MLXmlT, MLStringT), "xml::text");
-// A XML text node.
+// An XML text node.
 
 ml_xml_node_t *ml_xml_text(const char *Content, int Length) {
 	ml_xml_node_t *Text = new(ml_xml_node_t);
@@ -1565,6 +1565,9 @@ static void xml_skipped_entity(xml_parser_t *Parser, const XML_Char *EntityName,
 	ml_stringbuffer_write(Parser->Buffer, EntityName, strlen(EntityName));
 }
 
+static void xml_comment(xml_parser_t *Parser, const XML_Char *String) {
+}
+
 static void xml_default(xml_parser_t *Parser, const XML_Char *String, int Length) {
 	ml_stringbuffer_write(Parser->Buffer, String, Length);
 }
@@ -1591,6 +1594,7 @@ ML_METHOD(MLXmlT, MLStringT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	const char *Text = ml_string_value(Args[0]);
 	size_t Length = ml_string_length(Args[0]);
@@ -1637,6 +1641,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
 	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
@@ -1701,6 +1706,7 @@ ML_METHOD(MLXmlParse, MLAddressT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	const char *Text = ml_address_value(Args[0]);
 	size_t Length = ml_address_length(Args[0]);
@@ -1726,6 +1732,7 @@ ML_METHODX(MLXmlParse, MLStreamT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
 	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
@@ -1773,6 +1780,7 @@ ML_FUNCTIONX(XmlParser) {
 	XML_SetElementHandler(Parser->Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Parser->Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Parser->Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Parser->Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Parser->Handle, (void *)xml_default);
 	ML_RETURN(Parser);
 }
@@ -1797,6 +1805,92 @@ static void ML_TYPED_FN(ml_stream_flush, MLXmlParserT, ml_state_t *Caller, ml_xm
 		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
 	ML_RETURN(Parser);
+}
+
+typedef enum {
+	XML_ESCAPE_CONTENT,
+	XML_ESCAPE_TAG,
+	XML_ESCAPE_ATTR_NAME,
+	XML_ESCAPE_ATTR_VALUE
+} xml_escape_state_t;
+
+typedef struct {
+	ml_parser_t *Parser;
+	const char *Next;
+	ml_source_t Source;
+} xml_escape_parser_t;
+
+#include <ctype.h>
+#include "ml_compiler2.h"
+
+static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
+	const char *Next = Parser->Next;
+	while (isalpha(*Next)) ++Next;
+	int TagLength = Next - Parser->Next;
+	if (!TagLength) return ml_error("ParseError", "Missing tag");
+	ml_value_t *Tag = ml_string_copy(Parser->Next, TagLength);
+	mlc_value_expr_t *TagExpr = new(mlc_value_expr_t);
+	TagExpr->compile = ml_value_expr_compile;
+	TagExpr->Value = Tag;
+	TagExpr->Source = Parser->Source.Name;
+	TagExpr->StartLine = TagExpr->EndLine = Parser->Source.Line;
+	mlc_parent_value_expr_t *ElementExpr = new(mlc_parent_value_expr_t);
+	ElementExpr->compile = ml_const_call_expr_compile;
+	ElementExpr->Value = (ml_value_t *)MLXmlElementT;
+	ElementExpr->Source = Parser->Source.Name;
+	ElementExpr->StartLine = Parser->Source.Line;
+	mlc_parent_expr_t *AttrsExpr = new(mlc_parent_expr_t);
+	AttrsExpr->compile = ml_map_expr_compile;
+	AttrsExpr->Source = Parser->Source.Name;
+	AttrsExpr->StartLine = Parser->Source.Line;
+	ElementExpr->Child = (mlc_expr_t *)TagExpr;
+	TagExpr->Next = (mlc_expr_t *)AttrsExpr;
+	mlc_expr_t **Attributes = &AttrsExpr->Child;
+	mlc_expr_t **Content = &AttrsExpr->Next;
+
+	for (;;) {
+		if (isalpha(Next[0])) {
+			const char *Start = Next;
+			while (isalpha(Next[0])) ++Next;
+			int AttrLength = Next - Start;
+			ml_value_t *Attr = ml_string_copy(Start, Next - Start);
+
+		} else switch (Next[0]) {
+		case ' ': ++Next; break;
+		case '/': {
+			if (Next[1] != '>') return ml_error("ParseError", "Invalid element");
+			ElementExpr->EndLine = Parser->Source.Line;
+			Parser->Next = Next + 2;
+			return ml_expr_value((mlc_expr_t *)ElementExpr);
+		}
+		case '>': {
+			Parser->Next = Next + 1;
+			// TOOD: parse content;
+			return ml_expr_value((mlc_expr_t *)ElementExpr);
+		}
+		default: return ml_error("ParseError", "Unexpected character %c parsing xml", Next[0]);
+		}
+	}
+}
+
+static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser);
+	while (Next[0] != '\"') {
+		char Char = Next[0];
+		switch (Char) {
+		case 0: {
+			Next = ml_parser_read(Parser);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+			break;
+		}
+		case '<': {
+			const char *End = Next + 1;
+			while (isalpha(*End)) ++End;
+
+		}
+
+		}
+	}
 }
 
 void ml_xml_init(stringmap_t *Globals) {
