@@ -1823,6 +1823,10 @@ typedef struct {
 #include <ctype.h>
 #include "ml_compiler2.h"
 
+static ml_value_t *ml_parser_escape_xml_string(xml_escape_parser_t *Parser) {
+	return MLNil;
+}
+
 static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	const char *Next = Parser->Next;
 	while (isalpha(*Next)) ++Next;
@@ -1852,11 +1856,52 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 		if (isalpha(Next[0])) {
 			const char *Start = Next;
 			while (isalpha(Next[0])) ++Next;
-			int AttrLength = Next - Start;
-			ml_value_t *Attr = ml_string_copy(Start, Next - Start);
-
+			if (Next[0] != '=') return ml_error("ParseError", "Invalid attribute");
+			mlc_value_expr_t *AttrExpr = new(mlc_value_expr_t);
+			AttrExpr->compile = ml_value_expr_compile;
+			AttrExpr->Value = ml_string_copy(Start, Next - Start);
+			AttrExpr->Source = Parser->Source.Name;
+			AttrExpr->StartLine = AttrExpr->EndLine = Parser->Source.Line;
+			Attributes[0] = (mlc_expr_t *)AttrExpr;
+			Attributes = &AttrExpr->Next;
+			++Next;
+			switch (Next[0]) {
+			case '\"': {
+				Parser->Next = Next;
+				ml_value_t *Value = ml_parser_escape_xml_string(Parser);
+				if (ml_is_error(Value)) return Value;
+				mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+				ValueExpr->compile = ml_value_expr_compile;
+				ValueExpr->Value = ml_string_copy(Start, Next - Start);
+				ValueExpr->Source = Parser->Source.Name;
+				ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+				Attributes[0] = (mlc_expr_t *)ValueExpr;
+				Attributes = &ValueExpr->Next;
+				break;
+			}
+			case '{': {
+				ml_parser_input(Parser->Parser, Next, 0);
+				ml_parser_source(Parser->Parser, Parser->Source);
+				mlc_expr_t *Expr = ml_accept_expr(Parser->Parser);
+				if (!Expr) return ml_parser_value(Parser->Parser);
+				Parser->Source = ml_parser_position(Parser->Parser);
+				Next = ml_parser_clear(Parser->Parser);
+				if (Next[0] != '}') return ml_error("ParseError", "Invalid attribute");
+				++Next;
+				Attributes[0] = (mlc_expr_t *)Expr;
+				Attributes = &Expr->Next;
+				break;
+			}
+			default: return ml_error("ParseError", "Invalid attribute");
+			}
 		} else switch (Next[0]) {
 		case ' ': ++Next; break;
+		case '\n': {
+			++Parser->Source.Line;
+			Next = ml_parser_read(Parser->Parser);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+			break;
+		}
 		case '/': {
 			if (Next[1] != '>') return ml_error("ParseError", "Invalid element");
 			ElementExpr->EndLine = Parser->Source.Line;
@@ -1873,24 +1918,17 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	}
 }
 
-static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser) {
-	const char *Next = ml_parser_clear(Parser);
-	while (Next[0] != '\"') {
-		char Char = Next[0];
-		switch (Char) {
-		case 0: {
-			Next = ml_parser_read(Parser);
-			if (!Next) return ml_error("ParseError", "Incomplete xml");
-			break;
-		}
-		case '<': {
-			const char *End = Next + 1;
-			while (isalpha(*End)) ++End;
-
-		}
-
-		}
-	}
+static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
+	xml_escape_parser_t Parser[1];
+	Parser->Parser = Parser0;
+	Parser->Source = ml_parser_position(Parser0);
+	const char *Next = ml_parser_clear(Parser0);
+	if (Next[0] != '<') return ml_error("ParseError", "Invalid xml");
+	Parser->Next = Next + 1;
+	ml_value_t *Value = ml_parser_escape_xml_node(Parser);
+	ml_parser_input(Parser->Parser, Parser->Next, 0);
+	ml_parser_source(Parser->Parser, Parser->Source);
+	return Value;
 }
 
 void ml_xml_init(stringmap_t *Globals) {
@@ -1906,4 +1944,5 @@ void ml_xml_init(stringmap_t *Globals) {
 	if (Globals) {
 		stringmap_insert(Globals, "xml", MLXmlT);
 	}
+	ml_parser_add_escape(NULL, "xml", ml_parser_escape_xml);
 }

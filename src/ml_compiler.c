@@ -6343,10 +6343,10 @@ const mlc_expr_t *ml_accept_file(ml_parser_t *Parser) {
 	return Expr;
 }
 
-static mlc_expr_t *ml_parse_expr(ml_parser_t *Parser) {
+mlc_expr_t *ml_accept_expr(ml_parser_t *Parser) {
 	if (setjmp(Parser->OnError)) return NULL;
 	ml_skip_eol(Parser);
-	return ml_parse_expression(Parser, EXPR_DEFAULT);
+	return ml_accept_expression(Parser, EXPR_DEFAULT);
 }
 
 static void ml_function_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_compile_frame_t *Frame) {

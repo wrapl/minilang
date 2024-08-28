@@ -1058,16 +1058,16 @@ void ml_time_init(stringmap_t *Globals) {
 	ml_method_by_value(MLTimeT->Constructor, NULL, ml_identity, MLTimeT, NULL);
 	if (Globals) stringmap_insert(Globals, "time", MLTimeT);
 	//ml_string_fn_register("T", ml_time_parse);
+	ml_parser_add_escape(NULL, "T", ml_parser_escape_time);
 #ifdef ML_TIMEZONES
 	stringmap_insert(MLTimeT->Exports, "zone", MLTimeZoneT);
 	MLTimeZoneT->Type = MLTimeZoneTypeT;
 	//ml_string_fn_register("TZ", ml_time_zone_parse);
+	ml_parser_add_escape(NULL, "TZ", ml_parser_escape_time_zone);
 #endif
 	ml_externals_default_add("time", MLTimeT);
 #ifdef ML_CBOR
 	ml_cbor_default_tag(ML_CBOR_TAG_TIME_STRING, ml_cbor_read_time_fn);
 	ml_cbor_default_tag(ML_CBOR_TAG_TIME_EPOCH, ml_cbor_read_time_fn);
 #endif
-	ml_parser_add_escape(NULL, "T", ml_parser_escape_time);
-	ml_parser_add_escape(NULL, "TZ", ml_parser_escape_time_zone);
 }
