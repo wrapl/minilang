@@ -900,6 +900,9 @@ void ml_suspend_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, 
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	mlc_expr_t *Child = Expr->Child;
+	if (!Child) {
+		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Empty susp expression"));
+	}
 	if (Child->Next) {
 		Frame->Child = Child->Next;
 		return mlc_compile(Function, Child, MLCF_PUSH);
