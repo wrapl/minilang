@@ -1880,14 +1880,13 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 				break;
 			}
 			case '{': {
-				ml_parser_input(Parser->Parser, Next, 0);
+				ml_parser_input(Parser->Parser, Next + 1, 0);
 				ml_parser_source(Parser->Parser, Parser->Source);
 				mlc_expr_t *Expr = ml_accept_expr(Parser->Parser);
 				if (!Expr) return ml_parser_value(Parser->Parser);
+				ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
 				Parser->Source = ml_parser_position(Parser->Parser);
 				Next = ml_parser_clear(Parser->Parser);
-				if (Next[0] != '}') return ml_error("ParseError", "Invalid attribute");
-				++Next;
 				Attributes[0] = (mlc_expr_t *)Expr;
 				Attributes = &Expr->Next;
 				break;
@@ -1919,15 +1918,15 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 }
 
 static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
-	xml_escape_parser_t Parser[1];
-	Parser->Parser = Parser0;
-	Parser->Source = ml_parser_position(Parser0);
+	xml_escape_parser_t Parser = {0,};
+	Parser.Source = ml_parser_position(Parser0);
 	const char *Next = ml_parser_clear(Parser0);
 	if (Next[0] != '<') return ml_error("ParseError", "Invalid xml");
-	Parser->Next = Next + 1;
-	ml_value_t *Value = ml_parser_escape_xml_node(Parser);
-	ml_parser_input(Parser->Parser, Parser->Next, 0);
-	ml_parser_source(Parser->Parser, Parser->Source);
+	Parser.Next = Next + 1;
+	Parser.Parser = Parser0;
+	ml_value_t *Value = ml_parser_escape_xml_node(&Parser);
+	ml_parser_input(Parser0, Parser.Next, 0);
+	ml_parser_source(Parser0, Parser.Source);
 	return Value;
 }
 

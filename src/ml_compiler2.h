@@ -71,6 +71,8 @@ typedef enum {
 	MLT_METHOD
 } ml_token_t;
 
+void ml_accept(ml_parser_t *Parser, ml_token_t Token);
+
 typedef struct mlc_function_t mlc_function_t;
 typedef struct mlc_frame_t mlc_frame_t;
 typedef struct mlc_loop_t mlc_loop_t;

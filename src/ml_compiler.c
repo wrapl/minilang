@@ -3962,7 +3962,6 @@ typedef enum {
 } ml_expr_level_t;
 
 static int ml_parse(ml_parser_t *Parser, ml_token_t Token);
-static void ml_accept(ml_parser_t *Parser, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(ml_parser_t *Parser, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_term(ml_parser_t *Parser, int MethDecl);
 static mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level);
@@ -4642,7 +4641,7 @@ static inline int ml_parse2(ml_parser_t *Parser, ml_token_t Token) {
 	}
 }
 
-static void ml_accept(ml_parser_t *Parser, ml_token_t Token) {
+void ml_accept(ml_parser_t *Parser, ml_token_t Token) {
 	if (ml_parse2(Parser, Token)) return;
 	if (Parser->Token == MLT_IDENT) {
 		ml_parse_warn(Parser, "ParseError", "Expected %s not %s (%s)", MLTokens[Token], MLTokens[Parser->Token], Parser->Ident);
