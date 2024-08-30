@@ -5486,6 +5486,9 @@ with_name:
 		ml_next(Parser);
 		ML_EXPR(SuspendExpr, parent, suspend);
 		SuspendExpr->Child = ml_parse_expression(Parser, EXPR_DEFAULT);
+		if (!SuspendExpr->Child) {
+			ml_parse_warn(Parser, "ParserError", "Empty susp expression");
+		}
 		if (ml_parse(Parser, MLT_COMMA)) {
 			SuspendExpr->Child->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
 		}
