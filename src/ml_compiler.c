@@ -5518,7 +5518,7 @@ with_name:
 	case MLT_SUSP: {
 		ml_next(Parser);
 		ML_EXPR(SuspendExpr, parent, suspend);
-		SuspendExpr->Child = ml_parse_expression(Parser, EXPR_DEFAULT);
+		SuspendExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 		if (ml_parse(Parser, MLT_COMMA)) {
 			SuspendExpr->Child->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
 		}
