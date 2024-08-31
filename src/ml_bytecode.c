@@ -1836,8 +1836,8 @@ void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info) {
 			Inst = Inst[1].Inst;
 		} else {
 			Inst += ml_closure_inst_list(Inst, Buffer);
+			ml_stringbuffer_put(Buffer, '\n');
 		}
-		ml_stringbuffer_put(Buffer, '\n');
 	}
 }
 

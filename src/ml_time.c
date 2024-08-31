@@ -104,8 +104,10 @@ ml_value_t *ml_time_parse(const char *Value, int Length) {
 }
 
 ml_value_t *ml_parser_escape_time(ml_parser_t *Parser) {
-	const char *Next = ml_parser_clear(Parser), *End = Next;
-	while (End[0] != '\"') {
+	const char *Next = ml_parser_clear(Parser);
+	char Quote = *Next++;
+	const char *End = Next;
+	while (End[0] != Quote) {
 		if (!End[0]) {
 			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
 			break;
@@ -626,8 +628,10 @@ static ml_value_t *ml_time_zone_parse(const char *Id, int Length) {
 }
 
 ml_value_t *ml_parser_escape_time_zone(ml_parser_t *Parser) {
-	const char *Next = ml_parser_clear(Parser), *End = Next;
-	while (End[0] != '\"') {
+	const char *Next = ml_parser_clear(Parser);
+	char Quote = *Next++;
+	const char *End = Next;
+	while (End[0] != Quote) {
 		if (!End[0]) {
 			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
 			break;

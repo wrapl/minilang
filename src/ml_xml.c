@@ -1824,14 +1824,92 @@ typedef struct {
 #include "ml_compiler2.h"
 
 static ml_value_t *ml_parser_escape_xml_string(xml_escape_parser_t *Parser) {
-	return MLNil;
+	mlc_string_part_t *Parts = NULL, **Slot = &Parts;
+	const char *Next = Parser->Next;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	while (Next[0] != '\"') {
+		if (Next[0] == 0) {
+			Next = ml_parser_read(Parser->Parser);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+		} else if (Next[0] == '&') {
+			if (Next[1] == '{') {
+				if (Buffer->Length) {
+					mlc_string_part_t *Part = new(mlc_string_part_t);
+					Part->Length = Buffer->Length;
+					Part->Chars = ml_stringbuffer_get_string(Buffer);
+					Part->Line = Parser->Source.Line;
+					Slot[0] = Part;
+					Slot = &Part->Next;
+				}
+				ml_parser_input(Parser->Parser, Next + 2, 0);
+				ml_parser_source(Parser->Parser, Parser->Source);
+				mlc_expr_t *Expr = ml_accept_expression(Parser->Parser, EXPR_DEFAULT);
+				if (!Expr) return ml_parser_value(Parser->Parser);
+				ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
+				Parser->Source = ml_parser_position(Parser->Parser);
+				Next = ml_parser_clear(Parser->Parser);
+				mlc_string_part_t *Part = new(mlc_string_part_t);
+				Part->Length = 0;
+				Part->Child = Expr;
+				Part->Line = Parser->Source.Line;
+				Slot[0] = Part;
+				Slot = &Part->Next;
+			} else if (Next[1] == 'a' && Next[2] == 'm' && Next[3] == 'p' && Next[4] == ';') {
+				ml_stringbuffer_put(Buffer, '&');
+				Next += 5;
+			} else if (Next[1] == 'l' && Next[2] == 't' && Next[4] == ';') {
+				ml_stringbuffer_put(Buffer, '<');
+				Next += 4;
+			} else if (Next[1] == 'g' && Next[2] == 't' && Next[4] == ';') {
+				ml_stringbuffer_put(Buffer, '>');
+				Next += 4;
+			} else if (Next[1] == 'a' && Next[2] == 'p' && Next[3] == 'o' && Next[4] == 's' && Next[5] == ';') {
+				ml_stringbuffer_put(Buffer, '\'');
+				Next += 6;
+			} else if (Next[1] == 'q' && Next[2] == 'u' && Next[3] == 'o' && Next[4] == 't' && Next[5] == ';') {
+				ml_stringbuffer_put(Buffer, '\"');
+				Next += 6;
+			} else {
+				return ml_error("ParseError", "Invalid XML entity");
+			}
+		} else if (Next[0] == '\n') {
+			++Parser->Source.Line;
+			ml_stringbuffer_put(Buffer, ' ');
+		} else {
+			ml_stringbuffer_put(Buffer, *Next++);
+		}
+	}
+	Parser->Next = Next + 1;
+	if (Parts) {
+		if (Buffer->Length) {
+			mlc_string_part_t *Part = new(mlc_string_part_t);
+			Part->Length = Buffer->Length;
+			Part->Chars = ml_stringbuffer_get_string(Buffer);
+			Part->Line = Parser->Source.Line;
+			Slot[0] = Part;
+			Slot = &Part->Next;
+		}
+		mlc_string_expr_t *StringExpr = new(mlc_string_expr_t);
+		StringExpr->compile = ml_string_expr_compile;
+		StringExpr->Parts = Parts;
+		StringExpr->Source = Parser->Source.Name;
+		StringExpr->StartLine = StringExpr->EndLine = Parser->Source.Line;
+		return ml_expr_value((mlc_expr_t *)StringExpr);
+	} else {
+		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+		ValueExpr->compile = ml_value_expr_compile;
+		ValueExpr->Value = ml_stringbuffer_get_value(Buffer);
+		ValueExpr->Source = Parser->Source.Name;
+		ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+		return ml_expr_value((mlc_expr_t *)ValueExpr);
+	}
 }
 
 static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	const char *Next = Parser->Next;
-	while (isalpha(*Next)) ++Next;
+	while ((*Next > ' ') && (*Next != '/') && (*Next != '>')) ++Next;
 	int TagLength = Next - Parser->Next;
-	if (!TagLength) return ml_error("ParseError", "Missing tag");
+	if (!TagLength) return ml_error("ParseError", "Invalid start tag");
 	ml_value_t *Tag = ml_string_copy(Parser->Next, TagLength);
 	mlc_value_expr_t *TagExpr = new(mlc_value_expr_t);
 	TagExpr->compile = ml_value_expr_compile;
@@ -1850,12 +1928,123 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	ElementExpr->Child = (mlc_expr_t *)TagExpr;
 	TagExpr->Next = (mlc_expr_t *)AttrsExpr;
 	mlc_expr_t **Attributes = &AttrsExpr->Child;
-	mlc_expr_t **Content = &AttrsExpr->Next;
-
+	mlc_parent_expr_t *ContentExpr = new(mlc_parent_expr_t);
+	ContentExpr->compile = ml_list_expr_compile;
+	ContentExpr->Source = Parser->Source.Name;
+	ContentExpr->StartLine = Parser->Source.Line;
+	AttrsExpr->Next = (mlc_expr_t *)ContentExpr;
+	mlc_expr_t **Content = &ContentExpr->Child;
 	for (;;) {
-		if (isalpha(Next[0])) {
+		switch (Next[0]) {
+		case ' ': case '\t': ++Next; break;
+		case '\n': {
+			++Parser->Source.Line;
+			Next = ml_parser_read(Parser->Parser);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+			break;
+		}
+		case '/': {
+			AttrsExpr->EndLine = Parser->Source.Line;
+			ContentExpr->EndLine = Parser->Source.Line;
+			if (Next[1] != '>') return ml_error("ParseError", "Invalid element");
+			ElementExpr->EndLine = Parser->Source.Line;
+			Parser->Next = Next + 2;
+			return ml_expr_value((mlc_expr_t *)ElementExpr);
+		}
+		case '>': {
+			AttrsExpr->EndLine = Parser->Source.Line;
+			++Next;
+			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+			for (;;) {
+				const char *End = strchr(Next, '<') ?: (Next + strlen(Next));
+				while (Next < End) {
+					if (Next[0] == '&') {
+						if (Next[1] == '{') {
+							if (Buffer->Length) {
+								mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+								ValueExpr->compile = ml_value_expr_compile;
+								ValueExpr->Value = ml_stringbuffer_get_value(Buffer);
+								ValueExpr->Source = Parser->Source.Name;
+								ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+								Content[0] = (mlc_expr_t *)ValueExpr;
+								Content = &ValueExpr->Next;
+							}
+							ml_parser_input(Parser->Parser, Next + 2, 0);
+							ml_parser_source(Parser->Parser, Parser->Source);
+							mlc_expr_t *Expr = ml_accept_expression(Parser->Parser, EXPR_DEFAULT);
+							if (!Expr) return ml_parser_value(Parser->Parser);
+							ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
+							Parser->Source = ml_parser_position(Parser->Parser);
+							Next = ml_parser_clear(Parser->Parser);
+							Content[0] = (mlc_expr_t *)Expr;
+							Content = &Expr->Next;
+							End = strchr(Next, '<') ?: (Next + strlen(Next));
+						} else if (Next[1] == 'a' && Next[2] == 'm' && Next[3] == 'p' && Next[4] == ';') {
+							ml_stringbuffer_put(Buffer, '&');
+							Next += 5;
+						} else if (Next[1] == 'l' && Next[2] == 't' && Next[4] == ';') {
+							ml_stringbuffer_put(Buffer, '<');
+							Next += 4;
+						} else if (Next[1] == 'g' && Next[2] == 't' && Next[4] == ';') {
+							ml_stringbuffer_put(Buffer, '>');
+							Next += 4;
+						} else if (Next[1] == 'a' && Next[2] == 'p' && Next[3] == 'o' && Next[4] == 's' && Next[5] == ';') {
+							ml_stringbuffer_put(Buffer, '\'');
+							Next += 6;
+						} else if (Next[1] == 'q' && Next[2] == 'u' && Next[3] == 'o' && Next[4] == 't' && Next[5] == ';') {
+							ml_stringbuffer_put(Buffer, '\"');
+							Next += 6;
+						} else {
+							return ml_error("ParseError", "Invalid XML entity");
+						}
+					} else if (Next[0] == '\n') {
+						++Parser->Source.Line;
+						ml_stringbuffer_put(Buffer, *Next++);
+					} else {
+						ml_stringbuffer_put(Buffer, *Next++);
+					}
+				}
+				if (End[0] == '<') {
+					if (Buffer->Length) {
+						mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+						ValueExpr->compile = ml_value_expr_compile;
+						ValueExpr->Value = ml_stringbuffer_get_value(Buffer);
+						ValueExpr->Source = Parser->Source.Name;
+						ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+						Content[0] = (mlc_expr_t *)ValueExpr;
+						Content = &ValueExpr->Next;
+					}
+					if (End[1] == '/') {
+						ContentExpr->EndLine = Parser->Source.Line;
+						Next = (End += 2);
+						while ((*Next > ' ') && (*Next != '>')) ++Next;
+						if (Next[0] != '>') return ml_error("ParseError", "Invalid end tag");
+						if (strncmp(End, ml_string_value(Tag), Next - End)) {
+							ml_parser_input(Parser->Parser, Next + 1, 0);
+							ml_parser_source(Parser->Parser, Parser->Source);
+							return ml_error("ParseError", "Mismatched start and end tag");
+						}
+						++Next;
+						break;
+					} else {
+						Parser->Next = End + 1;
+						ml_value_t *Child = ml_parser_escape_xml_node(Parser);
+						if (ml_is_error(Child)) return Child;
+						Content[0] = (mlc_expr_t *)Child;
+						Content = &((mlc_expr_t *)Child)->Next;
+						Next = Parser->Next;
+					}
+				} else {
+					Next = ml_parser_read(Parser->Parser);
+					if (!Next) return ml_error("ParseError", "Incomplete xml");
+				}
+			}
+			Parser->Next = Next;
+			return ml_expr_value((mlc_expr_t *)ElementExpr);
+		}
+		default: {
 			const char *Start = Next;
-			while (isalpha(Next[0])) ++Next;
+			while ((*Next > ' ') && (*Next != '=')) ++Next;
 			if (Next[0] != '=') return ml_error("ParseError", "Invalid attribute");
 			mlc_value_expr_t *AttrExpr = new(mlc_value_expr_t);
 			AttrExpr->compile = ml_value_expr_compile;
@@ -1867,22 +2056,18 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 			++Next;
 			switch (Next[0]) {
 			case '\"': {
-				Parser->Next = Next;
-				ml_value_t *Value = ml_parser_escape_xml_string(Parser);
-				if (ml_is_error(Value)) return Value;
-				mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
-				ValueExpr->compile = ml_value_expr_compile;
-				ValueExpr->Value = ml_string_copy(Start, Next - Start);
-				ValueExpr->Source = Parser->Source.Name;
-				ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
-				Attributes[0] = (mlc_expr_t *)ValueExpr;
-				Attributes = &ValueExpr->Next;
+				Parser->Next = Next + 1;
+				ml_value_t *Child = ml_parser_escape_xml_string(Parser);
+				if (ml_is_error(Child)) return Child;
+				Attributes[0] = (mlc_expr_t *)Child;
+				Attributes = &((mlc_expr_t *)Child)->Next;
+				Next = Parser->Next;
 				break;
 			}
 			case '{': {
 				ml_parser_input(Parser->Parser, Next + 1, 0);
 				ml_parser_source(Parser->Parser, Parser->Source);
-				mlc_expr_t *Expr = ml_accept_expr(Parser->Parser);
+				mlc_expr_t *Expr = ml_accept_expression(Parser->Parser, EXPR_DEFAULT);
 				if (!Expr) return ml_parser_value(Parser->Parser);
 				ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
 				Parser->Source = ml_parser_position(Parser->Parser);
@@ -1893,39 +2078,24 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 			}
 			default: return ml_error("ParseError", "Invalid attribute");
 			}
-		} else switch (Next[0]) {
-		case ' ': ++Next; break;
-		case '\n': {
-			++Parser->Source.Line;
-			Next = ml_parser_read(Parser->Parser);
-			if (!Next) return ml_error("ParseError", "Incomplete xml");
-			break;
 		}
-		case '/': {
-			if (Next[1] != '>') return ml_error("ParseError", "Invalid element");
-			ElementExpr->EndLine = Parser->Source.Line;
-			Parser->Next = Next + 2;
-			return ml_expr_value((mlc_expr_t *)ElementExpr);
-		}
-		case '>': {
-			Parser->Next = Next + 1;
-			// TOOD: parse content;
-			return ml_expr_value((mlc_expr_t *)ElementExpr);
-		}
-		default: return ml_error("ParseError", "Unexpected character %c parsing xml", Next[0]);
 		}
 	}
+	return NULL;
 }
 
 static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
 	xml_escape_parser_t Parser = {0,};
 	Parser.Source = ml_parser_position(Parser0);
 	const char *Next = ml_parser_clear(Parser0);
+	char Quote = *Next++;
 	if (Next[0] != '<') return ml_error("ParseError", "Invalid xml");
 	Parser.Next = Next + 1;
 	Parser.Parser = Parser0;
 	ml_value_t *Value = ml_parser_escape_xml_node(&Parser);
-	ml_parser_input(Parser0, Parser.Next, 0);
+	if (ml_is_error(Value)) return Value;
+	if (Parser.Next[0] != Quote) return ml_error("ParseError", "Invalid string");
+	ml_parser_input(Parser0, Parser.Next + 1, 0);
 	ml_parser_source(Parser0, Parser.Source);
 	return Value;
 }

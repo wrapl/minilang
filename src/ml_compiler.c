@@ -2313,17 +2313,17 @@ void ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_
 
 typedef struct {
 	mlc_expr_t *Guard;
+	ml_call_expr_frame_t *Caller;
 	int OldIt;
 } ml_guard_expr_frame_t;
 
 static void ml_guard_expr_compile3(mlc_function_t *Function, ml_value_t *Value, ml_guard_expr_frame_t *Frame) {
 	Function->It = Frame->OldIt;
 	MLC_POP();
-	ml_call_expr_frame_t *Caller = (ml_call_expr_frame_t *)&Function->Frame->Data;
 	ml_inst_t *CheckInst = MLC_EMIT(Frame->Guard->EndLine, MLI_AND_POP, 2);
-	CheckInst[2].Count = Caller->Index + 1;
-	CheckInst[1].Inst = Caller->NilInst;
-	Caller->NilInst = CheckInst + 1;
+	CheckInst[2].Count = Frame->Caller->Index + 1;
+	CheckInst[1].Inst = Frame->Caller->NilInst;
+	Frame->Caller->NilInst = CheckInst + 1;
 	MLC_RETURN(NULL);
 }
 
@@ -2335,17 +2335,15 @@ static void ml_guard_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 }
 
 void ml_guard_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
-	if (Function->Frame->run == (mlc_frame_fn)ml_call_expr_compile4) {
-		MLC_FRAME(ml_guard_expr_frame_t, ml_guard_expr_compile2);
-		Frame->Guard = Expr->Child->Next;
-		return mlc_compile(Function, Expr->Child, MLCF_PUSH);
-	} else if (Function->Frame->run == (mlc_frame_fn)ml_call_expr_compile5) {
-		MLC_FRAME(ml_guard_expr_frame_t, ml_guard_expr_compile2);
-		Frame->Guard = Expr->Child->Next;
-		return mlc_compile(Function, Expr->Child, MLCF_PUSH);
-	} else {
+	if ((Function->Frame->run != (mlc_frame_fn)ml_call_expr_compile4) &&
+		(Function->Frame->run != (mlc_frame_fn)ml_call_expr_compile5)) {
 		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Guard expression used outside of function call"));
 	}
+	ml_call_expr_frame_t *Caller = (ml_call_expr_frame_t *)Function->Frame->Data;
+	MLC_FRAME(ml_guard_expr_frame_t, ml_guard_expr_compile2);
+	Frame->Guard = Expr->Child->Next;
+	Frame->Caller = Caller;
+	return mlc_compile(Function, Expr->Child, MLCF_PUSH);
 }
 
 static void ml_tuple_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
@@ -2376,6 +2374,7 @@ void ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, in
 			int Count = 0;
 			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
 			Frame->Count = Count;
+			Frame->NilInst = NULL;
 			Frame->Flags = Flags;
 			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
 			LoadInst[1].Value = (ml_value_t *)MLTupleT;
@@ -2445,6 +2444,7 @@ void ml_list_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int
 			int Count = 0;
 			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
 			Frame->Count = Count;
+			Frame->NilInst = NULL;
 			Frame->Flags = Flags;
 			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
 			LoadInst[1].Value = (ml_value_t *)MLListOfArgs;
@@ -2510,6 +2510,7 @@ void ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int 
 			int Count = 0;
 			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
 			Frame->Count = Count;
+			Frame->NilInst = NULL;
 			Frame->Flags = Flags;
 			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
 			LoadInst[1].Value = (ml_value_t *)MLMapOfArgs;
@@ -3956,18 +3957,9 @@ void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void
 	Parser->SpecialData = Data;
 }
 
-typedef enum {
-	EXPR_SIMPLE,
-	EXPR_AND,
-	EXPR_OR,
-	EXPR_FOR,
-	EXPR_DEFAULT
-} ml_expr_level_t;
-
 static int ml_parse(ml_parser_t *Parser, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(ml_parser_t *Parser, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_term(ml_parser_t *Parser, int MethDecl);
-static mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level);
 static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_expr_t **ArgsSlot);
 
 static inline uint8_t ml_nibble(ml_parser_t *Parser, char C) {
@@ -4390,28 +4382,10 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				return Parser->Token;
 			}
 			const char *Ident = ml_ident(Next, Length);
-			//char *Ident = snew(Length + 1);
-			//memcpy(Ident, Next, Length);
-			//Ident[Length] = 0;
-			if (End[0] == '\"') {
+			if (End[0] == '\"' || End[0] == '\'') {
 				Parser->Ident = Ident;
 				Parser->Token = MLT_ESCAPE;
-				Parser->Next = End + 1;
-				/*string_fn_t StringFn = stringmap_search(StringFns, Ident);
-				if (!StringFn) {
-					ml_parse_warn(Parser, "ParseError", "Unknown string prefix: %s", Ident);
-					StringFn = ml_string;
-				}
-				Parser->Next = End + 1;
-				int Length = ml_scan_raw_string(Parser);
-				ml_value_t *Value = StringFn(Parser->Ident, Length);
-				if (ml_is_error(Value)) {
-					ml_error_trace_add(Value, Parser->Source);
-					Parser->Value = Value;
-					longjmp(Parser->OnError, 1);
-				}
-				Parser->Value = Value;
-				Parser->Token = MLT_VALUE;*/
+				Parser->Next = End;
 				return Parser->Token;
 			}
 			Parser->Next = End;
@@ -5905,7 +5879,7 @@ done:
 	return Expr;
 }
 
-static mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level) {
+mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level) {
 	ml_skip_eol(Parser);
 	mlc_expr_t *Expr = ml_parse_expression(Parser, Level);
 	if (!Expr) {
