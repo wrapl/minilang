@@ -1817,6 +1817,7 @@ typedef enum {
 typedef struct {
 	ml_parser_t *Parser;
 	const char *Next;
+	ml_value_t *Constructor;
 	ml_source_t Source;
 } xml_escape_parser_t;
 
@@ -1918,7 +1919,7 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	TagExpr->StartLine = TagExpr->EndLine = Parser->Source.Line;
 	mlc_parent_value_expr_t *ElementExpr = new(mlc_parent_value_expr_t);
 	ElementExpr->compile = ml_const_call_expr_compile;
-	ElementExpr->Value = (ml_value_t *)MLXmlElementT;
+	ElementExpr->Value = Parser->Constructor;
 	ElementExpr->Source = Parser->Source.Name;
 	ElementExpr->StartLine = Parser->Source.Line;
 	mlc_parent_expr_t *AttrsExpr = new(mlc_parent_expr_t);
@@ -2084,8 +2085,9 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	return NULL;
 }
 
-static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
+ml_value_t *ml_parser_escape_xml_like(ml_parser_t *Parser0, ml_value_t *Constructor) {
 	xml_escape_parser_t Parser = {0,};
+	Parser.Constructor = Constructor;
 	Parser.Source = ml_parser_position(Parser0);
 	const char *Next = ml_parser_clear(Parser0);
 	char Quote = *Next++;
@@ -2098,6 +2100,10 @@ static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
 	ml_parser_input(Parser0, Parser.Next + 1, 0);
 	ml_parser_source(Parser0, Parser.Source);
 	return Value;
+}
+
+static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
+	return ml_parser_escape_xml_like(Parser0, (ml_value_t *)MLXmlElementT);
 }
 
 void ml_xml_init(stringmap_t *Globals) {
