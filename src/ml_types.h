@@ -167,12 +167,12 @@ int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args
 
 #ifndef GENERATE_INIT
 
-#define ML_GENERIC_TYPE(TYPE, PARENT, ...) ml_value_t *TYPE
+#define ML_GENERIC_TYPE(TYPE, PARENT, ...) ml_type_t *TYPE
 
 #else
 
 #define ML_GENERIC_TYPE(TYPE, ...) \
-INIT_CODE TYPE = (ml_value_t *)ml_generic_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
+INIT_CODE TYPE = ml_generic_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
 
 #endif
 
