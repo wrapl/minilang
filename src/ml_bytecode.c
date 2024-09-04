@@ -210,7 +210,7 @@ static ml_decl_t *ML_TYPED_FN(ml_debugger_decls, DEBUG_TYPE(Continuation), DEBUG
 }
 
 static ml_value_t *ML_TYPED_FN(ml_debugger_local, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame, int Index) {
-	if (Index < 0) return Frame->UpValues[~Index];
+	if (Index < 0) return Frame->UpValues[~Index + 1];
 	return Frame->Stack[Index];
 }
 
