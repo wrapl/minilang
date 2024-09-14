@@ -1692,8 +1692,17 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 	//ml_stringbuffer_printf(Buffer, "[%ld]", Hash);
 }
 
-static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
-	if (Inst->Label) ml_stringbuffer_printf(Buffer, "L%d:", Inst->Label);
+typedef struct closure_list_cache_t closure_list_cache_t;
+
+struct  closure_list_cache_t {
+	closure_list_cache_t *Next;
+	ml_closure_info_t *Info;
+};
+
+static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer, closure_list_cache_t *Cache) {
+	if (Inst->Label) {
+		ml_stringbuffer_printf(Buffer, "L%d:", Inst->Label);
+	}
 	ml_stringbuffer_printf(Buffer, "\t %3d %s", Inst->Line, MLInstNames[Inst->Opcode]);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: return 1;
@@ -1777,9 +1786,15 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			ml_stringbuffer_printf(Buffer, ", %d", Inst[2 + N].Count);
 		}
-		ml_stringbuffer_write(Buffer, "\n\t    /--------\\\n", strlen("\n\t    /--------\\\n"));
-		ml_closure_info_list(Buffer, Info);
-		ml_stringbuffer_write(Buffer, "\t    \\--------/", strlen("\t    \\--------/"));
+		closure_list_cache_t *Last = Cache;
+		while (Last->Next && Last->Info != Info) {
+			Last = Last->Next;
+		}
+		if (Last->Info != Info) {
+			closure_list_cache_t *Next = new(closure_list_cache_t);
+			Next->Info = Info;
+			Last->Next = Next;
+		}
 		return 2 + Info->NumUpValues;
 	}
 	case MLIT_SWITCH: {
@@ -1829,13 +1844,13 @@ ML_METHOD("values", MLClosureT) {
 	return Result;
 }
 
-void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info) {
+void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info, closure_list_cache_t *Cache) {
 	ml_closure_info_labels(Info);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
 			Inst = Inst[1].Inst;
 		} else {
-			Inst += ml_closure_inst_list(Inst, Buffer);
+			Inst += ml_closure_inst_list(Inst, Buffer, Cache);
 			ml_stringbuffer_put(Buffer, '\n');
 		}
 	}
@@ -1847,15 +1862,17 @@ ML_METHOD("list", MLClosureT) {
 // Returns a listing of the bytecode of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_closure_info_t *Info = Closure->Info;
-	ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
-	ml_closure_info_list(Buffer, Info);
-	ml_stringbuffer_put(Buffer, '\n');
-	for (int I = 0; I < Info->NumUpValues; ++I) {
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
 		ml_value_t *UpValue = Closure->UpValues[I + 1];
 		ml_stringbuffer_printf(Buffer, "Upvalues %d:", I);
 		ml_closure_value_list(UpValue, Buffer);
 		ml_stringbuffer_put(Buffer, '\n');
+	}
+	closure_list_cache_t Cache[1] = {{NULL, Closure->Info}};
+	for (closure_list_cache_t *Next = Cache; Next; Next = Next->Next) {
+		ml_closure_info_t *Info = Next->Info;
+		ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
+		ml_closure_info_list(Buffer, Info, Cache);
 	}
 	return ml_stringbuffer_to_string(Buffer);
 }
