@@ -365,6 +365,7 @@ ML_METHOD(MLBufferT, MLIntegerT) {
 	Buffer->Type = MLBufferT;
 	Buffer->Length = Size;
 	Buffer->Value = snew(Size);
+	memset(Buffer->Value, 0, Size);
 	return (ml_value_t *)Buffer;
 }
 
@@ -408,7 +409,7 @@ ML_METHOD("put8", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 8-bit signed value.
-//$= buffer(1):put8(64)
+//$= buffer(8):put8(64)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
 	*(int8_t *)Buffer->Value = (int8_t)ml_integer_value(Args[1]);
@@ -421,7 +422,7 @@ ML_METHOD("putu8", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 8-bit unsigned value.
-//$= buffer(1):put8(64)
+//$= buffer(8):put8(64)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
 	*(uint8_t *)Buffer->Value = (uint8_t)ml_integer_value(Args[1]);

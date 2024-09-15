@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="inthash2_8h" kind="file" language="C++">
     <compoundname>inthash2.h</compoundname>
     <includes local="no">stdlib.h</includes>
@@ -265,9 +265,9 @@
 <codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structinthash2__node__t" kindref="compound">inthash2_node_t</ref><sp/>*Nodes<sp/>=<sp/>Map-&gt;Nodes;</highlight></codeline>
 <codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Mask<sp/>=<sp/>Map-&gt;Size<sp/>-<sp/>1;</highlight></codeline>
 <codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Index<sp/>=<sp/>(Key<sp/>&gt;&gt;<sp/>INTHASH2_INDEX_SHIFT)<sp/>&amp;<sp/>Mask;</highlight></codeline>
-<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Nodes[Index].Key<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Map-&gt;Values[Index];</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>(Nodes[Index].Key<sp/>==<sp/>Key)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Map-&gt;Values[Index];</highlight></codeline>
 <codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Offset<sp/>=<sp/>1;</highlight></codeline>
-<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;;)<sp/>{</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>(;;)<sp/>{</highlight></codeline>
 <codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Index<sp/>=<sp/>(Index<sp/>+<sp/>1)<sp/>&amp;<sp/>Mask;</highlight></codeline>
 <codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>++Offset;</highlight></codeline>
 <codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(Nodes[Index].Offset<sp/>&lt;<sp/>Offset)<sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>

@@ -83,13 +83,19 @@ void ml_context_reserve(int Index) {
 }*/
 
 static stringmap_t MLConfigs[1] = {STRINGMAP_INIT};
+static inthash_t MLConfigFns[1] = {INTHASH_INIT};
 
 void ml_config_register(const char *Name, ml_config_fn Fn) {
 	stringmap_insert(MLConfigs, Name, Fn);
+	inthash_insert(MLConfigFns, (uintptr_t)Fn, Name);
 }
 
 ml_config_fn ml_config_lookup(const char *Name) {
 	return (ml_config_fn)stringmap_search(MLConfigs, Name);
+}
+
+const char *ml_config_name(void *Fn) {
+	return (const char *)inthash_search(MLConfigFns, (uintptr_t)Fn);
 }
 
 typedef struct  {

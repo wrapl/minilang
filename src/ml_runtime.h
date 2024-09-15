@@ -107,6 +107,7 @@ typedef int (*ml_config_fn)(ml_context_t *Context);
 
 void ml_config_register(const char *Name, ml_config_fn Fn);
 ml_config_fn ml_config_lookup(const char *Name);
+const char *ml_config_name(void *Fn);
 
 typedef void (*ml_state_fn)(ml_state_t *State, ml_value_t *Result);
 

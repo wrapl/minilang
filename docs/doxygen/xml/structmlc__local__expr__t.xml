@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="structmlc__local__expr__t" kind="struct" language="C++" prot="public">
     <compoundname>mlc_local_expr_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="183" column="13" bodyfile="src/ml_compiler2.h" bodystart="183" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="194" column="13" bodyfile="src/ml_compiler2.h" bodystart="194" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__local__expr__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" static="no" mutable="no">
         <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="184" column="12" bodyfile="src/ml_compiler2.h" bodystart="184" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="195" column="12" bodyfile="src/ml_compiler2.h" bodystart="195" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__local__expr__t_1aad462966ed963f892117056de1eba502" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="185" column="5" bodyfile="src/ml_compiler2.h" bodystart="185" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="196" column="5" bodyfile="src/ml_compiler2.h" bodystart="196" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="public-func">
@@ -62,7 +62,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="182" column="1"/>
+        <location file="src/ml_compiler2.h" line="193" column="1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -131,7 +131,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="181" column="1" bodyfile="src/ml_compiler2.h" bodystart="181" bodyend="186"/>
+    <location file="src/ml_compiler2.h" line="192" column="1" bodyfile="src/ml_compiler2.h" bodystart="192" bodyend="197"/>
     <listofallmembers>
       <member refid="structmlc__local__expr__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" virt="non-virtual"><scope>mlc_local_expr_t</scope><name>Child</name></member>
       <member refid="structmlc__local__expr__t_1aad462966ed963f892117056de1eba502" prot="public" virt="non-virtual"><scope>mlc_local_expr_t</scope><name>Count</name></member>

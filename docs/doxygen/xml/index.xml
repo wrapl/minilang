@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.11.0" xml:lang="en-US">
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.12.0" xml:lang="en-US">
   <compound refid="struct__GC__arrays" kind="struct"><name>_GC_arrays</name>
     <member refid="struct__GC__arrays_1a7becdacb64bcd4f2c07a9aab8def4773" kind="variable"><name>_heapsize</name></member>
     <member refid="struct__GC__arrays_1a2e3199da6b130e8bfff78f9b5e75d81d" kind="variable"><name>_requested_heapsize</name></member>
@@ -358,13 +358,13 @@
     <member refid="classgc_1a78d1ed1d0b7f2595de9e04eba131e1d5" kind="function"><name>operator delete[]</name></member>
   </compound>
   <compound refid="classgc__allocator" kind="class"><name>gc_allocator</name>
-    <member refid="classgc__allocator_1a49b489a408a211a90e766329c0732d7b" kind="typedef"><name>size_type</name></member>
-    <member refid="classgc__allocator_1acf947bbb9e09f863cc3572ff8550b183" kind="typedef"><name>difference_type</name></member>
-    <member refid="classgc__allocator_1a24829765686e03256f34653cfb68a8aa" kind="typedef"><name>pointer</name></member>
-    <member refid="classgc__allocator_1ab5841826f91a23096a302ca6d8da38f5" kind="typedef"><name>const_pointer</name></member>
-    <member refid="classgc__allocator_1a84e5150f8c961e86c8797c53b186d286" kind="typedef"><name>reference</name></member>
-    <member refid="classgc__allocator_1aa0966ff7145ed2274c2f7fb94a457cc0" kind="typedef"><name>const_reference</name></member>
-    <member refid="classgc__allocator_1abe4c63f946ad47dae4be42b3a32c6b4a" kind="typedef"><name>value_type</name></member>
+    <member refid="classgc__allocator_1a22191ec8d8a59dc0ab23078b3a915f72" kind="typedef"><name>size_type</name></member>
+    <member refid="classgc__allocator_1aa8c8e44b2845ac348be979364b5848f0" kind="typedef"><name>difference_type</name></member>
+    <member refid="classgc__allocator_1a300d221c30865c1616b650c6ba01349b" kind="typedef"><name>pointer</name></member>
+    <member refid="classgc__allocator_1ab38b2a89e90cdc3be1d0bb68d745983d" kind="typedef"><name>const_pointer</name></member>
+    <member refid="classgc__allocator_1adda6d7615ff15b529d735b634a87eec9" kind="typedef"><name>reference</name></member>
+    <member refid="classgc__allocator_1a2f73b0445ebf55c3c2c54ed5358a3bc6" kind="typedef"><name>const_reference</name></member>
+    <member refid="classgc__allocator_1abcfe95c037637d066151f52ca6c018b0" kind="typedef"><name>value_type</name></member>
     <member refid="classgc__allocator_1af8b15dd9c5bdd9590a35ee9a8e9c0eae" kind="function"><name>gc_allocator</name></member>
     <member refid="classgc__allocator_1a8b5e7dfe29a7766bd825270a09e0e96a" kind="function"><name>gc_allocator</name></member>
     <member refid="classgc__allocator_1af04f3ee2d0fe3f94386a9618becf0f4d" kind="function"><name>gc_allocator</name></member>
@@ -378,20 +378,20 @@
     <member refid="classgc__allocator_1a9d67e6b70182b7f2738331919a40764a" kind="function"><name>destroy</name></member>
   </compound>
   <compound refid="classgc__allocator_3_01void_01_4" kind="class"><name>gc_allocator&lt; void &gt;</name>
-    <member refid="classgc__allocator_3_01void_01_4_1a49b489a408a211a90e766329c0732d7b" kind="typedef"><name>size_type</name></member>
-    <member refid="classgc__allocator_3_01void_01_4_1acf947bbb9e09f863cc3572ff8550b183" kind="typedef"><name>difference_type</name></member>
-    <member refid="classgc__allocator_3_01void_01_4_1a4f8e3c8dc03b1c750da13bd49ce4c439" kind="typedef"><name>pointer</name></member>
-    <member refid="classgc__allocator_3_01void_01_4_1a58604c55563024f0759ac1326733ab80" kind="typedef"><name>const_pointer</name></member>
-    <member refid="classgc__allocator_3_01void_01_4_1a9c85f50eb8b41cf8c88aadc67b632316" kind="typedef"><name>value_type</name></member>
+    <member refid="classgc__allocator_3_01void_01_4_1a22191ec8d8a59dc0ab23078b3a915f72" kind="typedef"><name>size_type</name></member>
+    <member refid="classgc__allocator_3_01void_01_4_1aa8c8e44b2845ac348be979364b5848f0" kind="typedef"><name>difference_type</name></member>
+    <member refid="classgc__allocator_3_01void_01_4_1abc7cbbec1f024bd23164936bd765b06d" kind="typedef"><name>pointer</name></member>
+    <member refid="classgc__allocator_3_01void_01_4_1afe22483113f3ea22d612657b62b0289a" kind="typedef"><name>const_pointer</name></member>
+    <member refid="classgc__allocator_3_01void_01_4_1ad0609ce44de16e64a08b34641451d02b" kind="typedef"><name>value_type</name></member>
   </compound>
   <compound refid="classgc__allocator__ignore__off__page" kind="class"><name>gc_allocator_ignore_off_page</name>
-    <member refid="classgc__allocator__ignore__off__page_1a49b489a408a211a90e766329c0732d7b" kind="typedef"><name>size_type</name></member>
-    <member refid="classgc__allocator__ignore__off__page_1acf947bbb9e09f863cc3572ff8550b183" kind="typedef"><name>difference_type</name></member>
-    <member refid="classgc__allocator__ignore__off__page_1a24829765686e03256f34653cfb68a8aa" kind="typedef"><name>pointer</name></member>
-    <member refid="classgc__allocator__ignore__off__page_1ab5841826f91a23096a302ca6d8da38f5" kind="typedef"><name>const_pointer</name></member>
-    <member refid="classgc__allocator__ignore__off__page_1a84e5150f8c961e86c8797c53b186d286" kind="typedef"><name>reference</name></member>
-    <member refid="classgc__allocator__ignore__off__page_1aa0966ff7145ed2274c2f7fb94a457cc0" kind="typedef"><name>const_reference</name></member>
-    <member refid="classgc__allocator__ignore__off__page_1abe4c63f946ad47dae4be42b3a32c6b4a" kind="typedef"><name>value_type</name></member>
+    <member refid="classgc__allocator__ignore__off__page_1a22191ec8d8a59dc0ab23078b3a915f72" kind="typedef"><name>size_type</name></member>
+    <member refid="classgc__allocator__ignore__off__page_1aa8c8e44b2845ac348be979364b5848f0" kind="typedef"><name>difference_type</name></member>
+    <member refid="classgc__allocator__ignore__off__page_1a300d221c30865c1616b650c6ba01349b" kind="typedef"><name>pointer</name></member>
+    <member refid="classgc__allocator__ignore__off__page_1ab38b2a89e90cdc3be1d0bb68d745983d" kind="typedef"><name>const_pointer</name></member>
+    <member refid="classgc__allocator__ignore__off__page_1adda6d7615ff15b529d735b634a87eec9" kind="typedef"><name>reference</name></member>
+    <member refid="classgc__allocator__ignore__off__page_1a2f73b0445ebf55c3c2c54ed5358a3bc6" kind="typedef"><name>const_reference</name></member>
+    <member refid="classgc__allocator__ignore__off__page_1abcfe95c037637d066151f52ca6c018b0" kind="typedef"><name>value_type</name></member>
     <member refid="classgc__allocator__ignore__off__page_1ad05ef32ed46f837db1137f4d7a9c447c" kind="function"><name>gc_allocator_ignore_off_page</name></member>
     <member refid="classgc__allocator__ignore__off__page_1aa80b1ae194ce213f97bbfffd4c1280d7" kind="function"><name>gc_allocator_ignore_off_page</name></member>
     <member refid="classgc__allocator__ignore__off__page_1a19344e340bf85174d71100f1e18e53d7" kind="function"><name>gc_allocator_ignore_off_page</name></member>
@@ -405,11 +405,11 @@
     <member refid="classgc__allocator__ignore__off__page_1a9d67e6b70182b7f2738331919a40764a" kind="function"><name>destroy</name></member>
   </compound>
   <compound refid="classgc__allocator__ignore__off__page_3_01void_01_4" kind="class"><name>gc_allocator_ignore_off_page&lt; void &gt;</name>
-    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1a49b489a408a211a90e766329c0732d7b" kind="typedef"><name>size_type</name></member>
-    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1acf947bbb9e09f863cc3572ff8550b183" kind="typedef"><name>difference_type</name></member>
-    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1a4f8e3c8dc03b1c750da13bd49ce4c439" kind="typedef"><name>pointer</name></member>
-    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1a58604c55563024f0759ac1326733ab80" kind="typedef"><name>const_pointer</name></member>
-    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1a9c85f50eb8b41cf8c88aadc67b632316" kind="typedef"><name>value_type</name></member>
+    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1a22191ec8d8a59dc0ab23078b3a915f72" kind="typedef"><name>size_type</name></member>
+    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1aa8c8e44b2845ac348be979364b5848f0" kind="typedef"><name>difference_type</name></member>
+    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1abc7cbbec1f024bd23164936bd765b06d" kind="typedef"><name>pointer</name></member>
+    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1afe22483113f3ea22d612657b62b0289a" kind="typedef"><name>const_pointer</name></member>
+    <member refid="classgc__allocator__ignore__off__page_3_01void_01_4_1ad0609ce44de16e64a08b34641451d02b" kind="typedef"><name>value_type</name></member>
   </compound>
   <compound refid="classgc__cleanup" kind="class"><name>gc_cleanup</name>
     <member refid="classgc__cleanup_1a14cae42dd177683ba81f2f6ee83a91f3" kind="function"><name>gc_cleanup</name></member>
@@ -1150,22 +1150,22 @@
     <member refid="unionptse__ao__u_1a7696c063a5503872d93b18b2e0f0c4eb" kind="variable"><name>ao</name></member>
   </compound>
   <compound refid="structgc__allocator_1_1rebind" kind="struct"><name>gc_allocator::rebind</name>
-    <member refid="structgc__allocator_1_1rebind_1a59f7d3ad19c9221b1c2e0c1969aa8c9f" kind="typedef"><name>other</name></member>
+    <member refid="structgc__allocator_1_1rebind_1a05d3e47cad0734af503274497c3eb0e5" kind="typedef"><name>other</name></member>
   </compound>
   <compound refid="structgc__allocator_3_01void_01_4_1_1rebind" kind="struct"><name>gc_allocator&lt; void &gt;::rebind</name>
-    <member refid="structgc__allocator_3_01void_01_4_1_1rebind_1a59f7d3ad19c9221b1c2e0c1969aa8c9f" kind="typedef"><name>other</name></member>
+    <member refid="structgc__allocator_3_01void_01_4_1_1rebind_1a05d3e47cad0734af503274497c3eb0e5" kind="typedef"><name>other</name></member>
   </compound>
   <compound refid="structgc__allocator__ignore__off__page_1_1rebind" kind="struct"><name>gc_allocator_ignore_off_page::rebind</name>
-    <member refid="structgc__allocator__ignore__off__page_1_1rebind_1a4d2de5723459250b19cb451c5e8b0bb3" kind="typedef"><name>other</name></member>
+    <member refid="structgc__allocator__ignore__off__page_1_1rebind_1a9815184466fba8c8d83a7bff68652716" kind="typedef"><name>other</name></member>
   </compound>
   <compound refid="structgc__allocator__ignore__off__page_3_01void_01_4_1_1rebind" kind="struct"><name>gc_allocator_ignore_off_page&lt; void &gt;::rebind</name>
-    <member refid="structgc__allocator__ignore__off__page_3_01void_01_4_1_1rebind_1a4d2de5723459250b19cb451c5e8b0bb3" kind="typedef"><name>other</name></member>
+    <member refid="structgc__allocator__ignore__off__page_3_01void_01_4_1_1rebind_1a9815184466fba8c8d83a7bff68652716" kind="typedef"><name>other</name></member>
   </compound>
   <compound refid="structtraceable__allocator_1_1rebind" kind="struct"><name>traceable_allocator::rebind</name>
-    <member refid="structtraceable__allocator_1_1rebind_1aa0e80e16b172862aaaaacd6801624ae1" kind="typedef"><name>other</name></member>
+    <member refid="structtraceable__allocator_1_1rebind_1ad16553689fe4b3b8f1982a1118bbfaff" kind="typedef"><name>other</name></member>
   </compound>
   <compound refid="structtraceable__allocator_3_01void_01_4_1_1rebind" kind="struct"><name>traceable_allocator&lt; void &gt;::rebind</name>
-    <member refid="structtraceable__allocator_3_01void_01_4_1_1rebind_1aa0e80e16b172862aaaaacd6801624ae1" kind="typedef"><name>other</name></member>
+    <member refid="structtraceable__allocator_3_01void_01_4_1_1rebind_1ad16553689fe4b3b8f1982a1118bbfaff" kind="typedef"><name>other</name></member>
   </compound>
   <compound refid="structregex__t" kind="struct"><name>regex_t</name>
     <member refid="structregex__t_1abe2257c0950214bae7f03984a92ae228" kind="variable"><name>re_nsub</name></member>
@@ -1262,13 +1262,13 @@
     <member refid="uniontoggle__ref__u_1add0c24d706efefa919795aed45cb21c4" kind="variable"><name>weak_ref</name></member>
   </compound>
   <compound refid="classtraceable__allocator" kind="class"><name>traceable_allocator</name>
-    <member refid="classtraceable__allocator_1a49b489a408a211a90e766329c0732d7b" kind="typedef"><name>size_type</name></member>
-    <member refid="classtraceable__allocator_1acf947bbb9e09f863cc3572ff8550b183" kind="typedef"><name>difference_type</name></member>
-    <member refid="classtraceable__allocator_1a24829765686e03256f34653cfb68a8aa" kind="typedef"><name>pointer</name></member>
-    <member refid="classtraceable__allocator_1ab5841826f91a23096a302ca6d8da38f5" kind="typedef"><name>const_pointer</name></member>
-    <member refid="classtraceable__allocator_1a84e5150f8c961e86c8797c53b186d286" kind="typedef"><name>reference</name></member>
-    <member refid="classtraceable__allocator_1aa0966ff7145ed2274c2f7fb94a457cc0" kind="typedef"><name>const_reference</name></member>
-    <member refid="classtraceable__allocator_1abe4c63f946ad47dae4be42b3a32c6b4a" kind="typedef"><name>value_type</name></member>
+    <member refid="classtraceable__allocator_1a22191ec8d8a59dc0ab23078b3a915f72" kind="typedef"><name>size_type</name></member>
+    <member refid="classtraceable__allocator_1aa8c8e44b2845ac348be979364b5848f0" kind="typedef"><name>difference_type</name></member>
+    <member refid="classtraceable__allocator_1a300d221c30865c1616b650c6ba01349b" kind="typedef"><name>pointer</name></member>
+    <member refid="classtraceable__allocator_1ab38b2a89e90cdc3be1d0bb68d745983d" kind="typedef"><name>const_pointer</name></member>
+    <member refid="classtraceable__allocator_1adda6d7615ff15b529d735b634a87eec9" kind="typedef"><name>reference</name></member>
+    <member refid="classtraceable__allocator_1a2f73b0445ebf55c3c2c54ed5358a3bc6" kind="typedef"><name>const_reference</name></member>
+    <member refid="classtraceable__allocator_1abcfe95c037637d066151f52ca6c018b0" kind="typedef"><name>value_type</name></member>
     <member refid="classtraceable__allocator_1a2c99da6064f7f00b893bacb272cc999f" kind="function"><name>traceable_allocator</name></member>
     <member refid="classtraceable__allocator_1ab61e40b46d829033a1d2b2790b632ba7" kind="function"><name>traceable_allocator</name></member>
     <member refid="classtraceable__allocator_1a69b6613544872099e11e24ed79f4830d" kind="function"><name>traceable_allocator</name></member>
@@ -1282,11 +1282,11 @@
     <member refid="classtraceable__allocator_1a9d67e6b70182b7f2738331919a40764a" kind="function"><name>destroy</name></member>
   </compound>
   <compound refid="classtraceable__allocator_3_01void_01_4" kind="class"><name>traceable_allocator&lt; void &gt;</name>
-    <member refid="classtraceable__allocator_3_01void_01_4_1a49b489a408a211a90e766329c0732d7b" kind="typedef"><name>size_type</name></member>
-    <member refid="classtraceable__allocator_3_01void_01_4_1acf947bbb9e09f863cc3572ff8550b183" kind="typedef"><name>difference_type</name></member>
-    <member refid="classtraceable__allocator_3_01void_01_4_1a4f8e3c8dc03b1c750da13bd49ce4c439" kind="typedef"><name>pointer</name></member>
-    <member refid="classtraceable__allocator_3_01void_01_4_1a58604c55563024f0759ac1326733ab80" kind="typedef"><name>const_pointer</name></member>
-    <member refid="classtraceable__allocator_3_01void_01_4_1a9c85f50eb8b41cf8c88aadc67b632316" kind="typedef"><name>value_type</name></member>
+    <member refid="classtraceable__allocator_3_01void_01_4_1a22191ec8d8a59dc0ab23078b3a915f72" kind="typedef"><name>size_type</name></member>
+    <member refid="classtraceable__allocator_3_01void_01_4_1aa8c8e44b2845ac348be979364b5848f0" kind="typedef"><name>difference_type</name></member>
+    <member refid="classtraceable__allocator_3_01void_01_4_1abc7cbbec1f024bd23164936bd765b06d" kind="typedef"><name>pointer</name></member>
+    <member refid="classtraceable__allocator_3_01void_01_4_1afe22483113f3ea22d612657b62b0289a" kind="typedef"><name>const_pointer</name></member>
+    <member refid="classtraceable__allocator_3_01void_01_4_1ad0609ce44de16e64a08b34641451d02b" kind="typedef"><name>value_type</name></member>
   </compound>
   <compound refid="structtre__ast__node__t" kind="struct"><name>tre_ast_node_t</name>
     <member refid="structtre__ast__node__t_1a5db26cf11fa2842cc43dd036247fc30d" kind="variable"><name>type</name></member>
@@ -3204,7 +3204,6 @@
     <member refid="ml__bytecode_8h_1a89566123e1f933cbf6e36d50e3d7a3a0" kind="function"><name>ml_closure_debug</name></member>
     <member refid="ml__bytecode_8h_1add50f18dfec38d1e76f9b028802f30cc" kind="function"><name>ml_closure_sha256</name></member>
     <member refid="ml__bytecode_8h_1af5b6edafb0893765c5dc817fe227ed1b" kind="function"><name>ml_closure_info_labels</name></member>
-    <member refid="ml__bytecode_8h_1a32470932ca940277187ee7f73be20425" kind="function"><name>ml_closure_info_list</name></member>
     <member refid="ml__bytecode_8h_1a4baaad8a0886b5baf76fcfa273a6f4f1" kind="function"><name>ml_count_cached_frames</name></member>
     <member refid="ml__bytecode_8h_1a130a345d1d6abc145a204c3c4e32aab6" kind="function"><name>ml_bytecode_init</name></member>
   </compound>
@@ -3325,6 +3324,7 @@
     <member refid="group__compiler_1gaf25bd8838e2bc07d0fd34aa33e323bd7" kind="function"><name>ml_parser_read</name></member>
     <member refid="group__compiler_1ga918fe73bcd762c02b77f3f60e3959745" kind="function"><name>ml_parse_warn</name></member>
     <member refid="group__compiler_1gaa73e5c712ea0f3a0449e8e65204df7bc" kind="function"><name>ml_accept_file</name></member>
+    <member refid="group__compiler_1ga94f318b08f741e7f9ce9c5735e9207b5" kind="function"><name>ml_accept_expr</name></member>
     <member refid="group__compiler_1gad269e62dec932327a3da8c705c40c8bc" kind="function"><name>ml_parser_escape</name></member>
     <member refid="group__compiler_1gae99e4850da50bffac4cb32d47bc06552" kind="function"><name>ml_parser_special</name></member>
     <member refid="group__compiler_1gadda70b5f8ab00792e1fe45b1654d6f96" kind="function"><name>ml_parser_add_escape</name></member>
@@ -3425,6 +3425,12 @@
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071dacf622a8b0c052e1519e22b997e43c07b" kind="enumvalue"><name>MLT_EXPR_VALUE</name></member>
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da0f0a293839a2e224a1b1019bf8cb8774" kind="enumvalue"><name>MLT_OPERATOR</name></member>
     <member refid="ml__compiler2_8h_1a9a7bcd7cc0acf96d6a13621c8abf071da380c26df7530a0e650364dc8bb5e9aa6" kind="enumvalue"><name>MLT_METHOD</name></member>
+    <member refid="ml__compiler2_8h_1adb0f82ea7e0b112201467c41483da9c3" kind="enum"><name>ml_expr_level_t</name></member>
+    <member refid="ml__compiler2_8h_1adb0f82ea7e0b112201467c41483da9c3a0d72b0925dde68daa19d94badafc7e74" kind="enumvalue"><name>EXPR_SIMPLE</name></member>
+    <member refid="ml__compiler2_8h_1adb0f82ea7e0b112201467c41483da9c3afea9e82be3ba5cac872e3a9759e913c4" kind="enumvalue"><name>EXPR_AND</name></member>
+    <member refid="ml__compiler2_8h_1adb0f82ea7e0b112201467c41483da9c3ad82d2142b175035bbf6e924084a4757c" kind="enumvalue"><name>EXPR_OR</name></member>
+    <member refid="ml__compiler2_8h_1adb0f82ea7e0b112201467c41483da9c3a778a2c5ff374457612535d29f04b5e5d" kind="enumvalue"><name>EXPR_FOR</name></member>
+    <member refid="ml__compiler2_8h_1adb0f82ea7e0b112201467c41483da9c3a04f7c6d7dd4ec2afcb0b8c9b29d7d4b0" kind="enumvalue"><name>EXPR_DEFAULT</name></member>
     <member refid="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896" kind="enum"><name>ml_param_kind_t</name></member>
     <member refid="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896aa29c3f9f8e4cd3390ca4862eccd85bf8" kind="enumvalue"><name>ML_PARAM_DEFAULT</name></member>
     <member refid="ml__compiler2_8h_1a65676dbdabe604e572ace975f82a8896ae585a83a6529832ca1a515961b6ed5e5" kind="enumvalue"><name>ML_PARAM_EXTRA</name></member>
@@ -3457,6 +3463,8 @@
     <member refid="ml__compiler2_8h_1aa7e2af21e4dce1b4fea1125993f80b44" kind="typedef"><name>mlc_ident_expr_t</name></member>
     <member refid="ml__compiler2_8h_1a7b3b5ce948f972f406b157ccf5618f04" kind="typedef"><name>ml_macro_t</name></member>
     <member refid="ml__compiler2_8h_1a0cb338a4803bd2838bc2b3033bfcb0c2" kind="typedef"><name>mlc_frame_fn</name></member>
+    <member refid="ml__compiler2_8h_1aa412b0367af690f6d154c6f74c2492c2" kind="function"><name>ml_accept</name></member>
+    <member refid="ml__compiler2_8h_1acdd8281ac9a690a16fdf264e5107cd18" kind="function"><name>ml_accept_expression</name></member>
     <member refid="ml__compiler2_8h_1ad2e69e6765536243b05209d780a2b105" kind="function"><name>mlc_expr_type</name></member>
     <member refid="ml__compiler2_8h_1a7c794d886eba08ad763ec84a59d49b20" kind="function"><name>mlc_expr_error</name></member>
     <member refid="ml__compiler2_8h_1a805ee5b629565cb4dab3954d0b2a4df4" kind="function"><name>ml_expr_value</name></member>
@@ -3948,6 +3956,7 @@
     <member refid="group__runtime_1ga423cc023a235bd02a443b7f6fc37d5a5" kind="function"><name>ml_context_set_dynamic</name></member>
     <member refid="group__runtime_1gad9cfdc978865bc3d4f509b2af310f149" kind="function"><name>ml_config_register</name></member>
     <member refid="group__runtime_1ga35e789ee30e220733088c39ae4194b18" kind="function"><name>ml_config_lookup</name></member>
+    <member refid="group__runtime_1ga8a326e4182500333ff91407b63277867" kind="function"><name>ml_config_name</name></member>
     <member refid="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" kind="function"><name>ml_state</name></member>
     <member refid="group__runtime_1ga41748b84e0dff33483013c5f26970c51" kind="function"><name>ml_default_state_run</name></member>
     <member refid="group__runtime_1ga2be6e789393b900e951136eea2cb5336" kind="function"><name>ml_result_state_run</name></member>
@@ -4419,6 +4428,7 @@
     <member refid="ml__xml_8h_1ab785039b88fb30c43f3bf829098bd7c7" kind="function"><name>ml_xml_element</name></member>
     <member refid="ml__xml_8h_1ac4a9b8c517d33a5c66193264883c496b" kind="function"><name>ml_xml_text</name></member>
     <member refid="ml__xml_8h_1aeccd3fb4ca5a7b9c6a242feb68c0da23" kind="function"><name>ml_xml_element_put</name></member>
+    <member refid="ml__xml_8h_1a0373c058ef2dd0bdcbfcae5f0adb3d91" kind="function"><name>ml_parser_escape_xml_like</name></member>
   </compound>
   <compound refid="sha256_8h" kind="file"><name>sha256.h</name>
     <member refid="sha256_8h_1a9c1fe69ad43d4ca74b84303a0ed64f2f" kind="define"><name>SHA256_BLOCK_SIZE</name></member>
@@ -4785,12 +4795,6 @@
     <member refid="timelib_2timelib_8h_1acec916c7d1799f87b5e8e92b57e12c64a87c12351ae5eba084c81ade2cfdfb87f" kind="enumvalue"><name>TIMELIB_FORMAT_YEAR_FOUR_DIGIT</name></member>
     <member refid="timelib_2timelib_8h_1acec916c7d1799f87b5e8e92b57e12c64a4a4f93d0100ead78481b94c1d7270b45" kind="enumvalue"><name>TIMELIB_FORMAT_YEAR_EXPANDED</name></member>
     <member refid="timelib_2timelib_8h_1acec916c7d1799f87b5e8e92b57e12c64abb21646c18080390007d353ff7fc5ea5" kind="enumvalue"><name>TIMELIB_FORMAT_YEAR_ISO</name></member>
-    <member refid="timelib_2timelib_8h_1a84843bca35b2f1fa19c9a64c494ad45f" kind="typedef"><name>timelib_long</name></member>
-    <member refid="timelib_2timelib_8h_1aa584843fb2117e57802eb69ac2870bdf" kind="typedef"><name>timelib_ulong</name></member>
-    <member refid="timelib_2timelib_8h_1a43797ddead8deb8ec50f6500af40e6ad" kind="typedef"><name>timelib_ull</name></member>
-    <member refid="timelib_2timelib_8h_1adda21fa7baf952c192d020577384ff01" kind="typedef"><name>timelib_sll</name></member>
-    <member refid="timelib_2timelib_8h_1ad3e2275ca5d74a118551b95fd7f3690c" kind="typedef"><name>ttinfo</name></member>
-    <member refid="timelib_2timelib_8h_1a1303157fed5080fdb68b94be089804d7" kind="typedef"><name>tlinfo</name></member>
     <member refid="timelib_2timelib_8h_1a59dc0356468914b1f58d6931d1b6e63c" kind="typedef"><name>tlocinfo</name></member>
     <member refid="timelib_2timelib_8h_1adcf9aee98566ed16d11c3b9c6189ee41" kind="typedef"><name>timelib_posix_trans_info</name></member>
     <member refid="timelib_2timelib_8h_1a98526e1a4b9c79914116b94aca1bd29a" kind="typedef"><name>timelib_posix_str</name></member>
@@ -5047,10 +5051,6 @@
     <member refid="win__dirent_8h_1a53e09ee78c993b9feebaf49cb47146f1" kind="define"><name>wreaddir</name></member>
     <member refid="win__dirent_8h_1a783634d83dcc99d8a393b22893acfe66" kind="define"><name>wclosedir</name></member>
     <member refid="win__dirent_8h_1a8de41b9888772577edbb17b85dce573e" kind="define"><name>wrewinddir</name></member>
-    <member refid="win__dirent_8h_1a7083dcfe4c262f51d7b4e065df46ebc5" kind="typedef"><name>_wdirent</name></member>
-    <member refid="win__dirent_8h_1a29ac3d7a7c3ecfd3db9de331f5b71279" kind="typedef"><name>_WDIR</name></member>
-    <member refid="win__dirent_8h_1ae50c911db67dfb4b55fbfc97a557f6f2" kind="typedef"><name>dirent</name></member>
-    <member refid="win__dirent_8h_1a805632179a707f8794b35f089c940cb3" kind="typedef"><name>DIR</name></member>
     <member refid="win__dirent_8h_1a930234a4d128076584ce384e7807c22e" kind="function"><name>_wopendir</name></member>
     <member refid="win__dirent_8h_1ae86468574ed3ceddbbe2519f12ad7d1c" kind="function"><name>_wreaddir</name></member>
     <member refid="win__dirent_8h_1ad94806a93f9e8280fb5c7f692d6542bb" kind="function"><name>_wclosedir</name></member>
@@ -5585,6 +5585,7 @@
     <member refid="group__compiler_1gaf25bd8838e2bc07d0fd34aa33e323bd7" kind="function"><name>ml_parser_read</name></member>
     <member refid="group__compiler_1ga918fe73bcd762c02b77f3f60e3959745" kind="function"><name>ml_parse_warn</name></member>
     <member refid="group__compiler_1gaa73e5c712ea0f3a0449e8e65204df7bc" kind="function"><name>ml_accept_file</name></member>
+    <member refid="group__compiler_1ga94f318b08f741e7f9ce9c5735e9207b5" kind="function"><name>ml_accept_expr</name></member>
     <member refid="group__compiler_1gad269e62dec932327a3da8c705c40c8bc" kind="function"><name>ml_parser_escape</name></member>
     <member refid="group__compiler_1gae99e4850da50bffac4cb32d47bc06552" kind="function"><name>ml_parser_special</name></member>
     <member refid="group__compiler_1gadda70b5f8ab00792e1fe45b1654d6f96" kind="function"><name>ml_parser_add_escape</name></member>
@@ -5770,6 +5771,7 @@
     <member refid="group__runtime_1ga423cc023a235bd02a443b7f6fc37d5a5" kind="function"><name>ml_context_set_dynamic</name></member>
     <member refid="group__runtime_1gad9cfdc978865bc3d4f509b2af310f149" kind="function"><name>ml_config_register</name></member>
     <member refid="group__runtime_1ga35e789ee30e220733088c39ae4194b18" kind="function"><name>ml_config_lookup</name></member>
+    <member refid="group__runtime_1ga8a326e4182500333ff91407b63277867" kind="function"><name>ml_config_name</name></member>
     <member refid="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" kind="function"><name>ml_state</name></member>
     <member refid="group__runtime_1ga41748b84e0dff33483013c5f26970c51" kind="function"><name>ml_default_state_run</name></member>
     <member refid="group__runtime_1ga2be6e789393b900e951136eea2cb5336" kind="function"><name>ml_result_state_run</name></member>

@@ -1712,7 +1712,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer, clos
 	case MLIT_INST_CONFIG:
 		// TODO: Implement this!
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
-		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
+		ml_stringbuffer_printf(Buffer, ", %s", ml_config_name(Inst[2].Data));
 		return 3;
 	case MLIT_INST_COUNT:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
@@ -1894,33 +1894,78 @@ ML_METHOD("jit", MLClosureT) {
 
 static void vlq64_encode(ml_stringbuffer_t *Buffer, int64_t Value) {
 	unsigned char Bytes[9];
-	uint64_t X = (uint64_t)Value;
-	unsigned char Sign = 0;
+	uint64_t V;
 	if (Value < 0) {
-		X = ~X;
-		Sign = 128;
-	}
-	uint64_t Y = X & 63;
-	X >>= 6;
-	if (!X) {
-		Bytes[0] = Sign + Y;
-		ml_stringbuffer_write(Buffer, (const char *)Bytes, 1);
+		V = (~(uint64_t)Value << 1) + 1;
 	} else {
-		Bytes[0] = Sign + 64 + Y;
-		unsigned char *Ptr = Bytes + 1;
-		for (int I = 1; I < 8; ++I) {
-			Y = X & 127;
-			X >>= 6;
-			if (!X) {
-				*Ptr = Y;
-				ml_stringbuffer_write(Buffer, (const char *)Bytes, (Ptr - Bytes) + 1);
-				return;
-			}
-			*Ptr++ = 128 + Y;
-		}
-		*Ptr = (unsigned char)X;
-		ml_stringbuffer_write(Buffer, (const char *)Bytes, (Ptr - Bytes) + 1);
+		V = (uint64_t)Value << 1;
 	}
+	int N;
+	if (V <= 240) {
+		Bytes[0] = V;
+		N = 1;
+	} else if (V <= 2287) {
+		Bytes[0] = ((V - 240) >> 8) + 241;
+		Bytes[1] = (V - 240) & 255;
+		N = 2;
+	} else if (V <= 67823) {
+		Bytes[0] = 249;
+		Bytes[1] = (V - 2288) >> 8;
+		Bytes[2] = (V - 2288) & 255;
+		N = 3;
+	} else if (V <= 16777215) {
+		Bytes[0] = 250;
+		Bytes[1] = V >> 16;
+		Bytes[2] = (V >> 8) & 255;
+		Bytes[3] = V & 255;
+		N = 4;
+	} else if (V <= 4294967295) {
+		Bytes[0] = 251;
+		Bytes[1] = (V >> 24) & 255;
+		Bytes[2] = (V >> 16) & 255;
+		Bytes[3] = (V >> 8) & 255;
+		Bytes[4] = V & 255;
+		N = 5;
+	} else if (V <= 1099511627775) {
+		Bytes[0] = 252;
+		Bytes[1] = (V >> 32) & 255;
+		Bytes[2] = (V >> 24) & 255;
+		Bytes[3] = (V >> 16) & 255;
+		Bytes[4] = (V >> 8) & 255;
+		Bytes[5] = V & 255;
+		N = 6;
+	} else if (V <= 281474976710655) {
+		Bytes[0] = 253;
+		Bytes[1] = (V >> 40) & 255;
+		Bytes[2] = (V >> 32) & 255;
+		Bytes[3] = (V >> 24) & 255;
+		Bytes[4] = (V >> 16) & 255;
+		Bytes[5] = (V >> 8) & 255;
+		Bytes[6] = V & 255;
+		N = 7;
+	} else if (V <= 72057594037927935) {
+		Bytes[0] = 254;
+		Bytes[1] = (V >> 48) & 255;
+		Bytes[2] = (V >> 40) & 255;
+		Bytes[3] = (V >> 32) & 255;
+		Bytes[4] = (V >> 24) & 255;
+		Bytes[5] = (V >> 16) & 255;
+		Bytes[6] = (V >> 8) & 255;
+		Bytes[7] = V & 255;
+		N = 8;
+	} else {
+		Bytes[0] = 255;
+		Bytes[1] = (V >> 54) & 255;
+		Bytes[2] = (V >> 48) & 255;
+		Bytes[3] = (V >> 40) & 255;
+		Bytes[4] = (V >> 32) & 255;
+		Bytes[5] = (V >> 24) & 255;
+		Bytes[6] = (V >> 16) & 255;
+		Bytes[7] = (V >> 8) & 255;
+		Bytes[8] = V & 255;
+		N = 9;
+	}
+	ml_stringbuffer_write(Buffer, (const char *)Bytes, N);
 }
 
 static void vlq64_encode_string(ml_stringbuffer_t *Buffer, const char *Value) {
@@ -2065,11 +2110,15 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			Inst += 2;
 			break;
-		case MLIT_INST_CONFIG:
-			// TODO: Implement this!
+		case MLIT_INST_CONFIG: {
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
-			Inst += 2;
+			const char *Name = ml_config_name(Inst[2].Data) ?: "<unknown>";
+			int NameLength = strlen(Name);
+			vlq64_encode(Buffer, NameLength);
+			ml_stringbuffer_write(Buffer, Name, NameLength);
+			Inst += 3;
 			break;
+		}
 		case MLIT_INST_COUNT:
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			vlq64_encode(Buffer, Inst[2].Count);
@@ -2169,44 +2218,71 @@ typedef struct {
 	int Count;
 } vlq_result_t;
 
-static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
-	int64_t X = Bytes[0] & 63;
-	if (!(Bytes[0] & 64)) {
-		if (Bytes[0] & 128) X = ~X;
-		return (vlq_result_t){X, 1};
+static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
+	int N;
+	uint64_t X = 0;
+	switch (Bytes[0]) {
+	case 0 ... 240:
+		N = 1;
+		X = Bytes[0];
+		break;
+	case 241 ... 248:
+		N = 2;
+		if (Length >= N) X = 240 + (((uint64_t)Bytes[0] - 241) << 8) + Bytes[1];
+		break;
+	case 249:
+		N = 3;
+		if (Length >= N) X = 2288 + ((uint64_t)Bytes[1] << 8) + Bytes[2];
+		break;
+	case 250:
+		N = 4;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 16) + ((uint64_t)Bytes[2] << 8) + Bytes[3];
+		break;
+	case 251:
+		N = 5;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 24) + ((uint64_t)Bytes[2] << 16) + ((uint64_t)Bytes[3] << 8) + Bytes[4];
+		break;
+	case 252:
+		N = 6;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 32) + ((uint64_t)Bytes[2] << 24) + ((uint64_t)Bytes[3] << 16) + ((uint64_t)Bytes[4] << 8) + Bytes[5];
+		break;
+	case 253:
+		N = 7;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 40) + ((uint64_t)Bytes[2] << 32) + ((uint64_t)Bytes[3] << 24) + ((uint64_t)Bytes[4] << 16) + ((uint64_t)Bytes[5] << 8) + Bytes[6];
+		break;
+	case 254:
+		N = 8;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 48) + ((uint64_t)Bytes[2] << 40) + ((uint64_t)Bytes[3] << 32) + ((uint64_t)Bytes[4] << 24) + ((uint64_t)Bytes[5] << 16) + ((uint64_t)Bytes[6] << 8) + Bytes[7];
+		break;
+	case 255:
+		N = 9;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 54) + ((uint64_t)Bytes[2] << 48) + ((uint64_t)Bytes[3] << 40) + ((uint64_t)Bytes[4] << 32) + ((uint64_t)Bytes[5] << 24) + ((uint64_t)Bytes[6] << 16) + ((uint64_t)Bytes[7] << 8) + Bytes[8];
+		break;
 	}
-	int Shift = 6;
-	for (int I = 1; I < 8; ++I) {
-		X += (uint64_t)(Bytes[I] & 127) << Shift;
-		Shift += 7;
-		if (!(Bytes[I] & 128)) {
-			if (Bytes[0] & 128) X = ~X;
-			return (vlq_result_t){X, I + 1};
-		}
+	if (X % 2) {
+		return (vlq_result_t){(int64_t)~(X >> 1), N};
+	} else {
+		return (vlq_result_t){(int64_t)(X >> 1), N};
 	}
-	X += (uint64_t)Bytes[8] << 55;
-	return (vlq_result_t){X, 9};
 }
 
 #define VLQ64_NEXT() ({ \
-	vlq_result_t Result = vlq64_decode(Bytes); \
+	if (Length <= 0) ML_ERROR("CBORError", "Invalid closure info"); \
+	vlq_result_t Result = vlq64_decode(Bytes, Length); \
+	if (Length < Result.Count) ML_ERROR("CBORError", "Invalid closure info"); \
 	Length -= Result.Count; \
-	if (Length < 0) ML_ERROR("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	Result.Value; \
 })
 
 #define VLQ64_NEXT_STRING() ({ \
-	vlq_result_t Result = vlq64_decode(Bytes); \
-	Length -= Result.Count; \
-	if (Result.Value < 0) ML_ERROR("CBORError", "Invalid closure info"); \
-	if (Length < Result.Value) ML_ERROR("CBORError", "Invalid closure info"); \
-	Bytes += Result.Count; \
+	int Count = VLQ64_NEXT(); \
+	if (Length < Count) ML_ERROR("CBORError", "Invalid closure info"); \
 	char *String = snew(Length + 1); \
-	memcpy(String, Bytes, Result.Value); \
-	String[Result.Value] = 0; \
-	Length -= Result.Value; \
-	Bytes += Result.Value; \
+	memcpy(String, Bytes, Count); \
+	String[Count] = 0; \
+	Length -= Count; \
+	Bytes += Count; \
 	String; \
 })
 
@@ -2294,7 +2370,6 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 			if (Line > EndLine) EndLine = Line;
 			continue;
 		}
-
 		Inst->Opcode = Opcode;
 		Inst->Line = Line;
 		switch (MLInstTypes[Opcode]) {
@@ -2303,11 +2378,14 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 		case MLIT_INST:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst += 2; break;
-		case MLIT_INST_CONFIG:
-			// TODO: Implement this!
+		case MLIT_INST_CONFIG: {
 			Inst[1].Inst = Code + VLQ64_NEXT();
-			Inst[2].Count = VLQ64_NEXT();
+			const char *Name = VLQ64_NEXT_STRING();
+			ml_config_fn Fn = ml_config_lookup(Name);
+			if (!Fn) ML_ERROR("CBORError", "Unknown config %s", Name);
+			Inst[2].Data = (void *)Fn;
 			Inst += 3; break;
+		}
 		case MLIT_INST_COUNT:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst[2].Count = VLQ64_NEXT();

@@ -88,7 +88,7 @@ buffer
 
    .. code-block:: mini
 
-      buffer(1):put8(64) :> <1:40>
+      buffer(8):put8(64) :> <8:4000000000000000>
 
 
 :mini:`meth (Buffer: buffer):putf32(Value: real): buffer`
@@ -185,7 +185,7 @@ buffer
 
    .. code-block:: mini
 
-      buffer(1):put8(64) :> <1:40>
+      buffer(8):put8(64) :> <8:4000000000000000>
 
 
 :mini:`meth (Length: integer):buffer: buffer`
@@ -193,6 +193,6 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:80FF34C53870000061696E696E673B0A>
+      buffer(16) :> <16:00000000000000000000000000000000>
 
 

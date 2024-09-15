@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="structmlc__string__expr__t" kind="struct" language="C++" prot="public">
     <compoundname>mlc_string_expr_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="229" column="19" bodyfile="src/ml_compiler2.h" bodystart="229" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="240" column="19" bodyfile="src/ml_compiler2.h" bodystart="240" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="public-func">
@@ -34,7 +34,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="228" column="1"/>
+        <location file="src/ml_compiler2.h" line="239" column="1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -103,7 +103,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="227" column="1" bodyfile="src/ml_compiler2.h" bodystart="227" bodyend="230"/>
+    <location file="src/ml_compiler2.h" line="238" column="1" bodyfile="src/ml_compiler2.h" bodystart="238" bodyend="241"/>
     <listofallmembers>
       <member refid="structmlc__string__expr__t_1a81046a7f96e68d6fb551fe40e9b9f88b" prot="public" virt="non-virtual"><scope>mlc_string_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
       <member refid="structmlc__string__expr__t_1a9cfba765a5db7ac05ba202a9aba113b2" prot="public" virt="non-virtual"><scope>mlc_string_expr_t</scope><name>Parts</name></member>

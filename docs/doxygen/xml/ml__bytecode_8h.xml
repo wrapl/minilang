@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="ml__bytecode_8h" kind="file" language="C++">
     <compoundname>ml_bytecode.h</compoundname>
     <includes refid="ml__types_8h" local="yes">ml_types.h</includes>
@@ -437,27 +437,6 @@
         </inbodydescription>
         <location file="src/ml_bytecode.h" line="95" column="6" declfile="src/ml_bytecode.h" declline="95" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="ml__bytecode_8h_1a32470932ca940277187ee7f73be20425" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ml_closure_info_list</definition>
-        <argsstring>(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info)</argsstring>
-        <name>ml_closure_info_list</name>
-        <param>
-          <type><ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref> *</type>
-          <declname>Buffer</declname>
-        </param>
-        <param>
-          <type><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref> *</type>
-          <declname>Info</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_bytecode.h" line="96" column="6" declfile="src/ml_bytecode.h" declline="96" declcolumn="6"/>
-      </memberdef>
       <memberdef kind="function" id="ml__bytecode_8h_1a4baaad8a0886b5baf76fcfa273a6f4f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>size_t</type>
         <definition>size_t ml_count_cached_frames</definition>
@@ -585,7 +564,7 @@
 <codeline lineno="93"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_closure_sha256(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Closure,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>Hash[SHA256_BLOCK_SIZE]);</highlight></codeline>
 <codeline lineno="94"><highlight class="normal"></highlight></codeline>
 <codeline lineno="95"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_closure_info_labels(<ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*Info);</highlight></codeline>
-<codeline lineno="96"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_closure_info_list(<ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref><sp/>*Buffer,<sp/><ref refid="structml__closure__info__t" kindref="compound">ml_closure_info_t</ref><sp/>*Info);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight><highlight class="comment">//void<sp/>ml_closure_info_list(ml_stringbuffer_t<sp/>*Buffer,<sp/>ml_closure_info_t<sp/>*Info,<sp/>int<sp/>Indent);</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="97"><highlight class="normal"></highlight></codeline>
 <codeline lineno="98"><highlight class="normal"></highlight></codeline>
 <codeline lineno="99"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_CBOR_BYTECODE</highlight><highlight class="normal"></highlight></codeline>
