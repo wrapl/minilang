@@ -2302,7 +2302,7 @@ static void provided_check(ml_provided_state_t *State, ml_value_t *Value);
 
 static void provided_iterate(ml_provided_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_deref(Value) == MLNil) ML_CONTINUE(State->Base.Caller, Value);
 	ML_CONTINUE(State->Base.Caller, State);
 }
 
