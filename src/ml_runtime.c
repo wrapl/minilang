@@ -87,7 +87,7 @@ static inthash_t MLConfigFns[1] = {INTHASH_INIT};
 
 void ml_config_register(const char *Name, ml_config_fn Fn) {
 	stringmap_insert(MLConfigs, Name, Fn);
-	inthash_insert(MLConfigFns, (uintptr_t)Fn, Name);
+	inthash_insert(MLConfigFns, (uintptr_t)Fn, (void *)Name);
 }
 
 ml_config_fn ml_config_lookup(const char *Name) {

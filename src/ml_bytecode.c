@@ -1710,7 +1710,6 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer, clos
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
 	case MLIT_INST_CONFIG:
-		// TODO: Implement this!
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		ml_stringbuffer_printf(Buffer, ", %s", ml_config_name(Inst[2].Data));
 		return 3;
@@ -2295,22 +2294,75 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
 	DEST = Value; \
 }
 
-#define CHECK_UNKNOWN -1
-#define CHECK_INVALID -2
+#define TOP_UNKNOWN -1
+#define TOP_INVALID -2
 
-#define VLQ64_NEXT_INST() ({ \
-	size_t Index = VLQ64_NEXT(); \
-	if (Index >= NumInsts) return ml_error("CBORError", "Invalid bytecode"); \
-	switch (Checks[Index].State) { \
-	case CHECK_UNKNOWN: Checks[Index].State = CHECK_TARGET; break; \
-	case CHECK_VALID: case CHECK_TARGET: break; \
-	case CHECK_INVALID: return ml_error("CBORError", "Invalid bytecode"); \
+#define CHECK_TARGET(INST) { \
+	ml_inst_t *Inst2 = INST; \
+	if (Inst2 < Code || Inst2 >= Halt) ML_ERROR("CBORError", "Invalid bytecode"); \
+	int Index = Inst2 - Code; \
+	switch (Checks[Index]) { \
+	case TOP_INVALID: ML_ERROR("CBORError", "Invalid bytecode"); \
+	case TOP_UNKNOWN: Checks[Index] = Top; break; \
+	default: if (Checks[Index] != Top) ML_ERROR("CBORError", "Invalid bytecode"); \
 	} \
-	Code + Index; \
-})
+}
 
-#define CHECK_INST_SPACE(N) { \
-	if (InstSpace < N) return ml_error("CBORError", "Invalid bytecode"); \
+#define CHECK_TARGET_POP(INST, POP) { \
+	ml_inst_t *Inst2 = INST; \
+	if (POP != 0) { \
+		if (POP < 0) ML_ERROR("CBORError", "Invalid bytecode"); \
+		if (POP > Top) ML_ERROR("CBORError", "Invalid bytecode"); \
+	} \
+	int Top2 = Top - POP; \
+	if (Inst2 < Code || Inst2 >= Halt) ML_ERROR("CBORError", "Invalid bytecode"); \
+	int Index = Inst2 - Code; \
+	switch (Checks[Index]) { \
+	case TOP_INVALID: ML_ERROR("CBORError", "Invalid bytecode"); \
+	case TOP_UNKNOWN: Checks[Index] = Top2; break; \
+	default: if (Checks[Index] != Top2) ML_ERROR("CBORError", "Invalid bytecode"); \
+	} \
+}
+
+#define CHECK_TARGET_TOP(INST, TOP) { \
+	ml_inst_t *Inst2 = INST; \
+	int Top2 = TOP; \
+	if (Inst2 < Code || Inst2 >= Halt) ML_ERROR("CBORError", "Invalid bytecode"); \
+	int Index = Inst2 - Code; \
+	switch (Checks[Index]) { \
+	case TOP_INVALID: ML_ERROR("CBORError", "Invalid bytecode"); \
+	case TOP_UNKNOWN: Checks[Index] = Top2; break; \
+	default: if (Checks[Index] != Top2) ML_ERROR("CBORError", "Invalid bytecode"); \
+	} \
+}
+
+#define CHECK_CHECK(INST) { \
+	ml_inst_t *Inst2 = INST; \
+	if (Inst2 < Code || Inst2 >= Halt) ML_ERROR("CBORError", "Invalid bytecode"); \
+	int Index = Inst2 - Code; \
+	if (Checks[Index] == TOP_INVALID) ML_ERROR("CBORError", "Invalid bytecode"); \
+	switch (Inst->Opcode) { \
+	} \
+}
+
+#define CHECK_POP(N) { \
+	if (N < 0) ML_ERROR("CBORError", "Invalid bytecode"); \
+	Top -= N; \
+	if (Top < 0) ML_ERROR("CBORError", "Invalid bytecode"); \
+}
+
+#define CHECK_PUSH(N) { \
+	if (N < 0) ML_ERROR("CBORError", "Invalid bytecode"); \
+	Top += N; \
+	if (Top >= FrameSize) ML_ERROR("CBORError", "Invalid bytecode"); \
+}
+
+#define CHECK_LOCAL(N) { \
+	if (N < 0 || N >= Top) ML_ERROR("CBORError", "Invalid bytecode"); \
+}
+
+#define CHECK_INST(N) { \
+	if (Inst + N >= Halt) ML_ERROR("CBORError", "Invalid bytecode"); \
 }
 
 ML_FUNCTIONZ(DecodeClosureInfo) {
@@ -2327,7 +2379,7 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 	Info->Name = VLQ64_NEXT_STRING();
 	Info->Source = VLQ64_NEXT_STRING();
 	Info->StartLine = VLQ64_NEXT();
-	Info->FrameSize = VLQ64_NEXT();
+	int FrameSize = Info->FrameSize = VLQ64_NEXT();
 	Info->NumParams = VLQ64_NEXT();
 	Info->NumUpValues = VLQ64_NEXT();
 	Info->Flags = VLQ64_NEXT() & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS);
@@ -2353,23 +2405,20 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 	if (NumInsts > Length + 1) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
 	ml_inst_t *Halt = Info->Halt = Code + NumInsts;
-	ml_inst_t *Inst = Code;
 	Info->Return = Code + VLQ64_NEXT();
 	int Line = VLQ64_NEXT() + Info->StartLine;
 	int EndLine = Info->StartLine;
 	int Index = 1;
-	//int *Checks = asnew(int, NumInsts);
-	//for (int I = 0; I < NumInsts; ++I) Checks[I] = CHECK_UNKNOWN;
-	//int *Check = Checks;
-	//int InstSpace = NumInsts;
-	//int Top = 0;
-	while (Inst < Halt) {
+	int *Checks = asnew(int, NumInsts);
+	for (int I = 0; I < NumInsts; ++I) Checks[I] = TOP_INVALID;
+	for (ml_inst_t *Inst = Code; Inst < Halt;) {
 		ml_opcode_t Opcode = (ml_opcode_t)VLQ64_NEXT();
 		if (Opcode == MLI_LINK) {
 			Line += VLQ64_NEXT();
 			if (Line > EndLine) EndLine = Line;
 			continue;
 		}
+		Checks[Inst - Code] = TOP_UNKNOWN;
 		Inst->Opcode = Opcode;
 		Inst->Line = Line;
 		switch (MLInstTypes[Opcode]) {
@@ -2451,6 +2500,264 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 		}
 	}
 	Info->EndLine = EndLine;
+	/*int Top = 0;
+	for (ml_inst_t *Inst = Code; Inst < Halt;) {
+		int Index = Inst - Code;
+		if (Top == TOP_UNKNOWN) {
+			if (Checks[Index] == TOP_UNKNOWN) ML_ERROR("CBORError", "Invalid bytecode");
+			Top = Checks[Index];
+		} else if (Checks[Index] == TOP_UNKNOWN) {
+			Checks[Index] = Top;
+		} else if (Checks[Index] != Top) {
+			ML_ERROR("CBORError", "Invalid bytecode");
+		}
+		switch (Inst->Opcode) {
+		case MLI_AND: {
+			CHECK_INST(1);
+			CHECK_TARGET(Inst[1].Inst);
+			Inst += 2;
+			break;
+		}
+		case MLI_AND_POP: {
+			CHECK_INST(2);
+			CHECK_TARGET_POP(Inst[1].Inst, Inst[2].Count);
+			Inst += 3;
+			break;
+		}
+		case MLI_ASSIGN: {
+			CHECK_INST(1);
+			CHECK_POP(1);
+			Inst += 2;
+			break;
+		}
+		case MLI_ASSIGN_LOCAL: {
+			CHECK_INST(1);
+			CHECK_LOCAL(Inst[1].Count);
+			Inst += 2;
+			break;
+		}
+		case MLI_CALL: {
+			CHECK_INST(1);
+			CHECK_POP(Inst[1].Count + 1);
+			Inst += 2;
+			break;
+		}
+		case MLI_CALL_CONST: {
+			CHECK_INST(2);
+			CHECK_POP(Inst[1].Count);
+			Inst += 3;
+			break;
+		}
+		case MLI_CALL_METHOD: {
+			CHECK_INST(3);
+			CHECK_POP(Inst[1].Count);
+			Inst += 4;
+			break;
+		}
+		case MLI_CATCH: {
+			CHECK_INST(3);
+			Inst += 4;
+			break;
+		}
+		case MLI_CATCHX: {
+			CHECK_INST(3);
+			Inst += 4;
+			break;
+		}
+		case MLI_CLOSURE: {
+			break;
+		}
+		case MLI_CLOSURE_TYPED: {
+			break;
+		}
+		case MLI_ENTER: {
+			break;
+		}
+		case MLI_EXIT: {
+			break;
+		}
+		case MLI_FOR: {
+			break;
+		}
+		case MLI_GOTO: {
+			break;
+		}
+		case MLI_IF_CONFIG: {
+			break;
+		}
+		case MLI_ITER: {
+			break;
+		}
+		case MLI_KEY: {
+			break;
+		}
+		case MLI_LET: {
+			break;
+		}
+		case MLI_LETI: {
+			break;
+		}
+		case MLI_LETX: {
+			break;
+		}
+		case MLI_LINK: {
+			break;
+		}
+		case MLI_LIST_APPEND: {
+			break;
+		}
+		case MLI_LIST_NEW: {
+			break;
+		}
+		case MLI_LOAD: {
+			break;
+		}
+		case MLI_LOAD_PUSH: {
+			break;
+		}
+		case MLI_LOAD_VAR: {
+			break;
+		}
+		case MLI_LOCAL: {
+			break;
+		}
+		case MLI_LOCALI: {
+			break;
+		}
+		case MLI_LOCAL_PUSH: {
+			break;
+		}
+		case MLI_MAP_INSERT: {
+			break;
+		}
+		case MLI_MAP_NEW: {
+			break;
+		}
+		case MLI_NEXT: {
+			break;
+		}
+		case MLI_NIL: {
+			break;
+		}
+		case MLI_NIL_PUSH: {
+			break;
+		}
+		case MLI_NOT: {
+			break;
+		}
+		case MLI_OR: {
+			break;
+		}
+		case MLI_PARAM_TYPE: {
+			break;
+		}
+		case MLI_PARTIAL_NEW: {
+			break;
+		}
+		case MLI_PARTIAL_SET: {
+			break;
+		}
+		case MLI_POP: {
+			break;
+		}
+		case MLI_PUSH: {
+			break;
+		}
+		case MLI_REF: {
+			break;
+		}
+		case MLI_REFI: {
+			break;
+		}
+		case MLI_REFX: {
+			break;
+		}
+		case MLI_RESOLVE: {
+			break;
+		}
+		case MLI_RESUME: {
+			break;
+		}
+		case MLI_RETRY: {
+			break;
+		}
+		case MLI_RETURN: {
+			break;
+		}
+		case MLI_STRING_ADD: {
+			break;
+		}
+		case MLI_STRING_ADDS: {
+			break;
+		}
+		case MLI_STRING_ADD_1: {
+			break;
+		}
+		case MLI_STRING_END: {
+			break;
+		}
+		case MLI_STRING_NEW: {
+			break;
+		}
+		case MLI_STRING_POP: {
+			break;
+		}
+		case MLI_SUSPEND: {
+			break;
+		}
+		case MLI_SWITCH: {
+			break;
+		}
+		case MLI_TAIL_CALL: {
+			CHECK_INST(1);
+			CHECK_POP(Inst[1].Count + 1);
+			Inst += 2;
+			break;
+		}
+		case MLI_TAIL_CALL_CONST: {
+			CHECK_INST(2);
+			CHECK_POP(Inst[1].Count);
+			Inst += 3;
+			break;
+		}
+		case MLI_TAIL_CALL_METHOD: {
+			CHECK_INST(3);
+			CHECK_POP(Inst[1].Count);
+			Inst += 4;
+			break;
+		}
+		case MLI_TRY: {
+			break;
+		}
+		case MLI_TUPLE_NEW: {
+			break;
+		}
+		case MLI_UPVALUE: {
+			break;
+		}
+		case MLI_VALUE_1: {
+			break;
+		}
+		case MLI_VALUE_2: {
+			break;
+		}
+		case MLI_VAR: {
+			break;
+		}
+		case MLI_VARX: {
+			break;
+		}
+		case MLI_VAR_TYPE: {
+			break;
+		}
+		case MLI_WITH: {
+			break;
+		}
+		case MLI_WITHX: {
+			break;
+		}
+		}
+	}*/
 	ML_RETURN(Info);
 }
 
