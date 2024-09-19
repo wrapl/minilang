@@ -515,6 +515,8 @@ ML_FUNCTIONX(Parallel) {
 	return ml_iterate(Parallel->NextState, Args[0]);
 }
 
+static ML_METHOD_DECL(CountMethod, "count");
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Iter, *Fn;
@@ -677,12 +679,181 @@ ML_FUNCTION(Buffered) {
 	return (ml_value_t *)Buffered;
 }
 
-static ML_METHOD_DECL(CountMethod, "count");
-
 ML_METHODX("count", MLBufferedT) {
 //!internal
 	ml_buffered_t *Buffered = (ml_buffered_t *)Args[0];
 	Args[0] = Buffered->Iter;
+	return ml_call(Caller, CountMethod, 1, Args);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Iter, *Fn;
+	int Size;
+} ml_unbuffered_t;
+
+ML_TYPE(MLUnbufferedT, (MLSequenceT), "unbuffered");
+//!internal
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Key, *Value;
+} ml_unbuffered_entry_t;
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter, *Fn, *Result;
+	int Size, Ready, Calling, Read, Write;
+	ml_unbuffered_entry_t Entries[];
+} ml_unbuffered_state_t;
+
+ML_TYPE(MLUnbufferedStateT, (MLStateT), "unbuffered-state");
+//!internal
+
+static void ml_unbuffered_iterate(ml_unbuffered_state_t *State, ml_value_t *Value);
+
+static void ML_TYPED_FN(ml_iter_next, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
+	if (State->Result) ML_RETURN(State->Result);
+	int Read = State->Read;
+	State->Entries[Read].Key = State->Entries[Read].Value = NULL;
+	State->Read = Read = (Read + 1) % State->Size;
+	State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
+	ml_iter_next((ml_state_t *)State, State->Iter);
+	if (--State->Ready) {
+		ML_RETURN(State);
+	} else {
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+	}
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
+	ML_RETURN(State->Entries[State->Read].Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
+	ML_RETURN(State->Entries[State->Read].Value);
+}
+
+static void ml_unbuffered_entry_call(ml_unbuffered_entry_t *Entry, ml_value_t *Value) {
+	ml_unbuffered_state_t *State = (ml_unbuffered_state_t *)Entry->Base.Caller;
+	Entry->Value = Value;
+	--State->Calling;
+	++State->Ready;
+	ml_state_t *Caller = State->Base.Caller;
+	if (Caller) {
+		State->Base.Caller = NULL;
+		ML_CONTINUE(Caller, State);
+	}
+}
+
+static void ml_unbuffered_value(ml_unbuffered_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_CONTINUE(Caller, Value);
+		} else {
+			State->Result = Value;
+		}
+	} else {
+		int Write = State->Write;
+		ml_unbuffered_entry_t *Entry = &State->Entries[Write];
+		State->Write = (Write + 1) % State->Size;
+		++State->Calling;
+		ml_value_t **Args = ml_alloc_args(2);
+		Args[0] = Entry->Key;
+		Args[1] = Value;
+		ml_call((ml_state_t *)Entry, State->Fn, 2, Args);
+		if (!State->Result && (State->Calling + State->Ready != State->Size)) {
+			State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
+			ml_iter_next((ml_state_t *)State, State->Iter);
+		}
+	}
+}
+
+static void ml_unbuffered_key(ml_unbuffered_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_CONTINUE(Caller, Value);
+		} else {
+			State->Result = Value;
+		}
+	} else {
+		State->Entries[State->Write].Key = Value;
+		State->Base.run = (ml_state_fn)ml_unbuffered_value;
+		ml_iter_value((ml_state_t *)State, State->Iter);
+	}
+}
+
+static void ml_unbuffered_iterate(ml_unbuffered_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_CONTINUE(Caller, Value);
+		} else {
+			State->Result = Value;
+		}
+	} else if (Value == MLNil) {
+		if (State->Ready + State->Calling) {
+			ml_state_t *Caller = State->Base.Caller;
+			if (Caller) {
+				State->Base.Caller = NULL;
+				ML_CONTINUE(Caller, Value);
+			} else {
+				State->Result = Value;
+			}
+		}
+	} else {
+		State->Base.run = (ml_state_fn)ml_unbuffered_key;
+		ml_iter_key((ml_state_t *)State, State->Iter = Value);
+	}
+}
+
+static void ML_TYPED_FN(ml_iterate, MLUnbufferedT, ml_state_t *Caller, ml_unbuffered_t *Unbuffered) {
+	ml_unbuffered_state_t *State = xnew(ml_unbuffered_state_t, Unbuffered->Size, ml_unbuffered_entry_t);
+	State->Base.Type = MLUnbufferedStateT;
+	State->Base.run = (void *)ml_unbuffered_iterate;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Fn = Unbuffered->Fn;
+	State->Size = Unbuffered->Size;
+	State->Read = State->Write = State->Ready = State->Calling = 0;
+	for (int I = 0; I < State->Size; ++I) {
+		State->Entries[I].Base.Caller = (ml_state_t *)State;
+		State->Entries[I].Base.Context = Caller->Context;
+		State->Entries[I].Base.run = (ml_state_fn)ml_unbuffered_entry_call;
+	}
+	return ml_iterate((ml_state_t *)State, Unbuffered->Iter);
+}
+
+ML_FUNCTION(Unbuffered) {
+//<Sequence:sequence
+//<Size:integer
+//<Fn:function
+//>sequence
+// Returns the sequence :mini:`(K/i, Fn(K/i, V/i))` where :mini:`K/i, V/i` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel, with at most :mini:`Size` calls at a time. The original sequence order is preserved (using an internal buffer).
+//$= list(buffered(1 .. 10, 5, tuple))
+	ML_CHECK_ARG_COUNT(3);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	ML_CHECK_ARG_TYPE(2, MLFunctionT);
+	int Size = ml_integer_value(Args[1]);
+	if (Size <= 0 || Size > 1024) return ml_error("RangeError", "Unbuffered size out of range");
+	ml_unbuffered_t *Unbuffered = new(ml_unbuffered_t);
+	Unbuffered->Type = MLUnbufferedT;
+	Unbuffered->Size = Size;
+	Unbuffered->Iter = Args[0];
+	Unbuffered->Fn = Args[2];
+	return (ml_value_t *)Unbuffered;
+}
+
+ML_METHODX("count", MLUnbufferedT) {
+//!internal
+	ml_unbuffered_t *Unbuffered = (ml_unbuffered_t *)Args[0];
+	Args[0] = Unbuffered->Iter;
 	return ml_call(Caller, CountMethod, 1, Args);
 }
 
@@ -693,5 +864,6 @@ void ml_tasks_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "task", MLTaskT);
 		stringmap_insert(Globals, "parallel", Parallel);
 		stringmap_insert(Globals, "buffered", Buffered);
+		stringmap_insert(Globals, "unbuffered", Unbuffered);
 	}
 }
