@@ -1299,7 +1299,6 @@ ML_FUNCTIONX(MLAtomic) {
 
 #endif
 
-
 typedef struct {
 	ml_state_t *Caller;
 	ml_value_t *Fn;

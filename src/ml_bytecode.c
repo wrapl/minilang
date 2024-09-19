@@ -1998,6 +1998,8 @@ static int ml_stringbuffer_copy(ml_stringbuffer_t *Buffer, const char *String, s
 	return 0;
 }
 
+#define ML_BYTECODE_ENCODING 2
+
 static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer, ml_closure_info_t *Info) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	vlq64_encode(Buffer, ML_BYTECODE_VERSION);
