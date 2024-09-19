@@ -535,7 +535,7 @@ typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter, *Fn;
 	ml_value_t *Key, *Value;
-	int Size, Use, Fetch, Ready;
+	int Size, Use, Fetch, Head;
 	ml_buffered_entry_t Entries[];
 } ml_buffered_state_t;
 
@@ -553,8 +553,8 @@ static void ml_buffered_call(ml_state_t *Caller, ml_buffered_state_t *State, ml_
 		Entry->Key = Entry->Value = NULL;
 		++State->Use;
 		State->Base.Caller = NULL;
-		if (State->Ready) {
-			State->Ready = 0;
+		if (State->Head) {
+			State->Head = 0;
 			State->Base.run = (ml_state_fn)ml_buffered_iterate;
 			ml_iter_next((ml_state_t *)State, State->Iter);
 		}
@@ -597,15 +597,15 @@ static void ml_buffered_value(ml_buffered_state_t *State, ml_value_t *Value) {
 		Entry->Key = NULL;
 		ml_buffered_entry_call(Entry, Value);
 	} else {
-		State->Ready = 1;
+		State->Head = 1;
 		++State->Fetch;
 		ml_value_t **Args = ml_alloc_args(2);
 		Args[0] = Entry->Key;
 		Args[1] = Value;
 		ml_call((ml_state_t *)Entry, State->Fn, 2, Args);
 		if (State->Fetch - State->Use < State->Size) {
-			if (State->Ready) {
-				State->Ready = 0;
+			if (State->Head) {
+				State->Head = 0;
 				State->Base.run = (ml_state_fn)ml_buffered_iterate;
 				ml_iter_next((ml_state_t *)State, State->Iter);
 			}
@@ -695,77 +695,106 @@ typedef struct {
 ML_TYPE(MLUnbufferedT, (MLSequenceT), "unbuffered");
 //!internal
 
-typedef struct {
+typedef struct ml_unbuffered_task_t ml_unbuffered_task_t;
+
+struct ml_unbuffered_task_t {
 	ml_state_t Base;
+	ml_unbuffered_task_t *Next;
 	ml_value_t *Key, *Value;
-} ml_unbuffered_entry_t;
+};
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Iter, *Fn, *Result;
-	int Size, Ready, Calling, Read, Write;
-	ml_unbuffered_entry_t Entries[];
+	ml_value_t *Iter, *Fn, *Final;
+	ml_unbuffered_task_t *Head, *Tail, *Next;
+	int Size, Waiting;
+	ml_unbuffered_task_t Tasks[];
 } ml_unbuffered_state_t;
 
 ML_TYPE(MLUnbufferedStateT, (MLStateT), "unbuffered-state");
 //!internal
 
-static void ml_unbuffered_iterate(ml_unbuffered_state_t *State, ml_value_t *Value);
+static void ml_unbuffered_iterate(ml_unbuffered_state_t *Task, ml_value_t *Value);
 
 static void ML_TYPED_FN(ml_iter_next, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
-	if (State->Result) ML_RETURN(State->Result);
-	int Read = State->Read;
-	State->Entries[Read].Key = State->Entries[Read].Value = NULL;
-	State->Read = Read = (Read + 1) % State->Size;
-	State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
-	ml_iter_next((ml_state_t *)State, State->Iter);
-	if (--State->Ready) {
-		ML_RETURN(State);
-	} else {
-		State->Base.Caller = Caller;
-		State->Base.Context = Caller->Context;
+	if (State->Waiting <= 0) ML_RETURN(State->Final);
+	ml_unbuffered_task_t *Task = State->Head;
+	if (Task) {
+		--State->Waiting;
+		State->Head = Task->Next;
+		if (!State->Head) State->Tail = NULL;
+		if (State->Final) {
+			if (State->Waiting <= 0) ML_RETURN(State->Final);
+		} else if (State->Next) {
+			Task->Next = State->Next->Next;
+			State->Next->Next = Task;
+		} else {
+			Task->Next = NULL;
+			State->Next = Task;
+			State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
+			ml_iter_next((ml_state_t *)State, State->Iter);
+		}
+		if (State->Head) {
+			ML_RETURN(State);
+		} else {
+			State->Base.Caller = Caller;
+		}
 	}
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
-	ML_RETURN(State->Entries[State->Read].Key);
+	if (!State->Head) ML_ERROR("StateError", "Invalid state");
+	ML_RETURN(State->Head->Key);
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
-	ML_RETURN(State->Entries[State->Read].Value);
+	if (!State->Head) ML_ERROR("StateError", "Invalid state");
+	ML_RETURN(State->Head->Value);
 }
 
-static void ml_unbuffered_entry_call(ml_unbuffered_entry_t *Entry, ml_value_t *Value) {
-	ml_unbuffered_state_t *State = (ml_unbuffered_state_t *)Entry->Base.Caller;
-	Entry->Value = Value;
-	--State->Calling;
-	++State->Ready;
-	ml_state_t *Caller = State->Base.Caller;
-	if (Caller) {
-		State->Base.Caller = NULL;
-		ML_CONTINUE(Caller, State);
+static void ml_unbuffered_task_call(ml_unbuffered_task_t *Task, ml_value_t *Value) {
+	ml_unbuffered_state_t *State = (ml_unbuffered_state_t *)Task->Base.Caller;
+	Task->Value = Value;
+	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_RETURN(Value);
+		}
+	} else if (State->Tail) {
+		State->Tail->Next = Task;
+		State->Tail = Task;
+	} else {
+		State->Head = State->Tail = Task;
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_RETURN(State);
+		}
 	}
 }
 
 static void ml_unbuffered_value(ml_unbuffered_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
 		ml_state_t *Caller = State->Base.Caller;
 		if (Caller) {
 			State->Base.Caller = NULL;
-			ML_CONTINUE(Caller, Value);
-		} else {
-			State->Result = Value;
+			ML_RETURN(Value);
 		}
 	} else {
-		int Write = State->Write;
-		ml_unbuffered_entry_t *Entry = &State->Entries[Write];
-		State->Write = (Write + 1) % State->Size;
-		++State->Calling;
+		ml_unbuffered_task_t *Task = State->Next;
+		State->Next = Task->Next;
+		Task->Next = NULL;
 		ml_value_t **Args = ml_alloc_args(2);
-		Args[0] = Entry->Key;
+		Args[0] = Task->Key;
 		Args[1] = Value;
-		ml_call((ml_state_t *)Entry, State->Fn, 2, Args);
-		if (!State->Result && (State->Calling + State->Ready != State->Size)) {
+		++State->Waiting;
+		ml_call((ml_state_t *)Task, State->Fn, 2, Args);
+		if (!State->Final && State->Next) {
 			State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
 			ml_iter_next((ml_state_t *)State, State->Iter);
 		}
@@ -774,15 +803,15 @@ static void ml_unbuffered_value(ml_unbuffered_state_t *State, ml_value_t *Value)
 
 static void ml_unbuffered_key(ml_unbuffered_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
 		ml_state_t *Caller = State->Base.Caller;
 		if (Caller) {
 			State->Base.Caller = NULL;
-			ML_CONTINUE(Caller, Value);
-		} else {
-			State->Result = Value;
+			ML_RETURN(Value);
 		}
 	} else {
-		State->Entries[State->Write].Key = Value;
+		State->Next->Key = Value;
 		State->Base.run = (ml_state_fn)ml_unbuffered_value;
 		ml_iter_value((ml_state_t *)State, State->Iter);
 	}
@@ -790,21 +819,20 @@ static void ml_unbuffered_key(ml_unbuffered_state_t *State, ml_value_t *Value) {
 
 static void ml_unbuffered_iterate(ml_unbuffered_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
 		ml_state_t *Caller = State->Base.Caller;
 		if (Caller) {
 			State->Base.Caller = NULL;
-			ML_CONTINUE(Caller, Value);
-		} else {
-			State->Result = Value;
+			ML_RETURN(Value);
 		}
 	} else if (Value == MLNil) {
-		if (State->Ready + State->Calling) {
+		State->Final = Value;
+		if (State->Waiting == 0) {
 			ml_state_t *Caller = State->Base.Caller;
 			if (Caller) {
 				State->Base.Caller = NULL;
-				ML_CONTINUE(Caller, Value);
-			} else {
-				State->Result = Value;
+				ML_RETURN(Value);
 			}
 		}
 	} else {
@@ -814,19 +842,24 @@ static void ml_unbuffered_iterate(ml_unbuffered_state_t *State, ml_value_t *Valu
 }
 
 static void ML_TYPED_FN(ml_iterate, MLUnbufferedT, ml_state_t *Caller, ml_unbuffered_t *Unbuffered) {
-	ml_unbuffered_state_t *State = xnew(ml_unbuffered_state_t, Unbuffered->Size, ml_unbuffered_entry_t);
+	ml_unbuffered_state_t *State = xnew(ml_unbuffered_state_t, Unbuffered->Size, ml_unbuffered_task_t);
 	State->Base.Type = MLUnbufferedStateT;
-	State->Base.run = (void *)ml_unbuffered_iterate;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
 	State->Fn = Unbuffered->Fn;
-	State->Size = Unbuffered->Size;
-	State->Read = State->Write = State->Ready = State->Calling = 0;
-	for (int I = 0; I < State->Size; ++I) {
-		State->Entries[I].Base.Caller = (ml_state_t *)State;
-		State->Entries[I].Base.Context = Caller->Context;
-		State->Entries[I].Base.run = (ml_state_fn)ml_unbuffered_entry_call;
+	ml_unbuffered_task_t *Task = State->Tasks;
+	Task->Base.Caller = (ml_state_t *)State;
+	Task->Base.Context = Caller->Context;
+	Task->Base.run = (ml_state_fn)ml_unbuffered_task_call;
+	for (int I = Unbuffered->Size; --I > 0;) {
+		++Task;
+		Task->Next = Task - 1;
+		Task->Base.Caller = (ml_state_t *)State;
+		Task->Base.Context = Caller->Context;
+		Task->Base.run = (ml_state_fn)ml_unbuffered_task_call;
 	}
+	State->Next = Task;
 	return ml_iterate((ml_state_t *)State, Unbuffered->Iter);
 }
 
@@ -835,8 +868,8 @@ ML_FUNCTION(Unbuffered) {
 //<Size:integer
 //<Fn:function
 //>sequence
-// Returns the sequence :mini:`(K/i, Fn(K/i, V/i))` where :mini:`K/i, V/i` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel, with at most :mini:`Size` calls at a time. The original sequence order is preserved (using an internal buffer).
-//$= list(buffered(1 .. 10, 5, tuple))
+// Returns the sequence :mini:`(K/i, Fn(K/i, V/i))` where :mini:`K/i, V/i` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel, with at most :mini:`Size` calls at a time. The original sequence order is not preserved.
+//$= list(unbuffered(1 .. 10, 5, tuple))
 	ML_CHECK_ARG_COUNT(3);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	ML_CHECK_ARG_TYPE(2, MLFunctionT);
