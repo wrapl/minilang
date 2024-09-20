@@ -718,27 +718,26 @@ static void ml_unbuffered_iterate(ml_unbuffered_state_t *Task, ml_value_t *Value
 
 static void ML_TYPED_FN(ml_iter_next, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
 	if (State->Waiting <= 0) ML_RETURN(State->Final);
+	if (!State->Head) ML_ERROR("StateError", "Invalid state");
 	ml_unbuffered_task_t *Task = State->Head;
-	if (Task) {
-		--State->Waiting;
-		State->Head = Task->Next;
-		if (!State->Head) State->Tail = NULL;
-		if (State->Final) {
-			if (State->Waiting <= 0) ML_RETURN(State->Final);
-		} else if (State->Next) {
-			Task->Next = State->Next->Next;
-			State->Next->Next = Task;
-		} else {
-			Task->Next = NULL;
-			State->Next = Task;
-			State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
-			ml_iter_next((ml_state_t *)State, State->Iter);
-		}
-		if (State->Head) {
-			ML_RETURN(State);
-		} else {
-			State->Base.Caller = Caller;
-		}
+	--State->Waiting;
+	State->Head = Task->Next;
+	if (!State->Head) State->Tail = NULL;
+	if (State->Final) {
+		if (State->Waiting <= 0) ML_RETURN(State->Final);
+	} else if (State->Next) {
+		Task->Next = State->Next->Next;
+		State->Next->Next = Task;
+	} else {
+		Task->Next = NULL;
+		State->Next = Task;
+		State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
+		ml_iter_next((ml_state_t *)State, State->Iter);
+	}
+	if (State->Head) {
+		ML_RETURN(State);
+	} else {
+		State->Base.Caller = Caller;
 	}
 }
 
