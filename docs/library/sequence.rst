@@ -155,6 +155,15 @@ sequence
       :> [21, 23, 26, 30, 35, 41, 48, 56, 65, 75]
 
 
+:mini:`fun dup(Sequence: sequence)`
+   Returns a new sequence which produces the values of :mini:`Sequence` as both keys and values.
+
+   .. code-block:: mini
+
+      map(dup({"A" is 1, "B" is 2, "C" is 3}))
+      :> {1 is 1, 2 is 2, 3 is 3}
+
+
 :mini:`fun fold(Sequence: sequence): sequence`
    Returns a new sequence that treats alternating values produced by :mini:`Sequence` as keys and values respectively.
 
@@ -583,7 +592,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "c"
+      random("cake") :> "e"
       random([]) :> nil
 
 
