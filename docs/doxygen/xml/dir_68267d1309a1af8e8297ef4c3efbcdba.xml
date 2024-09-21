@@ -11,8 +11,6 @@
     <innerdir refid="dir_24ea3af21ee7c3599962d07428bbcbdc">src/tre</innerdir>
     <innerfile refid="coro_8h">coro.h</innerfile>
     <innerfile refid="dap_8h">dap.h</innerfile>
-    <innerfile refid="gtk__console_8h">gtk_console.h</innerfile>
-    <innerfile refid="gtk__console__completion_8h">gtk_console_completion.h</innerfile>
     <innerfile refid="inthash_8h">inthash.h</innerfile>
     <innerfile refid="inthash2_8h">inthash2.h</innerfile>
     <innerfile refid="linenoise_8h">linenoise.h</innerfile>
@@ -31,7 +29,6 @@
     <innerfile refid="ml__debugger_8h">ml_debugger.h</innerfile>
     <innerfile refid="ml__expr__types_8h">ml_expr_types.h</innerfile>
     <innerfile refid="ml__file_8h">ml_file.h</innerfile>
-    <innerfile refid="ml__gir_8h">ml_gir.h</innerfile>
     <innerfile refid="ml__json_8h">ml_json.h</innerfile>
     <innerfile refid="ml__library_8h">ml_library.h</innerfile>
     <innerfile refid="ml__list_8h">ml_list.h</innerfile>

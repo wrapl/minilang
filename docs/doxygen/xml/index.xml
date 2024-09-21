@@ -30,6 +30,7 @@
     <member refid="struct__GC__arrays_1a85bfc9f9bf0e4f8b63c37e6194a1a498" kind="variable"><name>_mark_state</name></member>
     <member refid="struct__GC__arrays_1acdd9cd0b0087157c04ef6b50ad412031" kind="variable"><name>_mark_stack_too_small</name></member>
     <member refid="struct__GC__arrays_1aaae283060667bfbaab7a98c9a8a3acbc" kind="variable"><name>_objects_are_marked</name></member>
+    <member refid="struct__GC__arrays_1a16c84bc58072105f1a4b2db5f8e8f25f" kind="variable"><name>_noop_sink</name></member>
     <member refid="struct__GC__arrays_1aacc110f7d1f0951c82a5468f3096aea6" kind="variable"><name>_capacity_heap_sects</name></member>
     <member refid="struct__GC__arrays_1ae96fa7f6ede08408768178038f639821" kind="variable"><name>_n_heap_sects</name></member>
     <member refid="struct__GC__arrays_1addd24b9dd6fba11d1e4a9b6d0f21dda1" kind="variable"><name>_fo_entries</name></member>
@@ -509,6 +510,9 @@
     <member refid="structinthash__t_1a93b817b8cb9e5be468df90c8a277e5bc" kind="variable"><name>Values</name></member>
     <member refid="structinthash__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
     <member refid="structinthash__t_1adbeb0cbccc7ac4e39443f6cf8049b260" kind="variable"><name>Space</name></member>
+  </compound>
+  <compound refid="structlibbacktrace__base__address" kind="struct"><name>libbacktrace_base_address</name>
+    <member refid="structlibbacktrace__base__address_1acf16169cd0528e760f6a940b11e2762e" kind="variable"><name>m</name></member>
   </compound>
   <compound refid="structlinenoiseCompletions" kind="struct"><name>linenoiseCompletions</name>
     <member refid="structlinenoiseCompletions_1a7360b55975153b822efc5217b7734e6a" kind="variable"><name>len</name></member>
@@ -1293,8 +1297,8 @@
     <member refid="structtre__ast__node__t_1aa919482768c0eac179575481f77e0fa3" kind="variable"><name>obj</name></member>
     <member refid="structtre__ast__node__t_1a4dd2cbfaacea26f037530c30b81285a6" kind="variable"><name>nullable</name></member>
     <member refid="structtre__ast__node__t_1af44008714fa98d62ea62084c7ef4439e" kind="variable"><name>submatch_id</name></member>
-    <member refid="structtre__ast__node__t_1a66ed20c51bd06bd95dd5b92e1a4f77b9" kind="variable"><name>num_submatches</name></member>
-    <member refid="structtre__ast__node__t_1a47ec3e9b4ca53f687664f81f38d2f148" kind="variable"><name>num_tags</name></member>
+    <member refid="structtre__ast__node__t_1aed49650f4da05d288943b2ad2c59356b" kind="variable"><name>num_submatches</name></member>
+    <member refid="structtre__ast__node__t_1aeb6729656fc0227df33136e2b1287d37" kind="variable"><name>num_tags</name></member>
     <member refid="structtre__ast__node__t_1a4e27c7ddb2f78fe3b8c69179c4a9be62" kind="variable"><name>firstpos</name></member>
     <member refid="structtre__ast__node__t_1a8b7d1703a7dcd186dd99154d6d01b05e" kind="variable"><name>lastpos</name></member>
   </compound>
@@ -1347,13 +1351,12 @@
     <member refid="structtre__parse__ctx__t_1a18fac45021ca79cb33f3a6ae73494cda" kind="variable"><name>re_end</name></member>
     <member refid="structtre__parse__ctx__t_1afed088663f8704004425cdae2120b9b3" kind="variable"><name>len</name></member>
     <member refid="structtre__parse__ctx__t_1af44008714fa98d62ea62084c7ef4439e" kind="variable"><name>submatch_id</name></member>
-    <member refid="structtre__parse__ctx__t_1a401e942526aac47cef94f478182486e7" kind="variable"><name>position</name></member>
     <member refid="structtre__parse__ctx__t_1adb11770296e7c01b4cea718bfb9008e0" kind="variable"><name>max_backref</name></member>
     <member refid="structtre__parse__ctx__t_1a62b639cb41ceeec1b9cc0ec0d7eb5d44" kind="variable"><name>have_approx</name></member>
     <member refid="structtre__parse__ctx__t_1ac3b0544247c70df5ebadb0ef54c74101" kind="variable"><name>cflags</name></member>
     <member refid="structtre__parse__ctx__t_1a0b37749ce2c7c0455061109d1d97ca56" kind="variable"><name>nofirstsub</name></member>
     <member refid="structtre__parse__ctx__t_1aab73517ac93e40cf3cd61273154575a0" kind="variable"><name>params</name></member>
-    <member refid="structtre__parse__ctx__t_1aa56d06de3984d81363d81856aa320fdc" kind="variable"><name>cur_max</name></member>
+    <member refid="structtre__parse__ctx__t_1a506965b04558f4e58012c9c4378c9e97" kind="variable"><name>mb_cur_max</name></member>
   </compound>
   <compound refid="structtre__pos__and__tags__t" kind="struct"><name>tre_pos_and_tags_t</name>
     <member refid="structtre__pos__and__tags__t_1a401e942526aac47cef94f478182486e7" kind="variable"><name>position</name></member>
@@ -2057,7 +2060,7 @@
     <member refid="gc_8h_1a97a2bae69773b9203e6bb22d8bfeb7ee" kind="function"><name>GC_end_stubborn_change</name></member>
     <member refid="gc_8h_1a5e7878270cb16b24d5a07d5781c95345" kind="function"><name>GC_base</name></member>
     <member refid="gc_8h_1ac99d731291fa44e0b4c133503350661c" kind="function"><name>GC_is_heap_ptr</name></member>
-    <member refid="gc_8h_1a8e4b29a6f09c281e53721eba5f206cf8" kind="function"><name>GC_size</name></member>
+    <member refid="gc_8h_1a499ad7765a60a7307ef93fddda6201a9" kind="function"><name>GC_size</name></member>
     <member refid="gc_8h_1ae653fc00d980cfe2f1e44bf04a281253" kind="function"><name>GC_realloc</name></member>
     <member refid="gc_8h_1a7eb7c135ee0716354c0061dd2d87dd8b" kind="function"><name>GC_expand_hp</name></member>
     <member refid="gc_8h_1ac8d25b0515589b4d41f1bc2e71a16e33" kind="function"><name>GC_set_max_heap_size</name></member>
@@ -2351,6 +2354,7 @@
     <member refid="leak__detector_8h_1acad0dc642ef992709367197c99973229" kind="define"><name>strndup</name></member>
     <member refid="leak__detector_8h_1a7807c4983b459d524a01d6ea678a3477" kind="define"><name>memalign</name></member>
     <member refid="leak__detector_8h_1a6f0607529685a15c0a189aafc7d4a496" kind="define"><name>posix_memalign</name></member>
+    <member refid="leak__detector_8h_1abfe63bd2844f39f16092f92278a0cfbc" kind="define"><name>malloc_usable_size</name></member>
     <member refid="leak__detector_8h_1acc4a9135522b8f1f4b98f7b97667ed94" kind="define"><name>CHECK_LEAKS</name></member>
   </compound>
   <compound refid="darwin__semaphore_8h" kind="file"><name>darwin_semaphore.h</name>
@@ -2578,11 +2582,13 @@
     <member refid="gc__priv_8h_1a531c474d561c77fc6c9f9174dec18610" kind="define"><name>GC_our_mem_bytes</name></member>
     <member refid="gc__priv_8h_1ad4f667eaf317615f1b036889e6bb002a" kind="define"><name>GC_bytes_allocd</name></member>
     <member refid="gc__priv_8h_1a1a93e5168ada6285538dcbec495300db" kind="define"><name>GC_unmapped_bytes</name></member>
+    <member refid="gc__priv_8h_1a0a2ee0cae62cc8a8d8701bbb60791674" kind="define"><name>GC_num_unmapped_regions</name></member>
     <member refid="gc__priv_8h_1a16a7d0b384d698e0d95021ffc83a3e49" kind="define"><name>GC_scan_ptr</name></member>
     <member refid="gc__priv_8h_1a35803fb913e6be896ab54950858e6d19" kind="define"><name>GC_mark_stack_size</name></member>
     <member refid="gc__priv_8h_1a2df13d7be6c8a4057325a84726d1e6d2" kind="define"><name>GC_mark_state</name></member>
     <member refid="gc__priv_8h_1ab68c4e9c5df9e752df5b2026aeabc9e4" kind="define"><name>GC_mark_stack_too_small</name></member>
     <member refid="gc__priv_8h_1a6ab974d7751a6a2ddc6c0bbf1c137502" kind="define"><name>GC_objects_are_marked</name></member>
+    <member refid="gc__priv_8h_1a61a4aff44ca60c5b878c0d73a9778320" kind="define"><name>GC_noop_sink</name></member>
     <member refid="gc__priv_8h_1adcd9dad4469142a958a222dbb1be6148" kind="define"><name>GC_capacity_heap_sects</name></member>
     <member refid="gc__priv_8h_1a1de33d40aaf2ca285768d88ad3b789b7" kind="define"><name>GC_n_heap_sects</name></member>
     <member refid="gc__priv_8h_1a8fe18d2135169eeb19ce3ef385ce2e38" kind="define"><name>GC_fo_entries</name></member>
@@ -2600,6 +2606,7 @@
     <member refid="gc__priv_8h_1ab0c0e908f493cbf1430f73cddce6948c" kind="define"><name>GC_avail_descr</name></member>
     <member refid="gc__priv_8h_1a69e2bb7eca04f8b67e56a3b291e10ce5" kind="define"><name>GC_ext_descriptors</name></member>
     <member refid="gc__priv_8h_1a5bf6dce65a188ffe95c75d5786f51210" kind="define"><name>GC_root_index</name></member>
+    <member refid="gc__priv_8h_1aede6b942bf670563acba079a796f19c5" kind="define"><name>SAVE_CALLERS_TO_LAST_STACK</name></member>
     <member refid="gc__priv_8h_1a9e1977d21df89ec6d793bb4af905704f" kind="define"><name>GC_objfreelist</name></member>
     <member refid="gc__priv_8h_1a91054ff791fe3eb28e7d49d5a5b5d7f2" kind="define"><name>GC_aobjfreelist</name></member>
     <member refid="gc__priv_8h_1acd5364cdc427a61470ba94ec54c9a9cc" kind="define"><name>GC_obj_map</name></member>
@@ -2682,6 +2689,7 @@
     <member refid="gc__priv_8h_1a7d74a250ba846d3072adc15c9dc767a9" kind="define"><name>GC_auto_incremental</name></member>
     <member refid="gc__priv_8h_1ad69181c91e6f39f0481d934fc3bae025" kind="define"><name>GC_dirty</name></member>
     <member refid="gc__priv_8h_1a5b1d0affc8b493bb6bfc50b43cff6388" kind="define"><name>REACHABLE_AFTER_DIRTY</name></member>
+    <member refid="gc__priv_8h_1a3ae7459311f8e70601e084ebeed1e75c" kind="define"><name>GC_handle_protected_regions_limit</name></member>
     <member refid="gc__priv_8h_1a8054967d962e5aeb8f810a56b73b0a92" kind="define"><name>GC_base_C</name></member>
     <member refid="gc__priv_8h_1ad598b40bc453ac5db93259146360d977" kind="define"><name>GC_STORE_BACK_PTR</name></member>
     <member refid="gc__priv_8h_1aa3bcdd1878febb321f977cb31d52ed7a" kind="define"><name>GC_MARKED_FOR_FINALIZATION</name></member>
@@ -2908,22 +2916,6 @@
   </compound>
   <compound refid="thread__local__alloc_8h" kind="file"><name>thread_local_alloc.h</name>
   </compound>
-  <compound refid="gtk__console_8h" kind="file"><name>gtk_console.h</name>
-    <member refid="gtk__console_8h_1a51fd9ea886f1efb234fe13e6dfb8ac84" kind="typedef"><name>gtk_console_t</name></member>
-    <member refid="gtk__console_8h_1a733bb859b034b904f5825e52db6136f1" kind="function"><name>gtk_console</name></member>
-    <member refid="gtk__console_8h_1a61ccc621bccc38732668e868cf39991f" kind="function"><name>gtk_console_show</name></member>
-    <member refid="gtk__console_8h_1af1ef5f5d42508fae608d64e7c7443ec3" kind="function"><name>gtk_console_log</name></member>
-    <member refid="gtk__console_8h_1ae85dc8471575c880c30215d896430672" kind="function"><name>gtk_console_append</name></member>
-    <member refid="gtk__console_8h_1a4976bceb0ce3175145673aa3ce9fb0c8" kind="function"><name>gtk_console_print</name></member>
-    <member refid="gtk__console_8h_1a12fbc245939630d9a853413954caf94c" kind="function"><name>gtk_console_printf</name></member>
-    <member refid="gtk__console_8h_1a0ad92cc292237e5eac880a8e264d0d70" kind="function"><name>gtk_console_load_file</name></member>
-    <member refid="gtk__console_8h_1af676b5618838f3682bfd3adc4f872e8e" kind="function"><name>gtk_console_evaluate</name></member>
-    <member refid="gtk__console_8h_1a3847f68f0d7c98eba61649b84a173ce1" kind="function"><name>gtk_console_init</name></member>
-  </compound>
-  <compound refid="gtk__console__completion_8h" kind="file"><name>gtk_console_completion.h</name>
-    <member refid="gtk__console__completion_8h_1a4c795de087f5e59dd00694c61e373dcf" kind="define"><name>CONSOLE_TYPE_COMPLETION_PROVIDER</name></member>
-    <member refid="gtk__console__completion_8h_1a6656db99de1e04e11b69214830581b9b" kind="function"><name>gtk_console_completion_provider</name></member>
-  </compound>
   <compound refid="inthash_8h" kind="file"><name>inthash.h</name>
     <member refid="group__inthash_1ga27d72e87f09dbeafc3d36cc7904db468" kind="define"><name>INTHASH_INDEX_SHIFT</name></member>
     <member refid="group__inthash_1ga815f76b04432c6fb81ad28140a77a6dc" kind="define"><name>INTHASH_INCR_SHIFT</name></member>
@@ -2983,6 +2975,8 @@
     <member refid="internal_8h_1ad472751126a90303ca3a3e5d25d3b59f" kind="define"><name>backtrace_atomic_store_pointer</name></member>
     <member refid="internal_8h_1a3cb6ee1a1feb373fb7c7cadb368e8d6c" kind="define"><name>backtrace_atomic_store_size_t</name></member>
     <member refid="internal_8h_1aeae2044a608796e322dfe8bc8fd02084" kind="define"><name>backtrace_atomic_store_int</name></member>
+    <member refid="internal_8h_1acd61807857b1bbd916e3aac8182b3ec1" kind="define"><name>libbacktrace_using_fdpic</name></member>
+    <member refid="internal_8h_1a5cb872b818ffdd63f1604c7e483c034b" kind="define"><name>libbacktrace_add_base</name></member>
     <member refid="internal_8h_1aaeb46e892f1e7b21df3bc169c1919c1c" kind="enum"><name>dwarf_section</name></member>
     <member refid="internal_8h_1aaeb46e892f1e7b21df3bc169c1919c1ca639f318df3de1efb276faef7bd886cdf" kind="enumvalue"><name>DEBUG_INFO</name></member>
     <member refid="internal_8h_1aaeb46e892f1e7b21df3bc169c1919c1ca19a82091e90a12e6657fcf5fdd5318e5" kind="enumvalue"><name>DEBUG_LINE</name></member>
@@ -3008,7 +3002,7 @@
     <member refid="internal_8h_1a4cc19466d2e576193e573f93c4a34d53" kind="function"><name>backtrace_vector_release</name></member>
     <member refid="internal_8h_1ac3b8470f8987e48137c36920daa9801c" kind="function"><name>backtrace_vector_free</name></member>
     <member refid="internal_8h_1af70a76b9e344288ca32d5fb02a553c05" kind="function"><name>backtrace_initialize</name></member>
-    <member refid="internal_8h_1a8455b962c1fa0a27861289071190b6fe" kind="function"><name>backtrace_dwarf_add</name></member>
+    <member refid="internal_8h_1a4b1d3a3e474b0a846b770371dc11b1be" kind="function"><name>backtrace_dwarf_add</name></member>
     <member refid="internal_8h_1aec097d4b89f7d4cc1e96b77d5f6d552d" kind="function"><name>backtrace_syminfo_to_full_callback</name></member>
     <member refid="internal_8h_1af47f231c13242b8d583d68a572adc48e" kind="function"><name>backtrace_syminfo_to_full_error_callback</name></member>
     <member refid="internal_8h_1ac09114a30e7294aa0105a0c7db5fe9bd" kind="function"><name>backtrace_uncompress_zdebug</name></member>
@@ -3611,24 +3605,6 @@
     <member refid="ml__file_8h_1a685dc39423dbf4ef9f8bbb5112a9cc80" kind="function"><name>ml_file_init</name></member>
     <member refid="ml__file_8h_1a58f7a5abd7549c38e2997a0bc2943fff" kind="function"><name>ml_file</name></member>
     <member refid="ml__file_8h_1a1f1607ac2a3f1d11f66409b5a441f689" kind="function"><name>ml_file_handle</name></member>
-  </compound>
-  <compound refid="ml__gir_8h" kind="file"><name>ml_gir.h</name>
-    <member refid="ml__gir_8h_1a85b44e13eaacfcfe7c4ec0380cc6d0ce" kind="define"><name>ML_GIR_TYPELIB</name></member>
-    <member refid="ml__gir_8h_1a3b47c2b2d63fb0f63caee7b44a1c6f16" kind="define"><name>ML_GIR_IMPORT</name></member>
-    <member refid="ml__gir_8h_1acb1699aebfa71188d74572c7efa17df1" kind="variable"><name>MLGirTypelibT</name></member>
-    <member refid="ml__gir_8h_1a2976138dbd61b8af54e6499ce759bcd4" kind="function"><name>ml_gir_typelib</name></member>
-    <member refid="ml__gir_8h_1ac0cfbdb2f2d3b940b79562a7a1e6bb89" kind="function"><name>ml_gir_get_typelib</name></member>
-    <member refid="ml__gir_8h_1a5cec099607e88367f8828ee03efe6952" kind="function"><name>ml_gir_get_namespace</name></member>
-    <member refid="ml__gir_8h_1ae9c74f90f9fe41e98a06b2ceee74bae9" kind="function"><name>ml_gir_import</name></member>
-    <member refid="ml__gir_8h_1a71b66a04accc862da7f763f1d2c2c9e3" kind="function"><name>ml_gir_loop_init</name></member>
-    <member refid="ml__gir_8h_1a84cf23e6320f30fd979eb2f548a56755" kind="function"><name>ml_gir_loop_run</name></member>
-    <member refid="ml__gir_8h_1a2da3eb76546912b655e8af57183bf1bc" kind="function"><name>ml_gir_loop_quit</name></member>
-    <member refid="ml__gir_8h_1a381b8fd55f3b3faec6f9a33e56854897" kind="function"><name>ml_gir_init</name></member>
-    <member refid="ml__gir_8h_1a7256ebe368d8ef6645714b8ab5e83558" kind="function"><name>ml_gir_instance_get</name></member>
-    <member refid="ml__gir_8h_1a65975dd1cb2428f877d8081a9dcc2750" kind="function"><name>ml_gir_struct_instance</name></member>
-    <member refid="ml__gir_8h_1ab86b4eba3a54d819fd0a8453a43797d4" kind="function"><name>ml_gir_struct_instance_value</name></member>
-    <member refid="ml__gir_8h_1ad94377c3c0b8d4637094d9d5959a0f72" kind="function"><name>ml_gir_enum_value</name></member>
-    <member refid="ml__gir_8h_1a317f53f92d8abc0e786ce21b6b6f9033" kind="function"><name>ml_gir_enum_value_value</name></member>
   </compound>
   <compound refid="ml__json_8h" kind="file"><name>ml_json.h</name>
     <member refid="ml__json_8h_1a7ace2069e01cd7be7af30e5958a26c30" kind="variable"><name>MLJsonT</name></member>
@@ -4918,7 +4894,7 @@
   </compound>
   <compound refid="timezonedb_8h" kind="file"><name>timezonedb.h</name>
     <member refid="timezonedb_8h_1ace00538c5514a43116345ba8a38c138b" kind="variable"><name>timezonedb_idx_builtin</name></member>
-    <member refid="timezonedb_8h_1a1fa618987b5dad18976339b969b09c19" kind="variable"><name>timelib_timezone_db_data_builtin</name></member>
+    <member refid="timezonedb_8h_1af1e875696038f4be95532796ab930a85" kind="variable"><name>timelib_timezone_db_data_builtin</name></member>
     <member refid="timezonedb_8h_1af36c1aa3dc11850c3bad4b15142cc3aa" kind="variable"><name>timezonedb_builtin</name></member>
   </compound>
   <compound refid="timelib_2timezonemap_8h" kind="file"><name>timezonemap.h</name>
@@ -5147,6 +5123,7 @@
     <member refid="timelib__private_8h_1a0b1a2f08b00a5897fd615de88a6eec18" kind="define"><name>TIMELIB_TIME_FREE</name></member>
     <member refid="timelib__private_8h_1a7170cb867d48388218246b1a4d8c3d0e" kind="define"><name>TIMELIB_GNUC_CHECK_VERSION</name></member>
     <member refid="timelib__private_8h_1ab35f1face5305720b5d3dfad4a3ebc93" kind="define"><name>TIMELIB_BREAK_INTENTIONALLY_MISSING</name></member>
+    <member refid="timelib__private_8h_1a8ff39e0b995b4bf03c41ece74da3f33f" kind="define"><name>TIMELIB_HAVE_BUILTIN_SADDLL_OVERFLOW</name></member>
     <member refid="timelib__private_8h_1a50fece4db74f09568b2938db583c5655" kind="define"><name>LONG_MAX</name></member>
     <member refid="timelib__private_8h_1ae8a44c5a7436466221e0f3859d02420f" kind="define"><name>LONG_MIN</name></member>
     <member refid="timelib__private_8h_1ada525bd08964053acf3a1f27b6c979c6" kind="function"><name>timelib_apply_localtime</name></member>
@@ -5167,73 +5144,6 @@
     <member refid="timelib__mem_8h_1a5cb7776101e4521b5778c01137b4f125" kind="function"><name>GC_calloc</name></member>
     <member refid="timelib__mem_8h_1a85326bf49026ede27d95b01ff0272bb3" kind="function"><name>timelib_strndup</name></member>
   </compound>
-  <compound refid="contrib_2ps3_2config_8h" kind="file"><name>config.h</name>
-    <member refid="contrib_2ps3_2config_8h_1a64b5a16e7ce1668388303bc6359fbcf1" kind="define"><name>TRE_REGEX_T_FIELD</name></member>
-  </compound>
-  <compound refid="win32_2config_8h" kind="file"><name>config.h</name>
-    <member refid="win32_2config_8h_1aaf5250164f8a3c52b7820317aee7d9ce" kind="define"><name>HAVE_ALLOCA</name></member>
-    <member refid="win32_2config_8h_1a7981d8bf53b0cb48f41ab0e4ddb7c629" kind="define"><name>HAVE_MALLOC_H</name></member>
-    <member refid="win32_2config_8h_1adef727f8c4ab3443958aaab933f2d12f" kind="define"><name>HAVE_GETOPT_H</name></member>
-    <member refid="win32_2config_8h_1a7d8d14d69f60bd296d253130f912bfc0" kind="define"><name>HAVE_GETOPT_LONG</name></member>
-    <member refid="win32_2config_8h_1a7ed84328487cc4d13c1a422d6d44d28c" kind="define"><name>HAVE_ISASCII</name></member>
-    <member refid="win32_2config_8h_1a0a8db5fe25de47488fabde14a8191f53" kind="define"><name>HAVE_ISWCTYPE</name></member>
-    <member refid="win32_2config_8h_1af76616eb141832e0bd160dedf37a6dcd" kind="define"><name>HAVE_ISWLOWER</name></member>
-    <member refid="win32_2config_8h_1a3bf9c9c6d35c5d0948b7fed2da8f6291" kind="define"><name>HAVE_ISWUPPER</name></member>
-    <member refid="win32_2config_8h_1abb5cb68d209e621972395c1c71bc1d98" kind="define"><name>HAVE_MBRTOWC</name></member>
-    <member refid="win32_2config_8h_1a7ef6042df799c0920b458fc86a2552da" kind="define"><name>HAVE_MBSTATE_T</name></member>
-    <member refid="win32_2config_8h_1a919897f53e6d389eae322aaf93bcd5d9" kind="define"><name>HAVE_MBTOWC</name></member>
-    <member refid="win32_2config_8h_1ab6cd6d1c63c1e26ea2d4537b77148354" kind="define"><name>HAVE_STDINT_H</name></member>
-    <member refid="win32_2config_8h_1a9e0e434ec1a6ddbd97db12b5a32905e0" kind="define"><name>HAVE_STDLIB_H</name></member>
-    <member refid="win32_2config_8h_1a405d10d46190bcb0320524c54eafc850" kind="define"><name>HAVE_STRINGS_H</name></member>
-    <member refid="win32_2config_8h_1ad4c234dd1625255dc626a15886306e7d" kind="define"><name>HAVE_STRING_H</name></member>
-    <member refid="win32_2config_8h_1ace156430ba007d19b4348a950d0c692b" kind="define"><name>HAVE_SYS_STAT_H</name></member>
-    <member refid="win32_2config_8h_1a69dc70bea5d1f8bd2be9740e974fa666" kind="define"><name>HAVE_SYS_TYPES_H</name></member>
-    <member refid="win32_2config_8h_1aba0e910a4772090f805d85474234d938" kind="define"><name>HAVE_TOWUPPER</name></member>
-    <member refid="win32_2config_8h_1a711b6ab6efcaffc5b8f2d274e6a483ff" kind="define"><name>HAVE_WCHAR_H</name></member>
-    <member refid="win32_2config_8h_1ac3ff1994edf58dc9c6e80ab9ae7275df" kind="define"><name>HAVE_WCHAR_T</name></member>
-    <member refid="win32_2config_8h_1a4398f0539eb0732dd1ff36ec69c61ca2" kind="define"><name>HAVE_WCSCHR</name></member>
-    <member refid="win32_2config_8h_1a5a791fe5242c5e4109755600c3a0f5c9" kind="define"><name>HAVE_WCSCPY</name></member>
-    <member refid="win32_2config_8h_1acc2bed5d68d90c16dff96bcf1bcde0b4" kind="define"><name>HAVE_WCSLEN</name></member>
-    <member refid="win32_2config_8h_1a04a057ad5feb238ae449a4805096258a" kind="define"><name>HAVE_WCSNCPY</name></member>
-    <member refid="win32_2config_8h_1a189030ce759625723851d98c7bbbe2fa" kind="define"><name>HAVE_WCSRTOMBS</name></member>
-    <member refid="win32_2config_8h_1aed94065cd2c9a8aa9eb359fbc0b20697" kind="define"><name>HAVE_WCTYPE</name></member>
-    <member refid="win32_2config_8h_1ab5544b8be3b4208538ab47aed7fcd36e" kind="define"><name>HAVE_WCTYPE_H</name></member>
-    <member refid="win32_2config_8h_1a550e5c272cc3cf3814651721167dcd23" kind="define"><name>STDC_HEADERS</name></member>
-    <member refid="win32_2config_8h_1a0db8a6323c761ebcf0ad4af2f6edb33d" kind="define"><name>TRE_APPROX</name></member>
-    <member refid="win32_2config_8h_1a8337eca96f43e3e7303581c697ae2f93" kind="define"><name>TRE_MULTIBYTE</name></member>
-    <member refid="win32_2config_8h_1a64b5a16e7ce1668388303bc6359fbcf1" kind="define"><name>TRE_REGEX_T_FIELD</name></member>
-    <member refid="win32_2config_8h_1ab9f799e5af8b3a815027d3607ae0cfb3" kind="define"><name>TRE_WCHAR</name></member>
-    <member refid="win32_2config_8h_1a835f4ba454103b8fc356f1af95fbc965" kind="define"><name>WCHAR_T_UNSIGNED</name></member>
-    <member refid="win32_2config_8h_1a00d24c7231be28dbaf71f5408f30e44c" kind="define"><name>inline</name></member>
-    <member refid="win32_2config_8h_1a411c46599e926f8cdf49c63957255359" kind="define"><name>_CRT_SECURE_NO_DEPRECATE</name></member>
-    <member refid="win32_2config_8h_1aa367b75c5aed883fef5befbdf04835a4" kind="define"><name>snprintf</name></member>
-  </compound>
-  <compound refid="contrib_2ps3_2tre-config_8h" kind="file"><name>tre-config.h</name>
-    <member refid="contrib_2ps3_2tre-config_8h_1aaf5250164f8a3c52b7820317aee7d9ce" kind="define"><name>HAVE_ALLOCA</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a277c3d138498b9267fe43589b6b7d91e" kind="define"><name>HAVE_ALLOCA_H</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a69dc70bea5d1f8bd2be9740e974fa666" kind="define"><name>HAVE_SYS_TYPES_H</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a0db8a6323c761ebcf0ad4af2f6edb33d" kind="define"><name>TRE_APPROX</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a8337eca96f43e3e7303581c697ae2f93" kind="define"><name>TRE_MULTIBYTE</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a67f3e384a170b75195cb92eeb0ef3884" kind="define"><name>TRE_USE_ALLOCA</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a9f346760e0bcfd3d71dc07879d9b21ab" kind="define"><name>TRE_VERSION</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a9c5f5650980c63b675e66743e6fc0dde" kind="define"><name>TRE_VERSION_1</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1af46bab0c2c05a85adf2c00f897019e26" kind="define"><name>TRE_VERSION_2</name></member>
-    <member refid="contrib_2ps3_2tre-config_8h_1a1e27bbfa094bbd41b60fb915e772f3b5" kind="define"><name>TRE_VERSION_3</name></member>
-  </compound>
-  <compound refid="win32_2tre-config_8h" kind="file"><name>tre-config.h</name>
-    <member refid="win32_2tre-config_8h_1aaf5250164f8a3c52b7820317aee7d9ce" kind="define"><name>HAVE_ALLOCA</name></member>
-    <member refid="win32_2tre-config_8h_1a277c3d138498b9267fe43589b6b7d91e" kind="define"><name>HAVE_ALLOCA_H</name></member>
-    <member refid="win32_2tre-config_8h_1a69dc70bea5d1f8bd2be9740e974fa666" kind="define"><name>HAVE_SYS_TYPES_H</name></member>
-    <member refid="win32_2tre-config_8h_1a711b6ab6efcaffc5b8f2d274e6a483ff" kind="define"><name>HAVE_WCHAR_H</name></member>
-    <member refid="win32_2tre-config_8h_1a0db8a6323c761ebcf0ad4af2f6edb33d" kind="define"><name>TRE_APPROX</name></member>
-    <member refid="win32_2tre-config_8h_1a8337eca96f43e3e7303581c697ae2f93" kind="define"><name>TRE_MULTIBYTE</name></member>
-    <member refid="win32_2tre-config_8h_1a67f3e384a170b75195cb92eeb0ef3884" kind="define"><name>TRE_USE_ALLOCA</name></member>
-    <member refid="win32_2tre-config_8h_1ab9f799e5af8b3a815027d3607ae0cfb3" kind="define"><name>TRE_WCHAR</name></member>
-    <member refid="win32_2tre-config_8h_1a9f346760e0bcfd3d71dc07879d9b21ab" kind="define"><name>TRE_VERSION</name></member>
-    <member refid="win32_2tre-config_8h_1a9c5f5650980c63b675e66743e6fc0dde" kind="define"><name>TRE_VERSION_1</name></member>
-    <member refid="win32_2tre-config_8h_1af46bab0c2c05a85adf2c00f897019e26" kind="define"><name>TRE_VERSION_2</name></member>
-    <member refid="win32_2tre-config_8h_1a1e27bbfa094bbd41b60fb915e772f3b5" kind="define"><name>TRE_VERSION_3</name></member>
-  </compound>
   <compound refid="tre-ast_8h" kind="file"><name>tre-ast.h</name>
     <member refid="tre-ast_8h_1a2b7cf2a3641be7b89138615764d60ba3" kind="define"><name>EMPTY</name></member>
     <member refid="tre-ast_8h_1a61c4c95e38189a5c8b8bf4b6dd89e25a" kind="define"><name>ASSERTION</name></member>
@@ -5252,7 +5162,7 @@
     <member refid="tre-ast_8h_1accf2e20fbd9d8a065a78a72c8db5777aa6cdecbcf3e967dc8d4f9b63ef3a598cb" kind="enumvalue"><name>ITERATION</name></member>
     <member refid="tre-ast_8h_1accf2e20fbd9d8a065a78a72c8db5777aa4cf5e96eb7880eb38df303a6e5759afd" kind="enumvalue"><name>UNION</name></member>
     <member refid="tre-ast_8h_1aebc529342a35ca594553bd9c6cd8f436" kind="function"><name>tre_ast_new_node</name></member>
-    <member refid="tre-ast_8h_1a10beedbe4d9ec61530898157fe430298" kind="function"><name>tre_ast_new_literal</name></member>
+    <member refid="tre-ast_8h_1a59d073d5e0fdb19d01a8459aedd9155e" kind="function"><name>tre_ast_new_literal</name></member>
     <member refid="tre-ast_8h_1a39b631812e36a3fc9fc7be23f3422c86" kind="function"><name>tre_ast_new_iter</name></member>
     <member refid="tre-ast_8h_1ab4f98e0dc443dd92c1ba79423f27f67e" kind="function"><name>tre_ast_new_union</name></member>
     <member refid="tre-ast_8h_1a3e0e9b35c1badb0d32472bf05153b92a" kind="function"><name>tre_ast_new_catenation</name></member>
@@ -5278,9 +5188,9 @@
     <member refid="tre-internal_8h_1a05e089082159a34ea3c0529b5fe6b207" kind="define"><name>tre_isspace</name></member>
     <member refid="tre-internal_8h_1a00ace0b08803e99b8badbb2f97cb5c25" kind="define"><name>tre_isupper</name></member>
     <member refid="tre-internal_8h_1a4ba3a4f49e18866598631fc547283fd6" kind="define"><name>tre_isxdigit</name></member>
-    <member refid="tre-internal_8h_1aaf1683d5c353261fac05093a6461b007" kind="define"><name>tre_tolower</name></member>
-    <member refid="tre-internal_8h_1a60ab5a472500adc0cae3b2d3bb857461" kind="define"><name>tre_toupper</name></member>
-    <member refid="tre-internal_8h_1a22ac1dbc06dc7e021644eece46601cab" kind="define"><name>tre_strlen</name></member>
+    <member refid="tre-internal_8h_1ac9272c086d43391b029dcac5951cc89e" kind="define"><name>tre_tolower</name></member>
+    <member refid="tre-internal_8h_1a50ab42f201c0e7ecf26f05ed7fc696a7" kind="define"><name>tre_toupper</name></member>
+    <member refid="tre-internal_8h_1a5b5b6c3175f2dafcdf0dd37725738dd7" kind="define"><name>tre_strlen</name></member>
     <member refid="tre-internal_8h_1ad5d62853633ebcbc2b0ae85f19f42fe0" kind="define"><name>tre_isctype</name></member>
     <member refid="tre-internal_8h_1ab2f9683dd14a1112870b91db9ba7805b" kind="define"><name>ALIGN</name></member>
     <member refid="tre-internal_8h_1afa99ec4acc4ecb2dc3c2d05da15d0e3f" kind="define"><name>MAX</name></member>
@@ -5317,7 +5227,7 @@
     <member refid="tre-internal_8h_1a63a0e6580392fa533b3d43e488c60d7ea0c432d1faa5c659d436bbf1b82ccafe7" kind="enumvalue"><name>TRE_PARAM_MAX_ERR</name></member>
     <member refid="tre-internal_8h_1a63a0e6580392fa533b3d43e488c60d7ea5075028d425bb4aabe40e9968e99d2f2" kind="enumvalue"><name>TRE_PARAM_DEPTH</name></member>
     <member refid="tre-internal_8h_1a63a0e6580392fa533b3d43e488c60d7eaaf863032291972e49c657510c39ba5c0" kind="enumvalue"><name>TRE_PARAM_LAST</name></member>
-    <member refid="tre-internal_8h_1ae0108261c0704f1b0e858fd3f47346a8" kind="typedef"><name>tre_cint_t</name></member>
+    <member refid="tre-internal_8h_1a940daf7eb8db1b646dcdee40c6a604fc" kind="typedef"><name>tre_cint_t</name></member>
     <member refid="tre-internal_8h_1a69e02ac180e013bd37be20581cb968e3" kind="typedef"><name>tre_ctype_t</name></member>
     <member refid="tre-internal_8h_1a31d17c908044f14b6fc379aa80600fb9" kind="typedef"><name>tre_tnfa_transition_t</name></member>
     <member refid="tre-internal_8h_1aa8e84a3895e019765c079cecc275492e" kind="typedef"><name>tre_submatch_data_t</name></member>
@@ -5328,6 +5238,7 @@
     <member refid="tre-internal_8h_1aaeb2b61f88cb226dd7726a9515b14165" kind="function"><name>tre_fill_pmatch</name></member>
     <member refid="tre-internal_8h_1a748935fa1f72d164246a65abffbfee41" kind="function"><name>tre_tnfa_run_parallel</name></member>
     <member refid="tre-internal_8h_1a1e6a8c4318768dfdc83d74f5722a19cd" kind="function"><name>tre_tnfa_run_backtrack</name></member>
+    <member refid="tre-internal_8h_1ae396108acde1f530c1391874d9f2d59a" kind="function"><name>tre_tnfa_run_approx</name></member>
   </compound>
   <compound refid="tre-match-utils_8h" kind="file"><name>tre-match-utils.h</name>
     <member refid="tre-match-utils_8h_1a2680c6a79353b7ad4c201334bd9530b4" kind="define"><name>str_source</name></member>
@@ -5447,6 +5358,56 @@
     <member refid="tre_8h_1a9a7a756617a4647e10a91e3d5158c235" kind="function"><name>tre_config</name></member>
     <member refid="tre_8h_1ad03860b80199ef152811f85ebbceda05" kind="function"><name>tre_have_backrefs</name></member>
     <member refid="tre_8h_1aba9e1690035bc7a97ab438cc44629f11" kind="function"><name>tre_have_approx</name></member>
+  </compound>
+  <compound refid="config_8h" kind="file"><name>config.h</name>
+    <member refid="config_8h_1a7981d8bf53b0cb48f41ab0e4ddb7c629" kind="define"><name>HAVE_MALLOC_H</name></member>
+    <member refid="config_8h_1a7ed84328487cc4d13c1a422d6d44d28c" kind="define"><name>HAVE_ISASCII</name></member>
+    <member refid="config_8h_1a0a8db5fe25de47488fabde14a8191f53" kind="define"><name>HAVE_ISWCTYPE</name></member>
+    <member refid="config_8h_1af76616eb141832e0bd160dedf37a6dcd" kind="define"><name>HAVE_ISWLOWER</name></member>
+    <member refid="config_8h_1a3bf9c9c6d35c5d0948b7fed2da8f6291" kind="define"><name>HAVE_ISWUPPER</name></member>
+    <member refid="config_8h_1abb5cb68d209e621972395c1c71bc1d98" kind="define"><name>HAVE_MBRTOWC</name></member>
+    <member refid="config_8h_1a7ef6042df799c0920b458fc86a2552da" kind="define"><name>HAVE_MBSTATE_T</name></member>
+    <member refid="config_8h_1a919897f53e6d389eae322aaf93bcd5d9" kind="define"><name>HAVE_MBTOWC</name></member>
+    <member refid="config_8h_1ab6cd6d1c63c1e26ea2d4537b77148354" kind="define"><name>HAVE_STDINT_H</name></member>
+    <member refid="config_8h_1a9e0e434ec1a6ddbd97db12b5a32905e0" kind="define"><name>HAVE_STDLIB_H</name></member>
+    <member refid="config_8h_1a405d10d46190bcb0320524c54eafc850" kind="define"><name>HAVE_STRINGS_H</name></member>
+    <member refid="config_8h_1ad4c234dd1625255dc626a15886306e7d" kind="define"><name>HAVE_STRING_H</name></member>
+    <member refid="config_8h_1ace156430ba007d19b4348a950d0c692b" kind="define"><name>HAVE_SYS_STAT_H</name></member>
+    <member refid="config_8h_1a69dc70bea5d1f8bd2be9740e974fa666" kind="define"><name>HAVE_SYS_TYPES_H</name></member>
+    <member refid="config_8h_1aba0e910a4772090f805d85474234d938" kind="define"><name>HAVE_TOWUPPER</name></member>
+    <member refid="config_8h_1a711b6ab6efcaffc5b8f2d274e6a483ff" kind="define"><name>HAVE_WCHAR_H</name></member>
+    <member refid="config_8h_1ac3ff1994edf58dc9c6e80ab9ae7275df" kind="define"><name>HAVE_WCHAR_T</name></member>
+    <member refid="config_8h_1a4398f0539eb0732dd1ff36ec69c61ca2" kind="define"><name>HAVE_WCSCHR</name></member>
+    <member refid="config_8h_1a5a791fe5242c5e4109755600c3a0f5c9" kind="define"><name>HAVE_WCSCPY</name></member>
+    <member refid="config_8h_1acc2bed5d68d90c16dff96bcf1bcde0b4" kind="define"><name>HAVE_WCSLEN</name></member>
+    <member refid="config_8h_1a04a057ad5feb238ae449a4805096258a" kind="define"><name>HAVE_WCSNCPY</name></member>
+    <member refid="config_8h_1a189030ce759625723851d98c7bbbe2fa" kind="define"><name>HAVE_WCSRTOMBS</name></member>
+    <member refid="config_8h_1aed94065cd2c9a8aa9eb359fbc0b20697" kind="define"><name>HAVE_WCTYPE</name></member>
+    <member refid="config_8h_1ab5544b8be3b4208538ab47aed7fcd36e" kind="define"><name>HAVE_WCTYPE_H</name></member>
+    <member refid="config_8h_1a550e5c272cc3cf3814651721167dcd23" kind="define"><name>STDC_HEADERS</name></member>
+    <member refid="config_8h_1a0db8a6323c761ebcf0ad4af2f6edb33d" kind="define"><name>TRE_APPROX</name></member>
+    <member refid="config_8h_1a8337eca96f43e3e7303581c697ae2f93" kind="define"><name>TRE_MULTIBYTE</name></member>
+    <member refid="config_8h_1a64b5a16e7ce1668388303bc6359fbcf1" kind="define"><name>TRE_REGEX_T_FIELD</name></member>
+    <member refid="config_8h_1a9f346760e0bcfd3d71dc07879d9b21ab" kind="define"><name>TRE_VERSION</name></member>
+    <member refid="config_8h_1a9c5f5650980c63b675e66743e6fc0dde" kind="define"><name>TRE_VERSION_1</name></member>
+    <member refid="config_8h_1af46bab0c2c05a85adf2c00f897019e26" kind="define"><name>TRE_VERSION_2</name></member>
+    <member refid="config_8h_1a1e27bbfa094bbd41b60fb915e772f3b5" kind="define"><name>TRE_VERSION_3</name></member>
+    <member refid="config_8h_1ab9f799e5af8b3a815027d3607ae0cfb3" kind="define"><name>TRE_WCHAR</name></member>
+    <member refid="config_8h_1a835f4ba454103b8fc356f1af95fbc965" kind="define"><name>WCHAR_T_UNSIGNED</name></member>
+    <member refid="config_8h_1a00d24c7231be28dbaf71f5408f30e44c" kind="define"><name>inline</name></member>
+    <member refid="config_8h_1a411c46599e926f8cdf49c63957255359" kind="define"><name>_CRT_SECURE_NO_DEPRECATE</name></member>
+    <member refid="config_8h_1aa367b75c5aed883fef5befbdf04835a4" kind="define"><name>snprintf</name></member>
+  </compound>
+  <compound refid="tre-config_8h" kind="file"><name>tre-config.h</name>
+    <member refid="tre-config_8h_1a69dc70bea5d1f8bd2be9740e974fa666" kind="define"><name>HAVE_SYS_TYPES_H</name></member>
+    <member refid="tre-config_8h_1a711b6ab6efcaffc5b8f2d274e6a483ff" kind="define"><name>HAVE_WCHAR_H</name></member>
+    <member refid="tre-config_8h_1a0db8a6323c761ebcf0ad4af2f6edb33d" kind="define"><name>TRE_APPROX</name></member>
+    <member refid="tre-config_8h_1a8337eca96f43e3e7303581c697ae2f93" kind="define"><name>TRE_MULTIBYTE</name></member>
+    <member refid="tre-config_8h_1ab9f799e5af8b3a815027d3607ae0cfb3" kind="define"><name>TRE_WCHAR</name></member>
+    <member refid="tre-config_8h_1a9f346760e0bcfd3d71dc07879d9b21ab" kind="define"><name>TRE_VERSION</name></member>
+    <member refid="tre-config_8h_1a9c5f5650980c63b675e66743e6fc0dde" kind="define"><name>TRE_VERSION_1</name></member>
+    <member refid="tre-config_8h_1af46bab0c2c05a85adf2c00f897019e26" kind="define"><name>TRE_VERSION_2</name></member>
+    <member refid="tre-config_8h_1a1e27bbfa094bbd41b60fb915e772f3b5" kind="define"><name>TRE_VERSION_3</name></member>
   </compound>
   <compound refid="weakmap_8h" kind="file"><name>weakmap.h</name>
     <member refid="weakmap_8h_1a49bc5df3d133fbffb650adee512a33b4" kind="define"><name>WEAKMAP_INIT</name></member>
@@ -6241,8 +6202,6 @@
   </compound>
   <compound refid="dir_c440a0232048a2af23c47d1be7b434ce" kind="dir"><name>src/array</name>
   </compound>
-  <compound refid="dir_817c3725017f8eed8ebc4e0861cc83e5" kind="dir"><name>src/tre/contrib</name>
-  </compound>
   <compound refid="dir_dd8f70041546c283f1dca4cf0ed0256c" kind="dir"><name>src/gc/cord</name>
   </compound>
   <compound refid="dir_f5f4ff3311de724cc1cde742592e824c" kind="dir"><name>src/dynasm</name>
@@ -6266,8 +6225,6 @@
   <compound refid="dir_a0f64db5dc41747a9ce94e2908107f5c" kind="dir"><name>src/minicbor</name>
   </compound>
   <compound refid="dir_6580a90144053bb703fab65a9ef87b39" kind="dir"><name>src/gc/include/private</name>
-  </compound>
-  <compound refid="dir_7bbafeaf5a35f3753eab3297048f2193" kind="dir"><name>src/tre/contrib/ps3</name>
   </compound>
   <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>src</name>
   </compound>
