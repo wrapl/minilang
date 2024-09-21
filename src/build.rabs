@@ -180,7 +180,7 @@ var GC
 if MINILANG_STATICGC or defined("STATICGC") then
 	NOPARALLELMARK := defined("NOPARALLELMARK")
 	file("gc"):mkdir
-	let Lib := file("lib/libgc.a") => fun(Lib) do
+	let Lib := file("lib/libgc.a")[file("gc/ChangeLog")] => fun(Lib) do
 		file("gc"):chdir
 		let Configuration := {
 			"--prefix" is PATH,
