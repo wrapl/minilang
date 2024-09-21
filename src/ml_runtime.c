@@ -23,7 +23,7 @@ static uint64_t DefaultCounter = UINT_MAX;
 
 static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Value) {
 	DefaultCounter = UINT_MAX;
-	MLPreempt = 0;
+	MLPreempt = 1;
 	State->run(State, Value);
 	return 0;
 }
@@ -1028,7 +1028,7 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	++Queue->Space;
 	--Queue->Fill;
 #ifdef ML_TIMESCHED
-	MLPreempt = 0;
+	MLPreempt = 1;
 #else
 	Queue->Counter = Queue->Slice;
 #endif
@@ -1856,7 +1856,7 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 }
 
 static void ml_preempt(int Signal) {
-	MLPreempt = 1;
+	--MLPreempt;
 }
 
 void ml_runtime_init(const char *ExecName) {

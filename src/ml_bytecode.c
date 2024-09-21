@@ -242,7 +242,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 
 #ifdef ML_SCHEDULER
 #ifdef ML_TIMESCHED
-#define CHECK_COUNTER if (__builtin_expect(MLPreempt, 0)) goto DO_SWAP;
+#define CHECK_COUNTER if (__builtin_expect(MLPreempt < 0, 0)) goto DO_SWAP;
 #else
 #define CHECK_COUNTER if (__builtin_expect(--Counter == 0, 0)) goto DO_SWAP;
 #endif

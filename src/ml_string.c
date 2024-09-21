@@ -4185,7 +4185,7 @@ ML_FUNCTION(MLStringBuffer) {
 }
 
 /*
-ML_TYPE(MLStringBufferT, (MLStreamT), "stringbuffer");
+ML_TYPE(MLStringBufferT, (MLStreamT), "string::buffer");
 // A string buffer that automatically grows and shrinks as required.
 */
 
