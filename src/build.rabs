@@ -27,12 +27,15 @@ CFLAGS := old + [
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
 	:>"-Wsuggest-attribute=malloc",
-	'-I.', '-I{PATH / "include"}', "-pthread",
-	"-DGC_THREADS",
+	'-I.', '-I{PATH / "include"}',
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
 ]
 LDFLAGS := old + ["-lm"]
+
+if PLATFORM != "Wasm" then
+	CFLAGS := old + ["-pthread", "-DGC_THREADS"]
+end
 
 if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
@@ -186,13 +189,15 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			"--prefix" is PATH,
 			"--enable-static",
 			"--disable-shared",
-			"--enable-threads=pthreads",
 			:>"--disable-parallel-mark",
 			"--enable-large-config",
 			:>"--enable-redirect-malloc",
 			"--enable-cplusplus",
 			"--enable-mmap"
 		}
+		if PLATFORM != "Wasm" then
+			Configuration["--enable-threads=pthreads"] := some
+		end
 		if NOPARALLELMARK then
 			Configuration["--disable-parallel-mark"] := some
 		end
@@ -628,17 +633,20 @@ end
 
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
+	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "FreeBSD" then
 	Objects:put(file("linenoise.o"))
-	CFLAGS := old + ["-I/usr/local/include"]
+	CFLAGS := old + ["-DUSE_LINENOISE", "-I/usr/local/include"]
 	GC or LDFLAGS := old + ["-L/usr/local/lib", "-lgc-threaded"]
 elseif PLATFORM = "Darwin" then
 	Objects:put(file("linenoise.o"))
+	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
 elseif PLATFORM = "Android" then
 	Objects:put(file("linenoise.o"))
+	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 end
 

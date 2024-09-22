@@ -5,7 +5,7 @@
 #include "ml_macros.h"
 #include "ml_compiler.h"
 #include "stringmap.h"
-#ifndef __MINGW32__
+#ifdef USE_LINENOISE
 #include "linenoise.h"
 #endif
 #include <stdio.h>
@@ -24,7 +24,7 @@ typedef struct {
 	size_t InputSize;
 } ml_console_t;
 
-#ifdef __MINGW32__
+#ifndef USE_LINENOISE
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 	char Buffer[129];
 	if (fgets(Buffer, 129, File) == NULL) return -1;
@@ -46,19 +46,21 @@ static const char *ml_console_terminal_read(ml_console_t *Console) {
 	ml_scheduler_t *Scheduler = ml_context_get_static(Console->Base.Context, ML_SCHEDULER_INDEX);
 	if (Scheduler) ml_scheduler_split(Scheduler);
 #endif
-#ifdef __MINGW32__
-	fputs(Console->Prompt, stdout);
-	char *Line;
-	if (!ml_read_line(stdin, 0, &Line)) return NULL;
-#else
+#ifdef USE_LINENOISE
 	const char *Line = linenoise(Console->Prompt);
 	Console->Prompt = Console->ContinuePrompt;
+#else
+	fputs(Console->Prompt, stdout);
+	char *Line = NULL;
+	if (!ml_read_line(stdin, 0, &Line)) return NULL;
 #endif
 #ifdef ML_THREADS
 	if (Scheduler) ml_scheduler_join(Scheduler);
 #endif
 	if (!Line) return NULL;
+#ifdef USE_LINENOISE
 	linenoiseHistoryAdd(Line);
+#endif
 	int Length = strlen(Line);
 	char *Buffer = snew(Length + 2);
 	memcpy(Buffer, Line, Length);
