@@ -49,14 +49,16 @@ function ml_finish(index) {
 ml_session = Module.cwrap("ml_session", "number", []);
 ml_session_evaluate = Module.cwrap("ml_session_evaluate", "number", ["number", "string"]);
 
-function Cell(session) {
+function Cell(session, value) {
 	this.session = session;
-	let input = this.input = create("input");
+	let input = this.input = create("textarea", {value});
 	let output = this.output = create("textarea");
-	this.element = create("div.cell",
+	let element = create("div.cell",
 		create("div.input", input, create("i", {"on-click": evaluate.bind(this)}, "X")),
 		create("div.output", output)
 	);
+	session.cells.push(this);
+	session.element.appendChild(element);
 	
 	function evaluate() {
 		session.evaluate(this, input.value);
@@ -66,9 +68,17 @@ function Cell(session) {
 function Session() {
 	this.index = ml_session();
 	sessions[this.index] = this;
-	this.cells = [new Cell(this)];
+	this.element = create("div.session");
+	let cells = this.cells = [];
+	if (arguments.length > 0) {
+		for (var i = 0; i < arguments.length; ++i) {
+			new Cell(this, arguments[i]);
+		}
+	} else {
+		new Cell(this, "");
+	}
 	this.active = null;
-	this.element = create("div.session", this.cells[0].element);
+	cells[0].input.focus();
 }
 
 Session.prototype.evaluate = function(cell, text) {
@@ -84,16 +94,18 @@ Session.prototype.output = function(text) {
 Session.prototype.finish = function() {
 	console.log("finish");
 	//this.active = null;
-	let cell = new Cell(this);
-	this.cells.push(cell);
-	this.element.appendChild(cell.element);
-	cell.input.focus();
+	let n = this.cells.indexOf(this.active);
+	if (n + 1 >= this.cells.length) {
+		new Cell(this, "").input.focus();
+	} else {
+		this.cells[n + 1].input.focus();
+	}
 }
 
 let container = document.getElementById("session");
 
 Module.onRuntimeInitialized = function() {
-	let session = new Session();
+	let session = new Session("2 + 2", "3 + 4 * 5");
 	container.appendChild(session.element);
 };
 	</script>
