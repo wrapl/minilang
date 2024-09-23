@@ -7,7 +7,7 @@
 #include <inttypes.h>
 #include "ml_types.h"
 #include "ml_logging.h"
-#include <sys/time.h>
+#include <time.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "runtime"

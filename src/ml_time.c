@@ -96,7 +96,7 @@ ml_value_t *ml_time_parse(const char *Value, int Length) {
 		if (!strptime(Value, "%F", &TM)) return ml_error("TimeError", "Error parsing time");
 	}
 	if (Local) {
-		Time->Value->tv_sec = timelocal(&TM);
+		Time->Value->tv_sec = mktime(&TM);
 	} else {
 		Time->Value->tv_sec = timegm(&TM) - Offset;
 	}
@@ -146,7 +146,7 @@ ML_METHOD(MLTimeT, MLStringT, MLStringT) {
 	}
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -185,7 +185,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, M
 	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -226,7 +226,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT) {
 	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -279,7 +279,7 @@ ML_METHODV("with", MLTimeT, MLNamesT) {
 	}
 	Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
