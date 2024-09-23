@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+	<div id="session" style="width:400px;margin:auto;"/>
+	<script src="minilang.js"></script>
+	<script>
+function create(tag) {
+	let classes = tag.split(".");
+	let element = document.createElement(classes[0]);
+	for (var i = 1; i < classes.length; ++i) element.classList.add(classes[i]);
+
+	function process(arg) {
+		if (arg === null) {
+		} else if (arg instanceof Array) {
+			arg.forEach(process);
+		} else if (arg instanceof Element) {
+			element.appendChild(arg);
+		} else if (typeof arg === "string") {
+			element.appendChild(document.createTextNode(arg));
+		} else if (typeof arg === "object") {
+			for (var key in arg) {
+				let value = arg[key];
+				if (key.startsWith("on-")) {
+					element.addEventListener(key.substring(3), value);
+				} else if (key.startsWith("prop-")) {
+					element.setProperty(key.substring(5), value);
+				} else {
+					element.setAttribute(key, value);
+				}
+			}
+		}
+	}
+	for (var j = 1; j < arguments.length; ++j) process(arguments[j]);
+	return element;
+}
+
+let sessions = [];
+
+function ml_output(index, text) {
+	sessions[index].output(text);
+}
+
+function ml_finish(index) {
+	sessions[index].finish();
+}
+
+ml_session = Module.cwrap("ml_session", "number", []);
+ml_session_evaluate = Module.cwrap("ml_session_evaluate", "number", ["number", "string"]);
+
+function Cell(session) {
+	this.session = session;
+	let input = this.input = create("input");
+	let output = this.output = create("textarea");
+	this.element = create("div.cell",
+		create("div.input", input, create("i", {"on-click": evaluate.bind(this)}, "X")),
+		create("div.output", output)
+	);
+	
+	function evaluate() {
+		session.evaluate(this, input.value);
+	}
+}
+
+function Session() {
+	this.index = ml_session();
+	sessions[this.index] = this;
+	this.cells = [new Cell(this)];
+	this.active = null;
+	this.element = create("div.session", this.cells[0].element);
+}
+
+Session.prototype.evaluate = function(cell, text) {
+	this.active = cell;
+	ml_session_evaluate(this.index, text);
+}
+
+Session.prototype.output = function(text) {
+	console.log("output", text);
+	this.active.output.value += text;
+}
+
+Session.prototype.finish = function() {
+	console.log("finish");
+	//this.active = null;
+	let cell = new Cell(this);
+	this.cells.push(cell);
+	this.element.appendChild(cell.element);
+	cell.input.focus();
+}
+
+let container = document.getElementById("session");
+
+Module.onRuntimeInitialized = function() {
+	let session = new Session();
+	container.appendChild(session.element);
+};
+	</script>
+</body>
+</html>

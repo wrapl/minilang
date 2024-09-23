@@ -655,8 +655,8 @@ LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
 PARENT."LIBMINILANG" := LIBMINILANG
 
 if PLATFORM = "Wasm" then
-	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXIT_RUNTIME=1"]
-	MINIWASM := c_program(BIN_DIR / "minilang.html", [file("miniwasm.o")], [LIBMINILANG])
+	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sEXIT_RUNTIME=1", "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""]
+	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
 
 	DEFAULT[MINIWASM]
 else
