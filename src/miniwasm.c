@@ -1,7 +1,96 @@
 #include "minilang.h"
+#include "ml_console.h"
+#include "ml_compiler.h"
+#include "ml_bytecode.h"
 #include "ml_macros.h"
+#include "ml_file.h"
+#include "ml_socket.h"
+#include "ml_object.h"
+#include "ml_time.h"
+#include "stringmap.h"
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <locale.h>
+#include "ml_sequence.h"
+#include "ml_stream.h"
+#include "ml_logging.h"
 #include <string.h>
 #include <emscripten.h>
+
+
+#ifdef ML_MATH
+#include "ml_math.h"
+#include "ml_array.h"
+#include "ml_polynomial.h"
+#endif
+
+#ifdef ML_AST
+#include "ml_ast.h"
+#endif
+
+#ifdef ML_GIR
+#include "ml_gir.h"
+#endif
+
+#ifdef ML_GTK_CONSOLE
+#include "gtk_console.h"
+#endif
+
+#ifdef ML_CBOR
+#include "ml_cbor.h"
+#endif
+
+#ifdef ML_JSON
+#include "ml_json.h"
+#endif
+
+#ifdef ML_XML
+#include "ml_xml.h"
+#endif
+
+#ifdef ML_XE
+#include "ml_xe.h"
+#endif
+
+#ifdef ML_MODULES
+#include "ml_module.h"
+#include "ml_library.h"
+#endif
+
+#ifdef ML_THREADS
+#include "ml_thread.h"
+#endif
+
+#ifdef ML_SCHEDULER
+#include "ml_tasks.h"
+#endif
+
+#ifdef ML_TABLES
+#include "ml_table.h"
+#endif
+
+#ifdef ML_PQUEUES
+#include "ml_pqueue.h"
+#endif
+
+#ifdef ML_UUID
+#include "ml_uuid.h"
+#endif
+
+#ifdef ML_MINIJS
+#include "ml_minijs.h"
+#endif
+
+#ifdef ML_ENCODINGS
+#include "ml_base16.h"
+#include "ml_base64.h"
+#endif
+
+#ifdef ML_STRUCT
+#include "ml_struct.h"
+#endif
+
 
 typedef struct {
 	ml_state_t Base;
@@ -41,12 +130,66 @@ static void ml_session_run(ml_session_t *Session, ml_value_t *Value) {
 	ml_command_evaluate((ml_state_t *)Session, Session->Parser, Session->Compiler);
 }
 
+stringmap_t MLGlobals[1] = {STRINGMAP_INIT};
+
+void initialize() {
+	ml_init("minilang", MLGlobals);
+	GC_disable();
+	ml_sequence_init(MLGlobals);
+	ml_object_init(MLGlobals);
+	//ml_time_init(MLGlobals);
+#ifdef ML_STRUCT
+	ml_struct_init(MLGlobals);
+#endif
+
+#ifdef ML_SCHEDULER
+	ml_tasks_init(MLGlobals);
+#endif
+#ifdef ML_AST
+	ml_ast_init(MLGlobals);
+#endif
+	ml_stream_init(MLGlobals);
+	//ml_file_init(MLGlobals);
+	//ml_socket_init(MLGlobals);
+#ifdef ML_JSON
+	ml_json_init(FMT_EXPORTS);
+#endif
+#ifdef ML_XML
+	ml_xml_init(FMT_EXPORTS);
+#endif
+#ifdef ML_XE
+	ml_xe_init(FMT_EXPORTS);
+#endif
+#ifdef ML_MATH
+	ml_math_init(MLGlobals);
+	ml_array_init(MLGlobals);
+	ml_polynomial_init(MLGlobals);
+#endif
+#ifdef ML_MODULES
+	ml_module_init(MLGlobals);
+#endif
+#ifdef ML_TABLES
+	ml_table_init(MLGlobals);
+#endif
+#ifdef ML_PQUEUES
+	ml_pqueue_init(UTIL_EXPORTS);
+#endif
+#ifdef ML_UUID
+	ml_uuid_init(UTIL_EXPORTS);
+#endif
+#ifdef ML_MINIJS
+	ml_minijs_init(FMT_EXPORTS);
+#endif
+#ifdef ML_ENCODINGS
+	ml_base16_init(ENC_EXPORTS);
+	ml_base64_init(ENC_EXPORTS);
+#endif
+}
+
 int EMSCRIPTEN_KEEPALIVE ml_session() {
 	static int Initialized = 0;
-	static stringmap_t Globals[1] = {STRINGMAP_INIT};
 	if (!Initialized) {
-		ml_init("minilang", Globals);
-		GC_disable();
+		initialize();
 		Initialized = 1;
 	}
 	if (NumSessions == MaxSessions) {
@@ -59,7 +202,7 @@ int EMSCRIPTEN_KEEPALIVE ml_session() {
 	ml_session_t *Session = Sessions + Index;
 	Session->Base.Context = MLRootContext;
 	Session->Base.run = (ml_state_fn)ml_session_run;
-	Session->Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
+	Session->Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, MLGlobals);
 	Session->Parser = ml_parser(NULL, NULL);
 	return Index;
 }

@@ -8137,7 +8137,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_value(TanhMethod, tanh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
 	ml_method_by_value(ErfMethod, erf, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
 	ml_method_by_value(ErfcMethod, erfc, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
-	ml_method_by_value(GammaMethod, gamma, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(GammaMethod, lgamma, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
 	ml_method_by_value(AcoshMethod, acosh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
 	ml_method_by_value(AsinhMethod, asinh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
 	ml_method_by_value(AtanhMethod, atanh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);

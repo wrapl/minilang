@@ -83,6 +83,7 @@ function Session() {
 
 Session.prototype.evaluate = function(cell, text) {
 	this.active = cell;
+	cell.output.value = "";
 	ml_session_evaluate(this.index, text);
 }
 
