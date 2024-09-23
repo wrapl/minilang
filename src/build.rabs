@@ -33,8 +33,10 @@ CFLAGS := old + [
 ]
 LDFLAGS := old + ["-lm"]
 
-if PLATFORM != "Wasm" then
-	CFLAGS := old + ["-pthread", "-DGC_THREADS", "-sEXIT_RUNTIME=1"]
+if PLATFORM = "Wasm" then
+	CFLAGS := old + ["-sEXIT_RUNTIME=1"]
+else
+	CFLAGS := old + ["-pthread", "-DGC_THREADS"]
 end
 
 if defined("ANALYZER") then
