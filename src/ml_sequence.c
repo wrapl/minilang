@@ -667,6 +667,7 @@ static void ml_double_iter_next(ml_double_state_t *State, ml_value_t *Value) {
 }
 
 static void ml_double_function_call(ml_double_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (void *)ml_double_iter_next;
 	return ml_iterate((ml_state_t *)State, Value);
@@ -682,7 +683,6 @@ static void ml_double_value0(ml_double_state_t *State, ml_value_t *Value) {
 }
 
 static void ml_double_iter0_next(ml_double_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (void *)ml_double_value0;
