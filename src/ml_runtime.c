@@ -9,6 +9,10 @@
 #include "ml_logging.h"
 #include <time.h>
 
+#ifdef ML_TIMESCHED
+#include <sys/time.h>
+#endif
+
 #undef ML_CATEGORY
 #define ML_CATEGORY "runtime"
 
