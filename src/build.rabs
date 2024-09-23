@@ -655,9 +655,9 @@ LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
 PARENT."LIBMINILANG" := LIBMINILANG
 
 if PLATFORM = "Wasm" then
-	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=ml_session,ml_evaluate", "-sEXIT_RUNTIME=1"]
+	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXIT_RUNTIME=1"]
 	MINIWASM := c_program(BIN_DIR / "minilang.html", [file("miniwasm.o")], [LIBMINILANG])
-	
+
 	DEFAULT[MINIWASM]
 else
 	MINILANG := c_program(BIN_DIR / "minilang", [file("minilang.o")], [LIBMINILANG])
@@ -674,32 +674,32 @@ else
 		execute("chmod", "+x", Target)
 	end
 	MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
-	
+
 	if PLATFORM = "Linux" or PLATFORM = "Android" then
 		let Exports := file("exports.lst")
 		MINILANG[Exports]
 		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
 	end
-	
+
 	DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINICONSOLE, MININOTEBOOK, MINIPP]
 
 	let InstallBin := PREFIX / "bin"
 	let InstallInclude := PREFIX / "include/minilang"
 	let InstallLib := PREFIX / "lib"
-	
+
 	install(MINILANG, InstallBin / "minilang", "+x")
 	install(MINIDBG, InstallBin / "minidbg", "+x")
 	install(MINICONSOLE, InstallBin / "miniconsole", "+x")
 	install(MININOTEBOOK, InstallBin / "mininotebook", "+x")
-	
+
 	for Header in InstallHeaders do
 		install(file(Header), InstallInclude / Header)
 	end
-	
+
 	install(LIBMINILANG, InstallLib / "libminilang.a")
-	
+
 	subdir("test")
-	
+
 	if defined("INSTALL") then
 		DEFAULT[INSTALL]
 	end

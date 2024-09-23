@@ -62,7 +62,7 @@ int ml_session() {
 	return Index;
 }
 
-void ml_evaluate(int Index, const char *Text) {
+void ml_session_evaluate(int Index, const char *Text) {
 	ml_session_t *Session = Sessions + Index;
 	ml_parser_reset(Session->Parser);
 	ml_parser_input(Session->Parser, Text, 1);
