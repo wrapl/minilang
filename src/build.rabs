@@ -33,9 +33,7 @@ CFLAGS := old + [
 ]
 LDFLAGS := old + ["-lm"]
 
-if PLATFORM = "Wasm" then
-	LDFLAGS := old + ["-sEXIT_RUNTIME=1"]
-else
+if PLATFORM != "Wasm" then
 	CFLAGS := old + ["-pthread", "-DGC_THREADS"]
 end
 
@@ -653,8 +651,14 @@ elseif PLATFORM = "Android" then
 end
 
 LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
+
+PARENT."LIBMINILANG" := LIBMINILANG
+
 if PLATFORM = "Wasm" then
-	MINILANG := c_program(BIN_DIR / "minilang.html", [file("minilang.o")], [LIBMINILANG])
+	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=ml_session,ml_evaluate", "-sEXIT_RUNTIME=1"]
+	MINIWASM := c_program(BIN_DIR / "minilang.html", [file("miniwasm.o")], [LIBMINILANG])
+	
+	DEFAULT[MINIWASM]
 else
 	MINILANG := c_program(BIN_DIR / "minilang", [file("minilang.o")], [LIBMINILANG])
 	MINIDBG := (BIN_DIR / "minidbg")[file("minidbg")] => fun(Target) do
@@ -676,29 +680,27 @@ else
 		MINILANG[Exports]
 		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
 	end
-end
+	
+	DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINICONSOLE, MININOTEBOOK, MINIPP]
 
-DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINICONSOLE, MININOTEBOOK, MINIPP]
-
-PARENT."LIBMINILANG" := LIBMINILANG
-
-let InstallBin := PREFIX / "bin"
-let InstallInclude := PREFIX / "include/minilang"
-let InstallLib := PREFIX / "lib"
-
-install(MINILANG, InstallBin / "minilang", "+x")
-install(MINIDBG, InstallBin / "minidbg", "+x")
-install(MINICONSOLE, InstallBin / "miniconsole", "+x")
-install(MININOTEBOOK, InstallBin / "mininotebook", "+x")
-
-for Header in InstallHeaders do
-	install(file(Header), InstallInclude / Header)
-end
-
-install(LIBMINILANG, InstallLib / "libminilang.a")
-
-subdir("test")
-
-if defined("INSTALL") then
-	DEFAULT[INSTALL]
+	let InstallBin := PREFIX / "bin"
+	let InstallInclude := PREFIX / "include/minilang"
+	let InstallLib := PREFIX / "lib"
+	
+	install(MINILANG, InstallBin / "minilang", "+x")
+	install(MINIDBG, InstallBin / "minidbg", "+x")
+	install(MINICONSOLE, InstallBin / "miniconsole", "+x")
+	install(MININOTEBOOK, InstallBin / "mininotebook", "+x")
+	
+	for Header in InstallHeaders do
+		install(file(Header), InstallInclude / Header)
+	end
+	
+	install(LIBMINILANG, InstallLib / "libminilang.a")
+	
+	subdir("test")
+	
+	if defined("INSTALL") then
+		DEFAULT[INSTALL]
+	end
 end
