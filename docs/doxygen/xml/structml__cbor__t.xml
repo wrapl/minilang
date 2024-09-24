@@ -31,7 +31,7 @@
         </inbodydescription>
         <location file="src/ml_cbor.h" line="49" column="12" bodyfile="src/ml_cbor.h" bodystart="49" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structml__cbor__t_1a1325935d2205be2e9e0455d866d57824" prot="public" static="no" mutable="no">
+      <memberdef kind="variable" id="structml__cbor__t_1a764ca4234df7912d8f8e70dedb2a4449" prot="public" static="no" mutable="no">
         <type>union <ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
         <definition>union ml_cbor_t </definition>
         <argsstring></argsstring>

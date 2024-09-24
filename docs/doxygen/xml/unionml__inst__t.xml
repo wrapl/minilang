@@ -63,7 +63,7 @@
         </inbodydescription>
         <location file="src/ml_bytecode.h" line="25" column="14" bodyfile="src/ml_bytecode.h" bodystart="25" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="unionml__inst__t_1af67180807a297f1466392868e8b58b69" prot="public" static="no" mutable="no">
+      <memberdef kind="variable" id="unionml__inst__t_1a793b4c966fde82917097fe95f6d722c4" prot="public" static="no" mutable="no">
         <type>struct <ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref></type>
         <definition>struct ml_inst_t </definition>
         <argsstring></argsstring>

@@ -45,7 +45,7 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="247" column="12" bodyfile="src/ml_compiler2.h" bodystart="247" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structmlc__string__part__t_1a0c6f09510818eb2b42f2608e1d4ca0c4" prot="public" static="no" mutable="no">
+      <memberdef kind="variable" id="structmlc__string__part__t_1ad966ff4147f8ea679c80c69d687a32f4" prot="public" static="no" mutable="no">
         <type>union <ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref></type>
         <definition>union mlc_string_part_t </definition>
         <argsstring></argsstring>

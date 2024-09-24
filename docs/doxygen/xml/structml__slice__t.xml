@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
+  <compounddef id="structml__slice__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_slice_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__slice__t_1adc2425604820d582fc01c79ba56f8999" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t* Type</definition>
+        <argsstring></argsstring>
+        <name>Type</name>
+        <qualifiedname>ml_slice_t::Type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="964" column="11" bodyfile="src/ml_types.h" bodystart="964" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__slice__t_1ad2d3545c4abbcedba2b4ab5394b454d4" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__slice__node__t" kindref="compound">ml_slice_node_t</ref> *</type>
+        <definition>ml_slice_node_t* Nodes</definition>
+        <argsstring></argsstring>
+        <name>Nodes</name>
+        <qualifiedname>ml_slice_t::Nodes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="965" column="17" bodyfile="src/ml_types.h" bodystart="965" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__slice__t_1a6734bdfeb331b64313d219bc7caa8497" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Capacity</definition>
+        <argsstring></argsstring>
+        <name>Capacity</name>
+        <qualifiedname>ml_slice_t::Capacity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="966" column="8" bodyfile="src/ml_types.h" bodystart="966" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__slice__t_1a63a2e91d18fabd71e0759c2406145574" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Offset</definition>
+        <argsstring></argsstring>
+        <name>Offset</name>
+        <qualifiedname>ml_slice_t::Offset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="966" column="17" bodyfile="src/ml_types.h" bodystart="966" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__slice__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Length</definition>
+        <argsstring></argsstring>
+        <name>Length</name>
+        <qualifiedname>ml_slice_t::Length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="966" column="24" bodyfile="src/ml_types.h" bodystart="966" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="6">
+        <label>ml_slice_node_t</label>
+        <link refid="structml__slice__node__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ml_slice_t</label>
+        <link refid="structml__slice__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Nodes</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_types.h" line="963" column="1" bodyfile="src/ml_types.h" bodystart="963" bodyend="967"/>
+    <listofallmembers>
+      <member refid="structml__slice__t_1a6734bdfeb331b64313d219bc7caa8497" prot="public" virt="non-virtual"><scope>ml_slice_t</scope><name>Capacity</name></member>
+      <member refid="structml__slice__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" prot="public" virt="non-virtual"><scope>ml_slice_t</scope><name>Length</name></member>
+      <member refid="structml__slice__t_1ad2d3545c4abbcedba2b4ab5394b454d4" prot="public" virt="non-virtual"><scope>ml_slice_t</scope><name>Nodes</name></member>
+      <member refid="structml__slice__t_1a63a2e91d18fabd71e0759c2406145574" prot="public" virt="non-virtual"><scope>ml_slice_t</scope><name>Offset</name></member>
+      <member refid="structml__slice__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_slice_t</scope><name>Type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

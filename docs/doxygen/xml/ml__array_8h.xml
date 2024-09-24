@@ -3,9 +3,6 @@
   <compounddef id="ml__array_8h" kind="file" language="C++">
     <compoundname>ml_array.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
-    <includedby refid="compare__impl_8h" local="yes">src/array/compare_impl.h</includedby>
-    <includedby refid="update__impl_8h" local="yes">src/array/update_impl.h</includedby>
-    <includedby refid="update__impl__integer_8h" local="yes">src/array/update_impl_integer.h</includedby>
     <incdepgraph>
       <node id="13">
         <label>inthash.h</label>
@@ -103,54 +100,6 @@
         <label>unistd.h</label>
       </node>
     </incdepgraph>
-    <invincdepgraph>
-      <node id="2">
-        <label>src/array/compare_impl.h</label>
-        <link refid="compare__impl_8h_source"/>
-        <childnode refid="3" relation="include">
-        </childnode>
-        <childnode refid="4" relation="include">
-        </childnode>
-      </node>
-      <node id="3">
-        <label>src/array/compare_impl_complex.h</label>
-        <link refid="compare__impl__complex_8h_source"/>
-      </node>
-      <node id="4">
-        <label>src/array/compare_impl_real.h</label>
-        <link refid="compare__impl__real_8h_source"/>
-      </node>
-      <node id="5">
-        <label>src/array/update_impl.h</label>
-        <link refid="update__impl_8h_source"/>
-        <childnode refid="6" relation="include">
-        </childnode>
-        <childnode refid="7" relation="include">
-        </childnode>
-      </node>
-      <node id="6">
-        <label>src/array/update_impl_complex.h</label>
-        <link refid="update__impl__complex_8h_source"/>
-      </node>
-      <node id="8">
-        <label>src/array/update_impl_integer.h</label>
-        <link refid="update__impl__integer_8h_source"/>
-      </node>
-      <node id="7">
-        <label>src/array/update_impl_real.h</label>
-        <link refid="update__impl__real_8h_source"/>
-      </node>
-      <node id="1">
-        <label>src/ml_array.h</label>
-        <link refid="ml__array_8h"/>
-        <childnode refid="2" relation="include">
-        </childnode>
-        <childnode refid="5" relation="include">
-        </childnode>
-        <childnode refid="8" relation="include">
-        </childnode>
-      </node>
-    </invincdepgraph>
     <innerclass refid="structml__array__dimension__t" prot="public">ml_array_dimension_t</innerclass>
     <innerclass refid="structml__array__t" prot="public">ml_array_t</innerclass>
     <sectiondef kind="define">

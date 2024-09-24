@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
+  <compounddef id="group__slices" kind="group">
+    <compoundname>slices</compoundname>
+    <title>Slices</title>
+    <innerclass refid="structml__slice__node__t" prot="public">ml_slice_node_t</innerclass>
+    <innerclass refid="structml__slice__t" prot="public">ml_slice_t</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="group__slices_1ga4354fe24c95ac91712ccde8ab036734d" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLSliceT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLSliceT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="969" column="18" declfile="src/ml_types.h" declline="969" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__slices_1ga745059c951100e5f7921fd47f6e5bf13" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_slice</definition>
+        <argsstring>(size_t Capacity) __attribute__((malloc))</argsstring>
+        <name>ml_slice</name>
+        <param>
+          <type>size_t</type>
+          <declname>Capacity</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="971" column="12" declfile="src/ml_types.h" declline="971" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__slices_1gae84c0ce798ef0bb3490d26dadd66dad1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_slice_grow</definition>
+        <argsstring>(ml_value_t *Slice, int Count)</argsstring>
+        <name>ml_slice_grow</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Slice</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="972" column="6" declfile="src/ml_types.h" declline="972" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__slices_1ga787205110e0f761867251c282876b396" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_slice_put</definition>
+        <argsstring>(ml_value_t *Slice, ml_value_t *Value)</argsstring>
+        <name>ml_slice_put</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Slice</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="973" column="6" declfile="src/ml_types.h" declline="973" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__slices_1ga846d3888dcd3d7017821eb8c2334993f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_slice_push</definition>
+        <argsstring>(ml_value_t *Slice, ml_value_t *Value)</argsstring>
+        <name>ml_slice_push</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Slice</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="974" column="6" declfile="src/ml_types.h" declline="974" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__slices_1gaff0676d5591f27deff5c4e78fc87c0f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_slice_pop</definition>
+        <argsstring>(ml_value_t *Slice)</argsstring>
+        <name>ml_slice_pop</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Slice</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="975" column="12" declfile="src/ml_types.h" declline="975" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__slices_1gae52448269042036bccfbe3fe15e49f39" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_slice_pull</definition>
+        <argsstring>(ml_value_t *Slice)</argsstring>
+        <name>ml_slice_pull</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Slice</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="976" column="12" declfile="src/ml_types.h" declline="976" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__slices_1ga91092264abf8f4383d51d2b2a13c5a8a" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structml__slice__node__t" kindref="compound">ml_slice_node_t</ref> *</type>
+        <definition>static ml_slice_node_t * ml_slice_head</definition>
+        <argsstring>(ml_slice_t *Slice)</argsstring>
+        <name>ml_slice_head</name>
+        <param>
+          <type><ref refid="structml__slice__t" kindref="compound">ml_slice_t</ref> *</type>
+          <declname>Slice</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="978" column="31" bodyfile="src/ml_types.h" bodystart="978" bodyend="980"/>
+      </memberdef>
+      <memberdef kind="function" id="group__slices_1ga78119aee60a73cd77971c8a6f9b431ed" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t ml_slice_length</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_slice_length</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="982" column="22" bodyfile="src/ml_types.h" bodystart="982" bodyend="984"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__slices_1ga73740fa93215fe850c454a4787850b01" prot="public" static="no">
+        <name>ML_SLICE_FOREACH</name>
+        <param><defname>SLICE</defname></param>
+        <param><defname>ITER</defname></param>
+        <initializer>	for (<ref refid="structml__slice__node__t" kindref="compound">ml_slice_node_t</ref> *ITER = ml_slice_head((<ref refid="structml__slice__t" kindref="compound">ml_slice_t</ref> *)SLICE); ITER-&gt;Value; ++ITER)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="986" column="9" bodyfile="src/ml_types.h" bodystart="986" bodyend="987"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

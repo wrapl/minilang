@@ -132,7 +132,7 @@
   <option  id='FILE_PATTERNS' default='no' type='stringlist'>
     <value><![CDATA[*.h]]></value>
   </option>
-  <option  id='RECURSIVE' default='no' type='bool'><value>YES</value></option>
+  <option  id='RECURSIVE' default='yes' type='bool'><value>NO</value></option>
   <option  id='EXCLUDE' default='no' type='stringlist'>
     <value><![CDATA[linenoise*]]></value>
     <value><![CDATA[whereami*]]></value>

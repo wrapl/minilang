@@ -473,17 +473,19 @@ math
       math::floor(-1.2345) :> -2
 
 
-:mini:`meth math::gamma(Arg₁: real): real`
-   Returns :mini:`gamma(Arg₁)`.
+:mini:`meth math::hypot(Arg₁: real, Arg₂: real): real`
+   Returns :mini:`hypot(Arg₁,  Arg₂)`.
+
+
+:mini:`meth math::lgamma(Arg₁: real): real`
+   Returns :mini:`lgamma(Arg₁)`.
 
    .. code-block:: mini
 
-      math::gamma(1.2345) :> -0.0946016466793967
-      math::gamma(-1.2345) :> 1.42638586810001
-
-
-:mini:`meth math::hypot(Arg₁: real, Arg₂: real): real`
-   Returns :mini:`hypot(Arg₁,  Arg₂)`.
+      math::lgamma(1.2345)
+      :> error("ModuleError", "Symbol lgamma not exported from module math")
+      math::lgamma(-1.2345)
+      :> error("ModuleError", "Symbol lgamma not exported from module math")
 
 
 :mini:`meth math::log(Arg₁: real): real`
