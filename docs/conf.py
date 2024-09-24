@@ -11,10 +11,10 @@ class FoldersDirective(Directive):
 
 	def run(self):
 		env = self.state.document.settings.env
-		block_quote = nodes.line_block()
-		block_quote['classes'].append('folders')
+		block = nodes.line_block()
+		block['classes'].append('folders')
 		node = nodes.bullet_list()
-		block_quote.append(node)
+		block.append(node)
 		stack = [node]
 		indents = [-1]
 		for line in self.content:
@@ -38,7 +38,21 @@ class FoldersDirective(Directive):
 			else:
 				node.append(nodes.inline(text = '🖹 ' + text))
 				node['classes'].append('file')
-		return [block_quote]
+		return [block]
+
+
+class TryItDirective(Directive):
+    has_content = True
+    
+    def run(self):
+        env = self.state.document.settings.env
+        block = nodes.line_block()
+        block['classes'].append('tryit')
+        for line in self.content:
+            node = nodes.list_item()
+            node.append(nodes.inline(text = line))
+            block.append(node)
+        return [block]
 
 
 # Configuration file for the Sphinx documentation builder.
@@ -157,6 +171,11 @@ html_css_files = [
 	'css/custom.css',
 ]
 
+html_js_files = [
+    'js/minilang.js',
+    'js/custom.js',
+]
+
 cautodoc_root = os.path.abspath('../src')
 
 master_doc = 'index'
@@ -192,4 +211,5 @@ def setup(sphinx):
 	lexers.LEXERS['mini'] = ('minilang', 'Minilang', ('mini',), ('*.mini', '*.rabs'), ('text/x-mini',))
 	#sphinx.add_domain(minilangDomain)
 	sphinx.add_directive('folders', FoldersDirective)
+	sphinx.add_directive('tryit', TryItDirective)
 	sphinx.add_css_file('css/custom.css')
