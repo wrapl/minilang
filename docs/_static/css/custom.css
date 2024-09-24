@@ -129,3 +129,32 @@ div.highlight {
 section {
 	max-width: unset !important;
 }
+
+.session {
+	width: 80%;
+	margin: auto;
+	font-family: monospace;
+	box-sizing: border-box;
+}
+
+.session .input {
+	position: relative;
+}
+
+.session .input textarea {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.session .input .run {
+	position: absolute;
+	top: 1px;
+	right: 1px;
+}
+
+.session .output {
+	background: #F0F0F0;
+	box-sizing: border-box;
+	padding: 5px;
+	white-space: pre-wrap;
+}
