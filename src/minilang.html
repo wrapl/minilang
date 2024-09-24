@@ -51,15 +51,16 @@ ml_session_evaluate = Module.cwrap("ml_session_evaluate", "number", ["number", "
 
 function Cell(session, value) {
 	this.session = session;
-	let input = this.input = create("textarea", {value});
-	let output = this.output = create("textarea");
+	let input = this.input = create("textarea");
+	if (value) input.value = value;
+	let output = this.output = create("p");
 	let element = create("div.cell",
 		create("div.input", input, create("i", {"on-click": evaluate.bind(this)}, "X")),
 		create("div.output", output)
 	);
 	session.cells.push(this);
 	session.element.appendChild(element);
-	
+
 	function evaluate() {
 		session.evaluate(this, input.value);
 	}
@@ -83,13 +84,13 @@ function Session() {
 
 Session.prototype.evaluate = function(cell, text) {
 	this.active = cell;
-	cell.output.value = "";
+	cell.output.textContent = "";
 	ml_session_evaluate(this.index, text);
 }
 
 Session.prototype.output = function(text) {
 	console.log("output", text);
-	this.active.output.value += text;
+	this.active.output.textContent += text;
 }
 
 Session.prototype.finish = function() {
