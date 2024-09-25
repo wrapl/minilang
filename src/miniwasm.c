@@ -96,6 +96,7 @@ typedef struct {
 	ml_state_t Base;
 	ml_parser_t *Parser;
 	ml_compiler_t *Compiler;
+	ml_value_t *Result;
 } ml_session_t;
 
 static ml_session_t *Sessions = NULL;
@@ -110,7 +111,10 @@ EM_JS(void, _ml_finish, (int Index), {
 });
 
 static void ml_session_run(ml_session_t *Session, ml_value_t *Value) {
-	if (Value == MLEndOfInput) return _ml_finish(Session - Sessions);
+	if (Value == MLEndOfInput) {
+		Session->Result = Value;
+		return _ml_finish(Session - Sessions);
+	}
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	if (ml_is_error(Value)) {
 	error:
@@ -200,7 +204,8 @@ int EMSCRIPTEN_KEEPALIVE ml_session() {
 	}
 	int Index = NumSessions++;
 	ml_session_t *Session = Sessions + Index;
-	Session->Base.Context = MLRootContext;
+	ml_context_t *Context = Session->Base.Context = ml_context(MLRootContext);
+	ml_default_queue_init(Context, 250);
 	Session->Base.run = (ml_state_fn)ml_session_run;
 	Session->Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, MLGlobals);
 	Session->Parser = ml_parser(NULL, NULL);
@@ -212,6 +217,9 @@ void EMSCRIPTEN_KEEPALIVE ml_session_evaluate(int Index, const char *Text) {
 	ml_session_t *Session = Sessions + Index;
 	ml_parser_reset(Session->Parser);
 	ml_parser_input(Session->Parser, Text, 1);
+	Session->Result = NULL;
 	ml_command_evaluate((ml_state_t *)Session, Session->Parser, Session->Compiler);
+	ml_scheduler_t *Scheduler = ml_context_get_static(Session->Base.Context, ML_SCHEDULER_INDEX);
+	while (!Session->Result) Scheduler->run(Scheduler);
 }
 

@@ -441,7 +441,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 		ML_ERROR("CallError", "%d arguments required", N); \
 	}
 
-#ifdef NOT__clang__
+#ifdef USE_TRAMPOLINE
 
 #define ML_CONTINUE(STATE, VALUE) { \
 	ml_state_t *__State = (ml_state_t *)(STATE); \
