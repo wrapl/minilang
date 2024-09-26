@@ -179,7 +179,8 @@ INIT_CODE TYPE = ml_generic_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS
 #endif
 
 void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((sentinel));
-#define ML_TYPE_ARG(N) ((1L << 48) + N)
+
+#define ML_TYPE_ARG(N) ((N << 1) + 1)
 
 int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
@@ -268,14 +269,9 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
-#define ml_call(CALLER, VALUE, COUNT, ARGS) ({ \
-	ml_assert(CALLER); \
-	ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS); \
-})
+#define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
 
-#define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
-	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
-})
+#define ml_inline(STATE, VALUE, COUNT, ARGS ...) ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS})
 
 #define ml_assign(CALLER, VALUE, VALUE2) ml_typeof(VALUE)->assign((ml_state_t *)CALLER, VALUE, VALUE2)
 

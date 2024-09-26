@@ -10,6 +10,11 @@
 #ifdef ML_COMPLEX
 #include <complex.h>
 #undef I
+
+#ifndef __USE_GNU
+complex double clog10(complex double Z);
+#endif
+
 #endif
 
 #undef ML_CATEGORY

@@ -4434,6 +4434,82 @@ function _ml_finish(Index) { ml_finish(Index); }
       return bytes.length-1;
     };
 
+  var _uuid_compare = (uu1, uu2) => _memcmp(uu1, uu2, 16);
+
+  var _uuid_generate = (out) => {
+      // void uuid_generate(uuid_t out);
+      var uuid = null;
+  
+      if (ENVIRONMENT_IS_NODE) {
+        // If Node.js try to use crypto.randomBytes
+        try {
+          var rb = require('crypto')['randomBytes'];
+          uuid = rb(16);
+        } catch(e) {}
+      } else if (ENVIRONMENT_IS_WEB &&
+                 typeof window.crypto != 'undefined' &&
+                 typeof window.crypto.getRandomValues != 'undefined') {
+        // If crypto.getRandomValues is available try to use it.
+        uuid = new Uint8Array(16);
+        window.crypto.getRandomValues(uuid);
+      }
+  
+      // Fall back to Math.random if a higher quality random number generator is not available.
+      if (!uuid) {
+        uuid = new Array(16);
+        var d = new Date().getTime();
+        for (var i = 0; i < 16; i++) {
+          var r = ((d + Math.random() * 256) % 256)|0;
+          d = (d / 256)|0;
+          uuid[i] = r;
+        }
+      }
+  
+      // Makes uuid compliant to RFC-4122
+      uuid[6] = (uuid[6] & 0x0F) | 0x40; // uuid version
+      uuid[8] = (uuid[8] & 0x3F) | 0x80; // uuid variant
+      writeArrayToMemory(uuid, out);
+    };
+
+  var _uuid_parse = (inp, uu) => {
+      // int uuid_parse(const char *in, uuid_t uu);
+      inp = UTF8ToString(inp);
+      if (inp.length === 36) {
+        var i = 0;
+        var uuid = new Array(16);
+        inp.toLowerCase().replace(/[0-9a-f]{2}/g, function(byte) {
+          if (i < 16) {
+            uuid[i++] = parseInt(byte, 16);
+          }
+        });
+  
+        if (i < 16) {
+          return -1;
+        }
+        writeArrayToMemory(uuid, uu);
+        return 0;
+      }
+      return -1;
+    };
+
+  /** @param {number|boolean=} upper */
+  var _uuid_unparse = (uu, out, upper) => {
+      // void uuid_unparse(const uuid_t uu, char *out);
+      var i = 0;
+      var uuid = 'xxxx-xx-xx-xx-xxxxxx'.replace(/[x]/g, function(c) {
+        var r = upper ? (HEAPU8[(uu)+(i)]).toString(16).toUpperCase() :
+                        (HEAPU8[(uu)+(i)]).toString(16);
+        r = (r.length === 1) ? '0' + r : r; // Zero pad single digit hex values
+        i++;
+        return r;
+      });
+      stringToUTF8(uuid, out, 37); // Always fixed 36 bytes of ASCII characters and a trailing \0.
+    };
+  var _uuid_unparse_lower = (uu, out) => {
+      // void uuid_unparse_lower(const uuid_t uu, char *out);
+      _uuid_unparse(uu, out);
+    };
+
   var wasmTableMirror = [];
   
   /** @type {WebAssembly.Table} */
@@ -4599,12 +4675,22 @@ var wasmImports = {
   /** @export */
   invoke_viii,
   /** @export */
-  strftime: _strftime
+  strftime: _strftime,
+  /** @export */
+  uuid_compare: _uuid_compare,
+  /** @export */
+  uuid_generate: _uuid_generate,
+  /** @export */
+  uuid_parse: _uuid_parse,
+  /** @export */
+  uuid_unparse_lower: _uuid_unparse_lower
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
 var _ml_session = Module['_ml_session'] = createExportWrapper('ml_session', 0);
+var _memcpy = createExportWrapper('memcpy', 3);
 var _ml_session_evaluate = Module['_ml_session_evaluate'] = createExportWrapper('ml_session_evaluate', 2);
+var _memcmp = createExportWrapper('memcmp', 3);
 var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'])();
 var ___funcs_on_exit = createExportWrapper('__funcs_on_exit', 0);
 var _fflush = createExportWrapper('fflush', 1);

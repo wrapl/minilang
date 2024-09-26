@@ -16,7 +16,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="523" column="14"/>
+        <location file="src/ml_types.h" line="519" column="14"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="var">
@@ -31,7 +31,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="525" column="18" declfile="src/ml_types.h" declline="525" declcolumn="18"/>
+        <location file="src/ml_types.h" line="521" column="18" declfile="src/ml_types.h" declline="521" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__booleans_1ga030042dbfb5c710e445ddd1d836c2ee0" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__boolean__t" kindref="compound">ml_boolean_t</ref></type>
@@ -44,7 +44,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="526" column="21" declfile="src/ml_types.h" declline="526" declcolumn="21"/>
+        <location file="src/ml_types.h" line="522" column="21" declfile="src/ml_types.h" declline="522" declcolumn="21"/>
       </memberdef>
       <memberdef kind="variable" id="group__booleans_1gac87a475b780a3409eb8fe3d2104329ef" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__boolean__t" kindref="compound">ml_boolean_t</ref></type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="527" column="21" declfile="src/ml_types.h" declline="527" declcolumn="21"/>
+        <location file="src/ml_types.h" line="523" column="21" declfile="src/ml_types.h" declline="523" declcolumn="21"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -76,7 +76,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="529" column="12" declfile="src/ml_types.h" declline="529" declcolumn="12"/>
+        <location file="src/ml_types.h" line="525" column="12" declfile="src/ml_types.h" declline="525" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__booleans_1gae68130990e046a964dcb7ad9d61c78fd" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -93,7 +93,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="530" column="5" declfile="src/ml_types.h" declline="530" declcolumn="5"/>
+        <location file="src/ml_types.h" line="526" column="5" declfile="src/ml_types.h" declline="526" declcolumn="5"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

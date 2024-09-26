@@ -176,17 +176,17 @@ void initialize() {
 	ml_table_init(MLGlobals);
 #endif
 #ifdef ML_PQUEUES
-	ml_pqueue_init(UTIL_EXPORTS);
+	ml_pqueue_init(MLGlobals);
 #endif
 #ifdef ML_UUID
-	ml_uuid_init(UTIL_EXPORTS);
+	ml_uuid_init(MLGlobals);
 #endif
 #ifdef ML_MINIJS
-	ml_minijs_init(FMT_EXPORTS);
+	ml_minijs_init(MLGlobals);
 #endif
 #ifdef ML_ENCODINGS
-	ml_base16_init(ENC_EXPORTS);
-	ml_base64_init(ENC_EXPORTS);
+	ml_base16_init(MLGlobals);
+	ml_base64_init(MLGlobals);
 #endif
 }
 

@@ -183,8 +183,8 @@ static void ml_generic_fill(ml_generic_rule_t *Rule, ml_type_t **Args2, int NumA
 	Args2[0] = Rule->Type;
 	for (int I = 1; I < Rule->NumArgs; ++I) {
 		uintptr_t Arg = Rule->Args[I - 1];
-		if (Arg >> 48) {
-			unsigned int J = Arg & 0xFFFF;
+		if (Arg & 1) {
+			unsigned int J = Arg << 1;
 			Args2[I] = (J < NumArgs) ? Args[J] : MLAnyT;
 		} else {
 			Args2[I] = (ml_type_t *)Arg;
