@@ -1124,7 +1124,60 @@ ML_FUNCTIONX(Count2) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+/****************************** Each ******************************/
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Value, *Iter, *Fn;
+	ml_value_t *Args[2];
+} ml_each_state_t;
+
+static void each_iterate(ml_each_state_t *State, ml_value_t *Value);
+
+static void each_call(ml_each_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)each_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void each_value(ml_each_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)each_call;
+	State->Args[1] = Value;
+	return ml_call(State, State->Fn, 2, State->Args);
+}
+
+static void each_key(ml_each_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)each_value;
+	State->Args[0] = Value;
+	return ml_iter_value((ml_state_t *)State, State->Iter);
+}
+
+static void each_iterate(ml_each_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Value);
+	State->Base.run = (ml_state_fn)each_key;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODX("each", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>any|nil
+// Calls :mini:`Fn(Key, Value)` for each key and value produced by :mini:`Sequence`, then returns :mini:`Sequence`.
+	ml_each_state_t *State = new(ml_each_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)each_iterate;
+	State->Value = Args[0];
+	State->Fn = Args[1];
+	return ml_iterate((ml_state_t *)State, Args[0]);
+}
+
 /****************************** Find ******************************/
+
+static ML_METHOD_DECL(EqualMethod, "=");
 
 typedef struct {
 	ml_state_t Base;
@@ -1141,10 +1194,7 @@ static void find_compare(ml_find_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-static ML_METHOD_DECL(EqualMethod, "=");
-
 static void find_value(ml_find_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (ml_state_fn)find_compare;
 	State->Args[1] = Value;

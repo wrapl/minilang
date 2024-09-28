@@ -82,10 +82,8 @@
 #include "ml_minijs.h"
 #endif
 
-#ifdef ML_ENCODINGS
 #include "ml_base16.h"
 #include "ml_base64.h"
-#endif
 
 #ifdef ML_STRUCT
 #include "ml_struct.h"
@@ -111,6 +109,7 @@ EM_JS(void, _ml_finish, (int Index), {
 });
 
 static void ml_session_run(ml_session_t *Session, ml_value_t *Value) {
+	GC_gcollect();
 	if (Value == MLEndOfInput) {
 		Session->Result = Value;
 		return _ml_finish(Session - Sessions);
@@ -213,13 +212,15 @@ int EMSCRIPTEN_KEEPALIVE ml_session() {
 }
 
 void EMSCRIPTEN_KEEPALIVE ml_session_evaluate(int Index, const char *Text) {
-	GC_gcollect();
 	ml_session_t *Session = Sessions + Index;
 	ml_parser_reset(Session->Parser);
 	ml_parser_input(Session->Parser, Text, 1);
 	Session->Result = NULL;
 	ml_command_evaluate((ml_state_t *)Session, Session->Parser, Session->Compiler);
 	ml_scheduler_t *Scheduler = ml_context_get_static(Session->Base.Context, ML_SCHEDULER_INDEX);
-	while (!Session->Result) Scheduler->run(Scheduler);
+	while (!Session->Result) {
+		GC_gcollect();
+		Scheduler->run(Scheduler);
+	}
 }
 
