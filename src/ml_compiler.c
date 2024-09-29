@@ -4295,7 +4295,7 @@ static const char *ml_ident(const char *Next, int Length) {
 	uintptr_t Key = 0;
 	switch (Length) {
 	case 0: return "";
-	case 1 ... 8: memcpy(&Key, Next, Length); break;
+	case 1 ... sizeof(uintptr_t): memcpy(&Key, Next, Length); break;
 	default: {
 		char *Ident = snew(Length + 1);
 		memcpy(Ident, Next, Length);

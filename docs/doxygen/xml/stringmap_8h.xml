@@ -19,11 +19,11 @@
         </childnode>
         <childnode refid="6" relation="include">
         </childnode>
-        <childnode refid="2" relation="include">
-        </childnode>
         <childnode refid="7" relation="include">
         </childnode>
         <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
         </childnode>
         <childnode refid="9" relation="include">
         </childnode>
@@ -59,6 +59,8 @@
         </childnode>
         <childnode refid="25" relation="include">
         </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
       </node>
       <node id="5">
         <label>src/ml_array.h</label>
@@ -68,15 +70,23 @@
         <label>src/ml_ast.h</label>
         <link refid="ml__ast_8h_source"/>
       </node>
-      <node id="34">
-        <label>src/ml_bytecode.h</label>
-        <link refid="ml__bytecode_8h_source"/>
-        <childnode refid="35" relation="include">
-        </childnode>
-        <childnode refid="26" relation="include">
-        </childnode>
+      <node id="7">
+        <label>src/ml_base16.h</label>
+        <link refid="ml__base16_8h_source"/>
+      </node>
+      <node id="8">
+        <label>src/ml_base64.h</label>
+        <link refid="ml__base64_8h_source"/>
       </node>
       <node id="35">
+        <label>src/ml_bytecode.h</label>
+        <link refid="ml__bytecode_8h_source"/>
+        <childnode refid="36" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+      </node>
+      <node id="36">
         <label>src/ml_bytecode_jit.h</label>
         <link refid="ml__bytecode__jit_8h_source"/>
       </node>
@@ -89,140 +99,136 @@
         <link refid="ml__compiler_8h_source"/>
         <childnode refid="4" relation="include">
         </childnode>
-        <childnode refid="26" relation="include">
-        </childnode>
-      </node>
-      <node id="26">
-        <label>src/ml_compiler2.h</label>
-        <link refid="ml__compiler2_8h_source"/>
-      </node>
-      <node id="7">
-        <label>src/ml_console.h</label>
-        <link refid="ml__console_8h_source"/>
-      </node>
-      <node id="36">
-        <label>src/ml_coroutine.h</label>
-        <link refid="ml__coroutine_8h_source"/>
-      </node>
-      <node id="27">
-        <label>src/ml_debugger.h</label>
-        <link refid="ml__debugger_8h_source"/>
-      </node>
-      <node id="8">
-        <label>src/ml_file.h</label>
-        <link refid="ml__file_8h_source"/>
-      </node>
-      <node id="9">
-        <label>src/ml_json.h</label>
-        <link refid="ml__json_8h_source"/>
-      </node>
-      <node id="10">
-        <label>src/ml_library.h</label>
-        <link refid="ml__library_8h_source"/>
-      </node>
-      <node id="11">
-        <label>src/ml_logging.h</label>
-        <link refid="ml__logging_8h_source"/>
-      </node>
-      <node id="12">
-        <label>src/ml_math.h</label>
-        <link refid="ml__math_8h_source"/>
-      </node>
-      <node id="13">
-        <label>src/ml_method.h</label>
-        <link refid="ml__method_8h_source"/>
-      </node>
-      <node id="14">
-        <label>src/ml_minijs.h</label>
-        <link refid="ml__minijs_8h_source"/>
-      </node>
-      <node id="15">
-        <label>src/ml_mmap.h</label>
-        <link refid="ml__mmap_8h_source"/>
-      </node>
-      <node id="16">
-        <label>src/ml_module.h</label>
-        <link refid="ml__module_8h_source"/>
-      </node>
-      <node id="28">
-        <label>src/ml_object.h</label>
-        <link refid="ml__object_8h_source"/>
-      </node>
-      <node id="29">
-        <label>src/ml_polynomial.h</label>
-        <link refid="ml__polynomial_8h_source"/>
-      </node>
-      <node id="30">
-        <label>src/ml_pqueue.h</label>
-        <link refid="ml__pqueue_8h_source"/>
-      </node>
-      <node id="37">
-        <label>src/ml_runtime.h</label>
-        <link refid="ml__runtime_8h_source"/>
-        <childnode refid="34" relation="include">
-        </childnode>
-        <childnode refid="3" relation="include">
-        </childnode>
         <childnode refid="27" relation="include">
         </childnode>
       </node>
+      <node id="27">
+        <label>src/ml_compiler2.h</label>
+        <link refid="ml__compiler2_8h_source"/>
+      </node>
+      <node id="9">
+        <label>src/ml_console.h</label>
+        <link refid="ml__console_8h_source"/>
+      </node>
+      <node id="37">
+        <label>src/ml_coroutine.h</label>
+        <link refid="ml__coroutine_8h_source"/>
+      </node>
+      <node id="28">
+        <label>src/ml_debugger.h</label>
+        <link refid="ml__debugger_8h_source"/>
+      </node>
+      <node id="10">
+        <label>src/ml_file.h</label>
+        <link refid="ml__file_8h_source"/>
+      </node>
+      <node id="11">
+        <label>src/ml_json.h</label>
+        <link refid="ml__json_8h_source"/>
+      </node>
+      <node id="12">
+        <label>src/ml_library.h</label>
+        <link refid="ml__library_8h_source"/>
+      </node>
+      <node id="13">
+        <label>src/ml_logging.h</label>
+        <link refid="ml__logging_8h_source"/>
+      </node>
+      <node id="14">
+        <label>src/ml_math.h</label>
+        <link refid="ml__math_8h_source"/>
+      </node>
+      <node id="15">
+        <label>src/ml_method.h</label>
+        <link refid="ml__method_8h_source"/>
+      </node>
+      <node id="16">
+        <label>src/ml_minijs.h</label>
+        <link refid="ml__minijs_8h_source"/>
+      </node>
+      <node id="17">
+        <label>src/ml_mmap.h</label>
+        <link refid="ml__mmap_8h_source"/>
+      </node>
+      <node id="18">
+        <label>src/ml_module.h</label>
+        <link refid="ml__module_8h_source"/>
+      </node>
+      <node id="29">
+        <label>src/ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+      </node>
+      <node id="30">
+        <label>src/ml_polynomial.h</label>
+        <link refid="ml__polynomial_8h_source"/>
+      </node>
       <node id="31">
+        <label>src/ml_pqueue.h</label>
+        <link refid="ml__pqueue_8h_source"/>
+      </node>
+      <node id="38">
+        <label>src/ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="35" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="32">
         <label>src/ml_sequence.h</label>
         <link refid="ml__sequence_8h_source"/>
       </node>
-      <node id="17">
+      <node id="19">
         <label>src/ml_socket.h</label>
         <link refid="ml__socket_8h_source"/>
       </node>
-      <node id="18">
+      <node id="20">
         <label>src/ml_stream.h</label>
         <link refid="ml__stream_8h_source"/>
       </node>
-      <node id="19">
-        <label>src/ml_struct.h</label>
-        <link refid="ml__struct_8h_source"/>
-      </node>
-      <node id="20">
+      <node id="21">
         <label>src/ml_table.h</label>
         <link refid="ml__table_8h_source"/>
       </node>
-      <node id="32">
+      <node id="33">
         <label>src/ml_tasks.h</label>
         <link refid="ml__tasks_8h_source"/>
       </node>
-      <node id="21">
+      <node id="22">
         <label>src/ml_thread.h</label>
         <link refid="ml__thread_8h_source"/>
       </node>
-      <node id="22">
+      <node id="23">
         <label>src/ml_time.h</label>
         <link refid="ml__time_8h_source"/>
       </node>
-      <node id="33">
+      <node id="34">
         <label>src/ml_types.h</label>
         <link refid="ml__types_8h_source"/>
-        <childnode refid="34" relation="include">
+        <childnode refid="35" relation="include">
         </childnode>
-        <childnode refid="36" relation="include">
-        </childnode>
-        <childnode refid="28" relation="include">
+        <childnode refid="37" relation="include">
         </childnode>
         <childnode refid="29" relation="include">
         </childnode>
         <childnode refid="30" relation="include">
         </childnode>
-        <childnode refid="37" relation="include">
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="38" relation="include">
         </childnode>
       </node>
-      <node id="23">
+      <node id="24">
         <label>src/ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
       </node>
-      <node id="24">
+      <node id="25">
         <label>src/ml_xe.h</label>
         <link refid="ml__xe_8h_source"/>
       </node>
-      <node id="25">
+      <node id="26">
         <label>src/ml_xml.h</label>
         <link refid="ml__xml_8h_source"/>
       </node>
@@ -232,8 +238,6 @@
         <childnode refid="2" relation="include">
         </childnode>
         <childnode refid="3" relation="include">
-        </childnode>
-        <childnode refid="27" relation="include">
         </childnode>
         <childnode refid="28" relation="include">
         </childnode>
@@ -246,6 +250,8 @@
         <childnode refid="32" relation="include">
         </childnode>
         <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="34" relation="include">
         </childnode>
       </node>
     </invincdepgraph>

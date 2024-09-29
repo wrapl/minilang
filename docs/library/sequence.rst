@@ -496,7 +496,7 @@ sequence
       :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
 
 
-:mini:`meth (Sequence: sequence):each(Fn: function): sequence`
+:mini:`meth (Sequence: sequence):apply(Fn: function): sequence`
    Calls :mini:`Fn(Key,  Value)` for each key and value produced by :mini:`Sequence`,  then returns :mini:`Sequence`.
 
 
@@ -596,7 +596,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "c"
+      random("cake") :> "e"
       random([]) :> nil
 
 

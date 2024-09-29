@@ -99,6 +99,8 @@ typedef struct {
 	ml_value_t *Result;
 } ml_session_t;
 
+#define ML_SESSION_INDEX 6
+
 static ml_session_t *Sessions = NULL;
 static int NumSessions = 0, MaxSessions = 0;
 
@@ -135,9 +137,38 @@ static void ml_session_run(ml_session_t *Session, ml_value_t *Value) {
 	ml_command_evaluate((ml_state_t *)Session, Session->Parser, Session->Compiler);
 }
 
+ML_FUNCTIONX(MLPrint) {
+	ml_session_t *Session = ml_context_get_static(Caller->Context, ML_SESSION_INDEX);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
+		if (ml_is_error(Result)) ML_RETURN(Result);
+	}
+	_ml_output(Session - Sessions, ml_stringbuffer_get_string(Buffer));
+	ML_RETURN(MLNil);
+}
+
 stringmap_t MLGlobals[1] = {STRINGMAP_INIT};
 
+static int ml_globals_add(const char *Name, ml_value_t *Value, ml_value_t *Result) {
+	ml_map_insert(Result, ml_string(Name, -1), Value);
+	return 0;
+}
+
+static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args) {
+	ml_value_t *Result = ml_map();
+	stringmap_foreach(Globals, Result, (void *)ml_globals_add);
+	return Result;
+}
+
+extern ml_cfunction_t MLMemTrace[];
+extern ml_cfunction_t MLMemSize[];
+extern ml_cfunction_t MLMemCollect[];
+extern ml_cfunction_t MLMemUsage[];
+extern ml_cfunction_t MLMemDump[];
+
 void initialize() {
+	ml_context_reserve(ML_SESSION_INDEX);
 	ml_init("minilang", MLGlobals);
 	GC_disable();
 	ml_sequence_init(MLGlobals);
@@ -189,6 +220,36 @@ void initialize() {
 	ml_base16_init(MLGlobals);
 	ml_base64_init(MLGlobals);
 #endif
+	stringmap_insert(MLGlobals, "print", MLPrint);
+	stringmap_insert(MLGlobals, "raise", MLRaise);
+	stringmap_insert(MLGlobals, "memory", ml_module("memory",
+		"trace", MLMemTrace,
+		"size", MLMemSize,
+		"collect", MLMemCollect,
+		"usage", MLMemUsage,
+		"dump", MLMemDump,
+	NULL));
+	stringmap_insert(MLGlobals, "callcc", MLCallCC);
+	stringmap_insert(MLGlobals, "markcc", MLMarkCC);
+	stringmap_insert(MLGlobals, "calldc", MLCallDC);
+	stringmap_insert(MLGlobals, "swapcc", MLSwapCC);
+	stringmap_insert(MLGlobals, "channel", MLChannelT);
+	stringmap_insert(MLGlobals, "semaphore", MLSemaphoreT);
+	stringmap_insert(MLGlobals, "condition", MLConditionT);
+	stringmap_insert(MLGlobals, "rwlock", MLRWLockT);
+#ifdef ML_SCHEDULER_
+	stringmap_insert(MLGlobals, "atomic", MLAtomic);
+#endif
+	stringmap_insert(MLGlobals, "finalize", MLFinalizer);
+	stringmap_insert(MLGlobals, "context", MLContextKeyT);
+	stringmap_insert(MLGlobals, "parser", MLParserT);
+	stringmap_insert(MLGlobals, "compiler", MLCompilerT);
+	stringmap_insert(MLGlobals, "macro", MLMacroT);
+	stringmap_insert(MLGlobals, "variable", MLVariableT);
+	stringmap_insert(MLGlobals, "global", ml_stringmap_globals(MLGlobals));
+	stringmap_insert(MLGlobals, "globals", ml_cfunction(MLGlobals, (void *)ml_globals));
+
+	ml_logging_init(MLGlobals);
 }
 
 int EMSCRIPTEN_KEEPALIVE ml_session() {
@@ -207,6 +268,7 @@ int EMSCRIPTEN_KEEPALIVE ml_session() {
 	ml_session_t *Session = Sessions + Index;
 	ml_context_t *Context = Session->Base.Context = ml_context(MLRootContext);
 	ml_default_queue_init(Context, 250);
+	ml_context_set_static(Context, ML_SESSION_INDEX, Session);
 	Session->Base.run = (ml_state_fn)ml_session_run;
 	Session->Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, MLGlobals);
 	Session->Parser = ml_parser(NULL, NULL);
