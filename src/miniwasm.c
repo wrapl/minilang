@@ -82,8 +82,10 @@
 #include "ml_minijs.h"
 #endif
 
+#ifdef ML_ENCODINGS
 #include "ml_base16.h"
 #include "ml_base64.h"
+#endif
 
 #ifdef ML_STRUCT
 #include "ml_struct.h"

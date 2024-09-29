@@ -1164,7 +1164,7 @@ static void each_iterate(ml_each_state_t *State, ml_value_t *Value) {
 ML_METHODX("each", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Fn
-//>any|nil
+//>sequence
 // Calls :mini:`Fn(Key, Value)` for each key and value produced by :mini:`Sequence`, then returns :mini:`Sequence`.
 	ml_each_state_t *State = new(ml_each_state_t);
 	State->Base.Caller = Caller;
