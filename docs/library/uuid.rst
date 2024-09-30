@@ -18,7 +18,11 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
+<<<<<<< HEAD
       address(uuid()) :> <16:D63E400E3E574A7597609B82BB66B396>
+=======
+      address(uuid()) :> <16:C5DC815DFC2E4E53A6A8303F44C1B9CF>
+>>>>>>> branch 'dev' of git@github.com:wrapl/minilang.git
 
 
 :mini:`type uuid`
@@ -46,7 +50,11 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
+<<<<<<< HEAD
       uuid() :> 05e80823-cbc8-4cf9-8211-6a845f341517
+=======
+      uuid() :> f77fa376-adf6-4d56-afc4-f19a3a5f6f37
+>>>>>>> branch 'dev' of git@github.com:wrapl/minilang.git
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`

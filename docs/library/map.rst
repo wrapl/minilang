@@ -234,8 +234,12 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
       M:random :> "a"
+      M:random :> "c"
+<<<<<<< HEAD
+      M:random :> "a"
+=======
+>>>>>>> branch 'dev' of git@github.com:wrapl/minilang.git
 
 
 :mini:`meth (Map: map):size: integer`

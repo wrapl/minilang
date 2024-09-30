@@ -596,7 +596,11 @@ sequence
 
    .. code-block:: mini
 
+<<<<<<< HEAD
       random("cake") :> "c"
+=======
+      random("cake") :> "a"
+>>>>>>> branch 'dev' of git@github.com:wrapl/minilang.git
       random([]) :> nil
 
 

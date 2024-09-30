@@ -39,7 +39,7 @@ ml_xml_node_t *ml_xml_node_prev(ml_xml_node_t *Value) {
 ML_METHOD("parent", MLXmlT) {
 //<Xml
 //>xml|nil
-// Returnst the parent of :mini:`Xml` or :mini:`nil`.
+// Returns the parent of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	return (ml_value_t *)Node->Parent ?: MLNil;
 }
@@ -47,7 +47,7 @@ ML_METHOD("parent", MLXmlT) {
 ML_METHOD("^", MLXmlT) {
 //<Xml
 //>xml|nil
-// Returnst the parent of :mini:`Xml` or :mini:`nil`.
+// Returns the parent of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	return (ml_value_t *)Node->Parent ?: MLNil;
 }
@@ -63,7 +63,7 @@ ML_METHOD("index", MLXmlT) {
 ML_METHOD("prev", MLXmlT) {
 //<Xml
 //>xml|nil
-// Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
+// Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	return (ml_value_t *)Node->Prev ?: MLNil;
 }
@@ -71,7 +71,7 @@ ML_METHOD("prev", MLXmlT) {
 ML_METHOD("<", MLXmlT) {
 //<Xml
 //>xml|nil
-// Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
+// Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	return (ml_value_t *)Node->Prev ?: MLNil;
 }
@@ -1001,6 +1001,36 @@ ML_METHOD(">", MLXmlT, MLIntegerT) {
 	return (ml_value_t *)Node;
 }
 
+ML_METHOD("next", MLXmlT, MLStringT) {
+//<Xml
+//<Tag
+//>xml|nil
+// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
+	while ((Node = Node->Next)) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
+}
+
+ML_METHOD(">", MLXmlT, MLStringT) {
+//<Xml
+//<Tag
+//>xml|nil
+// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
+	while ((Node = Node->Next)) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
+}
+
 ML_METHOD("prev", MLXmlT, MLIntegerT) {
 //<Xml
 //<N
@@ -1029,6 +1059,36 @@ ML_METHOD("<", MLXmlT, MLIntegerT) {
 		if (Node->Base.Type == MLXmlElementT) --Steps;
 	}
 	return (ml_value_t *)Node;
+}
+
+ML_METHOD("prev", MLXmlT, MLStringT) {
+//<Xml
+//<Tag
+//>xml|nil
+// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
+	while ((Node = Node->Prev)) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
+}
+
+ML_METHOD("<", MLXmlT, MLStringT) {
+//<Xml
+//<Tag
+//>xml|nil
+// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
+	while ((Node = Node->Prev)) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
 }
 
 typedef struct {
