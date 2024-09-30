@@ -76,11 +76,15 @@ xml
 
 
 :mini:`meth <(Xml: xml): xml | nil`
-   Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
+   Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml) < (N: integer): xml | nil`
    Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) < (Tag: string): xml | nil`
+   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml) << (Fn: function): sequence`
@@ -107,6 +111,10 @@ xml
    Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml) > (Tag: string): xml | nil`
+   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml) >> (Fn: function): sequence`
    Returns a sequence of the next siblings of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
@@ -124,7 +132,7 @@ xml
 
 
 :mini:`meth ^(Xml: xml): xml | nil`
-   Returnst the parent of :mini:`Xml` or :mini:`nil`.
+   Returns the parent of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml) ^ (N: integer): xml | nil`
@@ -155,8 +163,12 @@ xml
    Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml):next(Tag: string): xml | nil`
+   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml):parent: xml | nil`
-   Returnst the parent of :mini:`Xml` or :mini:`nil`.
+   Returns the parent of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):parent(N: integer): xml | nil`
@@ -168,11 +180,15 @@ xml
 
 
 :mini:`meth (Xml: xml):prev: xml | nil`
-   Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
+   Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):prev(N: integer): xml | nil`
    Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):prev(Tag: string): xml | nil`
+   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Node: xml):remove: xml`
