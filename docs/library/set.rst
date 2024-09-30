@@ -223,7 +223,7 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:random :> "a"
-      S:random :> "a"
+      S:random :> "e"
 
 
 :mini:`meth (Set: set):size: integer`
