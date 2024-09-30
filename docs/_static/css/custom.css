@@ -139,13 +139,28 @@ section {
 
 .session .input {
 	position: relative;
+	display: grid;
+}
+
+.session .input::after {
+	content: attr(data-replicated-value) " ";
+	white-space: pre-wrap;
+	visibility: hidden;
 }
 
 .session .input textarea {
 	width: 100%;
 	box-sizing: border-box;
-	field-sizing: content;
-	resize: vertical;
+	resize: none;
+	overflow: hidden;
+}
+
+.session .input::after, .session .input textarea {
+	border-left: solid green;
+	border-width: 0 0 0 3px;
+	padding: 0.2rem;
+	font: inherit;
+	grid-area: 1 / 1 / 2 / 2;
 }
 
 .session .input .run {

@@ -9,6 +9,10 @@ general
 
 .. rst-class:: mini-api
 
+:mini:`fun mlprint()`
+   *TBD*
+
+
 :mini:`meth :WeakMapT()`
    *TBD*
 

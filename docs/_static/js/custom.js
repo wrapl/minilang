@@ -45,7 +45,9 @@ Module.onRuntimeInitialized = function() {
 	function Cell(session, value) {
 		this.session = session;
 		let input = this.input = create("textarea");
-		if (value) input.value = value;
+		input.oninput = function() {
+			this.parentNode.dataset.replicatedValue = this.value;
+		}
 		let output = this.output = create("div.output");
 		let element = create("div.cell",
 			create("div.input", input, create("button.run", {"on-click": evaluate.bind(this)}, "Run")),
@@ -53,6 +55,10 @@ Module.onRuntimeInitialized = function() {
 		);
 		session.cells.push(this);
 		session.element.appendChild(element);
+		if (value) {
+			input.value = value;
+			input.parentNode.dataset.replicatedValue = value;
+		}
 	
 		function evaluate() {
 			session.evaluate(this, input.value);
