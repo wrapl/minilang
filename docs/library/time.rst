@@ -66,11 +66,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-<<<<<<< HEAD
-      time() :> 2024-09-30T07:59:39.341826
-=======
-      time() :> 2024-09-30T18:00:06.05305
->>>>>>> branch 'dev' of git@github.com:wrapl/minilang.git
+      time() :> 2024-09-30T22:22:45.306453
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`

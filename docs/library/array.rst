@@ -738,11 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-<<<<<<< HEAD
-      A:minidx(2) :> <<2 1> <1 1933647916>>
-=======
-      A:minidx(2) :> <<2 1> <1 543189091>>
->>>>>>> branch 'dev' of git@github.com:wrapl/minilang.git
+      A:minidx(2) :> <<2 1> <1 1852270963>>
 
 
 :mini:`meth (Array: array):minval: number`
