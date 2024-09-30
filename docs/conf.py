@@ -42,17 +42,25 @@ class FoldersDirective(Directive):
 
 
 class TryItDirective(Directive):
-    has_content = True
+	has_content = True
     
-    def run(self):
-        env = self.state.document.settings.env
-        block = nodes.line_block()
-        block['classes'].append('tryit')
-        for line in self.content:
-            node = nodes.list_item()
-            node.append(nodes.inline(text = line))
-            block.append(node)
-        return [block]
+	def run(self):
+		env = self.state.document.settings.env
+		block = nodes.line_block()
+		block['classes'].append('tryit')
+		text = ""
+		print(self.content)
+		for line in self.content:
+			if line == "":
+				node = nodes.list_item()
+				node.append(nodes.inline(text = text.strip()))
+				block.append(node)
+				text = ""
+			text += line + "\n"
+		node = nodes.list_item()
+		node.append(nodes.inline(text = text.strip()))
+		block.append(node)
+		return [block]
 
 
 # Configuration file for the Sphinx documentation builder.

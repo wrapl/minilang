@@ -144,6 +144,8 @@ section {
 .session .input textarea {
 	width: 100%;
 	box-sizing: border-box;
+	field-sizing: content;
+	resize: vertical;
 }
 
 .session .input .run {
