@@ -999,186 +999,48 @@ static ml_value_t *adjacent_node_by_count(void *Data, int Count, ml_value_t **Ar
 	return (ml_value_t *)Node;
 }
 
+#define ADJACENT_METHODS(METHOD, FIELD) \
+\
+ML_METHOD(METHOD, MLXmlT, MLIntegerT) { \
+/*<Xml
+//<N
+//>xml|nil
+// Returns the :mini:`N`-th FIELD of :mini:`Xml` or :mini:`nil`.
+*/ \
+} \
+\
+ML_METHOD(METHOD, MLXmlT, MLStringT) { \
+/*<Xml
+//<Tag
+//>xml|nil
+// Returns the FIELD of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+*/ \
+} \
+\
+ML_METHODV(METHOD, MLXmlT, MLStringT, MLNamesT) { \
+/*<Xml
+//<Tag
+//<Attrs
+//>xml|nil
+// Returns the FIELD of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists, otherwise :mini:`nil`.
+*/ \
+} \
+\
+ML_METHODV(METHOD, MLXmlT, MLNamesT) { \
+/*<Xml
+//<Attrs
+//>xml|nil
+// Returns the FIELD of :mini:`Xml` matching :mini:`Attrs` if one exists, otherwise :mini:`nil`.
+*/ \
+}
+
 /*
-ML_METHOD("parent", MLXmlT, MLStringT) {
-//<Xml
-//<Tag
-//>xml|nil
-// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	while ((Node = (ml_xml_node_t *)Node->Parent)) {
-		if (Node->Base.Type != MLXmlElementT) continue;
-		if (Node->Base.Value != Tag) continue;
-		return (ml_value_t *)Node;
-	}
-	return MLNil;
-}
-
-ML_METHOD("parent", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = (ml_xml_node_t *)Node->Parent;
-		if (!Node) return MLNil;
-		--Steps;
-	}
-	return (ml_value_t *)Node;
-}
-
-ML_METHOD("^", MLXmlT, MLStringT) {
-//<Xml
-//<Tag
-//>xml|nil
-// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	while ((Node = (ml_xml_node_t *)Node->Parent)) {
-		if (Node->Base.Type != MLXmlElementT) continue;
-		if (Node->Base.Value != Tag) continue;
-		return (ml_value_t *)Node;
-	}
-	return MLNil;
-}
-
-ML_METHOD("^", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = (ml_xml_node_t *)Node->Parent;
-		if (!Node) return MLNil;
-		--Steps;
-	}
-	return (ml_value_t *)Node;
-}
-
-ML_METHOD("next", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = Node->Next;
-		if (!Node) return MLNil;
-		if (Node->Base.Type == MLXmlElementT) --Steps;
-	}
-	return (ml_value_t *)Node;
-}
-
-ML_METHOD(">", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = Node->Next;
-		if (!Node) return MLNil;
-		if (Node->Base.Type == MLXmlElementT) --Steps;
-	}
-	return (ml_value_t *)Node;
-}
-
-ML_METHOD("next", MLXmlT, MLStringT) {
-//<Xml
-//<Tag
-//>xml|nil
-// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	while ((Node = Node->Next)) {
-		if (Node->Base.Type != MLXmlElementT) continue;
-		if (Node->Base.Value != Tag) continue;
-		return (ml_value_t *)Node;
-	}
-	return MLNil;
-}
-
-ML_METHOD(">", MLXmlT, MLStringT) {
-//<Xml
-//<Tag
-//>xml|nil
-// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	while ((Node = Node->Next)) {
-		if (Node->Base.Type != MLXmlElementT) continue;
-		if (Node->Base.Value != Tag) continue;
-		return (ml_value_t *)Node;
-	}
-	return MLNil;
-}
-
-ML_METHOD("prev", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = Node->Prev;
-		if (!Node) return MLNil;
-		if (Node->Base.Type == MLXmlElementT) --Steps;
-	}
-	return (ml_value_t *)Node;
-}
-
-ML_METHOD("<", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = Node->Prev;
-		if (!Node) return MLNil;
-		if (Node->Base.Type == MLXmlElementT) --Steps;
-	}
-	return (ml_value_t *)Node;
-}
-
-ML_METHOD("prev", MLXmlT, MLStringT) {
-//<Xml
-//<Tag
-//>xml|nil
-// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	while ((Node = Node->Prev)) {
-		if (Node->Base.Type != MLXmlElementT) continue;
-		if (Node->Base.Value != Tag) continue;
-		return (ml_value_t *)Node;
-	}
-	return MLNil;
-}
-
-ML_METHOD("<", MLXmlT, MLStringT) {
-//<Xml
-//<Tag
-//>xml|nil
-// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	while ((Node = Node->Prev)) {
-		if (Node->Base.Type != MLXmlElementT) continue;
-		if (Node->Base.Value != Tag) continue;
-		return (ml_value_t *)Node;
-	}
-	return MLNil;
-}
+ADJACENT_METHODS("^", parent)
+ADJACENT_METHODS("parent", parent)
+ADJACENT_METHODS(">", next sibling)
+ADJACENT_METHODS("next", next sibling)
+ADJACENT_METHODS("<", prev sibling)
+ADJACENT_METHODS("prev", prev sibling)
 */
 
 typedef struct {
@@ -2269,7 +2131,7 @@ static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
 	return ml_parser_escape_xml_like(Parser0, (ml_value_t *)MLXmlElementT);
 }
 
-#define ADJACENT_METHODS(NAME, FIELD) \
+#define DEFINE_ADJACENT_METHODS(NAME, FIELD) \
 	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_tag, MLXmlT, MLStringT, NULL); \
 	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_attrs, MLXmlT, MLNamesT, NULL); \
 	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_tag_and_attrs, MLXmlT, MLStringT, MLNamesT, NULL); \
@@ -2277,12 +2139,12 @@ static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
 
 void ml_xml_init(stringmap_t *Globals) {
 #include "ml_xml_init.c"
-	ADJACENT_METHODS("parent", Parent);
-	ADJACENT_METHODS("^", Parent);
-	ADJACENT_METHODS("next", Next);
-	ADJACENT_METHODS(">", Next);
-	ADJACENT_METHODS("prev", Prev);
-	ADJACENT_METHODS("<", Prev);
+	DEFINE_ADJACENT_METHODS("parent", Parent);
+	DEFINE_ADJACENT_METHODS("^", Parent);
+	DEFINE_ADJACENT_METHODS("next", Next);
+	DEFINE_ADJACENT_METHODS(">", Next);
+	DEFINE_ADJACENT_METHODS("prev", Prev);
+	DEFINE_ADJACENT_METHODS("<", Prev);
 #ifdef ML_GENERICS
 	ml_method_by_value(ChildrenMethod, ChildrenMethod, recursive_doubled, MLXmlSequenceT, NULL);
 	ml_method_by_value(RecursiveMethod, RecursiveMethod, recursive_doubled, MLXmlSequenceT, NULL);

@@ -80,11 +80,19 @@ xml
 
 
 :mini:`meth (Xml: xml) < (N: integer): xml | nil`
-   Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
+   Returns the :mini:`N`-th prev sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) < (Attrs₁ is Value₁): xml | nil`
+   Returns the prev sibling of :mini:`Xml` matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml) < (Tag: string): xml | nil`
-   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) < (Tag: string, Attrs₁ is Value₁): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml) << (Fn: function): sequence`
@@ -111,8 +119,16 @@ xml
    Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml) > (Attrs₁ is Value₁): xml | nil`
+   Returns the next sibling of :mini:`Xml` matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml) > (Tag: string): xml | nil`
-   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) > (Tag: string, Attrs₁ is Value₁): xml | nil`
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml) >> (Fn: function): sequence`
@@ -139,8 +155,16 @@ xml
    Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml) ^ (Attrs₁ is Value₁): xml | nil`
+   Returns the parent of :mini:`Xml` matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml) ^ (Tag: string): xml | nil`
-   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) ^ (Tag: string, Attrs₁ is Value₁): xml | nil`
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Node: xml):add_next(Other: any, ...): xml`
@@ -163,8 +187,16 @@ xml
    Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml):next(Attrs₁ is Value₁): xml | nil`
+   Returns the next sibling of :mini:`Xml` matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml):next(Tag: string): xml | nil`
-   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):next(Tag: string, Attrs₁ is Value₁): xml | nil`
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):parent: xml | nil`
@@ -175,8 +207,16 @@ xml
    Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml):parent(Attrs₁ is Value₁): xml | nil`
+   Returns the parent of :mini:`Xml` matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml):parent(Tag: string): xml | nil`
-   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):parent(Tag: string, Attrs₁ is Value₁): xml | nil`
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):prev: xml | nil`
@@ -184,11 +224,19 @@ xml
 
 
 :mini:`meth (Xml: xml):prev(N: integer): xml | nil`
-   Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
+   Returns the :mini:`N`-th prev sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):prev(Attrs₁ is Value₁): xml | nil`
+   Returns the prev sibling of :mini:`Xml` matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):prev(Tag: string): xml | nil`
-   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):prev(Tag: string, Attrs₁ is Value₁): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Node: xml):remove: xml`
