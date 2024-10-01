@@ -911,6 +911,95 @@ ML_XML_ITERATOR("/", Forward, Head, children);
 ML_XML_ITERATOR(">>", Forward, Base.Next, next siblings);
 ML_XML_ITERATOR("<<", Reverse, Base.Prev, previous siblings);
 
+static ml_value_t *adjacent_node_by_tag(void *Data, int Count, ml_value_t **Args) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
+	if (!Tag) return MLNil;
+	uintptr_t Offset = (uintptr_t)Data;
+	while ((Node = *(ml_xml_node_t **)((void *)Node + Offset))) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
+}
+
+static ml_value_t *adjacent_node_by_attrs(void *Data, int Count, ml_value_t **Args) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	int I = 1;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		++I;
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
+	}
+	uintptr_t Offset = (uintptr_t)Data;
+	while ((Node = *(ml_xml_node_t **)((void *)Node + Offset))) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		ml_value_t *Attributes = ((ml_xml_element_t *)Node)->Attributes;
+		int I = 1;
+		ML_LIST_FOREACH(Args[1], Iter) {
+			++I;
+			ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+			if (Args[I] == MLNil) {
+				if (Value != MLNil) goto next;
+			} else {
+				if (Value == MLNil) goto next;
+				if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next;
+			}
+		}
+		return (ml_value_t *)Node;
+	next:
+		continue;
+	}
+	return MLNil;
+}
+
+static ml_value_t *adjacent_node_by_tag_and_attrs(void *Data, int Count, ml_value_t **Args) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
+	if (!Tag) return MLNil;
+	ML_NAMES_CHECK_ARG_COUNT(2);
+	int I = 2;
+	ML_LIST_FOREACH(Args[2], Iter) {
+		++I;
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
+	}
+	uintptr_t Offset = (uintptr_t)Data;
+	while ((Node = *(ml_xml_node_t **)((void *)Node + Offset))) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		ml_value_t *Attributes = ((ml_xml_element_t *)Node)->Attributes;
+		int I = 2;
+		ML_LIST_FOREACH(Args[2], Iter) {
+			++I;
+			ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+			if (Args[I] == MLNil) {
+				if (Value != MLNil) goto next;
+			} else {
+				if (Value == MLNil) goto next;
+				if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next;
+			}
+		}
+		return (ml_value_t *)Node;
+	next:
+		continue;
+	}
+	return MLNil;
+}
+
+static ml_value_t *adjacent_node_by_count(void *Data, int Count, ml_value_t **Args) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	int Steps = ml_integer_value(Args[1]);
+	uintptr_t Offset = (uintptr_t)Data;
+	while (Steps > 0) {
+		Node = *(ml_xml_node_t **)((void *)Node + Offset);
+		if (!Node) return MLNil;
+		--Steps;
+	}
+	return (ml_value_t *)Node;
+}
+
+/*
 ML_METHOD("parent", MLXmlT, MLStringT) {
 //<Xml
 //<Tag
@@ -1090,6 +1179,7 @@ ML_METHOD("<", MLXmlT, MLStringT) {
 	}
 	return MLNil;
 }
+*/
 
 typedef struct {
 	ml_type_t *Type;
@@ -1260,7 +1350,31 @@ ML_METHOD("//", MLXmlT, MLFunctionT) {
 #ifdef ML_GENERICS
 
 ML_METHOD_DECL(ChildrenMethod, "/");
+ML_METHOD_DECL(RecursiveMethod, "//");
+ML_METHOD_DECL(NextSiblingsMethod, ">>");
+ML_METHOD_DECL(PrevSiblingsMethod, "<<");
 
+static ml_value_t *recursive_doubled(void *Data, int Count, ml_value_t **Args) {
+	ml_value_t *Partial = ml_partial_function((ml_value_t *)Data, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Doubled = ml_doubled(Args[0], Partial);
+	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
+	return Doubled;
+}
+
+ML_METHOD_DECL(ParentMethod, "^");
+ML_METHOD_DECL(NextSiblingMethod, ">");
+ML_METHOD_DECL(PrevSiblingMethod, "<");
+
+static ml_value_t *recursive_adjacent(void *Data, int Count, ml_value_t **Args) {
+	ml_value_t *Partial = ml_partial_function((ml_value_t *)Data, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Chained = ml_chainedv(4, Args[0], Partial, FilterSoloMethod, ml_integer(1));
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+	return Chained;
+}
+
+/*
 ML_METHODV("/", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1272,8 +1386,6 @@ ML_METHODV("/", MLXmlSequenceT) {
 	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
 	return Doubled;
 }
-
-ML_METHOD_DECL(RecursiveMethod, "//");
 
 ML_METHODV("//", MLXmlSequenceT) {
 //<Sequence
@@ -1287,8 +1399,6 @@ ML_METHODV("//", MLXmlSequenceT) {
 	return Doubled;
 }
 
-ML_METHOD_DECL(NextSiblingsMethod, ">>");
-
 ML_METHODV(">>", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1301,8 +1411,6 @@ ML_METHODV(">>", MLXmlSequenceT) {
 	return Doubled;
 }
 
-ML_METHOD_DECL(PrevSiblingsMethod, "<<");
-
 ML_METHODV("<<", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1314,8 +1422,6 @@ ML_METHODV("<<", MLXmlSequenceT) {
 	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
 	return Doubled;
 }
-
-ML_METHOD_DECL(ParentMethod, "parent");
 
 ML_METHODV("parent", MLXmlSequenceT) {
 //<Sequence
@@ -1341,8 +1447,6 @@ ML_METHODV("^", MLXmlSequenceT) {
 	return Chained;
 }
 
-ML_METHOD_DECL(NextSiblingMethod, "next");
-
 ML_METHODV("next", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1367,8 +1471,6 @@ ML_METHODV(">", MLXmlSequenceT) {
 	return Chained;
 }
 
-ML_METHOD_DECL(PrevSiblingMethod, "prev");
-
 ML_METHODV("prev", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1392,6 +1494,7 @@ ML_METHODV("<", MLXmlSequenceT) {
 	Chained->Type = (ml_type_t *)MLXmlChainedT;
 	return Chained;
 }
+*/
 
 #endif
 
@@ -2166,8 +2269,32 @@ static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
 	return ml_parser_escape_xml_like(Parser0, (ml_value_t *)MLXmlElementT);
 }
 
+#define ADJACENT_METHODS(NAME, FIELD) \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_tag, MLXmlT, MLStringT, NULL); \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_attrs, MLXmlT, MLNamesT, NULL); \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_tag_and_attrs, MLXmlT, MLStringT, MLNamesT, NULL); \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_count, MLXmlT, MLIntegerT, NULL)
+
 void ml_xml_init(stringmap_t *Globals) {
 #include "ml_xml_init.c"
+	ADJACENT_METHODS("parent", Parent);
+	ADJACENT_METHODS("^", Parent);
+	ADJACENT_METHODS("next", Next);
+	ADJACENT_METHODS(">", Next);
+	ADJACENT_METHODS("prev", Prev);
+	ADJACENT_METHODS("<", Prev);
+#ifdef ML_GENERICS
+	ml_method_by_value(ChildrenMethod, ChildrenMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(RecursiveMethod, RecursiveMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(NextSiblingsMethod, NextSiblingsMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(PrevSiblingsMethod, PrevSiblingsMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(ParentMethod, ParentMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("parent", ParentMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_value(NextSiblingMethod, NextSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("next", NextSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_value(PrevSiblingMethod, PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("prev", PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+#endif
 	stringmap_insert(MLXmlT->Exports, "parse", MLXmlParse);
 	stringmap_insert(MLXmlT->Exports, "escape", MLXmlEscape);
 	stringmap_insert(MLXmlT->Exports, "text", MLXmlTextT);
