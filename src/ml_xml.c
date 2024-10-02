@@ -999,38 +999,38 @@ static ml_value_t *adjacent_node_by_count(void *Data, int Count, ml_value_t **Ar
 	return (ml_value_t *)Node;
 }
 
-#define ADJACENT_METHODS(METHOD, FIELD) \
+#define ADJACENT_METHODS(NAME, DOC) \
 \
-ML_METHOD(METHOD, MLXmlT, MLIntegerT) { \
+ML_METHOD(NAME, MLXmlT, MLIntegerT) { \
 /*<Xml
 //<N
 //>xml|nil
-// Returns the :mini:`N`-th FIELD of :mini:`Xml` or :mini:`nil`.
+// Returns the :mini:`N`-th DOC of :mini:`Xml` or :mini:`nil`.
 */ \
 } \
 \
-ML_METHOD(METHOD, MLXmlT, MLStringT) { \
+ML_METHOD(NAME, MLXmlT, MLStringT) { \
 /*<Xml
 //<Tag
 //>xml|nil
-// Returns the FIELD of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+// Returns the DOC of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
 */ \
 } \
 \
-ML_METHODV(METHOD, MLXmlT, MLStringT, MLNamesT) { \
+ML_METHODV(NAME, MLXmlT, MLStringT, MLNamesT) { \
 /*<Xml
 //<Tag
-//<Attrs
+//<Attribute
 //>xml|nil
-// Returns the FIELD of :mini:`Xml` with tag :mini:`Tag` and matching :mini:`Attrs` if one exists, otherwise :mini:`nil`.
+// Returns the DOC of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute/1 = Value/1`, etc., if one exists, otherwise :mini:`nil`.
 */ \
 } \
 \
-ML_METHODV(METHOD, MLXmlT, MLNamesT) { \
+ML_METHODV(NAME, MLXmlT, MLNamesT) { \
 /*<Xml
-//<Attrs
+//<Attribute
 //>xml|nil
-// Returns the FIELD of :mini:`Xml` matching :mini:`Attrs` if one exists, otherwise :mini:`nil`.
+// Returns the DOC of :mini:`Xml` with :mini:`Attribute/1 = Value/1`, etc., if one exists, otherwise :mini:`nil`.
 */ \
 }
 
