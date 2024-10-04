@@ -1960,11 +1960,10 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	ContentExpr->StartLine = Parser->Source.Line;
 	AttrsExpr->Next = (mlc_expr_t *)ContentExpr;
 	mlc_expr_t **Content = &ContentExpr->Child;
-	for (;;) {
-		switch (Next[0]) {
+	for (;;) switch (Next[0]) {
 		case ' ': case '\t': ++Next; break;
-		case '\n': {
-			++Parser->Source.Line;
+		case '\n': ++Next; ++Parser->Source.Line; break;
+		case '\0': {
 			Next = ml_parser_read(Parser->Parser);
 			if (!Next) return ml_error("ParseError", "Incomplete xml");
 			break;
@@ -2105,7 +2104,6 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 			default: return ml_error("ParseError", "Invalid attribute");
 			}
 		}
-		}
 	}
 	return NULL;
 }
@@ -2116,13 +2114,23 @@ ml_value_t *ml_parser_escape_xml_like(ml_parser_t *Parser0, ml_value_t *Construc
 	Parser.Source = ml_parser_position(Parser0);
 	const char *Next = ml_parser_clear(Parser0);
 	char Quote = *Next++;
-	if (Next[0] != '<') return ml_error("ParseError", "Invalid xml");
+	while (Next[0] != '<') switch (Next[0]) {
+		case ' ': case '\t': ++Next; break;
+		case '\n': ++Next; ++Parser.Source.Line; break;
+		case '\0': {
+			Next = ml_parser_read(Parser0);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+			break;
+		}
+		default: return ml_error("ParseError", "Invalid xml");
+	}
 	Parser.Next = Next + 1;
 	Parser.Parser = Parser0;
 	ml_value_t *Value = ml_parser_escape_xml_node(&Parser);
 	if (ml_is_error(Value)) return Value;
-	if (Parser.Next[0] != Quote) return ml_error("ParseError", "Invalid string");
-	ml_parser_input(Parser0, Parser.Next + 1, 0);
+	//if (Parser.Next[0] != Quote) return ml_error("ParseError", "Invalid string");
+	//ml_parser_input(Parser0, Parser.Next + 1, 0);
+	ml_parser_input(Parser0, Parser.Next, 0);
 	ml_parser_source(Parser0, Parser.Source);
 	return Value;
 }

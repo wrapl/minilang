@@ -49,7 +49,8 @@
   <option  id='OPTIMIZE_FOR_FORTRAN' default='yes' type='bool'><value>NO</value></option>
   <option  id='OPTIMIZE_OUTPUT_VHDL' default='yes' type='bool'><value>NO</value></option>
   <option  id='OPTIMIZE_OUTPUT_SLICE' default='yes' type='bool'><value>NO</value></option>
-  <option  id='EXTENSION_MAPPING' default='yes' type='stringlist'>
+  <option  id='EXTENSION_MAPPING' default='no' type='stringlist'>
+    <value><![CDATA[h=C]]></value>
   </option>
   <option  id='MARKDOWN_SUPPORT' default='yes' type='bool'><value>YES</value></option>
   <option  id='TOC_INCLUDE_HEADINGS' default='no' type='int'><value>5</value></option>
