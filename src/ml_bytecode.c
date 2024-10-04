@@ -2336,7 +2336,7 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 	int DeclIndex = VLQ64_NEXT();
 	Info->Decls = DeclIndex >= 0 ? &Decls[DeclIndex] : NULL;
 	int NumInsts = VLQ64_NEXT();
-	if (NumInsts > Length + 1) ML_ERROR("CBORError", "Invalid bytecode");
+	if (NumInsts > 2 * Length + 1) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
 	ml_inst_t *Halt = Info->Halt = Code + NumInsts;
 	Info->Return = Code + VLQ64_NEXT();
