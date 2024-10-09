@@ -27,6 +27,14 @@ xml
       :> "\'1 + 2 &gt; 3 &amp; 2 &lt; 4\'"
 
 
+:mini:`meth (Arg₁: xml::element):append(Arg₂: string, ...)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xml::element):append(Arg₂: string, Arg₃: map, ...)`
+   *TBD*
+
+
 :mini:`type xml`
    An XML node.
 
@@ -241,6 +249,10 @@ xml
 
 :mini:`meth (Node: xml):remove: xml`
    Removes :mini:`Node` from its parent.
+
+
+:mini:`meth (Arg₁: xml::element):append(Arg₂: xml, ...)`
+   *TBD*
 
 
 :mini:`type xml::element < xml, sequence`

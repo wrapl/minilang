@@ -2421,7 +2421,6 @@ typedef struct ml_unique_state_t {
 	ml_value_t *Iter;
 	ml_value_t *History;
 	ml_value_t *Value;
-	int Iteration;
 } ml_unique_state_t;
 
 ML_TYPE(MLUniqueStateT, (MLStateT), "unique-state");
@@ -2434,7 +2433,6 @@ static void ml_unique_fnx_value(ml_unique_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (ml_map_insert(State->History, Value, MLSome) == MLNil) {
 		State->Value = Value;
-		++State->Iteration;
 		ML_CONTINUE(State->Base.Caller, State);
 	}
 	State->Base.run = (void *)ml_unique_fnx_iterate;
@@ -2455,12 +2453,11 @@ static void ML_TYPED_FN(ml_iterate, MLUniqueT, ml_state_t *Caller, ml_unique_t *
 	State->Base.run = (void *)ml_unique_fnx_iterate;
 	State->Base.Context = Caller->Context;
 	State->History = ml_map();
-	State->Iteration = 0;
 	return ml_iterate((ml_state_t *)State, Unique->Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLUniqueStateT, ml_state_t *Caller, ml_unique_state_t *State) {
-	ML_RETURN(ml_integer(State->Iteration));
+	return ml_iter_key(Caller, State->Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLUniqueStateT, ml_state_t *Caller, ml_unique_state_t *State) {
@@ -2482,6 +2479,69 @@ ML_FUNCTION(Unique) {
 	ml_unique_t *Unique = new(ml_unique_t);
 	ml_value_t *Iter = Unique->Iter = ml_chained(Count, Args);
 	Unique->Type = ml_generic_sequence(MLUniqueT, Iter);
+	return (ml_value_t *)Unique;
+}
+
+ML_TYPE(MLUniqueKeysT, (MLSequenceT), "unique");
+//!internal
+
+ML_TYPE(MLUniqueKeysStateT, (MLStateT), "unique-state");
+//!internal
+
+static void ml_unique2_fnx_iterate(ml_unique_state_t *State, ml_value_t *Value);
+
+static void ml_unique2_fnx_value(ml_unique_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_map_insert(State->History, Value, MLSome) == MLNil) {
+		State->Value = Value;
+		ML_CONTINUE(State->Base.Caller, State);
+	}
+	State->Base.run = (void *)ml_unique2_fnx_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ml_unique2_fnx_iterate(ml_unique_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_unique2_fnx_value;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLUniqueKeysT, ml_state_t *Caller, ml_unique_t *Unique) {
+	ml_unique_state_t *State = new(ml_unique_state_t);
+	State->Base.Type = MLUniqueKeysStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_unique2_fnx_iterate;
+	State->Base.Context = Caller->Context;
+	State->History = ml_map();
+	return ml_iterate((ml_state_t *)State, Unique->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLUniqueKeysStateT, ml_state_t *Caller, ml_unique_state_t *State) {
+	ML_RETURN(State->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLUniqueKeysStateT, ml_state_t *Caller, ml_unique_state_t *State) {
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLUniqueKeysStateT, ml_state_t *Caller, ml_unique_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_unique2_fnx_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(UniqueKeys) {
+//@unique1
+//<Sequence:sequence
+//>sequence
+// Returns an sequence that returns the unique keys produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
+//$= list(unique1("banana"))
+	ML_CHECK_ARG_COUNT(1);
+	ml_unique_t *Unique = new(ml_unique_t);
+	ml_value_t *Iter = Unique->Iter = ml_chained(Count, Args);
+	Unique->Type = ml_generic_sequence(MLUniqueKeysT, Iter);
 	return (ml_value_t *)Unique;
 }
 
@@ -3998,6 +4058,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "min2", Min2);
 		stringmap_insert(Globals, "max2", Max2);
 		stringmap_insert(Globals, "unique", Unique);
+		stringmap_insert(Globals, "unique1", UniqueKeys);
 		stringmap_insert(Globals, "zip", Zip);
 		stringmap_insert(Globals, "zip2", Zip2);
 		stringmap_insert(Globals, "grid", Grid);
