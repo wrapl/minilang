@@ -41,12 +41,12 @@ tasks
       :> [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10)]
 
 
-:mini:`fun unbuffered(Sequence: sequence, Size: integer, Fn: function): sequence`
+:mini:`fun diffused(Sequence: sequence, Size: integer, Fn: function): sequence`
    Returns the sequence :mini:`(Kᵢ,  Fn(Kᵢ,  Vᵢ))` where :mini:`Kᵢ,  Vᵢ` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel,  with at most :mini:`Size` calls at a time. The original sequence order is not preserved.
 
    .. code-block:: mini
 
-      list(unbuffered(1 .. 10, 5, tuple))
+      list(diffused(1 .. 10, 5, tuple))
       :> [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10)]
 
 

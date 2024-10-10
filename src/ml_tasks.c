@@ -690,36 +690,36 @@ typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Iter, *Fn;
 	int Size;
-} ml_unbuffered_t;
+} ml_diffused_t;
 
-ML_TYPE(MLUnbufferedT, (MLSequenceT), "unbuffered");
+ML_TYPE(MLDiffusedT, (MLSequenceT), "diffused");
 //!internal
 
-typedef struct ml_unbuffered_task_t ml_unbuffered_task_t;
+typedef struct ml_diffused_task_t ml_diffused_task_t;
 
-struct ml_unbuffered_task_t {
+struct ml_diffused_task_t {
 	ml_state_t Base;
-	ml_unbuffered_task_t *Next;
+	ml_diffused_task_t *Next;
 	ml_value_t *Key, *Value;
 };
 
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter, *Fn, *Final;
-	ml_unbuffered_task_t *Head, *Tail, *Next;
+	ml_diffused_task_t *Head, *Tail, *Next;
 	int Size, Waiting;
-	ml_unbuffered_task_t Tasks[];
-} ml_unbuffered_state_t;
+	ml_diffused_task_t Tasks[];
+} ml_diffused_state_t;
 
-ML_TYPE(MLUnbufferedStateT, (MLStateT), "unbuffered-state");
+ML_TYPE(MLDiffusedStateT, (MLStateT), "diffused-state");
 //!internal
 
-static void ml_unbuffered_iterate(ml_unbuffered_state_t *Task, ml_value_t *Value);
+static void ml_diffused_iterate(ml_diffused_state_t *Task, ml_value_t *Value);
 
-static void ML_TYPED_FN(ml_iter_next, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
+static void ML_TYPED_FN(ml_iter_next, MLDiffusedStateT, ml_state_t *Caller, ml_diffused_state_t *State) {
 	if (State->Waiting <= 0) ML_RETURN(State->Final);
 	if (!State->Head) ML_ERROR("StateError", "Invalid state");
-	ml_unbuffered_task_t *Task = State->Head;
+	ml_diffused_task_t *Task = State->Head;
 	--State->Waiting;
 	State->Head = Task->Next;
 	if (!State->Head) State->Tail = NULL;
@@ -731,7 +731,7 @@ static void ML_TYPED_FN(ml_iter_next, MLUnbufferedStateT, ml_state_t *Caller, ml
 	} else {
 		Task->Next = NULL;
 		State->Next = Task;
-		State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
+		State->Base.run = (ml_state_fn)ml_diffused_iterate;
 		ml_iter_next((ml_state_t *)State, State->Iter);
 	}
 	if (State->Head) {
@@ -741,18 +741,18 @@ static void ML_TYPED_FN(ml_iter_next, MLUnbufferedStateT, ml_state_t *Caller, ml
 	}
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
+static void ML_TYPED_FN(ml_iter_key, MLDiffusedStateT, ml_state_t *Caller, ml_diffused_state_t *State) {
 	if (!State->Head) ML_ERROR("StateError", "Invalid state");
 	ML_RETURN(State->Head->Key);
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLUnbufferedStateT, ml_state_t *Caller, ml_unbuffered_state_t *State) {
+static void ML_TYPED_FN(ml_iter_value, MLDiffusedStateT, ml_state_t *Caller, ml_diffused_state_t *State) {
 	if (!State->Head) ML_ERROR("StateError", "Invalid state");
 	ML_RETURN(State->Head->Value);
 }
 
-static void ml_unbuffered_task_call(ml_unbuffered_task_t *Task, ml_value_t *Value) {
-	ml_unbuffered_state_t *State = (ml_unbuffered_state_t *)Task->Base.Caller;
+static void ml_diffused_task_call(ml_diffused_task_t *Task, ml_value_t *Value) {
+	ml_diffused_state_t *State = (ml_diffused_state_t *)Task->Base.Caller;
 	Task->Value = Value;
 	if (ml_is_error(Value)) {
 		State->Final = Value;
@@ -775,7 +775,7 @@ static void ml_unbuffered_task_call(ml_unbuffered_task_t *Task, ml_value_t *Valu
 	}
 }
 
-static void ml_unbuffered_value(ml_unbuffered_state_t *State, ml_value_t *Value) {
+static void ml_diffused_value(ml_diffused_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		State->Final = Value;
 		State->Waiting = 0;
@@ -785,7 +785,7 @@ static void ml_unbuffered_value(ml_unbuffered_state_t *State, ml_value_t *Value)
 			ML_RETURN(Value);
 		}
 	} else {
-		ml_unbuffered_task_t *Task = State->Next;
+		ml_diffused_task_t *Task = State->Next;
 		State->Next = Task->Next;
 		Task->Next = NULL;
 		ml_value_t **Args = ml_alloc_args(2);
@@ -794,13 +794,13 @@ static void ml_unbuffered_value(ml_unbuffered_state_t *State, ml_value_t *Value)
 		++State->Waiting;
 		ml_call((ml_state_t *)Task, State->Fn, 2, Args);
 		if (!State->Final && State->Next) {
-			State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
+			State->Base.run = (ml_state_fn)ml_diffused_iterate;
 			ml_iter_next((ml_state_t *)State, State->Iter);
 		}
 	}
 }
 
-static void ml_unbuffered_key(ml_unbuffered_state_t *State, ml_value_t *Value) {
+static void ml_diffused_key(ml_diffused_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		State->Final = Value;
 		State->Waiting = 0;
@@ -811,12 +811,12 @@ static void ml_unbuffered_key(ml_unbuffered_state_t *State, ml_value_t *Value) {
 		}
 	} else {
 		State->Next->Key = Value;
-		State->Base.run = (ml_state_fn)ml_unbuffered_value;
+		State->Base.run = (ml_state_fn)ml_diffused_value;
 		ml_iter_value((ml_state_t *)State, State->Iter);
 	}
 }
 
-static void ml_unbuffered_iterate(ml_unbuffered_state_t *State, ml_value_t *Value) {
+static void ml_diffused_iterate(ml_diffused_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		State->Final = Value;
 		State->Waiting = 0;
@@ -835,57 +835,57 @@ static void ml_unbuffered_iterate(ml_unbuffered_state_t *State, ml_value_t *Valu
 			}
 		}
 	} else {
-		State->Base.run = (ml_state_fn)ml_unbuffered_key;
+		State->Base.run = (ml_state_fn)ml_diffused_key;
 		ml_iter_key((ml_state_t *)State, State->Iter = Value);
 	}
 }
 
-static void ML_TYPED_FN(ml_iterate, MLUnbufferedT, ml_state_t *Caller, ml_unbuffered_t *Unbuffered) {
-	ml_unbuffered_state_t *State = xnew(ml_unbuffered_state_t, Unbuffered->Size, ml_unbuffered_task_t);
-	State->Base.Type = MLUnbufferedStateT;
+static void ML_TYPED_FN(ml_iterate, MLDiffusedT, ml_state_t *Caller, ml_diffused_t *Diffused) {
+	ml_diffused_state_t *State = xnew(ml_diffused_state_t, Diffused->Size, ml_diffused_task_t);
+	State->Base.Type = MLDiffusedStateT;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_unbuffered_iterate;
-	State->Fn = Unbuffered->Fn;
-	ml_unbuffered_task_t *Task = State->Tasks;
+	State->Base.run = (ml_state_fn)ml_diffused_iterate;
+	State->Fn = Diffused->Fn;
+	ml_diffused_task_t *Task = State->Tasks;
 	Task->Base.Caller = (ml_state_t *)State;
 	Task->Base.Context = Caller->Context;
-	Task->Base.run = (ml_state_fn)ml_unbuffered_task_call;
-	for (int I = Unbuffered->Size; --I > 0;) {
+	Task->Base.run = (ml_state_fn)ml_diffused_task_call;
+	for (int I = Diffused->Size; --I > 0;) {
 		++Task;
 		Task->Next = Task - 1;
 		Task->Base.Caller = (ml_state_t *)State;
 		Task->Base.Context = Caller->Context;
-		Task->Base.run = (ml_state_fn)ml_unbuffered_task_call;
+		Task->Base.run = (ml_state_fn)ml_diffused_task_call;
 	}
 	State->Next = Task;
-	return ml_iterate((ml_state_t *)State, Unbuffered->Iter);
+	return ml_iterate((ml_state_t *)State, Diffused->Iter);
 }
 
-ML_FUNCTION(Unbuffered) {
+ML_FUNCTION(Diffused) {
 //<Sequence:sequence
 //<Size:integer
 //<Fn:function
 //>sequence
 // Returns the sequence :mini:`(K/i, Fn(K/i, V/i))` where :mini:`K/i, V/i` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel, with at most :mini:`Size` calls at a time. The original sequence order is not preserved.
-//$= list(unbuffered(1 .. 10, 5, tuple))
+//$= list(diffused(1 .. 10, 5, tuple))
 	ML_CHECK_ARG_COUNT(3);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	ML_CHECK_ARG_TYPE(2, MLFunctionT);
 	int Size = ml_integer_value(Args[1]);
-	if (Size <= 0 || Size > 1024) return ml_error("RangeError", "Unbuffered size out of range");
-	ml_unbuffered_t *Unbuffered = new(ml_unbuffered_t);
-	Unbuffered->Type = MLUnbufferedT;
-	Unbuffered->Size = Size;
-	Unbuffered->Iter = Args[0];
-	Unbuffered->Fn = Args[2];
-	return (ml_value_t *)Unbuffered;
+	if (Size <= 0 || Size > 1024) return ml_error("RangeError", "Diffused size out of range");
+	ml_diffused_t *Diffused = new(ml_diffused_t);
+	Diffused->Type = MLDiffusedT;
+	Diffused->Size = Size;
+	Diffused->Iter = Args[0];
+	Diffused->Fn = Args[2];
+	return (ml_value_t *)Diffused;
 }
 
-ML_METHODX("count", MLUnbufferedT) {
+ML_METHODX("count", MLDiffusedT) {
 //!internal
-	ml_unbuffered_t *Unbuffered = (ml_unbuffered_t *)Args[0];
-	Args[0] = Unbuffered->Iter;
+	ml_diffused_t *Diffused = (ml_diffused_t *)Args[0];
+	Args[0] = Diffused->Iter;
 	return ml_call(Caller, CountMethod, 1, Args);
 }
 
@@ -896,6 +896,6 @@ void ml_tasks_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "task", MLTaskT);
 		stringmap_insert(Globals, "parallel", Parallel);
 		stringmap_insert(Globals, "buffered", Buffered);
-		stringmap_insert(Globals, "unbuffered", Unbuffered);
+		stringmap_insert(Globals, "diffused", Diffused);
 	}
 }
