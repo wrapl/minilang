@@ -2315,23 +2315,64 @@ static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tu
 	ML_RETURN(Iter);
 }
 
-ML_METHOD("append", MLStringBufferT, MLTupleT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_value_t **Values;
+	ml_value_t *Args[2];
+	ml_hash_chain_t Chain[1];
+	size_t Index, Size;
+} ml_tuple_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_tuple_append_state_run(ml_tuple_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (++State->Index == State->Size) {
+		ml_stringbuffer_put(State->Buffer, ')');
+		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
+		State->Buffer->Chain = State->Chain->Previous;
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	ml_stringbuffer_write(State->Buffer, ", ", 2);
+	State->Args[1] = State->Values[State->Index];
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLTupleT) {
 //!tuple
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
-	ml_stringbuffer_put(Buffer, '(');
-	if (Value->Size) {
-		ml_stringbuffer_simple_append(Buffer, Value->Values[0]);
-		for (int I = 1; I < Value->Size; ++I) {
-			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_simple_append(Buffer, Value->Values[I]);
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Tuple) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
 		}
 	}
-	ml_stringbuffer_put(Buffer, ')');
-	return MLSome;
+	if (!Tuple->Size) {
+		ml_stringbuffer_write(Buffer, "()", 2);
+		ML_RETURN(MLSome);
+	}
+	ml_stringbuffer_put(Buffer, '(');
+	ml_tuple_append_state_t *State = new(ml_tuple_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Tuple;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Values = Tuple->Values;
+	State->Size = Tuple->Size;
+	State->Index = 0;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Tuple->Values[0];
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {

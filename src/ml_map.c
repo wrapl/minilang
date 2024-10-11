@@ -1309,6 +1309,7 @@ typedef struct {
 	ml_stringbuffer_t *Buffer;
 	ml_map_node_t *Node;
 	ml_value_t *Args[2];
+	ml_hash_chain_t Chain[1];
 	const char *Seperator;
 	const char *Equals;
 	const char *Terminator;
@@ -1337,6 +1338,8 @@ static void ml_map_append_state_value(ml_map_append_state_t *State, ml_value_t *
 	ml_map_node_t *Node = State->Node->Next;
 	if (!Node) {
 		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
+		State->Buffer->Chain = State->Chain->Previous;
 		ML_CONTINUE(State->Base.Caller, MLSome);
 	}
 	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
@@ -1352,6 +1355,14 @@ ML_METHODX("append", MLStringBufferT, MLMapT) {
 // Appends a representation of :mini:`Map` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_map_t *Map = (ml_map_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Map) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
 	ml_map_node_t *Node = Map->Head;
 	if (!Node) {
 		ml_stringbuffer_write(Buffer, "{}", 2);
@@ -1362,6 +1373,9 @@ ML_METHODX("append", MLStringBufferT, MLMapT) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Map;
+	Buffer->Chain = State->Chain;
 	State->Buffer = Buffer;
 	State->Node = Node;
 	State->Seperator = ", ";
@@ -1383,12 +1397,23 @@ ML_METHODX("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
 // Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_map_t *Map = (ml_map_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Map) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
 	ml_map_node_t *Node = Map->Head;
 	if (!Node) ML_RETURN(MLNil);
 	ml_map_append_state_t *State = new(ml_map_append_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Map;
+	Buffer->Chain = State->Chain;
 	State->Buffer = Buffer;
 	State->Node = Node;
 	State->Seperator = ml_string_value(Args[2]);

@@ -4051,6 +4051,8 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 				ml_parse_warn(Parser, "ParseError", "End of line while parsing string");
 				Parser->Next = "";
 				goto eoi;
+			default:
+				ml_parse_warn(Parser, "ParseError", "Unknown escape character %c", C);
 			}
 		} else if (C == '\n') {
 			++Parser->Line;
@@ -4257,7 +4259,8 @@ static int ml_scan_string(ml_parser_t *Parser) {
 			case '\\': *D++ = '\\'; break;
 			case '0': *D++ = '\0'; break;
 			case 0: goto eoi;
-			default: *D++ = '\\'; *D++ = *S; break;
+			default:
+				ml_parse_warn(Parser, "ParseError", "Unknown escape character %c", *S);
 			}
 		} else {
 			*D++ = *S;

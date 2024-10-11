@@ -701,14 +701,12 @@ ML_METHOD_DECL(AppendMethod, "append");
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t Buffer[1];
-	ml_hash_chain_t Chain[1];
 	ml_value_t *Args[];
 } ml_string_state_t;
 
 static void ml_string_state_run(ml_string_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
-	if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
 	ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
 }
 
@@ -716,7 +714,7 @@ ML_FUNCTIONX(MLString) {
 //@string
 //<Value:any
 //>string
-// Returns a general (type name only) representation of :mini:`Value` as a string.
+// Returns a representation of :mini:`Value` as a string.
 //$= string(100)
 //$= string(nil)
 //$= string("Hello world!\n")
@@ -727,9 +725,7 @@ ML_FUNCTIONX(MLString) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_string_state_run;
-	State->Chain->Value = Args[0];
 	State->Buffer[0] = ML_STRINGBUFFER_INIT;
-	State->Buffer->Chain = State->Chain;
 	State->Args[0] = (ml_value_t *)State->Buffer;
 	memcpy(State->Args + 1, Args, Count * sizeof(ml_value_t *));
 	return ml_call(State, AppendMethod, Count + 1, State->Args);
@@ -4553,57 +4549,14 @@ done:;
 }
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_hash_chain_t *Chain = Buffer->Chain;
-	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
-		if (Link->Value == Value) {
-			int Index = Link->Index;
-			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, ">%d", Index);
-			return (ml_value_t *)Buffer;
-		}
-	}
-	ml_hash_chain_t NewChain[1] = {{Chain, Value, 0}};
-	Buffer->Chain = NewChain;
-	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
-	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "<%d", NewChain->Index);
-	Buffer->Chain = Chain;
-	return Result;
-}
-
-typedef struct {
-	ml_state_t Base;
-	ml_hash_chain_t Chain[1];
-	ml_value_t *Args[2];
-} ml_stringbuffer_append_state_t;
-
-static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
-	ml_state_t *Caller = State->Base.Caller;
-	if (ml_is_error(Value)) ML_RETURN(Value);
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)State->Args[0];
-	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "<%d", State->Chain->Index);
-	Buffer->Chain = State->Chain->Previous;
-	ML_RETURN(Buffer);
+	return ml_simple_inline(AppendMethod, 2, Buffer, Value);
 }
 
 void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
-		if (Link->Value == Value) {
-			int Index = Link->Index;
-			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, ">%d", Index);
-			ML_RETURN(Buffer);
-		}
-	}
-	ml_stringbuffer_append_state_t *State = new(ml_stringbuffer_append_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stringbuffer_append_run;
-	State->Chain->Previous = Buffer->Chain;
-	State->Chain->Value = Value;
-	Buffer->Chain = State->Chain;
-	State->Args[0] = (ml_value_t *)Buffer;
-	State->Args[1] = Value;
-	return ml_call(State, AppendMethod, 2, State->Args);
+	ml_value_t **Args = ml_alloc_args(2);
+	Args[0] = (ml_value_t *)Buffer;
+	Args[1] = Value;
+	return ml_call(Caller, AppendMethod, 2, Args);
 }
 
 typedef struct {

@@ -159,23 +159,74 @@ ML_METHOD("fields", MLClassT) {
 	return Fields;
 }
 
-ML_METHOD("append", MLStringBufferT, MLObjectT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_object_t *Object;
+	ml_field_info_t *Info;
+	ml_value_t *Args[2];
+	ml_hash_chain_t Chain[1];
+} ml_object_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_object_append_state_run(ml_object_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_field_info_t *Info = State->Info->Next;
+skip:
+	if (!Info) {
+		ml_stringbuffer_put(State->Buffer, ')');
+		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
+		State->Buffer->Chain = State->Chain->Previous;
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	const char *Name = ml_method_name(Info->Method);
+	if (!Name) {
+		Info = Info->Next;
+		goto skip;
+	}
+	ml_stringbuffer_write(State->Buffer, ", ", 2);
+	ml_stringbuffer_write(State->Buffer, Name, strlen(Name));
+	ml_stringbuffer_write(State->Buffer, " is ", 4);
+	State->Info = Info;
+	State->Args[1] = State->Object->Fields[Info->Index].Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLObjectT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_object_t *Object = (ml_object_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Object) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
 	ml_stringbuffer_printf(Buffer, "%s(", Object->Type->Base.Name);
-	int Comma = 0;
 	for (ml_field_info_t *Info = Object->Type->Fields; Info; Info = Info->Next) {
 		const char *Name = ml_method_name(Info->Method);
 		if (Name) {
-			if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
 			ml_stringbuffer_write(Buffer, Name, strlen(Name));
 			ml_stringbuffer_write(Buffer, " is ", 4);
-			ml_stringbuffer_simple_append(Buffer, Object->Fields[Info->Index].Value);
-			Comma = 1;
+			ml_object_append_state_t *State = new(ml_object_append_state_t);
+			State->Base.Caller = Caller;
+			State->Base.Context = Caller->Context;
+			State->Base.run = (ml_state_fn)ml_object_append_state_run;
+			State->Chain->Previous = Buffer->Chain;
+			State->Chain->Value = (ml_value_t *)Object;
+			Buffer->Chain = State->Chain;
+			State->Buffer = Buffer;
+			State->Object = Object;
+			State->Info = Info;
+			State->Args[0] = (ml_value_t *)Buffer;
+			State->Args[1] = Object->Fields[Info->Index].Value;
+			return ml_call(State, AppendMethod, 2, State->Args);
 		}
 	}
 	ml_stringbuffer_put(Buffer, ')');
-	return MLSome;
+	ML_RETURN(MLSome);
 }
 
 typedef struct {

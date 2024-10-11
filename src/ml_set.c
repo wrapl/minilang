@@ -705,6 +705,7 @@ typedef struct {
 	ml_stringbuffer_t *Buffer;
 	ml_set_node_t *Node;
 	ml_value_t *Args[2];
+	ml_hash_chain_t Chain[1];
 	const char *Seperator;
 	const char *Terminator;
 	size_t SeperatorLength;
@@ -718,6 +719,8 @@ static void ml_set_append_state_run(ml_set_append_state_t *State, ml_value_t *Va
 	ml_set_node_t *Node = State->Node->Next;
 	if (!Node) {
 		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
+		State->Buffer->Chain = State->Chain->Previous;
 		ML_CONTINUE(State->Base.Caller, MLSome);
 	}
 	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
@@ -735,6 +738,14 @@ ML_METHODX("append", MLStringBufferT, MLSetT) {
 //$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_set_t *Set = (ml_set_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Set) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
 	ml_set_node_t *Node = Set->Head;
 	if (!Node) {
 		ml_stringbuffer_write(Buffer, "{}", 2);
@@ -745,6 +756,9 @@ ML_METHODX("append", MLStringBufferT, MLSetT) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_set_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Set;
+	Buffer->Chain = State->Chain;
 	State->Buffer = Buffer;
 	State->Node = Node;
 	State->Seperator = ", ";
@@ -766,12 +780,23 @@ ML_METHODX("append", MLStringBufferT, MLSetT, MLStringT) {
 //$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_set_t *Set = (ml_set_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Set) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
 	ml_set_node_t *Node = Set->Head;
 	if (!Node) ML_RETURN(MLNil);
 	ml_set_append_state_t *State = new(ml_set_append_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_set_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Set;
+	Buffer->Chain = State->Chain;
 	State->Buffer = Buffer;
 	State->Node = Node;
 	State->Seperator = ml_string_value(Args[2]);
