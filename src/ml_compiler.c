@@ -3771,12 +3771,16 @@ static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name, const ch
 
 ML_FUNCTION(MLCompiler) {
 //@compiler
-//<Global:function|map
+//<Globals:function|map
 //>compiler
 	ML_CHECK_ARG_COUNT(1);
 	ml_getter_t GlobalGet = (ml_getter_t)ml_function_global_get;
 	if (ml_is(Args[0], MLMapT)) GlobalGet = (ml_getter_t)ml_map_global_get;
-	return (ml_value_t *)ml_compiler(GlobalGet, Args[0]);
+	if (Count > 1 && Args[1] != MLNil) {
+		return (ml_value_t *)ml_compiler2(GlobalGet, Args[0], 1);
+	} else {
+		return (ml_value_t *)ml_compiler(GlobalGet, Args[0]);
+	}
 }
 
 ML_TYPE(MLCompilerT, (MLStateT), "compiler",

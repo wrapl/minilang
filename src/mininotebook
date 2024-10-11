@@ -95,7 +95,7 @@ end
 
 meth :init(Notebook: notebook) do
 	Notebook:cells := []
-	Notebook:compiler := compiler(globals())
+	Notebook:compiler := compiler(globals(), true)
 	Notebook:parser := parser()
 	Notebook:queue := task::queue(1)
 	let Scrolled := Notebook:widget := gtk::ScrolledWindow::new()
