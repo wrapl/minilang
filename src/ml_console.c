@@ -153,7 +153,7 @@ void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, con
 	Console->ContinuePrompt = ContinuePrompt;
 	Console->Debugger = NULL;
 	ml_parser_t *Parser = ml_parser((void *)ml_console_terminal_read, Console);
-	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
+	ml_compiler_t *Compiler = ml_compiler2(GlobalGet, Globals, 1);
 	ml_compiler_define(Compiler, "idebug", ml_interactive_debugger(
 		(void *)ml_console_debug_enter,
 		(void *)ml_console_debug_exit,

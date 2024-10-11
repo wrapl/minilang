@@ -125,6 +125,7 @@ void ml_parser_add_escape(ml_parser_t *Parser, const char *Prefix, ml_parser_esc
 ml_value_t *ml_macro_subst(mlc_expr_t *Child, int Count, const char **Names, ml_value_t **Exprs);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals);
+ml_compiler_t *ml_compiler2(ml_getter_t GlobalGet, void *Globals, int UseGlobals);
 void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value);
 ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name, const char *Source, int Line, int Eval);
 

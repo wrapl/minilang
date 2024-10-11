@@ -92,6 +92,7 @@ struct ml_compiler_t {
 	ml_getter_t GlobalGet;
 	void *Globals;
 	stringmap_t Vars[1];
+	int UseGlobals;
 };
 
 #define STRINGIFY(x) #x
@@ -3211,6 +3212,14 @@ static void ml_ident_expr_finish(mlc_function_t *Function, mlc_ident_expr_t *Exp
 	MLC_RETURN(NULL);
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+	const char *Name;
+} ml_global_t;
+
+static ml_global_t *ml_command_global(stringmap_t *Globals, const char *Name);
+
 void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
 	long Hash = ml_ident_hash(Expr->Ident);
 	//printf("#<%s> -> %ld\n", Expr->Ident, Hash);
@@ -3255,7 +3264,11 @@ void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Function->Compiler->Vars, Expr->Ident);
 	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident, Expr->Source, Expr->StartLine, Function->Eval);
 	if (!Value) {
-		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Identifier %s not declared", Expr->Ident));
+		if (Function->Compiler->UseGlobals) {
+			Value = (ml_value_t *)ml_command_global(Function->Compiler->Vars, Expr->Ident);
+		} else {
+			MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Identifier %s not declared", Expr->Ident));
+		}
 	}
 	if (ml_is_error(Value)) MLC_EXPR_ERROR(Expr, Value);
 	return ml_ident_expr_finish(Function, Expr, Value, Flags);
@@ -3786,6 +3799,15 @@ ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals) {
 	Compiler->Type = MLCompilerT;
 	Compiler->GlobalGet = GlobalGet;
 	Compiler->Globals = Globals;
+	return Compiler;
+}
+
+ml_compiler_t *ml_compiler2(ml_getter_t GlobalGet, void *Globals, int UseGlobals) {
+	ml_compiler_t *Compiler = new(ml_compiler_t);
+	Compiler->Type = MLCompilerT;
+	Compiler->GlobalGet = GlobalGet;
+	Compiler->Globals = Globals;
+	Compiler->UseGlobals = UseGlobals;
 	return Compiler;
 }
 
@@ -6660,12 +6682,6 @@ ML_METHOD("vars", MLCompilerT) {
 	stringmap_foreach(Compiler->Vars, Vars, (void *)ml_compiler_var_fn);
 	return Vars;
 }
-
-typedef struct {
-	ml_type_t *Type;
-	ml_value_t *Value;
-	const char *Name;
-} ml_global_t;
 
 static ml_value_t *ml_global_deref(ml_global_t *Global) {
 	//if (!Global->Value) return ml_error("NameError", "Identifier %s not declared", Global->Name);
