@@ -4078,7 +4078,9 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 				Parser->Next = "";
 				goto eoi;
 			default:
-				ml_parse_warn(Parser, "ParseError", "Unknown escape character %c", C);
+				ml_stringbuffer_put(Buffer, '\\');
+				ml_stringbuffer_put(Buffer, C);
+				//ml_parse_warn(Parser, "ParseError", "Unknown escape character %c", C);
 			}
 		} else if (C == '\n') {
 			++Parser->Line;
@@ -4285,8 +4287,8 @@ static int ml_scan_string(ml_parser_t *Parser) {
 			case '\\': *D++ = '\\'; break;
 			case '0': *D++ = '\0'; break;
 			case 0: goto eoi;
-			default:
-				ml_parse_warn(Parser, "ParseError", "Unknown escape character %c", *S);
+			default: *D++ = '\\'; *D++ = *S; break;
+				//ml_parse_warn(Parser, "ParseError", "Unknown escape character %c", *S);
 			}
 		} else {
 			*D++ = *S;
@@ -4297,25 +4299,6 @@ eoi:
 	Parser->Ident = Quoted;
 	Parser->Next = End + Closed;
 	return D - Quoted;
-}
-
-static int ml_scan_raw_string(ml_parser_t *Parser) {
-	const char *End = Parser->Next;
-	while (End[0] != '\"') {
-		if (!End[0]) {
-			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
-			break;
-		}
-		if (End[0] == '\\') ++End;
-		++End;
-	}
-	int Length = End - Parser->Next;
-	char *Raw = snew(Length + 1);
-	memcpy(Raw, Parser->Next, Length);
-	Raw[Length] = 0;
-	Parser->Ident = Raw;
-	Parser->Next = End + 1;
-	return Length;
 }
 
 static inthash_t IdentCache[1] = {INTHASH_INIT};
