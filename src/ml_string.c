@@ -4421,11 +4421,11 @@ ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) {
 }
 
 ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
-	size_t Length = Buffer->Length;
+	int Start = Buffer->Start, Length = Buffer->Length;
 	if (Length == 0) return (ml_value_t *)MLEmptyString;
 #ifdef ML_STRINGCACHE
-	if (Length < ML_STRINGCACHE_MAX) {
-		ml_value_t *String = weakmap_insert(StringCache, Buffer->Head->Chars, Length, _ml_string);
+	if (Start + Length < ML_STRINGCACHE_MAX) {
+		ml_value_t *String = weakmap_insert(StringCache, Buffer->Head->Chars + Start, Length, _ml_string);
 		ml_stringbuffer_clear(Buffer);
 		return String;
 	}

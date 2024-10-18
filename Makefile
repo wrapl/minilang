@@ -34,32 +34,29 @@ obj/ml_config.h: | obj
 obj/%.o: src/%.c obj/ml_config.h | obj
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
-obj/%_init.done: src/%.c | obj src/*.h 
-	echo "" > obj/$*_init.c
-	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > obj/$*_init.tmp
-	mv obj/$*_init.tmp obj/$*_init.c
-	touch obj/$*_init.done
+obj/%_init.c: src/%.c | obj src/*.h 
+	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
-obj/ml_bytecode.o: obj/ml_bytecode_init.done src/*.h
-obj/ml_compiler.o: obj/ml_compiler_init.done src/*.h
-obj/ml_file.o: obj/ml_file_init.done src/*.h
-obj/ml_json.o: obj/ml_json_init.done src/*.h
-obj/ml_list.o: obj/ml_list_init.done src/*.h
-obj/ml_logging.o: obj/ml_logging_init.done src/*.h
-obj/ml_map.o: obj/ml_map_init.done src/*.h
-obj/ml_math.o: obj/ml_math_init.done src/*.h
-obj/ml_method.o: obj/ml_method_init.done src/*.h
-obj/ml_number.o: obj/ml_number_init.done src/*.h
-obj/ml_object.o: obj/ml_object_init.done src/*.h
-obj/ml_runtime.o: obj/ml_runtime_init.done src/*.h
-obj/ml_sequence.o: obj/ml_sequence_init.done src/*.h
-obj/ml_set.o: obj/ml_set_init.done src/*.h
-obj/ml_slice.o: obj/ml_slice_init.done src/*.h
-obj/ml_socket.o: obj/ml_socket_init.done src/*.h
-obj/ml_stream.o: obj/ml_stream_init.done src/*.h
-obj/ml_string.o: obj/ml_string_init.done src/*.h
-obj/ml_time.o: obj/ml_time_init.done src/*.h
-obj/ml_types.o: obj/ml_types_init.done src/*.h
+obj/ml_bytecode.o: obj/ml_bytecode_init.c src/*.h
+obj/ml_compiler.o: obj/ml_compiler_init.c src/*.h
+obj/ml_file.o: obj/ml_file_init.c src/*.h
+obj/ml_json.o: obj/ml_json_init.c src/*.h
+obj/ml_list.o: obj/ml_list_init.c src/*.h
+obj/ml_logging.o: obj/ml_logging_init.c src/*.h
+obj/ml_map.o: obj/ml_map_init.c src/*.h
+obj/ml_math.o: obj/ml_math_init.c src/*.h
+obj/ml_method.o: obj/ml_method_init.c src/*.h
+obj/ml_number.o: obj/ml_number_init.c src/*.h
+obj/ml_object.o: obj/ml_object_init.c src/*.h
+obj/ml_runtime.o: obj/ml_runtime_init.c src/*.h
+obj/ml_sequence.o: obj/ml_sequence_init.c src/*.h
+obj/ml_set.o: obj/ml_set_init.c src/*.h
+obj/ml_slice.o: obj/ml_slice_init.c src/*.h
+obj/ml_socket.o: obj/ml_socket_init.c src/*.h
+obj/ml_stream.o: obj/ml_stream_init.c src/*.h
+obj/ml_string.o: obj/ml_string_init.c src/*.h
+obj/ml_time.o: obj/ml_time_init.c src/*.h
+obj/ml_types.o: obj/ml_types_init.c src/*.h
 
 common_objects = \
 	obj/inthash.o \
