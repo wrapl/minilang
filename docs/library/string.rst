@@ -147,7 +147,7 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 
 :mini:`fun string(Value: any): string`
-   Returns a general (type name only) representation of :mini:`Value` as a string.
+   Returns a representation of :mini:`Value` as a string.
 
    .. code-block:: mini
 

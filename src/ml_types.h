@@ -393,6 +393,8 @@ ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_partial_function(ml_value_t *Function, int Count) __attribute__((malloc));
 ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value);
 
+ml_value_t *ml_value_function(ml_value_t *Value);
+
 #define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
 \
 ml_cfunction_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \

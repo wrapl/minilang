@@ -28,7 +28,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="32" column="18" declfile="src/ml_stream.h" declline="32" declcolumn="18"/>
+        <location file="src/ml_stream.h" line="34" column="18" declfile="src/ml_stream.h" declline="34" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -178,6 +178,27 @@
         </inbodydescription>
         <location file="src/ml_stream.h" line="22" column="6" declfile="src/ml_stream.h" declline="22" declcolumn="6"/>
       </memberdef>
+      <memberdef kind="function" id="group__streams_1ga23f92d51fef779d942953dc94d9a3506" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_close</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_stream_close</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="23" column="6" declfile="src/ml_stream.h" declline="23" declcolumn="6"/>
+      </memberdef>
       <memberdef kind="function" id="group__streams_1ga6a6d62bf0d039c36c0d7c9820f58b0f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_stream_read_method</definition>
@@ -205,7 +226,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="24" column="6" declfile="src/ml_stream.h" declline="24" declcolumn="6"/>
+        <location file="src/ml_stream.h" line="25" column="6" declfile="src/ml_stream.h" declline="25" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__streams_1gac2022366690473054f23d8ed1fa78fa3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -234,7 +255,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="25" column="6" declfile="src/ml_stream.h" declline="25" declcolumn="6"/>
+        <location file="src/ml_stream.h" line="26" column="6" declfile="src/ml_stream.h" declline="26" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__streams_1ga7021c4e0bfdb44c2ba065cd4570585b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -255,7 +276,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="26" column="6" declfile="src/ml_stream.h" declline="26" declcolumn="6"/>
+        <location file="src/ml_stream.h" line="27" column="6" declfile="src/ml_stream.h" declline="27" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__streams_1ga5ca361adee8d0d18a7ba2c7ca7fb1075" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -284,7 +305,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="27" column="6" declfile="src/ml_stream.h" declline="27" declcolumn="6"/>
+        <location file="src/ml_stream.h" line="28" column="6" declfile="src/ml_stream.h" declline="28" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__streams_1ga77e1213e399597dbb2e7be20dec93d71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -305,7 +326,28 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="28" column="6" declfile="src/ml_stream.h" declline="28" declcolumn="6"/>
+        <location file="src/ml_stream.h" line="29" column="6" declfile="src/ml_stream.h" declline="29" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__streams_1gaee303ea4b10f3cf46aba4990811cf4a4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_stream_close_method</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_stream_close_method</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_stream.h" line="30" column="6" declfile="src/ml_stream.h" declline="30" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -326,7 +368,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="30" column="12" declfile="src/ml_stream.h" declline="30" declcolumn="12"/>
+        <location file="src/ml_stream.h" line="32" column="12" declfile="src/ml_stream.h" declline="32" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -347,7 +389,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="34" column="12" declfile="src/ml_stream.h" declline="34" declcolumn="12"/>
+        <location file="src/ml_stream.h" line="36" column="12" declfile="src/ml_stream.h" declline="36" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -364,7 +406,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_stream.h" line="35" column="5" declfile="src/ml_stream.h" declline="35" declcolumn="5"/>
+        <location file="src/ml_stream.h" line="37" column="5" declfile="src/ml_stream.h" declline="37" declcolumn="5"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

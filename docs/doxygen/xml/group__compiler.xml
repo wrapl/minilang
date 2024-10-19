@@ -674,6 +674,31 @@
         </inbodydescription>
         <location file="src/ml_compiler.h" line="127" column="15" declfile="src/ml_compiler.h" declline="127" declcolumn="15"/>
       </memberdef>
+      <memberdef kind="function" id="group__compiler_1gab696c15c97b0817be7d08b55108e3e9d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_compiler_t *</type>
+        <definition>ml_compiler_t * ml_compiler2</definition>
+        <argsstring>(ml_getter_t GlobalGet, void *Globals, int UseGlobals)</argsstring>
+        <name>ml_compiler2</name>
+        <param>
+          <type>ml_getter_t</type>
+          <declname>GlobalGet</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Globals</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>UseGlobals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler.h" line="128" column="15" declfile="src/ml_compiler.h" declline="128" declcolumn="15"/>
+      </memberdef>
       <memberdef kind="function" id="group__compiler_1ga6722f8c4ed47f1afaf236d05a3cbdccc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_compiler_define</definition>
@@ -697,7 +722,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="128" column="6" declfile="src/ml_compiler.h" declline="128" declcolumn="6"/>
+        <location file="src/ml_compiler.h" line="129" column="6" declfile="src/ml_compiler.h" declline="129" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1gaabd07d7c8fcde0f46187e19c511cc1b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -730,7 +755,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="129" column="12" declfile="src/ml_compiler.h" declline="129" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="130" column="12" declfile="src/ml_compiler.h" declline="130" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1ga55bee9157ae10af96b1ea982dd3c22f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -759,7 +784,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="131" column="6" declfile="src/ml_compiler.h" declline="131" declcolumn="6"/>
+        <location file="src/ml_compiler.h" line="132" column="6" declfile="src/ml_compiler.h" declline="132" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1ga4368e311e7391106a3a9c5908ce815fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -784,7 +809,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="132" column="6" declfile="src/ml_compiler.h" declline="132" declcolumn="6"/>
+        <location file="src/ml_compiler.h" line="133" column="6" declfile="src/ml_compiler.h" declline="133" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1ga74a69436921639e9cb02c285852ce333" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -818,7 +843,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="133" column="6" declfile="src/ml_compiler.h" declline="133" declcolumn="6"/>
+        <location file="src/ml_compiler.h" line="134" column="6" declfile="src/ml_compiler.h" declline="134" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1gac6d491e41f0debbe3329b73134e8d1d6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -835,7 +860,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="135" column="12" declfile="src/ml_compiler.h" declline="135" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="136" column="12" declfile="src/ml_compiler.h" declline="136" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1gab29aa8a643e7282bcaa307e232d27c1e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -868,7 +893,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="136" column="12" declfile="src/ml_compiler.h" declline="136" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="137" column="12" declfile="src/ml_compiler.h" declline="137" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1gad4a469c6a89bb88079d70eb008b76493" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -881,7 +906,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="142" column="6" declfile="src/ml_compiler.h" declline="142" declcolumn="6"/>
+        <location file="src/ml_compiler.h" line="143" column="6" declfile="src/ml_compiler.h" declline="143" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1ga076b4ddab4f2553f5971f3bd6c512c44" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -898,7 +923,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="144" column="12" declfile="src/ml_compiler.h" declline="144" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="145" column="12" declfile="src/ml_compiler.h" declline="145" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1ga2a4581401ba4633e895544bd7cdc891c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -915,7 +940,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="145" column="12" declfile="src/ml_compiler.h" declline="145" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="146" column="12" declfile="src/ml_compiler.h" declline="146" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1gad850ad9f0a14a8fffcc01d2115544531" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -936,7 +961,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="146" column="12" declfile="src/ml_compiler.h" declline="146" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="147" column="12" declfile="src/ml_compiler.h" declline="147" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1gafc5b9b3b0ebd1b65fe5ae22188dfee5d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -953,7 +978,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="148" column="12" declfile="src/ml_compiler.h" declline="148" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="149" column="12" declfile="src/ml_compiler.h" declline="149" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1ga055bce370b96527c2036d0a3442c6410" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -970,7 +995,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="149" column="12" declfile="src/ml_compiler.h" declline="149" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="150" column="12" declfile="src/ml_compiler.h" declline="150" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__compiler_1ga37c2bd6ded02705ed136763ef3f7d4e9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -987,7 +1012,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler.h" line="151" column="12" declfile="src/ml_compiler.h" declline="151" declcolumn="12"/>
+        <location file="src/ml_compiler.h" line="152" column="12" declfile="src/ml_compiler.h" declline="152" declcolumn="12"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">

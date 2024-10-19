@@ -29,7 +29,7 @@ compiler
    *TBD*
 
 
-:mini:`fun compiler(Global: function|map): compiler`
+:mini:`fun compiler(Globals: function|map): compiler`
    *TBD*
 
 

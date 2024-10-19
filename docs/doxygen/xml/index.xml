@@ -890,6 +890,7 @@
     <member refid="group__compiler_1gadda70b5f8ab00792e1fe45b1654d6f96" kind="function"><name>ml_parser_add_escape</name></member>
     <member refid="group__compiler_1ga4cfb7ffa6b49913edd1651f902d37af4" kind="function"><name>ml_macro_subst</name></member>
     <member refid="group__compiler_1gaceebb4b34496f860ad324a481160ad0e" kind="function"><name>ml_compiler</name></member>
+    <member refid="group__compiler_1gab696c15c97b0817be7d08b55108e3e9d" kind="function"><name>ml_compiler2</name></member>
     <member refid="group__compiler_1ga6722f8c4ed47f1afaf236d05a3cbdccc" kind="function"><name>ml_compiler_define</name></member>
     <member refid="group__compiler_1gaabd07d7c8fcde0f46187e19c511cc1b3" kind="function"><name>ml_compiler_lookup</name></member>
     <member refid="group__compiler_1ga55bee9157ae10af96b1ea982dd3c22f3" kind="function"><name>ml_function_compile</name></member>
@@ -1568,11 +1569,13 @@
     <member refid="group__streams_1ga4706857fc377632c07e75ebc4177b8b5" kind="function"><name>ml_stream_flush</name></member>
     <member refid="group__streams_1gaca9a79fbd6a4acd600e5fc38ff2438e8" kind="function"><name>ml_stream_seek</name></member>
     <member refid="group__streams_1ga10a8a67179bf9bb003bef279ee0f5041" kind="function"><name>ml_stream_tell</name></member>
+    <member refid="group__streams_1ga23f92d51fef779d942953dc94d9a3506" kind="function"><name>ml_stream_close</name></member>
     <member refid="group__streams_1ga6a6d62bf0d039c36c0d7c9820f58b0f1" kind="function"><name>ml_stream_read_method</name></member>
     <member refid="group__streams_1gac2022366690473054f23d8ed1fa78fa3" kind="function"><name>ml_stream_write_method</name></member>
     <member refid="group__streams_1ga7021c4e0bfdb44c2ba065cd4570585b8" kind="function"><name>ml_stream_flush_method</name></member>
     <member refid="group__streams_1ga5ca361adee8d0d18a7ba2c7ca7fb1075" kind="function"><name>ml_stream_seek_method</name></member>
     <member refid="group__streams_1ga77e1213e399597dbb2e7be20dec93d71" kind="function"><name>ml_stream_tell_method</name></member>
+    <member refid="group__streams_1gaee303ea4b10f3cf46aba4990811cf4a4" kind="function"><name>ml_stream_close_method</name></member>
     <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
     <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
     <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
@@ -2144,6 +2147,7 @@
     <member refid="group__compiler_1gadda70b5f8ab00792e1fe45b1654d6f96" kind="function"><name>ml_parser_add_escape</name></member>
     <member refid="group__compiler_1ga4cfb7ffa6b49913edd1651f902d37af4" kind="function"><name>ml_macro_subst</name></member>
     <member refid="group__compiler_1gaceebb4b34496f860ad324a481160ad0e" kind="function"><name>ml_compiler</name></member>
+    <member refid="group__compiler_1gab696c15c97b0817be7d08b55108e3e9d" kind="function"><name>ml_compiler2</name></member>
     <member refid="group__compiler_1ga6722f8c4ed47f1afaf236d05a3cbdccc" kind="function"><name>ml_compiler_define</name></member>
     <member refid="group__compiler_1gaabd07d7c8fcde0f46187e19c511cc1b3" kind="function"><name>ml_compiler_lookup</name></member>
     <member refid="group__compiler_1ga55bee9157ae10af96b1ea982dd3c22f3" kind="function"><name>ml_function_compile</name></member>
@@ -2392,11 +2396,13 @@
     <member refid="group__streams_1ga4706857fc377632c07e75ebc4177b8b5" kind="function"><name>ml_stream_flush</name></member>
     <member refid="group__streams_1gaca9a79fbd6a4acd600e5fc38ff2438e8" kind="function"><name>ml_stream_seek</name></member>
     <member refid="group__streams_1ga10a8a67179bf9bb003bef279ee0f5041" kind="function"><name>ml_stream_tell</name></member>
+    <member refid="group__streams_1ga23f92d51fef779d942953dc94d9a3506" kind="function"><name>ml_stream_close</name></member>
     <member refid="group__streams_1ga6a6d62bf0d039c36c0d7c9820f58b0f1" kind="function"><name>ml_stream_read_method</name></member>
     <member refid="group__streams_1gac2022366690473054f23d8ed1fa78fa3" kind="function"><name>ml_stream_write_method</name></member>
     <member refid="group__streams_1ga7021c4e0bfdb44c2ba065cd4570585b8" kind="function"><name>ml_stream_flush_method</name></member>
     <member refid="group__streams_1ga5ca361adee8d0d18a7ba2c7ca7fb1075" kind="function"><name>ml_stream_seek_method</name></member>
     <member refid="group__streams_1ga77e1213e399597dbb2e7be20dec93d71" kind="function"><name>ml_stream_tell_method</name></member>
+    <member refid="group__streams_1gaee303ea4b10f3cf46aba4990811cf4a4" kind="function"><name>ml_stream_close_method</name></member>
     <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
     <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
     <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>

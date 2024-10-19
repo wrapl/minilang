@@ -18,6 +18,7 @@ hierarchy
       "function":e -> "visitor":w;
       "function":e -> "function::partial":w;
       "sequence":e -> "function::partial":w;
+      "function":e -> "function::value":w;
       "function":e -> "tuple":w;
       "sequence":e -> "tuple":w;
       "any":e -> "boolean":w;

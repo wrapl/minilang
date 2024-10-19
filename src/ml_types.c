@@ -1810,9 +1810,22 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
-ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "partial-function",
+ML_FUNCTION(MLFunctionPartial) {
 //!function
-	.call = (void *)ml_partial_function_call
+//@function::partial
+//<Function
+//<Size
+//>function::partial
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLFunctionT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	return ml_partial_function(Args[0], ml_integer_value(Args[1]));
+}
+
+ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "function::partial",
+//!function
+	.call = (void *)ml_partial_function_call,
+	.Constructor = (ml_value_t *)MLFunctionPartial
 );
 
 ml_value_t *ml_partial_function(ml_value_t *Function, int Count) {
@@ -1852,6 +1865,45 @@ ML_METHODV("[]", MLFunctionPartialT) {
 	Partial->Set = Count - 1;
 	for (int I = 1; I < Count; ++I) Partial->Args[I] = Args[I];
 	return ml_chainedv(2, Args[0], Partial);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_value_function_t;
+
+static void ml_value_function_call(ml_state_t *Caller, ml_value_function_t *Function, int Count, ml_value_t **Args) {
+	ML_RETURN(Function->Value);
+}
+
+ML_TYPE(MLFunctionValueT, (MLFunctionT), "function::value",
+//!function
+	.call = (void *)ml_value_function_call
+);
+
+ml_value_t *ml_value_function(ml_value_t *Value) {
+	ml_value_function_t *Function = new(ml_value_function_t);
+	Function->Type = MLFunctionValueT;
+	Function->Value = Value;
+	return (ml_value_t *)Function;
+}
+
+ML_FUNCTIONX(MLFunctionConstant) {
+//!function
+//@function::constant
+//<Value
+//>function::value
+	ML_CHECKX_ARG_COUNT(1);
+	ML_RETURN(ml_value_function(Args[0]));
+}
+
+ML_FUNCTIONZ(MLFunctionVariable) {
+//!function
+//@function::variable
+//<Value
+//>function::value
+	ML_CHECKX_ARG_COUNT(1);
+	ML_RETURN(ml_value_function(Args[0]));
 }
 
 ML_METHOD("$!", MLFunctionT, MLListT) {
@@ -1919,7 +1971,7 @@ static void ml_argless_function_call(ml_state_t *Caller, ml_argless_function_t *
 	return ml_call(Caller, Argless->Function, 0, NULL);
 }
 
-ML_TYPE(MLFunctionArglessT, (MLFunctionT, MLSequenceT), "argless-function",
+ML_TYPE(MLFunctionArglessT, (MLFunctionT, MLSequenceT), "function::argless",
 //!internal
 	.call = (void *)ml_argless_function_call
 );
@@ -3375,6 +3427,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
 	stringmap_insert(MLAnyT->Exports, "switch", MLAnySwitch);
+	stringmap_insert(MLFunctionT->Exports, "partial", MLFunctionPartialT);
+	stringmap_insert(MLFunctionT->Exports, "variable", MLFunctionVariable);
+	stringmap_insert(MLFunctionT->Exports, "constant", MLFunctionConstant);
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif

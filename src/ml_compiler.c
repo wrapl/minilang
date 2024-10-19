@@ -3087,6 +3087,18 @@ static void ml_subfunction_run(mlc_function_t *SubFunction, ml_value_t *Value, v
 }
 
 void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Flags) {
+	if (Expr->Body->compile == (void *)ml_value_expr_compile) {
+		mlc_value_expr_t *ValueExpr = (mlc_value_expr_t *)Expr->Body;
+		ml_value_t *Value = ml_value_function(ValueExpr->Value);
+		if (Flags & MLCF_CONSTANT) MLC_RETURN(Value);
+		ml_inst_t *Inst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
+		Inst[1].Value = Value;
+		if (Flags & MLCF_PUSH) {
+			Inst->Opcode = MLI_LOAD_PUSH;
+			mlc_inc_top(Function);
+		}
+		MLC_RETURN(NULL);
+	}
 	mlc_function_t *SubFunction = new(mlc_function_t);
 	SubFunction->Base.Type = MLCompilerFunctionT;
 	SubFunction->Base.Caller = (ml_state_t *)Function;
