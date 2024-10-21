@@ -164,6 +164,8 @@ static ml_value_t *ml_cbor_read_uuid_fn(ml_cbor_reader_t *Reader, ml_value_t *Va
 void ml_uuid_init(stringmap_t *Globals) {
 #include "ml_uuid_init.c"
 	ml_method_by_value(MLUUIDT->Constructor, NULL, ml_identity, MLUUIDT, NULL);
+	uuid_t NilUUID = {0,};
+	stringmap_insert(MLUUIDT->Exports, "nil", ml_uuid(NilUUID));
 	if (Globals) stringmap_insert(Globals, "uuid", MLUUIDT);
 	//ml_string_fn_register("U", ml_uuid_parse);
 #ifdef ML_CBOR
