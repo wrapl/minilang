@@ -27,7 +27,7 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ML_RETURN(Slot[0]);
 }
 
-static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, ml_value_t **Args) {
+static void ml_mini_module_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLNamesT);
 	ML_NAMES_CHECKX_ARG_COUNT(0);
@@ -64,7 +64,7 @@ static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, m
 	ML_RETURN(Value);
 }
 
-typedef struct ml_module_state_t {
+typedef struct {
 	ml_state_t Base;
 	ml_value_t *Module;
 } ml_module_state_t;
@@ -94,7 +94,7 @@ void ml_module_compile2(ml_state_t *Caller, const char *Path, const mlc_expr_t *
 		Module->Flags = Flags;
 		Slot[0] = (ml_value_t *)Module;
 	}
-	ml_compiler_define(Compiler, "export", ml_cfunctionz(Module, (ml_callbackx_t)ml_export));
+	ml_compiler_define(Compiler, "export", ml_cfunctionz(Module, (ml_callbackx_t)ml_mini_module_export));
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
@@ -109,21 +109,63 @@ void ml_module_compile(ml_state_t *Caller, const char *Path, const mlc_expr_t *E
 	return ml_module_compile2(Caller, Path, Expr, Compiler, Slot, 0);
 }
 
+static void ml_module_export0(ml_state_t *Caller, ml_module_t *Module, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNamesT);
+	ML_NAMES_CHECKX_ARG_COUNT(0);
+	int Index = 0;
+	ml_value_t *Value = MLNil;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		const char *Name = ml_string_value(Iter->Value);
+		Value = Args[++Index];
+		ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
+		if (Slot[0]) {
+			if (ml_typeof(Slot[0]) != MLUninitializedT) {
+				ML_ERROR("ExportError", "Duplicate export %s", Name);
+			}
+			ml_uninitialized_set(Slot[0], Value);
+		}
+		Slot[0] = Value;
+	}
+	ML_RETURN(Value);
+}
+
+static const char *DefaultModulePath = "<internal>";
+
+ML_METHODX(MLModuleT, MLFunctionT) {
+	ml_module_t *Module = new(ml_module_t);
+	Module->Type = MLModuleT;
+	Module->Path = DefaultModulePath;
+	ml_module_state_t *State = new(ml_module_state_t);
+	State->Base.Type = MLModuleStateT;
+	State->Base.run = (void *)ml_module_done_run;
+	State->Base.Context = Caller->Context;
+	State->Base.Caller = Caller;
+	State->Module = (ml_value_t *)Module;
+	ml_value_t *Body = Args[0];
+	Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_module_export0);
+	return ml_call((ml_state_t *)State, Body, 1, Args);
+}
+
+static void ML_TYPED_FN(ml_value_set_name, MLModuleT, ml_module_t *Module, const char *Name) {
+	if (Module->Path == DefaultModulePath) Module->Path = Name;
+}
+
 typedef struct {
 	ml_module_t Base;
 	ml_value_t *Lookup;
-} ml_fn_module_t;
+} ml_dynamic_module_t;
 
-ML_TYPE(MLFnModuleT, (), "module");
+ML_TYPE(MLModuleDynamicT, (), "module::dynamic");
 
-ML_METHOD(MLModuleT, MLStringT, MLFunctionT) {
-//@module
+ML_METHOD(MLModuleDynamicT, MLStringT, MLFunctionT) {
+//@module::dynamic
 //<Path:string
 //<Lookup:function
 //>module
 // Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
-	ml_fn_module_t *Module = new(ml_fn_module_t);
-	Module->Base.Type = MLFnModuleT;
+	ml_dynamic_module_t *Module = new(ml_dynamic_module_t);
+	Module->Base.Type = MLModuleDynamicT;
 	Module->Base.Path = ml_string_value(Args[0]);
 	Module->Lookup = Args[1];
 	return (ml_value_t *)Module;
@@ -131,7 +173,7 @@ ML_METHOD(MLModuleT, MLStringT, MLFunctionT) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_fn_module_t *Module;
+	ml_dynamic_module_t *Module;
 	const char *Name;
 } ml_module_lookup_state_t;
 
@@ -143,12 +185,12 @@ static void ml_module_lookup_run(ml_module_lookup_state_t *State, ml_value_t *Va
 	ML_RETURN(Value);
 }
 
-ML_METHODX("::", MLFnModuleT, MLStringT) {
+ML_METHODX("::", MLModuleDynamicT, MLStringT) {
 //<Module
 //<Name
 //>MLAnyT
 // Imports a symbol from a module.
-	ml_fn_module_t *Module = (ml_fn_module_t *)Args[0];
+	ml_dynamic_module_t *Module = (ml_dynamic_module_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t *Value = stringmap_search(Module->Base.Exports, Name);
 	if (!Value) {
@@ -163,13 +205,14 @@ ML_METHODX("::", MLFnModuleT, MLStringT) {
 	ML_RETURN(Value);
 }
 
-ML_METHODZ("export", MLFnModuleT, MLStringT, MLAnyT) {
-	ml_fn_module_t *Module = (ml_fn_module_t *)ml_deref(Args[0]);
+ML_METHODZ("export", MLModuleDynamicT, MLStringT, MLAnyT) {
+	ml_dynamic_module_t *Module = (ml_dynamic_module_t *)ml_deref(Args[0]);
 	const char *Name = ml_string_value(ml_deref(Args[1]));
 	stringmap_insert(Module->Base.Exports, Name, Args[2]);
 	ML_RETURN(Args[2]);
 }
 
 void ml_module_init(stringmap_t *_Globals) {
+	stringmap_insert(MLModuleT->Exports, "dynamic", MLModuleDynamicT);
 #include "ml_module_init.c"
 }
