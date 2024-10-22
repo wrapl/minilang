@@ -170,7 +170,9 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 }
 
 
-#ifdef GC_DEBUG
+#ifdef GC_BACKTRACE
+
+#include <gc/gc_backptr.h>
 
 int BreakOnExit = 0;
 
@@ -189,7 +191,7 @@ static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 	} else {
 		ExitVal = 0;
 	}
-#ifdef GC_DEBUG
+#ifdef GC_BACKTRACE
 	if (BreakOnExit) GC_generate_random_backtrace();
 #endif
 	exit(ExitVal);
@@ -203,7 +205,7 @@ static void ml_main_state_module(ml_state_t *State, ml_value_t *Value) {
 		while (ml_error_source(Value, Level++, &Source)) {
 			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
 		}
-#ifdef GC_DEBUG
+#ifdef GC_BACKTRACE
 		if (BreakOnExit) GC_generate_random_backtrace();
 #endif
 		exit(1);
@@ -438,7 +440,7 @@ int main(int Argc, const char *Argv[]) {
 				ml_log_level_set(ML_LOG_LEVEL_DEBUG);
 				break;
 			}
-#ifdef GC_DEBUG
+#ifdef GC_BACKTRACE
 			case 'B':
 				BreakOnExit = 1;
 				break;

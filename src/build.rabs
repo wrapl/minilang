@@ -49,6 +49,7 @@ if defined("LTO") then
 end
 
 GC_DEBUG := defined("GC_DEBUG")
+GC_BACKTRACE := defined("GC_BACKTRACE")
 
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DDEBUG"]
@@ -56,6 +57,9 @@ if DEBUG then
 	GC_DEBUG and CFLAGS:put("-DGC_DEBUG")
 elseif GC_DEBUG then
 	CFLAGS := old + ["-O3", "-g", "-DGC_DEBUG"]
+	LDFLAGS := old + ["-g"]
+elseif GC_BACKTRACE then
+	CFLAGS := old + ["-O3", "-g", "-DGC_BACKTRACE"]
 	LDFLAGS := old + ["-g"]
 else
 	CFLAGS := old + ["-O3", "-g"]
@@ -203,7 +207,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 		if NOPARALLELMARK then
 			Configuration["--disable-parallel-mark"] := some
 		end
-		if GC_DEBUG then
+		if GC_DEBUG or GC_BACKTRACE then
 			Configuration:grow({
 				"--enable-gc-debug",
 				"--enable-gc-assertions",
