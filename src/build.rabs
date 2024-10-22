@@ -210,7 +210,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 		if GC_DEBUG or GC_BACKTRACE then
 			Configuration:grow({
 				"--enable-gc-debug",
-				"--enable-gc-assertions",
+				:>"--enable-gc-assertions",
 				"--disable-thread-local-alloc"
 			})
 		end
