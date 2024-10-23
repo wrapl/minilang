@@ -1237,6 +1237,8 @@ static void *ml_scheduler_thread_fn(void *Data) {
 				pthread_mutex_unlock(ThreadLock);
 				GC_remove_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 				return NULL;
+			} else {
+				memset(MLArgCache, 0, ML_ARG_CACHE_SIZE * sizeof(ml_value_t *));
 			}
 			ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
 			NextThread = &Thread;

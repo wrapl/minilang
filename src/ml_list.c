@@ -1211,7 +1211,7 @@ ML_METHOD("empty", MLListMutableT) {
 //>list
 // Removes all elements from :mini:`List` and returns it.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	List->Head = List->Tail = NULL;
+	List->Head = List->Tail = List->CachedNode = NULL;
 	List->Length = 0;
 #ifdef ML_GENERICS
 	List->Type = MLListMutableT;

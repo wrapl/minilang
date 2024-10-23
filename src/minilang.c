@@ -213,6 +213,7 @@ static void ml_main_state_module(ml_state_t *State, ml_value_t *Value) {
 
 }
 
+extern ml_cfunction_t MLMemAddress[];
 extern ml_cfunction_t MLMemTrace[];
 extern ml_cfunction_t MLMemSize[];
 extern ml_cfunction_t MLMemCollect[];
@@ -271,6 +272,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(MLGlobals, "debugger", MLDebugger);
 	stringmap_insert(MLGlobals, "trace", MLTrace);
 	stringmap_insert(MLGlobals, "memory", ml_module("memory",
+		"address", MLMemAddress,
 		"trace", MLMemTrace,
 		"size", MLMemSize,
 		"collect", MLMemCollect,

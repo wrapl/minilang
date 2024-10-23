@@ -3311,6 +3311,16 @@ static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
 	return Trace;
 }
 
+ML_FUNCTION(MLMemAddress) {
+//!memory
+//@address
+//<Value
+//>integer
+// Returns the internal address of :mini:`Value` as an integer.
+	ML_CHECK_ARG_COUNT(1);
+	return ml_integer((intptr_t)Args[0]);
+}
+
 ML_FUNCTION(MLMemTrace) {
 //!memory
 //@trace
