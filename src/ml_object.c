@@ -604,7 +604,6 @@ ML_METHOD(MLMethodDefault, MLMethodT, MLFieldWatcherT, MLFunctionT) {
 	Watcher->Base.deref = (void *)ml_watched_field_deref;
 	Watcher->Base.assign = (void *)ml_watched_field_assign;
 	Watcher->Base.hash = ml_default_hash;
-	Watcher->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Watcher, MLFieldMutableT, NULL);
 	Watcher->Method = Args[0];
 	Watcher->Callback = Args[2];
@@ -817,7 +816,6 @@ static ml_value_t *ml_enum_string_fn(void *Type, int Count, ml_value_t **Args) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -844,7 +842,6 @@ static ml_value_t *ml_enum_names_fn(void *Type, int Count, ml_value_t **Args) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -879,7 +876,6 @@ ML_METHODV(MLEnumT, MLStringT) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -908,7 +904,6 @@ ML_METHODV(MLEnumT, MLNamesT) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -939,7 +934,6 @@ ML_METHODV(MLEnumCyclicT, MLStringT) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -969,7 +963,6 @@ ML_METHODV(MLEnumCyclicT, MLNamesT) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -998,7 +991,6 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -1034,7 +1026,6 @@ ml_type_t *ml_enum_cyclic(const char *TypeName, ...) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -1073,7 +1064,6 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
-	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	ml_enum_value_t *Value = Enum->Values;
@@ -1093,6 +1083,28 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 	}
 	va_end(Args);
 	return (ml_type_t *)Enum;
+}
+
+ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...) {
+	va_list Args;
+	int Size = 0;
+	va_start(Args, TypeName);
+	while (va_arg(Args, const char *)) ++Size;
+	va_end(Args);
+	ml_type_t *SubType = ml_type(Parent, TypeName);
+	SubType->Constructor = (ml_value_t *)Parent;
+	SubType->Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	stringmap_t *ParentValues = ((ml_enum_t *)Parent)->Base.Exports;
+	va_start(Args, TypeName);
+	const char *Name;
+	while ((Name = va_arg(Args, const char *))) {
+		ml_enum_value_t *Value = (ml_enum_value_t *)stringmap_search(ParentValues, Name);
+		Value->Base.Type = (ml_type_t *)SubType;
+		stringmap_insert(SubType->Exports, Name, Value);
+		++Value;
+	}
+	va_end(Args);
+	return (ml_type_t *)SubType;
 }
 
 ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Value) {
@@ -1569,7 +1581,6 @@ ML_METHODV(MLFlagsT, MLStringT) {
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
-	Flags->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	uint64_t Flag = 1;
@@ -1601,7 +1612,6 @@ ML_METHODV(MLFlagsT, MLNamesT) {
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
-	Flags->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	int I = 0;
@@ -1628,7 +1638,6 @@ ml_type_t *ml_flags(const char *TypeName, ...) {
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
-	Flags->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	uint64_t Flag = 1;
@@ -1664,7 +1673,6 @@ ml_type_t *ml_flags2(const char *TypeName, ...) {
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
-	Flags->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	int Index = 0;

@@ -530,6 +530,19 @@ ML_ENUM_CYCLIC(MLTimeDayT, "time::day",
 	"Sunday"
 );
 
+ML_SUB_ENUM(MLTimeWeekdayT, "time::weekday", MLTimeDayT,
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday"
+);
+
+ML_SUB_ENUM(MLTimeWeekendT, "time::weekend", MLTimeDayT,
+	"Saturday",
+	"Sunday"
+);
+
 ML_ENUM_CYCLIC(MLTimeMonthT, "time::month",
 	"January",
 	"February",
