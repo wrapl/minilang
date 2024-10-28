@@ -52,6 +52,7 @@ extern ml_type_t MLFieldT[];
 extern ml_type_t MLFieldMutableT[];
 
 ml_object_t *ml_field_owner(ml_field_t *Field);
+ml_value_t *ml_field_name(ml_field_t *Field);
 
 ml_type_t *ml_class(const char *Name);
 void ml_class_add_parent(ml_context_t *Context, ml_type_t *Class, ml_type_t *Parent);

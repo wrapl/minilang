@@ -40,6 +40,15 @@ ml_object_t *ml_field_owner(ml_field_t *Field) {
 	return (ml_object_t *)Field->Value;
 }
 
+ml_value_t *ml_field_name(ml_field_t *Field) {
+	int Index = 0;
+	do { ++Index; --Field; } while (Field->Type != MLFieldOwnerT);
+	ml_class_t *Class = ((ml_object_t *)Field->Value)->Type;
+	ml_field_info_t *Info = Class->Fields;
+	while (--Index) Info = Info->Next;
+	return Info->Method;
+}
+
 ML_INTERFACE(MLObjectT, (), "object");
 // Parent type of all object classes.
 
@@ -575,7 +584,7 @@ ML_METHOD(MLMethodDefault, MLMethodT, MLFieldModifierT) {
 
 typedef struct {
 	ml_type_t Base;
-	ml_value_t *Method, *Callback;
+	ml_value_t *Callback;
 } ml_watcher_type_t;
 
 static ml_value_t *ml_watched_field_deref(ml_field_t *Field) {
@@ -585,29 +594,39 @@ static ml_value_t *ml_watched_field_deref(ml_field_t *Field) {
 static void ml_watched_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_value_t *Value) {
 	Field->Value = Value;
 	ml_watcher_type_t *Watcher = (ml_watcher_type_t *)Field->Type;
-	ml_value_t **Args = ml_alloc_args(3);
-	Args[0] = Watcher->Method;
-	Args[1] = (ml_value_t *)ml_field_owner(Field);
+	int Index = 0;
+	do { ++Index; --Field; } while (Field->Type != MLFieldOwnerT);
+	ml_object_t *Owner = (ml_object_t *)Field->Value;
+	ml_field_info_t *Info = Owner->Type->Fields;
+	while (--Index) Info = Info->Next;
+	ml_value_t **Args = ml_alloc_args(4);
+	Args[0] = Info->Method;
+	Args[1] = (ml_value_t *)Owner;
 	Args[2] = Value;
-	return ml_call(Caller, Watcher->Callback, 3, Args);
+	Args[3] = Info->Method;
+	return ml_call(Caller, Watcher->Callback, 4, Args);
 }
 
-ML_TYPE(MLFieldWatcherT, (), "field-watcher");
+ML_TYPE(MLWatchedT, (MLTypeT), "field-watcher");
 //!internal
 
-ML_VALUE(MLFieldWatcher, MLFieldWatcherT);
-
-ML_METHOD(MLMethodDefault, MLMethodT, MLFieldWatcherT, MLFunctionT) {
+ML_FUNCTION(MLWatched) {
+//!internal
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLFunctionT);
 	ml_watcher_type_t *Watcher = new(ml_watcher_type_t);
-	Watcher->Base.Type = MLTypeT;
+	Watcher->Base.Type = MLWatchedT;
 	GC_asprintf((char **)&Watcher->Base.Name, "watcher:%lx", (uintptr_t)Watcher);
 	Watcher->Base.deref = (void *)ml_watched_field_deref;
 	Watcher->Base.assign = (void *)ml_watched_field_assign;
 	Watcher->Base.hash = ml_default_hash;
 	ml_type_init((ml_type_t *)Watcher, MLFieldMutableT, NULL);
-	Watcher->Method = Args[0];
-	Watcher->Callback = Args[2];
-	return ml_modified_field(Args[0], (ml_type_t *)Watcher);
+	Watcher->Callback = Args[0];
+	return (ml_value_t *)Watcher;
+}
+
+ML_METHOD(MLMethodDefault, MLMethodT, MLWatchedT) {
+	return ml_modified_field(Args[0], (ml_type_t *)Args[1]);
 }
 
 static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const char *Name) {
@@ -1088,14 +1107,14 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...) {
 	va_list Args;
 	int Size = 0;
-	va_start(Args, TypeName);
+	va_start(Args, Parent);
 	while (va_arg(Args, const char *)) ++Size;
 	va_end(Args);
 	ml_type_t *SubType = ml_type(Parent, TypeName);
 	SubType->Constructor = (ml_value_t *)Parent;
 	SubType->Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	stringmap_t *ParentValues = ((ml_enum_t *)Parent)->Base.Exports;
-	va_start(Args, TypeName);
+	va_start(Args, Parent);
 	const char *Name;
 	while ((Name = va_arg(Args, const char *))) {
 		ml_enum_value_t *Value = (ml_enum_value_t *)stringmap_search(ParentValues, Name);
@@ -1970,6 +1989,6 @@ void ml_object_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "enum", MLEnumT);
 		stringmap_insert(Globals, "flags", MLFlagsT);
 		stringmap_insert(Globals, "const", ml_field_modifier(MLFieldT));
-		stringmap_insert(Globals, "watched", MLFieldWatcher);
+		stringmap_insert(Globals, "watched", MLWatched);
 	}
 }
