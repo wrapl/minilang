@@ -610,10 +610,7 @@ static void ml_watched_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_va
 ML_TYPE(MLWatchedT, (MLTypeT), "field-watcher");
 //!internal
 
-ML_FUNCTION(MLWatched) {
-//!internal
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLFunctionT);
+ml_value_t *ml_watched_field(ml_value_t *Callback) {
 	ml_watcher_type_t *Watcher = new(ml_watcher_type_t);
 	Watcher->Base.Type = MLWatchedT;
 	GC_asprintf((char **)&Watcher->Base.Name, "watcher:%lx", (uintptr_t)Watcher);
@@ -621,22 +618,19 @@ ML_FUNCTION(MLWatched) {
 	Watcher->Base.assign = (void *)ml_watched_field_assign;
 	Watcher->Base.hash = ml_default_hash;
 	ml_type_init((ml_type_t *)Watcher, MLFieldMutableT, NULL);
-	Watcher->Callback = Args[0];
+	Watcher->Callback = Callback;
 	return (ml_value_t *)Watcher;
+}
+
+ML_FUNCTION(MLWatched) {
+//!internal
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLFunctionT);
+	return ml_watched_field(Args[0]);
 }
 
 ML_METHOD(MLMethodDefault, MLMethodT, MLWatchedT) {
 	return ml_modified_field(Args[0], (ml_type_t *)Args[1]);
-}
-
-static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const char *Name) {
-	ml_value_t *NameField = stringmap_search(Object->Type->Base.Exports, "name");
-	if (!NameField) return;
-	if (!ml_is(NameField, MLMethodT)) return;
-	ml_field_info_t *Info = stringmap_search(Object->Type->Names, ml_method_name(NameField));
-	if (!Info) return;
-	ml_field_t *Field = &Object->Fields[Info->Index];
-	Field->Value = ml_string(Name, -1);
 }
 
 typedef struct ml_property_t {
@@ -747,6 +741,16 @@ void ml_object_foreach(const ml_value_t *Value, void *Data, int (*callback)(cons
 		++Field;
 		Info = Info->Next;
 	}
+}
+
+static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const char *Name) {
+	ml_value_t *NameField = stringmap_search(Object->Type->Base.Exports, "name");
+	if (!NameField) return;
+	if (!ml_is(NameField, MLMethodT)) return;
+	ml_field_info_t *Info = stringmap_search(Object->Type->Names, ml_method_name(NameField));
+	if (!Info) return;
+	ml_field_t *Field = &Object->Fields[Info->Index];
+	Field->Value = ml_string(Name, -1);
 }
 
 //!enum

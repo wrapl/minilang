@@ -562,14 +562,28 @@ ML_METHOD("first", MLMapT) {
 //<Map
 // Returns the first value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	return Map->Head ? Map->Head->Value : MLNil;
+	return (ml_value_t *)Map->Head ?: MLNil;
+}
+
+ML_METHOD("first2", MLMapT) {
+//<Map
+// Returns the first key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return Map->Head ? ml_tuplev(2, Map->Head->Key, Map->Head) : MLNil;
 }
 
 ML_METHOD("last", MLMapT) {
 //<Map
 // Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	return Map->Tail ? Map->Tail->Value : MLNil;
+	return (ml_value_t *)Map->Tail ?: MLNil;
+}
+
+ML_METHOD("last2", MLMapT) {
+//<Map
+// Returns the last key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return Map->Tail ? ml_tuplev(2, Map->Tail->Key, Map->Tail) : MLNil;
 }
 
 static ml_value_t *ml_map_index_deref(ml_map_node_t *Index) {

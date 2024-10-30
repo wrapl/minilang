@@ -356,14 +356,28 @@ ML_METHOD("first", MLListT) {
 //<List
 // Returns the first value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	return List->Head ? List->Head->Value : MLNil;
+	return (ml_value_t *)List->Head ?: MLNil;
+}
+
+ML_METHOD("first2", MLListT) {
+//<List
+// Returns the first key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return List->Head ? ml_tuplev(2, ml_integer(1), List->Head) : MLNil;
 }
 
 ML_METHOD("last", MLListT) {
 //<List
 // Returns the last value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	return List->Tail ? List->Tail->Value : MLNil;
+	return (ml_value_t *)List->Tail ?: MLNil;
+}
+
+ML_METHOD("last2", MLListT) {
+//<List
+// Returns the last key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return List->Tail ? ml_tuplev(2, ml_integer(List->Length), List->Tail) : MLNil;
 }
 
 typedef struct {

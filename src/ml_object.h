@@ -61,6 +61,7 @@ void ml_class_add_field(ml_context_t *Context, ml_type_t *Class, ml_value_t *Fie
 ml_value_t *ml_class_modify(ml_context_t *Context, ml_class_t *Class, ml_value_t *Modifier);
 
 ml_value_t *ml_modified_field(ml_value_t *Field, ml_type_t *Type);
+ml_value_t *ml_watched_field(ml_value_t *Callback);
 
 size_t ml_class_size(const ml_type_t *Value) __attribute__ ((pure));
 const char *ml_class_field_name(const ml_type_t *Value, int Index) __attribute__ ((pure));

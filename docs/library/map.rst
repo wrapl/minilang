@@ -201,6 +201,10 @@ map
    Returns the first value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
 
+:mini:`meth (Map: map):first2`
+   Returns the first key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+
+
 :mini:`meth (Map: map):from(Key: any): sequence | nil`
    Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
 
@@ -213,6 +217,10 @@ map
 
 :mini:`meth (Map: map):last`
    Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+
+
+:mini:`meth (Map: map):last2`
+   Returns the last key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
 
 :mini:`meth (Map: map):order: map::order`
@@ -234,8 +242,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
-      M:random :> "a"
+      M:random :> "e"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -556,13 +564,13 @@ map
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.

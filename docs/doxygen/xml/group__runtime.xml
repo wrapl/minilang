@@ -232,7 +232,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="321" column="35" bodyfile="src/ml_runtime.h" bodystart="321" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="325" column="35" bodyfile="src/ml_runtime.h" bodystart="325" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="var">
@@ -429,7 +429,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="341" column="24" declfile="src/ml_runtime.h" declline="341" declcolumn="24"/>
+        <location file="src/ml_runtime.h" line="345" column="24" declfile="src/ml_runtime.h" declline="345" declcolumn="24"/>
       </memberdef>
       <memberdef kind="variable" id="group__runtime_1ga08a8099ffaf70d61df6e251d359e2f1b" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -442,7 +442,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="363" column="18" declfile="src/ml_runtime.h" declline="363" declcolumn="18"/>
+        <location file="src/ml_runtime.h" line="367" column="18" declfile="src/ml_runtime.h" declline="367" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__runtime_1gae0f4fd68326b1c45a0264f7804668ae0" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -455,7 +455,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="364" column="18" declfile="src/ml_runtime.h" declline="364" declcolumn="18"/>
+        <location file="src/ml_runtime.h" line="368" column="18" declfile="src/ml_runtime.h" declline="368" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__runtime_1ga4af60912290c5530a4a08a4318627fd0" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -468,7 +468,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="365" column="18" declfile="src/ml_runtime.h" declline="365" declcolumn="18"/>
+        <location file="src/ml_runtime.h" line="369" column="18" declfile="src/ml_runtime.h" declline="369" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__runtime_1gaf27023974e1446cef64248000038ae5c" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -481,7 +481,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="369" column="18" declfile="src/ml_runtime.h" declline="369" declcolumn="18"/>
+        <location file="src/ml_runtime.h" line="373" column="18" declfile="src/ml_runtime.h" declline="373" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -1387,6 +1387,23 @@
         </inbodydescription>
         <location file="src/ml_runtime.h" line="282" column="12" declfile="src/ml_runtime.h" declline="282" declcolumn="12"/>
       </memberdef>
+      <memberdef kind="function" id="group__runtime_1gad318b76726286de027cf31150896e18e" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structml__scheduler__t" kindref="compound">ml_scheduler_t</ref> *</type>
+        <definition>static ml_scheduler_t * ml_context_get_scheduler</definition>
+        <argsstring>(ml_context_t *Context)</argsstring>
+        <name>ml_context_get_scheduler</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="297" column="30" bodyfile="src/ml_runtime.h" bodystart="297" bodyend="299"/>
+      </memberdef>
       <memberdef kind="function" id="group__runtime_1ga32198d43f48db3b8d94e998fc0209f18" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>void</type>
         <definition>static void ml_state_schedule</definition>
@@ -1406,7 +1423,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="311" column="20" bodyfile="src/ml_runtime.h" bodystart="311" bodyend="314"/>
+        <location file="src/ml_runtime.h" line="315" column="20" bodyfile="src/ml_runtime.h" bodystart="315" bodyend="318"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1gae463f4081ce3aeea4307fcd312b46f32" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>ml_scheduler_queue_t *</type>
@@ -1423,7 +1440,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="323" column="22" declfile="src/ml_runtime.h" declline="323" declcolumn="22"/>
+        <location file="src/ml_runtime.h" line="327" column="22" declfile="src/ml_runtime.h" declline="327" declcolumn="22"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1ga31ba6714ae657c236e00de7756640226" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>uint64_t *</type>
@@ -1440,7 +1457,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="324" column="10" declfile="src/ml_runtime.h" declline="324" declcolumn="10"/>
+        <location file="src/ml_runtime.h" line="328" column="10" declfile="src/ml_runtime.h" declline="328" declcolumn="10"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1gaaf797229254739c2050961b77ca44ab8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>ml_scheduler_queue_t *</type>
@@ -1461,7 +1478,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="326" column="22" declfile="src/ml_runtime.h" declline="326" declcolumn="22"/>
+        <location file="src/ml_runtime.h" line="330" column="22" declfile="src/ml_runtime.h" declline="330" declcolumn="22"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1ga0632948ec79ffc043157d9463da2c3b1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1478,7 +1495,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="328" column="5" declfile="src/ml_runtime.h" declline="328" declcolumn="5"/>
+        <location file="src/ml_runtime.h" line="332" column="5" declfile="src/ml_runtime.h" declline="332" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1495,7 +1512,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="329" column="5" declfile="src/ml_runtime.h" declline="329" declcolumn="5"/>
+        <location file="src/ml_runtime.h" line="333" column="5" declfile="src/ml_runtime.h" declline="333" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref></type>
@@ -1512,7 +1529,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="331" column="19" declfile="src/ml_runtime.h" declline="331" declcolumn="19"/>
+        <location file="src/ml_runtime.h" line="335" column="19" declfile="src/ml_runtime.h" declline="335" declcolumn="19"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1ga9b45bd192553d70ee559f868029a28af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1537,7 +1554,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="332" column="5" declfile="src/ml_runtime.h" declline="332" declcolumn="5"/>
+        <location file="src/ml_runtime.h" line="336" column="5" declfile="src/ml_runtime.h" declline="336" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1gad071f1bf1513001c63aab59a854c1b05" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__queued__state__t" kindref="compound">ml_queued_state_t</ref></type>
@@ -1554,7 +1571,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="334" column="19" declfile="src/ml_runtime.h" declline="334" declcolumn="19"/>
+        <location file="src/ml_runtime.h" line="338" column="19" declfile="src/ml_runtime.h" declline="338" declcolumn="19"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1ga65a6bbf10f06668af40d245980e4a673" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -1579,7 +1596,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="335" column="5" declfile="src/ml_runtime.h" declline="335" declcolumn="5"/>
+        <location file="src/ml_runtime.h" line="339" column="5" declfile="src/ml_runtime.h" declline="339" declcolumn="5"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -1703,7 +1720,7 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="343" column="9" bodyfile="src/ml_runtime.h" bodystart="343" bodyend="348"/>
+        <location file="src/ml_runtime.h" line="347" column="9" bodyfile="src/ml_runtime.h" bodystart="347" bodyend="352"/>
       </memberdef>
       <memberdef kind="define" id="group__runtime_1gad2ca04d78c9fa90c543e797ce81d056d" prot="public" static="no">
         <name>ML_STATE_FN</name>
@@ -1715,7 +1732,7 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="350" column="9" bodyfile="src/ml_runtime.h" bodystart="350" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="354" column="9" bodyfile="src/ml_runtime.h" bodystart="354" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

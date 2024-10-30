@@ -187,8 +187,16 @@ list
    Returns the first value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 
 
+:mini:`meth (List: list):first2`
+   Returns the first key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+
+
 :mini:`meth (List: list):last`
    Returns the last value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+
+
+:mini:`meth (List: list):last2`
+   Returns the last key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 
 
 :mini:`meth (List: list):length: integer`
@@ -408,13 +416,13 @@ list
    Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
 
-:mini:`type list::node::mutable < list::node`
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::node::mutable`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
