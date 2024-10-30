@@ -2322,7 +2322,7 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 		stringmap_insert(Info->Params, Param, (void *)(uintptr_t)(I + 1));
 	}
 	int NumDecls = VLQ64_NEXT();
-	if (NumDecls > Length / 4) ML_ERROR("CBORError", "Invalid bytecode");
+	//if (NumDecls > Length / 4) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_decl_t *Decls = anew(ml_decl_t, NumDecls);
 	for (int I = 0; I < NumDecls; ++I) {
 		Decls[I].Ident = VLQ64_NEXT_STRING();
@@ -2336,7 +2336,7 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 	int DeclIndex = VLQ64_NEXT();
 	Info->Decls = DeclIndex >= 0 ? &Decls[DeclIndex] : NULL;
 	int NumInsts = VLQ64_NEXT();
-	if (NumInsts > Length + Count) ML_ERROR("CBORError", "Invalid bytecode");
+	//if (NumInsts > Length + Count) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
 	ml_inst_t *Halt = Info->Halt = Code + NumInsts;
 	Info->Return = Code + VLQ64_NEXT();
