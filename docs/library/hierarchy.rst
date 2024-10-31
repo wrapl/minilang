@@ -94,6 +94,7 @@ hierarchy
       "sequence":e -> "chained":w;
       "any":e -> "iterator":w;
       "sequence":e -> "split":w;
+      "sequence":e -> "chunk":w;
       "sequence":e -> "grouped":w;
       "function":e -> "context":w;
       "function":e -> "state":w;

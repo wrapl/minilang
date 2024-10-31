@@ -46,10 +46,10 @@ static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Va
 
 ML_ENUM2(MLMapOrderT, "map::order",
 	"Insert", MAP_ORDER_INSERT, // default ordering; inserted pairs are put at end, no reordering on access.
-	"LRU", MAP_ORDER_LRU, // inserted pairs are kept in ascending key order, no reordering on access.
-	"MRU", MAP_ORDER_MRU, // inserted pairs are kept in descending key order, no reordering on access.
-	"Ascending", MAP_ORDER_ASC, // inserted pairs are put at start, accessed pairs are moved to start.
-	"Descending", MAP_ORDER_DESC // inserted pairs are put at end, accessed pairs are moved to end.
+	"LRU", MAP_ORDER_LRU, // inserted pairs are put at start, accessed pairs are moved to start.
+	"MRU", MAP_ORDER_MRU, // inserted pairs are put at end, accessed pairs are moved to end.
+	"Ascending", MAP_ORDER_ASC, // inserted pairs are kept in ascending key order, no reordering on access.
+	"Descending", MAP_ORDER_DESC // inserted pairs are kept in descending key order, no reordering on access.
 );
 
 static void ML_TYPED_FN(ml_value_find_all, MLMapT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {

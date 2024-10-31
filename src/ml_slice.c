@@ -347,12 +347,42 @@ ML_METHOD("offset", MLSliceT) {
 
 ML_METHOD("first", MLSliceT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
-	return Slice->Length ? Slice->Nodes[Slice->Offset].Value : MLNil;
+	if (!Slice->Length) return MLNil;
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceIndexT;
+	Iter->Slice = Slice;
+	Iter->Index = 1;
+	return (ml_value_t *)Iter;
+}
+
+ML_METHOD("first2", MLSliceT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) return MLNil;
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceIndexT;
+	Iter->Slice = Slice;
+	Iter->Index = 1;
+	return ml_tuplev(2, ml_integer(1), (ml_value_t *)Iter);
 }
 
 ML_METHOD("last", MLSliceT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
-	return Slice->Length ? Slice->Nodes[Slice->Offset + Slice->Length - 1].Value : MLNil;
+	if (!Slice->Length) return MLNil;
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceIndexT;
+	Iter->Slice = Slice;
+	Iter->Index = Slice->Length;
+	return (ml_value_t *)Iter;
+}
+
+ML_METHOD("last2", MLSliceT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) return MLNil;
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceIndexT;
+	Iter->Slice = Slice;
+	Iter->Index = Slice->Length;
+	return ml_tuplev(2, ml_integer(Slice->Length), (ml_value_t *)Iter);
 }
 
 typedef struct {

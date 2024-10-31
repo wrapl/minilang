@@ -85,7 +85,15 @@ slice
    *TBD*
 
 
+:mini:`meth (Arg₁: slice):first2`
+   *TBD*
+
+
 :mini:`meth (Arg₁: slice):last`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice):last2`
    *TBD*
 
 

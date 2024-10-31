@@ -43,10 +43,10 @@ static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
 
 ML_ENUM2(MLSetOrderT, "set::order",
 	"Insert", SET_ORDER_INSERT, // default ordering; inserted values are put at end, no reordering on access.
-	"LRU", SET_ORDER_LRU, // inserted values are kept in ascending order, no reordering on access.
-	"MRU", SET_ORDER_MRU, // inserted values are kept in descending order, no reordering on access.
-	"Ascending", SET_ORDER_ASC, // inserted values are put at start, accessed values are moved to start.
-	"Descending", SET_ORDER_DESC // inserted values are put at end, accessed values are moved to end.
+	"LRU", SET_ORDER_LRU, // inserted values are put at start, accessed values are moved to start.
+	"MRU", SET_ORDER_MRU, // inserted values are put at end, accessed values are moved to end.
+	"Ascending", SET_ORDER_ASC, // inserted values are kept in ascending order, no reordering on access.
+	"Descending", SET_ORDER_DESC // inserted values are kept in descending order, no reordering on access.
 );
 
 static void ML_TYPED_FN(ml_value_find_all, MLSetT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {

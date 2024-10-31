@@ -1646,7 +1646,7 @@ ML_FUNCTIONX(Max2) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-typedef struct ml_join_state_t {
+typedef struct {
 	ml_state_t Base;
 	const char *Separator;
 	ml_value_t *Iter;
@@ -1714,6 +1714,59 @@ ML_METHODX("join", MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
+typedef struct {
+	ml_state_t Base;
+	const char *Separator;
+	ml_value_t *Iter;
+	ml_stringbuffer_t *Buffer;
+	size_t SeparatorLength;
+} ml_append_state_t;
+
+static void append_value(ml_append_state_t *State, ml_value_t *Value);
+
+static void append_next(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLSome);
+	ml_stringbuffer_write(State->Buffer, State->Separator, State->SeparatorLength);
+	State->Base.run = (void *)append_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void append_append(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)append_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void append_value(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)append_append;
+	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, Value);
+}
+
+static void append_first(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
+	State->Base.run = (void *)append_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODX("append", MLStringBufferT, MLSequenceT, MLStringT) {
+//<Sequence
+//<Separator
+//>string
+// Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
+//$= (1 .. 10):append
+	ml_append_state_t *State = new(ml_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)append_first;
+	State->Separator = ml_string_value(Args[2]);
+	State->SeparatorLength = ml_string_length(Args[2]);
+	State->Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_iterate((ml_state_t *)State, Args[1]);
+}
+
 typedef struct ml_stacked_t {
 	ml_type_t *Type;
 	ml_value_t *Initial, *Value, *ReduceFn;
@@ -1766,7 +1819,6 @@ static void stacked_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	}
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
-
 
 static void ML_TYPED_FN(ml_iter_key, MLStackedStateT, ml_state_t *Caller, ml_iter_state_t *State) {
 	State->Base.Caller = Caller;
@@ -3760,6 +3812,105 @@ ML_METHOD("split", MLSequenceT, MLFunctionT) {
 	Split->Seq = Args[0];
 	Split->Fn = Args[1];
 	return (ml_value_t *)Split;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Seq;
+	int Size;
+} ml_chunk_t;
+
+ML_TYPE(MLChunkT, (MLSequenceT), "chunk");
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t Inner;
+	ml_value_t *Iter;
+	ml_value_t *Args[1];
+	int Index, Size, Remain;
+} ml_chunk_state_t;
+
+ML_TYPE(MLChunkStateT, (MLStateT), "chunk-state");
+//!internal
+
+ML_TYPE(MLChunkInnerT, (MLSequenceT), "chunk-inner");
+//!internal
+
+static void ml_chunk_state_iterate(ml_chunk_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Iter = Iter;
+	++State->Index;
+	State->Remain = State->Size;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLChunkT, ml_state_t *Caller, ml_chunk_t *Chunk) {
+	ml_chunk_state_t *State = new(ml_chunk_state_t);
+	State->Base.Type = MLChunkStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_chunk_state_iterate;
+	State->Size = Chunk->Size;
+	State->Index = 0;
+	State->Inner.Type = MLChunkInnerT;
+	return ml_iterate((ml_state_t *)State, Chunk->Seq);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLChunkStateT, ml_state_t *Caller, ml_chunk_state_t *State) {
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_chunk_state_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLChunkStateT, ml_state_t *Caller, ml_chunk_state_t *State) {
+	ML_RETURN(ml_integer(State->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLChunkStateT, ml_state_t *Caller, ml_chunk_state_t *State) {
+	ML_RETURN(&State->Inner);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ml_chunk_state_inner_iter(ml_chunk_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Iter = Iter;
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	ML_CONTINUE(State->Base.Caller, &State->Inner);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	if (--State->Remain == 0) ML_RETURN(MLNil);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_chunk_state_inner_iter;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_METHOD("chunk", MLSequenceT, MLIntegerT) {
+	ml_chunk_t *Chunk = new(ml_chunk_t);
+	Chunk->Type = MLChunkT;
+	Chunk->Seq = Args[0];
+	Chunk->Size = ml_integer_value(Args[1]);
+	return (ml_value_t *)Chunk;
 }
 
 typedef struct {

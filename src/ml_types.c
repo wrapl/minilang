@@ -2373,6 +2373,10 @@ typedef struct {
 	ml_value_t **Values;
 	ml_value_t *Args[2];
 	ml_hash_chain_t Chain[1];
+	const char *Seperator;
+	const char *Terminator;
+	size_t SeperatorLength;
+	size_t TerminatorLength;
 	size_t Index, Size;
 } ml_tuple_append_state_t;
 
@@ -2381,12 +2385,12 @@ extern ml_value_t *AppendMethod;
 static void ml_tuple_append_state_run(ml_tuple_append_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (++State->Index == State->Size) {
-		ml_stringbuffer_put(State->Buffer, ')');
+		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
 		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
 		State->Buffer->Chain = State->Chain->Previous;
 		ML_CONTINUE(State->Base.Caller, MLSome);
 	}
-	ml_stringbuffer_write(State->Buffer, ", ", 2);
+	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
 	State->Args[1] = State->Values[State->Index];
 	return ml_call(State, AppendMethod, 2, State->Args);
 }
@@ -2422,6 +2426,46 @@ ML_METHODX("append", MLStringBufferT, MLTupleT) {
 	State->Values = Tuple->Values;
 	State->Size = Tuple->Size;
 	State->Index = 0;
+	State->Seperator = ", ";
+	State->SeperatorLength = strlen(", ");
+	State->Terminator = ")";
+	State->TerminatorLength = strlen(")");
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Tuple->Values[0];
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLTupleT, MLStringT) {
+//!tuple
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Tuple) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
+	if (!Tuple->Size) ML_RETURN(MLSome);
+	ml_tuple_append_state_t *State = new(ml_tuple_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Tuple;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Values = Tuple->Values;
+	State->Size = Tuple->Size;
+	State->Index = 0;
+	State->Seperator = ml_string_value(Args[2]);
+	State->SeperatorLength = ml_string_length(Args[2]);
+	State->Terminator = "";
+	State->TerminatorLength = 0;
 	State->Args[0] = (ml_value_t *)Buffer;
 	State->Args[1] = Tuple->Values[0];
 	return ml_call(State, AppendMethod, 2, State->Args);
