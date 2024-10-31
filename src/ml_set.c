@@ -234,7 +234,43 @@ static void ml_set_insert_after(ml_set_t *Set, ml_set_node_t *Parent, ml_set_nod
 	Parent->Next = Node;
 }
 
-static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, long Hash, ml_value_t *Key) {
+static void ml_set_node_order(ml_set_t *Set, ml_set_node_t *Parent, ml_set_node_t *Node, int Compare) {
+	switch (Set->Order) {
+	case SET_ORDER_INSERT:
+	case SET_ORDER_LRU: {
+		ml_set_node_t *Prev = Set->Tail;
+		Prev->Next = Node;
+		Node->Prev = Prev;
+		Set->Tail = Node;
+		break;
+	}
+	case SET_ORDER_MRU: {
+		ml_set_node_t *Next = Set->Head;
+		Next->Prev = Node;
+		Node->Next = Next;
+		Set->Head = Node;
+		break;
+	}
+	case SET_ORDER_ASC: {
+		if (Compare < 0) {
+			ml_set_insert_before(Set, Parent, Node);
+		} else {
+			ml_set_insert_after(Set, Parent, Node);
+		}
+		break;
+	}
+	case SET_ORDER_DESC: {
+		if (Compare > 0) {
+			ml_set_insert_before(Set, Parent, Node);
+		} else {
+			ml_set_insert_after(Set, Parent, Node);
+		}
+		break;
+	}
+	}
+}
+
+static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, ml_set_node_t *Node, long Hash, ml_value_t *Key) {
 	int Compare;
 	if (Hash < Parent->Hash) {
 		Compare = -1;
@@ -247,77 +283,56 @@ static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, lo
 	}
 	if (!Compare) return Parent;
 	ml_set_node_t **Slot = Compare < 0 ? &Parent->Left : &Parent->Right;
-	ml_set_node_t *Node;
-	if (Slot[0]) {
-		Node = ml_set_node_child(Set, Slot[0], Hash, Key);
-	} else {
+	if (!Slot[0]) {
 		++Set->Size;
-		Node = Slot[0] = new(ml_set_node_t);
+		if (Node) {
+			Node->Next = Node->Prev = Node->Left = Node->Right = NULL;
+		} else {
+			Node = new(ml_set_node_t);
+			Node->Key = Key;
+		}
+		Slot[0] = Node;
 		Node->Type = MLSetNodeT;
 		Node->Depth = 1;
 		Node->Hash = Hash;
-		Node->Key = Key;
-		switch (Set->Order) {
-		case SET_ORDER_INSERT:
-		case SET_ORDER_LRU: {
-			ml_set_node_t *Prev = Set->Tail;
-			Prev->Next = Node;
-			Node->Prev = Prev;
-			Set->Tail = Node;
-			break;
-		}
-		case SET_ORDER_MRU: {
-			ml_set_node_t *Next = Set->Head;
-			Next->Prev = Node;
-			Node->Next = Next;
-			Set->Head = Node;
-			break;
-		}
-		case SET_ORDER_ASC: {
-			if (Compare < 0) {
-				ml_set_insert_before(Set, Parent, Node);
-			} else {
-				ml_set_insert_after(Set, Parent, Node);
-			}
-			break;
-		}
-		case SET_ORDER_DESC: {
-			if (Compare > 0) {
-				ml_set_insert_before(Set, Parent, Node);
-			} else {
-				ml_set_insert_after(Set, Parent, Node);
-			}
-			break;
-		}
-		}
+		ml_set_node_order(Set, Parent, Node, Compare);
+		ml_set_rebalance(Slot);
+		ml_set_update_depth(Slot[0]);
+		return Node;
 	}
+	Node = ml_set_node_child(Set, Slot[0], Node, Hash, Key);
 	ml_set_rebalance(Slot);
 	ml_set_update_depth(Slot[0]);
 	return Node;
 }
 
-static ml_set_node_t *ml_set_node(ml_set_t *Set, long Hash, ml_value_t *Key) {
+static ml_set_node_t *ml_set_node(ml_set_t *Set, ml_set_node_t *Node, long Hash, ml_value_t *Key) {
 	ml_set_node_t *Root = Set->Root;
-	if (Root) return ml_set_node_child(Set, Root, Hash, Key);
+	if (Root) return ml_set_node_child(Set, Root, Node, Hash, Key);
 	++Set->Size;
-	ml_set_node_t *Node = Set->Root = new(ml_set_node_t);
+	if (Node) {
+		Node->Next = Node->Prev = Node->Left = Node->Right = NULL;
+	} else {
+		Node = new(ml_set_node_t);
+		Node->Key = Key;
+	}
+	Set->Root = Node;
 	Node->Type = MLSetNodeT;
 	Set->Head = Set->Tail = Node;
 	Node->Depth = 1;
 	Node->Hash = Hash;
-	Node->Key = Key;
 	return Node;
 }
 
 ml_set_node_t *ml_set_slot(ml_value_t *Set0, ml_value_t *Key) {
 	ml_set_t *Set = (ml_set_t *)Set0;
-	return ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+	return ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 }
 
 ml_value_t *ml_set_insert(ml_value_t *Set0, ml_value_t *Key) {
 	ml_set_t *Set = (ml_set_t *)Set0;
 	int Size = Set->Size;
-	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 #ifdef ML_GENERICS
 	ml_set_update_generic(Set, Key);
 #endif
@@ -596,6 +611,130 @@ ML_METHOD("insert", MLSetMutableT, MLAnyT) {
 	return ml_set_insert(Args[0], Args[1]);
 }
 
+ML_METHOD("splice", MLSetMutableT, MLAnyT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	do {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	} while (Node);
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSetMutableT, MLAnyT, MLIntegerT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	int Remove = ml_integer_value(Args[2]);
+	if (!Remove) return (ml_value_t *)Removed;
+	ml_set_node_t *Last = Node;
+	while (--Remove > 0) {
+		Last = Last->Next;
+		if (!Last) return MLNil;
+	}
+	Last = Last->Next;
+	while (Node != Last) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSetMutableT, MLAnyT, MLSetMutableT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	ml_set_t *Source = (ml_set_t *)Args[2];
+	ml_set_node_t *Last = Node;
+	ml_set_node_t *Prev = Node->Prev, *Next = Last;
+	while (Node != Last) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	ml_set_order_t Order = Set->Order;
+	Set->Order = SET_ORDER_INSERT;
+	for (ml_set_node_t *Node = Source->Head; Node;) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_node(Set, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Set->Order = Order;
+	if (Next) {
+		ml_set_node_t *Head = Source->Head, *Tail = Source->Tail;
+		Set->Tail = Head->Prev;
+		Set->Tail->Next = NULL;
+		Head->Prev = Prev;
+		if (Prev) {
+			Prev->Next = Head;
+		} else {
+			Set->Head = Head;
+		}
+		Tail->Next = Next;
+		Next->Prev = Tail;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSetMutableT, MLAnyT, MLIntegerT, MLSetMutableT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	int Remove = ml_integer_value(Args[2]);
+	ml_set_t *Source = (ml_set_t *)Args[3];
+	ml_set_node_t *Last = Node;
+	if (Remove) {
+		while (--Remove > 0) {
+			Last = Last->Next;
+			if (!Last) return MLNil;
+		}
+		Last = Last->Next;
+	}
+	ml_set_node_t *Prev = Node->Prev, *Next = Last;
+	while (Node != Last) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	ml_set_order_t Order = Set->Order;
+	Set->Order = SET_ORDER_INSERT;
+	for (ml_set_node_t *Node = Source->Head; Node;) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_node(Set, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Set->Order = Order;
+	if (Next) {
+		ml_set_node_t *Head = Source->Head, *Tail = Source->Tail;
+		Set->Tail = Head->Prev;
+		Set->Tail->Next = NULL;
+		Head->Prev = Prev;
+		if (Prev) {
+			Prev->Next = Head;
+		} else {
+			Set->Head = Head;
+		}
+		Tail->Next = Next;
+		Next->Prev = Tail;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Removed;
+}
+
 ML_METHODV("push", MLSetMutableT, MLAnyT) {
 //<Set
 //<Value
@@ -609,7 +748,7 @@ ML_METHODV("push", MLSetMutableT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
 		ml_value_t *Key = Args[I];
-		ml_set_node_t *Node = ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+		ml_set_node_t *Node = ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 		ml_set_move_node_head(Set, Node);
 #ifdef ML_GENERICS
 		ml_set_update_generic(Set, Key);
@@ -631,7 +770,7 @@ ML_METHODV("put", MLSetMutableT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
 		ml_value_t *Key = Args[I];
-		ml_set_node_t *Node = ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+		ml_set_node_t *Node = ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 		ml_set_move_node_tail(Set, Node);
 #ifdef ML_GENERICS
 		ml_set_update_generic(Set, Key);
@@ -666,8 +805,30 @@ ML_METHOD("missing", MLSetMutableT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	int Size = Set->Size;
-	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	return Set->Size == Size ? MLNil : MLSome;
+}
+
+ML_METHOD("take", MLSetMutableT, MLSetMutableT) {
+//<Set
+//<Source
+//>set
+// Inserts the values from :mini:`Source` into :mini:`Set`, leaving :mini:`Source` empty.
+//$= let A := set("cat")
+//$= let B := set("cake")
+//$= A:take(B)
+//$= A
+//$= B
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Source = (ml_set_t *)Args[1];
+	for (ml_set_node_t *Node = Source->Head; Node;) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_node(Set, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Set;
 }
 
 typedef struct {

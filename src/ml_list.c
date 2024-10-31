@@ -1493,7 +1493,7 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLListMutableT) {
 #endif
 	Source->Head = Source->Tail = NULL;
 	Source->Length = 0;
-	return MLNil;
+	return ml_list();
 }
 
 ML_METHOD("take", MLListMutableT, MLListMutableT) {

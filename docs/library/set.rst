@@ -223,7 +223,7 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:random :> "c"
-      S:random :> "a"
+      S:random :> "e"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -412,6 +412,34 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:sort(>) :> {k, e, c, a}
+
+
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any, Arg₃: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any, Arg₃: integer, Arg₄: set::mutable)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any, Arg₃: set::mutable)`
+   *TBD*
+
+
+:mini:`meth (Set: set::mutable):take(Source: set::mutable): set`
+   Inserts the values from :mini:`Source` into :mini:`Set`,  leaving :mini:`Source` empty.
+
+   .. code-block:: mini
+
+      let A := set("cat") :> {c, a, t}
+      let B := set("cake") :> {c, a, k, e}
+      A:take(B) :> {c, a, t, k, e}
+      A :> {c, a, t, k, e}
+      B :> {}
 
 
 :mini:`type set::order < enum`

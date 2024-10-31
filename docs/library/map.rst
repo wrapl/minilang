@@ -242,8 +242,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "a"
-      M:random :> "e"
+      M:random :> "k"
+      M:random :> "c"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -544,6 +544,22 @@ map
       :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
 
 
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: integer, Arg₄: map::mutable)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: map::mutable)`
+   *TBD*
+
+
 :mini:`meth (Map: map::mutable):take(Source: map::mutable): map`
    Inserts the key-value pairs from :mini:`Source` into :mini:`Map`,  leaving :mini:`Source` empty.
 
@@ -564,13 +580,13 @@ map
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
