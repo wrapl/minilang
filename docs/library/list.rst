@@ -188,7 +188,7 @@ list
 
 
 :mini:`meth (List: list):first2`
-   Returns the first key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+   Returns the first index and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 
 
 :mini:`meth (List: list):last`
@@ -196,7 +196,7 @@ list
 
 
 :mini:`meth (List: list):last2`
-   Returns the last key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+   Returns the last index and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 
 
 :mini:`meth (List: list):length: integer`
@@ -212,7 +212,7 @@ list
 
    .. code-block:: mini
 
-      [1, 2, 3]:count :> 3
+      [1, 2, 3]:precount :> 3
 
 
 :mini:`meth (List: list):random: any`
@@ -221,8 +221,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
-      L:random :> "e"
+      L:random :> "a"
+      L:random :> "a"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

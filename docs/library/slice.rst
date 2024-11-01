@@ -9,16 +9,32 @@ slice
 
 .. rst-class:: mini-api
 
-:mini:`meth slice(Arg₁: sequence, ...)`
-   *TBD*
-
-
 :mini:`type slice < sequence`
    A slice of elements.
 
 
-:mini:`meth slice()`
-   *TBD*
+:mini:`meth slice(): slice`
+   Returns an empty slice.
+
+   .. code-block:: mini
+
+      slice() :> []
+
+
+:mini:`meth slice(Sequence: sequence, ...): slice`
+   Returns a list of all of the values produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      slice(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+
+:mini:`meth slice(Tuple: tuple): slice`
+   Returns a slice containing the values in :mini:`Tuple`.
+
+   .. code-block:: mini
+
+      slice((1, 2, 3)) :> [1, 2, 3]
 
 
 :mini:`meth (Arg₁: slice) != (Arg₂: slice)`
@@ -49,8 +65,16 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice)[Arg₂: integer]`
-   *TBD*
+:mini:`meth (Slice: slice)[Index: integer]: slice::index | nil`
+   Returns the :mini:`Index`-th node in :mini:`Slice` or :mini:`nil` if :mini:`Index` is outside the interval of :mini:`List`.
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+   .. code-block:: mini
+
+      let L := slice(["a", "b", "c", "d", "e", "f"])
+      L[3] :> "c"
+      L[-2] :> "e"
+      L[8] :> nil
 
 
 :mini:`meth (Arg₁: slice)[Arg₂: integer, Arg₃: integer]`
@@ -65,12 +89,20 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice):capacity`
-   *TBD*
+:mini:`meth (Slice: slice):capacity: integer`
+   Returns the capacity of :mini:`Slice`
+
+   .. code-block:: mini
+
+      slice([1, 2, 3]):capacity :> 3
 
 
-:mini:`meth (Arg₁: slice):count`
-   *TBD*
+:mini:`meth (Slice: slice):count: integer`
+   Returns the length of :mini:`Slice`
+
+   .. code-block:: mini
+
+      slice([1, 2, 3]):count :> 3
 
 
 :mini:`meth (Arg₁: slice):find(Arg₂: any)`
@@ -81,32 +113,44 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice):first`
-   *TBD*
+:mini:`meth (Slice: slice):first`
+   Returns the first value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 
 
-:mini:`meth (Arg₁: slice):first2`
-   *TBD*
+:mini:`meth (Slice: slice):first2`
+   Returns the first index and value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 
 
-:mini:`meth (Arg₁: slice):last`
-   *TBD*
+:mini:`meth (Slice: slice):last`
+   Returns the last value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 
 
-:mini:`meth (Arg₁: slice):last2`
-   *TBD*
+:mini:`meth (Slice: slice):last2`
+   Returns the last index and value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 
 
-:mini:`meth (Arg₁: slice):length`
-   *TBD*
+:mini:`meth (Slice: slice):length: integer`
+   Returns the length of :mini:`Slice`
+
+   .. code-block:: mini
+
+      slice([1, 2, 3]):length :> 3
 
 
-:mini:`meth (Arg₁: slice):offset`
-   *TBD*
+:mini:`meth (Slice: slice):offset: integer`
+   Returns the offset of :mini:`Slice`
+
+   .. code-block:: mini
+
+      slice([1, 2, 3]):offset :> 0
 
 
-:mini:`meth (Arg₁: slice):precount`
-   *TBD*
+:mini:`meth (Slice: slice):precount: integer`
+   Returns the length of :mini:`Slice`
+
+   .. code-block:: mini
+
+      slice([1, 2, 3]):precount :> 3
 
 
 :mini:`meth (Arg₁: slice):random`
@@ -130,7 +174,7 @@ slice
 
 
 :mini:`type slice::index`
-   *TBD*
+   An assignable reference to an index of a slice.
 
 
 :mini:`type slice::iter`
@@ -161,12 +205,23 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice::mutable):filter(Arg₂: function)`
-   *TBD*
+:mini:`meth (Slice: slice::mutable):filter(Filter: function): slice`
+   Removes every :mini:`Value` from :mini:`Slice` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
+
+   .. code-block:: mini
+
+      let L := slice([1, 2, 3, 4, 5, 6])
+      L:filter(2 | _) :> [1, 3, 5]
+      L :> [2, 4, 6]
 
 
-:mini:`meth (Arg₁: slice::mutable):grow(Arg₂: sequence, ...)`
-   *TBD*
+:mini:`meth (Slice: slice::mutable):grow(Sequence: sequence, ...): slice`
+   Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
+
+   .. code-block:: mini
+
+      let L := slice([1, 2, 3])
+      L:grow(4 .. 6) :> [1, 2, 3, 4, 5, 6]
 
 
 :mini:`meth (Arg₁: slice::mutable):insert(Arg₂: integer, Arg₃: any)`
@@ -205,8 +260,14 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice::mutable):remove(Arg₂: function)`
-   *TBD*
+:mini:`meth (Slice: slice::mutable):remove(Filter: function): slice`
+   Removes every :mini:`Value` from :mini:`Slice` for which :mini:`Function(Value)` returns non-:mini:`nil` and returns those values in a new list.
+
+   .. code-block:: mini
+
+      let L := slice([1, 2, 3, 4, 5, 6])
+      L:remove(2 | _) :> [2, 4, 6]
+      L :> [1, 3, 5]
 
 
 :mini:`meth (Arg₁: slice::mutable):reverse`
@@ -238,10 +299,6 @@ slice
 
 
 :mini:`type slice::slice`
-   *TBD*
-
-
-:mini:`meth slice(Arg₁: tuple)`
    *TBD*
 
 

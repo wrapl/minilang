@@ -329,7 +329,7 @@ ML_METHOD("precount", MLListT) {
 //<List
 //>integer
 // Returns the length of :mini:`List`
-//$= [1, 2, 3]:count
+//$= [1, 2, 3]:precount
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return ml_integer(List->Length);
 }
@@ -361,7 +361,7 @@ ML_METHOD("first", MLListT) {
 
 ML_METHOD("first2", MLListT) {
 //<List
-// Returns the first key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+// Returns the first index and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return List->Head ? ml_tuplev(2, ml_integer(1), List->Head) : MLNil;
 }
@@ -375,7 +375,7 @@ ML_METHOD("last", MLListT) {
 
 ML_METHOD("last2", MLListT) {
 //<List
-// Returns the last key and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+// Returns the last index and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return List->Tail ? ml_tuplev(2, ml_integer(List->Length), List->Tail) : MLNil;
 }
@@ -541,11 +541,7 @@ ML_METHOD("[]", MLListT, MLIntegerT) {
 
 #ifdef ML_MUTABLES
 
-ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
-//!internal
-	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
+static ml_value_t *ml_list_slice_copy(ml_list_t *List, int Start, int End) {
 	if (Start <= 0) Start += List->Length + 1;
 	if (End <= 0) End += List->Length + 1;
 	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
@@ -558,6 +554,32 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 		--Length;
 	}
 	return SubList;
+}
+
+ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
+//!internal
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
+	return ml_list_slice_copy(List, Start, End);
+}
+
+ML_METHOD("[]", MLListT, MLIntegerRangeT) {
+//!internal
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
+	int Start = Sequence->Start, End = Sequence->Limit + 1, Step = Sequence->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	return ml_list_slice_copy(List, Start, End);
+}
+
+ML_METHOD("[]", MLListT, MLIntegerIntervalT) {
+//!internal
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	int Start = Interval->Start, End = Interval->Limit + 1, Step = 1;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	return ml_list_slice_copy(List, Start, End);
 }
 
 #endif
@@ -595,10 +617,21 @@ static void ml_list_slice_assign(ml_state_t *Caller, ml_list_slice_t *Slice, ml_
 }
 
 ML_TYPE(MLListSliceT, (), "list-slice",
-// A slice of a list.
+// A sub-list.
 	.deref = (void *)ml_list_slice_deref,
 	.assign = (void *)ml_list_slice_assign
 );
+
+static ml_value_t *ml_list_slice(ml_list_t *List, int Start, int End) {
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_list_slice_t *Slice = new(ml_list_slice_t);
+	Slice->Type = MLListSliceT;
+	Slice->Head = ml_list_index(List, Start);
+	Slice->Length = End - Start;
+	return (ml_value_t *)Slice;
+}
 
 ML_METHOD("[]", MLListMutableT, MLIntegerT, MLIntegerT) {
 //<List
@@ -610,14 +643,7 @@ ML_METHOD("[]", MLListMutableT, MLIntegerT, MLIntegerT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	int Start = ml_integer_value_fast(Args[1]);
 	int End = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += List->Length + 1;
-	if (End <= 0) End += List->Length + 1;
-	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
-	ml_list_slice_t *Slice = new(ml_list_slice_t);
-	Slice->Type = MLListSliceT;
-	Slice->Head = ml_list_index(List, Start);
-	Slice->Length = End - Start;
-	return (ml_value_t *)Slice;
+	return ml_list_slice(List, Start, End);
 }
 
 ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
@@ -630,14 +656,7 @@ ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
 	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
 	int Start = Sequence->Start, End = Sequence->Limit + 1, Step = Sequence->Step;
 	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Start <= 0) Start += List->Length + 1;
-	if (End <= 0) End += List->Length + 1;
-	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
-	ml_list_slice_t *Slice = new(ml_list_slice_t);
-	Slice->Type = MLListSliceT;
-	Slice->Head = ml_list_index(List, Start);
-	Slice->Length = End - Start;
-	return (ml_value_t *)Slice;
+	return ml_list_slice(List, Start, End);
 }
 
 ML_METHOD("[]", MLListMutableT, MLIntegerIntervalT) {
@@ -650,51 +669,8 @@ ML_METHOD("[]", MLListMutableT, MLIntegerIntervalT) {
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
 	int Start = Interval->Start, End = Interval->Limit + 1, Step = 1;
 	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Start <= 0) Start += List->Length + 1;
-	if (End <= 0) End += List->Length + 1;
-	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
-	ml_list_slice_t *Slice = new(ml_list_slice_t);
-	Slice->Type = MLListSliceT;
-	Slice->Head = ml_list_index(List, Start);
-	Slice->Length = End - Start;
-	return (ml_value_t *)Slice;
+	return ml_list_slice(List, Start, End);
 }
-
-#ifdef ML_MUTABLES
-
-ML_METHOD("[]", MLListT, MLIntegerRangeT) {
-//!internal
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
-	int Start = Sequence->Start, End = Sequence->Limit + 1, Step = Sequence->Step;
-	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Start <= 0) Start += List->Length + 1;
-	if (End <= 0) End += List->Length + 1;
-	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
-	ml_list_slice_t *Slice = new(ml_list_slice_t);
-	Slice->Type = MLListSliceT;
-	Slice->Head = ml_list_index(List, Start);
-	Slice->Length = End - Start;
-	return ml_deref((ml_value_t *)Slice);
-}
-
-ML_METHOD("[]", MLListT, MLIntegerIntervalT) {
-//!internal
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
-	int Start = Interval->Start, End = Interval->Limit + 1, Step = 1;
-	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
-	if (Start <= 0) Start += List->Length + 1;
-	if (End <= 0) End += List->Length + 1;
-	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
-	ml_list_slice_t *Slice = new(ml_list_slice_t);
-	Slice->Type = MLListSliceT;
-	Slice->Head = ml_list_index(List, Start);
-	Slice->Length = End - Start;
-	return ml_deref((ml_value_t *)Slice);
-}
-
-#endif
 
 ML_METHOD("[]", MLListT, MLListT) {
 //<List

@@ -66,6 +66,7 @@ static void ml_slice_index_assign(ml_state_t *Caller, ml_slice_index_t *Iter, ml
 }
 
 ML_TYPE(MLSliceIndexT, (), "slice::index",
+// An assignable reference to an index of a slice.
 	.deref = (void *)ml_slice_index_deref,
 	.assign = (void *)ml_slice_index_assign
 );
@@ -85,10 +86,17 @@ ml_value_t *ml_slice(size_t Capacity) {
 }
 
 ML_METHOD(MLSliceT) {
+//>slice
+// Returns an empty slice.
+//$= slice()
 	return ml_slice(0);
 }
 
 ML_METHOD(MLSliceT, MLTupleT) {
+//<Tuple
+//>slice
+// Returns a slice containing the values in :mini:`Tuple`.
+//$= slice((1, 2, 3))
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	ml_value_t *Slice = ml_slice(Tuple->Size);
 	for (int I = 0; I < Tuple->Size; ++I) {
@@ -126,6 +134,10 @@ static void slice_iterate_precount(ml_iter_state_t *State, ml_value_t *Value) {
 static ML_METHOD_DECL(Precount, "precount");
 
 ML_METHODVX(MLSliceT, MLSequenceT) {
+//<Sequence
+//>slice
+// Returns a list of all of the values produced by :mini:`Sequence`.
+//$= slice(1 .. 10)
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)slice_iterate_precount;
@@ -155,6 +167,12 @@ static void slice_grow_precount(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODVX("grow", MLSliceMutableT, MLSequenceT) {
+//<Slice
+//<Sequence
+//>slice
+// Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
+//$- let L := slice([1, 2, 3])
+//$= L:grow(4 .. 6)
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)slice_grow_precount;
@@ -326,26 +344,48 @@ int ml_slice_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *
 }
 
 ML_METHOD("precount", MLSliceT) {
+//<Slice
+//>integer
+// Returns the length of :mini:`Slice`
+//$= slice([1, 2, 3]):precount
 	return ml_integer(((ml_slice_t *)Args[0])->Length);
 }
 
 ML_METHOD("count", MLSliceT) {
+//<Slice
+//>integer
+// Returns the length of :mini:`Slice`
+//$= slice([1, 2, 3]):count
 	return ml_integer(((ml_slice_t *)Args[0])->Length);
 }
 
 ML_METHOD("length", MLSliceT) {
+//<Slice
+//>integer
+// Returns the length of :mini:`Slice`
+//$= slice([1, 2, 3]):length
 	return ml_integer(((ml_slice_t *)Args[0])->Length);
 }
 
 ML_METHOD("capacity", MLSliceT) {
+//<Slice
+//>integer
+// Returns the capacity of :mini:`Slice`
+//$= slice([1, 2, 3]):capacity
 	return ml_integer(((ml_slice_t *)Args[0])->Capacity);
 }
 
 ML_METHOD("offset", MLSliceT) {
+//<Slice
+//>integer
+// Returns the offset of :mini:`Slice`
+//$= slice([1, 2, 3]):offset
 	return ml_integer(((ml_slice_t *)Args[0])->Offset);
 }
 
 ML_METHOD("first", MLSliceT) {
+//<Slice
+// Returns the first value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	if (!Slice->Length) return MLNil;
 	ml_slice_index_t *Iter = new(ml_slice_index_t);
@@ -356,6 +396,8 @@ ML_METHOD("first", MLSliceT) {
 }
 
 ML_METHOD("first2", MLSliceT) {
+//<Slice
+// Returns the first index and value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	if (!Slice->Length) return MLNil;
 	ml_slice_index_t *Iter = new(ml_slice_index_t);
@@ -366,6 +408,8 @@ ML_METHOD("first2", MLSliceT) {
 }
 
 ML_METHOD("last", MLSliceT) {
+//<Slice
+// Returns the last value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	if (!Slice->Length) return MLNil;
 	ml_slice_index_t *Iter = new(ml_slice_index_t);
@@ -376,6 +420,8 @@ ML_METHOD("last", MLSliceT) {
 }
 
 ML_METHOD("last2", MLSliceT) {
+//<Slice
+// Returns the last index and value in :mini:`Slice` or :mini:`nil` if :mini:`Slice` is empty.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	if (!Slice->Length) return MLNil;
 	ml_slice_index_t *Iter = new(ml_slice_index_t);
@@ -409,6 +455,13 @@ static void ml_slice_filter_state_run(ml_slice_filter_state_t *State, ml_value_t
 }
 
 ML_METHODX("filter", MLSliceMutableT, MLFunctionT) {
+//<Slice
+//<Filter
+//>slice
+// Removes every :mini:`Value` from :mini:`Slice` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
+//$- let L := slice([1, 2, 3, 4, 5, 6])
+//$= L:filter(2 | _)
+//$= L
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	if (!Slice->Length) ML_RETURN(Slice);
 	ml_slice_filter_state_t *State = new(ml_slice_filter_state_t);
@@ -439,6 +492,13 @@ static void ml_slice_remove_state_run(ml_slice_filter_state_t *State, ml_value_t
 }
 
 ML_METHODX("remove", MLSliceMutableT, MLFunctionT) {
+//<Slice
+//<Filter
+//>slice
+// Removes every :mini:`Value` from :mini:`Slice` for which :mini:`Function(Value)` returns non-:mini:`nil` and returns those values in a new list.
+//$- let L := slice([1, 2, 3, 4, 5, 6])
+//$= L:remove(2 | _)
+//$= L
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	if (!Slice->Length) ML_RETURN(Slice);
 	ml_slice_filter_state_t *State = new(ml_slice_filter_state_t);
@@ -457,6 +517,15 @@ ML_METHODX("remove", MLSliceMutableT, MLFunctionT) {
 #ifdef ML_MUTABLES
 
 ML_METHOD("[]", MLSliceT, MLIntegerT) {
+//<Slice
+//<Index
+//>slice::index | nil
+// Returns the :mini:`Index`-th node in :mini:`Slice` or :mini:`nil` if :mini:`Index` is outside the interval of :mini:`List`.
+// Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
+//$- let L := slice(["a", "b", "c", "d", "e", "f"])
+//$= L[3]
+//$= L[-2]
+//$= L[8]
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	int Index = ml_integer_value(Args[1]);
 	if (Index <= 0) Index += Slice->Length + 1;
@@ -465,10 +534,7 @@ ML_METHOD("[]", MLSliceT, MLIntegerT) {
 	return Slice->Nodes[Slice->Offset + Index - 1].Value;
 }
 
-ML_METHOD("[]", MLSliceT, MLIntegerT, MLIntegerT) {
-	ml_slice_t *Source = (ml_slice_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
+static ml_value_t *ml_slice_slice_copy(ml_slice_t *Source, int Start, int End) {
 	if (Start <= 0) Start += Source->Length + 1;
 	if (End <= 0) End += Source->Length + 1;
 	if (Start <= 0 || End < Start || End > Source->Length + 1) return MLNil;
@@ -479,9 +545,36 @@ ML_METHOD("[]", MLSliceT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Slice;
 }
 
+ML_METHOD("[]", MLSliceT, MLIntegerT, MLIntegerT) {
+//!internal
+	ml_slice_t *Source = (ml_slice_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
+	return ml_slice_slice_copy(Source, Start, End);
+}
+
+ML_METHOD("[]", MLSliceT, MLIntegerRangeT) {
+//!internal
+	ml_slice_t *Source = (ml_slice_t *)Args[0];
+	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
+	int Start = Sequence->Start, End = Sequence->Limit + 1, Step = Sequence->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	return ml_slice_slice_copy(Source, Start, End);
+}
+
+ML_METHOD("[]", MLSliceT, MLIntegerIntervalT) {
+//!internal
+	ml_slice_t *Source = (ml_slice_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	int Start = Interval->Start, End = Interval->Limit + 1, Step = 1;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	return ml_slice_slice_copy(Source, Start, End);
+}
+
 #endif
 
 ML_METHOD("[]", MLSliceMutableT, MLIntegerT) {
+//!internal
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	int Index = ml_integer_value(Args[1]);
 	if (Index <= 0) Index += Slice->Length + 1;
@@ -527,14 +620,12 @@ static void ml_slice_slice_assign(ml_state_t *Caller, ml_slice_slice_t *Ref, ml_
 }
 
 ML_TYPE(MLSliceSliceT, (), "slice::slice",
+// A sub-slice.
 	.deref = (void *)ml_slice_slice_deref,
 	.assign = (void *)ml_slice_slice_assign
 );
 
-ML_METHOD("[]", MLSliceMutableT, MLIntegerT, MLIntegerT) {
-	ml_slice_t *Source = (ml_slice_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
+static ml_value_t *ml_slice_slice(ml_slice_t *Source, int Start, int End) {
 	if (Start <= 0) Start += Source->Length + 1;
 	if (End <= 0) End += Source->Length + 1;
 	if (Start <= 0 || End < Start || End > Source->Length + 1) return MLNil;
@@ -544,6 +635,43 @@ ML_METHOD("[]", MLSliceMutableT, MLIntegerT, MLIntegerT) {
 	Slice->Start = Start;
 	Slice->Length = End - Start;
 	return (ml_value_t *)Slice;
+}
+
+ML_METHOD("[]", MLSliceMutableT, MLIntegerT, MLIntegerT) {
+//<Slice
+//<Indices
+//>slice
+// Returns a slice containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
+	ml_slice_t *Source = (ml_slice_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
+	return ml_slice_slice(Source, Start, End);
+}
+
+ML_METHOD("[]", MLSliceMutableT, MLIntegerRangeT) {
+//<Slice
+//<Interval
+//>slice::slice
+// Returns a slice of :mini:`Slice` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`, both inclusive.
+// Indexing starts at :mini:`1`. Negative indices are counted from the end of the slice, with :mini:`-1` returning the last node.
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	ml_integer_range_t *Sequence = (ml_integer_range_t *)Args[1];
+	int Start = Sequence->Start, End = Sequence->Limit + 1, Step = Sequence->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for slice slice");
+	return ml_slice_slice(Slice, Start, End);
+}
+
+ML_METHOD("[]", MLSliceMutableT, MLIntegerIntervalT) {
+//<Slice
+//<Interval
+//>slice::slice
+// Returns a slice of :mini:`Slice` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`, both inclusive.
+// Indexing starts at :mini:`1`. Negative indices are counted from the end of the slice, with :mini:`-1` returning the last node.
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	int Start = Interval->Start, End = Interval->Limit + 1, Step = 1;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for slice slice");
+	return ml_slice_slice(Slice, Start, End);
 }
 
 extern ml_value_t *EqualMethod;
