@@ -82,6 +82,8 @@ extern ml_type_t MLTypeT[];
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
 
+long ml_value_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
+
 //ml_value_t *ml_default_deref(ml_value_t *Ref);
 #define ml_default_deref NULL
 

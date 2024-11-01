@@ -253,6 +253,10 @@ long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+long ml_value_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return (intptr_t)Value;
+}
+
 /*ml_value_t *ml_default_deref(ml_value_t *Ref) {
 	return Ref;
 }*/
@@ -1650,6 +1654,7 @@ static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int 
 
 ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
 //!internal
+	.hash = (void *)ml_value_hash,
 	.call = (void *)ml_cfunction_call
 );
 
@@ -1707,6 +1712,7 @@ static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 
 ML_TYPE(MLCFunctionXT, (MLFunctionT), "c-functionx",
 //!internal
+	.hash = (void *)ml_value_hash,
 	.call = (void *)ml_cfunctionx_call
 );
 
@@ -1744,6 +1750,7 @@ static void ml_cfunctionz_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 
 ML_TYPE(MLCFunctionZT, (MLFunctionT), "c-functionx",
 //!internal
+	.hash = (void *)ml_value_hash,
 	.call = (void *)ml_cfunctionz_call
 );
 
