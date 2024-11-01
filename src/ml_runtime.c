@@ -253,6 +253,47 @@ static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Valu
 	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
 }
 
+typedef struct ml_cache_info_t ml_cache_info_t;
+
+struct ml_cache_info_t {
+	ml_cache_info_t *Next;
+	void *Data;
+	const char *Name;
+	ml_cache_usage_fn Usage;
+	ml_cache_clear_fn Clear;
+};
+
+static ml_cache_info_t *CacheInfos = NULL;
+
+void ml_cache_register(const char *Name, ml_cache_usage_fn Usage, ml_cache_clear_fn Clear, void *Data) {
+	ml_cache_info_t *Info = new(ml_cache_info_t);
+	Info->Data = Data;
+	Info->Name = Name;
+	Info->Usage = Usage;
+	Info->Clear = Clear;
+	Info->Next = CacheInfos;
+	CacheInfos = Info;
+}
+
+void ml_cache_usage(ml_cache_usage_callback_fn Callback, void *Arg) {
+	for (ml_cache_info_t *Info = CacheInfos; Info; Info = Info->Next) {
+		size_t Usage = Info->Usage(Info->Data);
+		Callback(Info->Name, Usage, Arg);
+	}
+}
+
+void ml_cache_clear(const char *Name) {
+	for (ml_cache_info_t *Info = CacheInfos; Info; Info = Info->Next) {
+		if (!strcmp(Name, Info->Name)) Info->Clear(Info->Data);
+	}
+}
+
+void ml_cache_clear_all() {
+	for (ml_cache_info_t *Info = CacheInfos; Info; Info = Info->Next) {
+		Info->Clear(Info->Data);
+	}
+}
+
 ML_FUNCTIONX(MLCallCC) {
 //!runtime
 //@callcc

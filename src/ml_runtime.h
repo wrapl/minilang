@@ -157,13 +157,26 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
-void ml_runtime_init(const char *ExecName);
-
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;
 	ml_value_t *Values[];
 } ml_iter_state_t;
+
+void ml_runtime_init(const char *ExecName);
+
+// Caches //
+
+typedef size_t (*ml_cache_usage_fn)(void *Arg);
+typedef void (*ml_cache_clear_fn)(void *Arg);
+
+void ml_cache_register(const char *Name, ml_cache_usage_fn Usage, ml_cache_clear_fn Clear, void *Arg);
+
+typedef void (*ml_cache_usage_callback_fn)(const char *Name, size_t Usage, void *Arg);
+
+void ml_cache_usage(ml_cache_usage_callback_fn Callback, void *Arg);
+void ml_cache_clear(const char *Name);
+void ml_cache_clear_all();
 
 // Nested Comparisons //
 

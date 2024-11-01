@@ -77,10 +77,6 @@ slice
       L[8] :> nil
 
 
-:mini:`meth (Arg₁: slice)[Arg₂: integer, Arg₃: integer]`
-   *TBD*
-
-
 :mini:`meth (Arg₁: slice):bfind(Arg₂: any)`
    *TBD*
 
@@ -185,12 +181,18 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice::mutable)[Arg₂: integer]`
-   *TBD*
+:mini:`meth (Slice: slice::mutable)[Interval: integer::interval]: slice::slice`
+   Returns a slice of :mini:`Slice` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`,  both inclusive.
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the slice,  with :mini:`-1` returning the last node.
 
 
-:mini:`meth (Arg₁: slice::mutable)[Arg₂: integer, Arg₃: integer]`
-   *TBD*
+:mini:`meth (Slice: slice::mutable)[Interval: integer::range]: slice::slice`
+   Returns a slice of :mini:`Slice` starting at :mini:`Interval:start` and ending at :mini:`Interval:limit`,  both inclusive.
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the slice,  with :mini:`-1` returning the last node.
+
+
+:mini:`meth (Slice: slice::mutable)[Indices: integer, Arg₃: integer]: slice`
+   Returns a slice containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
 :mini:`meth (Arg₁: slice::mutable):cycle`
@@ -299,7 +301,7 @@ slice
 
 
 :mini:`type slice::slice`
-   *TBD*
+   A sub-slice.
 
 
 :mini:`meth (Arg₁: visitor):const(Arg₂: slice::mutable)`

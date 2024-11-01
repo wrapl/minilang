@@ -221,7 +221,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "a"
+      L:random :> "e"
       L:random :> "a"
 
 
@@ -429,7 +429,7 @@ list
 
 
 :mini:`type list::slice`
-   A slice of a list.
+   A sub-list.
 
 
 :mini:`meth list(Arg₁: names)`

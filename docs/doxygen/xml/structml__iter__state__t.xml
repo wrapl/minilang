@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="163" column="12" bodyfile="src/ml_runtime.h" bodystart="163" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="161" column="12" bodyfile="src/ml_runtime.h" bodystart="161" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__iter__state__t_1ac647277e3354a19a7cb06829de4ec2cb" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="164" column="12" bodyfile="src/ml_runtime.h" bodystart="164" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="162" column="12" bodyfile="src/ml_runtime.h" bodystart="162" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__iter__state__t_1a77ea04ebbd682128002b5b9dcfd96053" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="165" column="12" bodyfile="src/ml_runtime.h" bodystart="165" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="163" column="12" bodyfile="src/ml_runtime.h" bodystart="163" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -117,7 +117,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_runtime.h" line="162" column="1" bodyfile="src/ml_runtime.h" bodystart="162" bodyend="166"/>
+    <location file="src/ml_runtime.h" line="160" column="1" bodyfile="src/ml_runtime.h" bodystart="160" bodyend="164"/>
     <listofallmembers>
       <member refid="structml__iter__state__t_1a5f6302c7483f44fd65e3e86ef35e8a72" prot="public" virt="non-virtual"><scope>ml_iter_state_t</scope><name>Base</name></member>
       <member refid="structml__iter__state__t_1ac647277e3354a19a7cb06829de4ec2cb" prot="public" virt="non-virtual"><scope>ml_iter_state_t</scope><name>Iter</name></member>

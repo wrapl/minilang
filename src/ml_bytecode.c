@@ -300,6 +300,16 @@ static ml_frame_t * _Atomic FrameCache = NULL;
 static ml_frame_t *FrameCache = NULL;
 #endif
 
+static size_t ml_frame_cache_usage(void *Data) {
+	size_t Count = 0;
+	for (ml_frame_t *Frame = FrameCache; Frame; Frame = Frame->Next) ++Count;
+	return Count;
+}
+
+static void ml_frame_cache_clear(void *Data) {
+	FrameCache = NULL;
+}
+
 #define ML_FRAME_REUSE_SIZE 384
 
 static ml_frame_t *ml_frame() {
@@ -2899,6 +2909,7 @@ ML_FUNCTION(DecodeFrame) {
 #undef DEBUG_VERSION
 
 void ml_bytecode_init() {
+	ml_cache_register("Frame", ml_frame_cache_usage, ml_frame_cache_clear, NULL);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLClosureT, MLFunctionT, ML_TYPE_ARG(1), NULL);
 #endif

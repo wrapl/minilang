@@ -4201,6 +4201,16 @@ static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 static size_t StringBufferNodeCount = 0;
 #endif
 
+static size_t ml_stringbuffer_cache_usage(void *Data) {
+	size_t Count = 0;
+	for (ml_stringbuffer_node_t *Node = StringBufferNodeCache; Node; Node = Node->Next) ++Count;
+	return Count;
+}
+
+static void ml_stringbuffer_cache_clear(void *Data) {
+	StringBufferNodeCache = NULL;
+}
+
 static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 #ifdef ML_THREADSAFE
 	ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
@@ -4237,7 +4247,9 @@ static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
 }
 
 ML_FUNCTION(MLStringBufferCount) {
-	return ml_integer(StringBufferNodeCount);
+	int Available = 0;
+	for (ml_stringbuffer_node_t *Node = StringBufferNodeCache; Node; Node = Node->Next) ++Available;
+	return ml_tuplev(2, ml_integer(Available), ml_integer(StringBufferNodeCount));
 }
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
@@ -4597,6 +4609,7 @@ void ml_string_init() {
 	setlocale(LC_ALL, "C.UTF-8");
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
+	ml_cache_register("StringBufferNode", ml_stringbuffer_cache_usage, ml_stringbuffer_cache_clear, NULL);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	stringmap_insert(MLStringBufferT->Exports, "count", MLStringBufferCount);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
