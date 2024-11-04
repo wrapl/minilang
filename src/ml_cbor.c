@@ -186,6 +186,10 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size
 	return minicbor_read(Reader->Reader, Bytes, Size);
 }
 
+int ml_cbor_reader_done(ml_cbor_reader_t *Reader) {
+	return Reader->Value != NULL;
+}
+
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader) {
 	if (!Reader->Value) return ml_error("CBORError", "CBOR not completely read");
 	return Reader->Value;
