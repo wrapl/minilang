@@ -559,7 +559,7 @@ ML_METHODX(CborDecode, MLStreamT) {
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Reader->TagFns = DefaultTagFns;
 	State->Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
-	State->Reader->Globals = Args[1];
+	State->Reader->Globals = MLExternals;
 	State->Reader->Reused = NULL;
 	minicbor_reader_init(State->Reader->Reader);
 	State->Reader->Reader->UserData = State->Reader;
