@@ -177,7 +177,7 @@ hierarchy
       "any":e -> "global":w;
       "any":e -> "command::decl":w;
       "stream":e -> "cbor::decoder":w;
-      "any":e -> "cbortag":w;
+      "any":e -> "cbor::tag":w;
       "any":e -> "variable":w;
       "state":e -> "continuation":w;
       "sequence":e -> "continuation":w;
