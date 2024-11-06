@@ -1539,7 +1539,7 @@ ML_METHOD("insert", MLSliceMutableT, MLIntegerT, MLAnyT) {
 	int Index = ml_integer_value(Args[1]);
 	int Length = Slice->Length;
 	if (Index <= 0) Index += Length + 1;
-	if (Index <= 0 || Index > Length) return MLNil;
+	if (Index <= 0 || Index > Length + 1) return MLNil;
 	ml_slice_insert((ml_value_t *)Slice, Index, Args[2]);
 	return (ml_value_t *)Slice;
 }
