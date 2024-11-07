@@ -944,7 +944,9 @@ ML_TYPE(MapNodeNodeStateT, (MLStateT), "map::node::state");
 //!internal
 
 static void ml_node_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
-	if (!ml_is_error(Value)) {
+	if (State->Node->Value != (ml_value_t *)State) {
+		Value = State->Node->Value;
+	} else if (!ml_is_error(Value)) {
 		State->Node->Value = ml_deref(Value);
 		Value = (ml_value_t *)State->Node;
 	}
