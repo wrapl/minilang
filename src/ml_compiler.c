@@ -2893,9 +2893,172 @@ void ml_resolve_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *
 }
 
 typedef struct {
+	ml_type_t *Type;
+	char *Strings;
+	int Parts[];
+} ml_string_create_t;
+
+typedef struct {
+	ml_state_t Base;
+	ml_string_create_t *Create;
+	ml_stringbuffer_t Buffer[1];
+	int PartIndex, StringIndex;
+	int ArgIndex, ArgCount;
+	ml_value_t *Args[];
+} ml_string_create_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_string_create_run(ml_string_create_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_string_create_t *Create = State->Create;
+	int Count = Create->Parts[State->PartIndex++];
+	for (;;) {
+		if (Count == 0) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+		if (Count > 0) {
+			ml_stringbuffer_write(State->Buffer, Create->Strings + State->StringIndex, Count);
+			State->StringIndex += Count;
+			Count = Create->Parts[State->PartIndex++];
+		} else {
+			Count = -Count;
+			break;
+		}
+	}
+	int ArgIndex = State->ArgIndex;
+	if (ArgIndex + Count + 1 > State->ArgCount) ML_ERROR("CallError", "Invalid string create call");
+	ml_value_t **Args = State->Args + ArgIndex;
+	State->ArgIndex = ArgIndex + Count;
+	Args[0] = (ml_value_t *)State->Buffer;
+	return ml_call(State, AppendMethod, Count + 1, Args);
+}
+
+static void ml_string_create_fn(ml_state_t *Caller, ml_string_create_t *Create, int Count, ml_value_t **Args) {
+	ml_string_create_state_t *State = xnew(ml_string_create_state_t, Count + 1, ml_value_t *);
+	memcpy(State->Args + 1, Args, Count * sizeof(ml_value_t *));
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_string_create_run;
+	State->Buffer[0] = ML_STRINGBUFFER_INIT;
+	State->Create = Create;
+	State->ArgCount = Count + 1;
+	return ml_string_create_run(State, MLNil);
+}
+
+typedef struct {
 	mlc_string_expr_t *Expr;
 	mlc_string_part_t *Part;
 	mlc_expr_t *Child;
+	ml_string_create_t *Create;
+	int PartIndex, StringIndex, ArgIndex, LastIndex;
+	int Flags;
+} ml_string_expr_partial_frame_t;
+
+void ml_string_expr_compile4(mlc_function_t *Function, ml_value_t *Value, ml_string_expr_partial_frame_t *Frame) {
+	mlc_expr_t *Child = Frame->Child;
+	ml_inst_t *SetInst = MLC_EMIT(Child->EndLine, MLI_PARTIAL_SET, 1);
+	int ArgIndex = (SetInst[1].Count = Frame->ArgIndex) + 1;
+	while ((Child = Child->Next)) {
+		if (Child->compile != (void *)ml_blank_expr_compile) {
+			Frame->ArgIndex = ArgIndex;
+			Frame->Child = Child;
+			return mlc_compile(Function, Child, 0);
+		}
+		++ArgIndex;
+	}
+	ml_string_create_t *Create = Frame->Create;
+	int PartIndex = Frame->PartIndex;
+	int StringIndex = Frame->StringIndex;
+	Create->Parts[PartIndex++] = Frame->LastIndex - ArgIndex;
+	int LastIndex = ArgIndex;
+	mlc_string_part_t *Part = Frame->Part;
+	while ((Part = Part->Next)) {
+		if (Part->Length) {
+			Create->Parts[PartIndex++] = Part->Length;
+			memcpy(Create->Strings + StringIndex, Part->Chars, Part->Length);
+			StringIndex += Part->Length;
+		} else {
+			for (mlc_expr_t *Child = Part->Child; Child; Child = Child->Next) {
+				if (Child->compile != (void *)ml_blank_expr_compile) {
+					Frame->Part = Part;
+					Frame->Child = Child;
+					Frame->PartIndex = PartIndex;
+					Frame->StringIndex = StringIndex;
+					Frame->ArgIndex = ArgIndex;
+					Frame->LastIndex = LastIndex;
+					return mlc_compile(Function, Child, 0);
+				}
+				++ArgIndex;
+			}
+			Create->Parts[PartIndex++] = LastIndex - ArgIndex;
+			LastIndex = ArgIndex;
+		}
+	}
+	if (!(Frame->Flags & MLCF_PUSH)) {
+		MLC_EMIT(Frame->Expr->EndLine, MLI_POP, 0);
+		--Function->Top;
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+void ml_string_expr_compile3(mlc_function_t *Function, mlc_string_expr_t *Expr, int Flags) {
+	int PartCount = 0, StringCount = 0, ArgCount = 0;
+	for (mlc_string_part_t *Part = Expr->Parts; Part; Part = Part->Next) {
+		++PartCount;
+		if (Part->Length) {
+			StringCount += Part->Length;
+		} else {
+			for (mlc_expr_t *Child = Part->Child; Child; Child = Child->Next) ++ArgCount;
+		}
+	}
+	ml_string_create_t *Create = xnew(ml_string_create_t, PartCount + 1, sizeof(int));
+	Create->Strings = snew(StringCount);
+	ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
+	LoadInst[1].Value = ml_cfunctionx(Create, (ml_callbackx_t)ml_string_create_fn);
+	ml_inst_t *PartialInst = MLC_EMIT(Expr->StartLine, MLI_PARTIAL_NEW, 1);
+	PartialInst[1].Count = ArgCount;
+	mlc_inc_top(Function);
+	MLC_FRAME(ml_string_expr_partial_frame_t, ml_string_expr_compile4);
+	Frame->Expr = Expr;
+	Frame->Flags = Flags;
+	Frame->Create = Create;
+	int PartIndex = 0, StringIndex = 0, ArgIndex = 0, LastIndex = 0;
+	for (mlc_string_part_t *Part = Expr->Parts; Part; Part = Part->Next) {
+		if (Part->Length) {
+			Create->Parts[PartIndex++] = Part->Length;
+			memcpy(Create->Strings + StringIndex, Part->Chars, Part->Length);
+			StringIndex += Part->Length;
+		} else {
+			for (mlc_expr_t *Child = Part->Child; Child; Child = Child->Next) {
+				if (Child->compile != (void *)ml_blank_expr_compile) {
+					Frame->Part = Part;
+					Frame->Child = Child;
+					Frame->PartIndex = PartIndex;
+					Frame->StringIndex = StringIndex;
+					Frame->ArgIndex = ArgIndex;
+					Frame->LastIndex = LastIndex;
+					return mlc_compile(Function, Child, 0);
+				}
+				++ArgIndex;
+			}
+			Create->Parts[PartIndex++] = LastIndex - ArgIndex;
+			LastIndex = ArgIndex;
+		}
+	}
+	if (!(Frame->Flags & MLCF_PUSH)) {
+		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
+		--Function->Top;
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+typedef struct {
+	mlc_string_expr_t *Expr;
+	mlc_string_part_t *Part;
+	mlc_expr_t *Child;
+	ml_string_create_t *Create;
 	int NumArgs, Flags;
 } ml_string_expr_frame_t;
 
@@ -2939,6 +3102,15 @@ static void ml_string_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 }
 
 void ml_string_expr_compile(mlc_function_t *Function, mlc_string_expr_t *Expr, int Flags) {
+	for (mlc_string_part_t *Part = Expr->Parts; Part; Part = Part->Next) {
+		if (!Part->Length) {
+			for (mlc_expr_t *Child = Part->Child; Child; Child = Child->Next) {
+				if (Child->compile == (void *)ml_blank_expr_compile) {
+					return ml_string_expr_compile3(Function, Expr, Flags);
+				}
+			}
+		}
+	}
 	MLC_EMIT(Expr->StartLine, MLI_STRING_NEW, 0);
 	mlc_inc_top(Function);
 	for (mlc_string_part_t *Part = Expr->Parts; Part; Part = Part->Next) {
