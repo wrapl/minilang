@@ -975,6 +975,9 @@ void ml_slice_push(ml_value_t *Slice, ml_value_t *Value);
 ml_value_t *ml_slice_pop(ml_value_t *Slice);
 ml_value_t *ml_slice_pull(ml_value_t *Slice);
 
+ml_value_t *ml_slice_get(ml_value_t *Slice, int Index);
+ml_value_t *ml_slice_set(ml_value_t *Slice, int Index, ml_value_t *Value);
+
 static inline ml_slice_node_t *ml_slice_head(ml_slice_t *Slice) {
 	return Slice->Nodes + Slice->Offset;
 }

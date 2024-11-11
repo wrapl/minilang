@@ -4999,6 +4999,13 @@ static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLListT, ml_value_t
 	return Format;
 }
 
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLSliceT, ml_value_t *Value, ml_array_format_t Format) {
+	ML_SLICE_FOREACH(Value, Iter) {
+		Format = ml_array_of_type_guess(Iter->Value, Format);
+	}
+	return Format;
+}
+
 static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLTupleT, ml_value_t *Value, ml_array_format_t Format) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Value;
 	for (int I = 0; I < Tuple->Size; ++I) {
@@ -5055,6 +5062,18 @@ static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLListT, ml_value_t *Value, i
 	int Size = ml_list_length(Value);
 	if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 	ml_array_t *Array = ml_array_of_create(ml_list_get(Value, 1), Degree + 1, Format);
+	if (Array->Base.Type == MLErrorT) return Array;
+	Array->Dimensions[Degree].Size = Size;
+	if (Degree < Array->Degree - 1) {
+		Array->Dimensions[Degree].Stride = Array->Dimensions[Degree + 1].Size * Array->Dimensions[Degree + 1].Stride;
+	}
+	return Array;
+}
+
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLSliceT, ml_value_t *Value, int Degree, ml_array_format_t Format) {
+	int Size = ml_slice_length(Value);
+	if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
+	ml_array_t *Array = ml_array_of_create(ml_slice_get(Value, 1), Degree + 1, Format);
 	if (Array->Base.Type == MLErrorT) return Array;
 	Array->Dimensions[Degree].Size = Size;
 	if (Degree < Array->Degree - 1) {
@@ -5154,6 +5173,17 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLListT, ml_array_format_t Form
 	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
 	if (ml_list_length(Value) != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
 	ML_LIST_FOREACH(Value, Iter) {
+		ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Iter->Value);
+		if (Error) return Error;
+		Address += Dimension->Stride;
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLSliceT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
+	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	if (ml_slice_length(Value) != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+	ML_SLICE_FOREACH(Value, Iter) {
 		ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Iter->Value);
 		if (Error) return Error;
 		Address += Dimension->Stride;
@@ -5736,12 +5766,37 @@ ML_METHOD("$", MLListT) {
 //>array
 // Returns an array with the contents of :mini:`List`.
 }
+
+ML_METHOD("$", MLSliceT) {
+//<Slice
+//>array
+// Returns an array with the contents of :mini:`List`.
+}
 */
 
 ML_METHOD("^", MLListT) {
 //<List
 //>array
 // Returns an array with the contents of :mini:`List`, transposed.
+	ml_value_t *Source = Args[0];
+	ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
+	Format = ml_array_of_type_guess(Args[0], ML_ARRAY_FORMAT_NONE);
+	ml_array_t *Array = ml_array_of_create(Source, 1, Format);
+	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
+	int Degree = Array->Degree;
+	ml_array_dimension_t *Dimensions = Array->Dimensions;
+	for (int I = 1; I < Array->Degree; ++I) Dimensions[I - 1] = Dimensions[I];
+	size_t Size = Dimensions->Size * Dimensions->Stride;
+	char *Address = Array->Base.Value = array_alloc(Format, Size);
+	ml_value_t *Error = ml_array_of_fill(Array->Format, Dimensions, Address, Degree - 1, Source);
+	Array->Dimensions[Degree - 1].Size = 1;
+	return Error ?: (ml_value_t *)Array;
+}
+
+ML_METHOD("^", MLSliceT) {
+//<Slice
+//>array
+// Returns an array with the contents of :mini:`Slice`, transposed.
 	ml_value_t *Source = Args[0];
 	ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
 	Format = ml_array_of_type_guess(Args[0], ML_ARRAY_FORMAT_NONE);
@@ -8176,6 +8231,7 @@ void ml_array_init(stringmap_t *Globals) {
 #endif
 
 	ml_method_definev(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
+	ml_method_definev(ml_method("$"), MLArrayT->Constructor, 0, MLSliceT, NULL);
 	stringmap_insert(MLArrayT->Exports, "new", MLArrayNew);
 	stringmap_insert(MLArrayT->Exports, "wrap", MLArrayWrap);
 	stringmap_insert(MLArrayT->Exports, "cat", MLArrayCat);
