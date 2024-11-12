@@ -29,13 +29,80 @@ ML_TYPE(MLTableT, (MLSequenceT), "table");
 
 extern ml_type_t MLTableRowT[];
 
+static int ml_table_row_assign_same(const char *Name, ml_array_t *Column, int *Indices) {
+	int RowSize = Column->Dimensions[0].Stride;
+	void *Target = ml_array_data(Column) + Indices[0] * RowSize;
+	void *Source = ml_array_data(Column) + Indices[1] * RowSize;
+	memcpy(Target, Source, RowSize);
+	return 0;
+}
+
+typedef struct {
+	ml_table_t *Target;
+	ml_value_t *Error;
+	ml_value_t *TargetIndices[1];
+	ml_value_t *SourceIndices[1];
+} ml_table_row_assign_t;
+
+static int ml_table_row_assign_other(const char *Name, ml_array_t *Source, ml_table_row_assign_t *Assign) {
+	ml_array_t *Target = (ml_array_t *)stringmap_search(Assign->Target->Columns, Name);
+	if (!Target) return 0;
+	ml_value_t *Slot = ml_array_index(Target, 1, Assign->TargetIndices);
+	ml_value_t *Value = ml_array_index(Source, 1, Assign->SourceIndices);
+	ml_value_t *Result = ml_simple_assign(Slot, Value);
+	if (ml_is_error(Result)) {
+		Assign->Error = Result;
+		return 1;
+	}
+	return 0;
+}
+
 static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_value_t *Value) {
 	ml_table_t *Table = Row->Table;
-	ml_value_t *Indices[1] = {ml_integer((Row - Table->Rows) + 1 - Table->Offset)};
+	int Index = (Row - Table->Rows) + 1 - Table->Offset;
+	if (Index <= 0 || Index > Table->Length) ML_ERROR("ValueError", "Row is no longer valid");
 	if (ml_is(Value, MLMapT)) {
-
+		ml_value_t *Indices[1] = {ml_integer(Index)};
+		ML_MAP_FOREACH(Value, Iter) {
+			if (!ml_is(Iter->Key, MLStringT)) ML_ERROR("TypeError", "Column names must be strings");
+			const char *Name = ml_string_value(Iter->Key);
+			ml_array_t *Column = stringmap_search(Table->Columns, Name);
+			if (!Column) ML_ERROR("NameError", "Column %s not in table", Name);
+			ml_value_t *Slot = ml_array_index(Column, 1, Indices);
+			ml_value_t *Result = ml_simple_assign(Slot, Iter->Value);
+			if (ml_is_error(Result)) ML_RETURN(Result);
+		}
+	} else if (ml_is(Value, MLTupleT)) {
+		ml_value_t *Indices[1] = {ml_integer(Index)};
+		if (!ml_tuple_size(Value)) ML_RETURN(Value);
+		ml_value_t *Names = ml_tuple_get(Value, 1);
+		if (ml_typeof(Names) != MLNamesT) ML_ERROR("TypeError", "Tuple must have named values");
+		if (ml_names_length(Names) + 1 != ml_tuple_size(Value)) ML_ERROR("ShapeError", "Tuple does not have enough values");
+		int I = 1;
+		ML_NAMES_FOREACH(Names, Iter) {
+			const char *Name = ml_string_value(Iter->Value);
+			ml_array_t *Column = stringmap_search(Table->Columns, Name);
+			if (!Column) ML_ERROR("NameError", "Column %s not in table", Name);
+			ml_value_t *Slot = ml_array_index(Column, 1, Indices);
+			ml_value_t *Result = ml_simple_assign(Slot, ml_tuple_get(Value, ++I));
+			if (ml_is_error(Result)) ML_RETURN(Result);
+		}
 	} else if (ml_is(Value, MLTableRowT)) {
-
+		ml_table_row_t *Row2 = (ml_table_row_t *)Value;
+		ml_table_t *Table2 = Row2->Table;
+		int Index2 = (Row2 - Table2->Rows) + 1 - Table2->Offset;
+		if (Index2 <= 0 || Index2 > Table2->Length) ML_ERROR("ValueError", "Row is no longer valid");
+		if (Table == Table2) {
+			if (Index != Index2) {
+				int Indices[2] = {Index - 1, Index2 - 1};
+				stringmap_foreach(Table->Columns, Indices, (void *)ml_table_row_assign_same);
+			}
+		} else {
+			ml_table_row_assign_t Assign[1] = {{Table, NULL, {ml_integer(Index)}, {ml_integer(Index2)}}};
+			if (stringmap_foreach(Table2->Columns, Assign, (void *)ml_table_row_assign_other)) {
+				ML_RETURN(Assign->Error);
+			}
+		}
 	}
 	ML_RETURN(Value);
 }
@@ -63,7 +130,7 @@ ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array
 		Data = snew(RowSize * Table->Capacity);
 	}
 	Column->Base.Value = Data + RowSize * Table->Offset;
-	ml_array_copy(Column, Source);
+	ml_array_copy_data(Source, Column->Base.Value);
 	stringmap_insert(Table->Columns, Name, Column);
 	return Column;
 }
@@ -301,7 +368,7 @@ ML_METHOD("[]", MLTableRowT, MLStringT) {
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
 	ml_table_t *Table = Row->Table;
 	int Index = (Row - Table->Rows) + 1 - Table->Offset;
-	if (Index <= 0 || Index > Table->Length) return MLNil;
+	if (Index <= 0 || Index > Table->Length) return ml_error("ValueError", "Row is no longer valid");
 	ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Args[1]));
 	if (!Column) return MLNil;
 	ml_value_t *Indices[1] = {ml_integer(Index)};
@@ -312,7 +379,7 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
 	ml_table_t *Table = Row->Table;
 	int Index = (Row - Table->Rows) + 1 - Table->Offset;
-	if (Index <= 0 || Index > Table->Length) return MLNil;
+	if (Index <= 0 || Index > Table->Length) return ml_error("ValueError", "Row is no longer valid");
 	ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Args[1]));
 	if (!Column) return MLNil;
 	ml_value_t *Indices[1] = {ml_integer(Index)};
@@ -342,7 +409,7 @@ ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 	ml_table_row_t *Row = (ml_table_row_t *)Args[1];
 	ml_table_t *Table = Row->Table;
 	int Index = (Row - Table->Rows) + 1 - Table->Offset;
-	if (Index <= 0 || Index > Table->Length) return MLNil;
+	if (Index <= 0 || Index > Table->Length) return ml_error("ValueError", "Row is no longer valid");
 	ml_table_row_append_t Append[1] = {{(ml_stringbuffer_t *)Args[0], {ml_integer(Index)}, 0}};
 	ml_stringbuffer_put(Append->Buffer, '<');
 	stringmap_foreach(Table->Columns, Append, (void *)ml_table_row_append_column);

@@ -314,11 +314,11 @@ ml_array_t *ml_array_alloc(ml_array_format_t Format, int Degree) {
 ml_array_t *ml_array_const_alloc(ml_array_format_t Format, int Degree) {
 	ml_array_t *Array = xnew(ml_array_t, Degree, ml_array_dimension_t);
 	if (Degree == 1) {
-		Array->Base.Type = MLVectorMutableTypes[Format];
+		Array->Base.Type = MLVectorTypes[Format];
 	} else if (Degree == 2) {
-		Array->Base.Type = MLMatrixMutableTypes[Format];
+		Array->Base.Type = MLMatrixTypes[Format];
 	} else {
-		Array->Base.Type = MLArrayMutableTypes[Format];
+		Array->Base.Type = MLArrayTypes[Format];
 	}
 	Array->Degree = Degree;
 	Array->Format = Format;
