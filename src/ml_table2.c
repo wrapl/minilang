@@ -27,7 +27,22 @@ struct ml_table_row_t {
 ML_TYPE(MLTableT, (MLSequenceT), "table");
 // A table is a set of named arrays. The arrays must have the same length.
 
-ML_TYPE(MLTableRowT, (), "table::row");
+extern ml_type_t MLTableRowT[];
+
+static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_value_t *Value) {
+	ml_table_t *Table = Row->Table;
+	ml_value_t *Indices[1] = {ml_integer((Row - Table->Rows) + 1 - Table->Offset)};
+	if (ml_is(Value, MLMapT)) {
+
+	} else if (ml_is(Value, MLTableRowT)) {
+
+	}
+	ML_RETURN(Value);
+}
+
+ML_TYPE(MLTableRowT, (), "table::row",
+	.assign = (void *)ml_table_row_assign
+);
 
 ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array_t *Source) {
 	// Source->Degree >= 1

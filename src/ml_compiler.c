@@ -5817,6 +5817,26 @@ with_name:
 			TupleExpr->Child = Expr;
 			Expr->Next = ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
 			Expr = ML_EXPR_END(TupleExpr);
+		} else if (ml_parse2(Parser, MLT_COLON) || ml_parse2(Parser, MLT_IS)) {
+			ML_EXPR(TupleExpr, parent, tuple);
+			TupleExpr->Child = Expr;
+			ml_value_t *Names = ml_names();
+			if (Expr->compile == (void *)ml_ident_expr_compile) {
+				ml_names_add(Names, ml_string(((mlc_ident_expr_t *)Expr)->Ident, -1));
+			} else if (Expr->compile == (void *)ml_value_expr_compile) {
+				ml_value_t *Name = ((mlc_value_expr_t *)Expr)->Value;
+				if (ml_typeof(Name) != MLStringT) {
+					ml_parse_warn(Parser, "ParseError", "Argument names must be identifiers or strings");
+				}
+				ml_names_add(Names, Name);
+			} else {
+				ml_parse_warn(Parser, "ParseError", "Argument names must be identifiers or strings");
+			}
+			ML_EXPR(NamesArg, value, value);
+			NamesArg->Value = Names;
+			TupleExpr->Child = ML_EXPR_END(NamesArg);
+			ml_accept_named_arguments(Parser, MLT_RIGHT_PAREN, &TupleExpr->Child, Names);
+			Expr = ML_EXPR_END(TupleExpr);
 		} else {
 			ml_accept(Parser, MLT_RIGHT_PAREN);
 		}
