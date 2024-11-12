@@ -194,7 +194,7 @@ void ml_slice_put(ml_value_t *Slice0, ml_value_t *Value) {
 		memmove(Slice->Nodes, Slice->Nodes + Offset, Length * sizeof(ml_slice_node_t));
 		Slice->Nodes[Length].Value = Value;
 	} else {
-		Capacity += (Capacity >> 1) + 4;
+		Capacity += (Capacity >> 2) + 4;
 		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
 		memcpy(Nodes, Slice->Nodes, Length * sizeof(ml_slice_node_t));
 		Slice->Nodes = Nodes;
@@ -217,7 +217,7 @@ void ml_slice_push(ml_value_t *Slice0, ml_value_t *Value) {
 			Offset = Capacity - Length;
 			memmove(Slice->Nodes + Offset, Slice->Nodes, Length * sizeof(ml_slice_node_t));
 		} else {
-			Capacity += (Capacity >> 1) + 4;
+			Capacity += (Capacity >> 2) + 4;
 			Offset = Capacity - Length;
 			ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
 			memcpy(Nodes + Offset, Slice->Nodes, Length * sizeof(ml_slice_node_t));
@@ -239,7 +239,7 @@ void ml_slice_insert(ml_value_t *Slice0, int Index, ml_value_t *Value) {
 	size_t Length = Slice->Length;
 	size_t Capacity = Slice->Capacity;
 	if (Length == Capacity) {
-		Capacity += (Capacity >> 1) + 4;
+		Capacity += (Capacity >> 2) + 4;
 		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
 		Offset = (Capacity - Length - 1) / 2;
 		ml_slice_node_t *Next = mempcpy(Nodes + Offset, Slice->Nodes, (Index - 1) * sizeof(ml_slice_node_t));
