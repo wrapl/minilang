@@ -49,7 +49,7 @@ static int ml_table_row_assign_other(const char *Name, ml_array_t *Source, ml_ta
 	if (!Target) return 0;
 	ml_value_t *Slot = ml_array_index(Target, 1, Assign->TargetIndices);
 	ml_value_t *Value = ml_array_index(Source, 1, Assign->SourceIndices);
-	ml_value_t *Result = ml_simple_assign(Slot, Value);
+	ml_value_t *Result = ml_simple_assign(Slot, ml_deref(Value));
 	if (ml_is_error(Result)) {
 		Assign->Error = Result;
 		return 1;
