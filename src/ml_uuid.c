@@ -129,19 +129,109 @@ ML_METHOD("<>", MLUUIDT, MLUUIDT) {
 	return ml_integer(uuid_compare(UUIDA->Value, UUIDB->Value));
 }
 
-#define ml_comp_method_time_time(NAME, SYMBOL) \
+#define ml_comp_method_uuid_uuid(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLUUIDT, MLUUIDT) { \
 		ml_uuid_t *UUIDA = (ml_uuid_t *)Args[0]; \
 		ml_uuid_t *UUIDB = (ml_uuid_t *)Args[1]; \
 		return uuid_compare(UUIDA->Value, UUIDB->Value) SYMBOL 0 ? Args[1] : MLNil; \
 	}
 
-ml_comp_method_time_time("=", ==);
-ml_comp_method_time_time("!=", !=);
-ml_comp_method_time_time("<", <);
-ml_comp_method_time_time(">", >);
-ml_comp_method_time_time("<=", <=);
-ml_comp_method_time_time(">=", >=);
+ml_comp_method_uuid_uuid("=", ==);
+ml_comp_method_uuid_uuid("!=", !=);
+ml_comp_method_uuid_uuid("<", <);
+ml_comp_method_uuid_uuid(">", >);
+ml_comp_method_uuid_uuid("<=", <=);
+ml_comp_method_uuid_uuid(">=", >=);
+
+#ifdef ML_GENERICS
+
+static ml_map_node_t *ml_map_find_node_uuid(ml_map_t *Map, ml_value_t *Key) {
+	long Hash = ml_hash(Key);
+	const unsigned char *UUIDA = ml_uuid_value(Key);
+	ml_map_node_t *Node = Map->Root;
+	while (Node) {
+		int Compare;
+		if (Hash < Node->Hash) {
+			Compare = -1;
+		} else if (Hash > Node->Hash) {
+			Compare = 1;
+		} else {
+			const unsigned char *UUIDB = ml_uuid_value(Node->Key);
+			Compare = uuid_compare(UUIDA, UUIDB);
+		}
+		if (!Compare) {
+			return Node;
+		} else {
+			Node = Compare < 0 ? Node->Left : Node->Right;
+		}
+	}
+	return NULL;
+}
+
+extern ml_type_t MLMapIndexT[];
+extern ml_type_t MLMapMutableT[];
+void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node);
+void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node);
+
+ML_GENERIC_TYPE(MLMapMutableUUIDAnyT, MLMapMutableT, MLUUIDT, MLAnyT);
+
+ML_METHOD("[]", MLMapMutableUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+ML_METHOD("::", MLMapMutableUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+#ifdef ML_MUTABLES
+
+ML_GENERIC_TYPE(MLMapUUIDAnyT, MLMapT, MLUUIDT, MLAnyT);
+
+ML_METHOD("[]", MLMapUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+ML_METHOD("::", MLMapUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+#endif
+
+#endif
 
 #ifdef ML_CBOR
 

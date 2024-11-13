@@ -641,7 +641,7 @@ ML_METHOD("order", MLMapMutableT, MLMapOrderT) {
 	return (ml_value_t *)Map;
 }
 
-static void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node) {
+void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node) {
 	ml_map_node_t *Prev = Node->Prev;
 	if (Prev) {
 		ml_map_node_t *Next = Node->Next;
@@ -658,7 +658,7 @@ static void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node) {
 	}
 }
 
-static void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node) {
+void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node) {
 	ml_map_node_t *Next = Node->Next;
 	if (Next) {
 		ml_map_node_t *Prev = Node->Prev;

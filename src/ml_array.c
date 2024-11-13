@@ -4986,7 +4986,7 @@ ML_COMPARE_METHOD(Gt, Lt, >, >);
 ML_COMPARE_METHOD(Le, Ge, <=, <=);
 ML_COMPARE_METHOD(Ge, Le, >=, >=);
 
-static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
 	typeof(ml_array_of_type_guess) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_type_guess);
 	if (function) return function(Value, Format);
 	return ML_ARRAY_FORMAT_ANY;
@@ -5047,7 +5047,7 @@ static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealIntervalT, ml
 	return Format;
 }
 
-static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
+ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
 	typeof(ml_array_of_create) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_create);
 	if (function) return function(Value, Degree, Format);
 	ml_array_t *Array = ml_array_alloc(Format, Degree);
@@ -5144,7 +5144,7 @@ static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLRealIntervalT, ml_real_inte
 	return Array;
 }
 
-static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
+ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
 	typeof(ml_array_of_fill) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_fill);
 	if (function) return function(Format, Dimension, Address, Degree, Value);
 	if (Degree) return ml_error("ValueError", "Inconsistent depth in array");
@@ -5694,6 +5694,19 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealIntervalT, ml_array_forma
 	}
 	}
 	return NULL;
+}
+
+ml_value_t *ml_array_of(ml_value_t *Source) {
+	ml_array_format_t Format = ml_array_of_type_guess(Source, ML_ARRAY_FORMAT_NONE);
+	ml_array_t *Array = ml_array_of_create(Source, 0, Format);
+	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
+	int Degree = Array->Degree;
+	ml_array_dimension_t *Dimensions = Array->Dimensions;
+	size_t Size = Dimensions->Size * Dimensions->Stride;
+	char *Address = Array->Base.Value = array_alloc(Format, Size);
+	Array->Base.Length = Size;
+	ml_value_t *Error = ml_array_of_fill(Array->Format, Dimensions, Address, Degree, Source);
+	return Error ?: (ml_value_t *)Array;
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {

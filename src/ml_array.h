@@ -46,6 +46,11 @@ int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
 ml_value_t *ml_array_index(ml_array_t *Array, int Count, ml_value_t **Indices);
 
+ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format);
+ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format);
+ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value);
+ml_value_t *ml_array_of(ml_value_t *Source);
+
 void ml_array_foreach(ml_array_t *Array, void *Data, void (*callback)(void *, int *, void *));
 static inline char *ml_array_data(ml_array_t *Array) {
 	return Array->Base.Value;
