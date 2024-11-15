@@ -212,6 +212,17 @@ ML_METHODV(MLTableT, MLNamesT, MLAnyT) {
 	return (ml_value_t *)Table;
 }
 
+static int table_columns_to_map(const char *Name, ml_value_t *Array, ml_value_t *Map) {
+	ml_map_insert(Map, ml_string(Name, -1), Array);
+	return 0;
+}
+
+ml_value_t *ml_table_columns(ml_value_t *Table) {
+	ml_value_t *Columns = ml_map();
+	stringmap_foreach(((ml_table_t *)Table)->Columns, Columns, (void *)table_columns_to_map);
+	return Columns;
+}
+
 typedef struct {
 	size_t Index, Offset, Length, Capacity;
 } shift_info_t;
@@ -514,17 +525,10 @@ ML_METHODV("put", MLTableT, MLNamesT) {
 	return (ml_value_t *)Table;
 }
 
-static int table_columns_to_map(const char *Name, ml_value_t *Array, ml_value_t *Map) {
-	ml_map_insert(Map, ml_string(Name, -1), Array);
-	return 0;
-}
-
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLTableT, ml_table_t *Table) {
 	ml_value_t *Result = ml_list();
 	ml_list_put(Result, ml_cstring("table"));
-	ml_value_t *Columns = ml_map();
-	stringmap_foreach(Table->Columns, Columns, (void *)table_columns_to_map);
-	ml_list_put(Result, Columns);
+	ml_list_put(Result, ml_table_columns((ml_value_t *)Table));
 	return Result;
 }
 
