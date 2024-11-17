@@ -7442,11 +7442,11 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	ml_parser_t *Parser = ml_parser(ml_load_file_read, File);
 	Parser->Source.Name = FileName;
 	const char *Line = ml_load_file_read(File);
-	if (!Line) ML_ERROR("LoadError", "Empty file %s", FileName);
+	if (!Line) ML_RETURN(ml_integer(0));
 	if (Line[0] == '#' && Line[1] == '!') {
 		Parser->Line = 2;
 		Line = ml_load_file_read(File);
-		if (!Line) ML_ERROR("LoadError", "Empty file %s", FileName);
+		if (!Line) ML_RETURN(ml_integer(0));
 	} else {
 		Parser->Line = 1;
 	}
