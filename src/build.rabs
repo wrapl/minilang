@@ -262,6 +262,10 @@ let Options := [
 	"STRINGCACHE"
 ]
 
+if MACHINE = "x86" then
+	MINILANG_TRAMPOLINE := 1
+end
+
 MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
@@ -304,7 +308,8 @@ MINILANG_XE := old or defined("XE")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
-MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or old or defined("SCHEDULER")
+MINILANG_TRAMPOLINE := old or defined("TRAMPOLINE")
+MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or MINILANG_TRAMPOLINE or old or defined("SCHEDULER")
 MINILANG_TIMESCHED := old or defined("TIMESCHED")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
@@ -377,6 +382,10 @@ end
 
 if defined("ASSERTS") then
 	CFLAGS := old + ["-DML_ASSERTS"]
+end
+
+if MINILANG_TRAMPOLINE then
+	CFLAGS := old + ["-DML_USE_TRAMPOLINE"]
 end
 
 if MINILANG_TABLES then
@@ -661,7 +670,7 @@ end
 if PLATFORM = "Wasm" then
 	LIBMINILANG := c_library(LIB_DIR / "libminilang.wasm", Objects, Libraries)
 
-	CFLAGS := old + ["-DUSE_TRAMPOLINE"]
+	CFLAGS := old + ["-DML_USE_TRAMPOLINE"]
 	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sEXIT_RUNTIME=1", "-sALLOW_MEMORY_GROWTH=1"] :>, "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""]
 	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
 	
