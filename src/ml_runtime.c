@@ -213,7 +213,7 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_call(&State, Value, Count, Args);
 #ifdef ML_USE_TRAMPOLINE
 	while (!State.Value) {
-		ml_queued_state_t Queued = ml_scheduler_queue_next_wait(MLRootQueue);
+		ml_queued_state_t Queued = ml_scheduler_queue_next(MLRootQueue);
 		Queued.State->run(Queued.State, Queued.Value);
 	}
 #endif
@@ -225,7 +225,7 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
 	ml_assign(&State, Value, Value2);
 #ifdef ML_USE_TRAMPOLINE
 	while (!State.Value) {
-		ml_queued_state_t Queued = ml_scheduler_queue_next_wait(MLRootQueue);
+		ml_queued_state_t Queued = ml_scheduler_queue_next(MLRootQueue);
 		Queued.State->run(Queued.State, Queued.Value);
 	}
 #endif
