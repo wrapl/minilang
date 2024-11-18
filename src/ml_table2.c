@@ -138,11 +138,6 @@ ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array
 ml_value_t *ml_table() {
 	ml_table_t *Table = new(ml_table_t);
 	Table->Type = MLTableT;
-	ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, 5);
-	for (int I = 4; --I >= 0; ++Row) {
-		Row->Type = MLTableRowT;
-		Row->Table = Table;
-	}
 	Table->Length = 0;
 	Table->Capacity = 4;
 	Table->Offset = 2;
@@ -207,6 +202,33 @@ ML_METHODV(MLTableT, MLNamesT, MLAnyT) {
 		++I;
 		ml_array_t *Source = (ml_array_t *)Args[I];
 		if (!Source->Degree || Source->Dimensions[0].Size != Length) return ml_error("ShapeError", "Arrays must have same length");
+		ml_table_insert_column(Table, ml_string_value(Iter->Value), Source);
+	}
+	return (ml_value_t *)Table;
+}
+
+ML_METHODV(MLTableT, MLNamesT, MLTypeT) {
+	ML_NAMES_CHECK_ARG_COUNT(0);
+	if (!ml_names_length(Args[0])) return ml_table();
+	size_t Length = 0;
+	ml_table_t *Table = new(ml_table_t);
+	Table->Type = MLTableT;
+	ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, 5);
+	for (int I = Length; --I >= 0; ++Row) {
+		Row->Type = MLTableRowT;
+		Row->Table = Table;
+	}
+	Table->Length = Length;
+	Table->Capacity = 4;
+	Table->Offset = 0;
+	int I = 0;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		++I;
+		ml_array_format_t Format = ml_array_format((ml_type_t *)Args[I]);
+		if (Format == ML_ARRAY_FORMAT_NONE) return ml_error("ValueError", "Invalid array type");
+		ml_array_t *Source = ml_array(Format, 1, 4);
+		Source->Dimensions[0].Size = 0;
+		Source->Base.Length = 0;
 		ml_table_insert_column(Table, ml_string_value(Iter->Value), Source);
 	}
 	return (ml_value_t *)Table;
@@ -345,10 +367,29 @@ void ml_table_delete_row(ml_table_t *Table, size_t Index) {
 	Table->Length = Info->Length - 1;
 }
 
+ML_METHOD("length", MLTableT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	return ml_integer(Table->Length);
+}
+
+ML_METHOD("capacity", MLTableT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	return ml_integer(Table->Capacity);
+}
+
+ML_METHOD("offset", MLTableT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	return ml_integer(Table->Offset);
+}
+
+ML_METHOD("columns", MLTableT) {
+	return ml_table_columns(Args[0]);
+}
+
 ML_METHOD("insert", MLTableT, MLStringT, MLArrayT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[2];
-	if (!Source->Degree) return ml_error("ShapeError", "Arrays must have same length");
+	if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
 	if (!Table->Columns->Size) {
 		size_t Length = Source->Dimensions[0].Size;
 		ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, Length + 1);
@@ -374,7 +415,7 @@ ML_METHODV("insert", MLTableT, MLNamesT, MLArrayT) {
 		++I;
 		ML_CHECK_ARG_TYPE(I, MLArrayT);
 		ml_array_t *Source = (ml_array_t *)Args[I];
-		if (!Source->Degree) return ml_error("ShapeError", "Arrays must have same length");
+		if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
 		if (!Table->Columns->Size) {
 			size_t Length = Source->Dimensions[0].Size;
 			ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, Length + 1);

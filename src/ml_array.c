@@ -285,7 +285,7 @@ ML_ARRAY_TYPES(VectorMutable);
 ML_ARRAY_TYPES(Matrix);
 ML_ARRAY_TYPES(MatrixMutable);
 
-static ml_array_format_t ml_array_format(ml_type_t *Type) {
+ml_array_format_t ml_array_format(ml_type_t *Type) {
 	for (ml_array_format_t Format = ML_ARRAY_FORMAT_NONE; Format <= ML_ARRAY_FORMAT_ANY; ++Format) {
 		if (MLArrayTypes[Format] == Type) return Format;
 		if (MLArrayMutableTypes[Format] == Type) return Format;
