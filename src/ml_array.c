@@ -294,6 +294,12 @@ ml_array_format_t ml_array_format(ml_type_t *Type) {
 		if (MLMatrixTypes[Format] == Type) return Format;
 		if (MLMatrixMutableTypes[Format] == Type) return Format;
 	}
+	if (ml_is_subtype(Type, MLIntegerT)) return ML_ARRAY_FORMAT_I64;
+	if (ml_is_subtype(Type, MLRealT)) return ML_ARRAY_FORMAT_F64;
+#ifdef ML_COMPLEX
+	if (ml_is_subtype(Type, MLComplexT)) return ML_ARRAY_FORMAT_C64;
+#endif
+	if (Type == MLAnyT) return ML_ARRAY_FORMAT_ANY;
 	return ML_ARRAY_FORMAT_NONE;
 }
 
