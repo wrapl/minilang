@@ -159,7 +159,7 @@ ML_METHODV(MLTableT, MLMapT) {
 	if (!ml_is(Node->Key, MLStringT)) return ml_error("TypeError", "Column name must be a string");
 	ml_array_t *Source = (ml_array_t *)ml_array_of(Node->Value);
 	if (Source->Base.Type == MLErrorT) return (ml_value_t *)Source;
-	if (!Source->Degree) return ml_error("ShapeError", "Arrays must have same length");
+	if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
 	size_t Length = Source->Dimensions[0].Size;
 	ml_table_t *Table = new(ml_table_t);
 	Table->Type = MLTableT;
@@ -276,10 +276,10 @@ static int ml_table_column_shift_down(const char *Name, ml_array_t *Column, shif
 	void *Data = Column->Base.Value;
 	memmove(Data - RowSize, Data, (Index - 1) * RowSize);
 	if (Column->Format == ML_ARRAY_FORMAT_ANY) {
-		ml_value_t **P = (ml_value_t **)(Data + (Index - 1) * RowSize);
+		ml_value_t **P = (ml_value_t **)(Data + (Index - 2) * RowSize);
 		for (int I = RowSize / sizeof(ml_value_t *); --I >= 0;) *P++ = MLNil;
 	} else {
-		memset(Data + (Index - 1) * RowSize, 0, RowSize);
+		memset(Data + (Index - 2) * RowSize, 0, RowSize);
 	}
 	Column->Dimensions[0].Size += 1;
 	Column->Base.Length += RowSize;
@@ -516,6 +516,25 @@ ML_METHODV("put", MLTableT, MLNamesT) {
 	ml_value_t *Indices[1] = {ml_integer(Index)};
 	int I = 1;
 	ML_NAMES_FOREACH(Args[1], Iter) {
+		++I;
+		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Iter->Value));
+		if (!Column) continue;
+		ml_value_t *Value = ml_simple_assign(ml_array_index(Column, 1, Indices), Args[I]);
+		if (ml_is_error(Value)) return Value;
+	}
+	return (ml_value_t *)Table;
+}
+
+ML_METHODV("insert", MLTableT, MLIntegerT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(2);
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	if (Index <= 0) Index += Table->Length + 1;
+	if (Index <= 0 || Index > Table->Length + 1) return MLNil;
+	ml_table_insert_row(Table, Index);
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	int I = 2;
+	ML_NAMES_FOREACH(Args[2], Iter) {
 		++I;
 		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Iter->Value));
 		if (!Column) continue;
