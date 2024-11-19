@@ -204,14 +204,14 @@ ml_result_state_t *ml_result_state(ml_context_t *Context) {
 	return State;
 }
 
-#ifdef ML_USE_TRAMPOLINE
+#ifdef ML_TRAMPOLINE
 static ml_scheduler_queue_t *MLRootQueue;
 #endif
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, MLNil};
 	ml_call(&State, Value, Count, Args);
-#ifdef ML_USE_TRAMPOLINE
+#ifdef ML_TRAMPOLINE
 	while (!State.Value) {
 		ml_queued_state_t Queued = ml_scheduler_queue_next(MLRootQueue);
 		Queued.State->run(Queued.State, Queued.Value);
@@ -223,7 +223,7 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
 	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, MLNil};
 	ml_assign(&State, Value, Value2);
-#ifdef ML_USE_TRAMPOLINE
+#ifdef ML_TRAMPOLINE
 	while (!State.Value) {
 		ml_queued_state_t Queued = ml_scheduler_queue_next(MLRootQueue);
 		Queued.State->run(Queued.State, Queued.Value);
@@ -1931,7 +1931,7 @@ void ml_runtime_init(const char *ExecName) {
 	MLRootContext = xnew(ml_context_t, MLContextSize, void *);
 	MLRootContext->Parent = MLRootContext;
 	MLRootContext->Size = MLContextSize;
-#ifdef ML_USE_TRAMPOLINE
+#ifdef ML_TRAMPOLINE
 	MLRootQueue = ml_default_queue_init(MLRootContext, 250);
 #else
 	ml_context_set_static(MLRootContext, ML_SCHEDULER_INDEX, &DefaultScheduler);
