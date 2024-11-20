@@ -209,7 +209,7 @@ static ml_scheduler_queue_t *MLRootQueue;
 #endif
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, MLNil};
+	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, NULL};
 	ml_call(&State, Value, Count, Args);
 #ifdef ML_TRAMPOLINE
 	while (!State.Value) {
@@ -221,7 +221,7 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 }
 
 ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
-	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, MLNil};
+	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, NULL};
 	ml_assign(&State, Value, Value2);
 #ifdef ML_TRAMPOLINE
 	while (!State.Value) {
