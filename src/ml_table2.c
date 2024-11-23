@@ -15,8 +15,17 @@ typedef struct ml_table_row_t ml_table_row_t;
 struct ml_table_t {
 	ml_type_t *Type;
 	ml_table_row_t *Rows;
-	stringmap_t Columns[1];
+	ml_table_column_t *Columns;
+	stringmap_t ColumnNames[1];
 	size_t Capacity, Offset, Length;
+};
+
+struct ml_table_column_t {
+	ml_type_t *Type;
+	ml_table_column_t *Next;
+	const char *Name;
+	ml_table_t *Table;
+	ml_value_t *Values;
 };
 
 struct ml_table_row_t {
@@ -26,6 +35,21 @@ struct ml_table_row_t {
 
 ML_TYPE(MLTableT, (MLSequenceT), "table");
 // A table is a set of named arrays. The arrays must have the same length.
+
+static ml_value_t *ml_table_column_deref(ml_table_column_t *Column) {
+	return Column->Values;
+}
+
+static void ml_table_column_assign(ml_state_t *Caller, ml_table_column_t *Column, ml_value_t *Value) {
+	ml_value_t *Source = ml_array_of(Value);
+	if (ml_is_error(Source)) ML_RETURN(Source);
+
+}
+
+ML_TYPE(MLTableColumnT, (), "table::column",
+	.deref = (void *)ml_table_column_deref,
+	.assign = (void *)ml_table_column_assign
+);
 
 extern ml_type_t MLTableRowT[];
 
@@ -45,7 +69,7 @@ typedef struct {
 } ml_table_row_assign_t;
 
 static int ml_table_row_assign_other(const char *Name, ml_array_t *Source, ml_table_row_assign_t *Assign) {
-	ml_array_t *Target = (ml_array_t *)stringmap_search(Assign->Target->Columns, Name);
+	ml_array_t *Target = (ml_array_t *)stringmap_search(Assign->Target->ColumnNames, Name);
 	if (!Target) return 0;
 	ml_value_t *Slot = ml_array_index(Target, 1, Assign->TargetIndices);
 	ml_value_t *Value = ml_array_index(Source, 1, Assign->SourceIndices);
@@ -66,7 +90,7 @@ static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_valu
 		ML_MAP_FOREACH(Value, Iter) {
 			if (!ml_is(Iter->Key, MLStringT)) ML_ERROR("TypeError", "Column names must be strings");
 			const char *Name = ml_string_value(Iter->Key);
-			ml_array_t *Column = stringmap_search(Table->Columns, Name);
+			ml_array_t *Column = stringmap_search(Table->ColumnNames, Name);
 			if (!Column) ML_ERROR("NameError", "Column %s not in table", Name);
 			ml_value_t *Slot = ml_array_index(Column, 1, Indices);
 			ml_value_t *Result = ml_simple_assign(Slot, Iter->Value);
@@ -81,7 +105,7 @@ static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_valu
 		int I = 1;
 		ML_NAMES_FOREACH(Names, Iter) {
 			const char *Name = ml_string_value(Iter->Value);
-			ml_array_t *Column = stringmap_search(Table->Columns, Name);
+			ml_array_t *Column = stringmap_search(Table->ColumnNames, Name);
 			if (!Column) ML_ERROR("NameError", "Column %s not in table", Name);
 			ml_value_t *Slot = ml_array_index(Column, 1, Indices);
 			ml_value_t *Result = ml_simple_assign(Slot, ml_tuple_get(Value, ++I));
@@ -95,11 +119,11 @@ static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_valu
 		if (Table == Table2) {
 			if (Index != Index2) {
 				int Indices[2] = {Index - 1, Index2 - 1};
-				stringmap_foreach(Table->Columns, Indices, (void *)ml_table_row_assign_same);
+				stringmap_foreach(Table->ColumnNames, Indices, (void *)ml_table_row_assign_same);
 			}
 		} else {
 			ml_table_row_assign_t Assign[1] = {{Table, NULL, {ml_integer(Index)}, {ml_integer(Index2)}}};
-			if (stringmap_foreach(Table2->Columns, Assign, (void *)ml_table_row_assign_other)) {
+			if (stringmap_foreach(Table2->ColumnNames, Assign, (void *)ml_table_row_assign_other)) {
 				ML_RETURN(Assign->Error);
 			}
 		}
@@ -131,7 +155,7 @@ ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array
 	}
 	Column->Base.Value = Data + RowSize * Table->Offset;
 	ml_array_copy_data(Source, Column->Base.Value);
-	stringmap_insert(Table->Columns, Name, Column);
+	stringmap_insert(Table->ColumnNames, Name, Column);
 	return Column;
 }
 
@@ -241,7 +265,7 @@ static int table_columns_to_map(const char *Name, ml_value_t *Array, ml_value_t 
 
 ml_value_t *ml_table_columns(ml_value_t *Table) {
 	ml_value_t *Columns = ml_map();
-	stringmap_foreach(((ml_table_t *)Table)->Columns, Columns, (void *)table_columns_to_map);
+	stringmap_foreach(((ml_table_t *)Table)->ColumnNames, Columns, (void *)table_columns_to_map);
 	return Columns;
 }
 
@@ -316,17 +340,17 @@ void ml_table_insert_row(ml_table_t *Table, size_t Index) {
 		Info->Offset = (Info->Capacity - Info->Length - 1) / 2;
 		Table->Capacity = Info->Capacity;
 		Table->Offset = Info->Offset;
-		stringmap_foreach(Table->Columns, Info, (void *)ml_table_column_expand);
+		stringmap_foreach(Table->ColumnNames, Info, (void *)ml_table_column_expand);
 		ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, Info->Capacity + 1);
 		for (int I = Info->Capacity; --I >= 0; ++Row) {
 			Row->Type = MLTableRowT;
 			Row->Table = Table;
 		}
 	} else if (!Info->Offset || (Index > Info->Length / 2)) {
-		stringmap_foreach(Table->Columns, Info, (void *)ml_table_column_shift_up);
+		stringmap_foreach(Table->ColumnNames, Info, (void *)ml_table_column_shift_up);
 	} else {
 		Table->Offset = --Info->Offset;
-		stringmap_foreach(Table->Columns, Info, (void *)ml_table_column_shift_down);
+		stringmap_foreach(Table->ColumnNames, Info, (void *)ml_table_column_shift_down);
 	}
 	Table->Length = Info->Length + 1;
 }
@@ -359,10 +383,10 @@ static int ml_table_column_shrink_down(const char *Name, ml_array_t *Column, shi
 void ml_table_delete_row(ml_table_t *Table, size_t Index) {
 	shift_info_t Info[1] = {{Index, Table->Offset, Table->Length, Table->Capacity}};
 	if (Info->Index > Info->Length / 2) {
-		stringmap_foreach(Table->Columns, Info, (void *)ml_table_column_shrink_down);
+		stringmap_foreach(Table->ColumnNames, Info, (void *)ml_table_column_shrink_down);
 	} else {
 		Table->Offset = ++Info->Offset;
-		stringmap_foreach(Table->Columns, Info, (void *)ml_table_column_shrink_up);
+		stringmap_foreach(Table->ColumnNames, Info, (void *)ml_table_column_shrink_up);
 	}
 	Table->Length = Info->Length - 1;
 }
@@ -390,7 +414,7 @@ ML_METHOD("insert", MLTableT, MLStringT, MLArrayT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[2];
 	if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
-	if (!Table->Columns->Size) {
+	if (!Table->ColumnNames->Size) {
 		size_t Length = Source->Dimensions[0].Size;
 		ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, Length + 1);
 		for (int I = Length; --I >= 0; ++Row) {
@@ -416,7 +440,7 @@ ML_METHODV("insert", MLTableT, MLNamesT, MLArrayT) {
 		ML_CHECK_ARG_TYPE(I, MLArrayT);
 		ml_array_t *Source = (ml_array_t *)Args[I];
 		if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
-		if (!Table->Columns->Size) {
+		if (!Table->ColumnNames->Size) {
 			size_t Length = Source->Dimensions[0].Size;
 			ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, Length + 1);
 			for (int I = Length; --I >= 0; ++Row) {
@@ -436,17 +460,17 @@ ML_METHODV("insert", MLTableT, MLNamesT, MLArrayT) {
 
 ML_METHOD("delete", MLTableT, MLStringT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
-	return (ml_value_t *)stringmap_remove(Table->Columns, ml_string_value(Args[1])) ?: MLNil;
+	return (ml_value_t *)stringmap_remove(Table->ColumnNames, ml_string_value(Args[1])) ?: MLNil;
 }
 
 ML_METHOD("[]", MLTableT, MLStringT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
-	return (ml_value_t *)stringmap_search(Table->Columns, ml_string_value(Args[1])) ?: MLNil;
+	return (ml_value_t *)stringmap_search(Table->ColumnNames, ml_string_value(Args[1])) ?: MLNil;
 }
 
 ML_METHOD("::", MLTableT, MLStringT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
-	return (ml_value_t *)stringmap_search(Table->Columns, ml_string_value(Args[1])) ?: MLNil;
+	return (ml_value_t *)stringmap_search(Table->ColumnNames, ml_string_value(Args[1])) ?: MLNil;
 }
 
 static void ML_TYPED_FN(ml_iterate, MLTableT, ml_state_t *Caller, ml_table_t *Table) {
@@ -484,7 +508,7 @@ ML_METHOD("[]", MLTableRowT, MLStringT) {
 	ml_table_t *Table = Row->Table;
 	int Index = (Row - Table->Rows) + 1 - Table->Offset;
 	if (Index <= 0 || Index > Table->Length) return ml_error("ValueError", "Row is no longer valid");
-	ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Args[1]));
+	ml_array_t *Column = (ml_array_t *)stringmap_search(Table->ColumnNames, ml_string_value(Args[1]));
 	if (!Column) return MLNil;
 	ml_value_t *Indices[1] = {ml_integer(Index)};
 	return ml_array_index(Column, 1, Indices);
@@ -495,7 +519,7 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 	ml_table_t *Table = Row->Table;
 	int Index = (Row - Table->Rows) + 1 - Table->Offset;
 	if (Index <= 0 || Index > Table->Length) return ml_error("ValueError", "Row is no longer valid");
-	ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Args[1]));
+	ml_array_t *Column = (ml_array_t *)stringmap_search(Table->ColumnNames, ml_string_value(Args[1]));
 	if (!Column) return MLNil;
 	ml_value_t *Indices[1] = {ml_integer(Index)};
 	return ml_array_index(Column, 1, Indices);
@@ -527,7 +551,7 @@ ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 	if (Index <= 0 || Index > Table->Length) return ml_error("ValueError", "Row is no longer valid");
 	ml_table_row_append_t Append[1] = {{(ml_stringbuffer_t *)Args[0], {ml_integer(Index)}, 0}};
 	ml_stringbuffer_put(Append->Buffer, '<');
-	stringmap_foreach(Table->Columns, Append, (void *)ml_table_row_append_column);
+	stringmap_foreach(Table->ColumnNames, Append, (void *)ml_table_row_append_column);
 	ml_stringbuffer_put(Append->Buffer, '>');
 	return MLSome;
 }
@@ -541,7 +565,7 @@ ML_METHODV("push", MLTableT, MLNamesT) {
 	int I = 1;
 	ML_NAMES_FOREACH(Args[1], Iter) {
 		++I;
-		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Iter->Value));
+		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->ColumnNames, ml_string_value(Iter->Value));
 		if (!Column) continue;
 		ml_value_t *Value = ml_simple_assign(ml_array_index(Column, 1, Indices), Args[I]);
 		if (ml_is_error(Value)) return Value;
@@ -558,7 +582,7 @@ ML_METHODV("put", MLTableT, MLNamesT) {
 	int I = 1;
 	ML_NAMES_FOREACH(Args[1], Iter) {
 		++I;
-		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Iter->Value));
+		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->ColumnNames, ml_string_value(Iter->Value));
 		if (!Column) continue;
 		ml_value_t *Value = ml_simple_assign(ml_array_index(Column, 1, Indices), Args[I]);
 		if (ml_is_error(Value)) return Value;
@@ -577,7 +601,7 @@ ML_METHODV("insert", MLTableT, MLIntegerT, MLNamesT) {
 	int I = 2;
 	ML_NAMES_FOREACH(Args[2], Iter) {
 		++I;
-		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->Columns, ml_string_value(Iter->Value));
+		ml_array_t *Column = (ml_array_t *)stringmap_search(Table->ColumnNames, ml_string_value(Iter->Value));
 		if (!Column) continue;
 		ml_value_t *Value = ml_simple_assign(ml_array_index(Column, 1, Indices), Args[I]);
 		if (ml_is_error(Value)) return Value;

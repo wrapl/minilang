@@ -13,7 +13,7 @@ typedef struct ml_table_row_t ml_table_row_t;
 
 struct ml_table_t {
 	ml_type_t *Type;
-	ml_value_t *Columns;
+	ml_value_t *ColumnNames;
 	ml_table_row_t *Rows;
 	size_t Size;
 };
@@ -36,14 +36,14 @@ static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_valu
 	if (ml_is(Value, MLMapT)) {
 		ML_MAP_FOREACH(Value, Iter) {
 			if (!ml_is(Iter->Key, MLStringT)) ML_ERROR("TypeError", "Column names must be strings");
-			ml_value_t *Column = ml_map_search(Table->Columns, Iter->Key);
+			ml_value_t *Column = ml_map_search(Table->ColumnNames, Iter->Key);
 			if (Column == MLNil) ML_ERROR("NameError", "Column %s not in table", ml_string_value(Iter->Key));
 			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, 1, Indices);
 			ml_value_t *Result = ml_simple_assign(Slot, Iter->Value);
 			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
 	} else if (ml_is(Value, MLListT)) {
-		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+		ml_map_node_t *Node = ((ml_map_t *)Table->ColumnNames)->Head;
 		ML_LIST_FOREACH(Value, Iter) {
 			if (!Node) ML_ERROR("ValueError", "Too many columns in assignment");
 			ml_value_t *Column = Node->Value;
@@ -53,7 +53,7 @@ static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_valu
 			Node = Node->Next;
 		}
 	} else if (ml_is(Value, MLTupleT)) {
-		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+		ml_map_node_t *Node = ((ml_map_t *)Table->ColumnNames)->Head;
 		int Size = ml_tuple_size(Value);
 		for (int Index = 1; Index <= Size; ++Index) {
 			if (!Node) ML_ERROR("ValueError", "Too many columns in assignment");
@@ -77,7 +77,7 @@ ML_TYPE(MLTableRowT, (MLSequenceT), "table-row",
 ml_value_t *ml_table() {
 	ml_table_t *Table = new(ml_table_t);
 	Table->Type = MLTableT;
-	Table->Columns = ml_map();
+	Table->ColumnNames = ml_map();
 	return (ml_value_t *)Table;
 }
 
@@ -133,9 +133,9 @@ ML_METHODX(MLTableT, MLMapT) {
 	ML_MAP_FOREACH(Args[0], Iter) {
 		ml_value_t *Key = Iter->Key;
 		if (!ml_is(Key, MLStringT)) ML_ERROR("TypeError", "Column name must be a string");
-		ml_map_insert(Table->Columns, Key, Iter->Value);
+		ml_map_insert(Table->ColumnNames, Key, Iter->Value);
 	}
-	ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+	ml_map_node_t *Node = ((ml_map_t *)Table->ColumnNames)->Head;
 	while (Node) {
 		if (ml_is(Node->Value, MLArrayT)) {
 			ml_value_t *Value = Node->Value;
@@ -174,8 +174,8 @@ ML_METHODVX(MLTableT, MLNamesT) {
 	ML_NAMES_CHECKX_ARG_COUNT(0);
 	ml_table_t *Table = (ml_table_t *)ml_table();
 	int N = 1;
-	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Table->Columns, Iter->Value, Args[N++]);
-	ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Table->ColumnNames, Iter->Value, Args[N++]);
+	ml_map_node_t *Node = ((ml_map_t *)Table->ColumnNames)->Head;
 	while (Node) {
 		if (ml_is(Node->Value, MLArrayT)) {
 			ml_value_t *Value = Node->Value;
@@ -216,7 +216,7 @@ typedef struct {
 
 static void ml_table_pivot_state_run(ml_table_pivot_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_map_insert(State->Table->Columns, ml_list_get(State->Names, State->Index), Value);
+	ml_map_insert(State->Table->ColumnNames, ml_list_get(State->Names, State->Index), Value);
 	if (State->Index == State->Count) ML_CONTINUE(State->Base.Caller, State->Table);
 	int Index = ++State->Index;
 	ml_list_node_t *Node = ((ml_list_t *)State->List)->Head;
@@ -283,12 +283,12 @@ ml_value_t *ml_table_insert(ml_value_t *Value, ml_value_t *Name, ml_value_t *Col
 			Table->Rows[I].Table = Table;
 		}
 	}
-	ml_map_insert(Table->Columns, Name, Column);
+	ml_map_insert(Table->ColumnNames, Name, Column);
 	return Value;
 }
 
 ml_value_t *ml_table_columns(ml_value_t *Table) {
-	return ((ml_table_t *)Table)->Columns;
+	return ((ml_table_t *)Table)->ColumnNames;
 }
 
 ML_METHOD("insert", MLTableT, MLStringT, MLArrayT) {
@@ -324,7 +324,7 @@ ML_METHODV("insert", MLTableT, MLNamesT) {
 				Table->Rows[I].Table = Table;
 			}
 		}
-		ml_map_insert(Table->Columns, Iter->Value, Value);
+		ml_map_insert(Table->ColumnNames, Iter->Value, Value);
 	}
 	return (ml_value_t *)Table;
 }
@@ -345,7 +345,7 @@ ML_METHOD("append", MLStringBufferT, MLTableT) {
 	ml_table_t *Table = (ml_table_t *)Args[1];
 	ml_stringbuffer_write(Buffer, "table(", 6);
 	int Comma = 0;
-	ML_MAP_FOREACH(Table->Columns, Iter) {
+	ML_MAP_FOREACH(Table->ColumnNames, Iter) {
 		if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
 		ml_stringbuffer_simple_append(Buffer, Iter->Key);
 		Comma = 1;
@@ -362,7 +362,7 @@ ML_METHODVX("[]", MLTableT, MLStringT) {
 //>array
 // Returns the column :mini:`Name` from :mini:`Table`.
 	ml_table_t *Table = (ml_table_t *)Args[0];
-	ml_value_t *Column = ml_map_search(Table->Columns, Args[1]);
+	ml_value_t *Column = ml_map_search(Table->ColumnNames, Args[1]);
 	if (Column == MLNil) ML_RETURN(Column);
 	Args[1] = Column;
 	return ml_call(Caller, IndexMethod, Count - 1, Args + 1);
@@ -374,7 +374,7 @@ ML_METHODVX("::", MLTableT, MLStringT) {
 //>array
 // Returns the column :mini:`Name` from :mini:`Table`.
 	ml_table_t *Table = (ml_table_t *)Args[0];
-	ml_value_t *Column = ml_map_search(Table->Columns, Args[1]);
+	ml_value_t *Column = ml_map_search(Table->ColumnNames, Args[1]);
 	if (Column == MLNil) ML_RETURN(Column);
 	Args[1] = Column;
 	return ml_call(Caller, IndexMethod, Count - 1, Args + 1);
@@ -417,7 +417,7 @@ ML_METHOD("[]", MLTableRowT, MLStringT) {
 //>any
 // Returns the value from column :mini:`Name` in :mini:`Row`.
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
-	ml_value_t *Column = ml_map_search(Row->Table->Columns, Args[1]);
+	ml_value_t *Column = ml_map_search(Row->Table->ColumnNames, Args[1]);
 	if (Column == MLNil) return Column;
 	ml_value_t *Indices[1] = {ml_table_row_index(Row)};
 	return ml_array_index((ml_array_t *)Column, 1, Indices);
@@ -429,7 +429,7 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 //>any
 // Returns the value from column :mini:`Name` in :mini:`Row`.
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
-	ml_value_t *Column = ml_map_search(Row->Table->Columns, Args[1]);
+	ml_value_t *Column = ml_map_search(Row->Table->ColumnNames, Args[1]);
 	if (Column == MLNil) return Column;
 	ml_value_t *Indices[1] = {ml_table_row_index(Row)};
 	return ml_array_index((ml_array_t *)Column, 1, Indices);
@@ -444,7 +444,7 @@ ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 	ml_value_t *Indices[1] = {ml_table_row_index(Row)};
 	ml_stringbuffer_put(Buffer, '<');
 	int Comma = 0;
-	ML_MAP_FOREACH(Row->Table->Columns, Iter) {
+	ML_MAP_FOREACH(Row->Table->ColumnNames, Iter) {
 		if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
 		ml_stringbuffer_simple_append(Buffer, Iter->Key);
 		ml_stringbuffer_write(Buffer, " is ", 4);
@@ -468,7 +468,7 @@ ML_TYPE(MLTableRowIterT, (), "table-row-iter"
 );
 
 static void ML_TYPED_FN(ml_iterate, MLTableRowT, ml_state_t *Caller, ml_table_row_t *Row) {
-	ml_map_node_t *Node = ((ml_map_t *)Row->Table->Columns)->Head;
+	ml_map_node_t *Node = ((ml_map_t *)Row->Table->ColumnNames)->Head;
 	if (!Node) ML_RETURN(MLNil);
 	ml_table_row_iter_t *Iter = new(ml_table_row_iter_t);
 	Iter->Type = MLTableRowIterT;
@@ -496,7 +496,7 @@ static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_t
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLTableT, ml_table_t *Table) {
 	ml_value_t *Result = ml_list();
 	ml_list_put(Result, ml_cstring("table"));
-	ml_list_put(Result, Table->Columns);
+	ml_list_put(Result, Table->ColumnNames);
 	return Result;
 }
 

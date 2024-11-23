@@ -182,7 +182,7 @@ static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
 	return Index;
 }
 
-int ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size) {
+int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, int Size) {
 	return minicbor_read(Reader->Reader, Bytes, Size);
 }
 
