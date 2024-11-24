@@ -242,12 +242,15 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 
 #ifdef ML_SCHEDULER
 #ifdef ML_TIMESCHED
-#define CHECK_COUNTER //if (__builtin_expect(MLPreempt < 0, 0)) goto DO_SWAP;
+#define CHECK_COUNTER
+#define CHECK_COUNTER_GOTO if (__builtin_expect(MLPreempt < 0, 0)) goto DO_SWAP;
 #else
 #define CHECK_COUNTER if (__builtin_expect(--Counter == 0, 0)) goto DO_SWAP;
+#define CHECK_COUNTER_GOTO CHECK_COUNTER
 #endif
 #else
 #define CHECK_COUNTER
+#define CHECK_COUNTER_GOTO CHECK_COUNTER
 #endif
 
 #define ERROR() { \
@@ -259,6 +262,12 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #define ADVANCE(NEXT) { \
 	Inst = NEXT; \
 	CHECK_COUNTER \
+	goto *Labels[Inst->Opcode]; \
+}
+
+#define ADVANCE_GOTO(NEXT) { \
+	Inst = NEXT; \
+	CHECK_COUNTER_GOTO \
 	goto *Labels[Inst->Opcode]; \
 }
 
@@ -683,7 +692,7 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 		ADVANCE(Inst + 3);
 	}
 	DO_GOTO: {
-		ADVANCE(Inst[1].Inst);
+		ADVANCE_GOTO(Inst[1].Inst);
 	}
 	DO_TRY: {
 		Frame->OnError = Inst[1].Inst;
