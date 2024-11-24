@@ -131,6 +131,8 @@ extern ml_state_t MLEndState[];
 
 ml_state_t *ml_state(ml_state_t *Caller) __attribute__ ((malloc));
 
+void ml_state_continue(ml_state_t *State, ml_value_t *Value);
+
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
 
 typedef struct {

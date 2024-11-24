@@ -251,6 +251,18 @@ ml_state_t *ml_state(ml_state_t *Caller) {
 	return (ml_state_t *)State;
 }
 
+void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
+#ifdef ML_TIMESCHED
+	if (MLPreempt < 0) {
+		return ml_state_schedule(State, Value);
+	} else {
+		return State->run(State, Value);
+	}
+#else
+	return State->run(State, Value);
+#endif
+}
+
 typedef struct ml_resumable_state_t {
 	ml_state_t Base;
 	ml_state_t *Last;
