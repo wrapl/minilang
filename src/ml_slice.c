@@ -125,7 +125,7 @@ static void slice_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 
 static void slice_iterate_precount(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_value_t *Sequence = State->Values[0];
+	ml_value_t *Sequence = State->Values[1];
 	State->Values[0] = ml_slice(Value != MLNil ? ml_integer_value(Value) : 0);
 	State->Base.run = (ml_state_fn)slice_iterate;
 	return ml_iterate((ml_state_t *)State, Sequence);
@@ -138,11 +138,11 @@ ML_METHODVX(MLSliceT, MLSequenceT) {
 //>slice
 // Returns a list of all of the values produced by :mini:`Sequence`.
 //$= slice(1 .. 10)
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)slice_iterate_precount;
 	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_chained(Count, Args);
+	State->Values[0] = State->Values[1] = ml_chained(Count, Args);
 	return ml_call(State, Precount, 1, State->Values);
 }
 
@@ -159,7 +159,7 @@ void ml_slice_grow(ml_value_t *Slice0, int Count) {
 
 static void slice_grow_precount(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_value_t *Sequence = State->Values[1];
+	ml_value_t *Sequence = State->Values[2];
 	size_t Precount = ml_integer_value(Value);
 	if (Precount > 0) ml_slice_grow(State->Values[0], Precount);
 	State->Base.run = (ml_state_fn)slice_iterate;
@@ -173,12 +173,12 @@ ML_METHODVX("grow", MLSliceMutableT, MLSequenceT) {
 // Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
 //$- let L := slice([1, 2, 3])
 //$= L:grow(4 .. 6)
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)slice_grow_precount;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = Args[0];
-	State->Values[1] = ml_chained(Count - 1, Args + 1);
+	State->Values[1] = State->Values[2] = ml_chained(Count - 1, Args + 1);
 	return ml_call(State, Precount, 1, State->Values + 1);
 }
 
@@ -1532,6 +1532,95 @@ ML_METHODX("bfind", MLSliceT, MLAnyT, MLFunctionT) {
 	State->Args[0] = State->Value;
 	State->Args[1] = ml_slice_get(State->Slice, State->Index);
 	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Slice, *Value, *Approx, *Compare;
+	ml_value_t *Args[3];
+	int Index, Min, Max;
+} ml_slice_afind_state_t;
+
+static void ml_slice_afind_state_approx(ml_slice_afind_state_t *State, ml_value_t *Value);
+
+static void ml_slice_afind_state_run(ml_slice_afind_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	int Compare = ml_integer_value(Value);
+	if (Compare < 0) {
+		if (State->Index > State->Min) {
+			State->Max = State->Index - 1;
+			State->Args[0] = ml_integer(State->Min + (State->Max - State->Min) / 2);
+			State->Args[1] = ml_integer(State->Min);
+			State->Args[2] = ml_integer(State->Max);
+			State->Base.run = (ml_state_fn)ml_slice_afind_state_approx;
+			return ml_call(State, State->Approx, 3, State->Args);
+		}
+		ML_RETURN(ml_tuplev(2, MLNil, ml_integer(State->Index)));
+	} else if (Compare > 0) {
+		if (State->Index < State->Max) {
+			State->Min = State->Index + 1;
+			State->Args[0] = ml_integer(State->Min + (State->Max - State->Min) / 2);
+			State->Args[1] = ml_integer(State->Min);
+			State->Args[2] = ml_integer(State->Max);
+			State->Base.run = (ml_state_fn)ml_slice_afind_state_approx;
+			return ml_call(State, State->Approx, 3, State->Args);
+		}
+		ML_RETURN(ml_tuplev(2, MLNil, ml_integer(State->Index + 1)));
+	} else {
+		ML_RETURN(ml_tuplev(2, ml_integer(State->Index), ml_integer(State->Index)));
+	}
+}
+
+static void ml_slice_afind_state_approx(ml_slice_afind_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	State->Index = ml_integer_value(Value);
+	if (State->Index < State->Min || State->Index > State->Max) {
+		ML_ERROR("ValueError", "Approximate index %d is not between %d and %d", State->Index, State->Min, State->Max);
+	}
+	State->Args[0] = State->Value;
+	State->Args[1] = ml_slice_get(State->Slice, State->Index);
+	State->Base.run = (ml_state_fn)ml_slice_afind_state_run;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("afind", MLSliceT, MLAnyT, MLFunctionT) {
+	int Length = ml_slice_length(Args[0]);
+	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	ml_slice_afind_state_t *State = new(ml_slice_afind_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_afind_state_approx;
+	State->Slice = Args[0];
+	State->Value = Args[1];
+	State->Approx = Args[2];
+	State->Compare = CompareMethod;
+	State->Min = 1;
+	State->Max = Length;
+	State->Args[0] = ml_integer(State->Min + (State->Max - State->Min) / 2);
+	State->Args[1] = ml_integer(State->Min);
+	State->Args[2] = ml_integer(State->Max);
+	return ml_call(State, State->Approx, 3, State->Args);
+}
+
+ML_METHODX("afind", MLSliceT, MLAnyT, MLFunctionT, MLFunctionT) {
+	int Length = ml_slice_length(Args[0]);
+	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	ml_slice_afind_state_t *State = new(ml_slice_afind_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_afind_state_approx;
+	State->Slice = Args[0];
+	State->Value = Args[1];
+	State->Approx = Args[2];
+	State->Compare = Args[3];
+	State->Min = 1;
+	State->Max = Length;
+	State->Args[0] = ml_integer(State->Min + (State->Max - State->Min) / 2);
+	State->Args[1] = ml_integer(State->Min);
+	State->Args[2] = ml_integer(State->Max);
+	return ml_call(State, State->Approx, 3, State->Args);
 }
 
 ML_METHOD("insert", MLSliceMutableT, MLIntegerT, MLAnyT) {
