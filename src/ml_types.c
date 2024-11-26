@@ -2310,8 +2310,11 @@ ml_value_t *ml_tuplev(size_t Size, ...) {
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (!function) return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
-	return function(Value, Index);
+	if (function) return function(Value, Index);
+	Value = ml_deref(Value);
+	function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
+	if (function) return function(Value, Index);
+	return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLNilT, ml_value_t *Value, int Index) {
