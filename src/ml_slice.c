@@ -1623,6 +1623,79 @@ ML_METHODX("afind", MLSliceT, MLAnyT, MLFunctionT, MLFunctionT) {
 	return ml_call(State, State->Approx, 3, State->Args);
 }
 
+typedef struct {
+	ml_type_t *Type;
+	int Length;
+	int Indices[];
+} ml_afinder_t;
+
+static void ml_afinder_call(ml_state_t *Caller, const ml_afinder_t *Finder, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(3);
+	int Index = ml_integer_value(ml_deref(Args[0]));
+	int Min = ml_integer_value(ml_deref(Args[1]));
+	int Max = ml_integer_value(ml_deref(Args[2]));
+	int A = 0, B = Finder->Length - 1;
+	const int *Indices = Finder->Indices;
+	while (A < B) {
+		int I = A + (B - A) / 2;
+		if (Index < Indices[I]) {
+			if (I > A) {
+				B = I - 1;
+			} else {
+				break;
+			}
+		} else if (Index > Indices[I]) {
+			if (I < B) {
+				A = I + 1;
+			} else {
+				B = A + 1;
+				break;
+			}
+		} else {
+			ML_RETURN(ml_integer(Index));
+		}
+	}
+	if (B == 0) ML_RETURN(ml_integer(Index));
+	if (B == Finder->Length) {
+		int X = Indices[B - 1];
+		if (Min <= X && X <= Max) ML_RETURN(ml_integer(X));
+		ML_RETURN(ml_integer(Index));
+	} else {
+		int X = Indices[B - 1];
+		int Y = Indices[B];
+		if (Index - X < Y - Index) {
+			if (Min <= X && X <= Max) ML_RETURN(ml_integer(X));
+			if (Min <= Y && Y <= Max) ML_RETURN(ml_integer(Y));
+			ML_RETURN(ml_integer(Index));
+		} else {
+			if (Min <= Y && Y <= Max) ML_RETURN(ml_integer(Y));
+			if (Min <= X && X <= Max) ML_RETURN(ml_integer(X));
+			ML_RETURN(ml_integer(Index));
+		}
+	}
+}
+
+ML_TYPE(MLAfinderT, (MLFunctionT), "afinder",
+//!internal
+	.call = (void *)ml_afinder_call
+);
+
+ML_METHOD("afinder", MLSliceT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (!Slice->Length) return ml_integer(1);
+	int Length = Slice->Length;
+	ml_afinder_t *Finder = xnew(ml_afinder_t, Length, int);
+	Finder->Type = MLAfinderT;
+	Finder->Length = Length;
+	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
+	int *Indices = Finder->Indices;
+	while (--Length >= 0) {
+		ml_value_t *Value = (Nodes++)->Value;
+		*Indices++ = ml_integer_value(Value);
+	}
+	return (ml_value_t *)Finder;
+}
+
 ML_METHOD("insert", MLSliceMutableT, MLIntegerT, MLAnyT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	int Index = ml_integer_value(Args[1]);
