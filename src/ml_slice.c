@@ -1643,13 +1643,14 @@ static void ml_afinder_call(ml_state_t *Caller, const ml_afinder_t *Finder, int 
 			if (I > A) {
 				B = I - 1;
 			} else {
+				B = I;
 				break;
 			}
 		} else if (Index > Indices[I]) {
 			if (I < B) {
 				A = I + 1;
 			} else {
-				B = A + 1;
+				B = I + 1;
 				break;
 			}
 		} else {
