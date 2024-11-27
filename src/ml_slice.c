@@ -1638,7 +1638,6 @@ static void ml_afinder_call(ml_state_t *Caller, const ml_afinder_t *Finder, int 
 	const int *Indices = Finder->Indices;
 	for (;;) {
 		int I = A + (B - A) / 2;
-		printf("%d - %d - %d\n", A, I, B);
 		if (Index < Indices[I]) {
 			if (I > A) {
 				B = I - 1;
@@ -1657,7 +1656,6 @@ static void ml_afinder_call(ml_state_t *Caller, const ml_afinder_t *Finder, int 
 			ML_RETURN(ml_integer(Index));
 		}
 	}
-	printf("%d\n", B);
 	if (B == 0) {
 		int Y = Indices[B];
 		if (Min <= Y && Y <= Max) ML_RETURN(ml_integer(Y));
