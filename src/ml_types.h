@@ -456,6 +456,12 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_CONTINUE(STATE, VALUE) return ml_state_continue((ml_state_t *)(STATE), (ml_value_t *)(VALUE))
 
+//#define ML_CONTINUE(STATE, VALUE) { \
+//	ml_state_t *__State = (ml_state_t *)(STATE); \
+//	ml_value_t *__Value = (ml_value_t *)(VALUE); \
+//	return (MLPreempt < 0) ? (void)ml_state_schedule(__State, __Value) : __State->run(__State, __Value); \
+//}
+
 #else
 
 #define ML_CONTINUE(STATE, VALUE) { \

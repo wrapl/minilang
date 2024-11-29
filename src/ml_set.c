@@ -1352,6 +1352,77 @@ ML_METHOD("random", MLSetT) {
 }
 
 typedef struct {
+	ml_type_t *Type;
+	ml_value_t **Values;
+	int M, N, K;
+	int Indices[];
+} ml_subset_iter_t;
+
+ML_TYPE(MLSubsetIterT, (), "set::subset_iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_next, MLSubsetIterT, ml_state_t *Caller, ml_subset_iter_t *Iter) {
+	int *Indices = Iter->Indices;
+	int M = Iter->M, I = M - 1, N = Iter->N;
+	while (I >= 0) {
+		if (Indices[I] + (M - I) < N) {
+			int J = Indices[I] + 1;
+			do { Indices[I] = J; ++J; ++I; } while (I < M);
+			ML_RETURN(Iter);
+		}
+		--I;
+	}
+	ML_RETURN(MLNil);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSubsetIterT, ml_state_t *Caller, ml_subset_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->K));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSubsetIterT, ml_state_t *Caller, ml_subset_iter_t *Iter) {
+	ml_value_t *Set = ml_set();
+	for (int I = 0; I < Iter->M; ++I) {
+		ml_set_insert(Set, Iter->Values[Iter->Indices[I]]);
+	}
+	ML_RETURN(Set);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_set_t *Set;
+	int M;
+} ml_subsets_t;
+
+ML_TYPE(MLSubsetsT, (MLSequenceT), "set::subsets");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLSubsetsT, ml_state_t *Caller, ml_subsets_t *Subsets) {
+	int M = Subsets->M;
+	int N = Subsets->Set->Size;
+	if (M > N) ML_RETURN(MLNil);
+	ml_subset_iter_t *Iter = xnew(ml_subset_iter_t, M, int);
+	Iter->Type = MLSubsetIterT;
+	ml_value_t **Values = Iter->Values = anew(ml_value_t *, N);
+	ML_SET_FOREACH(Subsets->Set, Iter) *Values++ = Iter->Key;
+	for (int I = 0; I < M; ++I) Iter->Indices[I] = I;
+	Iter->M = M;
+	Iter->N = N;
+	Iter->K = 1;
+	ML_RETURN(Iter);
+}
+
+ML_METHOD("subsets", MLSetT, MLIntegerT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	int M = ml_integer_value(Args[1]);
+	if (M < 0) return ml_error("RangeError", "Subset size must be non-negative");
+	ml_subsets_t *Subsets = new(ml_subsets_t);
+	Subsets->Type = MLSubsetsT;
+	Subsets->Set = Set;
+	Subsets->M = M;
+	return (ml_value_t *)Subsets;
+}
+
+typedef struct {
 	ml_state_t Base;
 	ml_value_t *Visitor, *Dest;
 	ml_set_node_t *Node;
