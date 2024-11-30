@@ -1955,6 +1955,91 @@ ML_METHOD("random", MLIntegerIntervalT) {
 	return ml_integer(Interval->Start + Random);
 }
 
+typedef struct {
+	ml_type_t *Type;
+	int Z, S, M, N, K;
+	int Indices[];
+} ml_rangeset_iter_t;
+
+ML_TYPE(MLRangesetIterT, (), "rangeset_iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_next, MLRangesetIterT, ml_state_t *Caller, ml_rangeset_iter_t *Iter) {
+	int *Indices = Iter->Indices;
+	int M = Iter->M, I = M - 1, N = Iter->N;
+	while (I >= 0) {
+		if (Indices[I] + (M - I) < N) {
+			int J = Indices[I] + 1;
+			do { Indices[I] = J; ++J; ++I; } while (I < M);
+			++Iter->K;
+			ML_RETURN(Iter);
+		}
+		--I;
+	}
+	ML_RETURN(MLNil);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLRangesetIterT, ml_state_t *Caller, ml_rangeset_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->K));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLRangesetIterT, ml_state_t *Caller, ml_rangeset_iter_t *Iter) {
+	ml_value_t *Set = ml_set();
+	for (int I = 0; I < Iter->M; ++I) {
+		ml_set_insert(Set, ml_integer(Iter->Z + Iter->S * Iter->Indices[I]));
+	}
+	ML_RETURN(Set);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	int Z, S, M, N;
+} ml_rangesets_t;
+
+ML_TYPE(MLRangesetsT, (MLSequenceT), "rangesets");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLRangesetsT, ml_state_t *Caller, ml_rangesets_t *Rangesets) {
+	int M = Rangesets->M;
+	int N = Rangesets->N;
+	if (M > N) ML_RETURN(MLNil);
+	ml_rangeset_iter_t *Iter = xnew(ml_rangeset_iter_t, M, int);
+	Iter->Type = MLRangesetIterT;
+	Iter->Z = Rangesets->Z;
+	Iter->S = Rangesets->S;
+	for (int I = 0; I < M; ++I) Iter->Indices[I] = I;
+	Iter->M = M;
+	Iter->N = N;
+	Iter->K = 1;
+	ML_RETURN(Iter);
+}
+
+ML_METHOD("subsets", MLIntegerRangeT, MLIntegerT) {
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	int M = ml_integer_value(Args[1]);
+	if (M < 0) return ml_error("RangeError", "Rangeset size must be non-negative");
+	ml_rangesets_t *Rangesets = new(ml_rangesets_t);
+	Rangesets->Type = MLRangesetsT;
+	Rangesets->Z = Range->Start;
+	Rangesets->S = Range->Step;
+	Rangesets->N = (Range->Limit - Range->Start) / Range->Step + 1;
+	Rangesets->M = M;
+	return (ml_value_t *)Rangesets;
+}
+
+ML_METHOD("subsets", MLIntegerIntervalT, MLIntegerT) {
+	ml_integer_interval_t *Range = (ml_integer_interval_t *)Args[0];
+	int M = ml_integer_value(Args[1]);
+	if (M < 0) return ml_error("RangeError", "Rangeset size must be non-negative");
+	ml_rangesets_t *Rangesets = new(ml_rangesets_t);
+	Rangesets->Type = MLRangesetsT;
+	Rangesets->Z = Range->Start;
+	Rangesets->S = 1;
+	Rangesets->N = Range->Limit - Range->Start + 1;
+	Rangesets->M = M;
+	return (ml_value_t *)Rangesets;
+}
+
 typedef struct ml_real_iter_t {
 	const ml_type_t *Type;
 	double Current, Step, Limit;
