@@ -134,7 +134,7 @@ meth :run_cell(Notebook: notebook) do
 		var Sep := ""
 		loop
 			let Result := Parser:evaluate(Compiler)
-			until Result = compiler::EOI
+			until type(Result) = any and Result = compiler::EOI
 			Buffer:write(Sep)
 			Buffer:write(Result)
 			Sep := "\n"
