@@ -1780,6 +1780,14 @@ ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args) {
 	return Args[0];
 }
 
+ml_value_t *ml_return_first(void *Data, int Count, ml_value_t **Args) {
+	return Args[0];
+}
+
+ml_value_t *ml_return_second(void *Data, int Count, ml_value_t **Args) {
+	return Args[1];
+}
+
 typedef struct ml_partial_function_t {
 	const ml_type_t *Type;
 	ml_value_t *Function;
@@ -3510,6 +3518,10 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_method_by_name(">", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("min", NULL, ml_return_first, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("max", NULL, ml_return_first, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("min", NULL, ml_return_second, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("max", NULL, ml_return_second, MLNilT, MLAnyT, NULL);
 	ml_number_init();
 	ml_string_init();
 	ml_list_init();

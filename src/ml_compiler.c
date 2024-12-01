@@ -6804,6 +6804,16 @@ ML_METHOD("[]", MLCompilerT, MLStringT) {
 ml_value_t MLEndOfInput[1] = {{MLAnyT}};
 ml_value_t MLNotFound[1] = {{MLAnyT}};
 
+ML_TYPE(MLCompilerEOIT, (), "compiler::eoi");
+
+ML_METHOD(MLCompilerEOIT) {
+	return MLEndOfInput;
+}
+
+ML_METHOD(MLCompilerEOIT, MLAnyT) {
+	return Args[0] == MLEndOfInput ? Args[0] : MLNil;
+}
+
 static ml_value_t *ml_stringmap_global(stringmap_t *Globals, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -7496,6 +7506,7 @@ ML_FUNCTION(MLIdentCacheCheck) {
 void ml_compiler_init() {
 #include "ml_compiler_init.c"
 	stringmap_insert(MLParserT->Exports, "expr", MLExprT);
+	stringmap_insert(MLCompilerT->Exports, "eoi", MLCompilerEOIT);
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
