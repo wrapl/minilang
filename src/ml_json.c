@@ -588,6 +588,17 @@ static void json_decode_single_fn(json_decoder_t *Decoder, ml_value_t *Value) {
 
 ML_METHOD_ANON(MLJsonDecode, "json::decode");
 
+ml_value_t *ml_json_decode(const char *Json, size_t Size) {
+	ml_value_t *Result = NULL;
+	json_decoder_t Decoder[1];
+	json_decoder_init(Decoder, (void *)json_decode_single_fn, &Result);
+	ml_value_t *Error = json_decoder_parse(Decoder, Json, Size);
+	if (Error) return Error;
+	Error = json_decoder_finish(Decoder);
+	if (Error) return Error;
+	return Result ?: ml_error("JSONError", "Incomplete JSON");
+}
+
 ML_METHOD(MLJsonDecode, MLAddressT) {
 //@json::decode
 //<Json
@@ -734,7 +745,7 @@ static void ml_json_encode_string(ml_stringbuffer_t *Buffer, ml_value_t *Value) 
 	ml_stringbuffer_put(Buffer, '\"');
 }
 
-static ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	if (Value == MLNil) {
 		ml_stringbuffer_write(Buffer, "null", 4);
 	} else if (ml_is(Value, MLBooleanT)) {
