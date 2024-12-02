@@ -1470,12 +1470,39 @@ ML_METHOD("up", MLIntegerT, MLIntegerT) {
 //<Start
 //<Count
 //>integer::interval
-// Returns a interval from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
+// Returns an interval from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
 	Interval->Start = ml_integer_value_fast(Args[0]);
 	Interval->Limit = Interval->Start + ml_integer_value_fast(Args[1]) - 1;
 	return (ml_value_t *)Interval;
+}
+
+ML_METHOD("down", MLIntegerT) {
+//!interval
+//<Start
+//>integer::range
+// Returns an unlimited range from :mini:`Start`.
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Limit = LONG_MIN;
+	Range->Step = -1;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("down", MLIntegerT, MLIntegerT) {
+//!range
+//<Start
+//<Count
+//>integer::range
+// Returns a range from :mini:`Start` to :mini:`Start - Count + 1` (inclusive).
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Limit = Range->Start - ml_integer_value_fast(Args[1]) + 1;
+	Range->Step = -1;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("by", MLIntegerT, MLIntegerT) {
