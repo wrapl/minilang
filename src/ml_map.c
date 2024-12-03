@@ -415,7 +415,10 @@ static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, ml
 		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
-	if (!Compare) return Parent;
+	if (!Compare) {
+		if (Node) Parent->Value = Node->Value;
+		return Parent;
+	}
 	ml_map_node_t **Slot = Compare < 0 ? &Parent->Left : &Parent->Right;
 	if (!Slot[0]) {
 		++Map->Size;
