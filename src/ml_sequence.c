@@ -1891,8 +1891,8 @@ ML_FUNCTION(Distill) {
 //<Sequence:sequence
 //<Fn:function
 //>any | nil
-// If :mini:`Initial` is provided, returns a sequence that produces :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
-// Otherwise returns a sequence that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
+// Returns a sequence that produces :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... if :mini:`Initial` is provided, otherwise returns a sequence that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
+//
 // The resulting sequence always has the same number of values as :mini:`Sequence`.
 //$= list(distill(1 .. 10, +))
 //$= list(distill(20, 1 .. 10, +))

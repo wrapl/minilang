@@ -77,6 +77,18 @@ slice
       L[8] :> nil
 
 
+:mini:`meth (Arg₁: slice):afind(Arg₂: any, Arg₃: function)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice):afind(Arg₂: any, Arg₃: function, Arg₄: function)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice):afinder`
+   *TBD*
+
+
 :mini:`meth (Arg₁: slice):bfind(Arg₂: any)`
    *TBD*
 

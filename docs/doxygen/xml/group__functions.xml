@@ -660,7 +660,7 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="455" column="9" bodyfile="src/ml_types.h" bodystart="455" bodyend="459"/>
+        <location file="src/ml_types.h" line="461" column="9" bodyfile="src/ml_types.h" bodystart="461" bodyend="465"/>
       </memberdef>
       <memberdef kind="define" id="group__functions_1ga072501492fac8511b802686bfe2ab31b" prot="public" static="no">
         <name>ML_RETURN</name>
@@ -672,7 +672,7 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="463" column="9" bodyfile="src/ml_types.h" bodystart="463" bodyend="-1"/>
+        <location file="src/ml_types.h" line="471" column="9" bodyfile="src/ml_types.h" bodystart="471" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__functions_1gabf98d973af18ea2e26ac3f4c9ea309d7" prot="public" static="no">
         <name>ML_ERROR</name>
@@ -684,7 +684,7 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="464" column="9" bodyfile="src/ml_types.h" bodystart="464" bodyend="-1"/>
+        <location file="src/ml_types.h" line="472" column="9" bodyfile="src/ml_types.h" bodystart="472" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

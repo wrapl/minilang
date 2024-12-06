@@ -69,7 +69,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="54" column="9" bodyfile="src/ml_cbor.h" bodystart="54" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="55" column="9" bodyfile="src/ml_cbor.h" bodystart="55" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="group__cbor_1ga8b3adf33c257a3a951f5ed9e013dfb08" prot="public" static="no">
         <type>struct ml_cbor_writer_t</type>
@@ -82,7 +82,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="55" column="31" bodyfile="src/ml_cbor.h" bodystart="55" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="56" column="31" bodyfile="src/ml_cbor.h" bodystart="56" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -347,17 +347,17 @@
         </inbodydescription>
         <location file="src/ml_cbor.h" line="41" column="6" declfile="src/ml_cbor.h" declline="41" declcolumn="6"/>
       </memberdef>
-      <memberdef kind="function" id="group__cbor_1ga49916bbca25f2306233795b4fdc07a0e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="group__cbor_1ga63ee2981dd71b786a7c353b2d5c66f39" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
         <definition>int ml_cbor_reader_read</definition>
-        <argsstring>(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size)</argsstring>
+        <argsstring>(ml_cbor_reader_t *Reader, const unsigned char *Bytes, int Size)</argsstring>
         <name>ml_cbor_reader_read</name>
         <param>
           <type>ml_cbor_reader_t *</type>
           <declname>Reader</declname>
         </param>
         <param>
-          <type>unsigned char *</type>
+          <type>const unsigned char *</type>
           <declname>Bytes</declname>
         </param>
         <param>
@@ -371,6 +371,23 @@
         <inbodydescription>
         </inbodydescription>
         <location file="src/ml_cbor.h" line="42" column="5" declfile="src/ml_cbor.h" declline="42" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_cbor_reader_done</definition>
+        <argsstring>(ml_cbor_reader_t *Reader)</argsstring>
+        <name>ml_cbor_reader_done</name>
+        <param>
+          <type>ml_cbor_reader_t *</type>
+          <declname>Reader</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_cbor.h" line="43" column="5" declfile="src/ml_cbor.h" declline="43" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -387,7 +404,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="43" column="12" declfile="src/ml_cbor.h" declline="43" declcolumn="12"/>
+        <location file="src/ml_cbor.h" line="44" column="12" declfile="src/ml_cbor.h" declline="44" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gaa8424e59dea6603c428ce454cff50561" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -404,7 +421,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="44" column="5" declfile="src/ml_cbor.h" declline="44" declcolumn="5"/>
+        <location file="src/ml_cbor.h" line="45" column="5" declfile="src/ml_cbor.h" declline="45" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>ml_cbor_writer_t *</type>
@@ -429,7 +446,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="57" column="18" declfile="src/ml_cbor.h" declline="57" declcolumn="18"/>
+        <location file="src/ml_cbor.h" line="58" column="18" declfile="src/ml_cbor.h" declline="58" declcolumn="18"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -450,7 +467,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="58" column="6" declfile="src/ml_cbor.h" declline="58" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="59" column="6" declfile="src/ml_cbor.h" declline="59" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga654054d6c9c10b740bd0167794d52230" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -475,7 +492,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="59" column="6" declfile="src/ml_cbor.h" declline="59" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="60" column="6" declfile="src/ml_cbor.h" declline="60" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga2d018c5d6f978f4db12b92d7aec8836f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void *</type>
@@ -496,7 +513,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="60" column="6" declfile="src/ml_cbor.h" declline="60" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="61" column="6" declfile="src/ml_cbor.h" declline="61" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga8039fbc40c6a8c958cc51d7c19010f4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -517,7 +534,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="61" column="6" declfile="src/ml_cbor.h" declline="61" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="62" column="6" declfile="src/ml_cbor.h" declline="62" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga2ff101352521b6e816f82fdc5ee5bd96" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
@@ -534,7 +551,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="62" column="11" declfile="src/ml_cbor.h" declline="62" declcolumn="11"/>
+        <location file="src/ml_cbor.h" line="63" column="11" declfile="src/ml_cbor.h" declline="63" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gaed315706c7e475cb6e0dbeb9826be8f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -563,7 +580,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="63" column="12" declfile="src/ml_cbor.h" declline="63" declcolumn="12"/>
+        <location file="src/ml_cbor.h" line="64" column="12" declfile="src/ml_cbor.h" declline="64" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga4c76629bc733070ac9d808ceeb5b81bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -584,7 +601,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="65" column="6" declfile="src/ml_cbor.h" declline="65" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="66" column="6" declfile="src/ml_cbor.h" declline="66" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gae23c6895c6d8d51619a7129694407a8a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -605,7 +622,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="69" column="6" declfile="src/ml_cbor.h" declline="69" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="70" column="6" declfile="src/ml_cbor.h" declline="70" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gadfb041f36774032a98b8cf608b230649" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -626,7 +643,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="70" column="12" declfile="src/ml_cbor.h" declline="70" declcolumn="12"/>
+        <location file="src/ml_cbor.h" line="71" column="12" declfile="src/ml_cbor.h" declline="71" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gaf5ba137da8e8bc80a85e0ddf38b3b036" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -651,7 +668,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="77" column="5" declfile="src/ml_cbor.h" declline="77" declcolumn="5"/>
+        <location file="src/ml_cbor.h" line="78" column="5" declfile="src/ml_cbor.h" declline="78" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gac11b1f1a50d8d88403e006f321ff9cab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -672,7 +689,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="78" column="6" declfile="src/ml_cbor.h" declline="78" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="79" column="6" declfile="src/ml_cbor.h" declline="79" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gad0aa28a76639b58bf5cc54643800e1e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -693,7 +710,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="79" column="6" declfile="src/ml_cbor.h" declline="79" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="80" column="6" declfile="src/ml_cbor.h" declline="80" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga27f93dbd9b8e424a3c830ef9340679b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -714,7 +731,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="80" column="6" declfile="src/ml_cbor.h" declline="80" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="81" column="6" declfile="src/ml_cbor.h" declline="81" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga15ffa0f97f39f76becceb72c31303794" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -735,7 +752,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="81" column="6" declfile="src/ml_cbor.h" declline="81" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="82" column="6" declfile="src/ml_cbor.h" declline="82" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gad18b36e18bbbcfb76b51e83ad2124064" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -752,7 +769,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="82" column="6" declfile="src/ml_cbor.h" declline="82" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="83" column="6" declfile="src/ml_cbor.h" declline="83" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gac908ac00fe8401fd1f33711901a7d44d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -773,7 +790,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="83" column="6" declfile="src/ml_cbor.h" declline="83" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="84" column="6" declfile="src/ml_cbor.h" declline="84" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga55a59c36c0f5e9b795eb419b12cf9ac7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -790,7 +807,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="84" column="6" declfile="src/ml_cbor.h" declline="84" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="85" column="6" declfile="src/ml_cbor.h" declline="85" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga746cce265db853a62c7787867f20dd52" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -811,7 +828,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="85" column="6" declfile="src/ml_cbor.h" declline="85" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="86" column="6" declfile="src/ml_cbor.h" declline="86" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga63788e2a09d0a3f1550dde44545a82ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -828,7 +845,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="86" column="6" declfile="src/ml_cbor.h" declline="86" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="87" column="6" declfile="src/ml_cbor.h" declline="87" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga3d3a4a5a8e9a906498faa746cd5203e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -849,7 +866,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="87" column="6" declfile="src/ml_cbor.h" declline="87" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="88" column="6" declfile="src/ml_cbor.h" declline="88" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga7cb03ede6917a82a27aaa5de6a2f1b9b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -866,7 +883,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="88" column="6" declfile="src/ml_cbor.h" declline="88" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="89" column="6" declfile="src/ml_cbor.h" declline="89" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gaf4ee99f92b9ad9fdbcc1cd51b21db960" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -887,7 +904,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="89" column="6" declfile="src/ml_cbor.h" declline="89" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="90" column="6" declfile="src/ml_cbor.h" declline="90" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gad4d1e978c0b9dec68780ddf8b6e4ed0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -908,7 +925,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="90" column="6" declfile="src/ml_cbor.h" declline="90" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="91" column="6" declfile="src/ml_cbor.h" declline="91" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga84975ef5fcf8dd66a87eb4e1a232b922" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -929,7 +946,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="91" column="6" declfile="src/ml_cbor.h" declline="91" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="92" column="6" declfile="src/ml_cbor.h" declline="92" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga304f841ff275f70d186f71cd1c876f7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -950,7 +967,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="92" column="6" declfile="src/ml_cbor.h" declline="92" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="93" column="6" declfile="src/ml_cbor.h" declline="93" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gaf012c0fba7c38ad2e628be0b46d7730b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -967,7 +984,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="93" column="6" declfile="src/ml_cbor.h" declline="93" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="94" column="6" declfile="src/ml_cbor.h" declline="94" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga855a61374e2ed28281b15b09868e100c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -988,7 +1005,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="94" column="6" declfile="src/ml_cbor.h" declline="94" declcolumn="6"/>
+        <location file="src/ml_cbor.h" line="95" column="6" declfile="src/ml_cbor.h" declline="95" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga1a9844ccc58fb268ecd9bfb45acac18d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
@@ -1005,7 +1022,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="96" column="11" declfile="src/ml_cbor.h" declline="96" declcolumn="11"/>
+        <location file="src/ml_cbor.h" line="97" column="11" declfile="src/ml_cbor.h" declline="97" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1ga875acf4b0085636e0ec8fc2b78cec64c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -1026,7 +1043,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="97" column="12" declfile="src/ml_cbor.h" declline="97" declcolumn="12"/>
+        <location file="src/ml_cbor.h" line="98" column="12" declfile="src/ml_cbor.h" declline="98" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__cbor_1gab60f5ad34cf7e3f07f2cd211778d5379" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref></type>
@@ -1047,7 +1064,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="101" column="18" declfile="src/ml_cbor.h" declline="101" declcolumn="18"/>
+        <location file="src/ml_cbor.h" line="102" column="18" declfile="src/ml_cbor.h" declline="102" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -1062,7 +1079,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="67" column="9" bodyfile="src/ml_cbor.h" bodystart="67" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="68" column="9" bodyfile="src/ml_cbor.h" bodystart="68" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gaf2ac6052f01bbc3b128f4001f592d720" prot="public" static="no">
         <name>ML_CBOR_SIMPLE_FALSE</name>
@@ -1073,7 +1090,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="72" column="9" bodyfile="src/ml_cbor.h" bodystart="72" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="73" column="9" bodyfile="src/ml_cbor.h" bodystart="73" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga42e0117c6446bc0e25aae42cb686a0eb" prot="public" static="no">
         <name>ML_CBOR_SIMPLE_TRUE</name>
@@ -1084,7 +1101,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="73" column="9" bodyfile="src/ml_cbor.h" bodystart="73" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="74" column="9" bodyfile="src/ml_cbor.h" bodystart="74" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga8f5a49a01b8d00c2689f9970bf513458" prot="public" static="no">
         <name>ML_CBOR_SIMPLE_NULL</name>
@@ -1095,7 +1112,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="74" column="9" bodyfile="src/ml_cbor.h" bodystart="74" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="75" column="9" bodyfile="src/ml_cbor.h" bodystart="75" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga1cec775e2c5c63e0280e09c4f94bec80" prot="public" static="no">
         <name>ML_CBOR_SIMPLE_UNDEF</name>
@@ -1106,7 +1123,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="75" column="9" bodyfile="src/ml_cbor.h" bodystart="75" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="76" column="9" bodyfile="src/ml_cbor.h" bodystart="76" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gaada70f0ea23e15bf397e61a143bb2be0" prot="public" static="no">
         <name>ML_CBOR_TAG_TIME_STRING</name>
@@ -1117,7 +1134,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="103" column="9" bodyfile="src/ml_cbor.h" bodystart="103" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="104" column="9" bodyfile="src/ml_cbor.h" bodystart="104" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gac49547f7b37eb1c8ae832c371cad7c7a" prot="public" static="no">
         <name>ML_CBOR_TAG_TIME_EPOCH</name>
@@ -1128,7 +1145,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="104" column="9" bodyfile="src/ml_cbor.h" bodystart="104" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="105" column="9" bodyfile="src/ml_cbor.h" bodystart="105" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" prot="public" static="no">
         <name>ML_CBOR_TAG_OBJECT</name>
@@ -1139,7 +1156,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="105" column="9" bodyfile="src/ml_cbor.h" bodystart="105" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="106" column="9" bodyfile="src/ml_cbor.h" bodystart="106" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga414e0a857e7cb34490db404457eed09d" prot="public" static="no">
         <name>ML_CBOR_TAG_MARK_REUSED</name>
@@ -1150,7 +1167,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="106" column="9" bodyfile="src/ml_cbor.h" bodystart="106" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="107" column="9" bodyfile="src/ml_cbor.h" bodystart="107" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" prot="public" static="no">
         <name>ML_CBOR_TAG_USE_PREVIOUS</name>
@@ -1161,7 +1178,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="107" column="9" bodyfile="src/ml_cbor.h" bodystart="107" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="108" column="9" bodyfile="src/ml_cbor.h" bodystart="108" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" prot="public" static="no">
         <name>ML_CBOR_TAG_REGEX</name>
@@ -1172,7 +1189,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="108" column="9" bodyfile="src/ml_cbor.h" bodystart="108" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="109" column="9" bodyfile="src/ml_cbor.h" bodystart="109" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" prot="public" static="no">
         <name>ML_CBOR_TAG_UUID</name>
@@ -1183,7 +1200,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="109" column="9" bodyfile="src/ml_cbor.h" bodystart="109" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="110" column="9" bodyfile="src/ml_cbor.h" bodystart="110" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" prot="public" static="no">
         <name>ML_CBOR_TAG_IDENTIFIER</name>
@@ -1194,7 +1211,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="110" column="9" bodyfile="src/ml_cbor.h" bodystart="110" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="111" column="9" bodyfile="src/ml_cbor.h" bodystart="111" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gac9cb5eb0c13e16631cc6ddf156e183bb" prot="public" static="no">
         <name>ML_CBOR_TAG_MULTI_ARRAY</name>
@@ -1205,7 +1222,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="111" column="9" bodyfile="src/ml_cbor.h" bodystart="111" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="112" column="9" bodyfile="src/ml_cbor.h" bodystart="112" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga007b8b13ad17160f0f4f92a3284b2f17" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_ANY</name>
@@ -1216,7 +1233,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="112" column="9" bodyfile="src/ml_cbor.h" bodystart="112" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="113" column="9" bodyfile="src/ml_cbor.h" bodystart="113" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga86ff208b3e86bb5d51a354151f8b08e8" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_UINT8</name>
@@ -1227,7 +1244,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="113" column="9" bodyfile="src/ml_cbor.h" bodystart="113" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="114" column="9" bodyfile="src/ml_cbor.h" bodystart="114" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gaf451bb81e5a7663bf3abd6cb2a5f2262" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_UINT16_LE</name>
@@ -1238,7 +1255,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="114" column="9" bodyfile="src/ml_cbor.h" bodystart="114" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="115" column="9" bodyfile="src/ml_cbor.h" bodystart="115" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga7239c24bc9cd9090204e22e619585b76" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_UINT32_LE</name>
@@ -1249,7 +1266,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="115" column="9" bodyfile="src/ml_cbor.h" bodystart="115" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="116" column="9" bodyfile="src/ml_cbor.h" bodystart="116" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gae96cd04c218ba612c229d6e5340a0d62" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_UINT64_LE</name>
@@ -1260,7 +1277,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="116" column="9" bodyfile="src/ml_cbor.h" bodystart="116" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="117" column="9" bodyfile="src/ml_cbor.h" bodystart="117" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga9a8ca4450155ae9e464bebf6a93a4297" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_INT8</name>
@@ -1271,7 +1288,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="117" column="9" bodyfile="src/ml_cbor.h" bodystart="117" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="118" column="9" bodyfile="src/ml_cbor.h" bodystart="118" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gad197c4abc0e791e6571271e806bc00c7" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_INT16_LE</name>
@@ -1282,7 +1299,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="118" column="9" bodyfile="src/ml_cbor.h" bodystart="118" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="119" column="9" bodyfile="src/ml_cbor.h" bodystart="119" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gac81e3b6eedfb8a30c66071be1dcd2430" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_INT32_LE</name>
@@ -1293,7 +1310,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="119" column="9" bodyfile="src/ml_cbor.h" bodystart="119" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="120" column="9" bodyfile="src/ml_cbor.h" bodystart="120" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga2dc366c6ae887cb821e7983471486625" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_INT64_LE</name>
@@ -1304,7 +1321,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="120" column="9" bodyfile="src/ml_cbor.h" bodystart="120" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="121" column="9" bodyfile="src/ml_cbor.h" bodystart="121" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gaf98e5c8e177d600bc5928e7c17306952" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_FLOAT32_LE</name>
@@ -1315,7 +1332,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="121" column="9" bodyfile="src/ml_cbor.h" bodystart="121" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="122" column="9" bodyfile="src/ml_cbor.h" bodystart="122" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gac52cb1c1a502ea091f5e6e3c8ec365bf" prot="public" static="no">
         <name>ML_CBOR_TAG_ARRAY_FLOAT64_LE</name>
@@ -1326,7 +1343,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="122" column="9" bodyfile="src/ml_cbor.h" bodystart="122" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="123" column="9" bodyfile="src/ml_cbor.h" bodystart="123" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gac5ec85003926cfc97499d360b355e860" prot="public" static="no">
         <name>ML_CBOR_TAG_FINITE_SET</name>
@@ -1337,7 +1354,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="123" column="9" bodyfile="src/ml_cbor.h" bodystart="123" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="124" column="9" bodyfile="src/ml_cbor.h" bodystart="124" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga3eceae59d2801f4ac001004e4841edd7" prot="public" static="no">
         <name>ML_CBOR_TAG_EMBEDDED_JSON</name>
@@ -1348,7 +1365,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="124" column="9" bodyfile="src/ml_cbor.h" bodystart="124" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="125" column="9" bodyfile="src/ml_cbor.h" bodystart="125" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1gabdce4b6c792a8feb77e2564f4a62e435" prot="public" static="no">
         <name>ML_CBOR_TAG_COMPLEX</name>
@@ -1359,7 +1376,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="125" column="9" bodyfile="src/ml_cbor.h" bodystart="125" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="126" column="9" bodyfile="src/ml_cbor.h" bodystart="126" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__cbor_1ga5456f51b3c2664a7618b7e9deb6c8d9d" prot="public" static="no">
         <name>ML_CBOR_TAG_COMPLEX_ARRAY</name>
@@ -1370,7 +1387,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="126" column="9" bodyfile="src/ml_cbor.h" bodystart="126" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="127" column="9" bodyfile="src/ml_cbor.h" bodystart="127" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

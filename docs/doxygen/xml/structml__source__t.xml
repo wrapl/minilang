@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="208" column="12" bodyfile="src/ml_runtime.h" bodystart="208" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="210" column="12" bodyfile="src/ml_runtime.h" bodystart="210" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__source__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -29,14 +29,14 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="209" column="5" bodyfile="src/ml_runtime.h" bodystart="209" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="211" column="5" bodyfile="src/ml_runtime.h" bodystart="211" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="src/ml_runtime.h" line="207" column="1" bodyfile="src/ml_runtime.h" bodystart="207" bodyend="210"/>
+    <location file="src/ml_runtime.h" line="209" column="1" bodyfile="src/ml_runtime.h" bodystart="209" bodyend="212"/>
     <listofallmembers>
       <member refid="structml__source__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" virt="non-virtual"><scope>ml_source_t</scope><name>Line</name></member>
       <member refid="structml__source__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_source_t</scope><name>Name</name></member>

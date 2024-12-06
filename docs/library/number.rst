@@ -539,6 +539,14 @@ number
    Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 
 
+:mini:`meth (Arg₁: integer::interval):subsets(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: integer::range):subsets(Arg₂: integer)`
+   *TBD*
+
+
 :mini:`type number`
    Base type for numbers.
 
@@ -555,12 +563,12 @@ number
    *TBD*
 
 
-:mini:`def real::Inf: real`
-   Positive infinity.
-
-
 :mini:`def real::NaN: real`
    Not a number.
+
+
+:mini:`def real::Inf: real`
+   Positive infinity.
 
 
 :mini:`meth real(String: string): real | error`

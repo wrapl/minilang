@@ -738,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1852793702>>
+      A:minidx(2) :> <<2 1> <1 543517794>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1749,6 +1749,14 @@ array
 
 :mini:`type ref::uint8`
    *TBD*
+
+
+:mini:`meth $(Slice: slice): array`
+   Returns an array with the contents of :mini:`List`.
+
+
+:mini:`meth ^(Slice: slice): array`
+   Returns an array with the contents of :mini:`Slice`,  transposed.
 
 
 :mini:`fun array::new(Arg₁: type, Arg₂: list)`

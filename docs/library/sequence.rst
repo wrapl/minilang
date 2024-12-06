@@ -148,8 +148,9 @@ sequence
 
 
 :mini:`fun distill(Initial?: any, Sequence: sequence, Fn: function): any | nil`
-   Returns a sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
-   If :mini:`Initial` is omitted,  the first value produced by :mini:`Sequence` is used.
+   Returns a sequence that produces :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... if :mini:`Initial` is provided,  otherwise returns a sequence that produces :mini:`V₁`,  :mini:`Fn(V₁,  V₂)`,  :mini:`Fn(Fn(V₁,  V₂),  V₃)`,  ... .
+   
+   The resulting sequence always has the same number of values as :mini:`Sequence`.
 
    .. code-block:: mini
 
@@ -612,7 +613,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "k"
+      random("cake") :> "e"
       random([]) :> nil
 
 

@@ -714,6 +714,11 @@
     <member refid="ml__array_8h_1a2c74fe3d13c9294dfa0e24f926bc3cbf" kind="function"><name>ml_array_degree</name></member>
     <member refid="ml__array_8h_1a6c6130c9f4ea1156810402e2dd16f66c" kind="function"><name>ml_array_size</name></member>
     <member refid="ml__array_8h_1a04f775d73be07991ab6076362debe764" kind="function"><name>ml_array_index</name></member>
+    <member refid="ml__array_8h_1abc81807177078d24223926e6dab3677e" kind="function"><name>ml_array_format</name></member>
+    <member refid="ml__array_8h_1ab930286cb182275ee60a5d3a8e6f8316" kind="function"><name>ml_array_of_type_guess</name></member>
+    <member refid="ml__array_8h_1a57dca09fb3a3c8138ec1ae7960092db6" kind="function"><name>ml_array_of_create</name></member>
+    <member refid="ml__array_8h_1ac9c2bd50e0cc1462a54d19ab01f0ac21" kind="function"><name>ml_array_of_fill</name></member>
+    <member refid="ml__array_8h_1a5b7acadb6af2adab71b58bba5d96e50e" kind="function"><name>ml_array_of</name></member>
     <member refid="ml__array_8h_1a6d42db08dbcb3a49100873bdeaebcd0e" kind="function"><name>ml_array_foreach</name></member>
     <member refid="ml__array_8h_1a2a180d657d9d88453320f220124aaf8d" kind="function"><name>ml_array_data</name></member>
     <member refid="ml__array_8h_1a75302de15dcdfe6fa479b97eb7bbbc98" kind="function"><name>ml_array_step</name></member>
@@ -819,7 +824,8 @@
     <member refid="group__cbor_1ga8f33df522c0cda12e6de463bc84ea5c2" kind="function"><name>ml_cbor_reader_reset</name></member>
     <member refid="group__cbor_1ga6c6781dee628dfa15ac2179a1e5e0f16" kind="function"><name>ml_cbor_reader_set_setting</name></member>
     <member refid="group__cbor_1gabffa0dcaa75e02406d93e94e3991d2ff" kind="function"><name>ml_cbor_reader_get_setting</name></member>
-    <member refid="group__cbor_1ga49916bbca25f2306233795b4fdc07a0e" kind="function"><name>ml_cbor_reader_read</name></member>
+    <member refid="group__cbor_1ga63ee2981dd71b786a7c353b2d5c66f39" kind="function"><name>ml_cbor_reader_read</name></member>
+    <member refid="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" kind="function"><name>ml_cbor_reader_done</name></member>
     <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
@@ -1176,6 +1182,8 @@
   <compound refid="ml__json_8h" kind="file"><name>ml_json.h</name>
     <member refid="ml__json_8h_1a7ace2069e01cd7be7af30e5958a26c30" kind="variable"><name>MLJsonT</name></member>
     <member refid="ml__json_8h_1a0d864c619e065b9ab37e321ea64bdbcb" kind="function"><name>ml_json_init</name></member>
+    <member refid="ml__json_8h_1a0a1a4562bb5e7a25ba029df8e75c4fd0" kind="function"><name>ml_json_decode</name></member>
+    <member refid="ml__json_8h_1a6ad2245886abb8b9c7fb9b6fd5668185" kind="function"><name>ml_json_encode</name></member>
   </compound>
   <compound refid="ml__library_8h" kind="file"><name>ml_library.h</name>
     <member refid="ml__library_8h_1a6df1d22fb5f09eccc23b9f399670cfd7" kind="define"><name>STRINGIFY</name></member>
@@ -1508,6 +1516,7 @@
     <member refid="group__runtime_1ga35e789ee30e220733088c39ae4194b18" kind="function"><name>ml_config_lookup</name></member>
     <member refid="group__runtime_1ga8a326e4182500333ff91407b63277867" kind="function"><name>ml_config_name</name></member>
     <member refid="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" kind="function"><name>ml_state</name></member>
+    <member refid="group__runtime_1gaaeb9a49a594c2a0105fd58396325e157" kind="function"><name>ml_state_continue</name></member>
     <member refid="group__runtime_1ga41748b84e0dff33483013c5f26970c51" kind="function"><name>ml_default_state_run</name></member>
     <member refid="group__runtime_1ga2be6e789393b900e951136eea2cb5336" kind="function"><name>ml_result_state_run</name></member>
     <member refid="group__runtime_1gaa283c72d35952c7b569b4d9c18b97ba9" kind="function"><name>ml_result_state</name></member>
@@ -1894,6 +1903,8 @@
     <member refid="group__slices_1ga846d3888dcd3d7017821eb8c2334993f" kind="function"><name>ml_slice_push</name></member>
     <member refid="group__slices_1gaff0676d5591f27deff5c4e78fc87c0f1" kind="function"><name>ml_slice_pop</name></member>
     <member refid="group__slices_1gae52448269042036bccfbe3fe15e49f39" kind="function"><name>ml_slice_pull</name></member>
+    <member refid="group__slices_1ga9e957adf679d5ed373ffb333023242bb" kind="function"><name>ml_slice_get</name></member>
+    <member refid="group__slices_1ga8158375ba2087ffaaeb3d666ef89bbf0" kind="function"><name>ml_slice_set</name></member>
     <member refid="group__slices_1ga91092264abf8f4383d51d2b2a13c5a8a" kind="function"><name>ml_slice_head</name></member>
     <member refid="group__slices_1ga78119aee60a73cd77971c8a6f9b431ed" kind="function"><name>ml_slice_length</name></member>
     <member refid="group__methods_1ga24a660ca09a2087ddcbca0f87f855272" kind="function"><name>ml_method</name></member>
@@ -2063,7 +2074,8 @@
     <member refid="group__cbor_1ga8f33df522c0cda12e6de463bc84ea5c2" kind="function"><name>ml_cbor_reader_reset</name></member>
     <member refid="group__cbor_1ga6c6781dee628dfa15ac2179a1e5e0f16" kind="function"><name>ml_cbor_reader_set_setting</name></member>
     <member refid="group__cbor_1gabffa0dcaa75e02406d93e94e3991d2ff" kind="function"><name>ml_cbor_reader_get_setting</name></member>
-    <member refid="group__cbor_1ga49916bbca25f2306233795b4fdc07a0e" kind="function"><name>ml_cbor_reader_read</name></member>
+    <member refid="group__cbor_1ga63ee2981dd71b786a7c353b2d5c66f39" kind="function"><name>ml_cbor_reader_read</name></member>
+    <member refid="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" kind="function"><name>ml_cbor_reader_done</name></member>
     <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
@@ -2351,6 +2363,7 @@
     <member refid="group__runtime_1ga35e789ee30e220733088c39ae4194b18" kind="function"><name>ml_config_lookup</name></member>
     <member refid="group__runtime_1ga8a326e4182500333ff91407b63277867" kind="function"><name>ml_config_name</name></member>
     <member refid="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" kind="function"><name>ml_state</name></member>
+    <member refid="group__runtime_1gaaeb9a49a594c2a0105fd58396325e157" kind="function"><name>ml_state_continue</name></member>
     <member refid="group__runtime_1ga41748b84e0dff33483013c5f26970c51" kind="function"><name>ml_default_state_run</name></member>
     <member refid="group__runtime_1ga2be6e789393b900e951136eea2cb5336" kind="function"><name>ml_result_state_run</name></member>
     <member refid="group__runtime_1gaa283c72d35952c7b569b4d9c18b97ba9" kind="function"><name>ml_result_state</name></member>
@@ -2678,6 +2691,8 @@
     <member refid="group__slices_1ga846d3888dcd3d7017821eb8c2334993f" kind="function"><name>ml_slice_push</name></member>
     <member refid="group__slices_1gaff0676d5591f27deff5c4e78fc87c0f1" kind="function"><name>ml_slice_pop</name></member>
     <member refid="group__slices_1gae52448269042036bccfbe3fe15e49f39" kind="function"><name>ml_slice_pull</name></member>
+    <member refid="group__slices_1ga9e957adf679d5ed373ffb333023242bb" kind="function"><name>ml_slice_get</name></member>
+    <member refid="group__slices_1ga8158375ba2087ffaaeb3d666ef89bbf0" kind="function"><name>ml_slice_set</name></member>
     <member refid="group__slices_1ga91092264abf8f4383d51d2b2a13c5a8a" kind="function"><name>ml_slice_head</name></member>
     <member refid="group__slices_1ga78119aee60a73cd77971c8a6f9b431ed" kind="function"><name>ml_slice_length</name></member>
     <member refid="group__slices_1ga73740fa93215fe850c454a4787850b01" kind="define"><name>ML_SLICE_FOREACH</name></member>

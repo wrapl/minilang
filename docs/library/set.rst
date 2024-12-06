@@ -223,7 +223,7 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:random :> "c"
-      S:random :> "c"
+      S:random :> "a"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -232,6 +232,14 @@ set
    .. code-block:: mini
 
       set(["A", "B", "C"]):size :> 3
+
+
+:mini:`meth (Arg₁: set):subsets`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set):subsets(Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth (Buffer: string::buffer):append(Set: set)`

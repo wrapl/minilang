@@ -21,6 +21,10 @@ compiler
    *TBD*
 
 
+:mini:`meth compilereoi(Arg₁: any)`
+   *TBD*
+
+
 :mini:`type command::decl`
    *TBD*
 
@@ -74,6 +78,14 @@ compiler
 
 
 :mini:`type compiler::function < state`
+   *TBD*
+
+
+:mini:`type compilereoi`
+   *TBD*
+
+
+:mini:`meth compilereoi()`
    *TBD*
 
 

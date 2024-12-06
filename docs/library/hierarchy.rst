@@ -54,6 +54,9 @@ hierarchy
       "task":e -> "task::set":w;
       "function":e -> "task::queue":w;
       "sequence":e -> "table":w;
+      "any":e -> "table::row":w;
+      "any":e -> "table::column":w;
+      "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
       "any":e -> "instance::field":w;
       "any":e -> "instance":w;
@@ -174,8 +177,11 @@ hierarchy
       "any":e -> "expr::builder":w;
       "state":e -> "compiler":w;
       "any":e -> "parser":w;
+      "any":e -> "compilereoi":w;
       "any":e -> "global":w;
       "any":e -> "command::decl":w;
+      "stream":e -> "cbor::decoder":w;
+      "any":e -> "cbor::tag":w;
       "stream":e -> "cbor::decoder":w;
       "any":e -> "cbor::tag":w;
       "any":e -> "variable":w;
