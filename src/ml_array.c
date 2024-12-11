@@ -1793,6 +1793,7 @@ static void ML_TYPED_FN(ml_iterate, MLArrayT, ml_state_t *Caller, ml_array_t *Ar
 }
 
 static void ML_TYPED_FN(ml_iterate, MLArrayMutableT, ml_state_t *Caller, ml_array_t *Array) {
+	for (int I = 0; I < Array->Degree; ++I) if (!Array->Dimensions[I].Size) ML_RETURN(MLNil);
 	ml_array_iterator_t *Iterator = xnew(ml_array_iterator_t, Array->Degree, ml_array_iter_dim_t);
 	Iterator->Type = MLArrayMutableIteratorT;
 	Iterator->Address = Array->Base.Value;
@@ -4758,7 +4759,7 @@ ML_METHOD("<>", MLArrayT, MLArrayT) {
 	return ml_integer(ml_array_compare(A, B));
 }
 
-ML_METHOD("==", MLArrayT, MLArrayT) {
+ML_METHOD("=", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>integer
@@ -4768,7 +4769,7 @@ ML_METHOD("==", MLArrayT, MLArrayT) {
 	return ml_array_compare(A, B) ? MLNil : (ml_value_t *)B;
 }
 
-ML_METHOD("!==", MLArrayT, MLArrayT) {
+ML_METHOD("!=", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>integer
@@ -4986,8 +4987,8 @@ ML_COMPARE_METHOD_BASE(BASE, BASE2, OP, NAME)
 
 #endif
 
-ML_COMPARE_METHOD(Eq, Eq, =, =);
-ML_COMPARE_METHOD(Ne, Ne, !=, !=);
+ML_COMPARE_METHOD(Eq, Eq, =, ==);
+ML_COMPARE_METHOD(Ne, Ne, !=, !==);
 ML_COMPARE_METHOD(Lt, Gt, <, <);
 ML_COMPARE_METHOD(Gt, Lt, >, >);
 ML_COMPARE_METHOD(Le, Ge, <=, <=);
@@ -8183,8 +8184,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("min", UpdateMinRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("max", UpdateMaxRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
-	ml_method_by_name("=", CompareEqRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("!=", CompareNeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("==", CompareEqRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("!==", CompareNeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("<", CompareLtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name(">", CompareGtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("<=", CompareLeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
