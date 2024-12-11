@@ -242,8 +242,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M:random :> "c"
       M:random :> "e"
-      M:random :> "k"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -300,6 +300,17 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3}
       M["A", fun(Key) Key:code] :> 1
       M["D", fun(Key) Key:code] :> 68
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+
+
+:mini:`meth (Map: map::mutable):create(Key: any, Fn: function): any | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M:create("A", fun(Key) Key:code) :> 1
+      M:create("D", fun(Key) Key:code) :> nil
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
@@ -580,13 +591,13 @@ map
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.

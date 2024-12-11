@@ -74,6 +74,8 @@ static int ML_TYPED_FN(ml_value_is_constant, MLNumberT, ml_value_t *Value) {
 #define ml_lte(X, Y) ((X) <= (Y))
 #define ml_gte(X, Y) ((X) >= (Y))
 
+#define ml_diff(X, Y) (_Generic((X) - (Y), long: labs, default: fabs)((X) - (Y)))
+
 #ifdef ML_COMPLEX
 
 static long ml_complex_hash(ml_complex_t *Complex, ml_hash_chain_t *Chain) {
@@ -685,6 +687,7 @@ ml_arith_method_integer_real(NAME, FUNC)
 ml_arith_method_number(-, neg)
 ml_arith_method_number_number(+, add)
 ml_arith_method_number_number(-, sub)
+ml_arith_method_number_number(~, diff)
 ml_arith_method_number_number(*, mul)
 ml_arith_method_integer(~, complement);
 ml_arith_method_integer_integer_bitwise(/\\, and, and);

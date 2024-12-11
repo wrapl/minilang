@@ -1732,6 +1732,7 @@ static void ML_TYPED_FN(ml_iter_value, MLArrayMutableIteratorT, ml_state_t *Call
 }
 
 static void ML_TYPED_FN(ml_iterate, MLArrayT, ml_state_t *Caller, ml_array_t *Array) {
+	for (int I = 0; I < Array->Degree; ++I) if (!Array->Dimensions[I].Size) ML_RETURN(MLNil);
 	ml_array_iterator_t *Iterator = xnew(ml_array_iterator_t, Array->Degree, ml_array_iter_dim_t);
 	Iterator->Type = MLArrayIteratorT;
 	Iterator->Address = Array->Base.Value;

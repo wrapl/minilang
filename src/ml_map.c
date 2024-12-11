@@ -1338,7 +1338,7 @@ static void ml_missing_state_run(ml_map_node_state_t *State, ml_value_t *Value) 
 		ML_CONTINUE(State->Base.Caller, Value);
 	} else {
 		State->Node->Value = ml_deref(Value);
-		ML_CONTINUE(State->Base.Caller, MLSome);
+		ML_CONTINUE(State->Base.Caller, State->Node->Value);
 	}
 }
 
@@ -1347,7 +1347,7 @@ ML_METHODX("missing", MLMapMutableT, MLAnyT, MLFunctionT) {
 //<Key
 //<Fn
 //>any | nil
-// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`some`.
+// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns the new value.
 //$- let M := {"A" is 1, "B" is 2, "C" is 3}
 //$= M:missing("A", fun(Key) Key:code)
 //$= M:missing("D", fun(Key) Key:code)
@@ -1367,6 +1367,43 @@ ML_METHODX("missing", MLMapMutableT, MLAnyT, MLFunctionT) {
 		return ml_call(State, Function, 1, &State->Key);
 	} else {
 		ML_RETURN(MLNil);
+	}
+}
+
+static void ml_exists_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ML_CONTINUE(State->Base.Caller, Value);
+	} else {
+		State->Node->Value = ml_deref(Value);
+		ML_CONTINUE(State->Base.Caller, MLNil);
+	}
+}
+
+ML_METHODX("exists", MLMapMutableT, MLAnyT, MLFunctionT) {
+//<Map
+//<Key
+//<Fn
+//>any | nil
+// If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:exists("A", fun(Key) Key:code)
+//$= M:exists("D", fun(Key) Key:code)
+//$= M
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
+	if (!Node->Value) {
+		Node->Value = MLNil;
+		ml_map_node_state_t *State = new(ml_map_node_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)ml_exists_state_run;
+		State->Key = Key;
+		State->Node = Node;
+		ml_value_t *Function = Args[2];
+		return ml_call(State, Function, 1, &State->Key);
+	} else {
+		ML_RETURN(Node->Value);
 	}
 }
 

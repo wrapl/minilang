@@ -187,6 +187,22 @@ ML_METHODX("insert", MLPQueueT, MLAnyT, MLAnyT) {
 	return ml_pqueue_insert(Caller, Queue, Entry);
 }
 
+ML_METHOD("entry", MLPQueueT, MLAnyT, MLAnyT) {
+//<Queue
+//<Value
+//<Priority
+//>pqueue::entry
+// Creates and returns a new entry with value :mini:`Value` and priority :mini:`Priority` without inserting it into :mini:`Queue`.
+	ml_pqueue_t *Queue = (ml_pqueue_t *)Args[0];
+	ml_pqueue_entry_t *Entry = new(ml_pqueue_entry_t);
+	Entry->Type = MLPQueueEntryT;
+	Entry->Queue = Queue;
+	Entry->Value = Args[1];
+	Entry->Priority = Args[2];
+	Entry->Index = INT_MAX;
+	return (ml_value_t *)Entry;
+}
+
 ML_METHOD("peek", MLPQueueT) {
 //<Queue
 //>pqueue::entry|nil
