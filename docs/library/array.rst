@@ -9,7 +9,7 @@ array
 
 .. rst-class:: mini-api
 
-:mini:`meth (A: any) != (B: array): array`
+:mini:`meth (A: any) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -57,7 +57,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: any) = (B: array): array`
+:mini:`meth (A: any) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
@@ -100,24 +100,24 @@ array
       array::vcat(A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
 
 
-:mini:`meth (A: array) != (B: any): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) != (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) != (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) != (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) !== (B: array): integer`
+:mini:`meth (A: array) != (B: array): integer`
    Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`nil` if they match and :mini:`B` otherwise.
+
+
+:mini:`meth (A: array) !== (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) !== (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) !== (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) !== (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) * (B: any): array`
@@ -389,24 +389,24 @@ array
    Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 
 
-:mini:`meth (A: array) = (B: any): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) == (B: array): integer`
+:mini:`meth (A: array) = (B: array): integer`
    Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`B` if they match and :mini:`nil` otherwise.
+
+
+:mini:`meth (A: array) == (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) == (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) == (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) == (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) > (B: any): array`
@@ -738,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1853191269>>
+      A:minidx(2) :> <<2 1> <1 589325676>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1270,7 +1270,7 @@ array
     Returns a new array of uint8 values with the specified dimensions.
 
 
-:mini:`meth (A: complex) != (B: array): array`
+:mini:`meth (A: complex) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -1319,7 +1319,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: complex) = (B: array): array`
+:mini:`meth (A: complex) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
@@ -1344,7 +1344,7 @@ array
       array::cat(2, A, B) :> <<1 2 3 7 8 9> <4 5 6 10 11 12>>
 
 
-:mini:`meth (A: integer) != (B: array): array`
+:mini:`meth (A: integer) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -1401,7 +1401,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: integer) = (B: array): array`
+:mini:`meth (A: integer) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
@@ -1621,7 +1621,7 @@ array
    A permutation of numbers :mini:`1 .. N` (each number occurs exactly once).
 
 
-:mini:`meth (A: real) != (B: array): array`
+:mini:`meth (A: real) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -1669,7 +1669,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: real) = (B: array): array`
+:mini:`meth (A: real) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 

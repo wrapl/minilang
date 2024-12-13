@@ -25,6 +25,10 @@ pqueue
    Returns the number of entries in :mini:`Queue`.
 
 
+:mini:`meth (Queue: pqueue):entry(Value: any, Priority: any): pqueue::entry`
+   Creates and returns a new entry with value :mini:`Value` and priority :mini:`Priority` without inserting it into :mini:`Queue`.
+
+
 :mini:`meth (Queue: pqueue):insert(Value: any, Priority: any): pqueue::entry`
    Creates and returns a new entry in :mini:`Queue` with value :mini:`Value` and priority :mini:`Priority`.
 

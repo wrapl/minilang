@@ -95,6 +95,18 @@ number
    Returns :mini:`~A`.
 
 
+:mini:`meth (A: complex) ~ (B: complex): real`
+   complex :mini:`A ~ B`.
+
+
+:mini:`meth (A: complex) ~ (B: double): complex`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: complex) ~ (B: integer): complex`
+   Returns :mini:`A ~ B`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: complex)`
    Appends :mini:`Value` to :mini:`Buffer`.
 
@@ -239,6 +251,18 @@ number
    Returns :mini:`min(A,  B)`.
 
 
+:mini:`meth (A: double) ~ (B: complex): complex`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: double) ~ (B: double): real`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: double) ~ (B: integer): real`
+   Returns :mini:`A ~ B`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: double)`
    Appends :mini:`Value` to :mini:`Buffer`.
 
@@ -288,11 +312,11 @@ number
    Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
 
 
-:mini:`fun integer::random_permutation(Max: integer): list`
+:mini:`fun integer::random_permutation(Max: integer): permutation`
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
-:mini:`fun integer::random_permutation(Max: integer): permutation`
+:mini:`fun integer::random_permutation(Max: integer): list`
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
@@ -525,6 +549,18 @@ number
 
 :mini:`meth ~(A: integer): integer`
    Returns :mini:`~A`.
+
+
+:mini:`meth (A: integer) ~ (B: complex): complex`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: integer) ~ (B: double): real`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: integer) ~ (B: integer): integer`
+   Returns :mini:`A ~ B`.
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: integer)`

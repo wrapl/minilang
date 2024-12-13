@@ -1139,6 +1139,7 @@ typedef enum {
 } ml_map_order_t;
 
 extern ml_type_t MLMapT[];
+extern ml_type_t MLMapTemplateT[];
 
 struct ml_map_t {
 	ml_type_t *Type;

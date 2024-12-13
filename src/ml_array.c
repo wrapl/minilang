@@ -414,7 +414,7 @@ void ml_array_foreach(ml_array_t *Array, void *Data, void (*callback)(void *, in
 	ml_array_foreach_next(Array->Base.Value, Array->Dimensions, Indices, &Foreach);
 }
 
-typedef struct ml_array_init_state_t {
+typedef struct {
 	ml_state_t Base;
 	char *Address;
 	ml_array_t *Array;
@@ -497,6 +497,7 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 }
 
 int ml_array_copy(ml_array_t *Target, ml_array_t *Source);
+static void ml_array_init_from(ml_state_t *Caller, ml_array_format_t Format, ml_array_t *Source, ml_value_t *Function);
 
 static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
@@ -538,9 +539,14 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 		return ml_call(State, Function, Array->Degree, State->Args);
 	} else if (ml_is(Args[0], MLArrayT)) {
 		ml_array_t *Source = (ml_array_t *)Args[0];
-		ml_array_t *Target = ml_array_alloc(Format, Source->Degree);
-		ml_array_copy(Target, Source);
-		ML_RETURN(Target);
+		if (Count > 1) {
+			ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+			return ml_array_init_from(Caller, Format, Source, Args[1]);
+		} else {
+			ml_array_t *Target = ml_array_alloc(Format, Source->Degree);
+			ml_array_copy(Target, Source);
+			ML_RETURN(Target);
+		}
 	} else if (ml_is(Args[0], MLIntegerT)) {
 		for (int I = 1; I < Count - 1; ++I) ML_CHECKX_ARG_TYPE(I, MLIntegerT);
 		int Degree = ml_is(Args[Count - 1], MLIntegerT) ? Count : (Count - 1);
@@ -1673,6 +1679,176 @@ typedef struct {
 	const int *Indices;
 	int Size, Stride, Index;
 } ml_array_iter_dim_t;
+
+typedef struct {
+	ml_state_t Base;
+	char *Address;
+	ml_array_t *Array;
+	ml_value_t *Function;
+	ml_value_t *Args[1];
+	struct {
+		char *Address;
+		ml_value_t *(*deref)(char *Address);
+		int Degree;
+		ml_array_iter_dim_t Dimensions[];
+	} Source;
+} ml_array_init_from_state_t;
+
+static void ml_array_init_from_run(ml_array_init_from_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	Value = ml_deref(Value);
+	ml_array_t *Array = State->Array;
+	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_NONE:
+		break;
+	case ML_ARRAY_FORMAT_ANY:
+		*(ml_value_t **)State->Address = Value;
+		State->Address += sizeof(ml_value_t *);
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		*(uint8_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(uint8_t);
+		break;
+	case ML_ARRAY_FORMAT_I8:
+		*(int8_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(int8_t);
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		*(uint16_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(uint16_t);
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		*(int16_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(int16_t);
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		*(uint32_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(uint32_t);
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		*(int32_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(int32_t);
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		*(uint64_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(uint64_t);
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		*(int64_t *)State->Address = ml_integer_value(Value);
+		State->Address += sizeof(int64_t);
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		*(float *)State->Address = ml_real_value(Value);
+		State->Address += sizeof(float);
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		*(double *)State->Address = ml_real_value(Value);
+		State->Address += sizeof(double);
+		break;
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		*(complex float *)State->Address = ml_complex_value(Value);
+		State->Address += sizeof(complex float);
+		break;
+	case ML_ARRAY_FORMAT_C64:
+		*(complex double *)State->Address = ml_complex_value(Value);
+		State->Address += sizeof(complex double);
+		break;
+#endif
+	}
+	int I = State->Source.Degree;
+	ml_array_iter_dim_t *Dimensions = State->Source.Dimensions;
+	for (;;) {
+		if (--I < 0) break;
+		if (++Dimensions[I].Index < Dimensions[I].Size) {
+			char *Address = Dimensions[I].Value;
+			if (Dimensions[I].Indices) {
+				Address += Dimensions[I].Indices[Dimensions[I].Index] * Dimensions[I].Stride;
+			} else {
+				Address += Dimensions[I].Index * Dimensions[I].Stride;
+			}
+			for (int J = I + 1; J < State->Source.Degree; ++J) {
+				Dimensions[J].Value = Address;
+				Dimensions[J].Index = 0;
+			}
+			State->Source.Address = Address;
+			State->Args[0] = State->Source.deref(State->Source.Address);
+			return ml_call((ml_state_t *)State, State->Function, 1, State->Args);
+		}
+	}
+	ML_CONTINUE(State->Base.Caller, Array);
+}
+
+static void ml_array_init_from(ml_state_t *Caller, ml_array_format_t Format, ml_array_t *Source, ml_value_t *Function) {
+	ml_array_init_from_state_t *State = xnew(ml_array_init_from_state_t, Source->Degree, ml_array_iter_dim_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_array_init_from_run;
+	State->Source.Address = Source->Base.Value;
+	State->Source.Degree = Source->Degree;
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_U8:
+		State->Source.deref = ml_array_iter_deref_uint8_t;
+		break;
+	case ML_ARRAY_FORMAT_I8:
+		State->Source.deref = ml_array_iter_deref_int8_t;
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		State->Source.deref = ml_array_iter_deref_uint16_t;
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		State->Source.deref = ml_array_iter_deref_int16_t;
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		State->Source.deref = ml_array_iter_deref_uint32_t;
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		State->Source.deref = ml_array_iter_deref_int32_t;
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		State->Source.deref = ml_array_iter_deref_uint64_t;
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		State->Source.deref = ml_array_iter_deref_int64_t;
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		State->Source.deref = ml_array_iter_deref_float;
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		State->Source.deref = ml_array_iter_deref_double;
+		break;
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		State->Source.deref = ml_array_iter_deref_complex_float;
+		break;
+	case ML_ARRAY_FORMAT_C64:
+		State->Source.deref = ml_array_iter_deref_complex_double;
+		break;
+#endif
+	case ML_ARRAY_FORMAT_ANY:
+		State->Source.deref = ml_array_iter_deref_any;
+		break;
+	default:
+		ML_ERROR("TypeError", "Invalid array type for iteration");
+	}
+	ml_array_t *Array = State->Array = ml_array_alloc(Format, Source->Degree);
+	int DataSize = MLArraySizes[Format];
+	for (int I = Source->Degree; --I >= 0;) {
+		int Size = State->Source.Dimensions[I].Size = Source->Dimensions[I].Size;
+		State->Source.Dimensions[I].Stride = Source->Dimensions[I].Stride;
+		State->Source.Dimensions[I].Indices = Source->Dimensions[I].Indices;
+		State->Source.Dimensions[I].Index = 0;
+		State->Source.Dimensions[I].Value = Source->Base.Value;
+		Array->Dimensions[I].Size = Size;
+		Array->Dimensions[I].Stride = DataSize;
+		DataSize *= Size;
+	}
+	State->Address = Array->Base.Value = array_alloc(Format, DataSize);
+	Array->Base.Length = DataSize;
+	State->Function = Function;
+	State->Args[0] = State->Source.deref(State->Source.Address);
+	return ml_call((ml_state_t *)State, Function, 1, State->Args);
+}
 
 typedef struct {
 	ml_type_t *Type;

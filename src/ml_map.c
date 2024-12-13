@@ -166,6 +166,66 @@ ML_METHODVX(MLMapT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+static ml_map_node_t *ml_map_template_node(ml_map_node_t *Template, ml_value_t **Args) {
+	ml_map_node_t *Node = new(ml_map_node_t);
+	Node->Type = MLMapNodeMutableT;
+	Node->Key = Template->Key;
+	int Index = ml_integer_value_fast(Template->Value);
+	Node->Value = ml_deref(Args[Index]);
+	Args[Index] = (ml_value_t *)Node;
+	Node->Hash = Template->Hash;
+	Node->Depth = Template->Depth;
+	if (Template->Left) Node->Left = ml_map_template_node(Template->Left, Args);
+	if (Template->Right) Node->Right = ml_map_template_node(Template->Right, Args);
+	return Node;
+
+}
+
+static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Count, ml_value_t **Args) {
+	if (Template->Size != Count) ML_ERROR("CallError", "Mismatched call to map template");
+	ml_map_t *Map = (ml_map_t *)ml_map();
+	Map->Cached = Template->Cached;
+	Map->Size = Template->Size;
+	Map->Order = Template->Order;
+	if (Template->Root) {
+		Map->Root = ml_map_template_node(Template->Root, Args);
+		ml_map_node_t *Prev = Map->Head = (ml_map_node_t *)Args[0];
+		for (int I = 1; I < Count; ++I) {
+			ml_map_node_t *Node = (ml_map_node_t *)Args[I];
+			Node->Prev = Prev;
+			Prev->Next = Node;
+			Prev = Node;
+		}
+		Map->Tail = Prev;
+	}
+	ML_RETURN(Map);
+}
+
+ML_TYPE(MLMapTemplateT, (MLFunctionT), "map::template",
+	.call = (void *)ml_map_template_call
+);
+
+ML_FUNCTION(MLMapTemplate) {
+	ml_value_t *Template = ml_map();
+	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
+	Template->Type = MLMapTemplateT;
+	return Template;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLMapTemplateT, ml_value_t *Template) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("map::template"));
+	ML_MAP_FOREACH(Template, Node) ml_list_put(Result, Node->Key);
+	return Result;
+}
+
+ML_DESERIALIZER("map::template") {
+	ml_value_t *Template = ml_map();
+	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
+	Template->Type = MLMapTemplateT;
+	return Template;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter, *Map, *Reduce;
@@ -2231,6 +2291,25 @@ ML_FUNCTIONX(MLMapJoin2) {
 	ML_RETURN(State->Map);
 }
 
+static void ml_map_labeller_call(ml_state_t *Caller, ml_value_t *Labeller, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Value = ml_deref(Args[0]);
+	ml_map_node_t *Node = ml_map_slot(Labeller, Value);
+	if (Node->Value) ML_RETURN(Node->Value);
+	Node->Value = ml_integer(ml_map_size(Labeller));
+	ML_RETURN(Node->Value);
+}
+
+ML_TYPE(MLMapLabellerT, (MLFunctionT, MLMapT), "labeller",
+	.call = (void *)ml_map_labeller_call
+);
+
+ML_FUNCTION(MLMapLabeller) {
+	ml_value_t *Labeller = ml_map();
+	Labeller->Type = MLMapLabellerT;
+	return Labeller;
+}
+
 void ml_map_init() {
 #include "ml_map_init.c"
 	stringmap_insert(MLMapT->Exports, "mutable", MLMapMutableT);
@@ -2239,6 +2318,8 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
 	stringmap_insert(MLMapT->Exports, "join2", MLMapJoin2);
 	stringmap_insert(MLMapT->Exports, "reduce", MLMapReduce);
+	stringmap_insert(MLMapT->Exports, "labeller", MLMapLabeller);
+	stringmap_insert(MLMapT->Exports, "template", MLMapTemplate);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #ifdef ML_MUTABLES

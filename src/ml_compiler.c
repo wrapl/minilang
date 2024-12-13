@@ -5860,8 +5860,10 @@ with_name:
 		ML_EXPR(MapExpr, parent, map);
 		mlc_expr_t **ArgsSlot = &MapExpr->Child;
 		if (!ml_parse2(Parser, MLT_RIGHT_BRACE)) {
+			int UseTemplate = 1;
 			do {
 				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
+				if (Arg->compile != (void *)ml_value_expr_compile) UseTemplate = 0;
 				ArgsSlot = &Arg->Next;
 				if (ml_parse2(Parser, MLT_COLON) || ml_parse2(Parser, MLT_IS)) {
 					mlc_expr_t *ArgExpr = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
@@ -5874,6 +5876,22 @@ with_name:
 				}
 			} while (ml_parse2(Parser, MLT_COMMA));
 			ml_accept(Parser, MLT_RIGHT_BRACE);
+			if (UseTemplate) {
+				ML_EXPR(CallExpr, parent_value, const_call);
+				ml_value_t *Template = CallExpr->Value = ml_map();
+				mlc_expr_t **ArgsSlot = &CallExpr->Child;
+				mlc_expr_t *Child = MapExpr->Child;
+				int Index = 0;
+				while (Child) {
+					ml_map_insert(Template, ((mlc_value_expr_t *)Child)->Value, ml_integer(Index++));
+					Child = Child->Next;
+					ArgsSlot[0] = Child;
+					ArgsSlot = &Child->Next;
+					Child = Child->Next;
+				}
+				Template->Type = MLMapTemplateT;
+				return ML_EXPR_END(CallExpr);
+			}
 		}
 		return ML_EXPR_END(MapExpr);
 	}

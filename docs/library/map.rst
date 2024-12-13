@@ -9,6 +9,10 @@ map
 
 .. rst-class:: mini-api
 
+:mini:`fun mllabeller()`
+   *TBD*
+
+
 :mini:`meth (Key: any):in(Map: map): any | nil`
    Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
 
@@ -17,6 +21,10 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3}
       "A" in M :> "A"
       "D" in M :> nil
+
+
+:mini:`type labeller < function, map`
+   *TBD*
 
 
 :mini:`type map < sequence`
@@ -243,7 +251,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "c"
-      M:random :> "e"
+      M:random :> "a"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -303,17 +311,6 @@ map
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
-:mini:`meth (Map: map::mutable):create(Key: any, Fn: function): any | nil`
-   If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M:create("A", fun(Key) Key:code) :> 1
-      M:create("D", fun(Key) Key:code) :> nil
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
-
-
 :mini:`meth (Map: map::mutable):delete(Key: any): any | nil`
    Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any,  otherwise :mini:`nil`.
 
@@ -333,6 +330,17 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3}
       :> {"A" is 1, "B" is 2, "C" is 3}
       M:empty :> {}
+
+
+:mini:`meth (Map: map::mutable):exists(Key: any, Fn: function): any | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M:exists("A", fun(Key) Key:code) :> 1
+      M:exists("D", fun(Key) Key:code) :> nil
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
 :mini:`meth (Arg₁: map::mutable):grow(Arg₂₁ is Value₁, ...)`
@@ -372,13 +380,13 @@ map
 
 
 :mini:`meth (Map: map::mutable):missing(Key: any, Fn: function): any | nil`
-   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`some`.
+   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns the new value.
 
    .. code-block:: mini
 
       let M := {"A" is 1, "B" is 2, "C" is 3}
       M:missing("A", fun(Key) Key:code) :> nil
-      M:missing("D", fun(Key) Key:code) :> some
+      M:missing("D", fun(Key) Key:code) :> 68
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
