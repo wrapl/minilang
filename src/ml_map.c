@@ -192,6 +192,7 @@ static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Cou
 		ml_map_node_t *Prev = Map->Head = (ml_map_node_t *)Args[0];
 		for (int I = 1; I < Count; ++I) {
 			ml_map_node_t *Node = (ml_map_node_t *)Args[I];
+			Node->Map = Map;
 			Node->Prev = Prev;
 			Prev->Next = Node;
 			Prev = Node;
