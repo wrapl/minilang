@@ -286,8 +286,8 @@ struct ml_debugger_t {
 	size_t Revision;
 	void (*run)(ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value);
 	size_t *(*breakpoints)(ml_debugger_t *Debugger, const char *Source, int LineNo);
-	int StepIn:1;
-	int BreakOnError:1;
+	unsigned int StepIn:1;
+	unsigned int BreakOnError:1;
 };
 
 int ml_debugger_check(ml_state_t *State);

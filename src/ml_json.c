@@ -60,8 +60,6 @@ struct json_stack_t {
 	int Index;
 };
 
-typedef struct json_decoder_t json_decoder_t;
-
 struct json_decoder_t {
 	void (*emit)(json_decoder_t *Decoder, ml_value_t *Value);
 	void *Data;
@@ -82,6 +80,16 @@ static void json_decoder_init(json_decoder_t *Decoder, void (*emit)(json_decoder
 	Decoder->Buffer[0] = ML_STRINGBUFFER_INIT;
 	Decoder->State = JS_VALUE;
 	Decoder->Mode = JSM_VALUE;
+}
+
+json_decoder_t *json_decoder(void (*emit)(json_decoder_t *Decoder, ml_value_t *Value), void *Data) {
+	json_decoder_t *Decoder = new(json_decoder_t);
+	json_decoder_init(Decoder, emit, Data);
+	return Decoder;
+}
+
+void *json_decoder_data(json_decoder_t *Decoder) {
+	return Decoder->Data;
 }
 
 static void json_decoder_push(json_decoder_t *Decoder, ml_value_t *Collection) {
@@ -177,7 +185,7 @@ static ml_value_t *json_finish_keyword(json_decoder_t *Decoder) {
 	return NULL;
 }
 
-static ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_t Size) {
+ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_t Size) {
 	while (Size-- > 0) {
 		char Char = *Input++;
 		switch (Decoder->State) {

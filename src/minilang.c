@@ -7,6 +7,7 @@
 #include "ml_socket.h"
 #include "ml_object.h"
 #include "ml_time.h"
+#include "ml_debugger.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
@@ -384,6 +385,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 	int SliceSize = 250;
 #endif
+	const char *DebugAddr = NULL;
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (MainModule) {
@@ -442,6 +444,17 @@ int main(int Argc, const char *Argv[]) {
 				ml_log_level_set(ML_LOG_LEVEL_DEBUG);
 				break;
 			}
+			case 'J': {
+				if (Argv[I][2]) {
+					DebugAddr = Argv[I] + 2;
+				} else if (++I < Argc) {
+					DebugAddr = Argv[I];
+				} else {
+					fprintf(stderr, "Error: debug address required\n");
+					exit(-1);
+				}
+				break;
+			}
 #ifdef GC_BACKTRACE
 			case 'B':
 				BreakOnExit = 1;
@@ -477,6 +490,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 	if (SliceSize) ml_default_queue_init(Main->Context, SliceSize);
 #endif
+	if (DebugAddr) ml_remote_debugger_init(Main->Context, DebugAddr);
 #ifdef ML_THREADS
 	ml_default_thread_init(Main->Context);
 #endif

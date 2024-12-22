@@ -2,9 +2,16 @@
 #include "ml_runtime.h"
 #include "ml_compiler.h"
 #include "ml_macros.h"
+#include "ml_logging.h"
+#include "ml_json.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <errno.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "debugger"
@@ -25,23 +32,13 @@ typedef struct {
 	ml_value_t *Value;
 } debug_thread_t;
 
-struct ml_interactive_debugger_t {
-	ml_debugger_t Base;
-	interactive_debugger_info_t *Info;
-	debug_thread_t *Threads;
-	debug_thread_t *ActiveThread;
-	stringmap_t Globals[1];
-	stringmap_t Modules[1];
-	int MaxThreads, NumThreads;
-};
-
 typedef struct {
 	size_t Count;
 	size_t Bits[];
 } breakpoints_t;
 
-static size_t *debugger_breakpoints(ml_interactive_debugger_t *Debugger, const char *Source, int Max) {
-	breakpoints_t **Slot = (breakpoints_t **)stringmap_slot(Debugger->Modules, Source);
+static size_t *stringmap_breakpoints(stringmap_t *Modules, const char *Source, int Max) {
+	breakpoints_t **Slot = (breakpoints_t **)stringmap_slot(Modules, Source);
 	size_t Count = (Max + SIZE_BITS) / SIZE_BITS;
 	if (!Slot[0]) {
 		breakpoints_t *New = (breakpoints_t *)GC_MALLOC_ATOMIC(sizeof(breakpoints_t) + Count * sizeof(size_t));
@@ -57,6 +54,20 @@ static size_t *debugger_breakpoints(ml_interactive_debugger_t *Debugger, const c
 		Slot[0] = New;
 	}
 	return Slot[0]->Bits;
+}
+
+struct ml_interactive_debugger_t {
+	ml_debugger_t Base;
+	interactive_debugger_info_t *Info;
+	debug_thread_t *Threads;
+	debug_thread_t *ActiveThread;
+	stringmap_t Globals[1];
+	stringmap_t Modules[1];
+	int MaxThreads, NumThreads;
+};
+
+static size_t *debugger_breakpoints(ml_interactive_debugger_t *Debugger, const char *Source, int Max) {
+	return stringmap_breakpoints(Debugger->Modules, Source, Max);
 }
 
 ml_value_t *ml_interactive_debugger_get(ml_interactive_debugger_t *Debugger, const char *Name) {
@@ -388,4 +399,185 @@ ml_value_t *ml_interactive_debugger(
 	Info->GlobalGet = GlobalGet;
 	Info->Globals = Globals;
 	return ml_cfunctionx(Info, (void *)interactive_debugger_fnx);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_debugger_t BaseDebugger;
+	debug_thread_t *Threads;
+	debug_thread_t *ActiveThread;
+	json_decoder_t *Decoder;
+	pthread_t Thread;
+	stringmap_t Modules[1];
+	ml_stringbuffer_t Buffer[1];
+	int MaxThreads, NumThreads;
+	int Socket;
+} ml_remote_debugger_t;
+
+typedef enum {
+	ML_DEBUGGER_COMMAND_BREAKPOINT_SET = 1,
+	ML_DEBUGGER_COMMAND_BREAKPOINT_CLEAR = 2,
+	ML_DEBUGGER_COMMAND_BREAKPOINTS = 3,
+	ML_DEBUGGER_COMMAND_CONTINUE = 4,
+	ML_DEBUGGER_COMMAND_CONTINUE_ALL = 5,
+	ML_DEBUGGER_COMMAND_STEP_IN = 6,
+	ML_DEBUGGER_COMMAND_STEP_OVER = 7,
+	ML_DEBUGGER_COMMAND_STEP_OUT = 8,
+	ML_DEBUGGER_COMMAND_LOCALS = 9,
+	ML_DEBUGGER_COMMAND_FRAMES = 10,
+	ML_DEBUGGER_COMMAND_THREADS = 11,
+	ML_DEBUGGER_COMMAND_EVALUATE = 12
+} ml_debugger_command_t;
+
+static int ml_remote_debugger_send(ml_remote_debugger_t *Debugger, const char *Buffer, size_t Size) {
+	while (Size) {
+		ssize_t Write = write(Debugger->Socket, Buffer, Size);
+		if (Write < 0) return Write;
+		Buffer += Write;
+		Size -= Write;
+	}
+	return 0;
+}
+
+static size_t *ml_remote_debugger_breakpoints(ml_remote_debugger_t *Debugger, const char *Source, int Max) {
+	return stringmap_breakpoints(Debugger->Modules, Source, Max);
+}
+
+static void ml_remote_debugger_command(ml_remote_debugger_t *Debugger, ml_value_t *Command) {
+	size_t Index = ml_integer_value(ml_list_pop(Command));
+	ml_stringbuffer_printf(Debugger->Buffer, "[%ld,", Index);
+	ml_value_t *Result = MLNil;
+	ml_debugger_command_t Cmd = ml_integer_value(ml_list_pop(Command));
+	switch (Cmd) {
+	case ML_DEBUGGER_COMMAND_BREAKPOINT_SET: {
+		const char *Source = ml_string_value(ml_list_pop(Command));
+		while (ml_list_length(Command)) {
+			size_t LineNo = ml_integer_value_fast(ml_list_pop(Command));
+			size_t *Breakpoints = ml_remote_debugger_breakpoints(Debugger, Source, LineNo);
+			Breakpoints[LineNo / SIZE_BITS] |= 1L << (LineNo % SIZE_BITS);
+		}
+		++Debugger->BaseDebugger.Revision;
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_BREAKPOINT_CLEAR: {
+		const char *Source = ml_string_value(ml_list_pop(Command));
+		while (ml_list_length(Command)) {
+			size_t LineNo = ml_integer_value_fast(ml_list_pop(Command));
+			size_t *Breakpoints = ml_remote_debugger_breakpoints(Debugger, Source, LineNo);
+			Breakpoints[LineNo / SIZE_BITS] &= ~(1L << (LineNo % SIZE_BITS));
+		}
+		++Debugger->BaseDebugger.Revision;
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_BREAKPOINTS: {
+		Result = ml_map();
+		stringmap_foreach(Debugger->Modules, Result, (void *)debugger_breakpoints_fn);
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_CONTINUE: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_CONTINUE_ALL: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_STEP_IN: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_STEP_OVER: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_STEP_OUT: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_LOCALS: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_FRAMES: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_THREADS: {
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_EVALUATE: {
+		break;
+	}
+	}
+	ml_json_encode(Debugger->Buffer, Result);
+	ml_stringbuffer_put(Debugger->Buffer, ']');
+	ml_stringbuffer_drain(Debugger->Buffer, Debugger, (void *)ml_remote_debugger_send);
+}
+
+static void ml_remote_debugger_run(ml_remote_debugger_t *Debugger, ml_state_t *State, ml_value_t *Value) {
+	if (Debugger->NumThreads == Debugger->MaxThreads) {
+		int MaxThreads = 2 * Debugger->MaxThreads;
+		debug_thread_t *Threads = anew(debug_thread_t, MaxThreads);
+		memcpy(Threads, Debugger->Threads, Debugger->MaxThreads * sizeof(debug_thread_t));
+		int Index =  Debugger->ActiveThread - Debugger->Threads;
+		Debugger->Threads = Threads;
+		Debugger->MaxThreads = MaxThreads;
+		Debugger->ActiveThread = Threads + Index;
+	}
+	++Debugger->NumThreads;
+	debug_thread_t *Thread = Debugger->Threads;
+	while (Thread->State) ++Thread;
+	Thread->State = Thread->Active = State;
+	Thread->Value = Value;
+	Debugger->ActiveThread = Thread;
+	ml_source_t Source = ml_debugger_source(State);
+	if (ml_is_error(Value)) {
+		ml_stringbuffer_print(Debugger->Buffer, "[-1,");
+		// TODO: Send "error" event to Debugger->Socket
+		//Debugger->Info->log(Debugger->Info->Data, Value);
+	}
+	// TODO: Send "break" event to Debugger->Socket
+	//Debugger->Info->enter(Debugger->Info->Data, Debugger, Source, Thread - Debugger->Threads);
+	return State->run(State, Value);
+}
+
+static void ml_remote_debugger_json(json_decoder_t *Decoder, ml_value_t *Value) {
+	ml_state_t *Debugger = json_decoder_data(Decoder);
+	ml_state_schedule(Debugger, Value);
+}
+
+static void *ml_remote_debugger_fn(void *Arg) {
+	ml_remote_debugger_t *Debugger = (ml_remote_debugger_t *)Arg;
+	char Buffer[64];
+	for (;;) {
+		ssize_t Read = read(Debugger->Socket, Buffer, 64);
+		if (Read < 0) return NULL;
+		json_decoder_parse(Debugger->Decoder, Buffer, Read);
+	}
+	return NULL;
+}
+
+void ml_remote_debugger_init(ml_context_t *Context, const char *Address) {
+	const char *Port = strchr(Address, ':');
+	int Socket;
+	if (Port) {
+		ML_LOG_FATAL(NULL, "Not implemented yet!");
+		exit(-1);
+	} else {
+		Socket = socket(PF_UNIX, SOCK_STREAM, 0);
+		struct sockaddr_un Name;
+		Name.sun_family = AF_LOCAL;
+		strncpy(Name.sun_path, Address, sizeof(Name.sun_path));
+		Name.sun_path[sizeof(Name.sun_path) - 1] = 0;
+		if (connect(Socket, (struct sockaddr *)&Name, SUN_LEN(&Name)) < 0) {
+			ML_LOG_FATAL(NULL, "Error connecting to %s: %s", Address, strerror(errno));
+			exit(-1);
+		}
+	}
+	ml_remote_debugger_t *Debugger = new(ml_remote_debugger_t);
+	Debugger->Base.run = (void *)ml_remote_debugger_command;
+	Debugger->Base.Context = Context;
+	Debugger->BaseDebugger.run = (void *)ml_remote_debugger_run;
+	Debugger->BaseDebugger.breakpoints = (void *)ml_remote_debugger_breakpoints;
+	Debugger->BaseDebugger.Revision = 1;
+	Debugger->BaseDebugger.StepIn = 1;
+	Debugger->BaseDebugger.BreakOnError = 1;
+	Debugger->Socket = Socket;
+	Debugger->Decoder = json_decoder(ml_remote_debugger_json, Debugger);
+	Debugger->Buffer[0] = ML_STRINGBUFFER_INIT;
+	GC_pthread_create(&Debugger->Thread, NULL, ml_remote_debugger_fn, Debugger);
+	ml_context_set_static(Context, ML_DEBUGGER_INDEX, Debugger);
 }
