@@ -1,2 +1,10 @@
-#!/usr/bin/env -S minilang -G
-idebug ! Args
+#!/usr/bin/env -S minilang
+let Console := import("gtk_console")
+let Buffer := string::buffer()
+Buffer:write('idebug("{string::escape(Args[1])}"')
+for Arg in Args skip 1 do
+	Buffer:write(', {string::escape(Arg)}')
+end
+Buffer:write(")")
+Console:parser:input(Buffer:rest)
+Console:parser:evaluate(Console:compiler)

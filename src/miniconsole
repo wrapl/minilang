@@ -1,1 +1,1 @@
-#!/usr/bin/env -S minilang -g -m gtk_console
+#!/usr/bin/env -S minilang -m gtk_console
