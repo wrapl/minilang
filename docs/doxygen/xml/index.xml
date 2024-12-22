@@ -1770,6 +1770,7 @@
     <member refid="group__methods_1ga65beab28734e99107675e8f68e8f97af" kind="variable"><name>MLMethodDefault</name></member>
     <member refid="group__methods_1ga8107ad8b261da2afa16428f5b9f69ff3" kind="variable"><name>MLMethodT</name></member>
     <member refid="group__maps_1ga1fdef6f852d601d660162aaeaf523b41" kind="variable"><name>MLMapT</name></member>
+    <member refid="group__maps_1gac4a5cab7b8a976776a5af7f3bec489c5" kind="variable"><name>MLMapTemplateT</name></member>
     <member refid="group__names_1gab822cd09cc98aea6b5d7a1a176e67e88" kind="variable"><name>MLNamesT</name></member>
     <member refid="group__sets_1gacb01e14b7512cc6feb92c9e0ec72b1de" kind="variable"><name>MLSetT</name></member>
     <member refid="group__modules_1ga7b17bc09f170e0b7ec6194931ee90ccf" kind="variable"><name>MLModuleT</name></member>
@@ -2743,6 +2744,7 @@
     <member refid="group__maps_1gab1bdab18a8280a04446b899dab935c4b" kind="typedef"><name>ml_map_t</name></member>
     <member refid="group__maps_1gaf1bbe9ee8fb9f988ef74ff14514e8251" kind="typedef"><name>ml_map_node_t</name></member>
     <member refid="group__maps_1ga1fdef6f852d601d660162aaeaf523b41" kind="variable"><name>MLMapT</name></member>
+    <member refid="group__maps_1gac4a5cab7b8a976776a5af7f3bec489c5" kind="variable"><name>MLMapTemplateT</name></member>
     <member refid="group__maps_1ga488973bb4835adb4f74272a570a9c683" kind="function"><name>ml_map</name></member>
     <member refid="group__maps_1ga6637e5809f7eb214b0ccacf1c1ff72fa" kind="function"><name>ml_map_search</name></member>
     <member refid="group__maps_1gae8459a95da82a24ea789b1e5c3759f50" kind="function"><name>ml_map_search0</name></member>

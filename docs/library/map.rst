@@ -9,7 +9,11 @@ map
 
 .. rst-class:: mini-api
 
-:mini:`fun mllabeller()`
+:mini:`fun mlmaplabeller()`
+   *TBD*
+
+
+:mini:`fun mlmaptemplate()`
    *TBD*
 
 
@@ -21,10 +25,6 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3}
       "A" in M :> "A"
       "D" in M :> nil
-
-
-:mini:`type labeller < function, map`
-   *TBD*
 
 
 :mini:`type map < sequence`
@@ -250,8 +250,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
       M:random :> "a"
+      M:random :> "k"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -268,6 +268,10 @@ map
 
 :mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
    Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+
+
+:mini:`type map::labeller < function, map`
+   *TBD*
 
 
 :mini:`type map::mutable < map`
@@ -617,6 +621,10 @@ map
    * :mini:`::MRU` - inserted pairs are put at end, accessed pairs are moved to end.
    * :mini:`::Ascending` - inserted pairs are kept in ascending key order, no reordering on access.
    * :mini:`::Descending` - inserted pairs are kept in descending key order, no reordering on access.
+
+
+:mini:`type map::template < function`
+   *TBD*
 
 
 :mini:`fun map::reduce(Sequence: sequence, Reduce: function)`
