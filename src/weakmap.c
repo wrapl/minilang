@@ -75,6 +75,9 @@ static void *weakmap_value(weakmap_node_t *Node) {
 
 void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *, int)) {
 	size_t Hash = weakmap_hash(Key, Length);
+#ifdef ML_THREADSAFE
+	pthread_mutex_lock(Map->Lock);
+#endif
 	if (!Map->Nodes) {
 		weakmap_node_t *Nodes = Map->Nodes = GC_malloc_atomic(INIT_SIZE * sizeof(weakmap_node_t));
 		memset(Nodes, 0, INIT_SIZE * sizeof(weakmap_node_t));
@@ -86,6 +89,9 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 		Node->Hash = Hash;
 		void *Result = Node->Value = missing(Node->Key, Length);
 		GC_general_register_disappearing_link(&Node->Value, Result);
+#ifdef ML_THREADSAFE
+		pthread_mutex_unlock(Map->Lock);
+#endif
 		return Result;
 	}
 	weakmap_node_t *Nodes = Map->Nodes;
@@ -95,7 +101,12 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	weakmap_node_t *Node = Nodes + Index;
 	while (Offset <= Node->Offset) {
 		if (Node->Hash == Hash) {
-			if (Node->Value && !strncmp(Node->Key, Key, Length)) return Node->Value;
+			if (Node->Value && !strncmp(Node->Key, Key, Length)) {
+#ifdef ML_THREADSAFE
+				pthread_mutex_unlock(Map->Lock);
+#endif
+				return Node->Value;
+			}
 		}
 		Index = (Index + 1) & Mask;
 		Node = Nodes + Index;
@@ -132,6 +143,9 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	*Node = Insert;
 	GC_general_register_disappearing_link(&Node->Value, Node->Value);
 	//fprintf(stderr, "%ld\n", Map->Space);
+#ifdef ML_THREADSAFE
+	pthread_mutex_unlock(Map->Lock);
+#endif
 	return Result;
 }
 

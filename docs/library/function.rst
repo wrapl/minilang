@@ -9,6 +9,14 @@ function
 
 .. rst-class:: mini-api
 
+:mini:`fun function::constant(Value: any): function::value`
+   *TBD*
+
+
+:mini:`fun function::variable(Value: any): function::value`
+   *TBD*
+
+
 :mini:`type function`
    The base type of all functions.
 
@@ -90,6 +98,10 @@ function
    *TBD*
 
 
+:mini:`fun function::partial(Function: function, Size: integer): function::partial`
+   *TBD*
+
+
 :mini:`meth (Arg₁: function::partial)[...]`
    *TBD*
 
@@ -99,6 +111,10 @@ function
 
 
 :mini:`meth (Arg₁: function::partial):set`
+   *TBD*
+
+
+:mini:`type function::value < function`
    *TBD*
 
 

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="ml__stream_8h" kind="file" language="C++">
     <compoundname>ml_stream.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
@@ -111,11 +111,13 @@
       <member refid="group__streams_1ga4706857fc377632c07e75ebc4177b8b5" kind="function"><name>ml_stream_flush</name></member>
       <member refid="group__streams_1gaca9a79fbd6a4acd600e5fc38ff2438e8" kind="function"><name>ml_stream_seek</name></member>
       <member refid="group__streams_1ga10a8a67179bf9bb003bef279ee0f5041" kind="function"><name>ml_stream_tell</name></member>
+      <member refid="group__streams_1ga23f92d51fef779d942953dc94d9a3506" kind="function"><name>ml_stream_close</name></member>
       <member refid="group__streams_1ga6a6d62bf0d039c36c0d7c9820f58b0f1" kind="function"><name>ml_stream_read_method</name></member>
       <member refid="group__streams_1gac2022366690473054f23d8ed1fa78fa3" kind="function"><name>ml_stream_write_method</name></member>
       <member refid="group__streams_1ga7021c4e0bfdb44c2ba065cd4570585b8" kind="function"><name>ml_stream_flush_method</name></member>
       <member refid="group__streams_1ga5ca361adee8d0d18a7ba2c7ca7fb1075" kind="function"><name>ml_stream_seek_method</name></member>
       <member refid="group__streams_1ga77e1213e399597dbb2e7be20dec93d71" kind="function"><name>ml_stream_tell_method</name></member>
+      <member refid="group__streams_1gaee303ea4b10f3cf46aba4990811cf4a4" kind="function"><name>ml_stream_close_method</name></member>
       <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
       <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
       <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
@@ -144,26 +146,28 @@
 <codeline lineno="20"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_flush(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
 <codeline lineno="21"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_seek(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/>int64_t<sp/>Offset,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Mode);</highlight></codeline>
 <codeline lineno="22"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_tell(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"></highlight></codeline>
-<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_read_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Address,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count);</highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_write_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Address,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count);</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_flush_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_seek_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/>int64_t<sp/>Offset,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Mode);</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_tell_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"></highlight></codeline>
-<codeline lineno="30"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_stream_buffered(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Stream,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_close(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_read_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Address,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_write_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Address,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_flush_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_seek_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/>int64_t<sp/>Offset,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Mode);</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_tell_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_stream_close_method(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
 <codeline lineno="31"><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLStreamFdT[];</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_stream_buffered(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Stream,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
 <codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_fd_stream(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Fd);</highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_fd_stream_fd(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Stream);</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLStreamFdT[];</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_fd_stream(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Fd);</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_fd_stream_fd(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Stream);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="42"><highlight class="normal"></highlight></codeline>
-<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_stream.h"/>
   </compounddef>

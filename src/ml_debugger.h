@@ -23,6 +23,8 @@ ml_value_t *ml_interactive_debugger_get(ml_interactive_debugger_t *Debugger, con
 ml_source_t ml_interactive_debugger_switch(ml_interactive_debugger_t *Debugger, int Index);
 void ml_interactive_debugger_resume(ml_interactive_debugger_t *Debugger, int Index);
 
+void ml_remote_debugger_init(ml_context_t *Context, const char *Address);
+
 #ifdef __cplusplus
 }
 #endif

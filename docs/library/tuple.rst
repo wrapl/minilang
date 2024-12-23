@@ -109,6 +109,10 @@ tuple
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
+:mini:`meth (Buffer: string::buffer):append(Value: tuple, Arg₃: string)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
+
 :mini:`meth (Copy: visitor):const(Tuple: tuple): tuple`
    Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
 

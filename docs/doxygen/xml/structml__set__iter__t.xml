@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="structml__set__iter__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_set_iter_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1246" column="15" bodyfile="src/ml_types.h" bodystart="1246" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1319" column="15" bodyfile="src/ml_types.h" bodystart="1319" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1247" column="12" bodyfile="src/ml_types.h" bodystart="1247" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1320" column="12" bodyfile="src/ml_types.h" bodystart="1320" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -97,7 +97,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1245" column="1" bodyfile="src/ml_types.h" bodystart="1245" bodyend="1248"/>
+    <location file="src/ml_types.h" line="1318" column="1" bodyfile="src/ml_types.h" bodystart="1318" bodyend="1321"/>
     <listofallmembers>
       <member refid="structml__set__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" virt="non-virtual"><scope>ml_set_iter_t</scope><name>Key</name></member>
       <member refid="structml__set__iter__t_1a0e5bda0d3f995088a49430796cad681e" prot="public" virt="non-virtual"><scope>ml_set_iter_t</scope><name>Node</name></member>

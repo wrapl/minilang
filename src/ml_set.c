@@ -43,10 +43,10 @@ static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
 
 ML_ENUM2(MLSetOrderT, "set::order",
 	"Insert", SET_ORDER_INSERT, // default ordering; inserted values are put at end, no reordering on access.
-	"LRU", SET_ORDER_LRU, // inserted values are kept in ascending order, no reordering on access.
-	"MRU", SET_ORDER_MRU, // inserted values are kept in descending order, no reordering on access.
-	"Ascending", SET_ORDER_ASC, // inserted values are put at start, accessed values are moved to start.
-	"Descending", SET_ORDER_DESC // inserted values are put at end, accessed values are moved to end.
+	"LRU", SET_ORDER_LRU, // inserted values are put at start, accessed values are moved to start.
+	"MRU", SET_ORDER_MRU, // inserted values are put at end, accessed values are moved to end.
+	"Ascending", SET_ORDER_ASC, // inserted values are kept in ascending order, no reordering on access.
+	"Descending", SET_ORDER_DESC // inserted values are kept in descending order, no reordering on access.
 );
 
 static void ML_TYPED_FN(ml_value_find_all, MLSetT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
@@ -234,7 +234,43 @@ static void ml_set_insert_after(ml_set_t *Set, ml_set_node_t *Parent, ml_set_nod
 	Parent->Next = Node;
 }
 
-static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, long Hash, ml_value_t *Key) {
+static void ml_set_node_order(ml_set_t *Set, ml_set_node_t *Parent, ml_set_node_t *Node, int Compare) {
+	switch (Set->Order) {
+	case SET_ORDER_INSERT:
+	case SET_ORDER_LRU: {
+		ml_set_node_t *Prev = Set->Tail;
+		Prev->Next = Node;
+		Node->Prev = Prev;
+		Set->Tail = Node;
+		break;
+	}
+	case SET_ORDER_MRU: {
+		ml_set_node_t *Next = Set->Head;
+		Next->Prev = Node;
+		Node->Next = Next;
+		Set->Head = Node;
+		break;
+	}
+	case SET_ORDER_ASC: {
+		if (Compare < 0) {
+			ml_set_insert_before(Set, Parent, Node);
+		} else {
+			ml_set_insert_after(Set, Parent, Node);
+		}
+		break;
+	}
+	case SET_ORDER_DESC: {
+		if (Compare > 0) {
+			ml_set_insert_before(Set, Parent, Node);
+		} else {
+			ml_set_insert_after(Set, Parent, Node);
+		}
+		break;
+	}
+	}
+}
+
+static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, ml_set_node_t *Node, long Hash, ml_value_t *Key) {
 	int Compare;
 	if (Hash < Parent->Hash) {
 		Compare = -1;
@@ -247,77 +283,56 @@ static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, lo
 	}
 	if (!Compare) return Parent;
 	ml_set_node_t **Slot = Compare < 0 ? &Parent->Left : &Parent->Right;
-	ml_set_node_t *Node;
-	if (Slot[0]) {
-		Node = ml_set_node_child(Set, Slot[0], Hash, Key);
-	} else {
+	if (!Slot[0]) {
 		++Set->Size;
-		Node = Slot[0] = new(ml_set_node_t);
+		if (Node) {
+			Node->Next = Node->Prev = Node->Left = Node->Right = NULL;
+		} else {
+			Node = new(ml_set_node_t);
+			Node->Key = Key;
+		}
+		Slot[0] = Node;
 		Node->Type = MLSetNodeT;
 		Node->Depth = 1;
 		Node->Hash = Hash;
-		Node->Key = Key;
-		switch (Set->Order) {
-		case SET_ORDER_INSERT:
-		case SET_ORDER_LRU: {
-			ml_set_node_t *Prev = Set->Tail;
-			Prev->Next = Node;
-			Node->Prev = Prev;
-			Set->Tail = Node;
-			break;
-		}
-		case SET_ORDER_MRU: {
-			ml_set_node_t *Next = Set->Head;
-			Next->Prev = Node;
-			Node->Next = Next;
-			Set->Head = Node;
-			break;
-		}
-		case SET_ORDER_ASC: {
-			if (Compare < 0) {
-				ml_set_insert_before(Set, Parent, Node);
-			} else {
-				ml_set_insert_after(Set, Parent, Node);
-			}
-			break;
-		}
-		case SET_ORDER_DESC: {
-			if (Compare > 0) {
-				ml_set_insert_before(Set, Parent, Node);
-			} else {
-				ml_set_insert_after(Set, Parent, Node);
-			}
-			break;
-		}
-		}
+		ml_set_node_order(Set, Parent, Node, Compare);
+		ml_set_rebalance(Slot);
+		ml_set_update_depth(Slot[0]);
+		return Node;
 	}
+	Node = ml_set_node_child(Set, Slot[0], Node, Hash, Key);
 	ml_set_rebalance(Slot);
 	ml_set_update_depth(Slot[0]);
 	return Node;
 }
 
-static ml_set_node_t *ml_set_node(ml_set_t *Set, long Hash, ml_value_t *Key) {
+static ml_set_node_t *ml_set_node(ml_set_t *Set, ml_set_node_t *Node, long Hash, ml_value_t *Key) {
 	ml_set_node_t *Root = Set->Root;
-	if (Root) return ml_set_node_child(Set, Root, Hash, Key);
+	if (Root) return ml_set_node_child(Set, Root, Node, Hash, Key);
 	++Set->Size;
-	ml_set_node_t *Node = Set->Root = new(ml_set_node_t);
+	if (Node) {
+		Node->Next = Node->Prev = Node->Left = Node->Right = NULL;
+	} else {
+		Node = new(ml_set_node_t);
+		Node->Key = Key;
+	}
+	Set->Root = Node;
 	Node->Type = MLSetNodeT;
 	Set->Head = Set->Tail = Node;
 	Node->Depth = 1;
 	Node->Hash = Hash;
-	Node->Key = Key;
 	return Node;
 }
 
 ml_set_node_t *ml_set_slot(ml_value_t *Set0, ml_value_t *Key) {
 	ml_set_t *Set = (ml_set_t *)Set0;
-	return ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+	return ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 }
 
 ml_value_t *ml_set_insert(ml_value_t *Set0, ml_value_t *Key) {
 	ml_set_t *Set = (ml_set_t *)Set0;
 	int Size = Set->Size;
-	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 #ifdef ML_GENERICS
 	ml_set_update_generic(Set, Key);
 #endif
@@ -596,6 +611,130 @@ ML_METHOD("insert", MLSetMutableT, MLAnyT) {
 	return ml_set_insert(Args[0], Args[1]);
 }
 
+ML_METHOD("splice", MLSetMutableT, MLAnyT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	do {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	} while (Node);
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSetMutableT, MLAnyT, MLIntegerT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	int Remove = ml_integer_value(Args[2]);
+	if (!Remove) return (ml_value_t *)Removed;
+	ml_set_node_t *Last = Node;
+	while (--Remove > 0) {
+		Last = Last->Next;
+		if (!Last) return MLNil;
+	}
+	Last = Last->Next;
+	while (Node != Last) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSetMutableT, MLAnyT, MLSetMutableT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	ml_set_t *Source = (ml_set_t *)Args[2];
+	ml_set_node_t *Last = Node;
+	ml_set_node_t *Prev = Node->Prev, *Next = Last;
+	while (Node != Last) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	ml_set_order_t Order = Set->Order;
+	Set->Order = SET_ORDER_INSERT;
+	for (ml_set_node_t *Node = Source->Head; Node;) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_node(Set, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Set->Order = Order;
+	if (Next) {
+		ml_set_node_t *Head = Source->Head, *Tail = Source->Tail;
+		Set->Tail = Head->Prev;
+		Set->Tail->Next = NULL;
+		Head->Prev = Prev;
+		if (Prev) {
+			Prev->Next = Head;
+		} else {
+			Set->Head = Head;
+		}
+		Tail->Next = Next;
+		Next->Prev = Tail;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLSetMutableT, MLAnyT, MLIntegerT, MLSetMutableT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Removed = (ml_set_t *)ml_set();
+	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
+	if (!Node) return MLNil;
+	int Remove = ml_integer_value(Args[2]);
+	ml_set_t *Source = (ml_set_t *)Args[3];
+	ml_set_node_t *Last = Node;
+	if (Remove) {
+		while (--Remove > 0) {
+			Last = Last->Next;
+			if (!Last) return MLNil;
+		}
+		Last = Last->Next;
+	}
+	ml_set_node_t *Prev = Node->Prev, *Next = Last;
+	while (Node != Last) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_delete((ml_value_t *)Set, Node->Key);
+		ml_set_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	ml_set_order_t Order = Set->Order;
+	Set->Order = SET_ORDER_INSERT;
+	for (ml_set_node_t *Node = Source->Head; Node;) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_node(Set, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Set->Order = Order;
+	if (Next) {
+		ml_set_node_t *Head = Source->Head, *Tail = Source->Tail;
+		Set->Tail = Head->Prev;
+		Set->Tail->Next = NULL;
+		Head->Prev = Prev;
+		if (Prev) {
+			Prev->Next = Head;
+		} else {
+			Set->Head = Head;
+		}
+		Tail->Next = Next;
+		Next->Prev = Tail;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Removed;
+}
+
 ML_METHODV("push", MLSetMutableT, MLAnyT) {
 //<Set
 //<Value
@@ -609,7 +748,7 @@ ML_METHODV("push", MLSetMutableT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
 		ml_value_t *Key = Args[I];
-		ml_set_node_t *Node = ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+		ml_set_node_t *Node = ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 		ml_set_move_node_head(Set, Node);
 #ifdef ML_GENERICS
 		ml_set_update_generic(Set, Key);
@@ -631,7 +770,7 @@ ML_METHODV("put", MLSetMutableT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
 		ml_value_t *Key = Args[I];
-		ml_set_node_t *Node = ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+		ml_set_node_t *Node = ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 		ml_set_move_node_tail(Set, Node);
 #ifdef ML_GENERICS
 		ml_set_update_generic(Set, Key);
@@ -666,8 +805,30 @@ ML_METHOD("missing", MLSetMutableT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	int Size = Set->Size;
-	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_set_node(Set, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	return Set->Size == Size ? MLNil : MLSome;
+}
+
+ML_METHOD("take", MLSetMutableT, MLSetMutableT) {
+//<Set
+//<Source
+//>set
+// Inserts the values from :mini:`Source` into :mini:`Set`, leaving :mini:`Source` empty.
+//$= let A := set("cat")
+//$= let B := set("cake")
+//$= A:take(B)
+//$= A
+//$= B
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_set_t *Source = (ml_set_t *)Args[1];
+	for (ml_set_node_t *Node = Source->Head; Node;) {
+		ml_set_node_t *Next = Node->Next;
+		ml_set_node(Set, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Set;
 }
 
 typedef struct {
@@ -700,56 +861,110 @@ ML_METHOD("from", MLSetT, MLAnyT) {
 	return (ml_value_t *)From;
 }
 
-ML_METHOD("append", MLStringBufferT, MLSetT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_set_node_t *Node;
+	ml_value_t *Args[2];
+	ml_hash_chain_t Chain[1];
+	const char *Seperator;
+	const char *Terminator;
+	size_t SeperatorLength;
+	size_t TerminatorLength;
+} ml_set_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_set_append_state_run(ml_set_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_set_node_t *Node = State->Node->Next;
+	if (!Node) {
+		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
+		State->Buffer->Chain = State->Chain->Previous;
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
+	State->Node = Node;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLSetT) {
 //<Buffer
 //<Set
-// Appends a representation of :mini:`Set` to :mini:`Buffer`.
+// Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`"[" + repr(V/1) + ", " + repr(V/2) + ", " + ... + repr(V/n) + "]"`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
+//$- let B := string::buffer()
+//$- B:append(set(1 .. 4))
+//$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_put(Buffer, '{');
 	ml_set_t *Set = (ml_set_t *)Args[1];
-	ml_set_node_t *Node = Set->Head;
-	if (Node) {
-		ml_stringbuffer_simple_append(Buffer, Node->Key);
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_simple_append(Buffer, Node->Key);
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Set) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
 		}
 	}
-	ml_stringbuffer_put(Buffer, '}');
-	return MLSome;
-}
-
-typedef struct ml_set_stringer_t {
-	const char *Seperator;
-	ml_stringbuffer_t *Buffer;
-	int SeperatorLength, First;
-	ml_value_t *Error;
-} ml_set_stringer_t;
-
-static int ml_set_stringer(ml_value_t *Key, ml_set_stringer_t *Stringer) {
-	if (Stringer->First) {
-		Stringer->First = 0;
-	} else {
-		ml_stringbuffer_write(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
+	ml_set_node_t *Node = Set->Head;
+	if (!Node) {
+		ml_stringbuffer_write(Buffer, "{}", 2);
+		ML_RETURN(MLSome);
 	}
-	Stringer->Error = ml_stringbuffer_simple_append(Stringer->Buffer, Key);
-	if (ml_is_error(Stringer->Error)) return 1;
-	return 0;
+	ml_stringbuffer_put(Buffer, '{');
+	ml_set_append_state_t *State = new(ml_set_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Set;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ", ";
+	State->SeperatorLength = 2;
+	State->Terminator = "}";
+	State->TerminatorLength = 1;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
-ML_METHOD("append", MLStringBufferT, MLSetT, MLStringT) {
+ML_METHODX("append", MLStringBufferT, MLSetT, MLStringT) {
 //<Buffer
 //<Set
 //<Sep
-// Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
-	ml_set_stringer_t Stringer[1] = {{
-		ml_string_value(Args[2]),
-		(ml_stringbuffer_t *)Args[0],
-		ml_string_length(Args[2]),
-		1
-	}};
-	if (ml_set_foreach(Args[1], Stringer, (void *)ml_set_stringer)) return Stringer->Error;
-	return MLSome;
+// Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`repr(V/1) + Sep + repr(V/2) + Sep + ... + repr(V/n)`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
+//$- let B := string::buffer()
+//$- B:append(set(1 .. 4), " - ")
+//$= B:rest
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_set_t *Set = (ml_set_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Set) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
+	ml_set_node_t *Node = Set->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_set_append_state_t *State = new(ml_set_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Set;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ml_string_value(Args[2]);
+	State->SeperatorLength = ml_string_length(Args[2]);
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLSetNodeT, ml_state_t *Caller, ml_set_node_t *Node) {
@@ -1134,6 +1349,128 @@ ML_METHOD("random", MLSetT) {
 	ml_set_node_t *Node = Set->Head;
 	while (--Random >= 0) Node = Node->Next;
 	return Node->Key;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t **Values;
+	uint64_t Mask, Limit;
+} ml_subset_iter_t;
+
+ML_TYPE(MLSubsetIterT, (), "set::subset_iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_next, MLSubsetIterT, ml_state_t *Caller, ml_subset_iter_t *Iter) {
+	if (Iter->Mask == Iter->Limit) ML_RETURN(MLNil);
+	++Iter->Mask;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSubsetIterT, ml_state_t *Caller, ml_subset_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Mask + 1));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSubsetIterT, ml_state_t *Caller, ml_subset_iter_t *Iter) {
+	ml_value_t *Set = ml_set();
+	uint64_t Mask = Iter->Mask;
+	ml_value_t **Values = Iter->Values;
+	while (Mask) {
+		if (Mask & 1) ml_set_insert(Set, *Values);
+		++Values;
+		Mask >>= 1;
+	}
+	ML_RETURN(Set);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t **Values;
+	int M, N, K;
+	int Indices[];
+} ml_subsetn_iter_t;
+
+ML_TYPE(MLSubsetNIterT, (), "set::subset_iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_next, MLSubsetNIterT, ml_state_t *Caller, ml_subsetn_iter_t *Iter) {
+	int *Indices = Iter->Indices;
+	int M = Iter->M, I = M - 1, N = Iter->N;
+	while (I >= 0) {
+		if (Indices[I] + (M - I) < N) {
+			int J = Indices[I] + 1;
+			do { Indices[I] = J; ++J; ++I; } while (I < M);
+			++Iter->K;
+			ML_RETURN(Iter);
+		}
+		--I;
+	}
+	ML_RETURN(MLNil);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSubsetNIterT, ml_state_t *Caller, ml_subsetn_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->K));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSubsetNIterT, ml_state_t *Caller, ml_subsetn_iter_t *Iter) {
+	ml_value_t *Set = ml_set();
+	for (int I = 0; I < Iter->M; ++I) {
+		ml_set_insert(Set, Iter->Values[Iter->Indices[I]]);
+	}
+	ML_RETURN(Set);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_set_t *Set;
+	int M;
+} ml_subsets_t;
+
+ML_TYPE(MLSubsetsT, (MLSequenceT), "set::subsets");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLSubsetsT, ml_state_t *Caller, ml_subsets_t *Subsets) {
+	int M = Subsets->M;
+	int N = Subsets->Set->Size;
+	if (M == INT_MAX) {
+		if (N > 64) ML_ERROR("RangeError", "Can only generate subsets of sets with size <= 64");
+		if (N == 0) ML_RETURN(MLNil);
+		ml_subset_iter_t *Iter = new(ml_subset_iter_t);
+		Iter->Type = MLSubsetIterT;
+		ml_value_t **Values = Iter->Values = anew(ml_value_t *, N);
+		ML_SET_FOREACH(Subsets->Set, Iter) *Values++ = Iter->Key;
+		Iter->Limit = N == 64 ? UINT64_MAX : (1 << N) - 1;
+		ML_RETURN(Iter);
+	}
+	if (M > N) ML_RETURN(MLNil);
+	ml_subsetn_iter_t *Iter = xnew(ml_subsetn_iter_t, M, int);
+	Iter->Type = MLSubsetNIterT;
+	ml_value_t **Values = Iter->Values = anew(ml_value_t *, N);
+	ML_SET_FOREACH(Subsets->Set, Iter) *Values++ = Iter->Key;
+	for (int I = 0; I < M; ++I) Iter->Indices[I] = I;
+	Iter->M = M;
+	Iter->N = N;
+	Iter->K = 1;
+	ML_RETURN(Iter);
+}
+
+ML_METHOD("subsets", MLSetT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	ml_subsets_t *Subsets = new(ml_subsets_t);
+	Subsets->Type = MLSubsetsT;
+	Subsets->Set = Set;
+	Subsets->M = INT_MAX;
+	return (ml_value_t *)Subsets;
+}
+
+ML_METHOD("subsets", MLSetT, MLIntegerT) {
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	int M = ml_integer_value(Args[1]);
+	if (M < 0) return ml_error("RangeError", "Subset size must be non-negative");
+	ml_subsets_t *Subsets = new(ml_subsets_t);
+	Subsets->Type = MLSubsetsT;
+	Subsets->Set = Set;
+	Subsets->M = M;
+	return (ml_value_t *)Subsets;
 }
 
 typedef struct {

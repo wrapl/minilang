@@ -103,34 +103,42 @@ ml_value_t *ml_parser_warnings(ml_parser_t *Parser);
  * @param Parser Parser.
  * @param Text Source text.
  */
-void ml_parser_input(ml_parser_t *Parser, const char *Text);
+void ml_parser_input(ml_parser_t *Parser, const char *Text, int Advance);
 const char *ml_parser_name(ml_parser_t *Parser);
+ml_source_t ml_parser_position(ml_parser_t *Parser);
 ml_source_t ml_parser_source(ml_parser_t *Parser, ml_source_t Source);
 ml_value_t *ml_parser_value(ml_parser_t *Parser);
 const char *ml_parser_clear(ml_parser_t *Parser);
+const char *ml_parser_read(ml_parser_t *Parser);
 //void ml_parse_error(ml_parser_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
 void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, ...);
-mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
+const mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
+mlc_expr_t *ml_accept_expr(ml_parser_t *Parser);
 
 void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data);
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data);
 
+typedef ml_value_t *(*ml_parser_escape_t)(ml_parser_t *Parser);
+
+void ml_parser_add_escape(ml_parser_t *Parser, const char *Prefix, ml_parser_escape_t Fn);
+
 ml_value_t *ml_macro_subst(mlc_expr_t *Child, int Count, const char **Names, ml_value_t **Exprs);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals);
+ml_compiler_t *ml_compiler2(ml_getter_t GlobalGet, void *Globals, int UseGlobals);
 void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value);
 ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name, const char *Source, int Line, int Eval);
 
-void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Compiler, const char **Parameters);
+void ml_function_compile(ml_state_t *Caller, const mlc_expr_t *Expr, ml_compiler_t *Compiler, const char **Parameters);
 void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler);
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 
 ml_value_t *ml_stringmap_globals(stringmap_t *Globals);
 ml_value_t *ml_stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Eval);
 
-typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
+//typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
 
-void ml_string_fn_register(const char *Prefix, string_fn_t Fn);
+//void ml_string_fn_register(const char *Prefix, string_fn_t Fn);
 
 void ml_compiler_init();
 

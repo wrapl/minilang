@@ -667,6 +667,7 @@ static void ml_double_iter_next(ml_double_state_t *State, ml_value_t *Value) {
 }
 
 static void ml_double_function_call(ml_double_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (void *)ml_double_iter_next;
 	return ml_iterate((ml_state_t *)State, Value);
@@ -1123,7 +1124,60 @@ ML_FUNCTIONX(Count2) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+/****************************** Each ******************************/
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Value, *Iter, *Fn;
+	ml_value_t *Args[2];
+} ml_apply_state_t;
+
+static void apply_iterate(ml_apply_state_t *State, ml_value_t *Value);
+
+static void apply_call(ml_apply_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)apply_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void apply_value(ml_apply_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)apply_call;
+	State->Args[1] = Value;
+	return ml_call(State, State->Fn, 2, State->Args);
+}
+
+static void apply_key(ml_apply_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)apply_value;
+	State->Args[0] = Value;
+	return ml_iter_value((ml_state_t *)State, State->Iter);
+}
+
+static void apply_iterate(ml_apply_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Value);
+	State->Base.run = (ml_state_fn)apply_key;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODX("apply", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Calls :mini:`Fn(Key, Value)` for each key and value produced by :mini:`Sequence`, then returns :mini:`Sequence`.
+	ml_apply_state_t *State = new(ml_apply_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)apply_iterate;
+	State->Value = Args[0];
+	State->Fn = Args[1];
+	return ml_iterate((ml_state_t *)State, Args[0]);
+}
+
 /****************************** Find ******************************/
+
+static ML_METHOD_DECL(EqualMethod, "=");
 
 typedef struct {
 	ml_state_t Base;
@@ -1140,10 +1194,7 @@ static void find_compare(ml_find_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-static ML_METHOD_DECL(EqualMethod, "=");
-
 static void find_value(ml_find_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (ml_state_fn)find_compare;
 	State->Args[1] = Value;
@@ -1291,41 +1342,44 @@ typedef struct {
 	ml_stringbuffer_t Buffer[1];
 } ml_string_sum_t;
 
-static void string_sum_iter_next(ml_string_sum_t *State, ml_value_t *Value);
+static void string_sum_iter_next(ml_string_sum_t *Sum, ml_value_t *Value);
+
+static void string_sum_next_value(ml_string_sum_t *Sum, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (!ml_is(Value, MLStringT)) {
+		ml_iter_state_t *State0 = Sum->State;
+		ml_value_t *Function = State0->Values[0];
+		State0->Values[1] = ml_stringbuffer_get_value(Sum->Buffer);
+		State0->Values[2] = Value;
+		State0->Iter = Sum->Iter;
+		State0->Base.run = (void *)reduce_call;
+		return ml_call(State0, Function, 2, State0->Values + 1);
+	}
+	ml_stringbuffer_write(Sum->Buffer, ml_string_value(Value), ml_string_length(Value));
+	Sum->Base.run = (void *)string_sum_iter_next;
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+}
+
+static void string_sum_iter_next(ml_string_sum_t *Sum, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(Sum->Base.Caller, ml_stringbuffer_get_value(Sum->Buffer));
+	Sum->Base.run = (void *)string_sum_next_value;
+	return ml_iter_value((ml_state_t *)Sum, Sum->Iter = Value);
+}
 
 extern ml_cfunction_t MLAddStringString[1];
 
-static __attribute__ ((noinline)) int is_not_string_add(ml_context_t *Context, ml_value_t *Value) {
-	ml_value_t *Args[2] = {ml_cstring(""), Value};
-	ml_value_t *Method = ml_method_search(ml_context_get(Context, ML_METHODS_INDEX), (ml_method_t *)AddMethod, 2, Args);
-	return Method != (ml_value_t *)MLAddStringString;
-}
-
-static void string_sum_next_value(ml_string_sum_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (is_not_string_add(State->Base.Context, Value)) {
-		ml_iter_state_t *State0 = State->State;
-		ml_value_t *Function = State0->Values[0];
-		State0->Values[1] = ml_stringbuffer_get_value(State->Buffer);
-		State0->Values[2] = Value;
-		State0->Base.run = (void *)reduce_call;
-		return ml_call(State, Function, 2, State0->Values + 1);
-	}
-	ml_stringbuffer_write(State->Buffer, ml_string_value(Value), ml_string_length(Value));
-	State->Base.run = (void *)string_sum_iter_next;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void string_sum_iter_next(ml_string_sum_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
-	State->Base.run = (void *)string_sum_next_value;
-	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+static __attribute__ ((noinline)) int is_string_add(ml_context_t *Context) {
+	ml_value_t *Args[2] = {ml_cstring(""), ml_cstring("")};
+	ml_value_t *Method = ml_method_search(ml_context_get_static(Context, ML_METHODS_INDEX), (ml_method_t *)AddMethod, 2, Args);
+	return Method == (ml_value_t *)MLAddStringString;
 }
 
 static void reduce_first_value_sum(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (ml_is(Value, MLStringT)) {
+	if (ml_is(Value, MLStringT)) {// && is_string_add(State->Base.Context)) {
 		ml_string_sum_t *Sum = new(ml_string_sum_t);
 		Sum->Base.Caller = State->Base.Caller;
 		Sum->Base.Context = State->Base.Context;
@@ -1334,10 +1388,11 @@ static void reduce_first_value_sum(ml_iter_state_t *State, ml_value_t *Value) {
 		Sum->Iter = State->Iter;
 		ml_stringbuffer_write(Sum->Buffer, ml_string_value(Value), ml_string_length(Value));
 		return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+	} else {
+		State->Values[1] = Value;
+		State->Base.run = (void *)reduce_iter_next;
+		return ml_iter_next((ml_state_t *)State, State->Iter);
 	}
-	State->Values[1] = Value;
-	State->Base.run = (void *)reduce_iter_next;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
 static void reduce_iterate_sum(ml_iter_state_t *State, ml_value_t *Value) {
@@ -1595,7 +1650,7 @@ ML_FUNCTIONX(Max2) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-typedef struct ml_join_state_t {
+typedef struct {
 	ml_state_t Base;
 	const char *Separator;
 	ml_value_t *Iter;
@@ -1663,6 +1718,59 @@ ML_METHODX("join", MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
+typedef struct {
+	ml_state_t Base;
+	const char *Separator;
+	ml_value_t *Iter;
+	ml_stringbuffer_t *Buffer;
+	size_t SeparatorLength;
+} ml_append_state_t;
+
+static void append_value(ml_append_state_t *State, ml_value_t *Value);
+
+static void append_next(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLSome);
+	ml_stringbuffer_write(State->Buffer, State->Separator, State->SeparatorLength);
+	State->Base.run = (void *)append_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void append_append(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)append_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void append_value(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)append_append;
+	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, Value);
+}
+
+static void append_first(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
+	State->Base.run = (void *)append_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODX("append", MLStringBufferT, MLSequenceT, MLStringT) {
+//<Sequence
+//<Separator
+//>string
+// Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
+//$= (1 .. 10):append
+	ml_append_state_t *State = new(ml_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)append_first;
+	State->Separator = ml_string_value(Args[2]);
+	State->SeparatorLength = ml_string_length(Args[2]);
+	State->Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_iterate((ml_state_t *)State, Args[1]);
+}
+
 typedef struct ml_stacked_t {
 	ml_type_t *Type;
 	ml_value_t *Initial, *Value, *ReduceFn;
@@ -1715,7 +1823,6 @@ static void stacked_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	}
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
-
 
 static void ML_TYPED_FN(ml_iter_key, MLStackedStateT, ml_state_t *Caller, ml_iter_state_t *State) {
 	State->Base.Caller = Caller;
@@ -1784,8 +1891,9 @@ ML_FUNCTION(Distill) {
 //<Sequence:sequence
 //<Fn:function
 //>any | nil
-// Returns a sequence that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
-// If :mini:`Initial` is omitted, the first value produced by :mini:`Sequence` is used.
+// Returns a sequence that produces :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... if :mini:`Initial` is provided, otherwise returns a sequence that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
+//
+// The resulting sequence always has the same number of values as :mini:`Sequence`.
 //$= list(distill(1 .. 10, +))
 //$= list(distill(20, 1 .. 10, +))
 	ML_CHECK_ARG_COUNT(2);
@@ -2301,7 +2409,7 @@ static void provided_check(ml_provided_state_t *State, ml_value_t *Value);
 
 static void provided_iterate(ml_provided_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_deref(Value) == MLNil) ML_CONTINUE(State->Base.Caller, Value);
 	ML_CONTINUE(State->Base.Caller, State);
 }
 
@@ -2370,7 +2478,6 @@ typedef struct ml_unique_state_t {
 	ml_value_t *Iter;
 	ml_value_t *History;
 	ml_value_t *Value;
-	int Iteration;
 } ml_unique_state_t;
 
 ML_TYPE(MLUniqueStateT, (MLStateT), "unique-state");
@@ -2383,7 +2490,6 @@ static void ml_unique_fnx_value(ml_unique_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (ml_map_insert(State->History, Value, MLSome) == MLNil) {
 		State->Value = Value;
-		++State->Iteration;
 		ML_CONTINUE(State->Base.Caller, State);
 	}
 	State->Base.run = (void *)ml_unique_fnx_iterate;
@@ -2404,12 +2510,11 @@ static void ML_TYPED_FN(ml_iterate, MLUniqueT, ml_state_t *Caller, ml_unique_t *
 	State->Base.run = (void *)ml_unique_fnx_iterate;
 	State->Base.Context = Caller->Context;
 	State->History = ml_map();
-	State->Iteration = 0;
 	return ml_iterate((ml_state_t *)State, Unique->Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLUniqueStateT, ml_state_t *Caller, ml_unique_state_t *State) {
-	ML_RETURN(ml_integer(State->Iteration));
+	return ml_iter_key(Caller, State->Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLUniqueStateT, ml_state_t *Caller, ml_unique_state_t *State) {
@@ -2431,6 +2536,69 @@ ML_FUNCTION(Unique) {
 	ml_unique_t *Unique = new(ml_unique_t);
 	ml_value_t *Iter = Unique->Iter = ml_chained(Count, Args);
 	Unique->Type = ml_generic_sequence(MLUniqueT, Iter);
+	return (ml_value_t *)Unique;
+}
+
+ML_TYPE(MLUniqueKeysT, (MLSequenceT), "unique");
+//!internal
+
+ML_TYPE(MLUniqueKeysStateT, (MLStateT), "unique-state");
+//!internal
+
+static void ml_unique2_fnx_iterate(ml_unique_state_t *State, ml_value_t *Value);
+
+static void ml_unique2_fnx_value(ml_unique_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_map_insert(State->History, Value, MLSome) == MLNil) {
+		State->Value = Value;
+		ML_CONTINUE(State->Base.Caller, State);
+	}
+	State->Base.run = (void *)ml_unique2_fnx_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ml_unique2_fnx_iterate(ml_unique_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_unique2_fnx_value;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLUniqueKeysT, ml_state_t *Caller, ml_unique_t *Unique) {
+	ml_unique_state_t *State = new(ml_unique_state_t);
+	State->Base.Type = MLUniqueKeysStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_unique2_fnx_iterate;
+	State->Base.Context = Caller->Context;
+	State->History = ml_map();
+	return ml_iterate((ml_state_t *)State, Unique->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLUniqueKeysStateT, ml_state_t *Caller, ml_unique_state_t *State) {
+	ML_RETURN(State->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLUniqueKeysStateT, ml_state_t *Caller, ml_unique_state_t *State) {
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLUniqueKeysStateT, ml_state_t *Caller, ml_unique_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_unique2_fnx_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(UniqueKeys) {
+//@unique1
+//<Sequence:sequence
+//>sequence
+// Returns an sequence that returns the unique keys produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
+//$= list(unique1("banana"))
+	ML_CHECK_ARG_COUNT(1);
+	ml_unique_t *Unique = new(ml_unique_t);
+	ml_value_t *Iter = Unique->Iter = ml_chained(Count, Args);
+	Unique->Type = ml_generic_sequence(MLUniqueKeysT, Iter);
 	return (ml_value_t *)Unique;
 }
 
@@ -3238,6 +3406,7 @@ static void ML_TYPED_FN(ml_iter_value, MLKeyStateT, ml_state_t *Caller, ml_key_s
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLKeyStateT, ml_state_t *Caller, ml_key_state_t *State) {
+	State->Base.Caller = Caller;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
@@ -3252,6 +3421,70 @@ ML_FUNCTION(Key) {
 	Key->Type = MLKeyT;
 	Key->Value = Args[0];
 	return (ml_value_t *)Key;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_dup_t;
+
+ML_TYPE(MLDupT, (MLSequenceT), "dup");
+//!internal
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter, *Value;
+} ml_dup_state_t;
+
+ML_TYPE(MLDupStateT, (MLStateT), "dups-state");
+//!internal
+
+static void dup_value(ml_dup_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Value = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void dup_iterate(ml_dup_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)dup_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLDupT, ml_state_t *Caller, ml_dup_t *Dup) {
+	ml_dup_state_t *State = new(ml_dup_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Type = MLDupStateT;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)dup_iterate;
+	return ml_iterate((ml_state_t *)State, Dup->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLDupStateT, ml_state_t *Caller, ml_dup_state_t *State) {
+	ML_RETURN(State->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLDupStateT, ml_state_t *Caller, ml_dup_state_t *State) {
+	ML_RETURN(State->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLDupStateT, ml_state_t *Caller, ml_dup_state_t *State) {
+	State->Base.run = (ml_state_fn)dup_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(Dup) {
+//@dup
+//<Sequence:sequence
+// Returns a new sequence which produces the values of :mini:`Sequence` as both keys and values.
+//$= map(dup({"A" is 1, "B" is 2, "C" is 3}))
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLSequenceT);
+	ml_dup_t *Dup = new(ml_dup_t);
+	Dup->Type = MLDupT;
+	Dup->Value = Args[0];
+	return (ml_value_t *)Dup;
 }
 
 typedef struct ml_batched_t {
@@ -3589,6 +3822,105 @@ ML_METHOD("split", MLSequenceT, MLFunctionT) {
 
 typedef struct {
 	ml_type_t *Type;
+	ml_value_t *Seq;
+	int Size;
+} ml_chunk_t;
+
+ML_TYPE(MLChunkT, (MLSequenceT), "chunk");
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t Inner;
+	ml_value_t *Iter;
+	ml_value_t *Args[1];
+	int Index, Size, Remain;
+} ml_chunk_state_t;
+
+ML_TYPE(MLChunkStateT, (MLStateT), "chunk-state");
+//!internal
+
+ML_TYPE(MLChunkInnerT, (MLSequenceT), "chunk-inner");
+//!internal
+
+static void ml_chunk_state_iterate(ml_chunk_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Iter = Iter;
+	++State->Index;
+	State->Remain = State->Size;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLChunkT, ml_state_t *Caller, ml_chunk_t *Chunk) {
+	ml_chunk_state_t *State = new(ml_chunk_state_t);
+	State->Base.Type = MLChunkStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_chunk_state_iterate;
+	State->Size = Chunk->Size;
+	State->Index = 0;
+	State->Inner.Type = MLChunkInnerT;
+	return ml_iterate((ml_state_t *)State, Chunk->Seq);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLChunkStateT, ml_state_t *Caller, ml_chunk_state_t *State) {
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_chunk_state_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLChunkStateT, ml_state_t *Caller, ml_chunk_state_t *State) {
+	ML_RETURN(ml_integer(State->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLChunkStateT, ml_state_t *Caller, ml_chunk_state_t *State) {
+	ML_RETURN(&State->Inner);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ml_chunk_state_inner_iter(ml_chunk_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Iter = Iter;
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	ML_CONTINUE(State->Base.Caller, &State->Inner);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLChunkInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_chunk_state_t *State = (ml_chunk_state_t *)((void *)Iter - offsetof(ml_chunk_state_t, Inner));
+	if (--State->Remain == 0) ML_RETURN(MLNil);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_chunk_state_inner_iter;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_METHOD("chunk", MLSequenceT, MLIntegerT) {
+	ml_chunk_t *Chunk = new(ml_chunk_t);
+	Chunk->Type = MLChunkT;
+	Chunk->Seq = Args[0];
+	Chunk->Size = ml_integer_value(Args[1]);
+	return (ml_value_t *)Chunk;
+}
+
+typedef struct {
+	ml_type_t *Type;
 	ml_value_t *Seq, *Fn;
 } ml_grouped_t;
 
@@ -3883,6 +4215,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "min2", Min2);
 		stringmap_insert(Globals, "max2", Max2);
 		stringmap_insert(Globals, "unique", Unique);
+		stringmap_insert(Globals, "unique1", UniqueKeys);
 		stringmap_insert(Globals, "zip", Zip);
 		stringmap_insert(Globals, "zip2", Zip2);
 		stringmap_insert(Globals, "grid", Grid);
@@ -3893,6 +4226,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "unfold", Unfold);
 		stringmap_insert(Globals, "swap", Swap);
 		stringmap_insert(Globals, "key", Key);
+		stringmap_insert(Globals, "dup", Dup);
 		stringmap_insert(Globals, "batch", Batch);
 	}
 }

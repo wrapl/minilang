@@ -2,6 +2,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_object.h"
+#include "ml_compiler2.h"
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
@@ -170,9 +171,9 @@ ML_METHOD("-", MLAddressT, MLAddressT) {
 
 #ifdef ML_NANBOXING
 
-#define NegOne ml_int32(-1)
-#define One ml_int32(1)
-#define Zero ml_int32(0)
+#define NegOne ml_integer32(-1)
+#define One ml_integer32(1)
+#define Zero ml_integer32(0)
 
 #else
 
@@ -364,6 +365,7 @@ ML_METHOD(MLBufferT, MLIntegerT) {
 	Buffer->Type = MLBufferT;
 	Buffer->Length = Size;
 	Buffer->Value = snew(Size);
+	memset(Buffer->Value, 0, Size);
 	return (ml_value_t *)Buffer;
 }
 
@@ -407,7 +409,7 @@ ML_METHOD("put8", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 8-bit signed value.
-//$= buffer(1):put8(64)
+//$= buffer(8):put8(64)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
 	*(int8_t *)Buffer->Value = (int8_t)ml_integer_value(Args[1]);
@@ -420,7 +422,7 @@ ML_METHOD("putu8", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 8-bit unsigned value.
-//$= buffer(1):put8(64)
+//$= buffer(8):put8(64)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
 	*(uint8_t *)Buffer->Value = (uint8_t)ml_integer_value(Args[1]);
@@ -699,14 +701,12 @@ ML_METHOD_DECL(AppendMethod, "append");
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t Buffer[1];
-	ml_hash_chain_t Chain[1];
 	ml_value_t *Args[];
 } ml_string_state_t;
 
 static void ml_string_state_run(ml_string_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
-	if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
 	ML_RETURN(ml_stringbuffer_to_string(State->Buffer));
 }
 
@@ -714,7 +714,7 @@ ML_FUNCTIONX(MLString) {
 //@string
 //<Value:any
 //>string
-// Returns a general (type name only) representation of :mini:`Value` as a string.
+// Returns a representation of :mini:`Value` as a string.
 //$= string(100)
 //$= string(nil)
 //$= string("Hello world!\n")
@@ -725,9 +725,7 @@ ML_FUNCTIONX(MLString) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_string_state_run;
-	State->Chain->Value = Args[0];
 	State->Buffer[0] = ML_STRINGBUFFER_INIT;
-	State->Buffer->Chain = State->Chain;
 	State->Args[0] = (ml_value_t *)State->Buffer;
 	memcpy(State->Args + 1, Args, Count * sizeof(ml_value_t *));
 	return ml_call(State, AppendMethod, Count + 1, State->Args);
@@ -892,7 +890,16 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+#ifdef ML_FLINT
+	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
+		ml_stringbuffer_printf(Buffer, "%d", (int32_t)(intptr_t)Args[1]);
+	} else {
+		const char *Str = fmpz_get_str(NULL, 10, ((ml_integer_t *)Args[1])->Value);
+		ml_stringbuffer_write(Buffer, Str, strlen(Str));
+	}
+#else
 	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
+#endif
 	return MLSome;
 }
 
@@ -903,8 +910,17 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 //<Base
 // Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	int64_t Value = ml_integer_value_fast(Args[1]);
 	int Base = ml_integer_value_fast(Args[2]);
+#ifdef ML_FLINT
+	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
+		goto int32;
+	} else {
+		const char *Str = fmpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
+		ml_stringbuffer_write(Buffer, Str, strlen(Str));
+	}
+int32:;
+#endif
+	int64_t Value = ml_integer_value_fast(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
@@ -3677,17 +3693,10 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 	return ml_call(State, Args[3], 1, Args2);
 }
 
-ML_FUNCTION(MLStringEscape) {
-//@string::escape
-//<String:string
-//>string
-// Escapes characters in :mini:`String`.
-//$= string::escape("\'Hello\nworld!\'")
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	const char *S = ml_string_value(Args[0]);
-	for (int I = ml_string_length(Args[0]); --I >= 0; ++S) {
+void ml_stringbuffer_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Length) {
+	if (Length < 0) Length = strlen(String);
+	const char *S = String;
+	for (int I = Length; --I >= 0; ++S) {
 		switch (*S) {
 		case '\0':
 			ml_stringbuffer_write(Buffer, "\\0", strlen("\\0"));
@@ -3721,6 +3730,18 @@ ML_FUNCTION(MLStringEscape) {
 			break;
 		}
 	}
+}
+
+ML_FUNCTION(MLStringEscape) {
+//@string::escape
+//<String:string
+//>string
+// Escapes characters in :mini:`String`.
+//$= string::escape("\'Hello\nworld!\'")
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_escape_string(Buffer, ml_string_value(Args[0]), ml_string_length(Args[0]));
 	return ml_stringbuffer_to_string(Buffer);
 }
 
@@ -3826,6 +3847,62 @@ ml_value_t *ml_regexi(const char *Pattern0, int Length) {
 		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	return (ml_value_t *)Regex;
+}
+
+static ml_value_t *ml_parser_escape_regex(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser);
+	char Quote = *Next++;
+	const char *End = Next;
+	while (End[0] != Quote) {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		if (End[0] == '\\') ++End;
+		++End;
+	}
+	int Length = End - Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Next, Length);
+	Raw[Length] = 0;
+	ml_parser_input(Parser, End + 1, 0);
+	ml_value_t *Value = ml_regex(Raw, Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
+}
+
+static ml_value_t *ml_parser_escape_regexi(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser);
+	char Quote = *Next++;
+	const char *End = Next;
+	while (End[0] != Quote) {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		if (End[0] == '\\') ++End;
+		++End;
+	}
+	int Length = End - Next, Length0 = strlen("(?i)");
+	char *Raw = snew(Length0 + Length + 1);
+	memcpy(stpcpy(Raw, "(?i)"), Next, Length);
+	Raw[Length0 + Length] = 0;
+	ml_parser_input(Parser, End + 1, 0);
+	ml_value_t *Value = ml_regex(Raw, Length0 + Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
 }
 
 const char *ml_regex_pattern(const ml_value_t *Value) {
@@ -4109,7 +4186,7 @@ ML_FUNCTION(MLStringBuffer) {
 }
 
 /*
-ML_TYPE(MLStringBufferT, (MLStreamT), "stringbuffer");
+ML_TYPE(MLStringBufferT, (MLStreamT), "string::buffer");
 // A string buffer that automatically grows and shrinks as required.
 */
 
@@ -4128,6 +4205,16 @@ static size_t _Atomic StringBufferNodeCount = 0;
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 static size_t StringBufferNodeCount = 0;
 #endif
+
+static size_t ml_stringbuffer_cache_usage(void *Data) {
+	size_t Count = 0;
+	for (ml_stringbuffer_node_t *Node = StringBufferNodeCache; Node; Node = Node->Next) ++Count;
+	return Count;
+}
+
+static void ml_stringbuffer_cache_clear(void *Data) {
+	StringBufferNodeCache = NULL;
+}
 
 static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 #ifdef ML_THREADSAFE
@@ -4165,7 +4252,9 @@ static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
 }
 
 ML_FUNCTION(MLStringBufferCount) {
-	return ml_integer(StringBufferNodeCount);
+	int Available = 0;
+	for (ml_stringbuffer_node_t *Node = StringBufferNodeCache; Node; Node = Node->Next) ++Available;
+	return ml_tuplev(2, ml_integer(Available), ml_integer(StringBufferNodeCount));
 }
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
@@ -4349,11 +4438,11 @@ ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) {
 }
 
 ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) {
-	size_t Length = Buffer->Length;
+	int Start = Buffer->Start, Length = Buffer->Length;
 	if (Length == 0) return (ml_value_t *)MLEmptyString;
 #ifdef ML_STRINGCACHE
-	if (Length < ML_STRINGCACHE_MAX) {
-		ml_value_t *String = weakmap_insert(StringCache, Buffer->Head->Chars, Length, _ml_string);
+	if (Start + Length < ML_STRINGCACHE_MAX) {
+		ml_value_t *String = weakmap_insert(StringCache, Buffer->Head->Chars + Start, Length, _ml_string);
 		ml_stringbuffer_clear(Buffer);
 		return String;
 	}
@@ -4477,57 +4566,14 @@ done:;
 }
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_hash_chain_t *Chain = Buffer->Chain;
-	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
-		if (Link->Value == Value) {
-			int Index = Link->Index;
-			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, ">%d", Index);
-			return (ml_value_t *)Buffer;
-		}
-	}
-	ml_hash_chain_t NewChain[1] = {{Chain, Value, 0}};
-	Buffer->Chain = NewChain;
-	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
-	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "<%d", NewChain->Index);
-	Buffer->Chain = Chain;
-	return Result;
-}
-
-typedef struct {
-	ml_state_t Base;
-	ml_hash_chain_t Chain[1];
-	ml_value_t *Args[2];
-} ml_stringbuffer_append_state_t;
-
-static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
-	ml_state_t *Caller = State->Base.Caller;
-	if (ml_is_error(Value)) ML_RETURN(Value);
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)State->Args[0];
-	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "<%d", State->Chain->Index);
-	Buffer->Chain = State->Chain->Previous;
-	ML_RETURN(Buffer);
+	return ml_simple_inline(AppendMethod, 2, Buffer, Value);
 }
 
 void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
-		if (Link->Value == Value) {
-			int Index = Link->Index;
-			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, ">%d", Index);
-			ML_RETURN(Buffer);
-		}
-	}
-	ml_stringbuffer_append_state_t *State = new(ml_stringbuffer_append_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stringbuffer_append_run;
-	State->Chain->Previous = Buffer->Chain;
-	State->Chain->Value = Value;
-	Buffer->Chain = State->Chain;
-	State->Args[0] = (ml_value_t *)Buffer;
-	State->Args[1] = Value;
-	return ml_call(State, AppendMethod, 2, State->Args);
+	ml_value_t **Args = ml_alloc_args(2);
+	Args[0] = (ml_value_t *)Buffer;
+	Args[1] = Value;
+	return ml_call(Caller, AppendMethod, 2, Args);
 }
 
 typedef struct {
@@ -4568,6 +4614,7 @@ void ml_string_init() {
 	setlocale(LC_ALL, "C.UTF-8");
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
+	ml_cache_register("StringBufferNode", ml_stringbuffer_cache_usage, ml_stringbuffer_cache_clear, NULL);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	stringmap_insert(MLStringBufferT->Exports, "count", MLStringBufferCount);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
@@ -4607,4 +4654,6 @@ void ml_string_init() {
 	stringmap_insert(MLStringT->Exports, "norm", MLStringNormT);
 	stringmap_insert(MLStringT->Exports, "ctype", MLStringCTypeT);
 #endif
+	ml_parser_add_escape(NULL, "r", ml_parser_escape_regex);
+	ml_parser_add_escape(NULL, "ri", ml_parser_escape_regexi);
 }

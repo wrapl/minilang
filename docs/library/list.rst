@@ -179,7 +179,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:find("b", <) :> 3
+      L:find("b", <) :> 1
       L:find("b", >) :> 2
 
 
@@ -187,8 +187,16 @@ list
    Returns the first value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 
 
+:mini:`meth (List: list):first2`
+   Returns the first index and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+
+
 :mini:`meth (List: list):last`
    Returns the last value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+
+
+:mini:`meth (List: list):last2`
+   Returns the last index and value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
 
 
 :mini:`meth (List: list):length: integer`
@@ -204,7 +212,7 @@ list
 
    .. code-block:: mini
 
-      [1, 2, 3]:count :> 3
+      [1, 2, 3]:precount :> 3
 
 
 :mini:`meth (List: list):random: any`
@@ -213,8 +221,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "c"
-      L:random :> "c"
+      L:random :> "k"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -371,6 +379,10 @@ list
    Shuffles :mini:`List` in place.
 
 
+:mini:`meth (Arg₁: list::mutable):shuffle(Arg₂: permutation)`
+   *TBD*
+
+
 :mini:`meth (List: list::mutable):sort: List`
    Sorts :mini:`List` in-place using :mini:`<` and returns it.
 
@@ -404,24 +416,20 @@ list
    Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
 
-:mini:`type list::node::mutable < list::node`
-   A node in a :mini:`list`.
-   Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
-   Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
-
-
 :mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::skip < sequence`
-   *TBD*
+:mini:`type list::node::mutable < list::node`
+   A node in a :mini:`list`.
+   Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+   Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
 :mini:`type list::slice`
-   A slice of a list.
+   A sub-list.
 
 
 :mini:`meth list(Arg₁: names)`

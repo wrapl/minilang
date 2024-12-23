@@ -95,6 +95,18 @@ number
    Returns :mini:`~A`.
 
 
+:mini:`meth (A: complex) ~ (B: complex): real`
+   complex :mini:`A ~ B`.
+
+
+:mini:`meth (A: complex) ~ (B: double): complex`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: complex) ~ (B: integer): complex`
+   Returns :mini:`A ~ B`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: complex)`
    Appends :mini:`Value` to :mini:`Buffer`.
 
@@ -239,6 +251,18 @@ number
    Returns :mini:`min(A,  B)`.
 
 
+:mini:`meth (A: double) ~ (B: complex): complex`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: double) ~ (B: double): real`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: double) ~ (B: integer): real`
+   Returns :mini:`A ~ B`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: double)`
    Appends :mini:`Value` to :mini:`Buffer`.
 
@@ -282,6 +306,14 @@ number
 
 :mini:`fun integer::random_cycle(Max: integer): list`
    Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
+
+
+:mini:`fun integer::random_cycle(Max: integer): permutation`
+   Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
+
+
+:mini:`fun integer::random_permutation(Max: integer): permutation`
+   Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
 :mini:`fun integer::random_permutation(Max: integer): list`
@@ -368,7 +400,7 @@ number
    .. code-block:: mini
 
       let N := 10 / 2 :> 5
-      type(N) :> <<int32>>
+      type(N) :> <<integer32>>
       let R := 10 / 3 :> 3.33333333333333
       type(R) :> <<double>>
 
@@ -503,6 +535,10 @@ number
    Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
 
 
+:mini:`meth (A: integer):popcount: integer`
+   Returns the number of bits set in :mini:`A`.
+
+
 :mini:`meth real(Arg₁: integer)`
    *TBD*
 
@@ -515,6 +551,18 @@ number
    Returns :mini:`~A`.
 
 
+:mini:`meth (A: integer) ~ (B: complex): complex`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: integer) ~ (B: double): real`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: integer) ~ (B: integer): integer`
+   Returns :mini:`A ~ B`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: integer)`
    Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 
@@ -525,6 +573,14 @@ number
 
 :mini:`meth (Buffer: string::buffer):append(Value: integer, Format: string)`
    Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+
+
+:mini:`meth (Arg₁: integer::interval):subsets(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: integer::range):subsets(Arg₂: integer)`
+   *TBD*
 
 
 :mini:`type number`

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="structml__stringbuffer__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_stringbuffer_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="744" column="11" bodyfile="src/ml_types.h" bodystart="744" bodyend="-1"/>
+        <location file="src/ml_types.h" line="777" column="11" bodyfile="src/ml_types.h" bodystart="777" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__t_1a105b4ec9bf55516e269b7dcafa62a391" prot="public" static="no" mutable="no">
         <type><ref refid="structml__stringbuffer__node__t" kindref="compound">ml_stringbuffer_node_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="745" column="24" bodyfile="src/ml_types.h" bodystart="745" bodyend="-1"/>
+        <location file="src/ml_types.h" line="778" column="24" bodyfile="src/ml_types.h" bodystart="778" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__t_1a360a5cd4824577c143052af7d58075ae" prot="public" static="no" mutable="no">
         <type><ref refid="structml__stringbuffer__node__t" kindref="compound">ml_stringbuffer_node_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="745" column="29" bodyfile="src/ml_types.h" bodystart="745" bodyend="-1"/>
+        <location file="src/ml_types.h" line="778" column="29" bodyfile="src/ml_types.h" bodystart="778" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__t_1a47d24f7d1c264bcd94cc9e755671d0a5" prot="public" static="no" mutable="no">
         <type><ref refid="structml__hash__chain__t" kindref="compound">ml_hash_chain_t</ref> *</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="746" column="17" bodyfile="src/ml_types.h" bodystart="746" bodyend="-1"/>
+        <location file="src/ml_types.h" line="779" column="17" bodyfile="src/ml_types.h" bodystart="779" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__t_1adbeb0cbccc7ac4e39443f6cf8049b260" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="747" column="5" bodyfile="src/ml_types.h" bodystart="747" bodyend="-1"/>
+        <location file="src/ml_types.h" line="780" column="5" bodyfile="src/ml_types.h" bodystart="780" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__t_1a9fde862c8bc443d7a6872a487ec265a3" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -85,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="747" column="11" bodyfile="src/ml_types.h" bodystart="747" bodyend="-1"/>
+        <location file="src/ml_types.h" line="780" column="11" bodyfile="src/ml_types.h" bodystart="780" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__t_1a0b2c355629c0c41a383ab8db641304ee" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -99,7 +99,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="747" column="18" bodyfile="src/ml_types.h" bodystart="747" bodyend="-1"/>
+        <location file="src/ml_types.h" line="780" column="18" bodyfile="src/ml_types.h" bodystart="780" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__t_1a075e1e3c9dd399cef584d7338cc37938" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -113,7 +113,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="747" column="24" bodyfile="src/ml_types.h" bodystart="747" bodyend="-1"/>
+        <location file="src/ml_types.h" line="780" column="24" bodyfile="src/ml_types.h" bodystart="780" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -186,7 +186,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="743" column="1" bodyfile="src/ml_types.h" bodystart="743" bodyend="748"/>
+    <location file="src/ml_types.h" line="776" column="1" bodyfile="src/ml_types.h" bodystart="776" bodyend="781"/>
     <listofallmembers>
       <member refid="structml__stringbuffer__t_1a47d24f7d1c264bcd94cc9e755671d0a5" prot="public" virt="non-virtual"><scope>ml_stringbuffer_t</scope><name>Chain</name></member>
       <member refid="structml__stringbuffer__t_1a105b4ec9bf55516e269b7dcafa62a391" prot="public" virt="non-virtual"><scope>ml_stringbuffer_t</scope><name>Head</name></member>

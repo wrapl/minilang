@@ -7,6 +7,11 @@
 #include <inttypes.h>
 #include "ml_types.h"
 #include "ml_logging.h"
+#include <time.h>
+
+#ifdef ML_TIMESCHED
+#include <sys/time.h>
+#endif
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "runtime"
@@ -18,26 +23,37 @@ __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
-static int MLContextSize = ML_CONTEXT_SIZE;
-
 static uint64_t DefaultCounter = UINT_MAX;
 
 static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Value) {
 	DefaultCounter = UINT_MAX;
+	MLPreempt = 1;
 	State->run(State, Value);
 	return 0;
 }
 
 static ml_scheduler_t DefaultScheduler = {default_swap};
 
-ml_context_t MLRootContext = {&MLRootContext, 6, {
-	NULL,
-	NULL,
-	NULL,
-	&DefaultScheduler,
-	&DefaultCounter,
-	NULL
-}};
+ml_context_t *MLRootContext;
+
+#ifdef ML_CONTEXT_SECTION
+
+__attribute__ ((section("ml_context_section"))) void *ML_METHODS_INDEX[1];
+__attribute__ ((section("ml_context_section"))) void *ML_VARIABLES_INDEX[1];
+__attribute__ ((section("ml_context_section"))) void *ML_DEBUGGER_INDEX[1];
+__attribute__ ((section("ml_context_section"))) void *ML_SCHEDULER_INDEX[1];
+__attribute__ ((section("ml_context_section"))) void *ML_COUNTER_INDEX[1];
+__attribute__ ((section("ml_context_section"))) void *ML_THREAD_INDEX[1];
+
+static int MLContextSize = 0;
+static uint64_t MLContextReserved = 0;
+
+#else
+
+static int MLContextSize = ML_CONTEXT_SIZE;
+static uint64_t MLContextReserved = (1 << ML_CONTEXT_SIZE) - 1;
+
+#endif
 
 ml_context_t *ml_context(ml_context_t *Parent) {
 	ml_context_t *Context = xnew(ml_context_t, MLContextSize, void *);
@@ -48,25 +64,42 @@ ml_context_t *ml_context(ml_context_t *Parent) {
 }
 
 int ml_context_index() {
-	return MLContextSize++;
+	int Index = MLContextSize++;
+	MLContextReserved |= (1 << Index);
+	return Index;
 }
 
-void ml_context_set(ml_context_t *Context, int Index, void *Value) {
+void ml_context_reserve(int Index) {
+	if (MLContextReserved & (1 << Index)) {
+		ML_LOG_FATAL(NULL, "Context index %d already reserved", Index);
+		abort();
+	}
+	MLContextReserved |= (1 << Index);
+	if (MLContextSize < Index + 1) MLContextSize = Index + 1;
+}
+
+/*void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 	if (Context->Size <= Index) return;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
 	Context->Values[Index] = Value;
 #pragma GCC diagnostic pop
-}
+}*/
 
 static stringmap_t MLConfigs[1] = {STRINGMAP_INIT};
+static inthash_t MLConfigFns[1] = {INTHASH_INIT};
 
 void ml_config_register(const char *Name, ml_config_fn Fn) {
 	stringmap_insert(MLConfigs, Name, Fn);
+	inthash_insert(MLConfigFns, (uintptr_t)Fn, (void *)Name);
 }
 
 ml_config_fn ml_config_lookup(const char *Name) {
 	return (ml_config_fn)stringmap_search(MLConfigs, Name);
+}
+
+const char *ml_config_name(void *Fn) {
+	return (const char *)inthash_search(MLConfigFns, (uintptr_t)Fn);
 }
 
 typedef struct  {
@@ -82,7 +115,7 @@ struct ml_context_value_t {
 };
 
 static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int Count, ml_value_t **Args) {
-	ml_context_value_t *Values = Caller->Context->Values[ML_VARIABLES_INDEX];
+	ml_context_value_t *Values = ml_context_get_static(Caller->Context, ML_VARIABLES_INDEX);
 	if (Count == 0) {
 		while (Values) {
 			if (Values->Key == Key) ML_RETURN(Values->Value);
@@ -96,7 +129,7 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		Value->Key = Key;
 		Value->Value = Args[0];
 		ml_state_t *State = ml_state(Caller);
-		ml_context_set(State->Context, ML_VARIABLES_INDEX, Value);
+		ml_context_set_static(State->Context, ML_VARIABLES_INDEX, Value);
 		ml_value_t *Function = ml_deref(Args[Count - 1]);
 		return ml_call(State, Function, Count - 2, Args + 1);
 	}
@@ -134,7 +167,7 @@ ML_TYPE(MLStateT, (MLFunctionT), "state",
 static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 }
 
-ml_state_t MLEndState[1] = {{MLStateT, NULL, ml_end_state_run, &MLRootContext}};
+ml_state_t MLEndState[1] = {{MLStateT, NULL, ml_end_state_run, NULL}};
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
@@ -164,22 +197,38 @@ void ml_result_state_run(ml_result_state_t *State, ml_value_t *Value) {
 
 ml_result_state_t *ml_result_state(ml_context_t *Context) {
 	ml_result_state_t *State = new(ml_result_state_t);
-	State->Base.Context = Context ?: &MLRootContext;
+	State->Base.Context = Context ?: MLRootContext;
 	//State->Value = MLNil;
 	State->Base.Type = MLStateT;
 	State->Base.run = (ml_state_fn)ml_result_state_run;
 	return State;
 }
 
+#ifdef ML_TRAMPOLINE
+static ml_scheduler_queue_t *MLRootQueue;
+#endif
+
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
+	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, NULL};
 	ml_call(&State, Value, Count, Args);
+#ifdef ML_TRAMPOLINE
+	while (!State.Value) {
+		ml_queued_state_t Queued = ml_scheduler_queue_next(MLRootQueue);
+		Queued.State->run(Queued.State, Queued.Value);
+	}
+#endif
 	return State.Value;
 }
 
 ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
-	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
+	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, NULL};
 	ml_assign(&State, Value, Value2);
+#ifdef ML_TRAMPOLINE
+	while (!State.Value) {
+		ml_queued_state_t Queued = ml_scheduler_queue_next(MLRootQueue);
+		Queued.State->run(Queued.State, Queued.Value);
+	}
+#endif
 	ml_value_t *Result = State.Value;
 	State.Value = MLNil;
 	return Result;
@@ -192,7 +241,7 @@ typedef struct {
 
 ml_state_t *ml_state(ml_state_t *Caller) {
 	ml_context_state_t *State = xnew(ml_context_state_t, MLContextSize, void *);
-	ml_context_t *Parent = Caller ? Caller->Context : &MLRootContext;
+	ml_context_t *Parent = Caller ? Caller->Context : MLRootContext;
 	State->Context->Parent = Parent;
 	State->Context->Size = MLContextSize;
 	for (int I = 0; I < Parent->Size; ++I) State->Context->Values[I] = Parent->Values[I];
@@ -200,6 +249,18 @@ ml_state_t *ml_state(ml_state_t *Caller) {
 	State->Base.run = ml_default_state_run;
 	State->Base.Context = State->Context;
 	return (ml_state_t *)State;
+}
+
+void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
+#ifdef ML_TIMESCHED
+	if (MLPreempt < 0) {
+		return ml_state_schedule(State, Value);
+	} else {
+		return State->run(State, Value);
+	}
+#else
+	return State->run(State, Value);
+#endif
 }
 
 typedef struct ml_resumable_state_t {
@@ -218,6 +279,47 @@ ML_TYPE(MLResumableStateT, (MLStateT), "resumable-state",
 
 static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
+}
+
+typedef struct ml_cache_info_t ml_cache_info_t;
+
+struct ml_cache_info_t {
+	ml_cache_info_t *Next;
+	void *Data;
+	const char *Name;
+	ml_cache_usage_fn Usage;
+	ml_cache_clear_fn Clear;
+};
+
+static ml_cache_info_t *CacheInfos = NULL;
+
+void ml_cache_register(const char *Name, ml_cache_usage_fn Usage, ml_cache_clear_fn Clear, void *Data) {
+	ml_cache_info_t *Info = new(ml_cache_info_t);
+	Info->Data = Data;
+	Info->Name = Name;
+	Info->Usage = Usage;
+	Info->Clear = Clear;
+	Info->Next = CacheInfos;
+	CacheInfos = Info;
+}
+
+void ml_cache_usage(ml_cache_usage_callback_fn Callback, void *Arg) {
+	for (ml_cache_info_t *Info = CacheInfos; Info; Info = Info->Next) {
+		size_t Usage = Info->Usage(Info->Data);
+		Callback(Info->Name, Usage, Arg);
+	}
+}
+
+void ml_cache_clear(const char *Name) {
+	for (ml_cache_info_t *Info = CacheInfos; Info; Info = Info->Next) {
+		if (!strcmp(Name, Info->Name)) Info->Clear(Info->Data);
+	}
+}
+
+void ml_cache_clear_all() {
+	for (ml_cache_info_t *Info = CacheInfos; Info; Info = Info->Next) {
+		Info->Clear(Info->Data);
+	}
 }
 
 ML_FUNCTIONX(MLCallCC) {
@@ -718,7 +820,7 @@ ML_FUNCTIONX(MLBreak) {
 //@break
 //<Condition?
 // If a debugger is present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
-	ml_debugger_t *Debugger = Caller->Context->Values[ML_DEBUGGER_INDEX];
+	ml_debugger_t *Debugger = ml_context_get_static(Caller->Context, ML_DEBUGGER_INDEX);
 	if (!Debugger) ML_RETURN(MLNil);
 	if (Count && Args[0] == MLNil) ML_RETURN(MLNil);
 	return Debugger->run(Debugger, Caller, MLNil);
@@ -733,7 +835,7 @@ typedef struct {
 
 static void ml_mini_debugger_call(ml_state_t *Caller, ml_mini_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ml_state_t *State = ml_state(Caller);
-	ml_context_set(State->Context, ML_DEBUGGER_INDEX, &Debugger->Debug);
+	ml_context_set_static(State->Context, ML_DEBUGGER_INDEX, &Debugger->Debug);
 	ml_value_t *Function = Args[0];
 	return ml_call(State, Function, Count - 1, Args + 1);
 }
@@ -948,16 +1050,20 @@ ML_FUNCTIONX(MLTrace) {
 	ml_value_t *Trace = ml_list();
 	for (ml_state_t *State = Caller; State; State = State->Caller) {
 		ml_source_t Source = ml_debugger_source(State);
-		ml_list_put(Trace, ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+		if (strcmp(Source.Name, "<unknown>")) {
+			ml_list_put(Trace, ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+		}
 	}
 	ML_RETURN(Trace);
 }
 
 static int ml_config_debugger(ml_context_t *Context) {
-	return !!Context->Values[ML_DEBUGGER_INDEX];
+	return !!ml_context_get_static(Context, ML_DEBUGGER_INDEX);
 }
 
 // Schedulers //
+
+volatile int MLPreempt = 0;
 
 #ifdef ML_SCHEDULER
 
@@ -994,7 +1100,11 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	}
 	++Queue->Space;
 	--Queue->Fill;
+#ifdef ML_TIMESCHED
+	MLPreempt = 1;
+#else
 	Queue->Counter = Queue->Slice;
+#endif
 	return Next;
 }
 
@@ -1102,7 +1212,16 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	pthread_cond_init(Queue->Available, NULL);
 #endif
 	Queue->Slice = Slice;
+#ifdef ML_TIMESCHED
+	if (Slice) {
+		struct itimerval Interval = {0,};
+		Interval.it_interval.tv_usec = Slice;
+		Interval.it_value.tv_usec = Slice;
+		setitimer(ITIMER_REAL, &Interval, NULL);
+	}
+#else
 	Queue->Counter = Slice;
+#endif
 	return Queue;
 }
 
@@ -1111,23 +1230,11 @@ uint64_t *ml_scheduler_queue_counter(ml_scheduler_queue_t *Queue) {
 }
 
 ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice) {
-	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
-	Queue->Base.add = (ml_scheduler_add_fn)ml_scheduler_queue_add_signal;
-	Queue->Base.run = (ml_scheduler_run_fn)ml_scheduler_queue_run;
-	ml_queue_block_t *Block = new(ml_queue_block_t);
-	Block->Next = Block;
-	Queue->WriteBlock = Queue->ReadBlock = Block;
-	Queue->WriteIndex = Queue->ReadIndex = QUEUE_BLOCK_SIZE - 1;
-	Queue->Space = QUEUE_BLOCK_SIZE;
-	Queue->Fill = 0;
-#ifdef ML_THREADS
-	pthread_mutex_init(Queue->Lock, NULL);
-	pthread_cond_init(Queue->Available, NULL);
+	ml_scheduler_queue_t *Queue = ml_scheduler_queue(Slice);
+	ml_context_set_static(Context, ML_SCHEDULER_INDEX, Queue);
+#ifndef ML_TIMESCHED
+	ml_context_set_static(Context, ML_COUNTER_INDEX, &Queue->Counter);
 #endif
-	Queue->Slice = Slice;
-	Queue->Counter = Slice;
-	ml_context_set(Context, ML_SCHEDULER_INDEX, Queue);
-	ml_context_set(Context, ML_COUNTER_INDEX, &Queue->Counter);
 	//CurrentScheduler = (ml_scheduler_t *)Queue;
 	return Queue;
 }
@@ -1199,6 +1306,8 @@ static void *ml_scheduler_thread_fn(void *Data) {
 				pthread_mutex_unlock(ThreadLock);
 				GC_remove_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 				return NULL;
+			} else {
+				memset(MLArgCache, 0, ML_ARG_CACHE_SIZE * sizeof(ml_value_t *));
 			}
 			ml_scheduler_thread_t Thread = {NextThread, NULL, {PTHREAD_COND_INITIALIZER}};
 			NextThread = &Thread;
@@ -1258,13 +1367,12 @@ ML_FUNCTIONX(MLAtomic) {
 // Calls :mini:`Fn(Args)` in a new context without a scheduler and returns the result.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = ml_state(Caller);
-	ml_context_set(State->Context, ML_SCHEDULER_INDEX, &DefaultScheduler);
-	ml_context_set(State->Context, ML_COUNTER_INDEX, &DefaultCounter);
+	ml_context_set_static(State->Context, ML_SCHEDULER_INDEX, &DefaultScheduler);
+	ml_context_set_static(State->Context, ML_COUNTER_INDEX, &DefaultCounter);
 	return ml_call(State, Args[0], Count - 1, Args + 1);
 }
 
 #endif
-
 
 typedef struct {
 	ml_state_t *Caller;
@@ -1822,7 +1930,32 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 	ml_log(MLLoggerDefault, ML_LOG_LEVEL_WARN, NULL, "", 0, Format, Arg);
 }
 
+static void ml_preempt(int Signal) {
+	--MLPreempt;
+}
+
 void ml_runtime_init(const char *ExecName) {
+#ifdef ML_CONTEXT_SECTION
+	MLContextSize = __stop_ml_context_section - __start_ml_context_section;
+	MLContextReserved = (1 << MLContextSize) - 1;
+	//fprintf(stderr, "Context section size = %d\n", MLContextSize);
+#endif
+	MLRootContext = xnew(ml_context_t, MLContextSize, void *);
+	MLRootContext->Parent = MLRootContext;
+	MLRootContext->Size = MLContextSize;
+#ifdef ML_TRAMPOLINE
+	MLRootQueue = ml_default_queue_init(MLRootContext, 250);
+#else
+	ml_context_set_static(MLRootContext, ML_SCHEDULER_INDEX, &DefaultScheduler);
+	ml_context_set_static(MLRootContext, ML_COUNTER_INDEX, &DefaultCounter);
+#endif
+	MLEndState->Context = MLRootContext;
+#ifdef ML_TIMESCHED
+	struct sigaction Action = {0,};
+	Action.sa_handler = ml_preempt;
+	Action.sa_flags = SA_RESTART;
+	sigaction(SIGALRM, &Action, NULL);
+#endif
 #ifdef ML_UNWIND
 	signal(SIGSEGV, error_handler);
 #endif

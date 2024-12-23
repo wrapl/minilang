@@ -17,6 +17,10 @@ range
    Returns a range
 
 
+:mini:`meth (Start: integer):down(Count: integer): integer::range`
+   Returns a range from :mini:`Start` to :mini:`Start - Count + 1` (inclusive).
+
+
 :mini:`meth (A: integer::range) != (B: integer::range): integer::range | nil`
    Returns a range
 

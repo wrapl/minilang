@@ -187,6 +187,22 @@ ML_METHODX("insert", MLPQueueT, MLAnyT, MLAnyT) {
 	return ml_pqueue_insert(Caller, Queue, Entry);
 }
 
+ML_METHOD("entry", MLPQueueT, MLAnyT, MLAnyT) {
+//<Queue
+//<Value
+//<Priority
+//>pqueue::entry
+// Creates and returns a new entry with value :mini:`Value` and priority :mini:`Priority` without inserting it into :mini:`Queue`.
+	ml_pqueue_t *Queue = (ml_pqueue_t *)Args[0];
+	ml_pqueue_entry_t *Entry = new(ml_pqueue_entry_t);
+	Entry->Type = MLPQueueEntryT;
+	Entry->Queue = Queue;
+	Entry->Value = Args[1];
+	Entry->Priority = Args[2];
+	Entry->Index = INT_MAX;
+	return (ml_value_t *)Entry;
+}
+
 ML_METHOD("peek", MLPQueueT) {
 //<Queue
 //>pqueue::entry|nil
@@ -441,8 +457,8 @@ ml_value_t *ML_TYPED_FN(ml_unpack, MLPQueueEntryT, ml_pqueue_entry_t *Entry, int
 
 typedef struct {
 	ml_type_t *Type;
-	ml_pqueue_entry_t **Entries;
-	int Index, Count;
+	ml_pqueue_t *Queue;
+	int Index;
 } ml_pqueue_iter_t;
 
 ML_TYPE(MLPQueueIterT, (), "pqueue-iter");
@@ -452,14 +468,13 @@ static void ML_TYPED_FN(ml_iterate, MLPQueueT, ml_state_t *Caller, ml_pqueue_t *
 	if (!Queue->Count) ML_RETURN(MLNil);
 	ml_pqueue_iter_t *Iter = new(ml_pqueue_iter_t);
 	Iter->Type = MLPQueueIterT;
-	Iter->Entries = Queue->Entries;
-	Iter->Count = Queue->Count;
+	Iter->Queue = Queue;
 	Iter->Index = 0;
 	ML_RETURN(Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLPQueueIterT, ml_state_t *Caller, ml_pqueue_iter_t *Iter) {
-	if (++Iter->Index == Iter->Count) ML_RETURN(MLNil);
+	if (++Iter->Index == Iter->Queue->Count) ML_RETURN(MLNil);
 	ML_RETURN(Iter);
 }
 
@@ -468,7 +483,7 @@ static void ML_TYPED_FN(ml_iter_key, MLPQueueIterT, ml_state_t *Caller, ml_pqueu
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLPQueueIterT, ml_state_t *Caller, ml_pqueue_iter_t *Iter) {
-	ML_RETURN(Iter->Entries[Iter->Index]);
+	ML_RETURN(Iter->Queue->Entries[Iter->Index]);
 }
 
 void ml_pqueue_init(stringmap_t *Globals) {

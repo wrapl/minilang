@@ -1,7 +1,7 @@
-gir: gtk("Gtk", "3.0")
-gir: gtksource("GtkSource", "4")
-gir: pango("Pango")
-gir: glib("GLib")
+import: gtk("gir/Gtk@3.0")
+import: gtksource("gir/GtkSource@4")
+import: pango("gir/Pango")
+import: glib("gir/GLib")
 
 gtk::init(nil, nil)
 
@@ -41,7 +41,7 @@ fun describe(Buffer, Indent, Expr) do
 	end
 end
 
-gir::install()
+:>gir::install()
 	
 let Config := glib::KeyFile::new()
 Config:load_from_file(glib::get_user_config_dir() + "/minilang.conf", glib::KeyFileFlags::none)

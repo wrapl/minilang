@@ -9,7 +9,7 @@ array
 
 .. rst-class:: mini-api
 
-:mini:`meth (A: any) != (B: array): array`
+:mini:`meth (A: any) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -57,7 +57,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: any) = (B: array): array`
+:mini:`meth (A: any) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
@@ -100,24 +100,24 @@ array
       array::vcat(A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
 
 
-:mini:`meth (A: array) != (B: any): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) != (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) != (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) != (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) !== (B: array): integer`
+:mini:`meth (A: array) != (B: array): integer`
    Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`nil` if they match and :mini:`B` otherwise.
+
+
+:mini:`meth (A: array) !== (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) !== (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) !== (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) !== (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) * (B: any): array`
@@ -389,24 +389,24 @@ array
    Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 
 
-:mini:`meth (A: array) = (B: any): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) == (B: array): integer`
+:mini:`meth (A: array) = (B: array): integer`
    Compare the degrees,  dimensions and entries of :mini:`A` and :mini:`B` and returns :mini:`B` if they match and :mini:`nil` otherwise.
+
+
+:mini:`meth (A: array) == (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) == (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) == (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) == (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) > (B: any): array`
@@ -738,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1936614765>>
+      A:minidx(2) :> <<2 1> <1 1229342293>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -941,6 +941,10 @@ array
       A / (1 + 1i) :> <<0.5 - 0.5i 1 - 1i> <1.5 - 1.5i 2 - 2i>>
 
 
+:mini:`meth (Arg₁: array::complex) ^ (Arg₂: complex)`
+   *TBD*
+
+
 :mini:`type array::complex32 < array::complex`
    *TBD*
 
@@ -1070,10 +1074,6 @@ array
    Base type for arrays of complex numbers.
 
 
-:mini:`meth (Arg₁: array::mutable::complex) ^ (Arg₂: complex)`
-   *TBD*
-
-
 :mini:`type array::mutable::complex32 < array::complex32, array::mutable::complex`
    An array of complex32 values.
    
@@ -1158,10 +1158,6 @@ array
    Base type for arrays of real numbers.
 
 
-:mini:`meth (Arg₁: array::mutable::real) ^ (Arg₂: real)`
-   *TBD*
-
-
 :mini:`type array::mutable::uint16 < array::uint16, array::mutable::integer`
    An array of uint16 values.
    
@@ -1238,6 +1234,10 @@ array
       A / 2.5 :> <<0.4 0.8> <1.2 1.6>>
 
 
+:mini:`meth (Arg₁: array::real) ^ (Arg₂: real)`
+   *TBD*
+
+
 :mini:`type array::uint16 < array::integer`
    *TBD*
 
@@ -1270,7 +1270,7 @@ array
     Returns a new array of uint8 values with the specified dimensions.
 
 
-:mini:`meth (A: complex) != (B: array): array`
+:mini:`meth (A: complex) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -1319,7 +1319,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: complex) = (B: array): array`
+:mini:`meth (A: complex) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
@@ -1344,7 +1344,7 @@ array
       array::cat(2, A, B) :> <<1 2 3 7 8 9> <4 5 6 10 11 12>>
 
 
-:mini:`meth (A: integer) != (B: array): array`
+:mini:`meth (A: integer) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -1401,7 +1401,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: integer) = (B: array): array`
+:mini:`meth (A: integer) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
@@ -1451,6 +1451,10 @@ array
 
 :mini:`meth $(List: list): array`
    Returns an array with the contents of :mini:`List`.
+
+
+:mini:`meth (List: list)[Indices: vector]: list`
+   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
 :mini:`meth ^(List: list): array`
@@ -1613,7 +1617,11 @@ array
    *TBD*
 
 
-:mini:`meth (A: real) != (B: array): array`
+:mini:`type permutation < vector::uint32`
+   A permutation of numbers :mini:`1 .. N` (each number occurs exactly once).
+
+
+:mini:`meth (A: real) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -1661,7 +1669,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (A: real) = (B: array): array`
+:mini:`meth (A: real) == (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
@@ -1743,6 +1751,14 @@ array
    *TBD*
 
 
+:mini:`meth $(Slice: slice): array`
+   Returns an array with the contents of :mini:`List`.
+
+
+:mini:`meth ^(Slice: slice): array`
+   Returns an array with the contents of :mini:`Slice`,  transposed.
+
+
 :mini:`fun array::new(Arg₁: type, Arg₂: list)`
    *TBD*
 
@@ -1753,9 +1769,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:206B975D857F00000200000003000000>
+      :> <16:00000000000000000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<27424 23959> <32645 0>> <<2 0> <3 0>>>
+      :> <<<0 0> <0 0>> <<0 0> <0 0>>>
 
 
 :mini:`type vector < array`
@@ -1858,17 +1874,6 @@ array
    Base type for vectors of real numbers.
 
 
-:mini:`meth (Vector: vector::mutable::real):softmax: vector`
-   Returns :mini:`softmax(Vector)`.
-
-   .. code-block:: mini
-
-      let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5])
-      :> <1 4.2 0.6 1.23 4.3 1.2 2.5>
-      let B := A:softmax
-      :> <0.01659 0.406995 0.0111206 0.0208802 0.449799 0.0202631 0.0743513>
-
-
 :mini:`type vector::mutable::uint16 < vector::uint16, vector::mutable::integer, array::mutable::uint16`
    A vector of uint16 values.
 
@@ -1887,6 +1892,17 @@ array
 
 :mini:`type vector::real < array::real, vector::complex`
    *TBD*
+
+
+:mini:`meth (Vector: vector::real):softmax: vector`
+   Returns :mini:`softmax(Vector)`.
+
+   .. code-block:: mini
+
+      let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5])
+      :> <1 4.2 0.6 1.23 4.3 1.2 2.5>
+      let B := A:softmax
+      :> <0.01659 0.406995 0.0111206 0.0208802 0.449799 0.0202631 0.0743513>
 
 
 :mini:`type vector::uint16 < vector::integer, array::uint16`

@@ -129,3 +129,50 @@ div.highlight {
 section {
 	max-width: unset !important;
 }
+
+.session {
+	width: 80%;
+	margin: auto;
+	font-family: monospace;
+	font-size: 120%;
+	box-sizing: border-box;
+}
+
+.session .input {
+	position: relative;
+	display: grid;
+}
+
+.session .input::after {
+	content: attr(data-replicated-value) " ";
+	white-space: pre-wrap;
+	visibility: hidden;
+}
+
+.session .input textarea {
+	width: 100%;
+	box-sizing: border-box;
+	resize: none;
+	overflow: hidden;
+}
+
+.session .input::after, .session .input textarea {
+	border-left: solid green;
+	border-width: 0 0 0 3px;
+	padding: 0.2rem;
+	font: inherit;
+	grid-area: 1 / 1 / 2 / 2;
+}
+
+.session .input .run {
+	position: absolute;
+	top: 1px;
+	right: 1px;
+}
+
+.session .output {
+	background: #F0F0F0;
+	box-sizing: border-box;
+	padding: 5px;
+	white-space: pre-wrap;
+}

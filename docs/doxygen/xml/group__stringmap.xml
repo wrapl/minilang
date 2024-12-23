@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="group__stringmap" kind="group">
     <compoundname>stringmap</compoundname>
     <title>Stringmap</title>
@@ -46,6 +46,23 @@
         </inbodydescription>
         <location file="src/stringmap.h" line="22" column="13" declfile="src/stringmap.h" declline="22" declcolumn="13"/>
       </memberdef>
+      <memberdef kind="function" id="group__stringmap_1ga1300d8423930d23493d79d3415d9043f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+        <definition>stringmap_t * stringmap_copy</definition>
+        <argsstring>(stringmap_t *Map) __attribute__((malloc))</argsstring>
+        <name>stringmap_copy</name>
+        <param>
+          <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/stringmap.h" line="23" column="13" declfile="src/stringmap.h" declline="23" declcolumn="13"/>
+      </memberdef>
       <memberdef kind="function" id="group__stringmap_1ga10f0f63b9f8fd79d440152242674e147" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void *</type>
         <definition>void * stringmap_search</definition>
@@ -65,7 +82,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="24" column="6" declfile="src/stringmap.h" declline="24" declcolumn="6"/>
+        <location file="src/stringmap.h" line="25" column="6" declfile="src/stringmap.h" declline="25" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__stringmap_1gaa998fa79f38f255353f826e936dab5ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void *</type>
@@ -90,7 +107,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="25" column="6" declfile="src/stringmap.h" declline="25" declcolumn="6"/>
+        <location file="src/stringmap.h" line="26" column="6" declfile="src/stringmap.h" declline="26" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__stringmap_1ga0417ec748d22adad862d966c22117cb0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void *</type>
@@ -111,7 +128,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="26" column="6" declfile="src/stringmap.h" declline="26" declcolumn="6"/>
+        <location file="src/stringmap.h" line="27" column="6" declfile="src/stringmap.h" declline="27" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__stringmap_1ga30e3dcebb967aaf27cc9a76603bae8b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void **</type>
@@ -132,7 +149,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="27" column="6" declfile="src/stringmap.h" declline="27" declcolumn="6"/>
+        <location file="src/stringmap.h" line="28" column="6" declfile="src/stringmap.h" declline="28" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -157,7 +174,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="28" column="5" declfile="src/stringmap.h" declline="28" declcolumn="5"/>
+        <location file="src/stringmap.h" line="29" column="5" declfile="src/stringmap.h" declline="29" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>unsigned long</type>
@@ -174,7 +191,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/stringmap.h" line="30" column="15" declfile="src/stringmap.h" declline="30" declcolumn="15"/>
+        <location file="src/stringmap.h" line="31" column="15" declfile="src/stringmap.h" declline="31" declcolumn="15"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">

@@ -46,10 +46,10 @@ static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Va
 
 ML_ENUM2(MLMapOrderT, "map::order",
 	"Insert", MAP_ORDER_INSERT, // default ordering; inserted pairs are put at end, no reordering on access.
-	"LRU", MAP_ORDER_LRU, // inserted pairs are kept in ascending key order, no reordering on access.
-	"MRU", MAP_ORDER_MRU, // inserted pairs are kept in descending key order, no reordering on access.
-	"Ascending", MAP_ORDER_ASC, // inserted pairs are put at start, accessed pairs are moved to start.
-	"Descending", MAP_ORDER_DESC // inserted pairs are put at end, accessed pairs are moved to end.
+	"LRU", MAP_ORDER_LRU, // inserted pairs are put at start, accessed pairs are moved to start.
+	"MRU", MAP_ORDER_MRU, // inserted pairs are put at end, accessed pairs are moved to end.
+	"Ascending", MAP_ORDER_ASC, // inserted pairs are kept in ascending key order, no reordering on access.
+	"Descending", MAP_ORDER_DESC // inserted pairs are kept in descending key order, no reordering on access.
 );
 
 static void ML_TYPED_FN(ml_value_find_all, MLMapT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
@@ -164,6 +164,68 @@ ML_METHODVX(MLMapT, MLSequenceT) {
 	State->Base.Context = Caller->Context;
 	State->Values[0] = ml_map();
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+static ml_map_node_t *ml_map_template_node(ml_map_node_t *Template, ml_value_t **Args) {
+	ml_map_node_t *Node = new(ml_map_node_t);
+	Node->Type = MLMapNodeMutableT;
+	Node->Key = Template->Key;
+	int Index = ml_integer_value_fast(Template->Value);
+	Node->Value = ml_deref(Args[Index]);
+	Args[Index] = (ml_value_t *)Node;
+	Node->Hash = Template->Hash;
+	Node->Depth = Template->Depth;
+	if (Template->Left) Node->Left = ml_map_template_node(Template->Left, Args);
+	if (Template->Right) Node->Right = ml_map_template_node(Template->Right, Args);
+	return Node;
+
+}
+
+static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Count, ml_value_t **Args) {
+	if (Template->Size != Count) ML_ERROR("CallError", "Mismatched call to map template");
+	ml_map_t *Map = (ml_map_t *)ml_map();
+	Map->Cached = Template->Cached;
+	Map->Size = Template->Size;
+	Map->Order = Template->Order;
+	if (Template->Root) {
+		Map->Root = ml_map_template_node(Template->Root, Args);
+		ml_map_node_t *Prev = Map->Head = (ml_map_node_t *)Args[0];
+		Prev->Map = Map;
+		for (int I = 1; I < Count; ++I) {
+			ml_map_node_t *Node = (ml_map_node_t *)Args[I];
+			Node->Map = Map;
+			Node->Prev = Prev;
+			Prev->Next = Node;
+			Prev = Node;
+		}
+		Map->Tail = Prev;
+	}
+	ML_RETURN(Map);
+}
+
+ML_TYPE(MLMapTemplateT, (MLFunctionT), "map::template",
+	.call = (void *)ml_map_template_call
+);
+
+ML_FUNCTION(MLMapTemplate) {
+	ml_value_t *Template = ml_map();
+	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
+	Template->Type = MLMapTemplateT;
+	return Template;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLMapTemplateT, ml_value_t *Template) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("map::template"));
+	ML_MAP_FOREACH(Template, Node) ml_list_put(Result, Node->Key);
+	return Result;
+}
+
+ML_DESERIALIZER("map::template") {
+	ml_value_t *Template = ml_map();
+	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
+	Template->Type = MLMapTemplateT;
+	return Template;
 }
 
 typedef struct {
@@ -368,7 +430,43 @@ static void ml_map_insert_after(ml_map_t *Map, ml_map_node_t *Parent, ml_map_nod
 	Parent->Next = Node;
 }
 
-static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, long Hash, ml_value_t *Key) {
+static void ml_map_node_order(ml_map_t *Map, ml_map_node_t *Parent, ml_map_node_t *Node, int Compare) {
+	switch (Map->Order) {
+	case MAP_ORDER_INSERT:
+	case MAP_ORDER_LRU: {
+		ml_map_node_t *Prev = Map->Tail;
+		Prev->Next = Node;
+		Node->Prev = Prev;
+		Map->Tail = Node;
+		break;
+	}
+	case MAP_ORDER_MRU: {
+		ml_map_node_t *Next = Map->Head;
+		Next->Prev = Node;
+		Node->Next = Next;
+		Map->Head = Node;
+		break;
+	}
+	case MAP_ORDER_ASC: {
+		if (Compare < 0) {
+			ml_map_insert_before(Map, Parent, Node);
+		} else {
+			ml_map_insert_after(Map, Parent, Node);
+		}
+		break;
+	}
+	case MAP_ORDER_DESC: {
+		if (Compare > 0) {
+			ml_map_insert_before(Map, Parent, Node);
+		} else {
+			ml_map_insert_after(Map, Parent, Node);
+		}
+		break;
+	}
+	}
+}
+
+static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, ml_map_node_t *Node, long Hash, ml_value_t *Key) {
 	int Compare;
 	if (Hash < Parent->Hash) {
 		Compare = -1;
@@ -379,80 +477,62 @@ static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, lo
 		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
-	if (!Compare) return Parent;
+	if (!Compare) {
+		if (Node) Parent->Value = Node->Value;
+		return Parent;
+	}
 	ml_map_node_t **Slot = Compare < 0 ? &Parent->Left : &Parent->Right;
-	ml_map_node_t *Node;
-	if (Slot[0]) {
-		Node = ml_map_node_child(Map, Slot[0], Hash, Key);
-	} else {
+	if (!Slot[0]) {
 		++Map->Size;
-		Node = Slot[0] = new(ml_map_node_t);
+		if (Node) {
+			Node->Next = Node->Prev = Node->Left = Node->Right = NULL;
+		} else {
+			Node = new(ml_map_node_t);
+			Node->Key = Key;
+		}
+		Slot[0] = Node;
 		Node->Type = MLMapNodeMutableT;
 		Node->Map = Map;
 		Node->Depth = 1;
 		Node->Hash = Hash;
-		Node->Key = Key;
-		switch (Map->Order) {
-		case MAP_ORDER_INSERT:
-		case MAP_ORDER_LRU: {
-			ml_map_node_t *Prev = Map->Tail;
-			Prev->Next = Node;
-			Node->Prev = Prev;
-			Map->Tail = Node;
-			break;
-		}
-		case MAP_ORDER_MRU: {
-			ml_map_node_t *Next = Map->Head;
-			Next->Prev = Node;
-			Node->Next = Next;
-			Map->Head = Node;
-			break;
-		}
-		case MAP_ORDER_ASC: {
-			if (Compare < 0) {
-				ml_map_insert_before(Map, Parent, Node);
-			} else {
-				ml_map_insert_after(Map, Parent, Node);
-			}
-			break;
-		}
-		case MAP_ORDER_DESC: {
-			if (Compare > 0) {
-				ml_map_insert_before(Map, Parent, Node);
-			} else {
-				ml_map_insert_after(Map, Parent, Node);
-			}
-			break;
-		}
-		}
+		ml_map_node_order(Map, Parent, Node, Compare);
+		ml_map_rebalance(Slot);
+		ml_map_update_depth(Slot[0]);
+		return Node;
 	}
+	Node = ml_map_node_child(Map, Slot[0], Node, Hash, Key);
 	ml_map_rebalance(Slot);
 	ml_map_update_depth(Slot[0]);
 	return Node;
 }
 
-static ml_map_node_t *ml_map_node(ml_map_t *Map, long Hash, ml_value_t *Key) {
+static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t *Node, long Hash, ml_value_t *Key) {
 	ml_map_node_t *Root = Map->Root;
-	if (Root) return ml_map_node_child(Map, Root, Hash, Key);
+	if (Root) return ml_map_node_child(Map, Root, Node, Hash, Key);
 	++Map->Size;
-	ml_map_node_t *Node = Map->Root = new(ml_map_node_t);
+	if (Node) {
+		Node->Next = Node->Prev = Node->Left = Node->Right = NULL;
+	} else {
+		Node = new(ml_map_node_t);
+		Node->Key = Key;
+	}
+	Map->Root = Node;
 	Node->Type = MLMapNodeMutableT;
 	Node->Map = Map;
 	Map->Head = Map->Tail = Node;
 	Node->Depth = 1;
 	Node->Hash = Hash;
-	Node->Key = Key;
 	return Node;
 }
 
 ml_map_node_t *ml_map_slot(ml_value_t *Map0, ml_value_t *Key) {
 	ml_map_t *Map = (ml_map_t *)Map0;
-	return ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	return ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 }
 
 ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Map0;
-	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
 	ml_type_t *ValueType0 = ml_typeof(Value);
@@ -562,61 +642,37 @@ ML_METHOD("first", MLMapT) {
 //<Map
 // Returns the first value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	return Map->Head ? Map->Head->Value : MLNil;
+	return (ml_value_t *)Map->Head ?: MLNil;
+}
+
+ML_METHOD("first2", MLMapT) {
+//<Map
+// Returns the first key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return Map->Head ? ml_tuplev(2, Map->Head->Key, Map->Head) : MLNil;
 }
 
 ML_METHOD("last", MLMapT) {
 //<Map
 // Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	return Map->Tail ? Map->Tail->Value : MLNil;
+	return (ml_value_t *)Map->Tail ?: MLNil;
+}
+
+ML_METHOD("last2", MLMapT) {
+//<Map
+// Returns the last key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return Map->Tail ? ml_tuplev(2, Map->Tail->Key, Map->Tail) : MLNil;
 }
 
 static ml_value_t *ml_map_index_deref(ml_map_node_t *Index) {
 	return MLNil;
 }
 
-
-static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash, ml_map_node_t *Index) {
-	if (!Slot[0]) {
-		++Map->Size;
-		ml_map_node_t *Node = Slot[0] = Index;
-		Node->Type = MLMapNodeMutableT;
-		ml_map_node_t *Prev = Map->Tail;
-		if (Prev) {
-			Prev->Next = Node;
-			Node->Prev = Prev;
-		} else {
-			Map->Head = Node;
-		}
-		Map->Tail = Node;
-		Node->Depth = 1;
-		Node->Hash = Hash;
-		return Node;
-	}
-	int Compare;
-	if (Hash < Slot[0]->Hash) {
-		Compare = -1;
-	} else if (Hash > Slot[0]->Hash) {
-		Compare = 1;
-	} else {
-		ml_value_t *Args[2] = {Index->Key, Slot[0]->Key};
-		ml_value_t *Result = ml_map_compare(Map, Args);
-		Compare = ml_integer_value(Result);
-	}
-	if (!Compare) {
-		return Slot[0];
-	} else {
-		ml_map_node_t *Node = ml_map_insert_node(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Index);
-		ml_map_rebalance(Slot);
-		ml_map_update_depth(Slot[0]);
-		return Node;
-	}
-}
-
 static void ml_map_index_assign(ml_state_t *Caller, ml_map_node_t *Index, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Index->Value;
-	ml_map_node_t *Node = ml_map_insert_node(Map, &Map->Root, ml_typeof(Index->Key)->hash(Index->Key, NULL), Index);
+	ml_map_node_t *Node = ml_map_node(Map, Index, ml_typeof(Index->Key)->hash(Index->Key, NULL), Index->Key);
 	Node->Value = Value;
 	ML_RETURN(Value);
 }
@@ -650,7 +706,7 @@ ML_METHOD("order", MLMapMutableT, MLMapOrderT) {
 	return (ml_value_t *)Map;
 }
 
-static void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node) {
+void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node) {
 	ml_map_node_t *Prev = Node->Prev;
 	if (Prev) {
 		ml_map_node_t *Next = Node->Next;
@@ -667,7 +723,7 @@ static void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node) {
 	}
 }
 
-static void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node) {
+void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node) {
 	ml_map_node_t *Next = Node->Next;
 	if (Next) {
 		ml_map_node_t *Prev = Node->Prev;
@@ -953,7 +1009,9 @@ ML_TYPE(MapNodeNodeStateT, (MLStateT), "map::node::state");
 //!internal
 
 static void ml_node_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
-	if (!ml_is_error(Value)) {
+	if (State->Node->Value != (ml_value_t *)State) {
+		Value = State->Node->Value;
+	} else if (!ml_is_error(Value)) {
 		State->Node->Value = ml_deref(Value);
 		Value = (ml_value_t *)State->Node;
 	}
@@ -975,7 +1033,7 @@ ML_METHODX("[]", MLMapMutableT, MLAnyT, MLFunctionT) {
 //$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
 		ml_map_node_state_t *State = new(ml_map_node_state_t);
 		State->Base.Type = MapNodeNodeStateT;
@@ -1131,6 +1189,130 @@ ML_METHOD("insert", MLMapMutableT, MLAnyT, MLAnyT) {
 	return ml_map_insert(Args[0], Args[1], Args[2]);
 }
 
+ML_METHOD("splice", MLMapMutableT, MLAnyT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_t *Removed = (ml_map_t *)ml_map();
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	if (!Node) return MLNil;
+	do {
+		ml_map_node_t *Next = Node->Next;
+		ml_map_delete((ml_value_t *)Map, Node->Key);
+		ml_map_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	} while (Node);
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLMapMutableT, MLAnyT, MLIntegerT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_t *Removed = (ml_map_t *)ml_map();
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	if (!Node) return MLNil;
+	int Remove = ml_integer_value(Args[2]);
+	if (!Remove) return (ml_value_t *)Removed;
+	ml_map_node_t *Last = Node;
+	while (--Remove > 0) {
+		Last = Last->Next;
+		if (!Last) return MLNil;
+	}
+	Last = Last->Next;
+	while (Node != Last) {
+		ml_map_node_t *Next = Node->Next;
+		ml_map_delete((ml_value_t *)Map, Node->Key);
+		ml_map_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLMapMutableT, MLAnyT, MLMapMutableT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_t *Removed = (ml_map_t *)ml_map();
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	if (!Node) return MLNil;
+	ml_map_t *Source = (ml_map_t *)Args[2];
+	ml_map_node_t *Last = Node;
+	ml_map_node_t *Prev = Node->Prev, *Next = Last;
+	while (Node != Last) {
+		ml_map_node_t *Next = Node->Next;
+		ml_map_delete((ml_value_t *)Map, Node->Key);
+		ml_map_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	ml_map_order_t Order = Map->Order;
+	Map->Order = SET_ORDER_INSERT;
+	for (ml_map_node_t *Node = Source->Head; Node;) {
+		ml_map_node_t *Next = Node->Next;
+		ml_map_node(Map, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Map->Order = Order;
+	if (Next) {
+		ml_map_node_t *Head = Source->Head, *Tail = Source->Tail;
+		Map->Tail = Head->Prev;
+		Map->Tail->Next = NULL;
+		Head->Prev = Prev;
+		if (Prev) {
+			Prev->Next = Head;
+		} else {
+			Map->Head = Head;
+		}
+		Tail->Next = Next;
+		Next->Prev = Tail;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLMapMutableT, MLAnyT, MLIntegerT, MLMapMutableT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_t *Removed = (ml_map_t *)ml_map();
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	if (!Node) return MLNil;
+	int Remove = ml_integer_value(Args[2]);
+	ml_map_t *Source = (ml_map_t *)Args[3];
+	ml_map_node_t *Last = Node;
+	if (Remove) {
+		while (--Remove > 0) {
+			Last = Last->Next;
+			if (!Last) return MLNil;
+		}
+		Last = Last->Next;
+	}
+	ml_map_node_t *Prev = Node->Prev, *Next = Last;
+	while (Node != Last) {
+		ml_map_node_t *Next = Node->Next;
+		ml_map_delete((ml_value_t *)Map, Node->Key);
+		ml_map_node(Removed, Node, Node->Hash, Node->Key);
+		Node = Next;
+	}
+	ml_map_order_t Order = Map->Order;
+	Map->Order = SET_ORDER_INSERT;
+	for (ml_map_node_t *Node = Source->Head; Node;) {
+		ml_map_node_t *Next = Node->Next;
+		ml_map_node(Map, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
+		Node = Next;
+	}
+	Map->Order = Order;
+	if (Next) {
+		ml_map_node_t *Head = Source->Head, *Tail = Source->Tail;
+		Map->Tail = Head->Prev;
+		Map->Tail->Next = NULL;
+		Head->Prev = Prev;
+		if (Prev) {
+			Prev->Next = Head;
+		} else {
+			Map->Head = Head;
+		}
+		Tail->Next = Next;
+		Next->Prev = Tail;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Removed;
+}
+
 ML_METHOD("push", MLMapMutableT, MLAnyT, MLAnyT) {
 //<Map
 //<Key
@@ -1144,7 +1326,7 @@ ML_METHOD("push", MLMapMutableT, MLAnyT, MLAnyT) {
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_value_t *Value = Args[2];
-	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	Node->Value = Value;
 	ml_type_t *ValueType0 = ml_typeof(Value);
 	if (ValueType0 == MLUninitializedT) {
@@ -1171,7 +1353,7 @@ ML_METHOD("put", MLMapMutableT, MLAnyT, MLAnyT) {
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_value_t *Value = Args[2];
-	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	Node->Value = Value;
 	ml_type_t *ValueType0 = ml_typeof(Value);
 	if (ValueType0 == MLUninitializedT) {
@@ -1208,7 +1390,7 @@ ML_METHOD("missing", MLMapMutableT, MLAnyT) {
 //$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) return Node->Value = MLSome;
 	return MLNil;
 }
@@ -1218,7 +1400,7 @@ static void ml_missing_state_run(ml_map_node_state_t *State, ml_value_t *Value) 
 		ML_CONTINUE(State->Base.Caller, Value);
 	} else {
 		State->Node->Value = ml_deref(Value);
-		ML_CONTINUE(State->Base.Caller, MLSome);
+		ML_CONTINUE(State->Base.Caller, State->Node->Value);
 	}
 }
 
@@ -1227,14 +1409,14 @@ ML_METHODX("missing", MLMapMutableT, MLAnyT, MLFunctionT) {
 //<Key
 //<Fn
 //>any | nil
-// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`some`.
+// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns the new value.
 //$- let M := {"A" is 1, "B" is 2, "C" is 3}
 //$= M:missing("A", fun(Key) Key:code)
 //$= M:missing("D", fun(Key) Key:code)
 //$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
 		Node->Value = MLNil;
 		ml_map_node_state_t *State = new(ml_map_node_state_t);
@@ -1247,6 +1429,43 @@ ML_METHODX("missing", MLMapMutableT, MLAnyT, MLFunctionT) {
 		return ml_call(State, Function, 1, &State->Key);
 	} else {
 		ML_RETURN(MLNil);
+	}
+}
+
+static void ml_exists_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ML_CONTINUE(State->Base.Caller, Value);
+	} else {
+		State->Node->Value = ml_deref(Value);
+		ML_CONTINUE(State->Base.Caller, MLNil);
+	}
+}
+
+ML_METHODX("exists", MLMapMutableT, MLAnyT, MLFunctionT) {
+//<Map
+//<Key
+//<Fn
+//>any | nil
+// If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:exists("A", fun(Key) Key:code)
+//$= M:exists("D", fun(Key) Key:code)
+//$= M
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
+	if (!Node->Value) {
+		Node->Value = MLNil;
+		ml_map_node_state_t *State = new(ml_map_node_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)ml_exists_state_run;
+		State->Key = Key;
+		State->Node = Node;
+		ml_value_t *Function = Args[2];
+		return ml_call(State, Function, 1, &State->Key);
+	} else {
+		ML_RETURN(Node->Value);
 	}
 }
 
@@ -1264,9 +1483,7 @@ ML_METHOD("take", MLMapMutableT, MLMapMutableT) {
 	ml_map_t *Source = (ml_map_t *)Args[1];
 	for (ml_map_node_t *Node = Source->Head; Node;) {
 		ml_map_node_t *Next = Node->Next;
-		ml_value_t *Value = Node->Value;
-		ml_map_node_t *New = ml_map_insert_node(Map, &Map->Root, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node);
-		New->Value = Value;
+		ml_map_node(Map, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
 		Node = Next;
 	}
 	Source->Root = Source->Head = Source->Tail = NULL;
@@ -1304,68 +1521,125 @@ ML_METHOD("from", MLMapT, MLAnyT) {
 	return (ml_value_t *)From;
 }
 
-ML_METHOD("append", MLStringBufferT, MLMapT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_map_node_t *Node;
+	ml_value_t *Args[2];
+	ml_hash_chain_t Chain[1];
+	const char *Seperator;
+	const char *Equals;
+	const char *Terminator;
+	size_t SeperatorLength;
+	size_t EqualsLength;
+	size_t TerminatorLength;
+} ml_map_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_map_append_state_value(ml_map_append_state_t *State, ml_value_t *Value);
+
+static void ml_map_append_state_key(ml_map_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_map_node_t *Node = State->Node;
+	if (Node->Value == MLSome) return ml_map_append_state_value(State, Value);
+	ml_stringbuffer_write(State->Buffer, State->Equals, State->EqualsLength);
+	State->Base.run = (ml_state_fn)ml_map_append_state_value;
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+static void ml_map_append_state_value(ml_map_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_map_node_t *Node = State->Node->Next;
+	if (!Node) {
+		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
+		State->Buffer->Chain = State->Chain->Previous;
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
+	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Node = Node;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLMapT) {
 //<Buffer
 //<Map
 // Appends a representation of :mini:`Map` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_put(Buffer, '{');
 	ml_map_t *Map = (ml_map_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Map) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
 	ml_map_node_t *Node = Map->Head;
-	if (Node) {
-		ml_stringbuffer_simple_append(Buffer, Node->Key);
-		if (Node->Value != MLSome) {
-			ml_stringbuffer_write(Buffer, " is ", 4);
-			ml_stringbuffer_simple_append(Buffer, Node->Value);
-		}
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_simple_append(Buffer, Node->Key);
-			if (Node->Value != MLSome) {
-				ml_stringbuffer_write(Buffer, " is ", 4);
-				ml_stringbuffer_simple_append(Buffer, Node->Value);
-			}
-		}
+	if (!Node) {
+		ml_stringbuffer_write(Buffer, "{}", 2);
+		ML_RETURN(MLSome);
 	}
-	ml_stringbuffer_put(Buffer, '}');
-	return MLSome;
+	ml_stringbuffer_put(Buffer, '{');
+	ml_map_append_state_t *State = new(ml_map_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Map;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ", ";
+	State->SeperatorLength = 2;
+	State->Equals = " is ";
+	State->EqualsLength = 4;
+	State->Terminator = "}";
+	State->TerminatorLength = 1;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
-typedef struct ml_map_stringer_t {
-	const char *Seperator, *Equals;
-	ml_stringbuffer_t *Buffer;
-	int SeperatorLength, EqualsLength, First;
-	ml_value_t *Error;
-} ml_map_stringer_t;
-
-static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t *Stringer) {
-	if (Stringer->First) {
-		Stringer->First = 0;
-	} else {
-		ml_stringbuffer_write(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
-	}
-	Stringer->Error = ml_stringbuffer_simple_append(Stringer->Buffer, Key);
-	if (ml_is_error(Stringer->Error)) return 1;
-	ml_stringbuffer_write(Stringer->Buffer, Stringer->Equals, Stringer->EqualsLength);
-	Stringer->Error = ml_stringbuffer_simple_append(Stringer->Buffer, Value);
-	if (ml_is_error(Stringer->Error)) return 1;
-	return 0;
-}
-
-ML_METHOD("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
+ML_METHODX("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
 //<Buffer
 //<Map
 //<Sep
 //<Conn
 // Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
-	ml_map_stringer_t Stringer[1] = {{
-		ml_string_value(Args[2]), ml_string_value(Args[3]),
-		(ml_stringbuffer_t *)Args[0],
-		ml_string_length(Args[2]), ml_string_length(Args[3]),
-		1
-	}};
-	if (ml_map_foreach(Args[1], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
-	return MLSome;
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_map_t *Map = (ml_map_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Map) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
+	ml_map_node_t *Node = Map->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_map_append_state_t *State = new(ml_map_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_append_state_key;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Map;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Node = Node;
+	State->Seperator = ml_string_value(Args[2]);
+	State->SeperatorLength = ml_string_length(Args[2]);
+	State->Equals = ml_string_value(Args[3]);
+	State->EqualsLength = ml_string_length(Args[3]);
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Node->Key;
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
@@ -2019,6 +2293,25 @@ ML_FUNCTIONX(MLMapJoin2) {
 	ML_RETURN(State->Map);
 }
 
+static void ml_map_labeller_call(ml_state_t *Caller, ml_value_t *Labeller, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Value = ml_deref(Args[0]);
+	ml_map_node_t *Node = ml_map_slot(Labeller, Value);
+	if (Node->Value) ML_RETURN(Node->Value);
+	Node->Value = ml_integer(ml_map_size(Labeller));
+	ML_RETURN(Node->Value);
+}
+
+ML_TYPE(MLMapLabellerT, (MLFunctionT, MLMapT), "labeller",
+	.call = (void *)ml_map_labeller_call
+);
+
+ML_FUNCTION(MLMapLabeller) {
+	ml_value_t *Labeller = ml_map();
+	Labeller->Type = MLMapLabellerT;
+	return Labeller;
+}
+
 void ml_map_init() {
 #include "ml_map_init.c"
 	stringmap_insert(MLMapT->Exports, "mutable", MLMapMutableT);
@@ -2027,6 +2320,8 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
 	stringmap_insert(MLMapT->Exports, "join2", MLMapJoin2);
 	stringmap_insert(MLMapT->Exports, "reduce", MLMapReduce);
+	stringmap_insert(MLMapT->Exports, "labeller", MLMapLabeller);
+	stringmap_insert(MLMapT->Exports, "template", MLMapTemplate);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #ifdef ML_MUTABLES

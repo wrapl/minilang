@@ -13,11 +13,13 @@ extern "C" {
 
 typedef enum {
 	ML_LOG_LEVEL_NONE = 0,
-	ML_LOG_LEVEL_ERROR = 1,
-	ML_LOG_LEVEL_WARN = 2,
-	ML_LOG_LEVEL_INFO = 3,
-	ML_LOG_LEVEL_DEBUG = 4,
-	ML_LOG_LEVEL_ALL = 5
+	ML_LOG_LEVEL_FATAL = 1,
+	ML_LOG_LEVEL_ERROR = 2,
+	ML_LOG_LEVEL_WARN = 3,
+	ML_LOG_LEVEL_MESSAGE = 4,
+	ML_LOG_LEVEL_INFO = 5,
+	ML_LOG_LEVEL_DEBUG = 6,
+	ML_LOG_LEVEL_ALL = 7
 } ml_log_level_t;
 
 typedef struct ml_logger_t ml_logger_t;
@@ -40,6 +42,10 @@ extern ml_logger_t MLLoggerDefault[];
 #define ML_LOGGER MLLoggerDefault
 #endif
 
+#define ML_LOG_FATAL(ERROR, FORMAT, ...) \
+	if (MLLogLevel >= ML_LOG_LEVEL_FATAL) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_FATAL, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}
 #define ML_LOG_ERROR(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_ERROR) { \
 		ml_log(ML_LOGGER, ML_LOG_LEVEL_ERROR, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
@@ -47,6 +53,10 @@ extern ml_logger_t MLLoggerDefault[];
 #define ML_LOG_WARN(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_WARN) { \
 		ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+	}
+#define ML_LOG_MESSAGE(ERROR, FORMAT, ...) \
+	if (MLLogLevel >= ML_LOG_LEVEL_MESSAGE) { \
+		ml_log(ML_LOGGER, ML_LOG_LEVEL_MESSAGE, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
 	}
 #define ML_LOG_INFO(ERROR, FORMAT, ...) \
 	if (MLLogLevel >= ML_LOG_LEVEL_INFO) { \
@@ -61,6 +71,11 @@ ml_logger_t *ml_logger(const char *Name);
 void ml_logger_init(ml_logger_t *Logger, const char *Name);
 
 void ml_logging_init(stringmap_t *Globals);
+
+typedef void (*ml_log_level_fn)(ml_log_level_t Level, void *Data);
+
+void ml_log_level_watch(ml_log_level_fn Fn, void *Data);
+void ml_log_level_set(ml_log_level_t Level);
 
 #ifdef __cplusplus
 }

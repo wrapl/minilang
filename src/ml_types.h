@@ -72,15 +72,17 @@ struct ml_type_t {
 	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
-	int Rank:30;
-	int Interface:1;
-	int NoInherit:1;
+	unsigned int Rank:30;
+	unsigned int Interface:1;
+	unsigned int NoInherit:1;
 };
 
 extern ml_type_t MLTypeT[];
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
+
+long ml_value_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 
 //ml_value_t *ml_default_deref(ml_value_t *Ref);
 #define ml_default_deref NULL
@@ -167,19 +169,20 @@ int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args
 
 #ifndef GENERATE_INIT
 
-#define ML_GENERIC_TYPE(TYPE, PARENT, ...) ml_value_t *TYPE
+#define ML_GENERIC_TYPE(TYPE, PARENT, ...) ml_type_t *TYPE
 
 #else
 
 #define ML_GENERIC_TYPE(TYPE, ...) \
-INIT_CODE TYPE = (ml_value_t *)ml_generic_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
+INIT_CODE TYPE = ml_generic_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
 
 #endif
 
 #endif
 
 void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((sentinel));
-#define ML_TYPE_ARG(N) ((1L << 48) + N)
+
+#define ML_TYPE_ARG(N) ((N << 1) + 1)
 
 int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
@@ -195,9 +198,15 @@ extern ml_type_t MLVisitorT[];
 
 #ifdef ML_NANBOXING
 
-extern ml_type_t MLInt32T[];
-extern ml_type_t MLInt64T[];
+extern ml_type_t MLInteger32T[];
+extern ml_type_t MLInteger64T[];
 extern ml_type_t MLDoubleT[];
+
+#ifdef ML_RATIONAL
+
+extern ml_type_t MLRational48T[];
+
+#endif
 
 __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
@@ -219,27 +228,15 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 	if (__builtin_expect(Tag == 0, 1)) {
 		return Value->Type;
 	} else if (Tag == 1) {
-		return MLInt32T;
+		return MLInteger32T;
+#ifdef ML_RATIONAL
+	} else if (Tag == 2) {
+		return MLRational48T;
+#endif
 	} else {
 		return MLDoubleT;
 	}
 }
-
-/*static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
-	unsigned Tag = ml_tag(Value);
-	if (__builtin_expect(Tag == 0, 1)) {
-		ml_type_t *Type = Value->Type;
-		ml_value_t *(*Deref)(ml_value_t *) = Type->deref;
-		if (__builtin_expect(Deref != ml_default_deref, 0)) {
-			return ml_typeof(Deref(Value));
-		}
-		return Type;
-	} else if (Tag == 1) {
-		return MLInt32T;
-	} else {
-		return MLDoubleT;
-	}
-}*/
 
 #define ml_typeof_deref(VALUE) ml_typeof(ml_deref(VALUE))
 
@@ -266,15 +263,7 @@ static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
 
 #endif
 
-static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
-	const ml_type_t *Type = ml_typeof(Value);
-	if (Type == Expected) return 1;
-#ifdef ML_GENERICS
-	if (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
-	if (Type == Expected) return 1;
-#endif
-	return (uintptr_t)inthash_search(Type->Parents, (uintptr_t)Expected);
-}
+int ml_is(const ml_value_t *Value, const ml_type_t *Expected);
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 
@@ -282,14 +271,9 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
-#define ml_call(CALLER, VALUE, COUNT, ARGS) ({ \
-	ml_assert(CALLER); \
-	ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS); \
-})
+#define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
 
-#define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
-	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
-})
+#define ml_inline(STATE, VALUE, COUNT, ARGS ...) ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS})
 
 #define ml_assign(CALLER, VALUE, VALUE2) ml_typeof(VALUE)->assign((ml_state_t *)CALLER, VALUE, VALUE2)
 
@@ -411,6 +395,8 @@ ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_partial_function(ml_value_t *Function, int Count) __attribute__((malloc));
 ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value);
 
+ml_value_t *ml_value_function(ml_value_t *Value);
+
 #define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
 \
 ml_cfunction_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \
@@ -455,13 +441,34 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 		ML_ERROR("CallError", "%d arguments required", N); \
 	}
 
+#ifdef ML_TRAMPOLINE
+
+#define ML_CONTINUE(STATE, VALUE) { \
+	ml_state_t *__State = (ml_state_t *)(STATE); \
+	ml_value_t *__Value = (ml_value_t *)(VALUE); \
+	ml_state_schedule(__State, __Value); \
+	return; \
+}
+
+#else
+
+#ifdef ML_TIMESCHED
+
+#define ML_CONTINUE(STATE, VALUE) return ml_state_continue((ml_state_t *)(STATE), (ml_value_t *)(VALUE))
+
+#else
+
 #define ML_CONTINUE(STATE, VALUE) { \
 	ml_state_t *__State = (ml_state_t *)(STATE); \
 	ml_value_t *__Value = (ml_value_t *)(VALUE); \
 	return __State->run(__State, __Value); \
 }
 
-#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
+#endif
+
+#endif
+
+#define ML_RETURN(VALUE) ML_CONTINUE(Caller, VALUE)
 #define ML_ERROR(ARGS...) ML_RETURN(ml_error(ARGS))
 
 /// @}
@@ -543,31 +550,45 @@ extern ml_type_t MLRealT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLDoubleT[];
 
+#ifdef ML_RATIONAL
+
+extern ml_type_t MLRationalT[];
+
+#endif
+
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
+#ifdef ML_FLINT
+
+#include <flint/flint.h>
+#include <flint/fmpz.h>
+#include <flint/fmpq.h>
+
+#endif
+
 typedef struct {
 	ml_type_t *Type;
+#ifdef ML_FLINT
+	fmpz_t Value;
+#else
 	int64_t Value;
+#endif
 } ml_integer_t;
 
 #ifdef ML_NANBOXING
 
-static inline int ml_is_int32(ml_value_t *Value) {
-	return ml_tag(Value) == 1;
-}
-
-static inline ml_value_t *ml_int32(int32_t Integer) {
+static inline ml_value_t *ml_integer32(int32_t Integer) {
 	return (ml_value_t *)(((uint64_t)1 << 48) + (uint32_t)Integer);
 }
 
-ml_value_t *ml_int64(int64_t Integer);
+ml_value_t *ml_integer64(int64_t Integer);
 
 static inline ml_value_t *ml_integer(int64_t Integer) {
 	if (Integer >= INT32_MIN && Integer <= INT32_MAX) {
-		return ml_int32(Integer);
+		return ml_integer32(Integer);
 	} else {
-		return ml_int64(Integer);
+		return ml_integer64(Integer);
 	}
 }
 
@@ -578,13 +599,25 @@ static inline ml_value_t *ml_real(double Value) {
 	return Boxed.Value;
 }
 
+#ifdef ML_RATIONAL
+
+static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+
+}
+
+#endif
+
 static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
 
 static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	if (__builtin_expect(!!ml_tag(Value), 1)) return (int32_t)(intptr_t)Value;
+#ifdef ML_FLINT
+	return fmpz_get_si(((ml_integer_t *)Value)->Value);
+#else
 	return ((ml_integer_t *)Value)->Value;
+#endif
 }
 
 static inline double ml_double_value_fast(const ml_value_t *Value) {
@@ -767,6 +800,7 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 char ml_stringbuffer_last(ml_stringbuffer_t *Buffer);
 void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
 void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer);
+void ml_stringbuffer_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Length);
 
 void ml_stringbuffer_put_actual(ml_stringbuffer_t *Buffer, char Char);
 static inline void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
@@ -927,6 +961,45 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 
 /// @}
 
+/// \defgroup slices
+/// @{
+///
+
+// Slices //
+
+typedef struct { ml_value_t *Value; } ml_slice_node_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_slice_node_t *Nodes;
+	size_t Capacity, Offset, Length;
+} ml_slice_t;
+
+extern ml_type_t MLSliceT[];
+
+ml_value_t *ml_slice(size_t Capacity) __attribute__((malloc));
+void ml_slice_grow(ml_value_t *Slice, int Count);
+void ml_slice_put(ml_value_t *Slice, ml_value_t *Value);
+void ml_slice_push(ml_value_t *Slice, ml_value_t *Value);
+ml_value_t *ml_slice_pop(ml_value_t *Slice);
+ml_value_t *ml_slice_pull(ml_value_t *Slice);
+
+ml_value_t *ml_slice_get(ml_value_t *Slice, int Index);
+ml_value_t *ml_slice_set(ml_value_t *Slice, int Index, ml_value_t *Value);
+
+static inline ml_slice_node_t *ml_slice_head(ml_slice_t *Slice) {
+	return Slice->Nodes + Slice->Offset;
+}
+
+static inline size_t ml_slice_length(ml_value_t *Value) {
+	return ((ml_slice_t *)Value)->Length;
+}
+
+#define ML_SLICE_FOREACH(SLICE, ITER) \
+	for (ml_slice_node_t *ITER = ml_slice_head((ml_slice_t *)SLICE); ITER->Value; ++ITER)
+
+/// @}
+
 /// \defgroup methods
 /// @{
 ///
@@ -1067,6 +1140,7 @@ typedef enum {
 } ml_map_order_t;
 
 extern ml_type_t MLMapT[];
+extern ml_type_t MLMapTemplateT[];
 
 struct ml_map_t {
 	ml_type_t *Type;

@@ -1,6 +1,8 @@
 #ifndef ML_BASE64_H
 #define ML_BASE64_H
 
-void ml_base64_init();
+#include "minilang.h"
+
+void ml_base64_init(stringmap_t *Globals);
 
 #endif

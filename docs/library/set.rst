@@ -223,7 +223,7 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:random :> "a"
-      S:random :> "e"
+      S:random :> "c"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -234,12 +234,32 @@ set
       set(["A", "B", "C"]):size :> 3
 
 
+:mini:`meth (Arg₁: set):subsets`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set):subsets(Arg₂: integer)`
+   *TBD*
+
+
 :mini:`meth (Buffer: string::buffer):append(Set: set)`
-   Appends a representation of :mini:`Set` to :mini:`Buffer`.
+   Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`"[" + repr(V₁) + ",  " + repr(V₂) + ",  " + ... + repr(Vₙ) + "]"`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
+
+   .. code-block:: mini
+
+      let B := string::buffer()
+      B:append(set(1 .. 4))
+      B:rest :> "{1, 2, 3, 4}"
 
 
 :mini:`meth (Buffer: string::buffer):append(Set: set, Sep: string)`
-   Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
+   Appends a representation of :mini:`Set` to :mini:`Buffer` of the form :mini:`repr(V₁) + Sep + repr(V₂) + Sep + ... + repr(Vₙ)`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
+
+   .. code-block:: mini
+
+      let B := string::buffer()
+      B:append(set(1 .. 4), " - ")
+      B:rest :> "1 - 2 - 3 - 4"
 
 
 :mini:`type set::mutable < set`
@@ -402,12 +422,40 @@ set
       S:sort(>) :> {k, e, c, a}
 
 
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any, Arg₃: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any, Arg₃: integer, Arg₄: set::mutable)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: set::mutable):splice(Arg₂: any, Arg₃: set::mutable)`
+   *TBD*
+
+
+:mini:`meth (Set: set::mutable):take(Source: set::mutable): set`
+   Inserts the values from :mini:`Source` into :mini:`Set`,  leaving :mini:`Source` empty.
+
+   .. code-block:: mini
+
+      let A := set("cat") :> {c, a, t}
+      let B := set("cake") :> {c, a, k, e}
+      A:take(B) :> {c, a, t, k, e}
+      A :> {c, a, t, k, e}
+      B :> {}
+
+
 :mini:`type set::order < enum`
    * :mini:`::Insert` - default ordering; inserted values are put at end, no reordering on access.
-   * :mini:`::LRU` - inserted values are kept in ascending order, no reordering on access.
-   * :mini:`::MRU` - inserted values are kept in descending order, no reordering on access.
-   * :mini:`::Ascending` - inserted values are put at start, accessed values are moved to start.
-   * :mini:`::Descending` - inserted values are put at end, accessed values are moved to end.
+   * :mini:`::LRU` - inserted values are put at start, accessed values are moved to start.
+   * :mini:`::MRU` - inserted values are put at end, accessed values are moved to end.
+   * :mini:`::Ascending` - inserted values are kept in ascending order, no reordering on access.
+   * :mini:`::Descending` - inserted values are kept in descending order, no reordering on access.
 
 
 :mini:`meth (Visitor: visitor):const(Set: set): set`

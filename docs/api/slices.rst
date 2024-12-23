@@ -1,0 +1,5 @@
+Slices
+======
+
+.. doxygengroup:: slices
+   :members:

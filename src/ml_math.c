@@ -275,8 +275,8 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns the greatest common divisor of :mini:`A` and :mini:`B`.
-	long A = labs(ml_integer_value_fast(Args[0]));
-	long B = labs(ml_integer_value_fast(Args[1]));
+	unsigned long A = labs(ml_integer_value_fast(Args[0]));
+	unsigned long B = labs(ml_integer_value_fast(Args[1]));
 	if (A == 0) return Args[1];
 	if (B == 0) return Args[0];
 	int Shift = __builtin_ctzl(A | B);
@@ -397,7 +397,7 @@ MATH_NUMBER_KEEP_REAL(Tanh, tanh, tanh);
 MATH_REAL(Erf, erf, erf);
 MATH_REAL(Erfc, erfc, erfc);
 MATH_REAL_REAL(Hypot, hypot, hypot);
-MATH_REAL(Gamma, lgamma, gamma);
+MATH_REAL(Gamma, lgamma, lgamma);
 MATH_NUMBER_KEEP_REAL(Acosh, acosh, acosh);
 MATH_NUMBER_KEEP_REAL(Asinh, asinh, asinh);
 MATH_NUMBER_KEEP_REAL(Atanh, atanh, atanh);
@@ -491,10 +491,50 @@ ML_FUNCTION(MLRandomSeed) {
 	return MLNil;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	int Cases[];
+} ml_random_switch_t;
+
+static void ml_random_switch(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
+	int X = rand();
+	for (int *Case = Switch->Cases;; ++Case) {
+		if (X <= *Case) ML_RETURN(ml_integer(Case - Switch->Cases));
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLRandomSwitchT, (MLFunctionT), "random-switch",
+//!internal
+	.call = (void *)ml_random_switch
+);
+
+ML_FUNCTION_INLINE(MLRandomSwitch) {
+//!internal
+	double Total = 0;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		if (ml_list_length(Args[I]) != 1) return ml_error("ValueError", "Each random case must be a single value");
+		Total += ml_real_value(ml_list_get(Args[I], 1));
+	}
+	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, int);
+	Switch->Type = MLRandomSwitchT;
+	int *Case = Switch->Cases;
+	double M = RAND_MAX / Total;
+	Total = 0;
+	for (int I = 0; I < Count; ++I) {
+		Total += ml_real_value(ml_list_get(Args[I], 1));
+		*Case++ = M * Total;
+	}
+	Case[-1] = RAND_MAX;
+	return (ml_value_t *)Switch;
+}
+
 void ml_math_init(stringmap_t *Globals) {
 #include "ml_math_init.c"
 	MLRandomT->Constructor = ml_method("random");
 	stringmap_insert(MLRandomT->Exports, "seed", MLRandomSeed);
+	stringmap_insert(MLRandomT->Exports, "switch", MLRandomSwitch);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"gcd", GCDMethod,

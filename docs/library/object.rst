@@ -25,10 +25,6 @@ object
    *TBD*
 
 
-:mini:`def MLFieldWatcher: field::watcher`
-   *TBD*
-
-
 :mini:`type field::mutable < field`
    *TBD*
 
@@ -37,7 +33,7 @@ object
    *TBD*
 
 
-:mini:`meth (Arg₁: method):MLMethodDefault(Arg₂: field::watcher, Arg₃: function)`
+:mini:`meth (Arg₁: method):MLMethodDefault(Arg₂: watched)`
    *TBD*
 
 

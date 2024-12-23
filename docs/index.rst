@@ -54,6 +54,7 @@ Details
 
    /start
    /language
+   /tutorial
    /topics
    /library
    /embedding

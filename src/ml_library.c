@@ -190,7 +190,7 @@ ml_value_t *ml_library_load0(const char *Path, const char *Name) {
 
 static int ml_library_test_file(const char *FileName) {
 	struct stat Stat[1];
-	return !lstat(FileName, Stat);
+	return !stat(FileName, Stat);
 }
 
 static ml_value_t *ml_library_default_load0(const char *FileName, ml_value_t **Slot) {
@@ -241,7 +241,9 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 		if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
 	}
 	ml_parser_source(Parser, (ml_source_t){FileName, LineNo});
-	ml_parser_input(Parser, Line);
+	ml_parser_input(Parser, Line, 0);
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) ML_RETURN(ml_parser_value(Parser));
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
 	ml_importer_t *Importer = new(ml_importer_t);
 	Importer->Type = MLImporterT;
@@ -256,7 +258,7 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 		}
 	}
 	ml_compiler_define(Compiler, "import", (ml_value_t *)Importer);
-	return ml_module_compile(Caller, Parser, Compiler, Slot);
+	return ml_module_compile(Caller, FileName, Expr, Compiler, Slot);
 }
 
 static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
@@ -271,8 +273,7 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 		ml_library_entry_t init = dlsym(Handle, "ml_library_entry");
 		if (init) {
 			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
-			init(Caller, Slot);
-			ML_RETURN(Slot[0]);
+			return init(Caller, Slot);
 		}
 		dlclose(Handle);
 		ML_ERROR("LibraryError", "init function missing from %s", FileName);
@@ -314,7 +315,7 @@ ML_METHODX("::", MLModuleDirT, MLStringT) {
 
 static int ml_library_dir_test(const char *FileName) {
 	struct stat Stat[1];
-	return !lstat(FileName, Stat) && S_ISDIR(Stat->st_mode);
+	return !stat(FileName, Stat) && S_ISDIR(Stat->st_mode);
 }
 
 static void ml_library_dir_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
@@ -377,7 +378,7 @@ static void ml_library_path_add_default(void) {
 	strcpy(LibPath + ExecutablePathLength, "/lib/minilang");
 	//printf("Looking for library path at %s\n", LibPath);
 	struct stat Stat[1];
-	if (!lstat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
+	if (!stat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
 		ml_library_path_add(LibPath);
 	}
 }

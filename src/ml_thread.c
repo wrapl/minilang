@@ -201,12 +201,12 @@ void ml_default_thread_init(ml_context_t *Context) {
 	ml_thread_t *Thread = new(ml_thread_t);
 	Thread->Base.Type = MLThreadT;
 	Thread->Base.Context = Context;
-	ml_context_set(Context, ML_THREAD_INDEX, Thread);
+	ml_context_set_static(Context, ML_THREAD_INDEX, Thread);
 	Thread->Base.run = (ml_state_fn)ml_thread_run;
 }
 
 ML_METHODX(MLThreadT) {
-	ML_RETURN(ml_context_get(Caller->Context, ML_THREAD_INDEX) ?: MLNil);
+	ML_RETURN(ml_context_get_static(Caller->Context, ML_THREAD_INDEX) ?: MLNil);
 }
 
 ML_METHODVX(MLThreadT, MLAnyT) {
@@ -225,7 +225,7 @@ ML_METHODVX(MLThreadT, MLAnyT) {
 	ml_thread_t *Thread = new(ml_thread_t);
 	Thread->Base.Type = MLThreadT;
 	Thread->Base.Context = ml_context(Caller->Context);
-	ml_context_set(Thread->Base.Context, ML_THREAD_INDEX, Thread);
+	ml_context_set_static(Thread->Base.Context, ML_THREAD_INDEX, Thread);
 	Thread->Base.run = (ml_state_fn)ml_thread_run;
 	Thread->Count = Count;
 	Thread->Args = Args2;
@@ -254,7 +254,7 @@ typedef struct {
 static void ml_thread_message_done(ml_thread_message_t *Message, ml_value_t *Value) {
 	ml_value_t *Error = ml_is_threadsafe(Value);
 	ml_state_t *Caller = Message->Base.Caller;
-	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(Caller->Context, ML_SCHEDULER_INDEX);
 	Scheduler->add(Scheduler, Caller, Error ?: Value);
 }
 
@@ -281,7 +281,7 @@ static void ml_thread_port_call(ml_state_t *Caller, ml_thread_port_t *Port, int 
 	Message->Base.run = (ml_state_fn)ml_thread_message_send;
 	Message->Count = Count;
 	for (int I = 0; I < Count; ++I) Message->Args[I] = Args[I];
-	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get(Port->Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(Port->Context, ML_SCHEDULER_INDEX);
 	Scheduler->add(Scheduler, (ml_state_t *)Message, Port->Fn);
 }
 

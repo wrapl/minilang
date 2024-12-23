@@ -7,6 +7,7 @@
 #include "ml_socket.h"
 #include "ml_object.h"
 #include "ml_time.h"
+#include "ml_debugger.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
@@ -102,6 +103,12 @@ static ml_value_t *global_get(void *Data, const char *Name, const char *Source, 
 	return stringmap_search(MLGlobals, Name);
 }
 
+#ifdef ML_CONTEXT_SECTION
+
+__attribute__ ((section("ml_context_section"))) void *MLContextTest[1] = {NULL};
+
+#endif
+
 ML_FUNCTION(MLNow) {
 //@now
 	return ml_integer(time(NULL));
@@ -163,9 +170,17 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 	return Result;
 }
 
-static ml_value_t *MainResult = NULL;
+
+#ifdef GC_BACKTRACE
+
+#include <gc/gc_backptr.h>
+
+int BreakOnExit = 0;
+
+#endif
 
 static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
+	int ExitVal;
 	if (ml_is_error(Value)) {
 		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
 		ml_source_t Source;
@@ -173,13 +188,33 @@ static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 		while (ml_error_source(Value, Level++, &Source)) {
 			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
 		}
-		exit(1);
+		ExitVal = 1;
+	} else {
+		ExitVal = 0;
 	}
-#ifdef ML_SCHEDULER
-	MainResult = Value;
+#ifdef GC_BACKTRACE
+	if (BreakOnExit) GC_generate_random_backtrace();
 #endif
+	exit(ExitVal);
 }
 
+static void ml_main_state_module(ml_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+		}
+#ifdef GC_BACKTRACE
+		if (BreakOnExit) GC_generate_random_backtrace();
+#endif
+		exit(1);
+	}
+
+}
+
+extern ml_cfunction_t MLMemAddress[];
 extern ml_cfunction_t MLMemTrace[];
 extern ml_cfunction_t MLMemSize[];
 extern ml_cfunction_t MLMemCollect[];
@@ -205,7 +240,7 @@ ML_FUNCTIONX(MLConsole) {
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)console_run;
 	State->File = fdopen(Fd, "r+");
-	ml_scheduler_t *Scheduler = ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t *Scheduler = ml_context_get_static(Caller->Context, ML_SCHEDULER_INDEX);
 	Scheduler->add(Scheduler, (ml_state_t *)State, MLNil);
 	ML_RETURN(MLNil);
 }
@@ -238,6 +273,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(MLGlobals, "debugger", MLDebugger);
 	stringmap_insert(MLGlobals, "trace", MLTrace);
 	stringmap_insert(MLGlobals, "memory", ml_module("memory",
+		"address", MLMemAddress,
 		"trace", MLMemTrace,
 		"size", MLMemSize,
 		"collect", MLMemCollect,
@@ -319,14 +355,6 @@ int main(int Argc, const char *Argv[]) {
 	ml_array_init(MLGlobals);
 	ml_polynomial_init(MLGlobals);
 #endif
-#ifdef ML_GIR
-	int UseGirLoop = 0;
-	ml_gir_init(MLGlobals);
-#endif
-#ifdef ML_GTK_CONSOLE
-	int GtkConsole = 0;
-	gtk_console_init();
-#endif
 #ifdef ML_MODULES
 	ml_module_init(MLGlobals);
 #endif
@@ -355,11 +383,9 @@ int main(int Argc, const char *Argv[]) {
 	int LoadModule = 0;
 #endif
 #ifdef ML_SCHEDULER
-	int SliceSize = 256;
+	int SliceSize = 250;
 #endif
-#ifdef GC_DEBUG
-	int BreakOnExit = 0;
-#endif
+	const char *DebugAddr = NULL;
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (MainModule) {
@@ -414,20 +440,22 @@ int main(int Argc, const char *Argv[]) {
 				}
 				break;
 #endif
-#ifdef ML_GIR
-			case 'g':
-				UseGirLoop = 1;
-				if (!SliceSize) SliceSize = 1000;
+			case 'D': {
+				ml_log_level_set(ML_LOG_LEVEL_DEBUG);
 				break;
-#endif
-#ifdef ML_GTK_CONSOLE
-			case 'G':
-				UseGirLoop = 1;
-				GtkConsole = 1;
-				if (!SliceSize) SliceSize = 1000;
+			}
+			case 'J': {
+				if (Argv[I][2]) {
+					DebugAddr = Argv[I] + 2;
+				} else if (++I < Argc) {
+					DebugAddr = Argv[I];
+				} else {
+					fprintf(stderr, "Error: debug address required\n");
+					exit(-1);
+				}
 				break;
-#endif
-#ifdef GC_DEBUG
+			}
+#ifdef GC_BACKTRACE
 			case 'B':
 				BreakOnExit = 1;
 				break;
@@ -460,38 +488,19 @@ int main(int Argc, const char *Argv[]) {
 	ml_state_t *Main = ml_state(NULL);
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
-	if (SliceSize) {
-#ifdef ML_GIR
-		if (UseGirLoop) {
-			ml_gir_loop_init(Main->Context);
-		} else {
+	if (SliceSize) ml_default_queue_init(Main->Context, SliceSize);
 #endif
-			ml_default_queue_init(Main->Context, SliceSize);
-#ifdef ML_GIR
-		}
-#endif
-	}
-	ml_scheduler_t *Scheduler = ml_context_get(Main->Context, ML_SCHEDULER_INDEX);
-#endif
+	if (DebugAddr) ml_remote_debugger_init(Main->Context, DebugAddr);
 #ifdef ML_THREADS
 	ml_default_thread_init(Main->Context);
 #endif
 #ifdef ML_LIBRARY
 	stringmap_insert(Sys->Exports, "Args", Args);
 #endif
-#ifdef ML_GTK_CONSOLE
-	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(Main, (ml_getter_t)ml_stringmap_global_get, MLGlobals);
-		gtk_console_show(Console, NULL);
-		if (MainModule) gtk_console_load_file(Console, MainModule, Args);
-		if (Command) gtk_console_evaluate(Console, Command);
-		while (!MainResult) Scheduler->run(Scheduler);
-		return 0;
-	}
-#endif
 	if (MainModule) {
 #ifdef ML_LIBRARY
 		if (LoadModule) {
+			Main->run = ml_main_state_module;
 			ml_library_load(Main, NULL, MainModule);
 		} else {
 #endif
@@ -501,43 +510,19 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_LIBRARY
 		}
 #endif
-#ifdef ML_SCHEDULER
-#ifdef ML_GIR
-		if (UseGirLoop) {
-			for (;;) Scheduler->run(Scheduler);
-		} else
-#endif
-		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
-#endif
-#ifdef GC_DEBUG
-		if (BreakOnExit) GC_generate_random_backtrace();
-#endif
 	} else if (Command) {
 		ml_parser_t *Parser = ml_parser(NULL, NULL);
 		ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
-		ml_parser_input(Parser, Command);
+		ml_parser_input(Parser, Command, 0);
 		ml_command_evaluate(Main, Parser, Compiler);
-#ifdef ML_SCHEDULER
-#ifdef ML_GIR
-		if (UseGirLoop) {
-			for (;;) Scheduler->run(Scheduler);
-		} else
-#endif
-		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
-#endif
 	} else {
 		ml_console(Main->Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ");
-#ifdef ML_SCHEDULER
-#ifdef ML_GIR
-		if (UseGirLoop) {
-			for (;;) Scheduler->run(Scheduler);
-		} else
-#endif
-		if (SliceSize) while (!MainResult) Scheduler->run(Scheduler);
-#endif
-#ifdef GC_DEBUG
-		if (BreakOnExit) GC_generate_random_backtrace();
-#endif
 	}
+#ifdef ML_SCHEDULER
+	for (;;) {
+		ml_scheduler_t *Scheduler = ml_context_get_static(Main->Context, ML_SCHEDULER_INDEX);
+		Scheduler->run(Scheduler);
+	}
+#endif
 	return 0;
 }

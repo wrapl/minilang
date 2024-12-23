@@ -1,6 +1,7 @@
 #include "ml_tasks.h"
 #include "minilang.h"
 #include "ml_macros.h"
+#include "ml_logging.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "tasks"
@@ -313,6 +314,8 @@ struct ml_task_pending_t {
 typedef struct {
 	ml_state_t Base;
 	ml_task_pending_t *Head, *Tail;
+	ml_state_t Empty[1];
+	ml_value_t *Callback;
 	int NumRunning, MaxRunning;
 	int NumPending, MaxPending;
 } ml_task_queue_t;
@@ -351,13 +354,22 @@ ML_TYPE(MLTaskQueueT, (MLFunctionT), "task::queue",
 );
 
 static void ml_task_queue_run(ml_task_queue_t *Queue, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Task returned error");
 	ml_task_pending_t *Pending = Queue->Head;
 	if (Pending) {
 		if (!(Queue->Head = Pending->Next)) Queue->Tail = NULL;
 		return ml_call(Pending->Task, Pending->Fn, Pending->Count, Pending->Args);
-	} else {
-		--Queue->NumRunning;
+	} else if (--Queue->NumRunning == 0) {
+		if (Queue->Callback) {
+			ml_value_t **Args = ml_alloc_args(1);
+			Args[0] = (ml_value_t *)Queue;
+			return ml_call(Queue->Empty, Queue->Callback, 1, Args);
+		}
 	}
+}
+
+static void ml_task_queue_empty(ml_task_queue_t *Queue, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Empty callback returned error");
 }
 
 ML_METHOD(MLTaskQueueT, MLIntegerT) {
@@ -371,6 +383,23 @@ ML_METHOD(MLTaskQueueT, MLIntegerT) {
 	Queue->MaxRunning = ml_integer_value(Args[0]);
 	Queue->NumRunning = 0;
 	return (ml_value_t *)Queue;
+}
+
+ML_METHODX(MLTaskQueueT, MLIntegerT, MLFunctionT) {
+//@task::queue
+//<MaxRunning
+//<Callback
+//>task::queue
+// Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
+	ml_task_queue_t *Queue = new(ml_task_queue_t);
+	Queue->Base.Type = MLTaskQueueT;
+	Queue->Base.run = (ml_state_fn)ml_task_queue_run;
+	Queue->MaxRunning = ml_integer_value(Args[0]);
+	Queue->NumRunning = 0;
+	Queue->Empty->Context = Caller->Context;
+	Queue->Empty->run = (ml_state_fn)ml_task_queue_empty;
+	Queue->Callback = Args[1];
+	ML_RETURN(Queue);
 }
 
 ML_METHOD("cancel", MLTaskQueueT) {
@@ -486,6 +515,8 @@ ML_FUNCTIONX(Parallel) {
 	return ml_iterate(Parallel->NextState, Args[0]);
 }
 
+static ML_METHOD_DECL(CountMethod, "count");
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Iter, *Fn;
@@ -504,7 +535,7 @@ typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter, *Fn;
 	ml_value_t *Key, *Value;
-	int Size, Use, Fetch, Ready;
+	int Size, Use, Fetch, Head;
 	ml_buffered_entry_t Entries[];
 } ml_buffered_state_t;
 
@@ -522,8 +553,8 @@ static void ml_buffered_call(ml_state_t *Caller, ml_buffered_state_t *State, ml_
 		Entry->Key = Entry->Value = NULL;
 		++State->Use;
 		State->Base.Caller = NULL;
-		if (State->Ready) {
-			State->Ready = 0;
+		if (State->Head) {
+			State->Head = 0;
 			State->Base.run = (ml_state_fn)ml_buffered_iterate;
 			ml_iter_next((ml_state_t *)State, State->Iter);
 		}
@@ -566,15 +597,15 @@ static void ml_buffered_value(ml_buffered_state_t *State, ml_value_t *Value) {
 		Entry->Key = NULL;
 		ml_buffered_entry_call(Entry, Value);
 	} else {
-		State->Ready = 1;
+		State->Head = 1;
 		++State->Fetch;
 		ml_value_t **Args = ml_alloc_args(2);
 		Args[0] = Entry->Key;
 		Args[1] = Value;
 		ml_call((ml_state_t *)Entry, State->Fn, 2, Args);
 		if (State->Fetch - State->Use < State->Size) {
-			if (State->Ready) {
-				State->Ready = 0;
+			if (State->Head) {
+				State->Head = 0;
 				State->Base.run = (ml_state_fn)ml_buffered_iterate;
 				ml_iter_next((ml_state_t *)State, State->Iter);
 			}
@@ -648,12 +679,213 @@ ML_FUNCTION(Buffered) {
 	return (ml_value_t *)Buffered;
 }
 
-static ML_METHOD_DECL(CountMethod, "count");
-
 ML_METHODX("count", MLBufferedT) {
 //!internal
 	ml_buffered_t *Buffered = (ml_buffered_t *)Args[0];
 	Args[0] = Buffered->Iter;
+	return ml_call(Caller, CountMethod, 1, Args);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Iter, *Fn;
+	int Size;
+} ml_diffused_t;
+
+ML_TYPE(MLDiffusedT, (MLSequenceT), "diffused");
+//!internal
+
+typedef struct ml_diffused_task_t ml_diffused_task_t;
+
+struct ml_diffused_task_t {
+	ml_state_t Base;
+	ml_diffused_task_t *Next;
+	ml_value_t *Key, *Value;
+};
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter, *Fn, *Final;
+	ml_diffused_task_t *Head, *Tail, *Next;
+	int Size, Waiting;
+	ml_diffused_task_t Tasks[];
+} ml_diffused_state_t;
+
+ML_TYPE(MLDiffusedStateT, (MLStateT), "diffused-state");
+//!internal
+
+static void ml_diffused_iterate(ml_diffused_state_t *Task, ml_value_t *Value);
+
+static void ML_TYPED_FN(ml_iter_next, MLDiffusedStateT, ml_state_t *Caller, ml_diffused_state_t *State) {
+	if (State->Waiting <= 0) ML_RETURN(State->Final);
+	if (!State->Head) ML_ERROR("StateError", "Invalid state");
+	ml_diffused_task_t *Task = State->Head;
+	--State->Waiting;
+	State->Head = Task->Next;
+	if (!State->Head) State->Tail = NULL;
+	if (State->Final) {
+		if (State->Waiting <= 0) ML_RETURN(State->Final);
+	} else if (State->Next) {
+		Task->Next = State->Next->Next;
+		State->Next->Next = Task;
+	} else {
+		Task->Next = NULL;
+		State->Next = Task;
+		State->Base.run = (ml_state_fn)ml_diffused_iterate;
+		ml_iter_next((ml_state_t *)State, State->Iter);
+	}
+	if (State->Head) {
+		ML_RETURN(State);
+	} else {
+		State->Base.Caller = Caller;
+	}
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLDiffusedStateT, ml_state_t *Caller, ml_diffused_state_t *State) {
+	if (!State->Head) ML_ERROR("StateError", "Invalid state");
+	ML_RETURN(State->Head->Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLDiffusedStateT, ml_state_t *Caller, ml_diffused_state_t *State) {
+	if (!State->Head) ML_ERROR("StateError", "Invalid state");
+	ML_RETURN(State->Head->Value);
+}
+
+static void ml_diffused_task_call(ml_diffused_task_t *Task, ml_value_t *Value) {
+	ml_diffused_state_t *State = (ml_diffused_state_t *)Task->Base.Caller;
+	Task->Value = Value;
+	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_RETURN(Value);
+		}
+	} else if (State->Tail) {
+		State->Tail->Next = Task;
+		State->Tail = Task;
+	} else {
+		State->Head = State->Tail = Task;
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_RETURN(State);
+		}
+	}
+}
+
+static void ml_diffused_value(ml_diffused_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_RETURN(Value);
+		}
+	} else {
+		ml_diffused_task_t *Task = State->Next;
+		State->Next = Task->Next;
+		Task->Next = NULL;
+		ml_value_t **Args = ml_alloc_args(2);
+		Args[0] = Task->Key;
+		Args[1] = Value;
+		++State->Waiting;
+		ml_call((ml_state_t *)Task, State->Fn, 2, Args);
+		if (!State->Final && State->Next) {
+			State->Base.run = (ml_state_fn)ml_diffused_iterate;
+			ml_iter_next((ml_state_t *)State, State->Iter);
+		}
+	}
+}
+
+static void ml_diffused_key(ml_diffused_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_RETURN(Value);
+		}
+	} else {
+		State->Next->Key = Value;
+		State->Base.run = (ml_state_fn)ml_diffused_value;
+		ml_iter_value((ml_state_t *)State, State->Iter);
+	}
+}
+
+static void ml_diffused_iterate(ml_diffused_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		State->Final = Value;
+		State->Waiting = 0;
+		ml_state_t *Caller = State->Base.Caller;
+		if (Caller) {
+			State->Base.Caller = NULL;
+			ML_RETURN(Value);
+		}
+	} else if (Value == MLNil) {
+		State->Final = Value;
+		if (State->Waiting == 0) {
+			ml_state_t *Caller = State->Base.Caller;
+			if (Caller) {
+				State->Base.Caller = NULL;
+				ML_RETURN(Value);
+			}
+		}
+	} else {
+		State->Base.run = (ml_state_fn)ml_diffused_key;
+		ml_iter_key((ml_state_t *)State, State->Iter = Value);
+	}
+}
+
+static void ML_TYPED_FN(ml_iterate, MLDiffusedT, ml_state_t *Caller, ml_diffused_t *Diffused) {
+	ml_diffused_state_t *State = xnew(ml_diffused_state_t, Diffused->Size, ml_diffused_task_t);
+	State->Base.Type = MLDiffusedStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_diffused_iterate;
+	State->Fn = Diffused->Fn;
+	ml_diffused_task_t *Task = State->Tasks;
+	Task->Base.Caller = (ml_state_t *)State;
+	Task->Base.Context = Caller->Context;
+	Task->Base.run = (ml_state_fn)ml_diffused_task_call;
+	for (int I = Diffused->Size; --I > 0;) {
+		++Task;
+		Task->Next = Task - 1;
+		Task->Base.Caller = (ml_state_t *)State;
+		Task->Base.Context = Caller->Context;
+		Task->Base.run = (ml_state_fn)ml_diffused_task_call;
+	}
+	State->Next = Task;
+	return ml_iterate((ml_state_t *)State, Diffused->Iter);
+}
+
+ML_FUNCTION(Diffused) {
+//<Sequence:sequence
+//<Size:integer
+//<Fn:function
+//>sequence
+// Returns the sequence :mini:`(K/i, Fn(K/i, V/i))` where :mini:`K/i, V/i` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel, with at most :mini:`Size` calls at a time. The original sequence order is not preserved.
+//$= list(diffused(1 .. 10, 5, tuple))
+	ML_CHECK_ARG_COUNT(3);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	ML_CHECK_ARG_TYPE(2, MLFunctionT);
+	int Size = ml_integer_value(Args[1]);
+	if (Size <= 0 || Size > 1024) return ml_error("RangeError", "Diffused size out of range");
+	ml_diffused_t *Diffused = new(ml_diffused_t);
+	Diffused->Type = MLDiffusedT;
+	Diffused->Size = Size;
+	Diffused->Iter = Args[0];
+	Diffused->Fn = Args[2];
+	return (ml_value_t *)Diffused;
+}
+
+ML_METHODX("count", MLDiffusedT) {
+//!internal
+	ml_diffused_t *Diffused = (ml_diffused_t *)Args[0];
+	Args[0] = Diffused->Iter;
 	return ml_call(Caller, CountMethod, 1, Args);
 }
 
@@ -664,5 +896,6 @@ void ml_tasks_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "task", MLTaskT);
 		stringmap_insert(Globals, "parallel", Parallel);
 		stringmap_insert(Globals, "buffered", Buffered);
+		stringmap_insert(Globals, "diffused", Diffused);
 	}
 }

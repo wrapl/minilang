@@ -49,12 +49,16 @@ interval
    Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 
 
+:mini:`meth (Start: integer):down: integer::range`
+   Returns an unlimited range from :mini:`Start`.
+
+
 :mini:`meth (Start: integer):up: integer::interval`
    Returns an unlimited interval from :mini:`Start`.
 
 
 :mini:`meth (Start: integer):up(Count: integer): integer::interval`
-   Returns a interval from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
+   Returns an interval from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 
 
 :mini:`type integer::interval < sequence`

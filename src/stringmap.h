@@ -20,6 +20,7 @@ struct stringmap_t {
 #define STRINGMAP_INIT {0,}
 
 stringmap_t *stringmap_new() __attribute__ ((malloc));
+stringmap_t *stringmap_copy(stringmap_t *Map) __attribute__ ((malloc));
 
 void *stringmap_search(const stringmap_t *Map, const char *Key) __attribute__ ((pure));
 void *stringmap_insert(stringmap_t *Map, const char *Key, void *Value);

@@ -1,6 +1,7 @@
 #include "ml_time.h"
 #include "ml_macros.h"
 #include "ml_object.h"
+#include "ml_compiler2.h"
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
@@ -95,11 +96,35 @@ ml_value_t *ml_time_parse(const char *Value, int Length) {
 		if (!strptime(Value, "%F", &TM)) return ml_error("TimeError", "Error parsing time");
 	}
 	if (Local) {
-		Time->Value->tv_sec = timelocal(&TM);
+		Time->Value->tv_sec = mktime(&TM);
 	} else {
 		Time->Value->tv_sec = timegm(&TM) - Offset;
 	}
 	return (ml_value_t *)Time;
+}
+
+ml_value_t *ml_parser_escape_time(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser);
+	char Quote = *Next++;
+	const char *End = Next;
+	while (End[0] != Quote) {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		++End;
+	}
+	int Length = End - Next;
+	ml_parser_input(Parser, End + 1, 0);
+	ml_value_t *Value = ml_time_parse(Next, Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
 }
 
 ML_METHOD(MLTimeT, MLStringT) {
@@ -121,7 +146,7 @@ ML_METHOD(MLTimeT, MLStringT, MLStringT) {
 	}
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -160,7 +185,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, M
 	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -201,7 +226,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT) {
 	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -254,7 +279,7 @@ ML_METHODV("with", MLTimeT, MLNamesT) {
 	}
 	Time = new(ml_time_t);
 	Time->Type = MLTimeT;
-	Time->Value->tv_sec = timelocal(&TM);
+	Time->Value->tv_sec = mktime(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -505,6 +530,19 @@ ML_ENUM_CYCLIC(MLTimeDayT, "time::day",
 	"Sunday"
 );
 
+ML_SUB_ENUM(MLTimeWeekdayT, "time::weekday", MLTimeDayT,
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday"
+);
+
+ML_SUB_ENUM(MLTimeWeekendT, "time::weekend", MLTimeDayT,
+	"Saturday",
+	"Sunday"
+);
+
 ML_ENUM_CYCLIC(MLTimeMonthT, "time::month",
 	"January",
 	"February",
@@ -600,6 +638,33 @@ static ml_value_t *ml_time_zone(const char *Id) {
 
 static ml_value_t *ml_time_zone_parse(const char *Id, int Length) {
 	return ml_time_zone(Id);
+}
+
+ml_value_t *ml_parser_escape_time_zone(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser);
+	char Quote = *Next++;
+	const char *End = Next;
+	while (End[0] != Quote) {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		++End;
+	}
+	int Length = End - Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Next, Length);
+	Raw[Length] = 0;
+	ml_parser_input(Parser, End + 1, 0);
+	ml_value_t *Value = ml_time_zone(Raw);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
 }
 
 static ml_value_t *ml_time_zone_deref(ml_time_zone_t *TimeZone) {
@@ -1009,11 +1074,13 @@ void ml_time_init(stringmap_t *Globals) {
 	stringmap_insert(MLTimeT->Exports, "month", MLTimeMonthT);
 	ml_method_by_value(MLTimeT->Constructor, NULL, ml_identity, MLTimeT, NULL);
 	if (Globals) stringmap_insert(Globals, "time", MLTimeT);
-	ml_string_fn_register("T", ml_time_parse);
+	//ml_string_fn_register("T", ml_time_parse);
+	ml_parser_add_escape(NULL, "T", ml_parser_escape_time);
 #ifdef ML_TIMEZONES
 	stringmap_insert(MLTimeT->Exports, "zone", MLTimeZoneT);
 	MLTimeZoneT->Type = MLTimeZoneTypeT;
-	ml_string_fn_register("TZ", ml_time_zone_parse);
+	//ml_string_fn_register("TZ", ml_time_zone_parse);
+	ml_parser_add_escape(NULL, "TZ", ml_parser_escape_time_zone);
 #endif
 	ml_externals_default_add("time", MLTimeT);
 #ifdef ML_CBOR

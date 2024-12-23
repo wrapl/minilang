@@ -123,7 +123,7 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLMethodT, ml_minijs_encoder_t 
 
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTupleT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	ml_value_t *Json = ml_list();
-	ml_list_put(Json, ml_cstring("()"));
+	ml_list_put(Json, ml_cstring("x"));
 	inthash_insert(Encoder->Cached, (uintptr_t)Value, Json);
 	int Size = ml_tuple_size(Value);
 	for (int I = 1; I <= Size; ++I) {
@@ -332,7 +332,7 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLArrayT, ml_minijs_encoder_t *
 	}
 	}
 	ml_value_t *Json = ml_list();
-	ml_list_put(Json, ml_cstring("array"));
+	ml_list_put(Json, ml_cstring("a"));
 	ml_list_put(Json, Type);
 	ml_list_put(Json, Shape);
 	ml_list_put(Json, Values);
@@ -1066,7 +1066,7 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "_", ml_minijs_decode_blank);
 	stringmap_insert(Decoders, "some", ml_minijs_decode_some);
 	stringmap_insert(Decoders, "tuple", ml_minijs_decode_tuple);
-	stringmap_insert(Decoders, "()", ml_minijs_decode_tuple);
+	stringmap_insert(Decoders, "x", ml_minijs_decode_tuple);
 	stringmap_insert(Decoders, "list", ml_minijs_decode_list);
 	stringmap_insert(Decoders, "l", ml_minijs_decode_list);
 	stringmap_insert(Decoders, "names", ml_minijs_decode_names);
@@ -1091,6 +1091,7 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "time", ml_minijs_decode_time);
 #ifdef ML_MATH
 	stringmap_insert(Decoders, "array", ml_minijs_decode_array);
+	stringmap_insert(Decoders, "a", ml_minijs_decode_array);
 #endif
 #ifdef ML_UUID
 	stringmap_insert(Decoders, "uuid", ml_minijs_decode_uuid);

@@ -16,7 +16,7 @@
 /.settings/
 /.cproject
 /.project
-/obj/
+/obj*/
 /bin/
 /lib/
 /tmp/

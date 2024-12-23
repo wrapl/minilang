@@ -13,6 +13,7 @@
 #include "ml_string.h"
 #include "ml_method.h"
 #include "ml_list.h"
+#include "ml_slice.h"
 #include "ml_map.h"
 #include "ml_set.h"
 
@@ -156,6 +157,16 @@ ML_METHOD("constructor", MLTypeT) {
 	return Type->Constructor;
 }
 
+int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
+	const ml_type_t *Type = ml_typeof(Value);
+	if (Type == Expected) return 1;
+#ifdef ML_GENERICS
+	if (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
+	if (Type == Expected) return 1;
+#endif
+	return (uintptr_t)inthash_search(Type->Parents, (uintptr_t)Expected);
+}
+
 #ifdef ML_GENERICS
 
 ML_TYPE(MLTypeGenericT, (MLTypeT), "generic-type");
@@ -172,8 +183,8 @@ static void ml_generic_fill(ml_generic_rule_t *Rule, ml_type_t **Args2, int NumA
 	Args2[0] = Rule->Type;
 	for (int I = 1; I < Rule->NumArgs; ++I) {
 		uintptr_t Arg = Rule->Args[I - 1];
-		if (Arg >> 48) {
-			unsigned int J = Arg & 0xFFFF;
+		if (Arg & 1) {
+			unsigned int J = Arg >> 1;
 			Args2[I] = (J < NumArgs) ? Args[J] : MLAnyT;
 		} else {
 			Args2[I] = (ml_type_t *)Arg;
@@ -240,6 +251,10 @@ long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	long Hash = 5381;
 	for (const char *P = ml_typeof(Value)->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
+}
+
+long ml_value_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return (intptr_t)Value;
 }
 
 /*ml_value_t *ml_default_deref(ml_value_t *Ref) {
@@ -1167,9 +1182,9 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 
 #ifdef ML_NANBOXING
 
-#define NegOne ml_int32(-1)
-#define One ml_int32(1)
-#define Zero ml_int32(0)
+#define NegOne ml_integer32(-1)
+#define One ml_integer32(1)
+#define Zero ml_integer32(0)
 
 #else
 
@@ -1639,6 +1654,7 @@ static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int 
 
 ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
 //!internal
+	.hash = (void *)ml_value_hash,
 	.call = (void *)ml_cfunction_call
 );
 
@@ -1696,6 +1712,7 @@ static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 
 ML_TYPE(MLCFunctionXT, (MLFunctionT), "c-functionx",
 //!internal
+	.hash = (void *)ml_value_hash,
 	.call = (void *)ml_cfunctionx_call
 );
 
@@ -1733,6 +1750,7 @@ static void ml_cfunctionz_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 
 ML_TYPE(MLCFunctionZT, (MLFunctionT), "c-functionx",
 //!internal
+	.hash = (void *)ml_value_hash,
 	.call = (void *)ml_cfunctionz_call
 );
 
@@ -1760,6 +1778,14 @@ ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 
 ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args) {
 	return Args[0];
+}
+
+ml_value_t *ml_return_first(void *Data, int Count, ml_value_t **Args) {
+	return Args[0];
+}
+
+ml_value_t *ml_return_second(void *Data, int Count, ml_value_t **Args) {
+	return Args[1];
 }
 
 typedef struct ml_partial_function_t {
@@ -1799,9 +1825,22 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
-ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "partial-function",
+ML_FUNCTION(MLFunctionPartial) {
 //!function
-	.call = (void *)ml_partial_function_call
+//@function::partial
+//<Function
+//<Size
+//>function::partial
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLFunctionT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	return ml_partial_function(Args[0], ml_integer_value(Args[1]));
+}
+
+ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "function::partial",
+//!function
+	.call = (void *)ml_partial_function_call,
+	.Constructor = (ml_value_t *)MLFunctionPartial
 );
 
 ml_value_t *ml_partial_function(ml_value_t *Function, int Count) {
@@ -1841,6 +1880,45 @@ ML_METHODV("[]", MLFunctionPartialT) {
 	Partial->Set = Count - 1;
 	for (int I = 1; I < Count; ++I) Partial->Args[I] = Args[I];
 	return ml_chainedv(2, Args[0], Partial);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_value_function_t;
+
+static void ml_value_function_call(ml_state_t *Caller, ml_value_function_t *Function, int Count, ml_value_t **Args) {
+	ML_RETURN(Function->Value);
+}
+
+ML_TYPE(MLFunctionValueT, (MLFunctionT), "function::value",
+//!function
+	.call = (void *)ml_value_function_call
+);
+
+ml_value_t *ml_value_function(ml_value_t *Value) {
+	ml_value_function_t *Function = new(ml_value_function_t);
+	Function->Type = MLFunctionValueT;
+	Function->Value = Value;
+	return (ml_value_t *)Function;
+}
+
+ML_FUNCTIONX(MLFunctionConstant) {
+//!function
+//@function::constant
+//<Value
+//>function::value
+	ML_CHECKX_ARG_COUNT(1);
+	ML_RETURN(ml_value_function(Args[0]));
+}
+
+ML_FUNCTIONZ(MLFunctionVariable) {
+//!function
+//@function::variable
+//<Value
+//>function::value
+	ML_CHECKX_ARG_COUNT(1);
+	ML_RETURN(ml_value_function(Args[0]));
 }
 
 ML_METHOD("$!", MLFunctionT, MLListT) {
@@ -1908,7 +1986,7 @@ static void ml_argless_function_call(ml_state_t *Caller, ml_argless_function_t *
 	return ml_call(Caller, Argless->Function, 0, NULL);
 }
 
-ML_TYPE(MLFunctionArglessT, (MLFunctionT, MLSequenceT), "argless-function",
+ML_TYPE(MLFunctionArglessT, (MLFunctionT, MLSequenceT), "function::argless",
 //!internal
 	.call = (void *)ml_argless_function_call
 );
@@ -2240,8 +2318,11 @@ ml_value_t *ml_tuplev(size_t Size, ...) {
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (!function) return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
-	return function(Value, Index);
+	if (function) return function(Value, Index);
+	Value = ml_deref(Value);
+	function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
+	if (function) return function(Value, Index);
+	return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLNilT, ml_value_t *Value, int Index) {
@@ -2304,23 +2385,108 @@ static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tu
 	ML_RETURN(Iter);
 }
 
-ML_METHOD("append", MLStringBufferT, MLTupleT) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	ml_value_t **Values;
+	ml_value_t *Args[2];
+	ml_hash_chain_t Chain[1];
+	const char *Seperator;
+	const char *Terminator;
+	size_t SeperatorLength;
+	size_t TerminatorLength;
+	size_t Index, Size;
+} ml_tuple_append_state_t;
+
+extern ml_value_t *AppendMethod;
+
+static void ml_tuple_append_state_run(ml_tuple_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (++State->Index == State->Size) {
+		ml_stringbuffer_write(State->Buffer, State->Terminator, State->TerminatorLength);
+		if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
+		State->Buffer->Chain = State->Chain->Previous;
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
+	State->Args[1] = State->Values[State->Index];
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLTupleT) {
 //!tuple
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
-	ml_stringbuffer_put(Buffer, '(');
-	if (Value->Size) {
-		ml_stringbuffer_simple_append(Buffer, Value->Values[0]);
-		for (int I = 1; I < Value->Size; ++I) {
-			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_simple_append(Buffer, Value->Values[I]);
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Tuple) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
 		}
 	}
-	ml_stringbuffer_put(Buffer, ')');
-	return MLSome;
+	if (!Tuple->Size) {
+		ml_stringbuffer_write(Buffer, "()", 2);
+		ML_RETURN(MLSome);
+	}
+	ml_stringbuffer_put(Buffer, '(');
+	ml_tuple_append_state_t *State = new(ml_tuple_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Tuple;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Values = Tuple->Values;
+	State->Size = Tuple->Size;
+	State->Index = 0;
+	State->Seperator = ", ";
+	State->SeperatorLength = strlen(", ");
+	State->Terminator = ")";
+	State->TerminatorLength = strlen(")");
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Tuple->Values[0];
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+ML_METHODX("append", MLStringBufferT, MLTupleT, MLStringT) {
+//!tuple
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Tuple) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
+	if (!Tuple->Size) ML_RETURN(MLSome);
+	ml_tuple_append_state_t *State = new(ml_tuple_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_append_state_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = (ml_value_t *)Tuple;
+	Buffer->Chain = State->Chain;
+	State->Buffer = Buffer;
+	State->Values = Tuple->Values;
+	State->Size = Tuple->Size;
+	State->Index = 0;
+	State->Seperator = ml_string_value(Args[2]);
+	State->SeperatorLength = ml_string_length(Args[2]);
+	State->Terminator = "";
+	State->TerminatorLength = 0;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Tuple->Values[0];
+	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
@@ -3207,6 +3373,16 @@ static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
 	return Trace;
 }
 
+ML_FUNCTION(MLMemAddress) {
+//!memory
+//@address
+//<Value
+//>integer
+// Returns the internal address of :mini:`Value` as an integer.
+	ML_CHECK_ARG_COUNT(1);
+	return ml_integer((intptr_t)Args[0]);
+}
+
 ML_FUNCTION(MLMemTrace) {
 //!memory
 //@trace
@@ -3299,11 +3475,22 @@ ML_METHOD("get", MLWeakRefT) {
 	return Ref->Value ?: MLNil;
 }
 
+static void *GC_calloc(size_t N, size_t S) {
+	return GC_malloc(N * S);
+}
+
+static void GC_nop(void *Ptr) {
+}
+
 void ml_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_JIT
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+	ml_runtime_init(ExecName);
+#ifdef ML_FLINT
+	__flint_set_memory_functions(GC_malloc, GC_calloc, GC_realloc, GC_nop);
+#endif
 	ml_method_init();
 #include "ml_types_init.c"
 #ifdef ML_GENERICS
@@ -3312,6 +3499,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
 	stringmap_insert(MLAnyT->Exports, "switch", MLAnySwitch);
+	stringmap_insert(MLFunctionT->Exports, "partial", MLFunctionPartialT);
+	stringmap_insert(MLFunctionT->Exports, "variable", MLFunctionVariable);
+	stringmap_insert(MLFunctionT->Exports, "constant", MLFunctionConstant);
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif
@@ -3328,13 +3518,17 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_method_by_name(">", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("min", NULL, ml_return_first, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("max", NULL, ml_return_first, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("min", NULL, ml_return_second, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("max", NULL, ml_return_second, MLNilT, MLAnyT, NULL);
 	ml_number_init();
 	ml_string_init();
 	ml_list_init();
+	ml_slice_init();
 	ml_map_init();
 	ml_set_init();
 	ml_compiler_init();
-	ml_runtime_init(ExecName);
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
@@ -3391,6 +3585,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "regex", MLRegexT);
 		stringmap_insert(Globals, "tuple", MLTupleT);
 		stringmap_insert(Globals, "list", MLListT);
+		stringmap_insert(Globals, "slice", MLSliceT);
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "set", MLSetT);
 		stringmap_insert(Globals, "error", MLErrorValueT);

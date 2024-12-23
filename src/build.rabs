@@ -8,6 +8,8 @@ case r"\(GCC\) [0-9.]+" do
 	"GCC"
 case r"clang version [0-9.]+" do
 	"CLANG"
+case r"emcc" do
+	"CLANG"
 else
 	"OTHER"
 end
@@ -27,12 +29,15 @@ CFLAGS := old + [
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
 	:>"-Wsuggest-attribute=malloc",
-	'-I.', '-I{PATH / "include"}', "-pthread",
-	"-DGC_THREADS",
+	'-I.', '-I{PATH / "include"}',
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
 ]
 LDFLAGS := old + ["-lm"]
+
+if PLATFORM != "Wasm" then
+	CFLAGS := old + ["-pthread", "-DGC_THREADS"]
+end
 
 if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
@@ -44,6 +49,7 @@ if defined("LTO") then
 end
 
 GC_DEBUG := defined("GC_DEBUG")
+GC_BACKTRACE := defined("GC_BACKTRACE")
 
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DDEBUG"]
@@ -51,6 +57,9 @@ if DEBUG then
 	GC_DEBUG and CFLAGS:put("-DGC_DEBUG")
 elseif GC_DEBUG then
 	CFLAGS := old + ["-O3", "-g", "-DGC_DEBUG"]
+	LDFLAGS := old + ["-g"]
+elseif GC_BACKTRACE then
+	CFLAGS := old + ["-O3", "-g", "-DGC_BACKTRACE"]
 	LDFLAGS := old + ["-g"]
 else
 	CFLAGS := old + ["-O3", "-g"]
@@ -78,6 +87,8 @@ if CC_TYPE = "GCC" then
 elseif CC_TYPE = "CLANG" then
 	CFLAGS := old + [
 		:>"-Werror=bad-function-cast",
+		"-fcf-protection=none",
+		"-finline-max-stacksize=64",
 		"-Wno-initializer-overrides"
 	]
 end
@@ -137,6 +148,7 @@ let Objects := [
 	file("ml_runtime.o"),
 	file("ml_sequence.o"),
 	file("ml_set.o"),
+	file("ml_slice.o"),
 	file("ml_socket.o"),
 	file("ml_stream.o"),
 	file("ml_string.o"),
@@ -175,24 +187,30 @@ let InstallHeaders := [
 var GC
 
 if MINILANG_STATICGC or defined("STATICGC") then
+	NOPARALLELMARK := defined("NOPARALLELMARK")
 	file("gc"):mkdir
-	let Lib := file("lib/libgc.a") => fun(Lib) do
+	let Lib := file("lib/libgc.a")[file("gc/ChangeLog")] => fun(Lib) do
 		file("gc"):chdir
 		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
 			"--disable-shared",
 			:>"--disable-parallel-mark",
-			"--enable-threads=pthreads",
 			"--enable-large-config",
 			:>"--enable-redirect-malloc",
 			"--enable-cplusplus",
 			"--enable-mmap"
 		}
-		if GC_DEBUG then
+		if PLATFORM != "Wasm" then
+			Configuration["--enable-threads=pthreads"] := some
+		end
+		if NOPARALLELMARK then
+			Configuration["--disable-parallel-mark"] := some
+		end
+		if GC_DEBUG or GC_BACKTRACE then
 			Configuration:grow({
 				"--enable-gc-debug",
-				"--enable-gc-assertions",
+				:>"--enable-gc-assertions",
 				"--disable-thread-local-alloc"
 			})
 		end
@@ -214,7 +232,7 @@ let Options := [
 	"MATH",
 	"AST",
 	"COMPLEX",
-	"GIR",
+	"RATIONAL",
 	"CBOR",
 	"JSON",
 	"XML",
@@ -244,6 +262,10 @@ let Options := [
 	"STRINGCACHE"
 ]
 
+if MACHINE = "x86" then
+	MINILANG_TRAMPOLINE := 1
+end
+
 MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
@@ -256,6 +278,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_XML := 1
 	MINILANG_LIBRARY := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
+	MINILANG_TIMESCHED := not defined("NOTIMESCHED")
 	MINILANG_TRE := not defined("NOTRE")
 	MINILANG_GENERICS := not defined("NOGENERICS")
 	MINILANG_MUTABLES := 1
@@ -270,6 +293,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 		MINILANG_MMAP := 1
+		:>MINILANG_CONTEXT_SECTION := not defined("NOCONTEXTSECTION")
 	end
 end
 
@@ -277,7 +301,6 @@ MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
-MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
@@ -285,10 +308,11 @@ MINILANG_XE := old or defined("XE")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
-MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_GIR or MINILANG_THREADS or old or defined("SCHEDULER")
+MINILANG_TRAMPOLINE := old or defined("TRAMPOLINE")
+MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or MINILANG_TRAMPOLINE or old or defined("SCHEDULER")
+MINILANG_TIMESCHED := old or defined("TIMESCHED")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
-MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_MUTABLES := old or defined("MUTABLES")
@@ -300,12 +324,14 @@ MINILANG_LIBS := old or defined("LIBS")
 MINILANG_UNWIND := old or defined("UNWIND")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
-MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 MINILANG_COROUTINES := old or defined("COROUTINES")
 MINILANG_ENCODINGS := old or defined("ENCODINGS")
 MINILANG_STRUCTS := old or defined("STRUCTS")
 MINILANG_MMAP := old or defined("MMAP")
 MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
+MINILANG_FLINT := old or defined("FLINT")
+MINILANG_NANBOXING := old or defined("NANBOXING")
+MINILANG_CONTEXT_SECTION := old or defined("CONTEXTSECTION")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -317,8 +343,17 @@ file("ml_config.h") => fun(Target) do
 	if MINILANG_SCHEDULER then
 		File:write("\n#define ML_SCHEDULER\n")
 	end
+	if MINILANG_TRAMPOLINE then
+		File:write("\n#define ML_TRAMPOLINE\n")
+	end
+	if MINILANG_TIMESCHED then
+		File:write("\n#define ML_TIMESCHED\n")
+	end
 	if MINILANG_NANBOXING then
 		File:write("\n#define ML_NANBOXING\n")
+	end
+	if MINILANG_FLINT then
+		File:write("\n#define ML_FLINT\n")
 	end
 	if MINILANG_COMPLEX then
 		File:write("\n#define ML_COMPLEX\n")
@@ -341,6 +376,9 @@ file("ml_config.h") => fun(Target) do
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
 	end
+	if MINILANG_CONTEXT_SECTION then
+		File:write("\n#define ML_CONTEXT_SECTION\n")
+	end
 	File:write("\n#endif")
 	File:close
 end
@@ -350,7 +388,7 @@ if defined("ASSERTS") then
 end
 
 if MINILANG_TABLES then
-	Objects:put(file("ml_table.o"))
+	Objects:put(file("ml_table2.o"))
 	CFLAGS := old + ["-DML_TABLES"]
 	InstallHeaders:put("ml_table.h")
 end
@@ -391,21 +429,6 @@ if MINILANG_AST then
 	InstallHeaders:put("ml_ast.h")
 end
 
-if MINILANG_GTK_CONSOLE then
-	MINILANG_GIR := 1
-	Objects:put(file("gtk_console.o"), file("gtk_console_completion.o"))
-	CFLAGS := old + ["-DML_GTK_CONSOLE", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
-	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
-	InstallHeaders:put("gtk_console.h")
-end
-
-if MINILANG_GIR then
-	Objects:put(file("ml_gir.o"))
-	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
-	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0 gio-2.0")]
-	InstallHeaders:put("ml_gir.h")
-end
-
 if MINILANG_LIGHTNING or defined("LIGHTNING") then
 	let Dir := file("lightning")
 	let Lib := file("lightning/lib/.libs/liblightning.a") => fun(Lib) do
@@ -426,7 +449,7 @@ end
 
 if MINILANG_CBOR then
 	CFLAGS := old + ["-DML_CBOR"]
-	Objects:put(file("ml_cbor.o"))
+	Objects:put(file("ml_cbor2.o"))
 	InstallHeaders:put("ml_cbor.h")
 end
 
@@ -530,7 +553,7 @@ if MINILANG_TRE then
 		if PLATFORM = "Android" then
 			Options["--build"] := '{MACHINE}-unknown-linux-gnu'
 		end
-		
+
 		execute("autoreconf", "-vfi", file("tre/configure.ac"):dirname)
 		execute('CC={CC} CFLAGS=\"{EXT_CFLAGS}\"', file("tre/configure"), Options)
 		:>execute("sed -i s/HAVE_WCTYPE/HAVE_WCTYPE_OFF/g config.h")
@@ -550,7 +573,7 @@ if MINILANG_PQUEUES then
 	InstallHeaders:put("ml_pqueue.h")
 end
 if MINILANG_TIMEZONES then
-	let Header := file("timelib_mem.h")	
+	let Header := file("timelib_mem.h")
 	let TimelibObjects := [
 		file("timelib/parse_iso_intervals.o"),
 		file("timelib/parse_date.o"),
@@ -573,7 +596,7 @@ if MINILANG_TIMEZONES then
 		file("timelib/parse_iso_intervals.c")[file("timelib/parse_iso_intervals.re")] => fun() do
 			execute('re2c {REFLAGS} -d -b {file("timelib/parse_iso_intervals.re")} > {file("timelib/parse_iso_intervals.c")}')
 		end
-	
+
 		CFLAGS := EXT_CFLAGS + [
 			"-DHAVE_STDINT_H",
 			"-DHAVE_GETTIMEOFDAY",
@@ -618,56 +641,89 @@ if MINILANG_STRINGCACHE then
 	CFLAGS := old + ["-DML_STRINGCACHE"]
 end
 
+if MINILANG_FLINT then
+	LDFLAGS := old + ["-lflint"]
+end
+
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
+	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "FreeBSD" then
 	Objects:put(file("linenoise.o"))
-	CFLAGS := old + ["-I/usr/local/include"]
+	CFLAGS := old + ["-DUSE_LINENOISE", "-I/usr/local/include"]
 	GC or LDFLAGS := old + ["-L/usr/local/lib", "-lgc-threaded"]
 elseif PLATFORM = "Darwin" then
 	Objects:put(file("linenoise.o"))
+	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
 elseif PLATFORM = "Android" then
 	Objects:put(file("linenoise.o"))
+	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 end
 
-LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
-MINILANG := c_program(BIN_DIR / "minilang", [file("minilang.o")], [LIBMINILANG])
-MINIDBG := (BIN_DIR / "minidbg")[file("minidbg")] => fun(Target) do
-	file("minidbg"):copy(Target)
-	execute("chmod", "+x", Target)
+
+
+if PLATFORM = "Wasm" then
+	LIBMINILANG := c_library(LIB_DIR / "libminilang.wasm", Objects, Libraries)
+
+	CFLAGS := old + ["-DML_USE_TRAMPOLINE"]
+	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sEXIT_RUNTIME=1", "-sALLOW_MEMORY_GROWTH=1"] :>, "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""]
+	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
+
+	MINIHTML := (BIN_DIR / "minilang.html")[file("minilang.html")] => fun(Target) do
+		file("minilang.html"):copy(Target)
+	end
+
+	DEFAULT[MINIWASM, MINIHTML]
+else
+	LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
+
+	PARENT."LIBMINILANG" := LIBMINILANG
+
+	MINILANG := c_program(BIN_DIR / "minilang", [file("minilang.o")], [LIBMINILANG])
+	MINIDBG := (BIN_DIR / "minidbg")[file("minidbg")] => fun(Target) do
+		file("minidbg"):copy(Target)
+		execute("chmod", "+x", Target)
+	end
+	MINICONSOLE := (BIN_DIR / "miniconsole")[file("miniconsole")] => fun(Target) do
+		file("miniconsole"):copy(Target)
+		execute("chmod", "+x", Target)
+	end
+	MININOTEBOOK := (BIN_DIR / "mininotebook")[file("mininotebook")] => fun(Target) do
+		file("mininotebook"):copy(Target)
+		execute("chmod", "+x", Target)
+	end
+	MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
+
+	if PLATFORM = "Linux" or PLATFORM = "Android" then
+		let Exports := file("exports.lst")
+		MINILANG[Exports]
+		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
+	end
+
+	DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINICONSOLE, MININOTEBOOK, MINIPP]
+
+	let InstallBin := PREFIX / "bin"
+	let InstallInclude := PREFIX / "include/minilang"
+	let InstallLib := PREFIX / "lib"
+
+	install(MINILANG, InstallBin / "minilang", "+x")
+	install(MINIDBG, InstallBin / "minidbg", "+x")
+	install(MINICONSOLE, InstallBin / "miniconsole", "+x")
+	install(MININOTEBOOK, InstallBin / "mininotebook", "+x")
+
+	for Header in InstallHeaders do
+		install(file(Header), InstallInclude / Header)
+	end
+
+	install(LIBMINILANG, InstallLib / "libminilang.a")
+
+	subdir("test")
+
+	if defined("INSTALL") then
+		DEFAULT[INSTALL]
+	end
 end
-MINICONSOLE := (BIN_DIR / "miniconsole")[file("miniconsole")] => fun(Target) do
-	file("miniconsole"):copy(Target)
-	execute("chmod", "+x", Target)
-end
-MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
-
-if PLATFORM = "Linux" or PLATFORM = "Android" then
-	let Exports := file("exports.lst")
-	MINILANG[Exports]
-	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
-end
-
-DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINICONSOLE, MINIPP]
-
-PARENT."LIBMINILANG" := LIBMINILANG
-
-let InstallBin := PREFIX / "bin"
-let InstallInclude := PREFIX / "include/minilang"
-let InstallLib := PREFIX / "lib"
-
-install(MINILANG, InstallBin / "minilang", "+x")
-install(MINIDBG, InstallBin / "minidbg", "+x")
-install(MINICONSOLE, InstallBin / "miniconsole", "+x")
-
-for Header in InstallHeaders do
-	install(file(Header), InstallInclude / Header)
-end
-
-install(LIBMINILANG, InstallLib / "libminilang.a")
-
-subdir("test")

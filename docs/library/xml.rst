@@ -27,6 +27,14 @@ xml
       :> "\'1 + 2 &gt; 3 &amp; 2 &lt; 4\'"
 
 
+:mini:`meth (Arg₁: xml::element):append(Arg₂: string, ...)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xml::element):append(Arg₂: string, Arg₃: map, ...)`
+   *TBD*
+
+
 :mini:`type xml`
    An XML node.
 
@@ -75,6 +83,26 @@ xml
    Returns a sequence of the recursive children of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
 
 
+:mini:`meth <(Xml: xml): xml | nil`
+   Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) < (N: integer): xml | nil`
+   Returns the :mini:`N`-th prev sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) < (Attribute₁ is Value₁, ...): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) < (Tag: string): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) < (Tag: string, Attribute₁ is Value₁, ...): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml) << (Fn: function): sequence`
    Returns a sequence of the previous siblings of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
@@ -91,6 +119,26 @@ xml
    Returns a sequence of the previous siblings of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
 
 
+:mini:`meth >(Xml: xml): xml | nil`
+   Returns the next sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) > (N: integer): xml | nil`
+   Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) > (Attribute₁ is Value₁, ...): xml | nil`
+   Returns the next sibling of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) > (Tag: string): xml | nil`
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) > (Tag: string, Attribute₁ is Value₁, ...): xml | nil`
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml) >> (Fn: function): sequence`
    Returns a sequence of the next siblings of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
@@ -105,6 +153,26 @@ xml
 
 :mini:`meth (Xml: xml) >> (Tag: string, Attribute₁ is Value₁, ...): sequence`
    Returns a sequence of the next siblings of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
+
+
+:mini:`meth ^(Xml: xml): xml | nil`
+   Returns the parent of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) ^ (N: integer): xml | nil`
+   Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) ^ (Attribute₁ is Value₁, ...): xml | nil`
+   Returns the parent of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) ^ (Tag: string): xml | nil`
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml) ^ (Tag: string, Attribute₁ is Value₁, ...): xml | nil`
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Node: xml):add_next(Other: any, ...): xml`
@@ -127,28 +195,64 @@ xml
    Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml):next(Attribute₁ is Value₁, ...): xml | nil`
+   Returns the next sibling of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):next(Tag: string): xml | nil`
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):next(Tag: string, Attribute₁ is Value₁, ...): xml | nil`
+   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml):parent: xml | nil`
-   Returnst the parent of :mini:`Xml` or :mini:`nil`.
+   Returns the parent of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):parent(N: integer): xml | nil`
    Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
 
 
+:mini:`meth (Xml: xml):parent(Attribute₁ is Value₁, ...): xml | nil`
+   Returns the parent of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
 :mini:`meth (Xml: xml):parent(Tag: string): xml | nil`
-   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):parent(Tag: string, Attribute₁ is Value₁, ...): xml | nil`
+   Returns the parent of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):prev: xml | nil`
-   Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
+   Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):prev(N: integer): xml | nil`
-   Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
+   Returns the :mini:`N`-th prev sibling of :mini:`Xml` or :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):prev(Attribute₁ is Value₁, ...): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):prev(Tag: string): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
+
+
+:mini:`meth (Xml: xml):prev(Tag: string, Attribute₁ is Value₁, ...): xml | nil`
+   Returns the prev sibling of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Node: xml):remove: xml`
    Removes :mini:`Node` from its parent.
+
+
+:mini:`meth (Arg₁: xml::element):append(Arg₂: xml, ...)`
+   *TBD*
 
 
 :mini:`type xml::element < xml, sequence`
@@ -263,12 +367,24 @@ xml
    Generates the sequence :mini:`Nodeᵢ // Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
 
 
+:mini:`meth (Sequence: xml::sequence) < (Args: any, ...): sequence`
+   Generates the sequence :mini:`Nodeᵢ < Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
+
+
 :mini:`meth (Sequence: xml::sequence) << (Args: any, ...): sequence`
    Generates the sequence :mini:`Nodeᵢ << Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
 
 
+:mini:`meth (Sequence: xml::sequence) > (Args: any, ...): sequence`
+   Generates the sequence :mini:`Nodeᵢ > Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
+
+
 :mini:`meth (Sequence: xml::sequence) >> (Args: any, ...): sequence`
    Generates the sequence :mini:`Nodeᵢ >> Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
+
+
+:mini:`meth (Sequence: xml::sequence) ^ (Args: any, ...): sequence`
+   Generates the sequence :mini:`Nodeᵢ ^ Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
 
 
 :mini:`meth (Sequence: xml::sequence):contains(Regex: regex): sequence`
@@ -284,7 +400,7 @@ xml
 
 
 :mini:`meth (Sequence: xml::sequence):next(Args: any, ...): sequence`
-   Generates the sequence :mini:`Nodeᵢ + Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
+   Generates the sequence :mini:`Nodeᵢ > Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
 
 
 :mini:`meth (Sequence: xml::sequence):parent(Args: any, ...): sequence`
@@ -292,11 +408,11 @@ xml
 
 
 :mini:`meth (Sequence: xml::sequence):prev(Args: any, ...): sequence`
-   Generates the sequence :mini:`Nodeᵢ - Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
+   Generates the sequence :mini:`Nodeᵢ < Args` where :mini:`Nodeᵢ` are the nodes generated by :mini:`Sequence`.
 
 
 :mini:`type xml::text < xml, string`
-   A XML text node.
+   An XML text node.
 
 
 :mini:`meth (Xml: xml::text):text: string`

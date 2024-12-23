@@ -1210,6 +1210,24 @@ ML_METHOD("read", MLStringBufferT, MLBufferT) {
 	return ml_integer(Total);
 }
 
+ML_METHOD("_start", MLStringBufferT) {
+//!internal
+	ml_stringbuffer_t *Stream = (ml_stringbuffer_t *)Args[0];
+	return ml_integer(Stream->Start);
+}
+
+ML_METHOD("_space", MLStringBufferT) {
+//!internal
+	ml_stringbuffer_t *Stream = (ml_stringbuffer_t *)Args[0];
+	return ml_integer(Stream->Space);
+}
+
+ML_METHOD("_length", MLStringBufferT) {
+//!internal
+	ml_stringbuffer_t *Stream = (ml_stringbuffer_t *)Args[0];
+	return ml_integer(Stream->Length);
+}
+
 static void ML_TYPED_FN(ml_stream_write, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Buffer, void *Address, int Count) {
 	ML_RETURN(ml_integer(ml_stringbuffer_write(Buffer, Address, Count)));
 }

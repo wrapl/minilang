@@ -1,11 +1,8 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="ml__array_8h" kind="file" language="C++">
     <compoundname>ml_array.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
-    <includedby refid="compare__impl_8h" local="yes">src/array/compare_impl.h</includedby>
-    <includedby refid="update__impl_8h" local="yes">src/array/update_impl.h</includedby>
-    <includedby refid="update__impl__integer_8h" local="yes">src/array/update_impl_integer.h</includedby>
     <incdepgraph>
       <node id="13">
         <label>inthash.h</label>
@@ -103,54 +100,6 @@
         <label>unistd.h</label>
       </node>
     </incdepgraph>
-    <invincdepgraph>
-      <node id="2">
-        <label>src/array/compare_impl.h</label>
-        <link refid="compare__impl_8h_source"/>
-        <childnode refid="3" relation="include">
-        </childnode>
-        <childnode refid="4" relation="include">
-        </childnode>
-      </node>
-      <node id="3">
-        <label>src/array/compare_impl_complex.h</label>
-        <link refid="compare__impl__complex_8h_source"/>
-      </node>
-      <node id="4">
-        <label>src/array/compare_impl_real.h</label>
-        <link refid="compare__impl__real_8h_source"/>
-      </node>
-      <node id="5">
-        <label>src/array/update_impl.h</label>
-        <link refid="update__impl_8h_source"/>
-        <childnode refid="6" relation="include">
-        </childnode>
-        <childnode refid="7" relation="include">
-        </childnode>
-      </node>
-      <node id="6">
-        <label>src/array/update_impl_complex.h</label>
-        <link refid="update__impl__complex_8h_source"/>
-      </node>
-      <node id="8">
-        <label>src/array/update_impl_integer.h</label>
-        <link refid="update__impl__integer_8h_source"/>
-      </node>
-      <node id="7">
-        <label>src/array/update_impl_real.h</label>
-        <link refid="update__impl__real_8h_source"/>
-      </node>
-      <node id="1">
-        <label>src/ml_array.h</label>
-        <link refid="ml__array_8h"/>
-        <childnode refid="2" relation="include">
-        </childnode>
-        <childnode refid="5" relation="include">
-        </childnode>
-        <childnode refid="8" relation="include">
-        </childnode>
-      </node>
-    </invincdepgraph>
     <innerclass refid="structml__array__dimension__t" prot="public">ml_array_dimension_t</innerclass>
     <innerclass refid="structml__array__t" prot="public">ml_array_t</innerclass>
     <sectiondef kind="define">
@@ -191,7 +140,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="63" column="9" bodyfile="src/ml_array.h" bodystart="63" bodyend="78"/>
+        <location file="src/ml_array.h" line="69" column="9" bodyfile="src/ml_array.h" bodystart="69" bodyend="84"/>
       </memberdef>
       <memberdef kind="define" id="ml__array_8h_1a05b46f42cc6d2601c83bd67c4276ac33" prot="public" static="no">
         <name>ML_ARRAY_ACCESSORS</name>
@@ -208,7 +157,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="80" column="9" bodyfile="src/ml_array.h" bodystart="80" bodyend="86"/>
+        <location file="src/ml_array.h" line="86" column="9" bodyfile="src/ml_array.h" bodystart="86" bodyend="92"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="enum">
@@ -462,6 +411,119 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </inbodydescription>
         <location file="src/ml_array.h" line="47" column="12" declfile="src/ml_array.h" declline="47" declcolumn="12"/>
       </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1abc81807177078d24223926e6dab3677e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_array_format_t</type>
+        <definition>ml_array_format_t ml_array_format</definition>
+        <argsstring>(ml_type_t *Type)</argsstring>
+        <name>ml_array_format</name>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="49" column="19" declfile="src/ml_array.h" declline="49" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1ab930286cb182275ee60a5d3a8e6f8316" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ml_array_format_t</type>
+        <definition>ml_array_format_t ml_array_of_type_guess</definition>
+        <argsstring>(ml_value_t *Value, ml_array_format_t Format)</argsstring>
+        <name>ml_array_of_type_guess</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>ml_array_format_t</type>
+          <declname>Format</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="50" column="19" declfile="src/ml_array.h" declline="50" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a57dca09fb3a3c8138ec1ae7960092db6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *</type>
+        <definition>ml_array_t * ml_array_of_create</definition>
+        <argsstring>(ml_value_t *Value, int Degree, ml_array_format_t Format)</argsstring>
+        <name>ml_array_of_create</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Degree</declname>
+        </param>
+        <param>
+          <type>ml_array_format_t</type>
+          <declname>Format</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="51" column="12" declfile="src/ml_array.h" declline="51" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1ac9c2bd50e0cc1462a54d19ab01f0ac21" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_array_of_fill</definition>
+        <argsstring>(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value)</argsstring>
+        <name>ml_array_of_fill</name>
+        <param>
+          <type>ml_array_format_t</type>
+          <declname>Format</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref> *</type>
+          <declname>Dimension</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>Address</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>Degree</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="52" column="12" declfile="src/ml_array.h" declline="52" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a5b7acadb6af2adab71b58bba5d96e50e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_array_of</definition>
+        <argsstring>(ml_value_t *Source)</argsstring>
+        <name>ml_array_of</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="53" column="12" declfile="src/ml_array.h" declline="53" declcolumn="12"/>
+      </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a6d42db08dbcb3a49100873bdeaebcd0e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_array_foreach</definition>
@@ -485,7 +547,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="49" column="6" declfile="src/ml_array.h" declline="49" declcolumn="6"/>
+        <location file="src/ml_array.h" line="55" column="6" declfile="src/ml_array.h" declline="55" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a2a180d657d9d88453320f220124aaf8d" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>char *</type>
@@ -502,7 +564,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="50" column="20" bodyfile="src/ml_array.h" bodystart="50" bodyend="52"/>
+        <location file="src/ml_array.h" line="56" column="20" bodyfile="src/ml_array.h" bodystart="56" bodyend="58"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a75302de15dcdfe6fa479b97eb7bbbc98" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>char *</type>
@@ -527,7 +589,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="53" column="20" bodyfile="src/ml_array.h" bodystart="53" bodyend="56"/>
+        <location file="src/ml_array.h" line="59" column="20" bodyfile="src/ml_array.h" bodystart="59" bodyend="62"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a6e12fef819367924e97c1ea11e3e2cd8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>size_t</type>
@@ -544,7 +606,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="58" column="8" declfile="src/ml_array.h" declline="58" declcolumn="8"/>
+        <location file="src/ml_array.h" line="64" column="8" declfile="src/ml_array.h" declline="64" declcolumn="8"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1ad6c1ed133dc4661584c86ec4f99a0ee5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -565,7 +627,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="59" column="6" declfile="src/ml_array.h" declline="59" declcolumn="6"/>
+        <location file="src/ml_array.h" line="65" column="6" declfile="src/ml_array.h" declline="65" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a93d1894feb290af68a61215699cf5f39" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>char *</type>
@@ -582,7 +644,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="60" column="6" declfile="src/ml_array.h" declline="60" declcolumn="6"/>
+        <location file="src/ml_array.h" line="66" column="6" declfile="src/ml_array.h" declline="66" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1ab2b6c536c4a952bd07d1cab98dc885ab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -603,7 +665,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="61" column="5" declfile="src/ml_array.h" declline="61" declcolumn="5"/>
+        <location file="src/ml_array.h" line="67" column="5" declfile="src/ml_array.h" declline="67" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a1acf07a2bead117f050aaec41dfc8dce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -619,7 +681,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="88" column="1" declfile="src/ml_array.h" declline="88" declcolumn="1"/>
+        <location file="src/ml_array.h" line="94" column="1" declfile="src/ml_array.h" declline="94" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a27f749ff92c01c31f5dcd16899ac4209" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -635,7 +697,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="89" column="1" declfile="src/ml_array.h" declline="89" declcolumn="1"/>
+        <location file="src/ml_array.h" line="95" column="1" declfile="src/ml_array.h" declline="95" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1ad260afc8c3a139859676738be2c6fcdc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -651,7 +713,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="90" column="1" declfile="src/ml_array.h" declline="90" declcolumn="1"/>
+        <location file="src/ml_array.h" line="96" column="1" declfile="src/ml_array.h" declline="96" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a42cbb71a714fbf7fb20971402203ffee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -667,7 +729,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="91" column="1" declfile="src/ml_array.h" declline="91" declcolumn="1"/>
+        <location file="src/ml_array.h" line="97" column="1" declfile="src/ml_array.h" declline="97" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a0c9ee68991ef9265ec05338e4891dc6c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -683,7 +745,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="92" column="1" declfile="src/ml_array.h" declline="92" declcolumn="1"/>
+        <location file="src/ml_array.h" line="98" column="1" declfile="src/ml_array.h" declline="98" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1afa3e5ba09ab9d14d569f3b43784ea357" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -699,7 +761,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="93" column="1" declfile="src/ml_array.h" declline="93" declcolumn="1"/>
+        <location file="src/ml_array.h" line="99" column="1" declfile="src/ml_array.h" declline="99" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1ad26d2f8d105fff8546f7681adbe85e49" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -715,7 +777,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="94" column="1" declfile="src/ml_array.h" declline="94" declcolumn="1"/>
+        <location file="src/ml_array.h" line="100" column="1" declfile="src/ml_array.h" declline="100" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a96859bcd4239a9723ec4070e23326114" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -731,7 +793,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="95" column="1" declfile="src/ml_array.h" declline="95" declcolumn="1"/>
+        <location file="src/ml_array.h" line="101" column="1" declfile="src/ml_array.h" declline="101" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1aa6578a9c9c763f61ece1d4f718d3279a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -747,7 +809,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="96" column="1" declfile="src/ml_array.h" declline="96" declcolumn="1"/>
+        <location file="src/ml_array.h" line="102" column="1" declfile="src/ml_array.h" declline="102" declcolumn="1"/>
       </memberdef>
       <memberdef kind="function" id="ml__array_8h_1abb7064d6f32e9f21c5a93223e0ccf904" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -763,7 +825,7 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_array.h" line="97" column="1" declfile="src/ml_array.h" declline="97" declcolumn="1"/>
+        <location file="src/ml_array.h" line="103" column="1" declfile="src/ml_array.h" declline="103" declcolumn="1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -819,68 +881,74 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
 <codeline lineno="46"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_array_size(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Array,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Dim);</highlight></codeline>
 <codeline lineno="47"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_array_index(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Array,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Indices);</highlight></codeline>
 <codeline lineno="48"><highlight class="normal"></highlight></codeline>
-<codeline lineno="49"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_foreach(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Array,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*callback)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
-<codeline lineno="50"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_array_data(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Array)<sp/>{</highlight></codeline>
-<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Array-&gt;Base.Value;</highlight></codeline>
-<codeline lineno="52"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="53"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_array_step(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Data,<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*Dimension,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>{</highlight></codeline>
-<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*Indices<sp/>=<sp/>Dimension-&gt;Indices;</highlight></codeline>
-<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Data<sp/>+<sp/>(Indices<sp/>?<sp/>Indices[Index]<sp/>:<sp/>Index)<sp/>*<sp/>Dimension-&gt;Stride;</highlight></codeline>
-<codeline lineno="56"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="57"><highlight class="normal"></highlight></codeline>
-<codeline lineno="58"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_array_data_size(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source);</highlight></codeline>
-<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_copy_data(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
-<codeline lineno="60"><highlight class="normal"></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_array_flatten(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source);</highlight></codeline>
-<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_array_copy(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Target,<sp/><ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source);</highlight></codeline>
-<codeline lineno="62"><highlight class="normal"></highlight></codeline>
-<codeline lineno="63"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_array_get(ARRAY,<sp/>...)<sp/>({<sp/>\</highlight></codeline>
-<codeline lineno="64"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>ml_array_t<sp/>*_Array<sp/>=<sp/>(ml_array_t<sp/>*)(ARRAY);<sp/>\</highlight></codeline>
-<codeline lineno="65"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>ml_array_dimension_t<sp/>*Dimension<sp/>=<sp/>(ARRAY)-&gt;Dimensions;<sp/>\</highlight></codeline>
-<codeline lineno="66"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>char<sp/>*Address<sp/>=<sp/>Array-&gt;Base.Value;<sp/>\</highlight></codeline>
-<codeline lineno="67"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Indices[]<sp/>=<sp/>{__VA_ARGS__};<sp/>\</highlight></codeline>
-<codeline lineno="68"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>(sizeof(Indices)<sp/>/<sp/>sizeof(int));<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="69"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>Index<sp/>=<sp/>Indices[I];<sp/><sp/>\</highlight></codeline>
-<codeline lineno="70"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(Dimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="71"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Address<sp/>+=<sp/>Dimension-&gt;Stride<sp/>*<sp/>Dimension-&gt;Indices[Index];<sp/>\</highlight></codeline>
-<codeline lineno="72"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>else<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="73"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Address<sp/>+=<sp/>Dimension-&gt;Stride<sp/>*<sp/>Index;<sp/>\</highlight></codeline>
-<codeline lineno="74"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
-<codeline lineno="75"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>++Dimension;<sp/>\</highlight></codeline>
-<codeline lineno="76"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
-<codeline lineno="77"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>Address;<sp/>\</highlight></codeline>
-<codeline lineno="78"><highlight class="preprocessor">})</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="79"><highlight class="normal"></highlight></codeline>
-<codeline lineno="80"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ARRAY_ACCESSORS(CTYPE)<sp/>\</highlight></codeline>
-<codeline lineno="81"><highlight class="preprocessor">CTYPE<sp/>ml_array_get_<sp/>##<sp/>CTYPE<sp/>(ml_array_t<sp/>*Array,<sp/>...);<sp/>\</highlight></codeline>
-<codeline lineno="82"><highlight class="preprocessor">void<sp/>ml_array_set_<sp/>##<sp/>CTYPE<sp/>(CTYPE<sp/>Value,<sp/>ml_array_t<sp/>*Array,<sp/>...);<sp/>\</highlight></codeline>
-<codeline lineno="83"><highlight class="preprocessor">typedef<sp/>CTYPE<sp/>(*ml_array_getter_<sp/>##<sp/>CTYPE)(void<sp/>*);<sp/>\</highlight></codeline>
-<codeline lineno="84"><highlight class="preprocessor">typedef<sp/>void<sp/>(*ml_array_setter_<sp/>##<sp/>CTYPE)(void<sp/>*,<sp/>CTYPE);<sp/>\</highlight></codeline>
-<codeline lineno="85"><highlight class="preprocessor">ml_array_getter_<sp/>##<sp/>CTYPE<sp/>ml_array_<sp/>##<sp/>CTYPE<sp/>##<sp/>_getter(ml_array_format_t<sp/>Format);<sp/>\</highlight></codeline>
-<codeline lineno="86"><highlight class="preprocessor">ml_array_setter_<sp/>##<sp/>CTYPE<sp/>ml_array_<sp/>##<sp/>CTYPE<sp/>##<sp/>_setter(ml_array_format_t<sp/>Format)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="87"><highlight class="normal"></highlight></codeline>
-<codeline lineno="88"><highlight class="normal">ML_ARRAY_ACCESSORS(int8_t);</highlight></codeline>
-<codeline lineno="89"><highlight class="normal">ML_ARRAY_ACCESSORS(uint8_t);</highlight></codeline>
-<codeline lineno="90"><highlight class="normal">ML_ARRAY_ACCESSORS(int16_t);</highlight></codeline>
-<codeline lineno="91"><highlight class="normal">ML_ARRAY_ACCESSORS(uint16_t);</highlight></codeline>
-<codeline lineno="92"><highlight class="normal">ML_ARRAY_ACCESSORS(int32_t);</highlight></codeline>
-<codeline lineno="93"><highlight class="normal">ML_ARRAY_ACCESSORS(uint32_t);</highlight></codeline>
-<codeline lineno="94"><highlight class="normal">ML_ARRAY_ACCESSORS(int64_t);</highlight></codeline>
-<codeline lineno="95"><highlight class="normal">ML_ARRAY_ACCESSORS(uint64_t);</highlight></codeline>
-<codeline lineno="96"><highlight class="normal">ML_ARRAY_ACCESSORS(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="97"><highlight class="normal">ML_ARRAY_ACCESSORS(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="98"><highlight class="normal"></highlight></codeline>
-<codeline lineno="99"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_COMPLEX</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="100"><highlight class="normal"></highlight></codeline>
-<codeline lineno="101"><highlight class="normal">ML_ARRAY_ACCESSORS(complex_float);</highlight></codeline>
-<codeline lineno="102"><highlight class="normal">ML_ARRAY_ACCESSORS(complex_double);</highlight></codeline>
-<codeline lineno="103"><highlight class="normal"></highlight></codeline>
-<codeline lineno="104"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="105"><highlight class="normal"></highlight></codeline>
-<codeline lineno="106"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="107"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="108"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal">ml_array_format_t<sp/>ml_array_format(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type);</highlight></codeline>
+<codeline lineno="50"><highlight class="normal">ml_array_format_t<sp/>ml_array_of_type_guess(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/>ml_array_format_t<sp/>Format);</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*ml_array_of_create(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Degree,<sp/>ml_array_format_t<sp/>Format);</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_array_of_fill(ml_array_format_t<sp/>Format,<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*Dimension,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Address,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Degree,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_array_of(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Source);</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_foreach(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Array,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*callback)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_array_data(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Array)<sp/>{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Array-&gt;Base.Value;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_array_step(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Data,<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*Dimension,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>{</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*Indices<sp/>=<sp/>Dimension-&gt;Indices;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Data<sp/>+<sp/>(Indices<sp/>?<sp/>Indices[Index]<sp/>:<sp/>Index)<sp/>*<sp/>Dimension-&gt;Stride;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_array_data_size(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source);</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_copy_data(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_array_flatten(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source);</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_array_copy(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Target,<sp/><ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Source);</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_array_get(ARRAY,<sp/>...)<sp/>({<sp/>\</highlight></codeline>
+<codeline lineno="70"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>ml_array_t<sp/>*_Array<sp/>=<sp/>(ml_array_t<sp/>*)(ARRAY);<sp/>\</highlight></codeline>
+<codeline lineno="71"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>ml_array_dimension_t<sp/>*Dimension<sp/>=<sp/>(ARRAY)-&gt;Dimensions;<sp/>\</highlight></codeline>
+<codeline lineno="72"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>char<sp/>*Address<sp/>=<sp/>Array-&gt;Base.Value;<sp/>\</highlight></codeline>
+<codeline lineno="73"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Indices[]<sp/>=<sp/>{__VA_ARGS__};<sp/>\</highlight></codeline>
+<codeline lineno="74"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>(sizeof(Indices)<sp/>/<sp/>sizeof(int));<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="75"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>Index<sp/>=<sp/>Indices[I];<sp/><sp/>\</highlight></codeline>
+<codeline lineno="76"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(Dimension-&gt;Indices)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="77"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Address<sp/>+=<sp/>Dimension-&gt;Stride<sp/>*<sp/>Dimension-&gt;Indices[Index];<sp/>\</highlight></codeline>
+<codeline lineno="78"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>else<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="79"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Address<sp/>+=<sp/>Dimension-&gt;Stride<sp/>*<sp/>Index;<sp/>\</highlight></codeline>
+<codeline lineno="80"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="81"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>++Dimension;<sp/>\</highlight></codeline>
+<codeline lineno="82"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="83"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>Address;<sp/>\</highlight></codeline>
+<codeline lineno="84"><highlight class="preprocessor">})</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ARRAY_ACCESSORS(CTYPE)<sp/>\</highlight></codeline>
+<codeline lineno="87"><highlight class="preprocessor">CTYPE<sp/>ml_array_get_<sp/>##<sp/>CTYPE<sp/>(ml_array_t<sp/>*Array,<sp/>...);<sp/>\</highlight></codeline>
+<codeline lineno="88"><highlight class="preprocessor">void<sp/>ml_array_set_<sp/>##<sp/>CTYPE<sp/>(CTYPE<sp/>Value,<sp/>ml_array_t<sp/>*Array,<sp/>...);<sp/>\</highlight></codeline>
+<codeline lineno="89"><highlight class="preprocessor">typedef<sp/>CTYPE<sp/>(*ml_array_getter_<sp/>##<sp/>CTYPE)(void<sp/>*);<sp/>\</highlight></codeline>
+<codeline lineno="90"><highlight class="preprocessor">typedef<sp/>void<sp/>(*ml_array_setter_<sp/>##<sp/>CTYPE)(void<sp/>*,<sp/>CTYPE);<sp/>\</highlight></codeline>
+<codeline lineno="91"><highlight class="preprocessor">ml_array_getter_<sp/>##<sp/>CTYPE<sp/>ml_array_<sp/>##<sp/>CTYPE<sp/>##<sp/>_getter(ml_array_format_t<sp/>Format);<sp/>\</highlight></codeline>
+<codeline lineno="92"><highlight class="preprocessor">ml_array_setter_<sp/>##<sp/>CTYPE<sp/>ml_array_<sp/>##<sp/>CTYPE<sp/>##<sp/>_setter(ml_array_format_t<sp/>Format)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal">ML_ARRAY_ACCESSORS(int8_t);</highlight></codeline>
+<codeline lineno="95"><highlight class="normal">ML_ARRAY_ACCESSORS(uint8_t);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal">ML_ARRAY_ACCESSORS(int16_t);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal">ML_ARRAY_ACCESSORS(uint16_t);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal">ML_ARRAY_ACCESSORS(int32_t);</highlight></codeline>
+<codeline lineno="99"><highlight class="normal">ML_ARRAY_ACCESSORS(uint32_t);</highlight></codeline>
+<codeline lineno="100"><highlight class="normal">ML_ARRAY_ACCESSORS(int64_t);</highlight></codeline>
+<codeline lineno="101"><highlight class="normal">ML_ARRAY_ACCESSORS(uint64_t);</highlight></codeline>
+<codeline lineno="102"><highlight class="normal">ML_ARRAY_ACCESSORS(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="103"><highlight class="normal">ML_ARRAY_ACCESSORS(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_COMPLEX</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal">ML_ARRAY_ACCESSORS(complex_float);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal">ML_ARRAY_ACCESSORS(complex_double);</highlight></codeline>
 <codeline lineno="109"><highlight class="normal"></highlight></codeline>
-<codeline lineno="110"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_array.h"/>
   </compounddef>

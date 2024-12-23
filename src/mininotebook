@@ -1,0 +1,264 @@
+#!/usr/bin/env -S minilang
+import: gtk("gir/Gtk@4.0")
+import: gdk("gir/Gdk@4.0")
+import: gobject("gir/GObject")
+import: gio("gir/Gio")
+import: source("gir/GtkSource@5")
+import: event("event")
+import: xml("fmt/xml")
+
+gtk::init()
+
+let CssProvider := gtk::CssProvider::new()
+
+CssProvider:load_from_string('
+	frame.active \{
+		border-color: red;
+	}
+')
+
+gtk::StyleContext::add_provider_for_display(gdk::Display::get_default(), CssProvider, 800)
+
+let LanguageManager := source::LanguageManager::get_default()
+let StyleSchemeManager := source::StyleSchemeManager::get_default()
+
+let Minilang := LanguageManager:get_language("minilang")
+var StyleScheme := StyleSchemeManager:get_scheme("tango")
+
+class: cell(:notebook, :state, :widget, :input, :output,
+	state is enum("Ready", "Busy", "Done"),
+	init is :init
+)
+
+class: notebook(:active, :cells, :widget, :box, :compiler, :parser, :queue, :filename, init is :init)
+
+meth :init(Cell: cell, Notebook: notebook) do
+	Cell:notebook := Notebook
+	Cell:state := cell::state::Ready
+	let Box := gtk::Box::new(gtk::Orientation::vertical, 2)
+	let Input := Cell:input := source::View::new()
+	Input:set_monospace(true)
+	Input:set_wrap_mode(gtk::WrapMode::word)
+	Input:set_show_line_numbers(true)
+	Input:set_indent_on_tab(true)
+	Input:set_tab_width(4)
+	let EventController := gtk::EventControllerKey::new()
+	EventController:connect("key-pressed"; Controller, KeyVal, KeyCode, State) do
+		switch State: gdk::ModifierType
+		case ("control_mask", "shift_mask") do
+			print('KeyEvent 1: {KeyVal}, {KeyCode}, {State}\n')
+		case "control_mask" do
+			print('KeyEvent 2: {KeyVal}, {KeyCode}, {State}\n')
+			switch KeyVal: integer
+			case gdk::KEY_Return do
+				Notebook:run_cell
+				ret true
+			case gdk::KEY_Up do
+				let N := Notebook:cells:find(Cell)
+				Notebook:cells[N - 1]{}:input{}:grab_focus
+				ret true
+			case gdk::KEY_Down do
+				let N := Notebook:cells:find(Cell)
+				Notebook:cells[N + 1]{}:input{}:grab_focus
+				ret true
+			case gdk::KEY_s do
+				Notebook:save
+			end
+		else
+			print('KeyEvent 0: {KeyVal}, {KeyCode}, {State}\n')
+		end
+		ret false
+	end
+	Input:add_controller(EventController)
+	with Buffer := Input:get_buffer do
+		Buffer:set_language(Minilang)
+		Buffer:set_highlight_syntax(true)
+		Buffer:set_style_scheme(StyleScheme)
+	end
+	let Output := Cell:output := gtk::TextView::new()
+	Output:set_monospace(true)
+	Output:set_wrap_mode(gtk::WrapMode::word)
+	Box:append(Input)
+	Box:append(gtk::Separator::new(gtk::Orientation::horizontal))
+	Box:append(Output)
+	let Widget := Cell:widget := gtk::Frame::new(nil)
+	Widget:set_margin_start(20)
+	Widget:set_margin_end(20)
+	Widget:set_child(Box)
+	Input:connect("notify::has-focus";) do
+		print('Focusing on cell\n')
+		Notebook:active{}:widget{}:remove_css_class("active")
+		Notebook:active := Cell
+		Cell:widget:add_css_class("active")
+	end
+end
+
+meth :init(Notebook: notebook) do
+	Notebook:cells := []
+	Notebook:compiler := compiler(globals(), true)
+	Notebook:parser := parser()
+	Notebook:queue := task::queue(1)
+	let Scrolled := Notebook:widget := gtk::ScrolledWindow::new()
+	let Box := Notebook:box := gtk::Box::new(gtk::Orientation::vertical, 20)
+	Box:set_margin_top(20)
+	Box:set_margin_bottom(20)
+	Scrolled:set_child(Box)
+	Scrolled:get_child:set_scroll_to_focus(true)
+end
+
+meth :add_cell(Notebook: notebook) do
+	let Cell := cell(Notebook)
+	Notebook:cells:put(Cell)
+	Notebook:box:append(Cell:widget)
+	Cell:input:grab_focus
+	ret Cell
+end
+
+meth :run_cell(Notebook: notebook) do
+	let Cell := Notebook:active or ret
+	let N := Notebook:cells:find(Cell)
+	let Next := Notebook:cells[N + 1] or Notebook:add_cell
+	Next:input:grab_focus
+	let Start := gtk::TextIter()
+	let End := gtk::TextIter()
+	let Input := Cell:input:get_buffer
+	Input:get_bounds(Start, End)
+	let Text := Cell:input:get_buffer:get_text(Start, End, false)
+	let Output := Cell:output:get_buffer
+	(Notebook:queue)(;) do
+		let Parser := Notebook:parser
+		let Compiler := Notebook:compiler
+		print('Input = {Text}\n')
+		Parser:input(Text)
+		let Buffer := string::buffer()
+		var Sep := ""
+		loop
+			let Result := Parser:evaluate(Compiler)
+			until type(Result) = any and Result = compiler::EOI
+			Buffer:write(Sep)
+			Buffer:write(Result)
+			Sep := "\n"
+		on Error do
+			print(Error)
+			Buffer:write(Sep)
+			Buffer:write(Error)
+			exit
+		end
+		Parser:reset
+		let Result := Buffer:rest
+		print('Output = {Result}\n')
+		Output:set_text(Result, Result:size)
+	on Error do
+		print(Error)
+	end
+end
+
+let Window := gtk::Window::new()
+Window:set_default_size(600, 800)
+
+let Header := gtk::HeaderBar::new()
+
+let LoadButton := gtk::Button::new_from_icon_name("document-open-symbolic")
+let SaveButton := gtk::Button::new_from_icon_name("document-save-symbolic")
+let SaveAsButton := gtk::Button::new_from_icon_name("document-save-as-symbolic")
+let AddButton := gtk::Button::new_from_icon_name("list-add-symbolic")
+let RunButton := gtk::Button::new_from_icon_name("system-run-symbolic")
+
+Header:pack_start(AddButton)
+Header:pack_start(RunButton)
+Header:pack_start(LoadButton)
+Header:pack_start(SaveButton)
+Header:pack_start(SaveAsButton)
+
+let Notebook := notebook()
+
+Window:set_title("<Untitled Notebook>")
+Window:set_titlebar(Header)
+Window:set_child(Notebook:widget)
+Window:set_visible(true)
+
+Window:connect("close-request"; Window) do
+	halt()
+end
+
+let FileDialog := gtk::FileDialog::new()
+FileDialog:set_modal(true)
+
+meth :load(Notebook: notebook, Path: string) do
+	let Reader := file(Path, "r")
+	let Root := xml(Reader)
+	Reader:close
+	for Node in Root / "cells" / "cell" do
+		let Cell := Notebook:add_cell
+		let Text := Node:text
+		Cell:input:get_buffer:set_text(Text, Text:size)
+	end
+	Notebook:filename := Path
+	Window:set_title(Path:after("/", -1) or Path)
+on Error do
+	Notebook:add_cell
+	Notebook:filename := Path
+	Window:set_title(Path:after("/", -1) or Path)
+end
+
+meth :save(Notebook: notebook) do
+	Notebook:filename or ret Notebook:save_as
+	let Cells := xml::element("cells")
+	let Start := gtk::TextIter()
+	let End := gtk::TextIter()
+	for Cell in Notebook:cells do
+		let Input := Cell:input:get_buffer
+		Input:get_bounds(Start, End)
+		let Text := Cell:input:get_buffer:get_text(Start, End, false)
+		Cells:put(xml::element("cell", xml::element("input", Text)))
+	end
+	let Root := xml::element("notebook", Cells)
+	let Writer := file(Notebook:filename, "w")
+	Writer:write(Root)
+	Writer:close
+end
+
+meth :save_as(Notebook: notebook) do
+	FileDialog:save(Window, nil; Object, Result) do
+		let File := FileDialog:save_finish(Result)
+		let Path := File:get_path
+		print('Selected = {Path}\n')
+		Notebook:filename := Path
+		Window:set_title(Path:after("/", -1) or Path)
+		Notebook:save
+	end
+end
+
+LoadButton:connect("clicked"; Button) do
+	FileDialog:open(Window, nil; Object, Result) do
+		let File := FileDialog:open_finish(Result)
+		let Path := File:get_path
+		print('Selected = {Path}\n')
+		Notebook:load(Path)
+	end
+end
+
+SaveButton:connect("clicked"; Button) do
+	Notebook:save
+end
+
+SaveAsButton:connect("clicked"; Button) do
+	Notebook:save_as
+end
+
+AddButton:connect("clicked"; Button) do
+	Notebook:add_cell
+end
+
+RunButton:connect("clicked"; Button) do
+	Notebook:run_cell
+end
+
+if Args[1] then
+	Notebook:load(Args[1])
+else
+	Notebook:add_cell
+end
+Notebook:cells[1]:input:grab_focus
+
+callcc(0)

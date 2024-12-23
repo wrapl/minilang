@@ -86,6 +86,24 @@ ML_METHOD(MLVariableT, MLAnyT, MLTypeT) {
 	return ml_variable(Args[0], (ml_type_t *)Args[1]);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLVariableT, ml_variable_t *Variable) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("var"));
+	ml_list_put(Result, Variable->Value);
+	if (Variable->VarType) ml_list_put(Result, (ml_value_t *)Variable->VarType);
+	return Result;
+}
+
+ML_DESERIALIZER("var") {
+	ML_CHECK_ARG_COUNT(1);
+	ml_type_t *VarType = NULL;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLTypeT);
+		VarType = (ml_type_t *)Args[1];
+	}
+	return ml_variable(Args[0], VarType);
+}
+
 #endif
 
 #ifdef ML_JIT
@@ -125,7 +143,9 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
+#ifndef ML_TIMESCHED
 	uint64_t *Counter;
+#endif
 #endif
 	unsigned int Line;
 	unsigned int Reentry:1;
@@ -146,7 +166,9 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
 	Frame->Base.Context = Caller->Context;
 #ifdef ML_SCHEDULER
-	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+#ifndef ML_TIMESCHED
+	Frame->Counter = (uint64_t *)ml_context_get_static(Caller->Context, ML_COUNTER_INDEX);
+#endif
 #endif
 	Frame->Reuse = 0;
 	ml_state_schedule((ml_state_t *)Frame, Count ? Args[0] : MLNil);
@@ -188,7 +210,7 @@ static ml_decl_t *ML_TYPED_FN(ml_debugger_decls, DEBUG_TYPE(Continuation), DEBUG
 }
 
 static ml_value_t *ML_TYPED_FN(ml_debugger_local, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame, int Index) {
-	if (Index < 0) return Frame->UpValues[~Index];
+	if (Index < 0) return Frame->UpValues[~Index + 1];
 	return Frame->Stack[Index];
 }
 
@@ -219,9 +241,16 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #ifndef DEBUG_VERSION
 
 #ifdef ML_SCHEDULER
+#ifdef ML_TIMESCHED
+#define CHECK_COUNTER
+#define CHECK_COUNTER_GOTO if (__builtin_expect(MLPreempt < 0, 0)) goto DO_SWAP;
+#else
 #define CHECK_COUNTER if (__builtin_expect(--Counter == 0, 0)) goto DO_SWAP;
+#define CHECK_COUNTER_GOTO CHECK_COUNTER
+#endif
 #else
 #define CHECK_COUNTER
+#define CHECK_COUNTER_GOTO CHECK_COUNTER
 #endif
 
 #define ERROR() { \
@@ -233,6 +262,12 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #define ADVANCE(NEXT) { \
 	Inst = NEXT; \
 	CHECK_COUNTER \
+	goto *Labels[Inst->Opcode]; \
+}
+
+#define ADVANCE_GOTO(NEXT) { \
+	Inst = NEXT; \
+	CHECK_COUNTER_GOTO \
 	goto *Labels[Inst->Opcode]; \
 }
 
@@ -273,6 +308,16 @@ static ml_frame_t * _Atomic FrameCache = NULL;
 #else
 static ml_frame_t *FrameCache = NULL;
 #endif
+
+static size_t ml_frame_cache_usage(void *Data) {
+	size_t Count = 0;
+	for (ml_frame_t *Frame = FrameCache; Frame; Frame = Frame->Next) ++Count;
+	return Count;
+}
+
+static void ml_frame_cache_clear(void *Data) {
+	FrameCache = NULL;
+}
 
 #define ML_FRAME_REUSE_SIZE 384
 
@@ -322,10 +367,13 @@ size_t ml_count_cached_frames() {
 extern ml_value_t *SymbolMethod;
 
 #ifdef ML_SCHEDULER
+#ifdef ML_TIMESCHED
+#define ML_STORE_COUNTER() {}
+#else
 #define ML_STORE_COUNTER() Frame->Counter[0] = Counter
+#endif
 #else
 #define ML_STORE_COUNTER() {}
-
 #endif
 
 static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
@@ -376,7 +424,7 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 	DO_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
-		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+		ml_methods_t *Methods = ml_context_get_static(Frame->Base.Context, ML_METHODS_INDEX); \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
 			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
@@ -401,7 +449,7 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 	DO_TAIL_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
-		ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+		ml_methods_t *Methods = ml_context_get_static(Frame->Base.Context, ML_METHODS_INDEX); \
 		ml_method_cached_t *Cached = ml_method_check_cached(Methods, Method, Inst[3].Data, COUNT, Args); \
 		if (!Cached) { \
 			ml_value_t **Args2 = ml_alloc_args(COUNT + 1); \
@@ -438,7 +486,8 @@ static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
 
 extern ml_value_t *AppendMethod;
 
-static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
+static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
+	DEBUG_STRUCT(frame) *Frame = (DEBUG_STRUCT(frame) *)State;
 	static const void *Labels[] = {
 		[MLI_AND] = &&DO_AND,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
@@ -518,7 +567,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	CALL_LABELS(CALL_METHOD);
 	CALL_LABELS(TAIL_CALL_METHOD);
 #ifdef ML_SCHEDULER
+#ifndef ML_TIMESCHED
 	uint64_t Counter = Frame->Counter[0];
+#endif
 #endif
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -641,7 +692,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 3);
 	}
 	DO_GOTO: {
-		ADVANCE(Inst[1].Inst);
+		ADVANCE_GOTO(Inst[1].Inst);
 	}
 	DO_TRY: {
 		Frame->OnError = Inst[1].Inst;
@@ -653,6 +704,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
+		}
+		for (ml_state_t *State = Frame->Base.Caller; State; State = State->Caller) {
+			ml_source_t Source = ml_debugger_source(State);
+			if (strcmp(Source.Name, "<unknown>")) ml_error_trace_add(Result, Source);
 		}
 		Result = ml_error_unwrap(Result);
 		ml_value_t **Old = Frame->Stack + Inst[2].Count;
@@ -919,7 +974,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LOCALI: {
 		ml_value_t **Slot = &Top[Inst[1].Count];
 		Result = Slot[0];
-		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Chars, (ml_source_t){Frame->Source, Inst->Line});
+		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Decls->Ident, (ml_source_t){Frame->Source, Inst->Line});
 		ADVANCE(Inst + 3);
 	}
 	DO_TUPLE_NEW: {
@@ -1151,7 +1206,7 @@ static void ml_closure_call_debug(ml_state_t *Caller, ml_closure_t *Closure, int
 
 static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, int Count, ml_value_t **Args) {
 	ml_closure_info_t *Info = Closure->Info;
-	ml_debugger_t *Debugger = (ml_debugger_t *)Caller->Context->Values[ML_DEBUGGER_INDEX];
+	ml_debugger_t *Debugger = (ml_debugger_t *)ml_context_get_static(Caller->Context, ML_DEBUGGER_INDEX);
 #ifndef DEBUG_VERSION
 	if (Debugger) return ml_closure_call_debug(Caller, Closure, Count, Args);
 #endif
@@ -1267,7 +1322,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Inst = Info->Entry;
 	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
-	Frame->Counter = (uint64_t *)Caller->Context->Values[ML_COUNTER_INDEX];
+#ifndef ML_TIMESCHED
+	Frame->Counter = (uint64_t *)ml_context_get_static(Caller->Context, ML_COUNTER_INDEX);
+#endif
 #endif
 #ifdef DEBUG_VERSION
 	Frame->Debugger = Debugger;
@@ -1624,6 +1681,31 @@ ML_METHOD("sha256", MLClosureT) {
 	return ml_address(Hash, SHA256_BLOCK_SIZE);
 }
 
+#ifdef ML_NANBOXING
+
+#define NegOne ml_integer32(-1)
+#define One ml_integer32(1)
+#define Zero ml_integer32(0)
+
+#else
+
+static ml_integer_t One[1] = {{MLIntegerT, 1}};
+static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
+static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
+
+#endif
+
+ML_METHOD("<>", MLClosureT, MLClosureT) {
+//!internal
+	char Hash1[SHA256_BLOCK_SIZE], Hash2[SHA256_BLOCK_SIZE];
+	ml_closure_sha256(Args[0], (unsigned char *)Hash1);
+	ml_closure_sha256(Args[1], (unsigned char *)Hash2);
+	int Comp = memcmp(Hash1, Hash2, SHA256_BLOCK_SIZE);
+	if (Comp < 0) return (ml_value_t *)NegOne;
+	if (Comp > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
 static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) {
 	if (ml_is(Value, MLStringT)) {
 		ml_stringbuffer_write(Buffer, " \"", 2);
@@ -1654,8 +1736,17 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 	//ml_stringbuffer_printf(Buffer, "[%ld]", Hash);
 }
 
-static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
-	if (Inst->Label) ml_stringbuffer_printf(Buffer, "L%d:", Inst->Label);
+typedef struct closure_list_cache_t closure_list_cache_t;
+
+struct  closure_list_cache_t {
+	closure_list_cache_t *Next;
+	ml_closure_info_t *Info;
+};
+
+static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer, closure_list_cache_t *Cache) {
+	if (Inst->Label) {
+		ml_stringbuffer_printf(Buffer, "L%d:", Inst->Label);
+	}
 	ml_stringbuffer_printf(Buffer, "\t %3d %s", Inst->Line, MLInstNames[Inst->Opcode]);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: return 1;
@@ -1663,9 +1754,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
 	case MLIT_INST_CONFIG:
-		// TODO: Implement this!
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
-		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
+		ml_stringbuffer_printf(Buffer, ", %s", ml_config_name(Inst[2].Data));
 		return 3;
 	case MLIT_INST_COUNT:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
@@ -1739,9 +1829,15 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			ml_stringbuffer_printf(Buffer, ", %d", Inst[2 + N].Count);
 		}
-		ml_stringbuffer_write(Buffer, "\n\t    /--------\\\n", strlen("\n\t    /--------\\\n"));
-		ml_closure_info_list(Buffer, Info);
-		ml_stringbuffer_write(Buffer, "\t    \\--------/", strlen("\t    \\--------/"));
+		closure_list_cache_t *Last = Cache;
+		while (Last->Next && Last->Info != Info) {
+			Last = Last->Next;
+		}
+		if (Last->Info != Info) {
+			closure_list_cache_t *Next = new(closure_list_cache_t);
+			Next->Info = Info;
+			Last->Next = Next;
+		}
 		return 2 + Info->NumUpValues;
 	}
 	case MLIT_SWITCH: {
@@ -1791,15 +1887,15 @@ ML_METHOD("values", MLClosureT) {
 	return Result;
 }
 
-void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info) {
+void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info, closure_list_cache_t *Cache) {
 	ml_closure_info_labels(Info);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
 			Inst = Inst[1].Inst;
 		} else {
-			Inst += ml_closure_inst_list(Inst, Buffer);
+			Inst += ml_closure_inst_list(Inst, Buffer, Cache);
+			ml_stringbuffer_put(Buffer, '\n');
 		}
-		ml_stringbuffer_put(Buffer, '\n');
 	}
 }
 
@@ -1809,15 +1905,17 @@ ML_METHOD("list", MLClosureT) {
 // Returns a listing of the bytecode of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_closure_info_t *Info = Closure->Info;
-	ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
-	ml_closure_info_list(Buffer, Info);
-	ml_stringbuffer_put(Buffer, '\n');
-	for (int I = 0; I < Info->NumUpValues; ++I) {
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
 		ml_value_t *UpValue = Closure->UpValues[I + 1];
 		ml_stringbuffer_printf(Buffer, "Upvalues %d:", I);
 		ml_closure_value_list(UpValue, Buffer);
 		ml_stringbuffer_put(Buffer, '\n');
+	}
+	closure_list_cache_t Cache[1] = {{NULL, Closure->Info}};
+	for (closure_list_cache_t *Next = Cache; Next; Next = Next->Next) {
+		ml_closure_info_t *Info = Next->Info;
+		ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
+		ml_closure_info_list(Buffer, Info, Cache);
 	}
 	return ml_stringbuffer_to_string(Buffer);
 }
@@ -1839,33 +1937,78 @@ ML_METHOD("jit", MLClosureT) {
 
 static void vlq64_encode(ml_stringbuffer_t *Buffer, int64_t Value) {
 	unsigned char Bytes[9];
-	uint64_t X = (uint64_t)Value;
-	unsigned char Sign = 0;
+	uint64_t V;
 	if (Value < 0) {
-		X = ~X;
-		Sign = 128;
-	}
-	uint64_t Y = X & 63;
-	X >>= 6;
-	if (!X) {
-		Bytes[0] = Sign + Y;
-		ml_stringbuffer_write(Buffer, (const char *)Bytes, 1);
+		V = (~(uint64_t)Value << 1) + 1;
 	} else {
-		Bytes[0] = Sign + 64 + Y;
-		unsigned char *Ptr = Bytes + 1;
-		for (int I = 1; I < 8; ++I) {
-			Y = X & 127;
-			X >>= 6;
-			if (!X) {
-				*Ptr = Y;
-				ml_stringbuffer_write(Buffer, (const char *)Bytes, (Ptr - Bytes) + 1);
-				return;
-			}
-			*Ptr++ = 128 + Y;
-		}
-		*Ptr = (unsigned char)X;
-		ml_stringbuffer_write(Buffer, (const char *)Bytes, (Ptr - Bytes) + 1);
+		V = (uint64_t)Value << 1;
 	}
+	int N;
+	if (V <= 240) {
+		Bytes[0] = V;
+		N = 1;
+	} else if (V <= 2287) {
+		Bytes[0] = ((V - 240) >> 8) + 241;
+		Bytes[1] = (V - 240) & 255;
+		N = 2;
+	} else if (V <= 67823) {
+		Bytes[0] = 249;
+		Bytes[1] = (V - 2288) >> 8;
+		Bytes[2] = (V - 2288) & 255;
+		N = 3;
+	} else if (V <= 16777215) {
+		Bytes[0] = 250;
+		Bytes[1] = V >> 16;
+		Bytes[2] = (V >> 8) & 255;
+		Bytes[3] = V & 255;
+		N = 4;
+	} else if (V <= 4294967295) {
+		Bytes[0] = 251;
+		Bytes[1] = (V >> 24) & 255;
+		Bytes[2] = (V >> 16) & 255;
+		Bytes[3] = (V >> 8) & 255;
+		Bytes[4] = V & 255;
+		N = 5;
+	} else if (V <= 1099511627775) {
+		Bytes[0] = 252;
+		Bytes[1] = (V >> 32) & 255;
+		Bytes[2] = (V >> 24) & 255;
+		Bytes[3] = (V >> 16) & 255;
+		Bytes[4] = (V >> 8) & 255;
+		Bytes[5] = V & 255;
+		N = 6;
+	} else if (V <= 281474976710655) {
+		Bytes[0] = 253;
+		Bytes[1] = (V >> 40) & 255;
+		Bytes[2] = (V >> 32) & 255;
+		Bytes[3] = (V >> 24) & 255;
+		Bytes[4] = (V >> 16) & 255;
+		Bytes[5] = (V >> 8) & 255;
+		Bytes[6] = V & 255;
+		N = 7;
+	} else if (V <= 72057594037927935) {
+		Bytes[0] = 254;
+		Bytes[1] = (V >> 48) & 255;
+		Bytes[2] = (V >> 40) & 255;
+		Bytes[3] = (V >> 32) & 255;
+		Bytes[4] = (V >> 24) & 255;
+		Bytes[5] = (V >> 16) & 255;
+		Bytes[6] = (V >> 8) & 255;
+		Bytes[7] = V & 255;
+		N = 8;
+	} else {
+		Bytes[0] = 255;
+		Bytes[1] = (V >> 54) & 255;
+		Bytes[2] = (V >> 48) & 255;
+		Bytes[3] = (V >> 40) & 255;
+		Bytes[4] = (V >> 32) & 255;
+		Bytes[5] = (V >> 24) & 255;
+		Bytes[6] = (V >> 16) & 255;
+		Bytes[7] = (V >> 8) & 255;
+		Bytes[8] = V & 255;
+		N = 9;
+	}
+	ml_stringbuffer_write(Buffer, (const char *)Bytes, N);
 }
 
 static void vlq64_encode_string(ml_stringbuffer_t *Buffer, const char *Value) {
@@ -1898,6 +2041,8 @@ static int ml_stringbuffer_copy(ml_stringbuffer_t *Buffer, const char *String, s
 	ml_stringbuffer_write(Buffer, String, Length);
 	return 0;
 }
+
+#define ML_BYTECODE_ENCODING 2
 
 static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer, ml_closure_info_t *Info) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -2010,11 +2155,15 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			Inst += 2;
 			break;
-		case MLIT_INST_CONFIG:
-			// TODO: Implement this!
+		case MLIT_INST_CONFIG: {
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
-			Inst += 2;
+			const char *Name = ml_config_name(Inst[2].Data) ?: "<unknown>";
+			int NameLength = strlen(Name);
+			vlq64_encode(Buffer, NameLength);
+			ml_stringbuffer_write(Buffer, Name, NameLength);
+			Inst += 3;
 			break;
+		}
 		case MLIT_INST_COUNT:
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			vlq64_encode(Buffer, Inst[2].Count);
@@ -2114,49 +2263,76 @@ typedef struct {
 	int Count;
 } vlq_result_t;
 
-static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
-	int64_t X = Bytes[0] & 63;
-	if (!(Bytes[0] & 64)) {
-		if (Bytes[0] & 128) X = ~X;
-		return (vlq_result_t){X, 1};
+static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
+	int N;
+	uint64_t X = 0;
+	switch (Bytes[0]) {
+	case 0 ... 240:
+		N = 1;
+		X = Bytes[0];
+		break;
+	case 241 ... 248:
+		N = 2;
+		if (Length >= N) X = 240 + (((uint64_t)Bytes[0] - 241) << 8) + Bytes[1];
+		break;
+	case 249:
+		N = 3;
+		if (Length >= N) X = 2288 + ((uint64_t)Bytes[1] << 8) + Bytes[2];
+		break;
+	case 250:
+		N = 4;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 16) + ((uint64_t)Bytes[2] << 8) + Bytes[3];
+		break;
+	case 251:
+		N = 5;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 24) + ((uint64_t)Bytes[2] << 16) + ((uint64_t)Bytes[3] << 8) + Bytes[4];
+		break;
+	case 252:
+		N = 6;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 32) + ((uint64_t)Bytes[2] << 24) + ((uint64_t)Bytes[3] << 16) + ((uint64_t)Bytes[4] << 8) + Bytes[5];
+		break;
+	case 253:
+		N = 7;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 40) + ((uint64_t)Bytes[2] << 32) + ((uint64_t)Bytes[3] << 24) + ((uint64_t)Bytes[4] << 16) + ((uint64_t)Bytes[5] << 8) + Bytes[6];
+		break;
+	case 254:
+		N = 8;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 48) + ((uint64_t)Bytes[2] << 40) + ((uint64_t)Bytes[3] << 32) + ((uint64_t)Bytes[4] << 24) + ((uint64_t)Bytes[5] << 16) + ((uint64_t)Bytes[6] << 8) + Bytes[7];
+		break;
+	case 255:
+		N = 9;
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 54) + ((uint64_t)Bytes[2] << 48) + ((uint64_t)Bytes[3] << 40) + ((uint64_t)Bytes[4] << 32) + ((uint64_t)Bytes[5] << 24) + ((uint64_t)Bytes[6] << 16) + ((uint64_t)Bytes[7] << 8) + Bytes[8];
+		break;
 	}
-	int Shift = 6;
-	for (int I = 1; I < 8; ++I) {
-		X += (uint64_t)(Bytes[I] & 127) << Shift;
-		Shift += 7;
-		if (!(Bytes[I] & 128)) {
-			if (Bytes[0] & 128) X = ~X;
-			return (vlq_result_t){X, I + 1};
-		}
+	if (X % 2) {
+		return (vlq_result_t){(int64_t)~(X >> 1), N};
+	} else {
+		return (vlq_result_t){(int64_t)(X >> 1), N};
 	}
-	X += (uint64_t)Bytes[8] << 55;
-	return (vlq_result_t){X, 9};
 }
 
 #define VLQ64_NEXT() ({ \
-	vlq_result_t Result = vlq64_decode(Bytes); \
+	if (Length <= 0) ML_ERROR("CBORError", "Invalid closure info"); \
+	vlq_result_t Result = vlq64_decode(Bytes, Length); \
+	if (Length < Result.Count) ML_ERROR("CBORError", "Invalid closure info"); \
 	Length -= Result.Count; \
-	if (Length < 0) return ml_error("CBORError", "Invalid closure info"); \
 	Bytes += Result.Count; \
 	Result.Value; \
 })
 
 #define VLQ64_NEXT_STRING() ({ \
-	vlq_result_t Result = vlq64_decode(Bytes); \
-	Length -= Result.Count; \
-	if (Result.Value < 0) return ml_error("CBORError", "Invalid closure info"); \
-	if (Length < Result.Value) return ml_error("CBORError", "Invalid closure info"); \
-	Bytes += Result.Count; \
+	int Count = VLQ64_NEXT(); \
+	if (Length < Count) ML_ERROR("CBORError", "Invalid closure info"); \
 	char *String = snew(Length + 1); \
-	memcpy(String, Bytes, Result.Value); \
-	String[Result.Value] = 0; \
-	Length -= Result.Value; \
-	Bytes += Result.Value; \
+	memcpy(String, Bytes, Count); \
+	String[Count] = 0; \
+	Length -= Count; \
+	Bytes += Count; \
 	String; \
 })
 
 #define NEXT_VALUE(DEST) { \
-	ML_CHECK_ARG_COUNT(Index + 1); \
+	ML_CHECKX_ARG_COUNT(Index + 1); \
 	ml_value_t *Value = Args[Index++]; \
 	if (ml_typeof(Value) == MLUninitializedT) { \
 		ml_uninitialized_use(Value, &DEST); \
@@ -2164,20 +2340,24 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 	DEST = Value; \
 }
 
-ML_FUNCTION(DecodeClosureInfo) {
+#define TOP_UNKNOWN -1
+#define TOP_INVALID -2
+
+ML_FUNCTIONZ(DecodeClosureInfo) {
 //!internal
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLAddressT);
+	ML_CHECKX_ARG_COUNT(1);
+	Args[0] = ml_deref(Args[0]);
+	ML_CHECKX_ARG_TYPE(0, MLAddressT);
 	const unsigned char *Bytes = (const unsigned char *)ml_address_value(Args[0]);
 	int Length = ml_address_length(Args[0]);
 	int Version = VLQ64_NEXT();
-	if (Version != ML_BYTECODE_VERSION) return ml_error("CBORError", "Bytecode version mismatch");
+	if (Version != ML_BYTECODE_VERSION) ML_ERROR("CBORError", "Bytecode version mismatch");
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Type = MLClosureInfoT;
 	Info->Name = VLQ64_NEXT_STRING();
 	Info->Source = VLQ64_NEXT_STRING();
 	Info->StartLine = VLQ64_NEXT();
-	Info->FrameSize = VLQ64_NEXT();
+	int FrameSize = Info->FrameSize = VLQ64_NEXT();
 	Info->NumParams = VLQ64_NEXT();
 	Info->NumUpValues = VLQ64_NEXT();
 	Info->Flags = VLQ64_NEXT() & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS);
@@ -2186,6 +2366,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 		stringmap_insert(Info->Params, Param, (void *)(uintptr_t)(I + 1));
 	}
 	int NumDecls = VLQ64_NEXT();
+	//if (NumDecls > Length / 4) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_decl_t *Decls = anew(ml_decl_t, NumDecls);
 	for (int I = 0; I < NumDecls; ++I) {
 		Decls[I].Ident = VLQ64_NEXT_STRING();
@@ -2199,20 +2380,23 @@ ML_FUNCTION(DecodeClosureInfo) {
 	int DeclIndex = VLQ64_NEXT();
 	Info->Decls = DeclIndex >= 0 ? &Decls[DeclIndex] : NULL;
 	int NumInsts = VLQ64_NEXT();
+	//if (NumInsts > Length + Count) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
 	ml_inst_t *Halt = Info->Halt = Code + NumInsts;
-	ml_inst_t *Inst = Code;
-	Info->Return = Inst + VLQ64_NEXT();
+	Info->Return = Code + VLQ64_NEXT();
 	int Line = VLQ64_NEXT() + Info->StartLine;
 	int EndLine = Info->StartLine;
 	int Index = 1;
-	while (Inst < Halt) {
+	int *Checks = asnew(int, NumInsts);
+	for (int I = 0; I < NumInsts; ++I) Checks[I] = TOP_INVALID;
+	for (ml_inst_t *Inst = Code; Inst < Halt;) {
 		ml_opcode_t Opcode = (ml_opcode_t)VLQ64_NEXT();
 		if (Opcode == MLI_LINK) {
 			Line += VLQ64_NEXT();
 			if (Line > EndLine) EndLine = Line;
 			continue;
 		}
+		Checks[Inst - Code] = TOP_UNKNOWN;
 		Inst->Opcode = Opcode;
 		Inst->Line = Line;
 		switch (MLInstTypes[Opcode]) {
@@ -2221,11 +2405,14 @@ ML_FUNCTION(DecodeClosureInfo) {
 		case MLIT_INST:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst += 2; break;
-		case MLIT_INST_CONFIG:
-			// TODO: Implement this!
+		case MLIT_INST_CONFIG: {
 			Inst[1].Inst = Code + VLQ64_NEXT();
-			Inst[2].Count = VLQ64_NEXT();
+			const char *Name = VLQ64_NEXT_STRING();
+			ml_config_fn Fn = ml_config_lookup(Name);
+			if (!Fn) ML_ERROR("CBORError", "Unknown config %s", Name);
+			Inst[2].Data = (void *)Fn;
 			Inst += 3; break;
+		}
 		case MLIT_INST_COUNT:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst[2].Count = VLQ64_NEXT();
@@ -2291,7 +2478,305 @@ ML_FUNCTION(DecodeClosureInfo) {
 		}
 	}
 	Info->EndLine = EndLine;
-	return (ml_value_t *)Info;
+#if 0
+	int Top = 0;
+	for (ml_inst_t *Inst = Code; Inst < Halt;) {
+		int Index = Inst - Code;
+		if (Top == TOP_UNKNOWN) {
+			if (Checks[Index] == TOP_UNKNOWN) ML_ERROR("CBORError", "Invalid bytecode");
+			Top = Checks[Index];
+		} else if (Checks[Index] == TOP_UNKNOWN) {
+			Checks[Index] = Top;
+		} else if (Checks[Index] != Top) {
+			ML_ERROR("CBORError", "Invalid bytecode");
+		}
+
+#define CHECK_TARGET(INST, TOP) { \
+	ml_inst_t *Inst2 = INST; \
+	int Top2 = TOP; \
+	if (Inst2 < Code || Inst2 >= Halt) ML_ERROR("CBORError", "Invalid bytecode"); \
+	int Index = Inst2 - Code; \
+	switch (Checks[Index]) { \
+	case TOP_INVALID: ML_ERROR("CBORError", "Invalid bytecode"); \
+	case TOP_UNKNOWN: Checks[Index] = Top2; break; \
+	default: if (Checks[Index] != Top2) ML_ERROR("CBORError", "Invalid bytecode"); \
+	} \
+}
+
+#define CHECK_CATCH(INST) { \
+	ml_inst_t *Inst2 = INST; \
+	int Index = Inst2 - Code; \
+	switch (Checks[Index]) { \
+	case TOP_INVALID: ML_ERROR("CBORError", "Invalid bytecode"); \
+	case TOP_UNKNOWN: Checks[Index] = Top2; break; \
+	default: if (Checks[Index] != Top2) ML_ERROR("CBORError", "Invalid bytecode"); \
+	} \
+}
+
+#define CHECK_TOP(N) if (N < 0 || N >= Top) ML_ERROR("CBORError", "Invalid bytecode");
+
+#define CHECK_INST(N) if (Inst + N >= Halt) ML_ERROR("CBORError", "Invalid bytecode");
+
+#define CHECK(COND) if (!(COND)) ML_ERROR("CBORError", "Invalid bytecode");
+
+		switch (Inst->Opcode) {
+		case MLI_AND: {
+			CHECK_INST(1);
+			CHECK_TARGET(Inst[1].Inst, Top);
+			Inst += 2;
+			break;
+		}
+		case MLI_AND_POP: {
+			CHECK_INST(2);
+			CHECK(Inst[2].Count >= 0);
+			CHECK_TOP(Inst[2].Count);
+			CHECK_TARGET(Inst[1].Inst, Top - Inst[2].Count);
+			Inst += 3;
+			break;
+		}
+		case MLI_ASSIGN: {
+			CHECK_INST(1);
+			CHECK_TOP(1);
+			Top -= 1;
+			Inst += 2;
+			break;
+		}
+		case MLI_ASSIGN_LOCAL: {
+			CHECK_INST(1);
+			CHECK_TOP(Inst[1].Count);
+			Inst += 2;
+			break;
+		}
+		case MLI_CALL: {
+			CHECK_INST(1);
+			CHECK(Inst[1].Count >= 0);
+			CHECK_TOP(Inst[1].Count + 1);
+			Top -= (Inst[1].Count + 1);
+			Inst += 2;
+			break;
+		}
+		case MLI_CALL_CONST: {
+			CHECK_INST(2);
+			CHECK(Inst[1].Count >= 0);
+			CHECK_TOP(Inst[1].Count);
+			Top -= Inst[1].Count;
+			Inst += 3;
+			break;
+		}
+		case MLI_CALL_METHOD: {
+			CHECK_INST(3);
+			CHECK(Inst[1].Count >= 0);
+			CHECK_TOP(Inst[1].Count);
+			Inst += 4;
+			break;
+		}
+		case MLI_CATCH: {
+			CHECK_INST(3);
+			CHECK_TARGET()
+			Inst += 4;
+			break;
+		}
+		case MLI_CATCHX: {
+			CHECK_INST(3);
+			Inst += 4;
+			break;
+		}
+		case MLI_CLOSURE: {
+			break;
+		}
+		case MLI_CLOSURE_TYPED: {
+			break;
+		}
+		case MLI_ENTER: {
+			break;
+		}
+		case MLI_EXIT: {
+			break;
+		}
+		case MLI_FOR: {
+			break;
+		}
+		case MLI_GOTO: {
+			break;
+		}
+		case MLI_IF_CONFIG: {
+			break;
+		}
+		case MLI_ITER: {
+			break;
+		}
+		case MLI_KEY: {
+			break;
+		}
+		case MLI_LET: {
+			break;
+		}
+		case MLI_LETI: {
+			break;
+		}
+		case MLI_LETX: {
+			break;
+		}
+		case MLI_LINK: {
+			break;
+		}
+		case MLI_LIST_APPEND: {
+			break;
+		}
+		case MLI_LIST_NEW: {
+			break;
+		}
+		case MLI_LOAD: {
+			break;
+		}
+		case MLI_LOAD_PUSH: {
+			break;
+		}
+		case MLI_LOAD_VAR: {
+			break;
+		}
+		case MLI_LOCAL: {
+			break;
+		}
+		case MLI_LOCALI: {
+			break;
+		}
+		case MLI_LOCAL_PUSH: {
+			break;
+		}
+		case MLI_MAP_INSERT: {
+			break;
+		}
+		case MLI_MAP_NEW: {
+			break;
+		}
+		case MLI_NEXT: {
+			break;
+		}
+		case MLI_NIL: {
+			break;
+		}
+		case MLI_NIL_PUSH: {
+			break;
+		}
+		case MLI_NOT: {
+			break;
+		}
+		case MLI_OR: {
+			break;
+		}
+		case MLI_PARAM_TYPE: {
+			break;
+		}
+		case MLI_PARTIAL_NEW: {
+			break;
+		}
+		case MLI_PARTIAL_SET: {
+			break;
+		}
+		case MLI_POP: {
+			break;
+		}
+		case MLI_PUSH: {
+			break;
+		}
+		case MLI_REF: {
+			break;
+		}
+		case MLI_REFI: {
+			break;
+		}
+		case MLI_REFX: {
+			break;
+		}
+		case MLI_RESOLVE: {
+			break;
+		}
+		case MLI_RESUME: {
+			break;
+		}
+		case MLI_RETRY: {
+			break;
+		}
+		case MLI_RETURN: {
+			break;
+		}
+		case MLI_STRING_ADD: {
+			break;
+		}
+		case MLI_STRING_ADDS: {
+			break;
+		}
+		case MLI_STRING_ADD_1: {
+			break;
+		}
+		case MLI_STRING_END: {
+			break;
+		}
+		case MLI_STRING_NEW: {
+			break;
+		}
+		case MLI_STRING_POP: {
+			break;
+		}
+		case MLI_SUSPEND: {
+			break;
+		}
+		case MLI_SWITCH: {
+			break;
+		}
+		case MLI_TAIL_CALL: {
+			CHECK_INST(1);
+			CHECK_POP(Inst[1].Count + 1);
+			Inst += 2;
+			break;
+		}
+		case MLI_TAIL_CALL_CONST: {
+			CHECK_INST(2);
+			CHECK_POP(Inst[1].Count);
+			Inst += 3;
+			break;
+		}
+		case MLI_TAIL_CALL_METHOD: {
+			CHECK_INST(3);
+			CHECK_POP(Inst[1].Count);
+			Inst += 4;
+			break;
+		}
+		case MLI_TRY: {
+			break;
+		}
+		case MLI_TUPLE_NEW: {
+			break;
+		}
+		case MLI_UPVALUE: {
+			break;
+		}
+		case MLI_VALUE_1: {
+			break;
+		}
+		case MLI_VALUE_2: {
+			break;
+		}
+		case MLI_VAR: {
+			break;
+		}
+		case MLI_VARX: {
+			break;
+		}
+		case MLI_VAR_TYPE: {
+			break;
+		}
+		case MLI_WITH: {
+			break;
+		}
+		case MLI_WITHX: {
+			break;
+		}
+		}
+	}
+#endif
+	ML_RETURN(Info);
 }
 
 ML_FUNCTION(DecodeClosure) {
@@ -2415,7 +2900,7 @@ ML_FUNCTION(DecodeFrame) {
 		Frame->Base.Caller = MLEndState;
 	}
 	Frame->Base.run = (ml_state_fn)ml_frame_run;
-	Frame->Base.Context = &MLRootContext;
+	Frame->Base.Context = MLRootContext;
 	Frame->Inst = Info->Entry + ml_integer_value(Args[2]);
 	Frame->OnError = Info->Entry + ml_integer_value(Args[3]);
 	Frame->Source = ml_string_value(Args[4]);
@@ -2433,6 +2918,7 @@ ML_FUNCTION(DecodeFrame) {
 #undef DEBUG_VERSION
 
 void ml_bytecode_init() {
+	ml_cache_register("Frame", ml_frame_cache_usage, ml_frame_cache_clear, NULL);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLClosureT, MLFunctionT, ML_TYPE_ARG(1), NULL);
 #endif

@@ -34,6 +34,38 @@ struct ml_context_t {
 	void *Values[];
 };
 
+extern ml_context_t *MLRootContext;
+
+ml_context_t *ml_context(ml_context_t *Parent) __attribute__((malloc));
+
+#ifdef ML_CONTEXT_SECTION
+
+extern __attribute__ ((section("ml_context_section"))) void *ML_METHODS_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_VARIABLES_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_DEBUGGER_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_SCHEDULER_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_COUNTER_INDEX[];
+extern __attribute__ ((section("ml_context_section"))) void *ML_THREAD_INDEX[];
+
+extern __attribute__ ((section("ml_context_section"))) void *__start_ml_context_section[];
+extern __attribute__ ((section("ml_context_section"))) void *__stop_ml_context_section[];
+
+static inline void *ml_context_get_static(ml_context_t *Context, void **Index) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	return Context->Values[Index - __start_ml_context_section];
+#pragma GCC diagnostic pop
+}
+
+static inline void ml_context_set_static(ml_context_t *Context, void **Index, void *Value) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	Context->Values[Index - __start_ml_context_section] = Value;
+#pragma GCC diagnostic pop
+}
+
+#else
+
 enum {
 	ML_METHODS_INDEX,
 	ML_VARIABLES_INDEX,
@@ -44,20 +76,38 @@ enum {
 	ML_CONTEXT_SIZE
 };
 
-extern ml_context_t MLRootContext;
+static inline void *ml_context_get_static(ml_context_t *Context, int Index) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	return Context->Values[Index];
+#pragma GCC diagnostic pop
+}
 
-ml_context_t *ml_context(ml_context_t *Parent) __attribute__((malloc));
+static inline void ml_context_set_static(ml_context_t *Context, int Index, void *Value) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+	Context->Values[Index] = Value;
+#pragma GCC diagnostic pop
+}
+
+#endif
 
 int ml_context_index();
+void ml_context_reserve(int Index);
 
-#define ml_context_get(CONTEXT, INDEX) ((CONTEXT)->Size <= (INDEX) ? NULL : (CONTEXT)->Values[(INDEX)])
+static inline void *ml_context_get_dynamic(ml_context_t *Context, int Index) {
+	return Context->Size <= Index ? NULL : Context->Values[Index];
+}
 
-void ml_context_set(ml_context_t *Context, int Index, void *Value);
+static inline void ml_context_set_dynamic(ml_context_t *Context, int Index, void *Value) {
+	if (Context->Size > Index) Context->Values[Index] = Value;
+}
 
 typedef int (*ml_config_fn)(ml_context_t *Context);
 
 void ml_config_register(const char *Name, ml_config_fn Fn);
 ml_config_fn ml_config_lookup(const char *Name);
+const char *ml_config_name(void *Fn);
 
 typedef void (*ml_state_fn)(ml_state_t *State, ml_value_t *Result);
 
@@ -80,6 +130,8 @@ extern ml_type_t MLStateT[];
 extern ml_state_t MLEndState[];
 
 ml_state_t *ml_state(ml_state_t *Caller) __attribute__ ((malloc));
+
+void ml_state_continue(ml_state_t *State, ml_value_t *Value);
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
 
@@ -107,13 +159,26 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
-void ml_runtime_init(const char *ExecName);
-
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;
 	ml_value_t *Values[];
 } ml_iter_state_t;
+
+void ml_runtime_init(const char *ExecName);
+
+// Caches //
+
+typedef size_t (*ml_cache_usage_fn)(void *Arg);
+typedef void (*ml_cache_clear_fn)(void *Arg);
+
+void ml_cache_register(const char *Name, ml_cache_usage_fn Usage, ml_cache_clear_fn Clear, void *Arg);
+
+typedef void (*ml_cache_usage_callback_fn)(const char *Name, size_t Usage, void *Arg);
+
+void ml_cache_usage(ml_cache_usage_callback_fn Callback, void *Arg);
+void ml_cache_clear(const char *Name);
+void ml_cache_clear_all();
 
 // Nested Comparisons //
 
@@ -221,8 +286,8 @@ struct ml_debugger_t {
 	size_t Revision;
 	void (*run)(ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value);
 	size_t *(*breakpoints)(ml_debugger_t *Debugger, const char *Source, int LineNo);
-	int StepIn:1;
-	int BreakOnError:1;
+	unsigned int StepIn:1;
+	unsigned int BreakOnError:1;
 };
 
 int ml_debugger_check(ml_state_t *State);
@@ -237,10 +302,16 @@ extern ml_cfunctionx_t MLTrace[];
 
 // Preemption //
 
+extern volatile int MLPreempt;
+
 typedef struct ml_scheduler_t ml_scheduler_t;
 
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
 typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
+
+static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
+	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
+}
 
 #ifdef ML_THREADS
 
@@ -257,7 +328,7 @@ struct ml_scheduler_t {
 };
 
 static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
-	ml_scheduler_t *Scheduler = (ml_scheduler_t *)State->Context->Values[ML_SCHEDULER_INDEX];
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
 	Scheduler->add(Scheduler, State, Value);
 }
 
@@ -291,7 +362,7 @@ extern ml_cfunctionx_t MLFinalizer[];
 #define ML_STATE_FN2(NAME, FUNCTION) \
 static void FUNCTION(ml_state_t *State, ml_value_t *Value); \
 \
-static ml_state_t NAME[1] = {{MLStateT, NULL, FUNCTION, &MLRootContext}}; \
+static ml_state_t NAME[1] = {{MLStateT, NULL, FUNCTION, NULL}}; \
 \
 static void FUNCTION(ml_state_t *State, ml_value_t *Value)
 

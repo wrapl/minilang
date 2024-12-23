@@ -31,14 +31,20 @@ typedef void (*ml_library_entry0_t)(ml_value_t **Slot);
 #define LIBRARY_ENTRY(NAME) TOSTRING3(ml_, NAME, _entry)
 #define LIBRARY_ENTRY0(NAME) TOSTRING3(ml_, NAME, _entry0)
 
+#ifdef __cplusplus
+#define ML_EXTERN extern "C"
+#else
+#define ML_EXTERN
+#endif
+
 #define ML_LIBRARY_ENTRY(NAME) \
-void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot); \
-void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY(NAME)))); \
+ML_EXTERN void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot); \
+ML_EXTERN void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY(NAME)))); \
 void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot)
 
 #define ML_LIBRARY_ENTRY0(NAME) \
-void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot); \
-void ml_library_entry0(ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY0(NAME)))); \
+ML_EXTERN void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot); \
+ML_EXTERN void ml_library_entry0(ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY0(NAME)))); \
 void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot)
 
 typedef void (*ml_main_loop_t)();

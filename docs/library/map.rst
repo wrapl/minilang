@@ -9,6 +9,14 @@ map
 
 .. rst-class:: mini-api
 
+:mini:`fun mlmaplabeller()`
+   *TBD*
+
+
+:mini:`fun mlmaptemplate()`
+   *TBD*
+
+
 :mini:`meth (Key: any):in(Map: map): any | nil`
    Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
 
@@ -201,6 +209,10 @@ map
    Returns the first value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
 
+:mini:`meth (Map: map):first2`
+   Returns the first key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+
+
 :mini:`meth (Map: map):from(Key: any): sequence | nil`
    Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
 
@@ -213,6 +225,10 @@ map
 
 :mini:`meth (Map: map):last`
    Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+
+
+:mini:`meth (Map: map):last2`
+   Returns the last key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
 
 :mini:`meth (Map: map):order: map::order`
@@ -234,8 +250,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "e"
-      M:random :> "c"
+      M:random :> "a"
+      M:random :> "k"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -252,6 +268,10 @@ map
 
 :mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
    Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+
+
+:mini:`type map::labeller < function, map`
+   *TBD*
 
 
 :mini:`type map::mutable < map`
@@ -316,6 +336,17 @@ map
       M:empty :> {}
 
 
+:mini:`meth (Map: map::mutable):exists(Key: any, Fn: function): any | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M:exists("A", fun(Key) Key:code) :> 1
+      M:exists("D", fun(Key) Key:code) :> nil
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+
+
 :mini:`meth (Arg₁: map::mutable):grow(Arg₂₁ is Value₁, ...)`
    *TBD*
 
@@ -353,13 +384,13 @@ map
 
 
 :mini:`meth (Map: map::mutable):missing(Key: any, Fn: function): any | nil`
-   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`some`.
+   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns the new value.
 
    .. code-block:: mini
 
       let M := {"A" is 1, "B" is 2, "C" is 3}
       M:missing("A", fun(Key) Key:code) :> nil
-      M:missing("D", fun(Key) Key:code) :> some
+      M:missing("D", fun(Key) Key:code) :> 68
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
@@ -536,6 +567,22 @@ map
       :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
 
 
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: integer, Arg₄: map::mutable)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: map::mutable)`
+   *TBD*
+
+
 :mini:`meth (Map: map::mutable):take(Source: map::mutable): map`
    Inserts the key-value pairs from :mini:`Source` into :mini:`Map`,  leaving :mini:`Source` empty.
 
@@ -556,13 +603,13 @@ map
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
@@ -570,10 +617,14 @@ map
 
 :mini:`type map::order < enum`
    * :mini:`::Insert` - default ordering; inserted pairs are put at end, no reordering on access.
-   * :mini:`::LRU` - inserted pairs are kept in ascending key order, no reordering on access.
-   * :mini:`::MRU` - inserted pairs are kept in descending key order, no reordering on access.
-   * :mini:`::Ascending` - inserted pairs are put at start, accessed pairs are moved to start.
-   * :mini:`::Descending` - inserted pairs are put at end, accessed pairs are moved to end.
+   * :mini:`::LRU` - inserted pairs are put at start, accessed pairs are moved to start.
+   * :mini:`::MRU` - inserted pairs are put at end, accessed pairs are moved to end.
+   * :mini:`::Ascending` - inserted pairs are kept in ascending key order, no reordering on access.
+   * :mini:`::Descending` - inserted pairs are kept in descending key order, no reordering on access.
+
+
+:mini:`type map::template < function`
+   *TBD*
 
 
 :mini:`fun map::reduce(Sequence: sequence, Reduce: function)`

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="unionml__inst__t" kind="union" language="C++" prot="public">
     <compoundname>ml_inst_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -63,7 +63,7 @@
         </inbodydescription>
         <location file="src/ml_bytecode.h" line="25" column="14" bodyfile="src/ml_bytecode.h" bodystart="25" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="unionml__inst__t_1af67180807a297f1466392868e8b58b69" prot="public" static="no" mutable="no">
+      <memberdef kind="variable" id="unionml__inst__t_1a793b4c966fde82917097fe95f6d722c4" prot="public" static="no" mutable="no">
         <type>struct <ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref></type>
         <definition>struct ml_inst_t </definition>
         <argsstring></argsstring>

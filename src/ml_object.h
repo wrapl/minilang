@@ -52,6 +52,7 @@ extern ml_type_t MLFieldT[];
 extern ml_type_t MLFieldMutableT[];
 
 ml_object_t *ml_field_owner(ml_field_t *Field);
+ml_value_t *ml_field_name(ml_field_t *Field);
 
 ml_type_t *ml_class(const char *Name);
 void ml_class_add_parent(ml_context_t *Context, ml_type_t *Class, ml_type_t *Parent);
@@ -60,6 +61,7 @@ void ml_class_add_field(ml_context_t *Context, ml_type_t *Class, ml_value_t *Fie
 ml_value_t *ml_class_modify(ml_context_t *Context, ml_class_t *Class, ml_value_t *Modifier);
 
 ml_value_t *ml_modified_field(ml_value_t *Field, ml_type_t *Type);
+ml_value_t *ml_watched_field(ml_value_t *Callback);
 
 size_t ml_class_size(const ml_type_t *Value) __attribute__ ((pure));
 const char *ml_class_field_name(const ml_type_t *Value, int Index) __attribute__ ((pure));
@@ -81,6 +83,7 @@ extern ml_type_t MLEnumValueT[];
 ml_type_t *ml_enum(const char *Name, ...);
 ml_type_t *ml_enum_cyclic(const char *Name, ...);
 ml_type_t *ml_enum2(const char *Name, ...);
+ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...);
 
 ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Enum);
 int64_t ml_enum_value_value(ml_value_t *Value);
@@ -117,6 +120,7 @@ const char *ml_flags_value_name(ml_value_t *Value);
 #define ML_FLAGS(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 #define ML_ENUM2(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 #define ML_FLAGS2(TYPE, NAME, VALUES ...) ml_type_t *TYPE
+#define ML_SUB_ENUM(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 
 #else
 
@@ -129,6 +133,7 @@ const char *ml_flags_value_name(ml_value_t *Value);
 #define ML_FLAGS(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags(NAME, VALUES, NULL)
 #define ML_ENUM2(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum2(NAME, VALUES, NULL)
 #define ML_FLAGS2(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags2(NAME, VALUES, NULL)
+#define ML_SUB_ENUM(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_sub_enum(NAME, VALUES, NULL)
 
 #endif
 

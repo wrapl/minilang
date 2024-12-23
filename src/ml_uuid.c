@@ -1,5 +1,6 @@
 #include "ml_uuid.h"
 #include "ml_macros.h"
+#include "ml_compiler2.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "uuid"
@@ -31,6 +32,33 @@ ml_value_t *ml_uuid_parse(const char *Value, int Length) {
 		return ml_error("UUIDError", "Invalid UUID string");
 	}
 	return (ml_value_t *)UUID;
+}
+
+ml_value_t *ml_parser_escape_uuid(ml_parser_t *Parser) {
+	const char *Next = ml_parser_clear(Parser);
+	char Quote = *Next++;
+	const char *End = Next;
+	while (End[0] != Quote) {
+		if (!End[0]) {
+			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+			break;
+		}
+		++End;
+	}
+	int Length = End - Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Next, Length);
+	Raw[Length] = 0;
+	ml_parser_input(Parser, End + 1, 0);
+	ml_value_t *Value = ml_uuid_parse(Raw, Length);
+	if (ml_is_error(Value)) return Value;
+	mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+	ValueExpr->compile = ml_value_expr_compile;
+	ml_source_t Source = ml_parser_position(Parser);
+	ValueExpr->Source = Source.Name;
+	ValueExpr->StartLine = ValueExpr->EndLine = Source.Line;
+	ValueExpr->Value = Value;
+	return ml_expr_value((mlc_expr_t *)ValueExpr);
 }
 
 static int ML_TYPED_FN(ml_value_is_constant, MLUUIDT, ml_value_t *Value) {
@@ -101,19 +129,109 @@ ML_METHOD("<>", MLUUIDT, MLUUIDT) {
 	return ml_integer(uuid_compare(UUIDA->Value, UUIDB->Value));
 }
 
-#define ml_comp_method_time_time(NAME, SYMBOL) \
+#define ml_comp_method_uuid_uuid(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLUUIDT, MLUUIDT) { \
 		ml_uuid_t *UUIDA = (ml_uuid_t *)Args[0]; \
 		ml_uuid_t *UUIDB = (ml_uuid_t *)Args[1]; \
 		return uuid_compare(UUIDA->Value, UUIDB->Value) SYMBOL 0 ? Args[1] : MLNil; \
 	}
 
-ml_comp_method_time_time("=", ==);
-ml_comp_method_time_time("!=", !=);
-ml_comp_method_time_time("<", <);
-ml_comp_method_time_time(">", >);
-ml_comp_method_time_time("<=", <=);
-ml_comp_method_time_time(">=", >=);
+ml_comp_method_uuid_uuid("=", ==);
+ml_comp_method_uuid_uuid("!=", !=);
+ml_comp_method_uuid_uuid("<", <);
+ml_comp_method_uuid_uuid(">", >);
+ml_comp_method_uuid_uuid("<=", <=);
+ml_comp_method_uuid_uuid(">=", >=);
+
+#ifdef ML_GENERICS
+
+static ml_map_node_t *ml_map_find_node_uuid(ml_map_t *Map, ml_value_t *Key) {
+	long Hash = ml_hash(Key);
+	const unsigned char *UUIDA = ml_uuid_value(Key);
+	ml_map_node_t *Node = Map->Root;
+	while (Node) {
+		int Compare;
+		if (Hash < Node->Hash) {
+			Compare = -1;
+		} else if (Hash > Node->Hash) {
+			Compare = 1;
+		} else {
+			const unsigned char *UUIDB = ml_uuid_value(Node->Key);
+			Compare = uuid_compare(UUIDA, UUIDB);
+		}
+		if (!Compare) {
+			return Node;
+		} else {
+			Node = Compare < 0 ? Node->Left : Node->Right;
+		}
+	}
+	return NULL;
+}
+
+extern ml_type_t MLMapIndexT[];
+extern ml_type_t MLMapMutableT[];
+void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node);
+void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node);
+
+ML_GENERIC_TYPE(MLMapMutableUUIDAnyT, MLMapMutableT, MLUUIDT, MLAnyT);
+
+ML_METHOD("[]", MLMapMutableUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+ML_METHOD("::", MLMapMutableUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+#ifdef ML_MUTABLES
+
+ML_GENERIC_TYPE(MLMapUUIDAnyT, MLMapT, MLUUIDT, MLAnyT);
+
+ML_METHOD("[]", MLMapUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+ML_METHOD("::", MLMapUUIDAnyT, MLUUIDT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_uuid(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+#endif
+
+#endif
 
 #ifdef ML_CBOR
 
@@ -136,10 +254,13 @@ static ml_value_t *ml_cbor_read_uuid_fn(ml_cbor_reader_t *Reader, ml_value_t *Va
 void ml_uuid_init(stringmap_t *Globals) {
 #include "ml_uuid_init.c"
 	ml_method_by_value(MLUUIDT->Constructor, NULL, ml_identity, MLUUIDT, NULL);
+	uuid_t NilUUID = {0,};
+	stringmap_insert(MLUUIDT->Exports, "nil", ml_uuid(NilUUID));
 	if (Globals) stringmap_insert(Globals, "uuid", MLUUIDT);
-	ml_string_fn_register("U", ml_uuid_parse);
+	//ml_string_fn_register("U", ml_uuid_parse);
 #ifdef ML_CBOR
 	ml_cbor_default_tag(ML_CBOR_TAG_UUID, ml_cbor_read_uuid_fn);
 	ml_externals_default_add("uuid", MLUUIDT);
 #endif
+	ml_parser_add_escape(NULL, "U", ml_parser_escape_uuid);
 }

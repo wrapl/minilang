@@ -304,27 +304,35 @@ static void ML_TYPED_FN(ml_iter_value, MLDirT, ml_state_t *Caller, ml_dir_t *Dir
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
-	struct dirent *Entry = readdir(Dir->Handle);
-	if (!Entry) {
-		closedir(Dir->Handle);
-		Dir->Handle = NULL;
-		ML_RETURN(MLNil);
+	for (;;) {
+		struct dirent *Entry = readdir(Dir->Handle);
+		if (!Entry) {
+			closedir(Dir->Handle);
+			Dir->Handle = NULL;
+			ML_RETURN(MLNil);
+		}
+		if (!strcmp(Entry->d_name, ".")) continue;
+		if (!strcmp(Entry->d_name, "..")) continue;
+		++Dir->Index;
+		Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
+		ML_RETURN(Dir);
 	}
-	++Dir->Index;
-	Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
-	ML_RETURN(Dir);
 }
 
 static void ML_TYPED_FN(ml_iterate, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
-	struct dirent *Entry = readdir(Dir->Handle);
-	if (!Entry) {
-		closedir(Dir->Handle);
-		Dir->Handle = NULL;
-		ML_RETURN(MLNil);
+	for (;;) {
+		struct dirent *Entry = readdir(Dir->Handle);
+		if (!Entry) {
+			closedir(Dir->Handle);
+			Dir->Handle = NULL;
+			ML_RETURN(MLNil);
+		}
+		if (!strcmp(Entry->d_name, ".")) continue;
+		if (!strcmp(Entry->d_name, "..")) continue;
+		Dir->Index = 1;
+		Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
+		ML_RETURN(Dir);
 	}
-	Dir->Index = 1;
-	Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
-	ML_RETURN(Dir);
 }
 
 ML_FUNCTION(MLDirCreate) {

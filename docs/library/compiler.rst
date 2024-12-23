@@ -21,6 +21,10 @@ compiler
    *TBD*
 
 
+:mini:`meth compilereoi(Arg₁: any)`
+   *TBD*
+
+
 :mini:`type command::decl`
    *TBD*
 
@@ -29,7 +33,7 @@ compiler
    *TBD*
 
 
-:mini:`fun compiler(Global: function|map): compiler`
+:mini:`fun compiler(Globals: function|map): compiler`
    *TBD*
 
 
@@ -74,6 +78,14 @@ compiler
 
 
 :mini:`type compiler::function < state`
+   *TBD*
+
+
+:mini:`type compilereoi`
+   *TBD*
+
+
+:mini:`meth compilereoi()`
    *TBD*
 
 
@@ -142,6 +154,10 @@ compiler
 
 
 :mini:`meth (Parser: parser):input(String: string): compiler`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):input(String: string, Arg₃: integer): compiler`
    *TBD*
 
 

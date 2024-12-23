@@ -182,8 +182,12 @@ static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
 	return Index;
 }
 
-int ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size) {
+int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, int Size) {
 	return minicbor_read(Reader->Reader, Bytes, Size);
+}
+
+int ml_cbor_reader_done(ml_cbor_reader_t *Reader) {
+	return Reader->Value != NULL;
 }
 
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader) {
@@ -559,7 +563,7 @@ ML_METHODX(CborDecode, MLStreamT) {
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Reader->TagFns = DefaultTagFns;
 	State->Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
-	State->Reader->Globals = Args[1];
+	State->Reader->Globals = MLExternals;
 	State->Reader->Reused = NULL;
 	minicbor_reader_init(State->Reader->Reader);
 	State->Reader->Reader->UserData = State->Reader;
@@ -1046,6 +1050,9 @@ typedef struct {
 extern ml_type_t CborTagT[];
 
 ML_FUNCTION(CborTag) {
+//@cbor::tag
+//<Tag
+//>cbor::tag
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	cbor_tag_t *Tag = new(cbor_tag_t);
@@ -1056,6 +1063,7 @@ ML_FUNCTION(CborTag) {
 }
 
 ML_TYPE(CborTagT, (), "cbor::tag",
+//@cbor::tag
 	.Constructor = (ml_value_t *)CborTag
 );
 
@@ -1064,17 +1072,94 @@ static void ML_TYPED_FN(ml_cbor_write, CborTagT, ml_cbor_writer_t *Writer, cbor_
 	ml_cbor_write(Writer, Arg->Value);
 }
 
-ML_FUNCTION(CborWritePositive) {
-//@cbor::write_positive
+#define CBOR_WRITE_NONE(NAME, CNAME) \
+\
+ML_FUNCTION(CborWrite ## NAME) { \
+/*@cbor::write_CNAME
+//<Buffer:string::buffer
+//>Buffer
+*/ \
+	ML_CHECK_ARG_COUNT(1); \
+	ML_CHECK_ARG_TYPE(0, MLStringBufferT); \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	ml_cbor_writer_t Writer[1] = {{Buffer, (void *)ml_stringbuffer_write}}; \
+	minicbor_write_ ## CNAME(Writer); \
+	return (ml_value_t *)Buffer; \
+}
+
+CBOR_WRITE_NONE(IndefBytes, indef_bytes)
+CBOR_WRITE_NONE(IndefString, indef_string)
+CBOR_WRITE_NONE(IndefArray, indef_array)
+CBOR_WRITE_NONE(IndefMap, indef_map)
+CBOR_WRITE_NONE(Break, break)
+
+#define CBOR_WRITE_INTEGER(NAME, CNAME) \
+\
+ML_FUNCTION(CborWrite ## NAME) { \
+/*@cbor::write_CNAME
 //<Buffer:string::buffer
 //<Value:integer
 //>Buffer
+*/ \
+	ML_CHECK_ARG_COUNT(2); \
+	ML_CHECK_ARG_TYPE(0, MLStringBufferT); \
+	ML_CHECK_ARG_TYPE(1, MLIntegerT); \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	ml_cbor_writer_t Writer[1] = {{Buffer, (void *)ml_stringbuffer_write}}; \
+	minicbor_write_ ## CNAME(Writer, ml_integer_value(Args[1])); \
+	return (ml_value_t *)Buffer; \
+}
+
+CBOR_WRITE_INTEGER(Integer, integer)
+CBOR_WRITE_INTEGER(Positive, positive)
+CBOR_WRITE_INTEGER(Negative, negative)
+CBOR_WRITE_INTEGER(Bytes, bytes)
+CBOR_WRITE_INTEGER(String, string)
+CBOR_WRITE_INTEGER(Array, array)
+CBOR_WRITE_INTEGER(Map, map)
+CBOR_WRITE_INTEGER(Tag, tag)
+
+#define CBOR_WRITE_REAL(NAME, CNAME) \
+\
+ML_FUNCTION(CborWrite ## NAME) { \
+/*@cbor::write_CNAME
+//<Buffer:string::buffer
+//<Value:integer
+//>Buffer
+*/ \
+	ML_CHECK_ARG_COUNT(2); \
+	ML_CHECK_ARG_TYPE(0, MLStringBufferT); \
+	ML_CHECK_ARG_TYPE(1, MLRealT); \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	ml_cbor_writer_t Writer[1] = {{Buffer, (void *)ml_stringbuffer_write}}; \
+	minicbor_write_ ## CNAME(Writer, ml_real_value(Args[1])); \
+	return (ml_value_t *)Buffer; \
+}
+
+CBOR_WRITE_REAL(Float2, float2)
+CBOR_WRITE_REAL(Float4, float4)
+CBOR_WRITE_REAL(Float8, float8)
+
+ML_FUNCTION(CborWriteSimple) {
+//@cbor::write_simple
+//<Buffer:string::buffer
+//<Value:boolean|nil
+//>Buffer
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringBufferT);
-	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	unsigned char Simple;
+	if (Args[1] == (ml_value_t *)MLFalse) {
+		Simple = CBOR_SIMPLE_FALSE;
+	} else if (Args[1] == (ml_value_t *)MLTrue) {
+		Simple = CBOR_SIMPLE_TRUE;
+	} else if (Args[1] == (ml_value_t *)MLNil) {
+		Simple = CBOR_SIMPLE_NULL;
+	} else {
+		return ml_error("CBORError", "Unknown simple value");
+	}
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_cbor_writer_t Writer[1] = {{Buffer, (void *)ml_stringbuffer_write}};
-	minicbor_write_positive(Writer, ml_integer_value(Args[1]));
+	minicbor_write_simple(Writer, Simple);
 	return (ml_value_t *)Buffer;
 }
 
@@ -1216,6 +1301,23 @@ void ml_cbor_init(stringmap_t *Globals) {
 			"decode", CborDecode,
 			"decoder", MLCborDecoderT,
 			"tag", CborTagT,
+			"write_integer", CborWriteInteger,
+			"write_positive", CborWritePositive,
+			"write_negative", CborWriteNegative,
+			"write_bytes", CborWriteBytes,
+			"write_string", CborWriteString,
+			"write_array", CborWriteArray,
+			"write_map", CborWriteMap,
+			"write_tag", CborWriteTag,
+			"write_indef_bytes", CborWriteIndefBytes,
+			"write_indef_string", CborWriteIndefString,
+			"write_indef_array", CborWriteIndefArray,
+			"write_indef_map", CborWriteIndefMap,
+			"write_break", CborWriteBreak,
+			"write_simple", CborWriteSimple,
+			"write_float2", CborWriteFloat2,
+			"write_float4", CborWriteFloat4,
+			"write_float8", CborWriteFloat8,
 		NULL));
 	}
 }

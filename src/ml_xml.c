@@ -39,7 +39,15 @@ ml_xml_node_t *ml_xml_node_prev(ml_xml_node_t *Value) {
 ML_METHOD("parent", MLXmlT) {
 //<Xml
 //>xml|nil
-// Returnst the parent of :mini:`Xml` or :mini:`nil`.
+// Returns the parent of :mini:`Xml` or :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	return (ml_value_t *)Node->Parent ?: MLNil;
+}
+
+ML_METHOD("^", MLXmlT) {
+//<Xml
+//>xml|nil
+// Returns the parent of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	return (ml_value_t *)Node->Parent ?: MLNil;
 }
@@ -55,12 +63,28 @@ ML_METHOD("index", MLXmlT) {
 ML_METHOD("prev", MLXmlT) {
 //<Xml
 //>xml|nil
-// Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
+// Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	return (ml_value_t *)Node->Prev ?: MLNil;
+}
+
+ML_METHOD("<", MLXmlT) {
+//<Xml
+//>xml|nil
+// Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	return (ml_value_t *)Node->Prev ?: MLNil;
 }
 
 ML_METHOD("next", MLXmlT) {
+//<Xml
+//>xml|nil
+// Returns the next sibling of :mini:`Xml` or :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	return (ml_value_t *)Node->Next ?: MLNil;
+}
+
+ML_METHOD(">", MLXmlT) {
 //<Xml
 //>xml|nil
 // Returns the next sibling of :mini:`Xml` or :mini:`nil`.
@@ -111,7 +135,7 @@ ML_FUNCTION(MLXmlEscape) {
 }
 
 ML_TYPE(MLXmlTextT, (MLXmlT, MLStringT), "xml::text");
-// A XML text node.
+// An XML text node.
 
 ml_xml_node_t *ml_xml_text(const char *Content, int Length) {
 	ml_xml_node_t *Text = new(ml_xml_node_t);
@@ -395,6 +419,24 @@ static ml_value_t *ml_xml_grow(ml_xml_grower_t *Grower, ml_value_t *Value) {
 		return ml_error("TypeError", "Invalid type for XML node");
 	}
 	return NULL;
+}
+
+ML_METHODV("append", MLXmlElementT, MLStringT) {
+	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
+
+	return (ml_value_t *)Parent;
+}
+
+ML_METHODV("append", MLXmlElementT, MLStringT, MLMapT) {
+	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
+
+	return (ml_value_t *)Parent;
+}
+
+ML_METHODV("append", MLXmlElementT, MLXmlT) {
+	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
+
+	return (ml_value_t *)Parent;
 }
 
 ML_METHODV("put", MLXmlElementT, MLAnyT) {
@@ -887,14 +929,12 @@ ML_XML_ITERATOR("/", Forward, Head, children);
 ML_XML_ITERATOR(">>", Forward, Base.Next, next siblings);
 ML_XML_ITERATOR("<<", Reverse, Base.Prev, previous siblings);
 
-ML_METHOD("parent", MLXmlT, MLStringT) {
-//<Xml
-//<Tag
-//>xml|nil
-// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+static ml_value_t *adjacent_node_by_tag(void *Data, int Count, ml_value_t **Args) {
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	while ((Node = (ml_xml_node_t *)Node->Parent)) {
+	if (!Tag) return MLNil;
+	uintptr_t Offset = (uintptr_t)Data;
+	while ((Node = *(ml_xml_node_t **)((void *)Node + Offset))) {
 		if (Node->Base.Type != MLXmlElementT) continue;
 		if (Node->Base.Value != Tag) continue;
 		return (ml_value_t *)Node;
@@ -902,50 +942,124 @@ ML_METHOD("parent", MLXmlT, MLStringT) {
 	return MLNil;
 }
 
-ML_METHOD("parent", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
+static ml_value_t *adjacent_node_by_attrs(void *Data, int Count, ml_value_t **Args) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	int I = 1;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		++I;
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
+	}
+	uintptr_t Offset = (uintptr_t)Data;
+	while ((Node = *(ml_xml_node_t **)((void *)Node + Offset))) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		ml_value_t *Attributes = ((ml_xml_element_t *)Node)->Attributes;
+		int I = 1;
+		ML_LIST_FOREACH(Args[1], Iter) {
+			++I;
+			ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+			if (Args[I] == MLNil) {
+				if (Value != MLNil) goto next;
+			} else {
+				if (Value == MLNil) goto next;
+				if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next;
+			}
+		}
+		return (ml_value_t *)Node;
+	next:
+		continue;
+	}
+	return MLNil;
+}
+
+static ml_value_t *adjacent_node_by_tag_and_attrs(void *Data, int Count, ml_value_t **Args) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
+	if (!Tag) return MLNil;
+	ML_NAMES_CHECK_ARG_COUNT(2);
+	int I = 2;
+	ML_LIST_FOREACH(Args[2], Iter) {
+		++I;
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
+	}
+	uintptr_t Offset = (uintptr_t)Data;
+	while ((Node = *(ml_xml_node_t **)((void *)Node + Offset))) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		ml_value_t *Attributes = ((ml_xml_element_t *)Node)->Attributes;
+		int I = 2;
+		ML_LIST_FOREACH(Args[2], Iter) {
+			++I;
+			ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+			if (Args[I] == MLNil) {
+				if (Value != MLNil) goto next;
+			} else {
+				if (Value == MLNil) goto next;
+				if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next;
+			}
+		}
+		return (ml_value_t *)Node;
+	next:
+		continue;
+	}
+	return MLNil;
+}
+
+static ml_value_t *adjacent_node_by_count(void *Data, int Count, ml_value_t **Args) {
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	int Steps = ml_integer_value(Args[1]);
+	uintptr_t Offset = (uintptr_t)Data;
 	while (Steps > 0) {
-		Node = (ml_xml_node_t *)Node->Parent;
+		Node = *(ml_xml_node_t **)((void *)Node + Offset);
 		if (!Node) return MLNil;
 		--Steps;
 	}
 	return (ml_value_t *)Node;
 }
 
-ML_METHOD("next", MLXmlT, MLIntegerT) {
-//<Xml
+#define ADJACENT_METHODS(NAME, DOC) \
+\
+ML_METHOD(NAME, MLXmlT, MLIntegerT) { \
+/*<Xml
 //<N
 //>xml|nil
-// Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = Node->Next;
-		if (!Node) return MLNil;
-		if (Node->Base.Type == MLXmlElementT) --Steps;
-	}
-	return (ml_value_t *)Node;
+// Returns the :mini:`N`-th DOC of :mini:`Xml` or :mini:`nil`.
+*/ \
+} \
+\
+ML_METHOD(NAME, MLXmlT, MLStringT) { \
+/*<Xml
+//<Tag
+//>xml|nil
+// Returns the DOC of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
+*/ \
+} \
+\
+ML_METHODV(NAME, MLXmlT, MLStringT, MLNamesT) { \
+/*<Xml
+//<Tag
+//<Attribute
+//>xml|nil
+// Returns the DOC of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute/1 = Value/1`, etc., if one exists, otherwise :mini:`nil`.
+*/ \
+} \
+\
+ML_METHODV(NAME, MLXmlT, MLNamesT) { \
+/*<Xml
+//<Attribute
+//>xml|nil
+// Returns the DOC of :mini:`Xml` with :mini:`Attribute/1 = Value/1`, etc., if one exists, otherwise :mini:`nil`.
+*/ \
 }
 
-ML_METHOD("prev", MLXmlT, MLIntegerT) {
-//<Xml
-//<N
-//>xml|nil
-// Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	int Steps = ml_integer_value(Args[1]);
-	while (Steps > 0) {
-		Node = Node->Prev;
-		if (!Node) return MLNil;
-		if (Node->Base.Type == MLXmlElementT) --Steps;
-	}
-	return (ml_value_t *)Node;
-}
+/*
+ADJACENT_METHODS("^", parent)
+ADJACENT_METHODS("parent", parent)
+ADJACENT_METHODS(">", next sibling)
+ADJACENT_METHODS("next", next sibling)
+ADJACENT_METHODS("<", prev sibling)
+ADJACENT_METHODS("prev", prev sibling)
+*/
 
 typedef struct {
 	ml_type_t *Type;
@@ -1116,7 +1230,31 @@ ML_METHOD("//", MLXmlT, MLFunctionT) {
 #ifdef ML_GENERICS
 
 ML_METHOD_DECL(ChildrenMethod, "/");
+ML_METHOD_DECL(RecursiveMethod, "//");
+ML_METHOD_DECL(NextSiblingsMethod, ">>");
+ML_METHOD_DECL(PrevSiblingsMethod, "<<");
 
+static ml_value_t *recursive_doubled(void *Data, int Count, ml_value_t **Args) {
+	ml_value_t *Partial = ml_partial_function((ml_value_t *)Data, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Doubled = ml_doubled(Args[0], Partial);
+	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
+	return Doubled;
+}
+
+ML_METHOD_DECL(ParentMethod, "^");
+ML_METHOD_DECL(NextSiblingMethod, ">");
+ML_METHOD_DECL(PrevSiblingMethod, "<");
+
+static ml_value_t *recursive_adjacent(void *Data, int Count, ml_value_t **Args) {
+	ml_value_t *Partial = ml_partial_function((ml_value_t *)Data, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Chained = ml_chainedv(4, Args[0], Partial, FilterSoloMethod, ml_integer(1));
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+	return Chained;
+}
+
+/*
 ML_METHODV("/", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1128,8 +1266,6 @@ ML_METHODV("/", MLXmlSequenceT) {
 	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
 	return Doubled;
 }
-
-ML_METHOD_DECL(RecursiveMethod, "//");
 
 ML_METHODV("//", MLXmlSequenceT) {
 //<Sequence
@@ -1143,8 +1279,6 @@ ML_METHODV("//", MLXmlSequenceT) {
 	return Doubled;
 }
 
-ML_METHOD_DECL(NextSiblingsMethod, ">>");
-
 ML_METHODV(">>", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1156,8 +1290,6 @@ ML_METHODV(">>", MLXmlSequenceT) {
 	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
 	return Doubled;
 }
-
-ML_METHOD_DECL(PrevSiblingsMethod, "<<");
 
 ML_METHODV("<<", MLXmlSequenceT) {
 //<Sequence
@@ -1171,8 +1303,6 @@ ML_METHODV("<<", MLXmlSequenceT) {
 	return Doubled;
 }
 
-ML_METHOD_DECL(ParentMethod, "parent");
-
 ML_METHODV("parent", MLXmlSequenceT) {
 //<Sequence
 //<Args
@@ -1185,13 +1315,23 @@ ML_METHODV("parent", MLXmlSequenceT) {
 	return Chained;
 }
 
-ML_METHOD_DECL(NextSiblingMethod, "next");
+ML_METHODV("^", MLXmlSequenceT) {
+//<Sequence
+//<Args
+//>sequence
+// Generates the sequence :mini:`Node/i ^ Args` where :mini:`Node/i` are the nodes generated by :mini:`Sequence`.
+	ml_value_t *Partial = ml_partial_function(ParentMethod, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Chained = ml_chainedv(4, Args[0], Partial, FilterSoloMethod, ml_integer(1));
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+	return Chained;
+}
 
 ML_METHODV("next", MLXmlSequenceT) {
 //<Sequence
 //<Args
 //>sequence
-// Generates the sequence :mini:`Node/i + Args` where :mini:`Node/i` are the nodes generated by :mini:`Sequence`.
+// Generates the sequence :mini:`Node/i > Args` where :mini:`Node/i` are the nodes generated by :mini:`Sequence`.
 	ml_value_t *Partial = ml_partial_function(NextSiblingMethod, Count);
 	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
 	ml_value_t *Chained = ml_chainedv(4, Args[0], Partial, FilterSoloMethod, ml_integer(1));
@@ -1199,19 +1339,42 @@ ML_METHODV("next", MLXmlSequenceT) {
 	return Chained;
 }
 
-ML_METHOD_DECL(PrevSiblingMethod, "prev");
+ML_METHODV(">", MLXmlSequenceT) {
+//<Sequence
+//<Args
+//>sequence
+// Generates the sequence :mini:`Node/i > Args` where :mini:`Node/i` are the nodes generated by :mini:`Sequence`.
+	ml_value_t *Partial = ml_partial_function(NextSiblingMethod, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Chained = ml_chainedv(4, Args[0], Partial, FilterSoloMethod, ml_integer(1));
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+	return Chained;
+}
 
 ML_METHODV("prev", MLXmlSequenceT) {
 //<Sequence
 //<Args
 //>sequence
-// Generates the sequence :mini:`Node/i - Args` where :mini:`Node/i` are the nodes generated by :mini:`Sequence`.
+// Generates the sequence :mini:`Node/i < Args` where :mini:`Node/i` are the nodes generated by :mini:`Sequence`.
 	ml_value_t *Partial = ml_partial_function(PrevSiblingMethod, Count);
 	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
 	ml_value_t *Chained = ml_chainedv(4, Args[0], Partial, FilterSoloMethod, ml_integer(1));
 	Chained->Type = (ml_type_t *)MLXmlChainedT;
 	return Chained;
 }
+
+ML_METHODV("<", MLXmlSequenceT) {
+//<Sequence
+//<Args
+//>sequence
+// Generates the sequence :mini:`Node/i < Args` where :mini:`Node/i` are the nodes generated by :mini:`Sequence`.
+	ml_value_t *Partial = ml_partial_function(PrevSiblingMethod, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Chained = ml_chainedv(4, Args[0], Partial, FilterSoloMethod, ml_integer(1));
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+	return Chained;
+}
+*/
 
 #endif
 
@@ -1445,6 +1608,9 @@ static void xml_skipped_entity(xml_parser_t *Parser, const XML_Char *EntityName,
 	ml_stringbuffer_write(Parser->Buffer, EntityName, strlen(EntityName));
 }
 
+static void xml_comment(xml_parser_t *Parser, const XML_Char *String) {
+}
+
 static void xml_default(xml_parser_t *Parser, const XML_Char *String, int Length) {
 	ml_stringbuffer_write(Parser->Buffer, String, Length);
 }
@@ -1471,6 +1637,7 @@ ML_METHOD(MLXmlT, MLStringT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	const char *Text = ml_string_value(Args[0]);
 	size_t Length = ml_string_length(Args[0]);
@@ -1517,6 +1684,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
 	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
@@ -1581,6 +1749,7 @@ ML_METHOD(MLXmlParse, MLAddressT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	const char *Text = ml_address_value(Args[0]);
 	size_t Length = ml_address_length(Args[0]);
@@ -1606,6 +1775,7 @@ ML_METHODX(MLXmlParse, MLStreamT) {
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
 	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
@@ -1653,6 +1823,7 @@ ML_FUNCTIONX(XmlParser) {
 	XML_SetElementHandler(Parser->Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Parser->Handle, (void *)xml_character_data);
 	XML_SetSkippedEntityHandler(Parser->Handle, (void *)xml_skipped_entity);
+	XML_SetCommentHandler(Parser->Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Parser->Handle, (void *)xml_default);
 	ML_RETURN(Parser);
 }
@@ -1679,8 +1850,339 @@ static void ML_TYPED_FN(ml_stream_flush, MLXmlParserT, ml_state_t *Caller, ml_xm
 	ML_RETURN(Parser);
 }
 
+typedef enum {
+	XML_ESCAPE_CONTENT,
+	XML_ESCAPE_TAG,
+	XML_ESCAPE_ATTR_NAME,
+	XML_ESCAPE_ATTR_VALUE
+} xml_escape_state_t;
+
+typedef struct {
+	ml_parser_t *Parser;
+	const char *Next;
+	ml_value_t *Constructor;
+	ml_source_t Source;
+} xml_escape_parser_t;
+
+#include <ctype.h>
+#include "ml_compiler2.h"
+
+static ml_value_t *ml_parser_escape_xml_string(xml_escape_parser_t *Parser) {
+	mlc_string_part_t *Parts = NULL, **Slot = &Parts;
+	const char *Next = Parser->Next;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	while (Next[0] != '\"') {
+		if (Next[0] == 0) {
+			Next = ml_parser_read(Parser->Parser);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+		} else if (Next[0] == '&') {
+			if (Next[1] == '{') {
+				if (Buffer->Length) {
+					mlc_string_part_t *Part = new(mlc_string_part_t);
+					Part->Length = Buffer->Length;
+					Part->Chars = ml_stringbuffer_get_string(Buffer);
+					Part->Line = Parser->Source.Line;
+					Slot[0] = Part;
+					Slot = &Part->Next;
+				}
+				ml_parser_input(Parser->Parser, Next + 2, 0);
+				ml_parser_source(Parser->Parser, Parser->Source);
+				mlc_expr_t *Expr = ml_accept_expression(Parser->Parser, EXPR_DEFAULT);
+				if (!Expr) return ml_parser_value(Parser->Parser);
+				ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
+				Parser->Source = ml_parser_position(Parser->Parser);
+				Next = ml_parser_clear(Parser->Parser);
+				mlc_string_part_t *Part = new(mlc_string_part_t);
+				Part->Length = 0;
+				Part->Child = Expr;
+				Part->Line = Parser->Source.Line;
+				Slot[0] = Part;
+				Slot = &Part->Next;
+			} else if (Next[1] == 'a' && Next[2] == 'm' && Next[3] == 'p' && Next[4] == ';') {
+				ml_stringbuffer_put(Buffer, '&');
+				Next += 5;
+			} else if (Next[1] == 'l' && Next[2] == 't' && Next[4] == ';') {
+				ml_stringbuffer_put(Buffer, '<');
+				Next += 4;
+			} else if (Next[1] == 'g' && Next[2] == 't' && Next[4] == ';') {
+				ml_stringbuffer_put(Buffer, '>');
+				Next += 4;
+			} else if (Next[1] == 'a' && Next[2] == 'p' && Next[3] == 'o' && Next[4] == 's' && Next[5] == ';') {
+				ml_stringbuffer_put(Buffer, '\'');
+				Next += 6;
+			} else if (Next[1] == 'q' && Next[2] == 'u' && Next[3] == 'o' && Next[4] == 't' && Next[5] == ';') {
+				ml_stringbuffer_put(Buffer, '\"');
+				Next += 6;
+			} else {
+				return ml_error("ParseError", "Invalid XML entity");
+			}
+		} else if (Next[0] == '\n') {
+			++Parser->Source.Line;
+			ml_stringbuffer_put(Buffer, ' ');
+		} else {
+			ml_stringbuffer_put(Buffer, *Next++);
+		}
+	}
+	Parser->Next = Next + 1;
+	if (Parts) {
+		if (Buffer->Length) {
+			mlc_string_part_t *Part = new(mlc_string_part_t);
+			Part->Length = Buffer->Length;
+			Part->Chars = ml_stringbuffer_get_string(Buffer);
+			Part->Line = Parser->Source.Line;
+			Slot[0] = Part;
+			Slot = &Part->Next;
+		}
+		mlc_string_expr_t *StringExpr = new(mlc_string_expr_t);
+		StringExpr->compile = ml_string_expr_compile;
+		StringExpr->Parts = Parts;
+		StringExpr->Source = Parser->Source.Name;
+		StringExpr->StartLine = StringExpr->EndLine = Parser->Source.Line;
+		return ml_expr_value((mlc_expr_t *)StringExpr);
+	} else {
+		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+		ValueExpr->compile = ml_value_expr_compile;
+		ValueExpr->Value = ml_stringbuffer_get_value(Buffer);
+		ValueExpr->Source = Parser->Source.Name;
+		ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+		return ml_expr_value((mlc_expr_t *)ValueExpr);
+	}
+}
+
+static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
+	const char *Next = Parser->Next;
+	while ((*Next > ' ') && (*Next != '/') && (*Next != '>')) ++Next;
+	int TagLength = Next - Parser->Next;
+	if (!TagLength) return ml_error("ParseError", "Invalid start tag");
+	ml_value_t *Tag = ml_string_copy(Parser->Next, TagLength);
+	mlc_value_expr_t *TagExpr = new(mlc_value_expr_t);
+	TagExpr->compile = ml_value_expr_compile;
+	TagExpr->Value = Tag;
+	TagExpr->Source = Parser->Source.Name;
+	TagExpr->StartLine = TagExpr->EndLine = Parser->Source.Line;
+	mlc_parent_value_expr_t *ElementExpr = new(mlc_parent_value_expr_t);
+	ElementExpr->compile = ml_const_call_expr_compile;
+	ElementExpr->Value = Parser->Constructor;
+	ElementExpr->Source = Parser->Source.Name;
+	ElementExpr->StartLine = Parser->Source.Line;
+	mlc_parent_expr_t *AttrsExpr = new(mlc_parent_expr_t);
+	AttrsExpr->compile = ml_map_expr_compile;
+	AttrsExpr->Source = Parser->Source.Name;
+	AttrsExpr->StartLine = Parser->Source.Line;
+	ElementExpr->Child = (mlc_expr_t *)TagExpr;
+	TagExpr->Next = (mlc_expr_t *)AttrsExpr;
+	mlc_expr_t **Attributes = &AttrsExpr->Child;
+	mlc_parent_expr_t *ContentExpr = new(mlc_parent_expr_t);
+	ContentExpr->compile = ml_list_expr_compile;
+	ContentExpr->Source = Parser->Source.Name;
+	ContentExpr->StartLine = Parser->Source.Line;
+	AttrsExpr->Next = (mlc_expr_t *)ContentExpr;
+	mlc_expr_t **Content = &ContentExpr->Child;
+	for (;;) switch (Next[0]) {
+		case ' ': case '\t': ++Next; break;
+		case '\n': ++Next; ++Parser->Source.Line; break;
+		case '\0': {
+			Next = ml_parser_read(Parser->Parser);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+			break;
+		}
+		case '/': {
+			AttrsExpr->EndLine = Parser->Source.Line;
+			ContentExpr->EndLine = Parser->Source.Line;
+			if (Next[1] != '>') return ml_error("ParseError", "Invalid element");
+			ElementExpr->EndLine = Parser->Source.Line;
+			Parser->Next = Next + 2;
+			return ml_expr_value((mlc_expr_t *)ElementExpr);
+		}
+		case '>': {
+			AttrsExpr->EndLine = Parser->Source.Line;
+			++Next;
+			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+			for (;;) {
+				const char *End = strchr(Next, '<') ?: (Next + strlen(Next));
+				while (Next < End) {
+					if (Next[0] == '&') {
+						if (Next[1] == '{') {
+							if (Buffer->Length) {
+								mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+								ValueExpr->compile = ml_value_expr_compile;
+								ValueExpr->Value = ml_stringbuffer_get_value(Buffer);
+								ValueExpr->Source = Parser->Source.Name;
+								ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+								Content[0] = (mlc_expr_t *)ValueExpr;
+								Content = &ValueExpr->Next;
+							}
+							ml_parser_input(Parser->Parser, Next + 2, 0);
+							ml_parser_source(Parser->Parser, Parser->Source);
+							mlc_expr_t *Expr = ml_accept_expression(Parser->Parser, EXPR_DEFAULT);
+							if (!Expr) return ml_parser_value(Parser->Parser);
+							ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
+							Parser->Source = ml_parser_position(Parser->Parser);
+							Next = ml_parser_clear(Parser->Parser);
+							Content[0] = (mlc_expr_t *)Expr;
+							Content = &Expr->Next;
+							End = strchr(Next, '<') ?: (Next + strlen(Next));
+						} else if (Next[1] == 'a' && Next[2] == 'm' && Next[3] == 'p' && Next[4] == ';') {
+							ml_stringbuffer_put(Buffer, '&');
+							Next += 5;
+						} else if (Next[1] == 'l' && Next[2] == 't' && Next[4] == ';') {
+							ml_stringbuffer_put(Buffer, '<');
+							Next += 4;
+						} else if (Next[1] == 'g' && Next[2] == 't' && Next[4] == ';') {
+							ml_stringbuffer_put(Buffer, '>');
+							Next += 4;
+						} else if (Next[1] == 'a' && Next[2] == 'p' && Next[3] == 'o' && Next[4] == 's' && Next[5] == ';') {
+							ml_stringbuffer_put(Buffer, '\'');
+							Next += 6;
+						} else if (Next[1] == 'q' && Next[2] == 'u' && Next[3] == 'o' && Next[4] == 't' && Next[5] == ';') {
+							ml_stringbuffer_put(Buffer, '\"');
+							Next += 6;
+						} else {
+							return ml_error("ParseError", "Invalid XML entity");
+						}
+					} else if (Next[0] == '\n') {
+						++Parser->Source.Line;
+						ml_stringbuffer_put(Buffer, *Next++);
+					} else {
+						ml_stringbuffer_put(Buffer, *Next++);
+					}
+				}
+				if (End[0] == '<') {
+					if (Buffer->Length) {
+						mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+						ValueExpr->compile = ml_value_expr_compile;
+						ValueExpr->Value = ml_stringbuffer_get_value(Buffer);
+						ValueExpr->Source = Parser->Source.Name;
+						ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+						Content[0] = (mlc_expr_t *)ValueExpr;
+						Content = &ValueExpr->Next;
+					}
+					if (End[1] == '/') {
+						ContentExpr->EndLine = Parser->Source.Line;
+						Next = (End += 2);
+						while ((*Next > ' ') && (*Next != '>')) ++Next;
+						if (Next[0] != '>') return ml_error("ParseError", "Invalid end tag");
+						if (strncmp(End, ml_string_value(Tag), Next - End)) {
+							ml_parser_input(Parser->Parser, Next + 1, 0);
+							ml_parser_source(Parser->Parser, Parser->Source);
+							return ml_error("ParseError", "Mismatched start and end tag");
+						}
+						++Next;
+						break;
+					} else {
+						Parser->Next = End + 1;
+						ml_value_t *Child = ml_parser_escape_xml_node(Parser);
+						if (ml_is_error(Child)) return Child;
+						Content[0] = (mlc_expr_t *)Child;
+						Content = &((mlc_expr_t *)Child)->Next;
+						Next = Parser->Next;
+					}
+				} else {
+					Next = ml_parser_read(Parser->Parser);
+					if (!Next) return ml_error("ParseError", "Incomplete xml");
+				}
+			}
+			Parser->Next = Next;
+			return ml_expr_value((mlc_expr_t *)ElementExpr);
+		}
+		default: {
+			const char *Start = Next;
+			while ((*Next > ' ') && (*Next != '=')) ++Next;
+			if (Next[0] != '=') return ml_error("ParseError", "Invalid attribute");
+			mlc_value_expr_t *AttrExpr = new(mlc_value_expr_t);
+			AttrExpr->compile = ml_value_expr_compile;
+			AttrExpr->Value = ml_string_copy(Start, Next - Start);
+			AttrExpr->Source = Parser->Source.Name;
+			AttrExpr->StartLine = AttrExpr->EndLine = Parser->Source.Line;
+			Attributes[0] = (mlc_expr_t *)AttrExpr;
+			Attributes = &AttrExpr->Next;
+			++Next;
+			switch (Next[0]) {
+			case '\"': {
+				Parser->Next = Next + 1;
+				ml_value_t *Child = ml_parser_escape_xml_string(Parser);
+				if (ml_is_error(Child)) return Child;
+				Attributes[0] = (mlc_expr_t *)Child;
+				Attributes = &((mlc_expr_t *)Child)->Next;
+				Next = Parser->Next;
+				break;
+			}
+			case '{': {
+				ml_parser_input(Parser->Parser, Next + 1, 0);
+				ml_parser_source(Parser->Parser, Parser->Source);
+				mlc_expr_t *Expr = ml_accept_expression(Parser->Parser, EXPR_DEFAULT);
+				if (!Expr) return ml_parser_value(Parser->Parser);
+				ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
+				Parser->Source = ml_parser_position(Parser->Parser);
+				Next = ml_parser_clear(Parser->Parser);
+				Attributes[0] = (mlc_expr_t *)Expr;
+				Attributes = &Expr->Next;
+				break;
+			}
+			default: return ml_error("ParseError", "Invalid attribute");
+			}
+		}
+	}
+	return NULL;
+}
+
+ml_value_t *ml_parser_escape_xml_like(ml_parser_t *Parser0, ml_value_t *Constructor) {
+	xml_escape_parser_t Parser = {0,};
+	Parser.Constructor = Constructor;
+	Parser.Source = ml_parser_position(Parser0);
+	const char *Next = ml_parser_clear(Parser0);
+	char Quote = *Next++;
+	while (Next[0] != '<') switch (Next[0]) {
+		case ' ': case '\t': ++Next; break;
+		case '\n': ++Next; ++Parser.Source.Line; break;
+		case '\0': {
+			Next = ml_parser_read(Parser0);
+			if (!Next) return ml_error("ParseError", "Incomplete xml");
+			break;
+		}
+		default: return ml_error("ParseError", "Invalid xml");
+	}
+	Parser.Next = Next + 1;
+	Parser.Parser = Parser0;
+	ml_value_t *Value = ml_parser_escape_xml_node(&Parser);
+	if (ml_is_error(Value)) return Value;
+	//if (Parser.Next[0] != Quote) return ml_error("ParseError", "Invalid string");
+	//ml_parser_input(Parser0, Parser.Next + 1, 0);
+	ml_parser_input(Parser0, Parser.Next, 0);
+	ml_parser_source(Parser0, Parser.Source);
+	return Value;
+}
+
+static ml_value_t *ml_parser_escape_xml(ml_parser_t *Parser0) {
+	return ml_parser_escape_xml_like(Parser0, (ml_value_t *)MLXmlElementT);
+}
+
+#define DEFINE_ADJACENT_METHODS(NAME, FIELD) \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_tag, MLXmlT, MLStringT, NULL); \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_attrs, MLXmlT, MLNamesT, NULL); \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_tag_and_attrs, MLXmlT, MLStringT, MLNamesT, NULL); \
+	ml_method_by_name(NAME, &((ml_xml_node_t *)0)->FIELD, adjacent_node_by_count, MLXmlT, MLIntegerT, NULL)
+
 void ml_xml_init(stringmap_t *Globals) {
 #include "ml_xml_init.c"
+	DEFINE_ADJACENT_METHODS("parent", Parent);
+	DEFINE_ADJACENT_METHODS("^", Parent);
+	DEFINE_ADJACENT_METHODS("next", Next);
+	DEFINE_ADJACENT_METHODS(">", Next);
+	DEFINE_ADJACENT_METHODS("prev", Prev);
+	DEFINE_ADJACENT_METHODS("<", Prev);
+#ifdef ML_GENERICS
+	ml_method_by_value(ChildrenMethod, ChildrenMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(RecursiveMethod, RecursiveMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(NextSiblingsMethod, NextSiblingsMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(PrevSiblingsMethod, PrevSiblingsMethod, recursive_doubled, MLXmlSequenceT, NULL);
+	ml_method_by_value(ParentMethod, ParentMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("parent", ParentMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_value(NextSiblingMethod, NextSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("next", NextSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_value(PrevSiblingMethod, PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("prev", PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+#endif
 	stringmap_insert(MLXmlT->Exports, "parse", MLXmlParse);
 	stringmap_insert(MLXmlT->Exports, "escape", MLXmlEscape);
 	stringmap_insert(MLXmlT->Exports, "text", MLXmlTextT);
@@ -1692,4 +2194,5 @@ void ml_xml_init(stringmap_t *Globals) {
 	if (Globals) {
 		stringmap_insert(Globals, "xml", MLXmlT);
 	}
+	ml_parser_add_escape(NULL, "xml", ml_parser_escape_xml);
 }

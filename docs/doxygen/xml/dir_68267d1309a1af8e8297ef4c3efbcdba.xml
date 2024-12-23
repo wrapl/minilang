@@ -1,18 +1,9 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir">
     <compoundname>src</compoundname>
-    <innerdir refid="dir_c440a0232048a2af23c47d1be7b434ce">src/array</innerdir>
-    <innerdir refid="dir_f5f4ff3311de724cc1cde742592e824c">src/dynasm</innerdir>
-    <innerdir refid="dir_e4a05ceba4adabcef89e57aaa41bc97b">src/gc</innerdir>
-    <innerdir refid="dir_4f5a303f03761a42637c3e44e4d7e6cc">src/libbacktrace</innerdir>
-    <innerdir refid="dir_a0f64db5dc41747a9ce94e2908107f5c">src/minicbor</innerdir>
-    <innerdir refid="dir_a3fff897d25e0ee97425de049617c46d">src/timelib</innerdir>
-    <innerdir refid="dir_24ea3af21ee7c3599962d07428bbcbdc">src/tre</innerdir>
     <innerfile refid="coro_8h">coro.h</innerfile>
     <innerfile refid="dap_8h">dap.h</innerfile>
-    <innerfile refid="gtk__console_8h">gtk_console.h</innerfile>
-    <innerfile refid="gtk__console__completion_8h">gtk_console_completion.h</innerfile>
     <innerfile refid="inthash_8h">inthash.h</innerfile>
     <innerfile refid="inthash2_8h">inthash2.h</innerfile>
     <innerfile refid="linenoise_8h">linenoise.h</innerfile>
@@ -31,7 +22,6 @@
     <innerfile refid="ml__debugger_8h">ml_debugger.h</innerfile>
     <innerfile refid="ml__expr__types_8h">ml_expr_types.h</innerfile>
     <innerfile refid="ml__file_8h">ml_file.h</innerfile>
-    <innerfile refid="ml__gir_8h">ml_gir.h</innerfile>
     <innerfile refid="ml__json_8h">ml_json.h</innerfile>
     <innerfile refid="ml__library_8h">ml_library.h</innerfile>
     <innerfile refid="ml__list_8h">ml_list.h</innerfile>
@@ -51,6 +41,7 @@
     <innerfile refid="ml__runtime_8h">ml_runtime.h</innerfile>
     <innerfile refid="ml__sequence_8h">ml_sequence.h</innerfile>
     <innerfile refid="ml__set_8h">ml_set.h</innerfile>
+    <innerfile refid="ml__slice_8h">ml_slice.h</innerfile>
     <innerfile refid="ml__socket_8h">ml_socket.h</innerfile>
     <innerfile refid="ml__stream_8h">ml_stream.h</innerfile>
     <innerfile refid="ml__string_8h">ml_string.h</innerfile>

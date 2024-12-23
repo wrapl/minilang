@@ -60,8 +60,6 @@ struct json_stack_t {
 	int Index;
 };
 
-typedef struct json_decoder_t json_decoder_t;
-
 struct json_decoder_t {
 	void (*emit)(json_decoder_t *Decoder, ml_value_t *Value);
 	void *Data;
@@ -82,6 +80,16 @@ static void json_decoder_init(json_decoder_t *Decoder, void (*emit)(json_decoder
 	Decoder->Buffer[0] = ML_STRINGBUFFER_INIT;
 	Decoder->State = JS_VALUE;
 	Decoder->Mode = JSM_VALUE;
+}
+
+json_decoder_t *json_decoder(void (*emit)(json_decoder_t *Decoder, ml_value_t *Value), void *Data) {
+	json_decoder_t *Decoder = new(json_decoder_t);
+	json_decoder_init(Decoder, emit, Data);
+	return Decoder;
+}
+
+void *json_decoder_data(json_decoder_t *Decoder) {
+	return Decoder->Data;
 }
 
 static void json_decoder_push(json_decoder_t *Decoder, ml_value_t *Collection) {
@@ -177,7 +185,7 @@ static ml_value_t *json_finish_keyword(json_decoder_t *Decoder) {
 	return NULL;
 }
 
-static ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_t Size) {
+ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_t Size) {
 	while (Size-- > 0) {
 		char Char = *Input++;
 		switch (Decoder->State) {
@@ -588,6 +596,17 @@ static void json_decode_single_fn(json_decoder_t *Decoder, ml_value_t *Value) {
 
 ML_METHOD_ANON(MLJsonDecode, "json::decode");
 
+ml_value_t *ml_json_decode(const char *Json, size_t Size) {
+	ml_value_t *Result = NULL;
+	json_decoder_t Decoder[1];
+	json_decoder_init(Decoder, (void *)json_decode_single_fn, &Result);
+	ml_value_t *Error = json_decoder_parse(Decoder, Json, Size);
+	if (Error) return Error;
+	Error = json_decoder_finish(Decoder);
+	if (Error) return Error;
+	return Result ?: ml_error("JSONError", "Incomplete JSON");
+}
+
 ML_METHOD(MLJsonDecode, MLAddressT) {
 //@json::decode
 //<Json
@@ -734,7 +753,7 @@ static void ml_json_encode_string(ml_stringbuffer_t *Buffer, ml_value_t *Value) 
 	ml_stringbuffer_put(Buffer, '\"');
 }
 
-static ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	if (Value == MLNil) {
 		ml_stringbuffer_write(Buffer, "null", 4);
 	} else if (ml_is(Value, MLBooleanT)) {

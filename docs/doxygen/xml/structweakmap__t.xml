@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.11.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
   <compounddef id="structweakmap__t" kind="struct" language="C++" prot="public">
     <compoundname>weakmap_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/weakmap.h" line="9" column="16" bodyfile="src/weakmap.h" bodystart="9" bodyend="-1"/>
+        <location file="src/weakmap.h" line="16" column="16" bodyfile="src/weakmap.h" bodystart="16" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structweakmap__t_1a5968f62599fab877c35a32a5a5f327ec" prot="public" static="no" mutable="no">
         <type>size_t</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/weakmap.h" line="10" column="8" bodyfile="src/weakmap.h" bodystart="10" bodyend="-1"/>
+        <location file="src/weakmap.h" line="20" column="8" bodyfile="src/weakmap.h" bodystart="20" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structweakmap__t_1afc984916d385f1f9abec51846dd48643" prot="public" static="no" mutable="no">
         <type>size_t</type>
@@ -43,14 +43,14 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/weakmap.h" line="10" column="13" bodyfile="src/weakmap.h" bodystart="10" bodyend="-1"/>
+        <location file="src/weakmap.h" line="20" column="13" bodyfile="src/weakmap.h" bodystart="20" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="src/weakmap.h" line="8" column="1" bodyfile="src/weakmap.h" bodystart="8" bodyend="11"/>
+    <location file="src/weakmap.h" line="15" column="1" bodyfile="src/weakmap.h" bodystart="15" bodyend="21"/>
     <listofallmembers>
       <member refid="structweakmap__t_1a5968f62599fab877c35a32a5a5f327ec" prot="public" virt="non-virtual"><scope>weakmap_t</scope><name>Mask</name></member>
       <member refid="structweakmap__t_1a03b52dff1e4d61ef0018aea270163189" prot="public" virt="non-virtual"><scope>weakmap_t</scope><name>Nodes</name></member>
