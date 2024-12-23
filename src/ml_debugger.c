@@ -403,7 +403,7 @@ ml_value_t *ml_interactive_debugger(
 
 typedef struct {
 	ml_state_t Base;
-	ml_debugger_t BaseDebugger;
+	ml_debugger_t Debugger;
 	debug_thread_t *Threads;
 	debug_thread_t *ActiveThread;
 	json_decoder_t *Decoder;
@@ -429,9 +429,9 @@ typedef enum {
 	ML_DEBUGGER_COMMAND_EVALUATE = 12
 } ml_debugger_command_t;
 
-static int ml_remote_debugger_send(ml_remote_debugger_t *Debugger, const char *Buffer, size_t Size) {
+static int ml_remote_debugger_send(ml_remote_debugger_t *Remote, const char *Buffer, size_t Size) {
 	while (Size) {
-		ssize_t Write = write(Debugger->Socket, Buffer, Size);
+		ssize_t Write = write(Remote->Socket, Buffer, Size);
 		if (Write < 0) return Write;
 		Buffer += Write;
 		Size -= Write;
@@ -439,42 +439,48 @@ static int ml_remote_debugger_send(ml_remote_debugger_t *Debugger, const char *B
 	return 0;
 }
 
-static size_t *ml_remote_debugger_breakpoints(ml_remote_debugger_t *Debugger, const char *Source, int Max) {
-	return stringmap_breakpoints(Debugger->Modules, Source, Max);
+static size_t *ml_remote_debugger_breakpoints(ml_remote_debugger_t *Remote, const char *Source, int Max) {
+	return stringmap_breakpoints(Remote->Modules, Source, Max);
 }
 
-static void ml_remote_debugger_command(ml_remote_debugger_t *Debugger, ml_value_t *Command) {
+static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t *Command) {
 	size_t Index = ml_integer_value(ml_list_pop(Command));
-	ml_stringbuffer_printf(Debugger->Buffer, "[%ld,", Index);
-	ml_value_t *Result = MLNil;
+	ml_stringbuffer_printf(Remote->Buffer, "[%ld,", Index);
+	ml_value_t *Result = (ml_value_t *)MLTrue;
 	ml_debugger_command_t Cmd = ml_integer_value(ml_list_pop(Command));
 	switch (Cmd) {
 	case ML_DEBUGGER_COMMAND_BREAKPOINT_SET: {
 		const char *Source = ml_string_value(ml_list_pop(Command));
 		while (ml_list_length(Command)) {
 			size_t LineNo = ml_integer_value_fast(ml_list_pop(Command));
-			size_t *Breakpoints = ml_remote_debugger_breakpoints(Debugger, Source, LineNo);
+			size_t *Breakpoints = ml_remote_debugger_breakpoints(Remote, Source, LineNo);
 			Breakpoints[LineNo / SIZE_BITS] |= 1L << (LineNo % SIZE_BITS);
 		}
-		++Debugger->BaseDebugger.Revision;
+		++Remote->Debugger.Revision;
 		break;
 	}
 	case ML_DEBUGGER_COMMAND_BREAKPOINT_CLEAR: {
 		const char *Source = ml_string_value(ml_list_pop(Command));
 		while (ml_list_length(Command)) {
 			size_t LineNo = ml_integer_value_fast(ml_list_pop(Command));
-			size_t *Breakpoints = ml_remote_debugger_breakpoints(Debugger, Source, LineNo);
+			size_t *Breakpoints = ml_remote_debugger_breakpoints(Remote, Source, LineNo);
 			Breakpoints[LineNo / SIZE_BITS] &= ~(1L << (LineNo % SIZE_BITS));
 		}
-		++Debugger->BaseDebugger.Revision;
+		++Remote->Debugger.Revision;
 		break;
 	}
 	case ML_DEBUGGER_COMMAND_BREAKPOINTS: {
 		Result = ml_map();
-		stringmap_foreach(Debugger->Modules, Result, (void *)debugger_breakpoints_fn);
+		stringmap_foreach(Remote->Modules, Result, (void *)debugger_breakpoints_fn);
 		break;
 	}
 	case ML_DEBUGGER_COMMAND_CONTINUE: {
+		debug_thread_t *Thread = Remote->ActiveThread;
+		if (!Thread) return;
+		int Index = Thread - Remote->Threads;
+		Remote->Debugger.StepIn = 0;
+		ml_debugger_step_mode(Thread->State, 0, 0);
+		//return Remote->Info->exit(Remote->Info->Data, Remote, Caller, Index);
 		break;
 	}
 	case ML_DEBUGGER_COMMAND_CONTINUE_ALL: {
@@ -502,30 +508,30 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Debugger, ml_value_
 		break;
 	}
 	}
-	ml_json_encode(Debugger->Buffer, Result);
-	ml_stringbuffer_put(Debugger->Buffer, ']');
-	ml_stringbuffer_drain(Debugger->Buffer, Debugger, (void *)ml_remote_debugger_send);
+	ml_json_encode(Remote->Buffer, Result);
+	ml_stringbuffer_put(Remote->Buffer, ']');
+	ml_stringbuffer_drain(Remote->Buffer, Remote, (void *)ml_remote_debugger_send);
 }
 
-static void ml_remote_debugger_run(ml_remote_debugger_t *Debugger, ml_state_t *State, ml_value_t *Value) {
-	if (Debugger->NumThreads == Debugger->MaxThreads) {
-		int MaxThreads = 2 * Debugger->MaxThreads;
+static void ml_remote_debugger_run(ml_remote_debugger_t *Remote, ml_state_t *State, ml_value_t *Value) {
+	if (Remote->NumThreads == Remote->MaxThreads) {
+		int MaxThreads = 2 * Remote->MaxThreads;
 		debug_thread_t *Threads = anew(debug_thread_t, MaxThreads);
-		memcpy(Threads, Debugger->Threads, Debugger->MaxThreads * sizeof(debug_thread_t));
-		int Index =  Debugger->ActiveThread - Debugger->Threads;
-		Debugger->Threads = Threads;
-		Debugger->MaxThreads = MaxThreads;
-		Debugger->ActiveThread = Threads + Index;
+		memcpy(Threads, Remote->Threads, Remote->MaxThreads * sizeof(debug_thread_t));
+		int Index =  Remote->ActiveThread - Remote->Threads;
+		Remote->Threads = Threads;
+		Remote->MaxThreads = MaxThreads;
+		Remote->ActiveThread = Threads + Index;
 	}
-	++Debugger->NumThreads;
-	debug_thread_t *Thread = Debugger->Threads;
+	++Remote->NumThreads;
+	debug_thread_t *Thread = Remote->Threads;
 	while (Thread->State) ++Thread;
 	Thread->State = Thread->Active = State;
 	Thread->Value = Value;
-	Debugger->ActiveThread = Thread;
+	Remote->ActiveThread = Thread;
 	ml_source_t Source = ml_debugger_source(State);
 	if (ml_is_error(Value)) {
-		ml_stringbuffer_print(Debugger->Buffer, "[-1,");
+		ml_stringbuffer_printf(Remote->Buffer, "[-1,");
 		// TODO: Send "error" event to Debugger->Socket
 		//Debugger->Info->log(Debugger->Info->Data, Value);
 	}
@@ -535,17 +541,17 @@ static void ml_remote_debugger_run(ml_remote_debugger_t *Debugger, ml_state_t *S
 }
 
 static void ml_remote_debugger_json(json_decoder_t *Decoder, ml_value_t *Value) {
-	ml_state_t *Debugger = json_decoder_data(Decoder);
-	ml_state_schedule(Debugger, Value);
+	ml_state_t *Remote = json_decoder_data(Decoder);
+	ml_state_schedule(Remote, Value);
 }
 
 static void *ml_remote_debugger_fn(void *Arg) {
-	ml_remote_debugger_t *Debugger = (ml_remote_debugger_t *)Arg;
+	ml_remote_debugger_t *Remote = (ml_remote_debugger_t *)Arg;
 	char Buffer[64];
 	for (;;) {
-		ssize_t Read = read(Debugger->Socket, Buffer, 64);
+		ssize_t Read = read(Remote->Socket, Buffer, 64);
 		if (Read < 0) return NULL;
-		json_decoder_parse(Debugger->Decoder, Buffer, Read);
+		json_decoder_parse(Remote->Decoder, Buffer, Read);
 	}
 	return NULL;
 }
@@ -567,17 +573,17 @@ void ml_remote_debugger_init(ml_context_t *Context, const char *Address) {
 			exit(-1);
 		}
 	}
-	ml_remote_debugger_t *Debugger = new(ml_remote_debugger_t);
-	Debugger->Base.run = (void *)ml_remote_debugger_command;
-	Debugger->Base.Context = Context;
-	Debugger->BaseDebugger.run = (void *)ml_remote_debugger_run;
-	Debugger->BaseDebugger.breakpoints = (void *)ml_remote_debugger_breakpoints;
-	Debugger->BaseDebugger.Revision = 1;
-	Debugger->BaseDebugger.StepIn = 1;
-	Debugger->BaseDebugger.BreakOnError = 1;
-	Debugger->Socket = Socket;
-	Debugger->Decoder = json_decoder(ml_remote_debugger_json, Debugger);
-	Debugger->Buffer[0] = ML_STRINGBUFFER_INIT;
-	GC_pthread_create(&Debugger->Thread, NULL, ml_remote_debugger_fn, Debugger);
-	ml_context_set_static(Context, ML_DEBUGGER_INDEX, Debugger);
+	ml_remote_debugger_t *Remote = new(ml_remote_debugger_t);
+	Remote->Base.run = (void *)ml_remote_debugger_command;
+	Remote->Base.Context = Context;
+	Remote->Debugger.run = (void *)ml_remote_debugger_run;
+	Remote->Debugger.breakpoints = (void *)ml_remote_debugger_breakpoints;
+	Remote->Debugger.Revision = 1;
+	Remote->Debugger.StepIn = 1;
+	Remote->Debugger.BreakOnError = 1;
+	Remote->Socket = Socket;
+	Remote->Decoder = json_decoder(ml_remote_debugger_json, Remote);
+	Remote->Buffer[0] = ML_STRINGBUFFER_INIT;
+	GC_pthread_create(&Remote->Thread, NULL, ml_remote_debugger_fn, Remote);
+	ml_context_set_static(Context, ML_DEBUGGER_INDEX, Remote);
 }
