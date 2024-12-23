@@ -3693,17 +3693,10 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 	return ml_call(State, Args[3], 1, Args2);
 }
 
-ML_FUNCTION(MLStringEscape) {
-//@string::escape
-//<String:string
-//>string
-// Escapes characters in :mini:`String`.
-//$= string::escape("\'Hello\nworld!\'")
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	const char *S = ml_string_value(Args[0]);
-	for (int I = ml_string_length(Args[0]); --I >= 0; ++S) {
+void ml_stringbuffer_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Length) {
+	if (Length < 0) Length = strlen(String);
+	const char *S = String;
+	for (int I = Length; --I >= 0; ++S) {
 		switch (*S) {
 		case '\0':
 			ml_stringbuffer_write(Buffer, "\\0", strlen("\\0"));
@@ -3737,6 +3730,18 @@ ML_FUNCTION(MLStringEscape) {
 			break;
 		}
 	}
+}
+
+ML_FUNCTION(MLStringEscape) {
+//@string::escape
+//<String:string
+//>string
+// Escapes characters in :mini:`String`.
+//$= string::escape("\'Hello\nworld!\'")
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_escape_string(Buffer, ml_string_value(Args[0]), ml_string_length(Args[0]));
 	return ml_stringbuffer_to_string(Buffer);
 }
 
