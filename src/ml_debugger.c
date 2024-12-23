@@ -603,13 +603,18 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 				Frame = Frame->Caller;
 				if (!Frame) goto invalid;
 			}
+			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 			for (ml_decl_t *Decl = ml_debugger_decls(Frame); Decl; Decl = Decl->Next) {
 				ml_value_t *Value = Decl->Value ?: ml_debugger_local(Frame, Decl->Index);
 				if (!Value) continue;
-				ml_minijs_encoder_t Encoder[1] = {MLExternals, {INTHASH_INIT}, 0};
 				ml_value_t *Variable = ml_list();
 				ml_list_put(Variable, ml_string(Decl->Ident, -1));
-				ml_list_put(Variable, ml_minijs_encode(Encoder, Value));
+				ml_value_t *Error = ml_stringbuffer_simple_append(Buffer, Value);
+				if (ml_is_error(Error)) {
+					ml_stringbuffer_clear(Buffer);
+					ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+				}
+				ml_list_put(Variable, ml_stringbuffer_get_value(Buffer));
 				ml_list_put(Variable, ml_integer(Decl->Source.Line));
 				ml_list_put(Result, Variable);
 			}
