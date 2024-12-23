@@ -4,6 +4,7 @@
 #include "ml_macros.h"
 #include "ml_logging.h"
 #include "ml_json.h"
+#include "ml_minijs.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -417,6 +418,7 @@ typedef struct {
 } ml_remote_debugger_t;
 
 typedef enum {
+	ML_DEBUGGER_COMMAND_CONFIG = 0,
 	ML_DEBUGGER_COMMAND_BREAKPOINT_SET = 1,
 	ML_DEBUGGER_COMMAND_BREAKPOINT_CLEAR = 2,
 	ML_DEBUGGER_COMMAND_BREAKPOINTS = 3,
@@ -431,7 +433,19 @@ typedef enum {
 	ML_DEBUGGER_COMMAND_EVALUATE = 12
 } ml_debugger_command_t;
 
+typedef enum {
+	ML_DEBUGGER_CONFIG_BREAK_ON_ERROR = 0
+} ml_debugger_config_t;
+
+typedef enum {
+	ML_DEBUGGER_EVENT_READY = 0,
+	ML_DEBUGGER_EVENT_BREAK = 1,
+	ML_DEBUGGER_EVENT_ERROR = 2,
+	ML_DEBUGGER_EVENT_HALT = 3
+} ml_debugger_event_t;
+
 static int ml_remote_debugger_send(ml_remote_debugger_t *Remote, const char *Buffer, size_t Size) {
+	fprintf(stderr, "< %.*s\n", (int)Size, Buffer);
 	while (Size) {
 		ssize_t Write = write(Remote->Socket, Buffer, Size);
 		if (Write < 0) return Write;
@@ -452,6 +466,16 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 	ml_value_t *Result = (ml_value_t *)MLTrue;
 	ml_debugger_command_t Cmd = ml_integer_value(ml_list_pop(Command));
 	switch (Cmd) {
+	case ML_DEBUGGER_COMMAND_CONFIG: {
+		ml_debugger_config_t Config = ml_integer_value(ml_list_pop(Command));
+		switch (Config) {
+		case ML_DEBUGGER_CONFIG_BREAK_ON_ERROR: {
+			Remote->Debugger.BreakOnError = ml_list_pop(Command) == (ml_value_t *)MLTrue;
+			break;
+		}
+		}
+		break;
+	}
 	case ML_DEBUGGER_COMMAND_BREAKPOINT_SET: {
 		const char *Source = ml_string_value(ml_list_pop(Command));
 		while (ml_list_length(Command)) {
@@ -490,7 +514,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 				Thread->Active = Thread->State = NULL;
 				Thread->Value = NULL;
 				--Remote->NumThreads;
-				State->run(State, Value);
+				ml_state_schedule(State, Value);
 			}
 		}
 		break;
@@ -506,7 +530,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
 			--Remote->NumThreads;
-			State->run(State, Value);
+			ml_state_schedule(State, Value);
 		} else {
 			Result = (ml_value_t *)MLFalse;
 		}
@@ -523,7 +547,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
 			--Remote->NumThreads;
-			State->run(State, Value);
+			ml_state_schedule(State, Value);
 		} else {
 			Result = (ml_value_t *)MLFalse;
 		}
@@ -540,7 +564,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
 			--Remote->NumThreads;
-			State->run(State, Value);
+			ml_state_schedule(State, Value);
 		} else {
 			Result = (ml_value_t *)MLFalse;
 		}
@@ -557,29 +581,37 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
 			--Remote->NumThreads;
-			State->run(State, Value);
+			ml_state_schedule(State, Value);
 		} else {
 			Result = (ml_value_t *)MLFalse;
 		}
 		break;
 	}
 	case ML_DEBUGGER_COMMAND_LOCALS: {
-		Result = ml_map();
+		Result = ml_list();
 		int Index = ml_integer_value(ml_list_pop(Command));
 		if (0 <= Index && Index < Remote->MaxThreads) {
 			debug_thread_t *Thread = Remote->Threads + Index;
 			ml_state_t *Frame = Thread->State;
 			int Depth = ml_integer_value(ml_list_pop(Command));
-			while (--Depth >= 0) {
-				do {
+			for (;;) {
+				while (!ml_debugger_check(Frame)) {
 					Frame = Frame->Caller;
 					if (!Frame) goto invalid;
-				} while (!ml_debugger_check(Frame));
+				}
+				if (--Depth < 0) break;
+				Frame = Frame->Caller;
+				if (!Frame) goto invalid;
 			}
 			for (ml_decl_t *Decl = ml_debugger_decls(Frame); Decl; Decl = Decl->Next) {
 				ml_value_t *Value = Decl->Value ?: ml_debugger_local(Frame, Decl->Index);
 				if (!Value) continue;
-				ml_map_insert(Result, ml_string(Decl->Ident, -1), Value);
+				ml_minijs_encoder_t Encoder[1] = {MLExternals, {INTHASH_INIT}, 0};
+				ml_value_t *Variable = ml_list();
+				ml_list_put(Variable, ml_string(Decl->Ident, -1));
+				ml_list_put(Variable, ml_minijs_encode(Encoder, Value));
+				ml_list_put(Variable, ml_integer(Decl->Source.Line));
+				ml_list_put(Result, Variable);
 			}
 		}
 		invalid:;
@@ -623,7 +655,8 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 		break;
 	}
 	}
-	ml_json_encode(Remote->Buffer, Result);
+	ml_value_t *Error = ml_json_encode(Remote->Buffer, Result);
+	if (Error) ML_LOG_ERROR(Error, "Error encoding response to JSON");
 	ml_stringbuffer_write(Remote->Buffer, "]\n", strlen("]\n"));
 	ml_stringbuffer_drain(Remote->Buffer, Remote, (void *)ml_remote_debugger_send);
 }
@@ -643,19 +676,14 @@ static void ml_remote_debugger_run(ml_debugger_t *Debugger, ml_state_t *State, m
 	Thread->State = State;
 	Thread->Value = Value;
 	int Index = Thread - Remote->Threads;
-	ml_source_t Source = ml_debugger_source(State);
 	if (ml_is_error(Value)) {
-		ml_stringbuffer_printf(Remote->Buffer, "[null,2,%d,\"", Index);
-		ml_stringbuffer_escape_string(Remote->Buffer, Source.Name, -1);
-		ml_stringbuffer_printf(Remote->Buffer, "\",%d,\"", Source.Line);
+		ml_stringbuffer_printf(Remote->Buffer, "[null,%d,%d,\"", ML_DEBUGGER_EVENT_ERROR, Index);
 		ml_stringbuffer_escape_string(Remote->Buffer, ml_error_type(Value), -1);
 		ml_stringbuffer_write(Remote->Buffer, "\",\"", strlen("\",\""));
 		ml_stringbuffer_escape_string(Remote->Buffer, ml_error_message(Value), -1);
 		ml_stringbuffer_write(Remote->Buffer, "\"]\n", strlen("\"]\n"));
 	} else {
-		ml_stringbuffer_printf(Remote->Buffer, "[null,1,%d,\"", Index);
-		ml_stringbuffer_escape_string(Remote->Buffer, Source.Name, -1);
-		ml_stringbuffer_printf(Remote->Buffer, "\",%d]\n", Source.Line);
+		ml_stringbuffer_printf(Remote->Buffer, "[null,%d,%d]\n", ML_DEBUGGER_EVENT_BREAK, Index);;
 	}
 	ml_stringbuffer_drain(Remote->Buffer, Remote, (void *)ml_remote_debugger_send);
 }
@@ -671,8 +699,11 @@ static void *ml_remote_debugger_fn(void *Arg) {
 	for (;;) {
 		ssize_t Read = read(Remote->Socket, Buffer, 64);
 		if (Read < 0) return NULL;
+		fprintf(stderr, "> %.*s\n", (int)Read, Buffer);
+		if (Read == 0) return NULL;
 		json_decoder_parse(Remote->Decoder, Buffer, Read);
 	}
+	exit(0);
 	return NULL;
 }
 
@@ -707,7 +738,7 @@ void ml_remote_debugger_init(ml_context_t *Context, const char *Address) {
 	Remote->Socket = Socket;
 	Remote->Decoder = json_decoder(ml_remote_debugger_json, Remote);
 	Remote->Buffer[0] = ML_STRINGBUFFER_INIT;
-	ml_stringbuffer_write(Remote->Buffer, "[null,0,\"Debugger ready\"]\n", strlen("[null,0,\"Debugger ready\"]\n"));
+	ml_stringbuffer_printf(Remote->Buffer, "[null,0,%d]\n", ML_DEBUGGER_EVENT_READY);
 	ml_stringbuffer_drain(Remote->Buffer, Remote, (void *)ml_remote_debugger_send);
 	GC_pthread_create(&Remote->Thread, NULL, ml_remote_debugger_fn, Remote);
 	ml_context_set_static(Context, ML_DEBUGGER_INDEX, &Remote->Debugger);
