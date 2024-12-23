@@ -446,7 +446,7 @@ typedef enum {
 } ml_debugger_event_t;
 
 static int ml_remote_debugger_send(ml_remote_debugger_t *Remote, const char *Buffer, size_t Size) {
-	fprintf(stderr, "< %.*s\n", (int)Size, Buffer);
+	//fprintf(stderr, "< %.*s\n", (int)Size, Buffer);
 	while (Size) {
 		ssize_t Write = write(Remote->Socket, Buffer, Size);
 		if (Write < 0) return Write;
@@ -710,7 +710,7 @@ static void *ml_remote_debugger_fn(void *Arg) {
 	for (;;) {
 		ssize_t Read = read(Remote->Socket, Buffer, 64);
 		if (Read <= 0) break;
-		fprintf(stderr, "> %.*s\n", (int)Read, Buffer);
+		//fprintf(stderr, "> %.*s\n", (int)Read, Buffer);
 		json_decoder_parse(Remote->Decoder, Buffer, Read);
 	}
 	fprintf(stderr, "Remote connection closed\n");

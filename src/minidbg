@@ -3,7 +3,7 @@ let Console := import("gtk_console")
 let Buffer := string::buffer()
 Buffer:write('idebug("{string::escape(Args[1])}"')
 for Arg in Args skip 1 do
-	Buffer:write(', {string::escape(Arg)}')
+	Buffer:write(', \"{string::escape(Arg)}\"')
 end
 Buffer:write(")")
 Console:parser:input(Buffer:rest)
