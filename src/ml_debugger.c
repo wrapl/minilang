@@ -430,7 +430,8 @@ typedef enum {
 	ML_DEBUGGER_COMMAND_LOCALS = 9,
 	ML_DEBUGGER_COMMAND_FRAMES = 10,
 	ML_DEBUGGER_COMMAND_THREADS = 11,
-	ML_DEBUGGER_COMMAND_EVALUATE = 12
+	ML_DEBUGGER_COMMAND_EVALUATE = 12,
+	ML_DEBUGGER_COMMAND_TERMINATE = 13
 } ml_debugger_command_t;
 
 typedef enum {
@@ -659,6 +660,11 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 	case ML_DEBUGGER_COMMAND_EVALUATE: {
 		break;
 	}
+	case ML_DEBUGGER_COMMAND_TERMINATE: {
+		fprintf(stderr, "Terminating debugger\n");
+		close(Remote->Socket);
+		return;
+	}
 	}
 	ml_value_t *Error = ml_json_encode(Remote->Buffer, Result);
 	if (Error) ML_LOG_ERROR(Error, "Error encoding response to JSON");
@@ -703,11 +709,11 @@ static void *ml_remote_debugger_fn(void *Arg) {
 	char Buffer[64];
 	for (;;) {
 		ssize_t Read = read(Remote->Socket, Buffer, 64);
-		if (Read < 0) return NULL;
+		if (Read <= 0) break;
 		fprintf(stderr, "> %.*s\n", (int)Read, Buffer);
-		if (Read == 0) return NULL;
 		json_decoder_parse(Remote->Decoder, Buffer, Read);
 	}
+	fprintf(stderr, "Remote connection closed\n");
 	exit(0);
 	return NULL;
 }
