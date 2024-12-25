@@ -184,6 +184,82 @@ let InstallHeaders := [
 	"weakmap.h"
 ]
 
+let Options := [
+	"TABLES",
+	"MATH",
+	"AST",
+	"COMPLEX",
+	"RATIONAL",
+	"CBOR",
+	"JSON",
+	"XML",
+	"XE",
+	"LIBRARY",
+	"MODULES",
+	"SCHEDULER",
+	"THREADS",
+	"THREADSAFE",
+	"JIT",
+	"NANBOXING",
+	"TRE",
+	"GENERICS",
+	"MUTABLES",
+	"PQUEUES",
+	"TIMEZONES",
+	"UUID",
+	"ICU",
+	"LIBS",
+	"UNWIND",
+	"BACKTRACE",
+	"MINIJS",
+	"COROUTINES",
+	"ENCODINGS",
+	"STRUCTS",
+	"MMAP",
+	"STRINGCACHE",
+	"STATICGC"
+]
+
+if MACHINE = "x86" then
+	MINILANG_TRAMPOLINE := 1
+end
+
+MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
+
+if MINILANG_DEFAULTS or defined("DEFAULTS") then
+	MINILANG_TABLES := 1
+	MINILANG_MATH := 1
+	MINILANG_AST := 1
+	MINILANG_COMPLEX := not defined("NOCOMPLEX")
+	MINILANG_CBOR := 1
+	MINILANG_JSON := 1
+	MINILANG_XML := 1
+	MINILANG_MINIJS := 1
+	MINILANG_LIBRARY := not defined("NOSCHEDULER")
+	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
+	MINILANG_TIMESCHED := not defined("NOTIMESCHED")
+	MINILANG_TRE := not defined("NOTRE")
+	MINILANG_GENERICS := not defined("NOGENERICS")
+	MINILANG_MUTABLES := 1
+	MINILANG_PQUEUES := 1
+	MINILANG_UUID := 1
+	MINILANG_ICU := 1
+	MINILANG_ENCODINGS := 1
+	MINILANG_TIMEZONES := 1
+	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
+	MINILANG_STATICGC := not defined("NOSTATICGC")
+	MINILANG_THREADS := not defined("NOTHREADS")
+	MINILANG_BACKTRACE := not defined("NOBACKTRACE")
+	if PLATFORM = "Linux" then
+		MINILANG_UNWIND := 1
+	end
+	if PLATFORM = "Linux" and MACHINE = "x86_64" then
+		MINILANG_NANBOXING := not defined("NONANBOXING")
+		MINILANG_MMAP := 1
+		:>MINILANG_CONTEXT_SECTION := not defined("NOCONTEXTSECTION")
+	end
+end
+
 var GC
 
 if MINILANG_STATICGC or defined("STATICGC") then
@@ -225,76 +301,6 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Lib2 := file("lib/libgccpp.a")[Lib]
 	Libraries:put(Lib, Lib2)
 	:>LDFLAGS := old + ['-L{PATH / "lib"}', '-pthread']
-end
-
-let Options := [
-	"TABLES",
-	"MATH",
-	"AST",
-	"COMPLEX",
-	"RATIONAL",
-	"CBOR",
-	"JSON",
-	"XML",
-	"XE",
-	"LIBRARY",
-	"MODULES",
-	"SCHEDULER",
-	"THREADS",
-	"THREADSAFE",
-	"JIT",
-	"NANBOXING",
-	"TRE",
-	"GENERICS",
-	"MUTABLES",
-	"PQUEUES",
-	"TIMEZONES",
-	"UUID",
-	"ICU",
-	"LIBS",
-	"UNWIND",
-	"BACKTRACE",
-	"MINIJS",
-	"COROUTINES",
-	"ENCODINGS",
-	"STRUCTS",
-	"MMAP",
-	"STRINGCACHE"
-]
-
-if MACHINE = "x86" then
-	MINILANG_TRAMPOLINE := 1
-end
-
-MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
-
-if MINILANG_DEFAULTS or defined("DEFAULTS") then
-	MINILANG_TABLES := 1
-	MINILANG_MATH := 1
-	MINILANG_AST := 1
-	MINILANG_COMPLEX := not defined("NOCOMPLEX")
-	MINILANG_CBOR := 1
-	MINILANG_JSON := 1
-	MINILANG_XML := 1
-	MINILANG_LIBRARY := not defined("NOSCHEDULER")
-	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
-	MINILANG_TIMESCHED := not defined("NOTIMESCHED")
-	MINILANG_TRE := not defined("NOTRE")
-	MINILANG_GENERICS := not defined("NOGENERICS")
-	MINILANG_MUTABLES := 1
-	MINILANG_PQUEUES := 1
-	MINILANG_UUID := 1
-	MINILANG_ICU := 1
-	MINILANG_ENCODINGS := 1
-	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
-	if PLATFORM = "Linux" then
-		MINILANG_UNWIND := 1
-	end
-	if PLATFORM = "Linux" and MACHINE = "x86_64" then
-		MINILANG_NANBOXING := not defined("NONANBOXING")
-		MINILANG_MMAP := 1
-		:>MINILANG_CONTEXT_SECTION := not defined("NOCONTEXTSECTION")
-	end
 end
 
 MINILANG_TABLES := old or defined("TABLES")
