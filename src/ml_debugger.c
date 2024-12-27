@@ -405,6 +405,8 @@ ml_value_t *ml_interactive_debugger(
 	return ml_cfunctionx(Info, (void *)interactive_debugger_fnx);
 }
 
+#ifdef Linux
+
 typedef struct {
 	ml_state_t Base;
 	ml_debugger_t Debugger;
@@ -754,3 +756,6 @@ void ml_remote_debugger_init(ml_context_t *Context, const char *Address) {
 	GC_pthread_create(&Remote->Thread, NULL, ml_remote_debugger_fn, Remote);
 	ml_context_set_static(Context, ML_DEBUGGER_INDEX, &Remote->Debugger);
 }
+
+#endif
+

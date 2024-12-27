@@ -1240,7 +1240,7 @@ ML_METHOD("splice", MLMapMutableT, MLAnyT, MLMapMutableT) {
 		Node = Next;
 	}
 	ml_map_order_t Order = Map->Order;
-	Map->Order = SET_ORDER_INSERT;
+	Map->Order = MAP_ORDER_INSERT;
 	for (ml_map_node_t *Node = Source->Head; Node;) {
 		ml_map_node_t *Next = Node->Next;
 		ml_map_node(Map, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);
@@ -1288,7 +1288,7 @@ ML_METHOD("splice", MLMapMutableT, MLAnyT, MLIntegerT, MLMapMutableT) {
 		Node = Next;
 	}
 	ml_map_order_t Order = Map->Order;
-	Map->Order = SET_ORDER_INSERT;
+	Map->Order = MAP_ORDER_INSERT;
 	for (ml_map_node_t *Node = Source->Head; Node;) {
 		ml_map_node_t *Next = Node->Next;
 		ml_map_node(Map, Node, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node->Key);

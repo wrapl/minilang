@@ -249,10 +249,12 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_XE := 1
 	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
 	MINILANG_STATICGC := not defined("NOSTATICGC")
-	MINILANG_THREADS := not defined("NOTHREADS")
 	MINILANG_BACKTRACE := not defined("NOBACKTRACE")
 	if PLATFORM = "Linux" then
 		MINILANG_UNWIND := 1
+	end
+	if PLATFORM != "Wasm" then
+		MINILANG_THREADS := not defined("NOTHREADS")
 	end
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
@@ -292,7 +294,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			})
 		end
 		execute("autoreconf", "-vfi", file("gc/configure.ac"):dirname)
-		execute('CC={CC}', file("gc/configure"), Configuration)
+		execute('CC={CC} CXX={CC}', file("gc/configure"), Configuration)
 		execute("make clean")
 		execute("make -j4")
 		execute('make -j4 PREFIX={PATH} install')
