@@ -613,7 +613,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "k"
+      random("cake") :> "e"
       random([]) :> nil
 
 

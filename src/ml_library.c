@@ -87,6 +87,7 @@ static char *path_join(const char *Base, const char *Rest, int Remove, int Space
 }
 
 static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
+	fprintf(stderr, "Looking for %s/%s\n", Path, Name);
 	ml_library_loader_t *Loader = NULL;
 	if (Path) {
 		char *FileName = path_join(Path, Name, 0, MaxLibraryExtensionLength);
@@ -261,6 +262,42 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 	return ml_module_compile(Caller, FileName, Expr, Compiler, Slot);
 }
 
+#ifdef Wasm
+
+static void ml_library_wasm_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
+}
+
+static ml_value_t *ml_library_wasm_load0(const char *FileName, ml_value_t **Slot) {
+
+}
+
+#else
+
+#include "whereami.h"
+
+static void ml_library_path_add_default(void) {
+	int ExecutablePathLength = wai_getExecutablePath(NULL, 0, NULL);
+	char *ExecutablePath = snew(ExecutablePathLength + 1);
+	wai_getExecutablePath(ExecutablePath, ExecutablePathLength + 1, &ExecutablePathLength);
+	ExecutablePath[ExecutablePathLength] = 0;
+	for (int I = ExecutablePathLength - 1; I > 0; --I) {
+		if (ExecutablePath[I] == '/') {
+			ExecutablePath[I] = 0;
+			ExecutablePathLength = I;
+			break;
+		}
+	}
+	int LibPathLength = ExecutablePathLength + strlen("/lib/minilang");
+	char *LibPath = snew(LibPathLength + 1);
+	memcpy(LibPath, ExecutablePath, ExecutablePathLength);
+	strcpy(LibPath + ExecutablePathLength, "/lib/minilang");
+	//printf("Looking for library path at %s\n", LibPath);
+	struct stat Stat[1];
+	if (!stat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
+		ml_library_path_add(LibPath);
+	}
+}
+
 static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
 	if (Handle) {
@@ -300,6 +337,8 @@ static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) 
 	}
 }
 
+#endif
+
 typedef struct {
 	ml_type_t *Type;
 	const char *Path;
@@ -334,8 +373,6 @@ static ml_value_t *ml_library_dir_load0(const char *FileName, ml_value_t **Slot)
 	return Slot[0];
 }
 
-#include "whereami.h"
-
 void ml_library_path_add(const char *Path) {
 	if (Path[0] != '/') {
 		char *Cwd = getcwd(NULL, 0);
@@ -358,29 +395,6 @@ ML_FUNCTION(GetPath) {
 	ml_value_t *Path = ml_list();
 	ML_LIST_FOREACH(LibraryPath, Iter) ml_list_put(Path, Iter->Value);
 	return Path;
-}
-
-static void ml_library_path_add_default(void) {
-	int ExecutablePathLength = wai_getExecutablePath(NULL, 0, NULL);
-	char *ExecutablePath = snew(ExecutablePathLength + 1);
-	wai_getExecutablePath(ExecutablePath, ExecutablePathLength + 1, &ExecutablePathLength);
-	ExecutablePath[ExecutablePathLength] = 0;
-	for (int I = ExecutablePathLength - 1; I > 0; --I) {
-		if (ExecutablePath[I] == '/') {
-			ExecutablePath[I] = 0;
-			ExecutablePathLength = I;
-			break;
-		}
-	}
-	int LibPathLength = ExecutablePathLength + strlen("/lib/minilang");
-	char *LibPath = snew(LibPathLength + 1);
-	memcpy(LibPath, ExecutablePath, ExecutablePathLength);
-	strcpy(LibPath + ExecutablePathLength, "/lib/minilang");
-	//printf("Looking for library path at %s\n", LibPath);
-	struct stat Stat[1];
-	if (!stat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
-		ml_library_path_add(LibPath);
-	}
 }
 
 void ml_library_loader_add(
@@ -413,9 +427,13 @@ static ml_importer_t Importer[1] = {{MLImporterT, NULL}};
 void ml_library_init(stringmap_t *_Globals) {
 	Globals = _Globals;
 	LibraryPath = ml_list();
+#ifdef Wasm
+	ml_library_loader_add(".wasm", NULL, ml_library_wasm_load, ml_library_wasm_load0);
+#else
 	ml_library_path_add_default();
-	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
 	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
+#endif
+	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
 	//ml_library_loader_add("", ml_library_dir_test, ml_library_dir_load, ml_library_dir_load0);
 #include "ml_library_init.c"
 	stringmap_insert(Globals, "import", Importer);

@@ -86,8 +86,8 @@ Building *Minilang* with either *Rabs* or *Make* will produce an executable inte
 Additional arguments can be passed to :command:`minilang`:
 
 :<file> [<arg₁> <arg₂> ...]: Runs the code in ``<file>`` as a script. 
-:-G: Opens a GTK+ console if enabled.
 :-m <module>: If built with module support, runs ``<module>`` as a module.
+:-L <path>: If built with module support, adds ``<path>`` to the module search path.
 :-s <interval>: If built with a scheduler, enables preemptive multitasking every ``<interval>`` instructions.
  
 When run with a script, additional command line arguments are passed in a variable called :mini:`Args`.

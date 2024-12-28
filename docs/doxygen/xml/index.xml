@@ -128,8 +128,8 @@
     <member refid="structml__debugger__t_1a45b927e2d14013c7cce7c9a8d82d6ec8" kind="variable"><name>Revision</name></member>
     <member refid="structml__debugger__t_1a1e7a576750badcba3bf29e764a273d74" kind="variable"><name>run</name></member>
     <member refid="structml__debugger__t_1a93122dbc81b8ae39c6439b39376d52e1" kind="variable"><name>breakpoints</name></member>
-    <member refid="structml__debugger__t_1a49430fce113df5a94f63e4db44a36274" kind="variable"><name>StepIn</name></member>
-    <member refid="structml__debugger__t_1a6adc6f4dee09aeb6f2d2ecdde4eba8fc" kind="variable"><name>BreakOnError</name></member>
+    <member refid="structml__debugger__t_1ad43c8724b80ce08c8ecc12c3ff770259" kind="variable"><name>StepIn</name></member>
+    <member refid="structml__debugger__t_1afb1175f3f39dd4c8b2dc3537f155a7df" kind="variable"><name>BreakOnError</name></member>
   </compound>
   <compound refid="structml__decl__t" kind="struct"><name>ml_decl_t</name>
     <member refid="structml__decl__t_1ae8dfca9550f3b8b2be4bf2c8d4df46a6" kind="variable"><name>Next</name></member>
@@ -1116,6 +1116,7 @@
     <member refid="ml__debugger_8h_1a8232ee6325a020216c8bc1f630b8d74e" kind="function"><name>ml_interactive_debugger_get</name></member>
     <member refid="ml__debugger_8h_1a9f62a55c035162b6c8481b020241006d" kind="function"><name>ml_interactive_debugger_switch</name></member>
     <member refid="ml__debugger_8h_1a4bddcde9c3a5ffab9a03975f54ae13e5" kind="function"><name>ml_interactive_debugger_resume</name></member>
+    <member refid="ml__debugger_8h_1af1383eaba01c0580ca31be15c21bfa65" kind="function"><name>ml_remote_debugger_init</name></member>
   </compound>
   <compound refid="ml__expr__types_8h" kind="file"><name>ml_expr_types.h</name>
     <member refid="ml__expr__types_8h_1a1c1b7bd289746bf6b36ee82d4afe884f" kind="enum"><name>ml_expr_type_t</name></member>
@@ -1180,10 +1181,14 @@
     <member refid="ml__file_8h_1a1f1607ac2a3f1d11f66409b5a441f689" kind="function"><name>ml_file_handle</name></member>
   </compound>
   <compound refid="ml__json_8h" kind="file"><name>ml_json.h</name>
+    <member refid="ml__json_8h_1a748ed22e67c680399ee56ab05865f005" kind="typedef"><name>json_decoder_t</name></member>
     <member refid="ml__json_8h_1a7ace2069e01cd7be7af30e5958a26c30" kind="variable"><name>MLJsonT</name></member>
     <member refid="ml__json_8h_1a0d864c619e065b9ab37e321ea64bdbcb" kind="function"><name>ml_json_init</name></member>
     <member refid="ml__json_8h_1a0a1a4562bb5e7a25ba029df8e75c4fd0" kind="function"><name>ml_json_decode</name></member>
     <member refid="ml__json_8h_1a6ad2245886abb8b9c7fb9b6fd5668185" kind="function"><name>ml_json_encode</name></member>
+    <member refid="ml__json_8h_1a91106ab6c370c84ff2905ecf6f97c973" kind="function"><name>json_decoder</name></member>
+    <member refid="ml__json_8h_1a795f0091f67454f73c7df7cb954a8b96" kind="function"><name>json_decoder_data</name></member>
+    <member refid="ml__json_8h_1a1b0303fc3e629ad28e22e9bb0453aff7" kind="function"><name>json_decoder_parse</name></member>
   </compound>
   <compound refid="ml__library_8h" kind="file"><name>ml_library.h</name>
     <member refid="ml__library_8h_1a6df1d22fb5f09eccc23b9f399670cfd7" kind="define"><name>STRINGIFY</name></member>
@@ -1867,6 +1872,7 @@
     <member refid="group__strings_1ga5461b2ddeff7e73aec9e57f9938763df" kind="function"><name>ml_stringbuffer_last</name></member>
     <member refid="group__strings_1ga3d289fad4e03330ff3f938ef9a544953" kind="function"><name>ml_stringbuffer_append</name></member>
     <member refid="group__strings_1gad6f6e5740e09fc100237cd7fbe1bdfac" kind="function"><name>ml_stringbuffer_clear</name></member>
+    <member refid="group__strings_1ga77cb0f372875fc468778ac92cdc6bb94" kind="function"><name>ml_stringbuffer_escape_string</name></member>
     <member refid="group__strings_1gaeba59fc8a8f7fd91120e49161a823ef3" kind="function"><name>ml_stringbuffer_put_actual</name></member>
     <member refid="group__strings_1gafcef2e64b71dbd44defa8f8f254c6c07" kind="function"><name>ml_stringbuffer_put</name></member>
     <member refid="group__strings_1ga6d6e21d0d3591a97edd65c0c77bcf851" kind="function"><name>ml_stringbuffer_write_actual</name></member>
@@ -2634,6 +2640,7 @@
     <member refid="group__strings_1ga5461b2ddeff7e73aec9e57f9938763df" kind="function"><name>ml_stringbuffer_last</name></member>
     <member refid="group__strings_1ga3d289fad4e03330ff3f938ef9a544953" kind="function"><name>ml_stringbuffer_append</name></member>
     <member refid="group__strings_1gad6f6e5740e09fc100237cd7fbe1bdfac" kind="function"><name>ml_stringbuffer_clear</name></member>
+    <member refid="group__strings_1ga77cb0f372875fc468778ac92cdc6bb94" kind="function"><name>ml_stringbuffer_escape_string</name></member>
     <member refid="group__strings_1gaeba59fc8a8f7fd91120e49161a823ef3" kind="function"><name>ml_stringbuffer_put_actual</name></member>
     <member refid="group__strings_1gafcef2e64b71dbd44defa8f8f254c6c07" kind="function"><name>ml_stringbuffer_put</name></member>
     <member refid="group__strings_1ga6d6e21d0d3591a97edd65c0c77bcf851" kind="function"><name>ml_stringbuffer_write_actual</name></member>

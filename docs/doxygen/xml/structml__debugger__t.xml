@@ -45,9 +45,9 @@
         </inbodydescription>
         <location file="src/ml_runtime.h" line="288" column="1" bodyfile="src/ml_runtime.h" bodystart="288" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structml__debugger__t_1a49430fce113df5a94f63e4db44a36274" prot="public" static="no" mutable="no">
-        <type>int</type>
-        <definition>int StepIn</definition>
+      <memberdef kind="variable" id="structml__debugger__t_1ad43c8724b80ce08c8ecc12c3ff770259" prot="public" static="no" mutable="no">
+        <type>unsigned int</type>
+        <definition>unsigned int StepIn</definition>
         <argsstring></argsstring>
         <name>StepIn</name>
         <qualifiedname>ml_debugger_t::StepIn</qualifiedname>
@@ -58,11 +58,11 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="289" column="5" bodyfile="src/ml_runtime.h" bodystart="289" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="289" column="14" bodyfile="src/ml_runtime.h" bodystart="289" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structml__debugger__t_1a6adc6f4dee09aeb6f2d2ecdde4eba8fc" prot="public" static="no" mutable="no">
-        <type>int</type>
-        <definition>int BreakOnError</definition>
+      <memberdef kind="variable" id="structml__debugger__t_1afb1175f3f39dd4c8b2dc3537f155a7df" prot="public" static="no" mutable="no">
+        <type>unsigned int</type>
+        <definition>unsigned int BreakOnError</definition>
         <argsstring></argsstring>
         <name>BreakOnError</name>
         <qualifiedname>ml_debugger_t::BreakOnError</qualifiedname>
@@ -73,7 +73,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="290" column="5" bodyfile="src/ml_runtime.h" bodystart="290" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="290" column="14" bodyfile="src/ml_runtime.h" bodystart="290" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -82,11 +82,11 @@
     </detaileddescription>
     <location file="src/ml_runtime.h" line="285" column="1" bodyfile="src/ml_runtime.h" bodystart="285" bodyend="291"/>
     <listofallmembers>
-      <member refid="structml__debugger__t_1a6adc6f4dee09aeb6f2d2ecdde4eba8fc" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>BreakOnError</name></member>
+      <member refid="structml__debugger__t_1afb1175f3f39dd4c8b2dc3537f155a7df" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>BreakOnError</name></member>
       <member refid="structml__debugger__t_1a93122dbc81b8ae39c6439b39376d52e1" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>breakpoints</name></member>
       <member refid="structml__debugger__t_1a45b927e2d14013c7cce7c9a8d82d6ec8" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>Revision</name></member>
       <member refid="structml__debugger__t_1a1e7a576750badcba3bf29e764a273d74" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>run</name></member>
-      <member refid="structml__debugger__t_1a49430fce113df5a94f63e4db44a36274" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>StepIn</name></member>
+      <member refid="structml__debugger__t_1ad43c8724b80ce08c8ecc12c3ff770259" prot="public" virt="non-virtual"><scope>ml_debugger_t</scope><name>StepIn</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

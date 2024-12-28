@@ -512,7 +512,10 @@ end
 
 if MINILANG_LIBRARY then
 	CFLAGS := old + ['-DML_LIBRARY']
-	Objects:put(file("ml_library.o"), file("whereami.o"))
+	Objects:put(file("ml_library.o"))
+	if PLATFORM != "Wasm" then
+		Objects:put(file("whereami.o"))
+	end
 	InstallHeaders:put("ml_library.h")
 end
 
@@ -672,8 +675,6 @@ elseif PLATFORM = "Android" then
 	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 end
-
-
 
 if PLATFORM = "Wasm" then
 	LIBMINILANG := c_library(LIB_DIR / "libminilang.wasm", Objects, Libraries)

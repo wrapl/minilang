@@ -196,6 +196,27 @@
         </inbodydescription>
         <location file="src/ml_debugger.h" line="24" column="6" declfile="src/ml_debugger.h" declline="24" declcolumn="6"/>
       </memberdef>
+      <memberdef kind="function" id="ml__debugger_8h_1af1383eaba01c0580ca31be15c21bfa65" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_remote_debugger_init</definition>
+        <argsstring>(ml_context_t *Context, const char *Address)</argsstring>
+        <name>ml_remote_debugger_init</name>
+        <param>
+          <type><ref refid="structml__context__t" kindref="compound">ml_context_t</ref> *</type>
+          <declname>Context</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Address</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_debugger.h" line="26" column="6" declfile="src/ml_debugger.h" declline="26" declcolumn="6"/>
+      </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -227,11 +248,13 @@
 <codeline lineno="23"><highlight class="normal"><ref refid="structml__source__t" kindref="compound">ml_source_t</ref><sp/>ml_interactive_debugger_switch(ml_interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index);</highlight></codeline>
 <codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_interactive_debugger_resume(ml_interactive_debugger_t<sp/>*Debugger,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index);</highlight></codeline>
 <codeline lineno="25"><highlight class="normal"></highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="27"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="29"><highlight class="normal"></highlight></codeline>
-<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_remote_debugger_init(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Address);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_debugger.h"/>
   </compounddef>
