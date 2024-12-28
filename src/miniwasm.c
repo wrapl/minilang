@@ -17,6 +17,7 @@
 #include "ml_logging.h"
 #include <string.h>
 #include <emscripten.h>
+#include <emscripten/html5.h>
 
 
 #ifdef ML_MATH
@@ -146,6 +147,62 @@ ML_FUNCTIONX(MLPrint) {
 	}
 	_ml_output(Session - Sessions, ml_stringbuffer_get_string(Buffer));
 	ML_RETURN(MLNil);
+}
+
+typedef struct {
+	ml_context_t *Context;
+	ml_value_t *Fn;
+} callback_info_t;
+
+typedef struct {
+	ml_type_t *Type;
+	union {
+		const EmscriptenKeyboardEvent *KeyboardEvent;
+		const EmscriptenMouseEvent *MouseEvent;
+		const EmscriptenWheelEvent *WheelEvent;
+		const EmscriptenUiEvent *UiEvent;
+		const EmscriptenFocusEvent *FocusEvent;
+	};
+} event_t;
+
+ML_TYPE(EventT, (), "event");
+
+#define CALLBACK_FN(PREFIX, EVENT_TYPE) \
+\
+ML_TYPE(EVENT_TYPE ## EventT, (EventT), #PREFIX "event"); \
+\
+static bool PREFIX ##_callback(int EventType, const Emscripten ## EVENT_TYPE ## Event * EVENT_TYPE ## Event, void *Data) { \
+	callback_info_t *Info = (callback_info_t *)Data; \
+	ml_result_state_t *State = ml_result_state(Info->Context); \
+	event_t *Event = new(event_t); \
+	Event->Type = EVENT_TYPE ## EventT; \
+	Event->EVENT_TYPE ## Event = EVENT_TYPE ## Event; \
+	ml_value_t **Args = ml_alloc_args(2); \
+	Args[0] = (ml_value_t *)Event; \
+	ml_call(State, Info->Fn, 2, Args); \
+	ml_scheduler_t *Scheduler = ml_context_get_static(Info->Context, ML_SCHEDULER_INDEX); \
+	while (!State->Value) { \
+		GC_gcollect(); \
+		Scheduler->run(Scheduler); \
+	} \
+	return State->Value == MLTrue; \
+}
+
+CALLBACK_FN(key, Keyboard)
+CALLBACK_FN(mouse, Mouse)
+CALLBACK_FN(wheel, Wheel)
+CALLBACK_FN(ui, Ui)
+CALLBACK_FN(focus, Focus)
+
+static callback_info_t **Callbacks = NULL;
+static int MaxCallbacks = 0, NumCallbacks = 0;
+
+static int callback_register(callback_info_t *Info) {
+
+}
+
+static void callback_unregister(int Index) {
+
 }
 
 stringmap_t MLGlobals[1] = {STRINGMAP_INIT};
@@ -361,4 +418,3 @@ void EMSCRIPTEN_KEEPALIVE ml_session_evaluate(int Index, const char *Text) {
 		Scheduler->run(Scheduler);
 	}
 }
-
