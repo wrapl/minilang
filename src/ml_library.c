@@ -87,7 +87,7 @@ static char *path_join(const char *Base, const char *Rest, int Remove, int Space
 }
 
 static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
-	fprintf(stderr, "Looking for %s/%s\n", Path, Name);
+	//fprintf(stderr, "Looking for %s/%s\n", Path, Name);
 	ml_library_loader_t *Loader = NULL;
 	if (Path) {
 		char *FileName = path_join(Path, Name, 0, MaxLibraryExtensionLength);
@@ -262,16 +262,7 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 	return ml_module_compile(Caller, FileName, Expr, Compiler, Slot);
 }
 
-#ifdef Wasm
-
-static void ml_library_wasm_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
-}
-
-static ml_value_t *ml_library_wasm_load0(const char *FileName, ml_value_t **Slot) {
-
-}
-
-#else
+#ifndef Wasm
 
 #include "whereami.h"
 
@@ -374,11 +365,13 @@ static ml_value_t *ml_library_dir_load0(const char *FileName, ml_value_t **Slot)
 }
 
 void ml_library_path_add(const char *Path) {
+#ifndef Wasm
 	if (Path[0] != '/') {
 		char *Cwd = getcwd(NULL, 0);
 		Path = path_join(Cwd, Path, 0, 0);
 		free(Cwd);
 	}
+#endif
 	int PathLength = strlen(Path);
 	ml_list_push(LibraryPath, ml_string(Path, PathLength));
 	if (MaxLibraryPathLength < PathLength) MaxLibraryPathLength = PathLength;
@@ -427,13 +420,11 @@ static ml_importer_t Importer[1] = {{MLImporterT, NULL}};
 void ml_library_init(stringmap_t *_Globals) {
 	Globals = _Globals;
 	LibraryPath = ml_list();
-#ifdef Wasm
-	ml_library_loader_add(".wasm", NULL, ml_library_wasm_load, ml_library_wasm_load0);
-#else
+#ifndef Wasm
 	ml_library_path_add_default();
 	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
-#endif
 	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
+#endif
 	//ml_library_loader_add("", ml_library_dir_test, ml_library_dir_load, ml_library_dir_load0);
 #include "ml_library_init.c"
 	stringmap_insert(Globals, "import", Importer);

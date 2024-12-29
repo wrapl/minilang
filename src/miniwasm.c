@@ -7,6 +7,7 @@
 #include "ml_socket.h"
 #include "ml_object.h"
 #include "ml_time.h"
+#include "ml_uuid.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
@@ -92,7 +93,6 @@
 #include "ml_struct.h"
 #endif
 
-
 typedef struct {
 	ml_state_t Base;
 	ml_parser_t *Parser;
@@ -167,7 +167,7 @@ typedef struct {
 
 ML_TYPE(EventT, (), "event");
 
-#define CALLBACK_FN(PREFIX, EVENT_TYPE) \
+#define CALLBACK_FN(EVENT_TYPE, PREFIX) \
 \
 ML_TYPE(EVENT_TYPE ## EventT, (EventT), #PREFIX "event"); \
 \
@@ -185,24 +185,171 @@ static bool PREFIX ##_callback(int EventType, const Emscripten ## EVENT_TYPE ## 
 		GC_gcollect(); \
 		Scheduler->run(Scheduler); \
 	} \
-	return State->Value == MLTrue; \
+	return State->Value == (ml_value_t *)MLTrue; \
 }
 
-CALLBACK_FN(key, Keyboard)
-CALLBACK_FN(mouse, Mouse)
-CALLBACK_FN(wheel, Wheel)
-CALLBACK_FN(ui, Ui)
-CALLBACK_FN(focus, Focus)
+#define EVENT_FIELD_BOOLEAN(EVENT_TYPE, NAME, FIELD) \
+\
+ML_METHOD(#NAME, EVENT_TYPE ## EventT) { \
+	event_t *Event = (event_t *)Args[0]; \
+	return ml_boolean(Event->EVENT_TYPE ## Event->FIELD); \
+}
+
+#define EVENT_FIELD_INTEGER(EVENT_TYPE, NAME, FIELD) \
+\
+ML_METHOD(#NAME, EVENT_TYPE ## EventT) { \
+	event_t *Event = (event_t *)Args[0]; \
+	return ml_integer(Event->EVENT_TYPE ## Event->FIELD); \
+}
+
+#define EVENT_FIELD_REAL(EVENT_TYPE, NAME, FIELD) \
+\
+ML_METHOD(#NAME, EVENT_TYPE ## EventT) { \
+	event_t *Event = (event_t *)Args[0]; \
+	return ml_real(Event->EVENT_TYPE ## Event->FIELD); \
+}
+
+#define EVENT_FIELD_STRING(EVENT_TYPE, NAME, FIELD) \
+\
+ML_METHOD(#NAME, EVENT_TYPE ## EventT) { \
+	event_t *Event = (event_t *)Args[0]; \
+	return ml_string_copy(Event->EVENT_TYPE ## Event->FIELD, -1); \
+}
+
+CALLBACK_FN(Keyboard, key)
+EVENT_FIELD_REAL(Keyboard, timestamp, timestamp)
+EVENT_FIELD_STRING(Keyboard, key, key)
+EVENT_FIELD_STRING(Keyboard, code, code)
+EVENT_FIELD_INTEGER(Keyboard, location, location)
+EVENT_FIELD_BOOLEAN(Keyboard, ctrl, ctrlKey)
+EVENT_FIELD_BOOLEAN(Keyboard, shift, shiftKey)
+EVENT_FIELD_BOOLEAN(Keyboard, alt, altKey)
+EVENT_FIELD_BOOLEAN(Keyboard, meta, metaKey)
+EVENT_FIELD_BOOLEAN(Keyboard, repeat, repeat)
+EVENT_FIELD_STRING(Keyboard, locale, locale)
+
+CALLBACK_FN(Mouse, mouse)
+EVENT_FIELD_REAL(Mouse, timestamp, timestamp)
+EVENT_FIELD_INTEGER(Mouse, screenX, screenX)
+EVENT_FIELD_INTEGER(Mouse, screenY, screenY)
+EVENT_FIELD_INTEGER(Mouse, clientX, clientX)
+EVENT_FIELD_INTEGER(Mouse, clientY, clientY)
+EVENT_FIELD_BOOLEAN(Mouse, ctrl, ctrlKey)
+EVENT_FIELD_BOOLEAN(Mouse, shift, shiftKey)
+EVENT_FIELD_BOOLEAN(Mouse, alt, altKey)
+EVENT_FIELD_BOOLEAN(Mouse, meta, metaKey)
+EVENT_FIELD_INTEGER(Mouse, button, button)
+EVENT_FIELD_INTEGER(Mouse, buttons, buttons)
+EVENT_FIELD_INTEGER(Mouse, movementX, movementX)
+EVENT_FIELD_INTEGER(Mouse, movementY, movementY)
+EVENT_FIELD_INTEGER(Mouse, targetX, targetX)
+EVENT_FIELD_INTEGER(Mouse, targetY, targetY)
+EVENT_FIELD_INTEGER(Mouse, canvasX, canvasX)
+EVENT_FIELD_INTEGER(Mouse, canvasY, canvasY)
+
+CALLBACK_FN(Wheel, wheel)
+CALLBACK_FN(Ui, ui)
+CALLBACK_FN(Focus, focus)
 
 static callback_info_t **Callbacks = NULL;
 static int MaxCallbacks = 0, NumCallbacks = 0;
 
 static int callback_register(callback_info_t *Info) {
-
+	if (NumCallbacks == MaxCallbacks) {
+		MaxCallbacks += 32;
+		callback_info_t **New = anew(callback_info_t *, MaxCallbacks);
+		memcpy(New, Callbacks, NumCallbacks * sizeof(callback_info_t *));
+		Callbacks = New;
+	}
+	callback_info_t **Slot = Callbacks;
+	while (*Slot) Slot++;
+	*Slot = Info;
+	return Slot - Callbacks;
 }
 
 static void callback_unregister(int Index) {
+	Callbacks[Index] = NULL;
+}
 
+typedef int (*event_type_t)(const char *, callback_info_t *, bool);
+
+static stringmap_t EventTypes[1] = {STRINGMAP_INIT};
+
+#ifdef GENERATE_INIT
+
+#define EVENT_TYPE(NAME, TYPE) \
+	INIT_CODE stringmap_insert(EventTypes, #NAME, event_type_ ## NAME);
+
+#else
+
+#define EVENT_TYPE(NAME, TYPE) \
+\
+static int event_type_ ## NAME(const char *Target, callback_info_t *Info, bool UseCapture) { \
+	emscripten_set_ ## NAME ## _callback(Target, Info, UseCapture, TYPE ## _callback); \
+	return callback_register(Info); \
+}
+
+#endif
+
+EVENT_TYPE(keypress, key)
+EVENT_TYPE(keydown, key)
+EVENT_TYPE(keyup, key)
+EVENT_TYPE(click, mouse)
+EVENT_TYPE(mousedown, mouse)
+EVENT_TYPE(mouseup, mouse)
+EVENT_TYPE(dblclick, mouse)
+EVENT_TYPE(mousemove, mouse)
+EVENT_TYPE(mouseenter, mouse)
+EVENT_TYPE(mouseleave, mouse)
+EVENT_TYPE(wheel, wheel)
+EVENT_TYPE(resize, ui)
+EVENT_TYPE(scroll, ui)
+EVENT_TYPE(blur, focus)
+EVENT_TYPE(focus, focus)
+EVENT_TYPE(focusin, focus)
+EVENT_TYPE(focusout, focus)
+
+ML_FUNCTIONX(MLEvent) {
+	ML_CHECKX_ARG_COUNT(3);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ML_CHECKX_ARG_TYPE(1, MLStringT);
+	ML_CHECKX_ARG_TYPE(2, MLFunctionT);
+	const char *Type = ml_string_value(Args[1]);
+	event_type_t EventType = stringmap_search(EventTypes, Type);
+	if (!EventType) ML_ERROR("ValueError", "Unknown event type: %s", Type);
+	callback_info_t *Info = new(callback_info_t);
+	Info->Context = Caller->Context;
+	Info->Fn = Args[2];
+	const char *Target = ml_string_value(Args[0]);
+	bool UseCapture = (Count > 3) && (Args[3] == (ml_value_t *)MLTrue);
+	ML_RETURN(ml_integer(EventType(Target, Info, UseCapture)));
+}
+
+static void timeout_callback(void *Data) {
+	callback_info_t *Info = (callback_info_t *)Data;
+	callback_info_t **Slot = Callbacks;
+	while (*Slot != Info) ++Slot;
+	*Slot = NULL;
+	ml_result_state_t *State = ml_result_state(Info->Context);
+	ml_call(State, Info->Fn, 0, NULL);
+	ml_scheduler_t *Scheduler = ml_context_get_static(Info->Context, ML_SCHEDULER_INDEX);
+	while (!State->Value) {
+		GC_gcollect();
+		Scheduler->run(Scheduler);
+	}
+}
+
+ML_FUNCTIONX(MLAfter) {
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
+	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+	double MSecs = ml_real_value(Args[0]) * 1000;
+	callback_info_t *Info = new(callback_info_t);
+	Info->Context = Caller->Context;
+	Info->Fn = Args[1];
+	emscripten_set_timeout(timeout_callback, MSecs, Info);
+	callback_register(Info);
+	ML_RETURN(MLNil);
 }
 
 stringmap_t MLGlobals[1] = {STRINGMAP_INIT};
@@ -224,7 +371,64 @@ extern ml_cfunction_t MLMemCollect[];
 extern ml_cfunction_t MLMemUsage[];
 extern ml_cfunction_t MLMemDump[];
 
-void initialize() {
+static int ml_library_wasm_test(const char *Path) {
+	fprintf(stderr, "Looking for <%s>\n", Path);
+	return 1;
+}
+
+typedef struct {
+	const char *Name;
+	ml_state_t *Caller;
+	ml_value_t **Slot;
+} ml_library_async_t;
+
+static stringmap_t AsyncCache[1] = {STRINGMAP_INIT};
+
+static void ml_library_mini_load_fn(const char *LocalName) {
+	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
+
+}
+
+static void ml_library_mini_error_fn(const char *LocalName) {
+	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
+	stringmap_remove(AsyncCache, LocalName);
+	ml_state_t *Caller = Async->Caller;
+	ML_ERROR("ModuleError", "Module %s not found", Async->Name);
+}
+
+static void ml_library_wasm_load_fn(const char *LocalName) {
+	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
+
+}
+
+static void ml_library_wasm_error_fn(const char *LocalName) {
+	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
+	char *Url;
+	asprintf(&Url, "%s.mini", Async->Name);
+	emscripten_async_wget(Url, LocalName, ml_library_mini_load_fn, ml_library_mini_error_fn);
+}
+
+static void ml_library_wasm_load(ml_state_t *Caller, const char *Name, ml_value_t **Slot) {
+	emscripten_console_logf("loading module <%s>", Name);
+	char *Url;
+	asprintf(&Url, "%s.wasm", Name);
+	ml_library_async_t *Async = new(ml_library_async_t);
+	uuid_t ID;
+	uuid_generate(ID);
+	char *LocalName = malloc(UUID_STR_LEN);
+	uuid_unparse_lower(ID, LocalName);
+	Async->Name = Name;
+	Async->Caller = Caller;
+	Async->Slot = Slot;
+	stringmap_insert(AsyncCache, LocalName, Async);
+	emscripten_async_wget(Url, LocalName, ml_library_wasm_load_fn, ml_library_wasm_error_fn);
+}
+
+static ml_value_t *ml_library_wasm_load0(const char *FileName, ml_value_t **Slot) {
+	return ml_error("ImplementationError", "Wasm only supports asynchronous modules");
+}
+
+void initialize(const char *BaseUrl) {
 	ml_context_reserve(ML_SESSION_INDEX);
 	ml_init("minilang", MLGlobals);
 	GC_disable();
@@ -381,12 +585,17 @@ void initialize() {
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);
 #endif
+#include "miniwasm_init.c"
+	stringmap_insert(MLGlobals, "event", MLEvent);
+	stringmap_insert(MLGlobals, "after", MLAfter);
+	ml_library_path_add(GC_strdup(BaseUrl));
+	ml_library_loader_add("", ml_library_wasm_test, ml_library_wasm_load, ml_library_wasm_load0);
 }
 
-int EMSCRIPTEN_KEEPALIVE ml_session() {
+int EMSCRIPTEN_KEEPALIVE ml_session(const char *BaseUrl) {
 	static int Initialized = 0;
 	if (!Initialized) {
-		initialize();
+		initialize(BaseUrl);
 		Initialized = 1;
 	}
 	if (NumSessions == MaxSessions) {
