@@ -134,7 +134,9 @@ static void ml_session_run(ml_session_t *Session, ml_value_t *Value) {
 		if (ml_is_error(Value)) goto error;
 		ml_stringbuffer_write(Buffer, "\n", strlen("\n"));
 	}
-	_ml_output(Session - Sessions, ml_stringbuffer_get_string(Buffer));
+	const char *Output = ml_stringbuffer_get_string(Buffer);
+	emscripten_console_log(Output);
+	_ml_output(Session - Sessions, Output);
 	ml_command_evaluate((ml_state_t *)Session, Session->Parser, Session->Compiler);
 }
 
@@ -181,7 +183,7 @@ static bool PREFIX ##_callback(int EventType, const Emscripten ## EVENT_TYPE ## 
 	Args[0] = (ml_value_t *)Event; \
 	ml_call(State, Info->Fn, 2, Args); \
 	ml_scheduler_t *Scheduler = ml_context_get_static(Info->Context, ML_SCHEDULER_INDEX); \
-	while (!State->Value) { \
+	while (Scheduler->fill(Scheduler)) { \
 		GC_gcollect(); \
 		Scheduler->run(Scheduler); \
 	} \
@@ -333,7 +335,7 @@ static void timeout_callback(void *Data) {
 	ml_result_state_t *State = ml_result_state(Info->Context);
 	ml_call(State, Info->Fn, 0, NULL);
 	ml_scheduler_t *Scheduler = ml_context_get_static(Info->Context, ML_SCHEDULER_INDEX);
-	while (!State->Value) {
+	while (Scheduler->fill(Scheduler)) {
 		GC_gcollect();
 		Scheduler->run(Scheduler);
 	}
@@ -378,50 +380,64 @@ static int ml_library_wasm_test(const char *Path) {
 
 typedef struct {
 	const char *Name;
+	char *Url;
 	ml_state_t *Caller;
 	ml_value_t **Slot;
 } ml_library_async_t;
 
-static stringmap_t AsyncCache[1] = {STRINGMAP_INIT};
-
-static void ml_library_mini_load_fn(const char *LocalName) {
-	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
-
-}
-
-static void ml_library_mini_error_fn(const char *LocalName) {
-	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
-	stringmap_remove(AsyncCache, LocalName);
+static void ml_library_mini_load_fn(void *Arg, void *Buffer, int Size) {
+	ml_library_async_t *Async = (ml_library_async_t *)Arg;
 	ml_state_t *Caller = Async->Caller;
-	ML_ERROR("ModuleError", "Module %s not found", Async->Name);
+	ml_parser_t *Parser = ml_parser(NULL, NULL);
+	ml_parser_source(Parser, (ml_source_t){Async->Url, 1});
+	ml_parser_input(Parser, (const char *)Buffer, 0);
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) ML_RETURN(ml_parser_value(Parser));
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, MLGlobals);
+	ml_compiler_define(Compiler, "import", ml_library_importer(Async->Url));
+	ml_module_compile(Caller, Async->Url, Expr, Compiler, Async->Slot);
+	free(Async->Url);
+	free(Async);
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
+	while (Scheduler->fill(Scheduler)) {
+		GC_gcollect();
+		Scheduler->run(Scheduler);
+	}
 }
 
-static void ml_library_wasm_load_fn(const char *LocalName) {
-	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
+static void ml_library_mini_error_fn(void *Arg) {
+	ml_library_async_t *Async = (ml_library_async_t *)Arg;
+	ml_state_t *Caller = Async->Caller;
+	Caller->run(Caller, ml_error("ModuleError", "Module %s not found", Async->Name));
+	free(Async->Url);
+	free(Async);
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
+	while (Scheduler->fill(Scheduler)) {
+		GC_gcollect();
+		Scheduler->run(Scheduler);
+	}
+}
+
+static void ml_library_wasm_load_fn(void *Arg, void *Buffer, int Size) {
+	ml_library_async_t *Async = (ml_library_async_t *)Arg;
 
 }
 
-static void ml_library_wasm_error_fn(const char *LocalName) {
-	ml_library_async_t *Async = stringmap_search(AsyncCache, LocalName);
-	char *Url;
-	asprintf(&Url, "%s.mini", Async->Name);
-	emscripten_async_wget(Url, LocalName, ml_library_mini_load_fn, ml_library_mini_error_fn);
+static void ml_library_wasm_error_fn(void *Arg) {
+	ml_library_async_t *Async = (ml_library_async_t *)Arg;
+	sprintf(Async->Url, "%s.mini", Async->Name);
+	emscripten_async_wget_data(Async->Url, Async, ml_library_mini_load_fn, ml_library_mini_error_fn);
 }
 
 static void ml_library_wasm_load(ml_state_t *Caller, const char *Name, ml_value_t **Slot) {
 	emscripten_console_logf("loading module <%s>", Name);
-	char *Url;
-	asprintf(&Url, "%s.wasm", Name);
-	ml_library_async_t *Async = new(ml_library_async_t);
-	uuid_t ID;
-	uuid_generate(ID);
-	char *LocalName = malloc(UUID_STR_LEN);
-	uuid_unparse_lower(ID, LocalName);
+	ml_library_async_t *Async = malloc(sizeof(ml_library_async_t));
 	Async->Name = Name;
 	Async->Caller = Caller;
 	Async->Slot = Slot;
-	stringmap_insert(AsyncCache, LocalName, Async);
-	emscripten_async_wget(Url, LocalName, ml_library_wasm_load_fn, ml_library_wasm_error_fn);
+	Async->Url = malloc(strlen(Name) + 10);
+	sprintf(Async->Url, "%s.wasm", Name);
+	emscripten_async_wget_data(Async->Url, Async, ml_library_wasm_load_fn, ml_library_wasm_error_fn);
 }
 
 static ml_value_t *ml_library_wasm_load0(const char *FileName, ml_value_t **Slot) {
@@ -622,7 +638,7 @@ void EMSCRIPTEN_KEEPALIVE ml_session_evaluate(int Index, const char *Text) {
 	Session->Result = NULL;
 	ml_command_evaluate((ml_state_t *)Session, Session->Parser, Session->Compiler);
 	ml_scheduler_t *Scheduler = ml_context_get_static(Session->Base.Context, ML_SCHEDULER_INDEX);
-	while (!Session->Result) {
+	while (Scheduler->fill(Scheduler)) {
 		GC_gcollect();
 		Scheduler->run(Scheduler);
 	}

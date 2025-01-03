@@ -219,6 +219,22 @@ ML_TYPE(MLImporterT, (MLFunctionT), "importer",
 	.call = (void *)ml_importer_call
 );
 
+ml_value_t *ml_library_importer(const char *FileName) {
+	ml_importer_t *Importer = new(ml_importer_t);
+	Importer->Type = MLImporterT;
+	int FileNameLength = strlen(FileName);
+	for (int I = FileNameLength; --I >= 0;) {
+		if (FileName[I] == '/') {
+			char *Path = snew(I + 1);
+			memcpy(Path, FileName, I);
+			Path[I] = 0;
+			Importer->Path = Path;
+			break;
+		}
+	}
+	return (ml_value_t *)Importer;
+}
+
 ML_METHOD("append", MLStringBufferT, MLImporterT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_importer_t *Importer = (ml_importer_t *)Args[1];
@@ -246,19 +262,7 @@ static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_va
 	const mlc_expr_t *Expr = ml_accept_file(Parser);
 	if (!Expr) ML_RETURN(ml_parser_value(Parser));
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
-	ml_importer_t *Importer = new(ml_importer_t);
-	Importer->Type = MLImporterT;
-	int FileNameLength = strlen(FileName);
-	for (int I = FileNameLength; --I >= 0;) {
-		if (FileName[I] == '/') {
-			char *Path = snew(I + 1);
-			memcpy(Path, FileName, I);
-			Path[I] = 0;
-			Importer->Path = Path;
-			break;
-		}
-	}
-	ml_compiler_define(Compiler, "import", (ml_value_t *)Importer);
+	ml_compiler_define(Compiler, "import", ml_library_importer(FileName));
 	return ml_module_compile(Caller, FileName, Expr, Compiler, Slot);
 }
 

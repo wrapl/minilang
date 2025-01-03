@@ -392,6 +392,10 @@ int main(int Argc, const char *Argv[]) {
 			ml_list_put(Args, ml_string(Argv[I], -1));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
+			case 'V': {
+				printf("%d.%d.%d\n", MINILANG_VERSION);
+				exit(0);
+			}
 			case 'E':
 				if (Argv[I][2]) {
 					Command = Argv[I] + 2;
