@@ -1109,15 +1109,11 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 }
 
 ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...) {
-	va_list Args;
-	int Size = 0;
-	va_start(Args, Parent);
-	while (va_arg(Args, const char *)) ++Size;
-	va_end(Args);
 	ml_type_t *SubType = ml_type(Parent, TypeName);
 	SubType->Constructor = (ml_value_t *)Parent;
 	SubType->Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	stringmap_t *ParentValues = ((ml_enum_t *)Parent)->Base.Exports;
+	va_list Args;
 	va_start(Args, Parent);
 	const char *Name;
 	while ((Name = va_arg(Args, const char *))) {
@@ -1321,11 +1317,7 @@ ML_TYPE(MLEnumSwitchT, (MLFunctionT), "enum-switch",
 );
 
 static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Args) {
-	int Total = 1;
-	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
-		Total += ml_list_length(Args[I]);
-	}
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLListT);
 	int Size = Enum->Base.Exports->Size;
 	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Size, ml_value_t *);
 	Switch->Type = MLEnumSwitchT;

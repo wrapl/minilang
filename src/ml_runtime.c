@@ -1201,6 +1201,7 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
 	Queue->Base.add = (ml_scheduler_add_fn)ml_scheduler_queue_add_signal;
 	Queue->Base.run = (ml_scheduler_run_fn)ml_scheduler_queue_run;
+	Queue->Base.fill = (ml_scheduler_fill_fn)ml_scheduler_queue_fill;
 	ml_queue_block_t *Block = new(ml_queue_block_t);
 	Block->Next = Block;
 	Queue->WriteBlock = Queue->ReadBlock = Block;

@@ -308,6 +308,7 @@ typedef struct ml_scheduler_t ml_scheduler_t;
 
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
 typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
+typedef int (*ml_scheduler_fill_fn)(ml_scheduler_t *Scheduler);
 
 static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
@@ -322,6 +323,7 @@ typedef struct ml_scheduler_block_t ml_scheduler_block_t;
 struct ml_scheduler_t {
 	ml_scheduler_add_fn add;
 	ml_scheduler_run_fn run;
+	ml_scheduler_fill_fn fill;
 #ifdef ML_THREADS
 	ml_scheduler_block_t *Resume;
 #endif

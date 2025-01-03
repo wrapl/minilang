@@ -100,6 +100,21 @@
         <label>unistd.h</label>
       </node>
     </incdepgraph>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ml__json_8h_1a748ed22e67c680399ee56ab05865f005" prot="public" static="no">
+        <type>struct json_decoder_t</type>
+        <definition>typedef struct json_decoder_t json_decoder_t</definition>
+        <argsstring></argsstring>
+        <name>json_decoder_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_json.h" line="17" column="29" bodyfile="src/ml_json.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
     <sectiondef kind="var">
       <memberdef kind="variable" id="ml__json_8h_1a7ace2069e01cd7be7af30e5958a26c30" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -175,6 +190,69 @@
         </inbodydescription>
         <location file="src/ml_json.h" line="15" column="12" declfile="src/ml_json.h" declline="15" declcolumn="12"/>
       </memberdef>
+      <memberdef kind="function" id="ml__json_8h_1a91106ab6c370c84ff2905ecf6f97c973" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>json_decoder_t *</type>
+        <definition>json_decoder_t * json_decoder</definition>
+        <argsstring>(void(*emit)(json_decoder_t *Decoder, ml_value_t *Value), void *Data)</argsstring>
+        <name>json_decoder</name>
+        <param>
+          <type>void(*)(json_decoder_t *Decoder, <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *Value)</type>
+          <declname>emit</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_json.h" line="19" column="16" declfile="src/ml_json.h" declline="19" declcolumn="16"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__json_8h_1a795f0091f67454f73c7df7cb954a8b96" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * json_decoder_data</definition>
+        <argsstring>(json_decoder_t *Decoder)</argsstring>
+        <name>json_decoder_data</name>
+        <param>
+          <type>json_decoder_t *</type>
+          <declname>Decoder</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_json.h" line="20" column="6" declfile="src/ml_json.h" declline="20" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__json_8h_1a1b0303fc3e629ad28e22e9bb0453aff7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * json_decoder_parse</definition>
+        <argsstring>(json_decoder_t *Decoder, const char *Input, size_t Size)</argsstring>
+        <name>json_decoder_parse</name>
+        <param>
+          <type>json_decoder_t *</type>
+          <declname>Decoder</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Input</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_json.h" line="21" column="12" declfile="src/ml_json.h" declline="21" declcolumn="12"/>
+      </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -197,11 +275,17 @@
 <codeline lineno="14"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_json_decode(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Json,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
 <codeline lineno="15"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_json_encode(<ref refid="structml__stringbuffer__t" kindref="compound">ml_stringbuffer_t</ref><sp/>*Buffer,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
 <codeline lineno="16"><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="18"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">json_decoder_t<sp/>json_decoder_t;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal">json_decoder_t<sp/>*json_decoder(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>(*emit)(json_decoder_t<sp/>*Decoder,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value),<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*json_decoder_data(json_decoder_t<sp/>*Decoder);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*json_decoder_parse(json_decoder_t<sp/>*Decoder,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Input,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Size);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_json.h"/>
   </compounddef>

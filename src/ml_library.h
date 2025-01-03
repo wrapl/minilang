@@ -16,6 +16,8 @@ void ml_library_loader_add(
 	ml_value_t *(*Load0)(const char *, ml_value_t **)
 );
 
+ml_value_t *ml_library_importer(const char *FileName);
+
 void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name);
 ml_value_t *ml_library_load0(const char *Path, const char *Name);
 

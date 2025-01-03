@@ -4,6 +4,7 @@
 </head>
 <body>
 	<div id="session" style="width:400px;margin:auto;"/>
+	<div id="target", style="width:640px;height:480px;border:2px solid red;"/>
 	<script src="minilang.js"></script>
 	<script>
 function create(tag) {
@@ -46,7 +47,7 @@ function ml_finish(index) {
 	sessions[index].finish();
 }
 
-ml_session = Module.cwrap("ml_session", "number", []);
+ml_session = Module.cwrap("ml_session", "number", ["string"]);
 ml_session_evaluate = Module.cwrap("ml_session_evaluate", "number", ["number", "string"]);
 
 function Cell(session, value) {
@@ -67,7 +68,9 @@ function Cell(session, value) {
 }
 
 function Session() {
-	this.index = ml_session();
+	let baseurl = location.toString();
+	let pathIndex = baseurl.lastIndexOf("/");
+	this.index = ml_session(baseurl.substring(0, pathIndex));
 	sessions[this.index] = this;
 	this.element = create("div.session");
 	let cells = this.cells = [];

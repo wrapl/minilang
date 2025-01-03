@@ -100,6 +100,20 @@ ML_METHODVX(MLSetT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+ML_METHOD(MLSetT, MLListT) {
+//!internal
+	ml_value_t *Set = ml_set();
+	ML_LIST_FOREACH(Args[0], Iter) ml_set_insert(Set, Iter->Value);
+	return Set;
+}
+
+ML_METHOD(MLSetT, MLSliceT) {
+//!internal
+	ml_value_t *Set = ml_set();
+	ML_SLICE_FOREACH(Args[0], Iter) ml_set_insert(Set, Iter->Value);
+	return Set;
+}
+
 ML_METHODVX("grow", MLSetMutableT, MLSequenceT) {
 //<Set
 //<Sequence

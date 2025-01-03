@@ -21,7 +21,7 @@ ML_TYPE(MLUUIDT, (), "uuid",
 ml_value_t *ml_uuid(const uuid_t Value) {
 	ml_uuid_t *UUID = new(ml_uuid_t);
 	UUID->Type = MLUUIDT;
-	uuid_copy(UUID->Value, Value);
+	memcpy(UUID->Value, Value, sizeof(uuid_t));
 	return (ml_value_t *)UUID;
 }
 
