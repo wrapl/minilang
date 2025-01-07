@@ -234,7 +234,9 @@ ML_FUNCTIONX(MLConsole) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
 	int Fd = ml_integer_value(Args[0]);
+#ifndef Mingw
 	fcntl(Fd, F_SETFL, fcntl(Fd, F_GETFL) & ~O_NONBLOCK);
+#endif
 	console_state_t *State = new(console_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

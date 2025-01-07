@@ -2191,6 +2191,8 @@ void ml_xml_init(stringmap_t *Globals) {
 #ifdef ML_GENERICS
 	stringmap_insert(MLXmlT->Exports, "sequence", MLXmlSequenceT);
 #endif
+	ml_externals_default_add("xml::element", MLXmlElementT);
+	ml_externals_default_add("xml::text", MLXmlTextT);
 	if (Globals) {
 		stringmap_insert(Globals, "xml", MLXmlT);
 	}
