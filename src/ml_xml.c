@@ -2146,9 +2146,9 @@ ml_value_t *ml_parser_escape_xml_like(ml_parser_t *Parser0, ml_value_t *Construc
 	Parser.Parser = Parser0;
 	ml_value_t *Value = ml_parser_escape_xml_node(&Parser);
 	if (ml_is_error(Value)) return Value;
-	//if (Parser.Next[0] != Quote) return ml_error("ParseError", "Invalid string");
-	//ml_parser_input(Parser0, Parser.Next + 1, 0);
-	ml_parser_input(Parser0, Parser.Next, 0);
+	if (Parser.Next[0] != Quote) return ml_error("ParseError", "Invalid string");
+	ml_parser_input(Parser0, Parser.Next + 1, 0);
+	//ml_parser_input(Parser0, Parser.Next, 0);
 	ml_parser_source(Parser0, Parser.Source);
 	return Value;
 }
