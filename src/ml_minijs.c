@@ -48,6 +48,8 @@ ml_value_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	if (encode) return encode(Encoder, Value);
 	ml_value_t *Serialized = ml_serialize(Value);
 	if (ml_is_error(Serialized)) {
+		ml_value_t *Deref = ml_deref(Value);
+		if (Deref != Value) return ml_minijs_encode(Encoder, Deref);
 		Json = ml_list();
 		ml_list_put(Json, ml_cstring("unsupported"));
 		ml_list_put(Json, ml_string(ml_typeof(Value)->Name, -1));

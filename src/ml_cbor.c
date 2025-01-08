@@ -12,14 +12,12 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "cbor"
 
-#define MINICBOR_READ_FN_PREFIX ml_cbor_read_
-#define MINICBOR_READDATA_TYPE struct ml_cbor_reader_t *
 #define MINICBOR_WRITEDATA_TYPE ml_cbor_writer_t *
 #define MINICBOR_WRITE_FN ml_cbor_write_raw
 #define MINICBOR_WRITE_BUFFER(WRITER) WRITER->Buffer
 
 #include "minicbor/minicbor.h"
-#include "minicbor/minicbor_reader.c"
+#include "minicbor/minicbor_stream.c"
 
 struct ml_cbor_tag_fns_t {
 	uint64_t *Tags;
@@ -126,7 +124,7 @@ struct ml_cbor_reader_t {
 	ml_external_fn_t GlobalGet;
 	void *Globals;
 	ml_value_t **Reused;
-	minicbor_reader_t Reader[1];
+	minicbor_stream_t Stream[1];
 	ml_stringbuffer_t Buffer[1];
 	int NumReused, MaxReused;
 	int NumSettings;
@@ -151,8 +149,7 @@ ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_external_fn_t Glo
 	}
 	Reader->NumSettings = NumCborSettings;
 	Reader->NumReused = Reader->MaxReused = 0;
-	minicbor_reader_init(Reader->Reader);
-	Reader->Reader->UserData = Reader;
+	minicbor_stream_init(Reader->Stream);
 	return Reader;
 }
 
@@ -162,7 +159,7 @@ void ml_cbor_reader_reset(ml_cbor_reader_t *Reader) {
 	Reader->Value = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	Reader->Buffer[0] = ML_STRINGBUFFER_INIT;
-	minicbor_reader_init(Reader->Reader);
+	minicbor_stream_init(Reader->Stream);
 }
 
 void ml_cbor_reader_set_setting(ml_cbor_reader_t *Reader, int Setting, void *Value) {
@@ -182,10 +179,6 @@ static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
 	return Index;
 }
 
-int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, int Size) {
-	return minicbor_read(Reader->Reader, Bytes, Size);
-}
-
 int ml_cbor_reader_done(ml_cbor_reader_t *Reader) {
 	return Reader->Value != NULL;
 }
@@ -196,10 +189,8 @@ ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader) {
 }
 
 int ml_cbor_reader_extra(ml_cbor_reader_t *Reader) {
-	return minicbor_reader_remaining(Reader->Reader);
+	return Reader->Stream->Available;
 }
-
-static ml_value_t IsList[1];
 
 ml_value_t *ml_cbor_mark_reused(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	return ml_error("CBORError", "Mark reused should not be called");
@@ -249,10 +240,13 @@ static void collection_pop(ml_cbor_reader_t *Reader) {
 	value_handler(Reader, Value);
 }
 
+static ml_value_t IsList[1];
+
 static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		Reader->Value = Value;
-		return minicbor_reader_finish(Reader->Reader);
+		Reader->Stream->State = MCS_FINISHED;
+		return;
 	}
 	tag_t *Tags = Reader->Tags;
 	if (Tags) {
@@ -266,7 +260,8 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 				Value = Tag->Handler(Reader, Value);
 				if (ml_is_error(Value)) {
 					Reader->Value = Value;
-					return minicbor_reader_finish(Reader->Reader);
+					Reader->Stream->State = MCS_FINISHED;
+					return;
 				}
 			}
 			if (!Tag->Prev) break;
@@ -279,7 +274,8 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	collection_t *Collection = Reader->Collection;
 	if (!Collection) {
 		Reader->Value = Value;
-		minicbor_reader_finish(Reader->Reader);
+		Reader->Stream->State = MCS_FINISHED;
+		return;
 	} else if (Collection->Key == IsList) {
 		ml_list_put(Collection->Collection, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
@@ -297,105 +293,94 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	}
 }
 
-void ml_cbor_read_positive_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
-	value_handler(Reader, ml_integer(Value));
-}
-
-void ml_cbor_read_negative_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
-	if (Value <= 0x7FFFFFFFFFFFFFFFL) {
-		value_handler(Reader, ml_integer(~(int64_t)Value));
-	} else {
-		value_handler(Reader, ml_integer(Value));
-		// TODO: Implement large numbers somehow
-		// mpz_t Temp;
-		// mpz_init_set_ui(Temp, (uint32_t)(Value >> 32));
-		// mpz_mul_2exp(Temp, Temp, 32);
-		// mpz_add_ui(Temp, Temp, (uint32_t)Value);
-		// mpz_com(Temp, Temp);
-		// value_handler(Reader, Std$Integer$new_big(Temp));
-	}
-}
-
-void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, size_t Size) {
-	if (!Size) value_handler(Reader, ml_address(NULL, 0));
-}
-
-void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, size_t Size, int Final) {
-	ml_stringbuffer_write(Reader->Buffer, Bytes, Size);
-	if (Final) value_handler(Reader, ml_stringbuffer_to_address(Reader->Buffer));
-}
-
-void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, size_t Size) {
-	if (!Size) value_handler(Reader, ml_cstring(""));
-}
-
-void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, size_t Size, int Final) {
-	ml_stringbuffer_write(Reader->Buffer, Bytes, Size);
-	if (Final) value_handler(Reader, ml_stringbuffer_to_string(Reader->Buffer));
-}
-
-void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, size_t Size) {
-	if (Size) {
-		collection_t *Collection = collection_push(Reader);
-		Collection->Remaining = Size;
-		Collection->Key = IsList;
-		Collection->Collection = ml_list();
-	} else {
-		value_handler(Reader, ml_list());
-	}
-}
-
-void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, size_t Size) {
-	if (Size) {
-		collection_t *Collection = collection_push(Reader);
-		Collection->Remaining = Size;
-		Collection->Key = NULL;
-		Collection->Collection = ml_map();
-	} else {
-		value_handler(Reader, ml_map());
-	}
-}
-
-void ml_cbor_read_tag_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
-	ml_cbor_tag_fn Handler = ml_cbor_tag_fn_get(Reader->TagFns, Value);
-	if (Handler) {
-		tag_t *Tag = Reader->FreeTag;
-		if (Tag) Reader->FreeTag = Tag->Prev; else Tag = new(tag_t);
-		Tag->Prev = Reader->Tags;
-		Tag->Handler = Handler;
-		// TODO: Reimplement this without hard-coding tag ML_CBOR_TAG_MARK_REUSED
-		if (Value == ML_CBOR_TAG_MARK_REUSED) Tag->Index = ml_cbor_reader_next_index(Reader);
-		Reader->Tags = Tag;
-	}
-}
-
-void ml_cbor_read_float_fn(ml_cbor_reader_t *Reader, double Value) {
-	value_handler(Reader, ml_real(Value));
-}
-
-void ml_cbor_read_simple_fn(ml_cbor_reader_t *Reader, int Value) {
-	switch (Value) {
-	case CBOR_SIMPLE_FALSE:
-		value_handler(Reader, (ml_value_t *)MLFalse);
-		break;
-	case CBOR_SIMPLE_TRUE:
-		value_handler(Reader, (ml_value_t *)MLTrue);
-		break;
-	case CBOR_SIMPLE_NULL:
-		value_handler(Reader, MLNil);
-		break;
-	default:
-		value_handler(Reader, MLNil);
-		break;
-	}
-}
-
-void ml_cbor_read_break_fn(ml_cbor_reader_t *Reader) {
-	collection_pop(Reader);
-}
-
-void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *Message) {
-	value_handler(Reader, ml_error("CBORError", "Read error: %s at %d", Message, Position));
+int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, int Size) {
+	minicbor_stream_t *Stream = Reader->Stream;
+	Stream->Next = Bytes;
+	Stream->Available = Size;
+	do {
+		switch (minicbor_next(Stream)) {
+		case MCE_WAIT: break;
+		case MCE_POSITIVE:
+			value_handler(Reader, ml_integer(Stream->Integer));
+			break;
+		case MCE_NEGATIVE:
+			value_handler(Reader, ml_integer(~(int64_t)Stream->Integer));
+			break;
+		case MCE_BYTES:
+			if (!Stream->Required) value_handler(Reader, ml_address(NULL, 0));
+			break;
+		case MCE_BYTES_PIECE:
+			ml_stringbuffer_write(Reader->Buffer, (const char *)Stream->Bytes, Stream->Size);
+			if (!Stream->Required) value_handler(Reader, ml_stringbuffer_to_address(Reader->Buffer));
+			break;
+		case MCE_STRING:
+			if (!Stream->Required) value_handler(Reader, ml_cstring(""));
+			break;
+		case MCE_STRING_PIECE:
+			ml_stringbuffer_write(Reader->Buffer, (const char *)Stream->Bytes, Stream->Size);
+			if (!Stream->Required) value_handler(Reader, ml_stringbuffer_to_string(Reader->Buffer));
+			break;
+		case MCE_ARRAY:
+			if (Stream->Required) {
+				collection_t *Collection = collection_push(Reader);
+				Collection->Remaining = Stream->Required;
+				Collection->Key = IsList;
+				Collection->Collection = ml_list();
+			} else {
+				value_handler(Reader, ml_list());
+			}
+			break;
+		case MCE_MAP:
+			if (Stream->Required) {
+				collection_t *Collection = collection_push(Reader);
+				Collection->Remaining = Stream->Required;
+				Collection->Key = NULL;
+				Collection->Collection = ml_map();
+			} else {
+				value_handler(Reader, ml_map());
+			}
+			break;
+		case MCE_TAG: {
+			ml_cbor_tag_fn Handler = ml_cbor_tag_fn_get(Reader->TagFns, Stream->Tag);
+			if (Handler) {
+				tag_t *Tag = Reader->FreeTag;
+				if (Tag) Reader->FreeTag = Tag->Prev; else Tag = new(tag_t);
+				Tag->Prev = Reader->Tags;
+				Tag->Handler = Handler;
+				// TODO: Reimplement this without hard-coding tag ML_CBOR_TAG_MARK_REUSED
+				if (Stream->Tag == ML_CBOR_TAG_MARK_REUSED) Tag->Index = ml_cbor_reader_next_index(Reader);
+				Reader->Tags = Tag;
+			}
+			break;
+		}
+		case MCE_SIMPLE:
+			switch (Stream->Simple) {
+			case CBOR_SIMPLE_FALSE:
+				value_handler(Reader, (ml_value_t *)MLFalse);
+				break;
+			case CBOR_SIMPLE_TRUE:
+				value_handler(Reader, (ml_value_t *)MLTrue);
+				break;
+			case CBOR_SIMPLE_NULL:
+				value_handler(Reader, MLNil);
+				break;
+			default:
+				value_handler(Reader, MLNil);
+				break;
+			}
+			break;
+		case MCE_FLOAT:
+			value_handler(Reader, ml_real(Stream->Real));
+			break;
+		case MCE_BREAK:
+			collection_pop(Reader);
+			break;
+		case MCE_ERROR:
+			value_handler(Reader, ml_error("CBORError", "Invalid CBOR"));
+			break;
+		}
+	} while (Stream->Available && !Reader->Value);
+	return Size - Stream->Available;
 }
 
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
@@ -404,9 +389,8 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	minicbor_reader_init(Reader->Reader);
-	Reader->Reader->UserData = Reader;
-	minicbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
+	minicbor_stream_init(Reader->Stream);
+	ml_cbor_reader_read(Reader, Cbor.Data, Cbor.Length);
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
 	return ml_cbor_reader_get(Reader);
@@ -418,9 +402,8 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	minicbor_reader_init(Reader->Reader);
-	Reader->Reader->UserData = Reader;
-	minicbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
+	minicbor_stream_init(Reader->Stream);
+	ml_cbor_reader_read(Reader, Cbor.Data, Cbor.Length);
 	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};
 }
 
@@ -436,9 +419,8 @@ ML_METHOD(CborDecode, MLAddressT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	minicbor_reader_init(Reader->Reader);
-	Reader->Reader->UserData = Reader;
-	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
+	minicbor_stream_init(Reader->Stream);
+	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
 		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
@@ -464,9 +446,8 @@ ML_METHOD(CborDecode, MLAddressT, MLMapT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_map;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	minicbor_reader_init(Reader->Reader);
-	Reader->Reader->UserData = Reader;
-	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
+	minicbor_stream_init(Reader->Stream);
+	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
 		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
@@ -492,9 +473,8 @@ ML_METHOD(CborDecode, MLAddressT, MLFunctionT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_fn;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	minicbor_reader_init(Reader->Reader);
-	Reader->Reader->UserData = Reader;
-	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
+	minicbor_stream_init(Reader->Stream);
+	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
 		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
@@ -514,9 +494,8 @@ ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	minicbor_reader_init(Reader->Reader);
-	Reader->Reader->UserData = Reader;
-	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
+	minicbor_stream_init(Reader->Stream);
+	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
 		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
@@ -538,9 +517,9 @@ static void ml_cbor_decode_stream_run(ml_cbor_decode_stream_t *State, ml_value_t
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
 	if (!Length) ML_ERROR("CBORError", "Incomplete CBOR object");
-	minicbor_read(State->Reader->Reader, State->Chars, Length);
+	ml_cbor_reader_read(State->Reader, State->Chars, Length);
 	if (State->Reader->Value) ML_RETURN(State->Reader->Value);
-	size_t Required = State->Reader->Reader->Required;
+	size_t Required = State->Reader->Stream->Required;
 	if (Required > 256) {
 		return State->read((ml_state_t *)State, State->Stream, State->Chars, 256);
 	} else if (Required > 0) {
@@ -565,8 +544,7 @@ ML_METHODX(CborDecode, MLStreamT) {
 	State->Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	State->Reader->Globals = MLExternals;
 	State->Reader->Reused = NULL;
-	minicbor_reader_init(State->Reader->Reader);
-	State->Reader->Reader->UserData = State->Reader;
+	minicbor_stream_init(State->Reader->Stream);
 	return State->read((ml_state_t *)State, State->Stream, State->Chars, 1);
 }
 
@@ -603,8 +581,7 @@ ML_FUNCTION(MLCborDecoder) {
 	Decoder->Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Decoder->Reader->Globals = MLExternals;
 	Decoder->Reader->Reused = NULL;
-	minicbor_reader_init(Decoder->Reader->Reader);
-	Decoder->Reader->Reader->UserData = Decoder->Reader;
+	minicbor_stream_init(Decoder->Reader->Stream);
 	return (ml_value_t *)Decoder;
 }
 
@@ -618,14 +595,14 @@ static void ML_TYPED_FN(ml_stream_write, MLCborDecoderT, ml_state_t *Caller, ml_
 	Decoder->Result = ml_integer(Count);
 	ml_cbor_reader_t *Reader = Decoder->Reader;
 	for (;;) {
-		minicbor_read(Reader->Reader, Address, Count);
+		ml_cbor_reader_read(Reader, Address, Count);
 		if (!Reader->Value) ML_RETURN(Decoder->Result);
 		if (ml_is_error(Reader->Value)) ML_RETURN(Reader->Value);
 		ml_list_put(Decoder->Values, Reader->Value);
 		Reader->Value = NULL;
 		int Extra = ml_cbor_reader_extra(Reader);
 		Reader->Reused = NULL;
-		minicbor_reader_init(Reader->Reader);
+		minicbor_stream_init(Reader->Stream);
 		if (!Extra) break;
 		Address += (Count - Extra);
 		Count = Extra;
@@ -1294,7 +1271,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_OBJECT, ml_cbor_read_object);
 	ml_cbor_default_tag(ML_CBOR_TAG_MARK_REUSED, ml_cbor_mark_reused);
 	ml_cbor_default_tag(ML_CBOR_TAG_USE_PREVIOUS, ml_cbor_use_previous);
-#include "ml_cbor_init.c"
+#include "ml_cbor2_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
 			"encode", CborEncode,
