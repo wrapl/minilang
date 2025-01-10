@@ -269,7 +269,6 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(MLGlobals, "clock", MLClock);
 	stringmap_insert(MLGlobals, "print", MLPrint);
 	stringmap_insert(MLGlobals, "locale", MLLocale);
-	stringmap_insert(MLGlobals, "raise", MLRaise);
 	stringmap_insert(MLGlobals, "halt", MLHalt);
 	stringmap_insert(MLGlobals, "break", MLBreak);
 	stringmap_insert(MLGlobals, "debugger", MLDebugger);

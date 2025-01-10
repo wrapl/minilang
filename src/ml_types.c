@@ -3559,7 +3559,8 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_externals_default_add("list", MLListT);
 	ml_externals_default_add("map", MLMapT);
 	ml_externals_default_add("set", MLSetT);
-	ml_externals_default_add("error", MLErrorT);
+	ml_externals_default_add("error", MLErrorValueT);
+	ml_externals_default_add("raise", MLRaise);
 	ml_externals_default_add("copy", MLCopy);
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
@@ -3589,6 +3590,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "set", MLSetT);
 		stringmap_insert(Globals, "error", MLErrorValueT);
+		stringmap_insert(Globals, "raise", MLRaise);
 		stringmap_insert(Globals, "external", MLExternalT);
 		stringmap_insert(Globals, "module", MLModuleT);
 		stringmap_insert(Globals, "deref", MLDeref);
