@@ -495,7 +495,9 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 	if (SliceSize) ml_default_queue_init(Main->Context, SliceSize);
 #endif
+#ifdef Linux
 	if (DebugAddr) ml_remote_debugger_init(Main->Context, DebugAddr);
+#endif
 #ifdef ML_THREADS
 	ml_default_thread_init(Main->Context);
 #endif
