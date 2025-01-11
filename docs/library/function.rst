@@ -87,11 +87,20 @@ function
 
       let F := 1 ->? (2 | _) -> (_ / 2) :> <chained>
       list(1 .. 10 -> F)
-      :> [nil, 2, nil, 4, nil, 6, nil, 8, nil, 10]
+      :> [nil, 1, nil, 2, nil, 3, nil, 4, nil, 5]
 
 
 :mini:`meth /(Function: function): function`
    Returns a function equivalent to :mini:`fun(Args...) Function()`.
+
+
+:mini:`meth (Base: function) => (Function: function): chained`
+   Returns a chained function equivalent to :mini:`Function(Base(Arg₁),  Base(Arg₂),  ...)`.
+
+   .. code-block:: mini
+
+      let F := :upper => +
+      F("h", "e", "l", "l", "o") :> "HELLO"
 
 
 :mini:`type function::partial < function, sequence`
