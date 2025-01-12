@@ -2063,8 +2063,6 @@ ML_METHOD("shuffle", MLListMutableT) {
 
 #include "ml_array.h"
 
-extern ml_type_t MLPermutationT[];
-
 ML_METHOD("shuffle", MLListMutableT, MLPermutationT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_array_t *Permutation = (ml_array_t *)Args[1];

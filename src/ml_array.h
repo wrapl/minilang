@@ -109,6 +109,8 @@ ML_ARRAY_ACCESSORS(complex_double);
 
 #endif
 
+extern ml_type_t MLPermutationT[];
+
 #ifdef __cplusplus
 }
 #endif
