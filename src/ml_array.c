@@ -1072,8 +1072,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 		}
 		int First = Indices[0];
 		for (int I = 0; I < Count; ++I) Indices[I] -= First;
-		Indexer->Target->Stride = 1;
 		Indexer->Address += First;
+		Indexer->Target->Stride = 1;
 		Indexer->Source += Size;
 	} else {
 		if (Indexer->Source->Indices) {
@@ -1095,10 +1095,32 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 		}
 		int First = Indices[0];
 		for (int I = 0; I < Count; ++I) Indices[I] -= First;
-		Indexer->Target->Stride = Indexer->Source->Stride;
 		Indexer->Address += Indexer->Source->Stride * First;
+		Indexer->Target->Stride = Indexer->Source->Stride;
 		++Indexer->Source;
 	}
+	++Indexer->Target;
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLPermutationT, ml_array_t *Index, ml_array_indexer_t *Indexer) {
+	int Count = Indexer->Target->Size = Index->Dimensions->Size;
+	if (Indexer->Source->Size != Count) return ml_error("ShapeError", "Invalid permutation");
+	int *Indices = (int *)snew(Count * sizeof(int));
+	int *Target = Indices;
+	Indexer->Target->Indices = Indices;
+	uint32_t *Source = (uint32_t *)Index->Base.Value;
+	const int *SourceIndices = Indexer->Source->Indices;
+	if (SourceIndices) {
+		for (int I = 0; I < Count; ++I) *Target++ = SourceIndices[(*Source++) - 1];
+	} else {
+		for (int I = 0; I < Count; ++I) *Target++ = (*Source++) - 1;
+	}
+	int First = Indices[0];
+	for (int I = 0; I < Count; ++I) Indices[I] -= First;
+	Indexer->Address += Indexer->Source->Stride * First;
+	Indexer->Target->Stride = Indexer->Source->Stride;
+	++Indexer->Source;
 	++Indexer->Target;
 	return NULL;
 }

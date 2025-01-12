@@ -1989,6 +1989,39 @@ ML_METHODX("pull", MLListMutableT, MLFunctionT) {
 	return ml_call(State, State->Fn, 1, State->Args);
 }
 
+ML_METHOD("shuffle", MLListMutableT) {
+//!list
+//<List
+//>list
+// Shuffles :mini:`List` in place.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int N = List->Length;
+	if (N <= 1) return (ml_value_t *)List;
+	ml_list_node_t *Nodes[N], *Node = List->Head;
+	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
+	for (int I = N; --I > 0;) {
+		int Divisor = RAND_MAX / (I + 1), J;
+		do J = random() / Divisor; while (J > I);
+		if (J != I) {
+			ml_list_node_t *Old = Nodes[J];
+			Nodes[J] = Nodes[I];
+			Nodes[I] = Old;
+		}
+	}
+	Node = List->Head = Nodes[0];
+	List->CachedNode = Node;
+	List->CachedIndex = 1;
+	Node->Prev = NULL;
+	for (int I = 1; I < N; ++I) {
+		Node->Next = Nodes[I];
+		Nodes[I]->Prev = Node;
+		Node = Nodes[I];
+	}
+	Node->Next = NULL;
+	List->Tail = Node;
+	return (ml_value_t *)List;
+}
+
 ML_METHOD("permute", MLListMutableT) {
 //!list
 //<List
@@ -2057,44 +2090,11 @@ ML_METHOD("permute", MLListMutableT, MLListT) {
 	return (ml_value_t *)List;
 }
 
-ML_METHOD("shuffle", MLListMutableT) {
-//!list
-//<List
-//>list
-// Shuffles :mini:`List` in place.
-	ml_list_t *List = (ml_list_t *)Args[0];
-	int N = List->Length;
-	if (N <= 1) return (ml_value_t *)List;
-	ml_list_node_t *Nodes[N], *Node = List->Head;
-	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
-	for (int I = N; --I > 0;) {
-		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J > I);
-		if (J != I) {
-			ml_list_node_t *Old = Nodes[J];
-			Nodes[J] = Nodes[I];
-			Nodes[I] = Old;
-		}
-	}
-	Node = List->Head = Nodes[0];
-	List->CachedNode = Node;
-	List->CachedIndex = 1;
-	Node->Prev = NULL;
-	for (int I = 1; I < N; ++I) {
-		Node->Next = Nodes[I];
-		Nodes[I]->Prev = Node;
-		Node = Nodes[I];
-	}
-	Node->Next = NULL;
-	List->Tail = Node;
-	return (ml_value_t *)List;
-}
-
 #ifdef ML_MATH
 
 #include "ml_array.h"
 
-ML_METHOD("shuffle", MLListMutableT, MLPermutationT) {
+ML_METHOD("permute", MLListMutableT, MLPermutationT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_array_t *Permutation = (ml_array_t *)Args[1];
 	if (Permutation->Dimensions[0].Size != List->Length) {
