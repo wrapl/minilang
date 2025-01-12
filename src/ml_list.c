@@ -2026,6 +2026,37 @@ ML_METHOD("permute", MLListMutableT) {
 	return (ml_value_t *)List;
 }
 
+ML_METHOD("permute", MLListMutableT, MLListT) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Length = List->Length;
+	if (!Length) return Args[0];
+	ml_list_t *Permute = (ml_list_t *)Args[1];
+	if (Permute->Length != Length) return ml_error("ValueError", "Lists must have same length");
+	ml_list_node_t **Nodes = anew(ml_list_node_t *, Length);
+	ml_list_node_t **Slot = Nodes;
+	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) *Slot++ = Node;
+	ml_list_node_t *Prev = NULL;
+	ML_LIST_FOREACH(Permute, Iter) {
+		int Index = ml_integer_value(Iter->Value) - 1;
+		if (Index < 0 || Index >= Length) return ml_error("ValueError", "Invalid permutation");
+		ml_list_node_t *Node = Nodes[Index];
+		if (!Node) {
+			List->Head = List->Tail = List->CachedNode = NULL;
+			List->Length = 0;
+			return ml_error("ValueError", "Invalid permutation");
+		}
+		Nodes[Index] = NULL;
+		if (Prev) Prev->Next = Node; else List->Head = Node;
+		Node->Prev = Prev;
+		Prev = Node;
+	}
+	List->Tail = Prev;
+	Prev->Next = NULL;
+	List->CachedNode = List->Head;
+	List->CachedIndex = 1;
+	return (ml_value_t *)List;
+}
+
 ML_METHOD("shuffle", MLListMutableT) {
 //!list
 //<List
