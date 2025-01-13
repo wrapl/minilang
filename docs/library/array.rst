@@ -738,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1953384789>>
+      A:minidx(2) :> <<2 1> <1 1180653889>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1453,10 +1453,6 @@ array
    Returns an array with the contents of :mini:`List`.
 
 
-:mini:`meth (List: list)[Indices: vector]: list`
-   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
-
-
 :mini:`meth ^(List: list): array`
    Returns an array with the contents of :mini:`List`,  transposed.
 
@@ -1619,6 +1615,10 @@ array
 
 :mini:`type permutation < vector::uint32`
    A permutation of numbers :mini:`1 .. N` (each number occurs exactly once).
+
+
+:mini:`meth (Arg₁: permutation) -> (Arg₂: permutation)`
+   *TBD*
 
 
 :mini:`meth (A: real) !== (B: array): array`

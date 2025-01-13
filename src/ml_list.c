@@ -3,6 +3,9 @@
 #include "ml_macros.h"
 #include <string.h>
 #include "ml_sequence.h"
+#ifdef ML_MATH
+#include "ml_array.h"
+#endif
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "list"
@@ -1532,7 +1535,7 @@ typedef struct {
 	ml_value_t *Args[2];
 	ml_list_node_t *Head, *Tail;
 	ml_list_node_t *P, *Q;
-	int Length;
+	int Length, ReturnOrder;
 	int InSize, NMerges;
 	int PSize, QSize;
 } ml_list_sort_state_t;
@@ -1584,7 +1587,12 @@ static void ml_list_sort_state_run(ml_list_sort_state_t *State, ml_value_t *Resu
 						}
 						Node->Next = NULL;
 						State->Tail = Node;
-						goto finished;
+						State->List->Head = State->Head;
+						State->List->Tail = State->Tail;
+						State->List->CachedIndex = 1;
+						State->List->CachedNode = State->Head;
+						State->List->Length = State->Length;
+						ML_CONTINUE(State->Base.Caller, Result);
 					} else if (Result == MLNil) {
 						E = State->Q; State->Q = State->Q->Next; State->QSize--;
 					} else {
@@ -1614,6 +1622,15 @@ finished:
 	State->List->CachedIndex = 1;
 	State->List->CachedNode = State->Head;
 	State->List->Length = State->Length;
+#ifdef ML_MATH
+	if (State->ReturnOrder) {
+		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, State->Length);
+		uint32_t *Indices = (uint32_t *)Permutation->Base.Value;
+		ML_LIST_FOREACH(State->List, Iter) *Indices++ = Iter->Index;
+		Permutation->Base.Type = MLPermutationT;
+		Result = (ml_value_t *)Permutation;
+	}
+#endif
 	ML_CONTINUE(State->Base.Caller, Result);
 }
 
@@ -1663,6 +1680,67 @@ ML_METHODX("sort", MLListMutableT, MLFunctionT) {
 	List->Length = 0;
 	return ml_list_sort_state_run(State, NULL);
 }
+
+#ifdef ML_MATH
+
+ML_METHODX("order", MLListMutableT) {
+//<List
+//>List
+// Sorts :mini:`List` in-place using :mini:`<` and returns the ordered indices.
+	if (!ml_list_length(Args[0])) {
+		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, 0);
+		ML_RETURN(Permutation);
+	}
+	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_sort_state_run;
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Index = 0;
+	ML_LIST_FOREACH(List, Iter) Iter->Index = ++Index;
+	State->List = List;
+	State->Compare = LessMethod;
+	State->Head = State->List->Head;
+	State->Length = List->Length;
+	State->InSize = 1;
+	State->ReturnOrder = 1;
+	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
+	List->CachedNode = NULL;
+	List->Head = List->Tail = NULL;
+	List->Length = 0;
+	return ml_list_sort_state_run(State, NULL);
+}
+
+ML_METHODX("order", MLListMutableT, MLFunctionT) {
+//<List
+//<Compare
+//>List
+// Sorts :mini:`List` in-place using :mini:`Compare` and returns the ordered indices.
+	if (!ml_list_length(Args[0])) {
+		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, 0);
+		ML_RETURN(Permutation);
+	}
+	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_sort_state_run;
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Index = 0;
+	ML_LIST_FOREACH(List, Iter) Iter->Index = ++Index;
+	State->List = List;
+	State->Compare = Args[1];
+	State->Head = List->Head;
+	State->Length = List->Length;
+	State->InSize = 1;
+	State->ReturnOrder = 1;
+	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
+	List->CachedNode = NULL;
+	List->Head = List->Tail = NULL;
+	List->Length = 0;
+	return ml_list_sort_state_run(State, NULL);
+}
+
+#endif
 
 typedef struct {
 	ml_state_t Base;
@@ -2092,8 +2170,6 @@ ML_METHOD("permute", MLListMutableT, MLListT) {
 
 #ifdef ML_MATH
 
-#include "ml_array.h"
-
 ML_METHOD("permute", MLListMutableT, MLPermutationT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_array_t *Permutation = (ml_array_t *)Args[1];
@@ -2116,6 +2192,43 @@ ML_METHOD("permute", MLListMutableT, MLPermutationT) {
 	List->CachedIndex = 1;
 	List->CachedNode = List->Head;
 	return (ml_value_t *)List;
+}
+
+ML_METHOD("[]", MLListT, MLVectorT) {
+//<List
+//<Indices
+//>list
+// Returns a list containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_value_t *Result = ml_list();
+	ml_array_t *Indices = (ml_array_t *)Args[1];
+	ml_array_getter_uint32_t get = ml_array_uint32_t_getter(Indices->Format);
+	void *Next = (void *)Indices->Base.Value;
+	int Stride = Indices->Dimensions[0].Stride;
+	int Size = Indices->Dimensions[0].Size;
+	if (ml_list_length(Args[1]) <= 3) {
+		while (--Size >= 0) {
+			int Index = get(Next);
+			Next += Stride;
+			ml_list_put(Result, ml_list_get((ml_value_t *)List, Index) ?: MLNil);
+		}
+	} else {
+		int N = List->Length;
+		ml_value_t *Values[N];
+		ml_list_node_t *Node = List->Head;
+		for (int I = 0; I < N; ++I, Node = Node->Next) Values[I] = Node->Value;
+		while (--Size >= 0) {
+			int Index = get(Next);
+			Next += Stride;
+			if (Index <= 0) Index += N;
+			if (Index <= 0 || Index > N) {
+				ml_list_put(Result, MLNil);
+			} else {
+				ml_list_put(Result, Values[Index - 1]);
+			}
+		}
+	}
+	return Result;
 }
 
 #endif

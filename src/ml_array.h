@@ -37,6 +37,9 @@ typedef struct {
 } ml_array_t;
 
 extern ml_type_t MLArrayT[];
+extern ml_type_t MLVectorT[];
+extern ml_type_t MLMatrixT[];
+extern ml_type_t MLPermutationT[];
 
 void ml_array_init(stringmap_t *Globals);
 
@@ -108,8 +111,6 @@ ML_ARRAY_ACCESSORS(complex_float);
 ML_ARRAY_ACCESSORS(complex_double);
 
 #endif
-
-extern ml_type_t MLPermutationT[];
 
 #ifdef __cplusplus
 }
