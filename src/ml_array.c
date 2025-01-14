@@ -7659,8 +7659,20 @@ ML_ARRAY_PAIRWISE("--", -)
 ML_ARRAY_PAIRWISE("**", *)
 ML_ARRAY_PAIRWISE("//", /)
 
-ML_TYPE(MLPermutationT, (MLVectorUInt32T), "integer::permutation");
+extern ml_value_t *IndexMethod;
+
+static void ml_permutation_call(ml_state_t *Caller, ml_value_t *Permutation, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t **Args2 = ml_alloc_args(2);
+	Args2[0] = Args[0];
+	Args2[1] = Permutation;
+	return ml_call(Caller, IndexMethod, 2, Args2);
+}
+
+ML_TYPE(MLPermutationT, (MLVectorUInt32T), "integer::permutation",
 // A permutation of numbers :mini:`1 .. N` (each number occurs exactly once).
+	.call = (void *)ml_permutation_call
+);
 
 ML_FUNCTION(RandomPermutation) {
 //!number
@@ -7717,41 +7729,18 @@ ML_FUNCTION(RandomCycle) {
 	return (ml_value_t *)Permutation;
 }
 
-ML_METHOD("[]", MLListT, MLVectorT) {
-//<List
-//<Indices
-//>list
-// Returns a list containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_value_t *Result = ml_list();
-	ml_array_t *Indices = (ml_array_t *)Args[1];
-	ml_array_getter_uint32_t get = ml_array_uint32_t_getter(Indices->Format);
-	void *Next = (void *)Indices->Base.Value;
-	int Stride = Indices->Dimensions[0].Stride;
-	int Size = Indices->Dimensions[0].Size;
-	if (ml_list_length(Args[1]) <= 3) {
-		while (--Size >= 0) {
-			int Index = get(Next);
-			Next += Stride;
-			ml_list_put(Result, ml_list_get((ml_value_t *)List, Index) ?: MLNil);
-		}
-	} else {
-		int N = List->Length;
-		ml_value_t *Values[N];
-		ml_list_node_t *Node = List->Head;
-		for (int I = 0; I < N; ++I, Node = Node->Next) Values[I] = Node->Value;
-		while (--Size >= 0) {
-			int Index = get(Next);
-			Next += Stride;
-			if (Index <= 0) Index += N;
-			if (Index <= 0 || Index > N) {
-				ml_list_put(Result, MLNil);
-			} else {
-				ml_list_put(Result, Values[Index - 1]);
-			}
-		}
-	}
-	return Result;
+ML_METHOD("->", MLPermutationT, MLPermutationT) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	ml_array_t *B = (ml_array_t *)Args[1];
+	int Size = A->Dimensions->Size;
+	if (B->Dimensions->Size != Size) return ml_error("ShapeError", "Permutations have different sizes");
+	uint32_t *ValuesA = (uint32_t *)A->Base.Value;
+	uint32_t *ValuesB = (uint32_t *)B->Base.Value;
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Size);
+	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
+	for (int I = 0; I < Size; ++I) Values[I] = ValuesA[ValuesB[I] - 1];
+	Permutation->Base.Type = MLPermutationT;
+	return (ml_value_t *)Permutation;
 }
 
 static int ml_lu_decomp_real(double **A, int *P, int N) {

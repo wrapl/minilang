@@ -681,6 +681,9 @@
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a1ad15a65cb9778594c1a03dc6ec573b4" kind="enumvalue"><name>ML_ARRAY_FORMAT_ANY</name></member>
     <member refid="ml__array_8h_1a52cca795aefbeae57b03bb83d7d2c924" kind="variable"><name>MLArraySizes</name></member>
     <member refid="ml__array_8h_1ab9332866ef51f2ee1e89af4b99659a3f" kind="variable"><name>MLArrayT</name></member>
+    <member refid="ml__array_8h_1a60875085ff385b5cdf85ac1dde9dc940" kind="variable"><name>MLVectorT</name></member>
+    <member refid="ml__array_8h_1a6952d6929afc5ef43fdd360d4f1940e7" kind="variable"><name>MLMatrixT</name></member>
+    <member refid="ml__array_8h_1a1719d9bd336bd740a37415bb79b47e9a" kind="variable"><name>MLPermutationT</name></member>
     <member refid="ml__array_8h_1a6844c232b8ac69227fccd412d0d496d4" kind="function"><name>ml_array_init</name></member>
     <member refid="ml__array_8h_1af51cede71f829e3926b6acf5ccfb7e05" kind="function"><name>ml_array_alloc</name></member>
     <member refid="ml__array_8h_1ae9e4e1f9d8c3d1da1402071aaf0fdfa2" kind="function"><name>ml_array</name></member>
