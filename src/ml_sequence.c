@@ -3576,7 +3576,10 @@ static void batched_iterate(ml_batched_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
 		State->Iter = NULL;
-		if (State->Index > (State->Size - State->Shift)) {
+		if (!State->Iteration) {
+			++State->Iteration;
+			ML_CONTINUE(State->Base.Caller, State);
+		} else if (State->Index > (State->Size - State->Shift)) {
 			++State->Iteration;
 			ML_CONTINUE(State->Base.Caller, State);
 		}
