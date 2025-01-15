@@ -188,7 +188,7 @@ static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Cou
 	Map->Size = Template->Size;
 	Map->Order = Template->Order;
 	if (Template->Root) {
-		ml_map_node_t *Nodes[Map->Size];
+		ml_map_node_t *Nodes[Count];
 		memset(Nodes, 0, Map->Size * sizeof(ml_map_node_t *));
 		Map->Root = ml_map_template_node(Template->Root, Args, Nodes);
 		ml_map_node_t **Slot = &Map->Head, *Prev = NULL;
