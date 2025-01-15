@@ -5857,8 +5857,8 @@ with_name:
 	}
 	case MLT_LEFT_BRACE: {
 		ml_next(Parser);
-		ML_EXPR(MapExpr, parent, map);
-		mlc_expr_t **ArgsSlot = &MapExpr->Child;
+		mlc_expr_t *Child = NULL;
+		mlc_expr_t **ArgsSlot = &Child;
 		if (!ml_parse2(Parser, MLT_RIGHT_BRACE)) {
 			int UseTemplate = 1;
 			do {
@@ -5880,7 +5880,6 @@ with_name:
 				ML_EXPR(CallExpr, parent_value, const_call);
 				ml_value_t *Template = CallExpr->Value = ml_map();
 				mlc_expr_t **ArgsSlot = &CallExpr->Child;
-				mlc_expr_t *Child = MapExpr->Child;
 				int Index = 0;
 				while (Child) {
 					ml_map_insert(Template, ((mlc_value_expr_t *)Child)->Value, ml_integer(Index++));
@@ -5893,6 +5892,8 @@ with_name:
 				return ML_EXPR_END(CallExpr);
 			}
 		}
+		ML_EXPR(MapExpr, parent, map);
+		MapExpr->Child = Child;
 		return ML_EXPR_END(MapExpr);
 	}
 	case MLT_OPERATOR: {
