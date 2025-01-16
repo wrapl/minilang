@@ -111,7 +111,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="28" column="9" bodyfile="src/ml_library.h" bodystart="28" bodyend="-1"/>
+        <location file="src/ml_library.h" line="30" column="9" bodyfile="src/ml_library.h" bodystart="30" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1a4d3a9a841563631ab020bf6beec58bf9" prot="public" static="no">
         <name>TOSTRING3</name>
@@ -125,7 +125,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="29" column="9" bodyfile="src/ml_library.h" bodystart="29" bodyend="-1"/>
+        <location file="src/ml_library.h" line="31" column="9" bodyfile="src/ml_library.h" bodystart="31" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1aab9392972869176bb410c092a182ec3f" prot="public" static="no">
         <name>LIBRARY_ENTRY</name>
@@ -137,7 +137,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="31" column="9" bodyfile="src/ml_library.h" bodystart="31" bodyend="-1"/>
+        <location file="src/ml_library.h" line="33" column="9" bodyfile="src/ml_library.h" bodystart="33" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1a73453b30a666bff84a1a32a453199cdc" prot="public" static="no">
         <name>LIBRARY_ENTRY0</name>
@@ -149,7 +149,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="32" column="9" bodyfile="src/ml_library.h" bodystart="32" bodyend="-1"/>
+        <location file="src/ml_library.h" line="34" column="9" bodyfile="src/ml_library.h" bodystart="34" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1ae8a28bc6b4d87a798517b2c3dfa42401" prot="public" static="no">
         <name>ML_EXTERN</name>
@@ -159,7 +159,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="37" column="10" bodyfile="src/ml_library.h" bodystart="37" bodyend="-1"/>
+        <location file="src/ml_library.h" line="39" column="10" bodyfile="src/ml_library.h" bodystart="39" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1ab05f2ae4f8e3ac1c02e2ae49f182042a" prot="public" static="no">
         <name>ML_LIBRARY_ENTRY</name>
@@ -173,7 +173,7 @@ void CONCAT3(ml_, NAME, entry)(<ref refid="structml__state__t" kindref="compound
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="40" column="9" bodyfile="src/ml_library.h" bodystart="40" bodyend="43"/>
+        <location file="src/ml_library.h" line="42" column="9" bodyfile="src/ml_library.h" bodystart="42" bodyend="45"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1ad3b66441b88534c08595495518594fa4" prot="public" static="no">
         <name>ML_LIBRARY_ENTRY0</name>
@@ -187,7 +187,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="45" column="9" bodyfile="src/ml_library.h" bodystart="45" bodyend="48"/>
+        <location file="src/ml_library.h" line="47" column="9" bodyfile="src/ml_library.h" bodystart="47" bodyend="50"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1a19d56efa0c91abfb11f50be436c28ddb" prot="public" static="no">
         <name>ML_LIBRARY_SCHEDULER</name>
@@ -199,7 +199,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="52" column="9" bodyfile="src/ml_library.h" bodystart="52" bodyend="53"/>
+        <location file="src/ml_library.h" line="54" column="9" bodyfile="src/ml_library.h" bodystart="54" bodyend="55"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1a0970aa160bcb264fb1296eecb52a274f" prot="public" static="no">
         <name>ML_LIBRARY_LOGGER</name>
@@ -211,7 +211,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="55" column="9" bodyfile="src/ml_library.h" bodystart="55" bodyend="56"/>
+        <location file="src/ml_library.h" line="57" column="9" bodyfile="src/ml_library.h" bodystart="57" bodyend="58"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="typedef">
@@ -226,7 +226,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="25" column="9" bodyfile="src/ml_library.h" bodystart="25" bodyend="-1"/>
+        <location file="src/ml_library.h" line="27" column="9" bodyfile="src/ml_library.h" bodystart="27" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="ml__library_8h_1a53f62e2d1fc2464446281858802292c6" prot="public" static="no">
         <type>void(*</type>
@@ -239,7 +239,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="26" column="9" bodyfile="src/ml_library.h" bodystart="26" bodyend="-1"/>
+        <location file="src/ml_library.h" line="28" column="9" bodyfile="src/ml_library.h" bodystart="28" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="ml__library_8h_1a42f2ac9fff6125e708ddc1b86b90acee" prot="public" static="no">
         <type>void(*</type>
@@ -252,7 +252,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="50" column="9" bodyfile="src/ml_library.h" bodystart="50" bodyend="-1"/>
+        <location file="src/ml_library.h" line="52" column="9" bodyfile="src/ml_library.h" bodystart="52" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -319,6 +319,23 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </inbodydescription>
         <location file="src/ml_library.h" line="13" column="6" declfile="src/ml_library.h" declline="13" declcolumn="6"/>
       </memberdef>
+      <memberdef kind="function" id="ml__library_8h_1a9e4d885b93f6e7a9ce458cf4cd325bb5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_library_importer</definition>
+        <argsstring>(const char *FileName)</argsstring>
+        <name>ml_library_importer</name>
+        <param>
+          <type>const char *</type>
+          <declname>FileName</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_library.h" line="19" column="12" declfile="src/ml_library.h" declline="19" declcolumn="12"/>
+      </memberdef>
       <memberdef kind="function" id="ml__library_8h_1a6739ec121de9625088634f8be881dd25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_library_load</definition>
@@ -342,7 +359,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="19" column="6" declfile="src/ml_library.h" declline="19" declcolumn="6"/>
+        <location file="src/ml_library.h" line="21" column="6" declfile="src/ml_library.h" declline="21" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="ml__library_8h_1a04777fdfc70ab1075a67bb58e674c364" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -363,7 +380,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="20" column="12" declfile="src/ml_library.h" declline="20" declcolumn="12"/>
+        <location file="src/ml_library.h" line="22" column="12" declfile="src/ml_library.h" declline="22" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="ml__library_8h_1a16f8a6d3ee673c600c57e31ebe8cc59e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -384,7 +401,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="22" column="6" declfile="src/ml_library.h" declline="22" declcolumn="6"/>
+        <location file="src/ml_library.h" line="24" column="6" declfile="src/ml_library.h" declline="24" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="ml__library_8h_1a320d8c6ee2f15a1e15a9a4ca13b32006" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__module__t" kindref="compound">ml_module_t</ref> *</type>
@@ -401,7 +418,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="23" column="13" declfile="src/ml_library.h" declline="23" declcolumn="13"/>
+        <location file="src/ml_library.h" line="25" column="13" declfile="src/ml_library.h" declline="25" declcolumn="13"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -427,50 +444,52 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
 <codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*(*Load0)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**)</highlight></codeline>
 <codeline lineno="17"><highlight class="normal">);</highlight></codeline>
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_load(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="20"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_library_load0(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_register(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module);</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"><ref refid="structml__module__t" kindref="compound">ml_module_t</ref><sp/>*ml_library_internal(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="24"><highlight class="normal"></highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_library_entry_t)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_library_entry0_t)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"></highlight></codeline>
-<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGIFY(x)<sp/>#x</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TOSTRING3(x,<sp/>y,<sp/>z)<sp/>STRINGIFY(x<sp/>##<sp/>y<sp/>##<sp/>z)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="30"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LIBRARY_ENTRY(NAME)<sp/>TOSTRING3(ml_,<sp/>NAME,<sp/>_entry)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LIBRARY_ENTRY0(NAME)<sp/>TOSTRING3(ml_,<sp/>NAME,<sp/>_entry0)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_EXTERN<sp/>extern<sp/>&quot;C&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_EXTERN</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight></codeline>
-<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_ENTRY(NAME)<sp/>\</highlight></codeline>
-<codeline lineno="41"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry)(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot);<sp/>\</highlight></codeline>
-<codeline lineno="42"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>ml_library_entry(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot)<sp/>__attribute__<sp/>((weak,<sp/>alias(LIBRARY_ENTRY(NAME))));<sp/>\</highlight></codeline>
-<codeline lineno="43"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry)(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="44"><highlight class="normal"></highlight></codeline>
-<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_ENTRY0(NAME)<sp/>\</highlight></codeline>
-<codeline lineno="46"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry0)(ml_value_t<sp/>**Slot);<sp/>\</highlight></codeline>
-<codeline lineno="47"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>ml_library_entry0(ml_value_t<sp/>**Slot)<sp/>__attribute__<sp/>((weak,<sp/>alias(LIBRARY_ENTRY0(NAME))));<sp/>\</highlight></codeline>
-<codeline lineno="48"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry0)(ml_value_t<sp/>**Slot)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="49"><highlight class="normal"></highlight></codeline>
-<codeline lineno="50"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_main_loop_t)();</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_library_importer(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*FileName);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_load(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_library_load0(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_library_register(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module);</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><ref refid="structml__module__t" kindref="compound">ml_module_t</ref><sp/>*ml_library_internal(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_library_entry_t)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_library_entry0_t)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Slot);</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGIFY(x)<sp/>#x</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TOSTRING3(x,<sp/>y,<sp/>z)<sp/>STRINGIFY(x<sp/>##<sp/>y<sp/>##<sp/>z)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LIBRARY_ENTRY(NAME)<sp/>TOSTRING3(ml_,<sp/>NAME,<sp/>_entry)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LIBRARY_ENTRY0(NAME)<sp/>TOSTRING3(ml_,<sp/>NAME,<sp/>_entry0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_EXTERN<sp/>extern<sp/>&quot;C&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_EXTERN</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_ENTRY(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="43"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry)(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot);<sp/>\</highlight></codeline>
+<codeline lineno="44"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>ml_library_entry(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot)<sp/>__attribute__<sp/>((weak,<sp/>alias(LIBRARY_ENTRY(NAME))));<sp/>\</highlight></codeline>
+<codeline lineno="45"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry)(ml_state_t<sp/>*Caller,<sp/>ml_value_t<sp/>**Slot)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_ENTRY0(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="48"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry0)(ml_value_t<sp/>**Slot);<sp/>\</highlight></codeline>
+<codeline lineno="49"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>ml_library_entry0(ml_value_t<sp/>**Slot)<sp/>__attribute__<sp/>((weak,<sp/>alias(LIBRARY_ENTRY0(NAME))));<sp/>\</highlight></codeline>
+<codeline lineno="50"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry0)(ml_value_t<sp/>**Slot)</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="51"><highlight class="normal"></highlight></codeline>
-<codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_SCHEDULER(NAME)<sp/>\</highlight></codeline>
-<codeline lineno="53"><highlight class="preprocessor">ml_main_loop_t<sp/>ml_library_scheduler_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="54"><highlight class="normal"></highlight></codeline>
-<codeline lineno="55"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_LOGGER(NAME)<sp/>\</highlight></codeline>
-<codeline lineno="56"><highlight class="preprocessor">void<sp/>ml_library_logger_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="57"><highlight class="normal"></highlight></codeline>
-<codeline lineno="58"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="59"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="61"><highlight class="normal"></highlight></codeline>
-<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_main_loop_t)();</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_SCHEDULER(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="55"><highlight class="preprocessor">ml_main_loop_t<sp/>ml_library_scheduler_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_LOGGER(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="58"><highlight class="preprocessor">void<sp/>ml_library_logger_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_library.h"/>
   </compounddef>

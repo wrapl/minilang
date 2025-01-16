@@ -129,6 +129,10 @@ list
    Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
+:mini:`meth (List: list)[Indices: vector]: list`
+   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
+
+
 :mini:`meth (List: list):bfind(Value: any): tuple[integer, integer]`
    Expects :mini:`List` is be already sorted according to :mini:`<>`. Returns :mini:`(I,  J)` where :mini:`List[I] = Value <= List[J]`.
    Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
@@ -222,7 +226,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "a"
-      L:random :> "k"
+      L:random :> "a"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -313,6 +317,14 @@ list
       L :> ["c", "b", "a", "f", "k", "e"]
 
 
+:mini:`meth (List: list::mutable):order: List`
+   Sorts :mini:`List` in-place using :mini:`<` and returns the ordered indices.
+
+
+:mini:`meth (List: list::mutable):order(Compare: function): List`
+   Sorts :mini:`List` in-place using :mini:`Compare` and returns the ordered indices.
+
+
 :mini:`meth (List: list::mutable):permutations: sequence`
    Returns a sequence of all permutations of :mini:`List`,  performed in-place.
 
@@ -323,6 +335,14 @@ list
       Use :mini:`List:shuffle` instead.
    
    Permutes :mini:`List` in place.
+
+
+:mini:`meth (Arg₁: list::mutable):permute(Arg₂: list)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: list::mutable):permute(Arg₂: permutation)`
+   *TBD*
 
 
 :mini:`meth (List: list::mutable):pop: any | nil`
@@ -377,10 +397,6 @@ list
 
 :mini:`meth (List: list::mutable):shuffle: list`
    Shuffles :mini:`List` in place.
-
-
-:mini:`meth (Arg₁: list::mutable):shuffle(Arg₂: permutation)`
-   *TBD*
 
 
 :mini:`meth (List: list::mutable):sort: List`

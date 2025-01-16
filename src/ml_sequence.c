@@ -20,60 +20,93 @@ static ML_METHOD_DECL(WhileSoloMethod, "->|");
 static ML_METHOD_DECL(WhileDuoMethod, "=>|");
 static ML_METHOD_DECL(Precount, "precount");
 
-typedef struct ml_chained_state_t {
+typedef struct {
 	ml_state_t Base;
-	ml_value_t *Value;
 	ml_value_t **Current;
+	int Count, Index;
+	ml_value_t *Values[];
 } ml_chained_state_t;
 
 static void ml_chained_state_value(ml_chained_state_t *State, ml_value_t *Value);
 
 static void ml_chained_state_filter(ml_chained_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	ml_value_t *Deref = ml_deref(Value);
+	if (ml_is_error(Deref)) ML_CONTINUE(State->Base.Caller, Deref);
+	if (Deref == MLNil) ML_CONTINUE(State->Base.Caller, Deref);
 	ml_value_t **Entry = State->Current;
-	if (!Entry[0]) ML_CONTINUE(State->Base.Caller, State->Value);
+	if (!Entry[0]) ML_CONTINUE(State->Base.Caller, State->Values[0]);
 	State->Current = Entry + 1;
 	ml_value_t *Function = Entry[0];
 	if (Function == FilterSoloMethod) {
 		Function = Entry[1];
 		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
-		State->Base.run = (void *)ml_chained_state_filter;
+		//State->Base.run = (void *)ml_chained_state_filter;
+	} else {
+		State->Base.run = (void *)ml_chained_state_value;
 	}
-	return ml_call(State, Function, 1, &State->Value);
+	return ml_call(State, Function, 1, State->Values);
 }
 
 static void ml_chained_state_value(ml_chained_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_value_t *Deref = ml_deref(Value);
+	if (ml_is_error(Deref)) ML_CONTINUE(State->Base.Caller, Deref);
 	ml_value_t **Entry = State->Current;
 	if (!Entry[0]) ML_CONTINUE(State->Base.Caller, Value);
 	State->Current = Entry + 1;
-	State->Value = Value;
+	State->Values[0] = Value;
 	ml_value_t *Function = Entry[0];
 	if (Function == FilterSoloMethod) {
 		Function = Entry[1];
 		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
 		State->Base.run = (void *)ml_chained_state_filter;
+	} else {
+		//State->Base.run = (void *)ml_chained_state_value;
 	}
-	return ml_call(State, Function, 1, &State->Value);
+	return ml_call(State, Function, 1, State->Values);
 }
 
-typedef struct ml_chained_function_t {
+static void ml_chained_state_broadcast(ml_chained_state_t *State, ml_value_t *Value) {
+	ml_value_t *Deref = ml_deref(Value);
+	if (ml_is_error(Deref)) ML_CONTINUE(State->Base.Caller, Deref);
+	State->Values[State->Index] = Value;
+	if (++State->Index < State->Count) {
+		return ml_call(State, State->Current[0], 1, State->Values + State->Index);
+	}
+	ml_value_t **Entry = State->Current;
+	if (!Entry[2]) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+	ml_value_t *Function = Entry[3];
+	if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+	State->Current = Entry + 4;
+	State->Base.run = (void *)ml_chained_state_value;
+	return ml_call(State, Function, State->Count, State->Values);
+}
+
+typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Entries[];
 } ml_chained_function_t;
 
 static void ml_chained_function_call(ml_state_t *Caller, ml_chained_function_t *Chained, int Count, ml_value_t **Args) {
-	ml_chained_state_t *State = new(ml_chained_state_t);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)ml_chained_state_value;
-	State->Base.Context = Caller->Context;
-	State->Current = Chained->Entries + 1;
-	return ml_call(State, Chained->Entries[0], Count, Args);
+	if (Chained->Entries[1] == DuoMethod) {
+		ml_chained_state_t *State = xnew(ml_chained_state_t, Count, ml_value_t *);
+		State->Base.Caller = Caller;
+		State->Base.run = (void *)ml_chained_state_broadcast;
+		State->Base.Context = Caller->Context;
+		State->Current = Chained->Entries;
+		State->Count = Count;
+		State->Index = 0;
+		memcpy(State->Values, Args, Count * sizeof(ml_value_t *));
+		return ml_call(State, Chained->Entries[0], 1, State->Values);
+	} else {
+		ml_chained_state_t *State = xnew(ml_chained_state_t, 1, ml_value_t *);
+		State->Base.Caller = Caller;
+		State->Base.run = (void *)ml_chained_state_value;
+		State->Base.Context = Caller->Context;
+		State->Current = Chained->Entries + 1;
+		return ml_call(State, Chained->Entries[0], Count, Args);
+	}
 }
 
 ml_value_t *ml_chained(int Count, ml_value_t **Functions);
@@ -296,6 +329,24 @@ ML_METHOD("->", MLFunctionT, MLFunctionT) {
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = Args[1];
 	//Chained->Entries[2] = NULL;
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("=>", MLFunctionT, MLFunctionT) {
+//!function
+//<Base
+//<Function
+//>chained
+// Returns a chained function equivalent to :mini:`Function(Base(Arg/1), Base(Arg/2), ...)`.
+//$- let F := :upper => +
+//$= F("h", "e", "l", "l", "o")
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
+	Chained->Type = MLChainedT;
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = DuoMethod;
+	Chained->Entries[2] = ml_integer(1);
+	Chained->Entries[3] = Args[1];
+	//Chained->Entries[4] = NULL;
 	return (ml_value_t *)Chained;
 }
 
@@ -3525,7 +3576,10 @@ static void batched_iterate(ml_batched_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
 		State->Iter = NULL;
-		if (State->Index > (State->Size - State->Shift)) {
+		if (!State->Iteration) {
+			++State->Iteration;
+			ML_CONTINUE(State->Base.Caller, State);
+		} else if (State->Index > (State->Size - State->Shift)) {
 			++State->Iteration;
 			ML_CONTINUE(State->Base.Caller, State);
 		}

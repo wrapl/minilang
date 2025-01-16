@@ -166,37 +166,41 @@ ML_METHODVX(MLMapT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-static ml_map_node_t *ml_map_template_node(ml_map_node_t *Template, ml_value_t **Args) {
+static ml_map_node_t *ml_map_template_node(ml_map_node_t *Template, ml_value_t **Args, ml_map_node_t **Nodes) {
 	ml_map_node_t *Node = new(ml_map_node_t);
 	Node->Type = MLMapNodeMutableT;
 	Node->Key = Template->Key;
 	int Index = ml_integer_value_fast(Template->Value);
 	Node->Value = ml_deref(Args[Index]);
-	Args[Index] = (ml_value_t *)Node;
+	Nodes[Index] = Node;
 	Node->Hash = Template->Hash;
 	Node->Depth = Template->Depth;
-	if (Template->Left) Node->Left = ml_map_template_node(Template->Left, Args);
-	if (Template->Right) Node->Right = ml_map_template_node(Template->Right, Args);
+	if (Template->Left) Node->Left = ml_map_template_node(Template->Left, Args, Nodes);
+	if (Template->Right) Node->Right = ml_map_template_node(Template->Right, Args, Nodes);
 	return Node;
 
 }
 
 static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Count, ml_value_t **Args) {
-	if (Template->Size != Count) ML_ERROR("CallError", "Mismatched call to map template");
+	if (Template->Size > Count) ML_ERROR("CallError", "Mismatched call to map template");
 	ml_map_t *Map = (ml_map_t *)ml_map();
 	Map->Cached = Template->Cached;
 	Map->Size = Template->Size;
 	Map->Order = Template->Order;
 	if (Template->Root) {
-		Map->Root = ml_map_template_node(Template->Root, Args);
-		ml_map_node_t *Prev = Map->Head = (ml_map_node_t *)Args[0];
-		Prev->Map = Map;
-		for (int I = 1; I < Count; ++I) {
-			ml_map_node_t *Node = (ml_map_node_t *)Args[I];
-			Node->Map = Map;
-			Node->Prev = Prev;
-			Prev->Next = Node;
-			Prev = Node;
+		ml_map_node_t *Nodes[Count];
+		memset(Nodes, 0, Map->Size * sizeof(ml_map_node_t *));
+		Map->Root = ml_map_template_node(Template->Root, Args, Nodes);
+		ml_map_node_t **Slot = &Map->Head, *Prev = NULL;
+		for (int I = 0; I < Count; ++I) {
+			ml_map_node_t *Node = Nodes[I];
+			if (Node) {
+				Node->Map = Map;
+				Node->Prev = Prev;
+				*Slot = Node;
+				Slot = &Node->Next;
+				Prev = Node;
+			}
 		}
 		Map->Tail = Prev;
 	}

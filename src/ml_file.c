@@ -220,6 +220,8 @@ ML_METHOD("size", MLFileStatT) {
 	return ml_integer(Stat->Handle->st_size);
 }
 
+#ifndef Mingw
+
 ML_METHOD("atime", MLFileStatT) {
 	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
 	return ml_time(Stat->Handle->st_atim.tv_sec, Stat->Handle->st_atim.tv_nsec);
@@ -249,6 +251,8 @@ ML_METHOD("mode", MLFileStatT) {
 	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
 	return ml_enum_value(MLFileModeT, Stat->Handle->st_mode & S_IFMT);
 }
+
+#endif
 
 typedef struct {
 	ml_type_t *Type;

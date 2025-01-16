@@ -75,6 +75,142 @@ general
    Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
 
 
+:mini:`type event`
+   *TBD*
+
+
+:mini:`type focusevent < event`
+   *TBD*
+
+
+:mini:`type keyboardevent < event`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):alt`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):code`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):ctrl`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):key`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):locale`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):location`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):meta`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):repeat`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):shift`
+   *TBD*
+
+
+:mini:`meth (Arg₁: keyboardevent):timestamp`
+   *TBD*
+
+
+:mini:`type mouseevent < event`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):alt`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):button`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):buttons`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):canvasX`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):canvasY`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):clientX`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):clientY`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):ctrl`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):meta`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):movementX`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):movementY`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):screenX`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):screenY`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):shift`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):targetX`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):targetY`
+   *TBD*
+
+
+:mini:`meth (Arg₁: mouseevent):timestamp`
+   *TBD*
+
+
+:mini:`fun mlafter(Arg₁: number, Arg₂: function)`
+   *TBD*
+
+
+:mini:`fun mlevent(Arg₁: string, Arg₂: string, Arg₃: function)`
+   *TBD*
+
+
+:mini:`type uievent < event`
+   *TBD*
+
+
 :mini:`type visitor < function`
    Used to apply a transformation recursively to values.
    
@@ -110,6 +246,10 @@ general
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: weakmaptoken)`
+   *TBD*
+
+
+:mini:`type wheelevent < event`
    *TBD*
 
 
