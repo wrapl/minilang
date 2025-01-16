@@ -23,6 +23,8 @@ ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable");
 
 #ifdef ML_GENERICS
 
+ML_VALUE(MLAny, MLAnyT);
+
 static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Value) {
 	if (Map->Type->Type != MLTypeGenericT) {
 		Map->Type = ml_generic_type(3, (ml_type_t *[]){Map->Type, ml_typeof(Key), ml_typeof(Value)});
@@ -195,6 +197,14 @@ static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Cou
 		for (int I = 0; I < Count; ++I) {
 			ml_map_node_t *Node = Nodes[I];
 			if (Node) {
+				ml_value_t *Value = Node->Value;
+				if (ml_typeof(Value) == MLUninitializedT) {
+					ml_uninitialized_use(Value, &Node->Value);
+					Value = MLAny;
+				}
+#ifdef ML_GENERICS
+				ml_map_update_generic(Map, Node->Key, Value);
+#endif
 				Node->Map = Map;
 				Node->Prev = Prev;
 				*Slot = Node;
@@ -539,10 +549,9 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	ml_map_node_t *Node = ml_map_node(Map, NULL, ml_typeof(Key)->hash(Key, NULL), Key);
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
-	ml_type_t *ValueType0 = ml_typeof(Value);
-	if (ValueType0 == MLUninitializedT) {
+	if (ml_typeof(Value) == MLUninitializedT) {
 		ml_uninitialized_use(Value, &Node->Value);
-		ValueType0 = MLAnyT;
+		Value = MLAny;
 	}
 #ifdef ML_GENERICS
 	ml_map_update_generic(Map, Key, Value);
