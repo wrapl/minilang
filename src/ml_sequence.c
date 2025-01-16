@@ -691,8 +691,32 @@ typedef struct {
 	ml_value_t *Sequence, *ValueFn;
 } ml_doubled_t;
 
-ML_TYPE(MLDoubledT, (MLSequenceT), "doubled");
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *ValueFn;
+} ml_doubled_call_state_t;
+
+ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function);
+
+static void ml_doubled_run(ml_doubled_call_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ML_RETURN(ml_doubled(Value, State->ValueFn));
+}
+
+static void ml_doubled_call(ml_state_t *Caller, ml_doubled_t *Doubled, int Count, ml_value_t **Args) {
+	ml_doubled_call_state_t *State = new(ml_doubled_call_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_doubled_run;
+	State->ValueFn = Doubled->ValueFn;
+	return ml_call((ml_state_t *)State, Doubled->Sequence, Count, Args);
+}
+
+ML_TYPE(MLDoubledT, (MLSequenceT), "doubled",
 //!internal
+	.call = (void *)ml_doubled_call
+);
 
 typedef struct ml_double_state_t {
 	ml_state_t Base;
@@ -792,6 +816,11 @@ ML_METHOD("^", MLSequenceT, MLFunctionT) {
 //
 //    Use :mini:`->>` instead.
 //$= list(1 .. 5 ^ (1 .. _))
+	return ml_doubled(Args[0], Args[1]);
+}
+
+ML_METHOD("->>", MLFunctionT, MLFunctionT) {
+//!internal
 	return ml_doubled(Args[0], Args[1]);
 }
 
