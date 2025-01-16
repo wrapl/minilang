@@ -700,6 +700,7 @@ ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function);
 
 static void ml_doubled_run(ml_doubled_call_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	ML_RETURN(ml_doubled(Value, State->ValueFn));
 }
