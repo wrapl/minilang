@@ -58,6 +58,12 @@ hierarchy
       "any":e -> "table::column":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
+      "any":e -> "instance::field":w;
+      "any":e -> "instance":w;
+      "function":e -> "struct::getter":w;
+      "function":e -> "struct::getter::fast":w;
+      "type":e -> "struct":w;
+      "any":e -> "ref":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
       "enum":e -> "byte::order":w;
@@ -65,6 +71,8 @@ hierarchy
       "sequence":e -> "string":w;
       "enum":e -> "string::norm":w;
       "enum":e -> "string::ctype":w;
+      "any":e -> "string::property":w;
+      "sequence":e -> "string::charset":w;
       "function":e -> "regex":w;
       "stream":e -> "string::buffer":w;
       "any":e -> "string::buffer":w;
@@ -177,6 +185,8 @@ hierarchy
       "any":e -> "compilereoi":w;
       "any":e -> "global":w;
       "any":e -> "command::decl":w;
+      "stream":e -> "cbor::decoder":w;
+      "any":e -> "cbor::tag":w;
       "stream":e -> "cbor::decoder":w;
       "any":e -> "cbor::tag":w;
       "any":e -> "variable":w;

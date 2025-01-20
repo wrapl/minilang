@@ -60,26 +60,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       regex("[0-9") :> error("RegexError", "Missing ']'")
 
 
-:mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" != r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
-      r"[A-Za-z0-9_]+" != r"[0-9]+" :> /[0-9]+/
-      r"[0-9]+" != r"[0-9]+" :> nil
-
-
-:mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" < r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
-      r"[A-Za-z0-9_]+" < r"[0-9]+" :> nil
-      r"[0-9]+" < r"[0-9]+" :> nil
-
-
 :mini:`meth (Arg₁: regex) <= (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
 
@@ -88,26 +68,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       r"[0-9]+" <= r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
       r"[A-Za-z0-9_]+" <= r"[0-9]+" :> nil
       r"[0-9]+" <= r"[0-9]+" :> /[0-9]+/
-
-
-:mini:`meth (A: regex) <> (B: regex): integer`
-   Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively. Mainly for using regular expressions as keys in maps.
-
-   .. code-block:: mini
-
-      r"[0-9]+" <> r"[A-Za-z0-9_]+" :> -1
-      r"[A-Za-z0-9_]+" <> r"[0-9]+" :> 1
-      r"[0-9]+" <> r"[0-9]+" :> 0
-
-
-:mini:`meth (Arg₁: regex) = (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" = r"[A-Za-z0-9_]+" :> nil
-      r"[A-Za-z0-9_]+" = r"[0-9]+" :> nil
-      r"[0-9]+" = r"[0-9]+" :> /[0-9]+/
 
 
 :mini:`meth (Arg₁: regex) > (Arg₂: regex): regex | nil`
@@ -157,12 +117,32 @@ When creating a substring,  the first index is inclusive and second index is exc
       string([1, 2, 3]) :> "[1, 2, 3]"
 
 
+:mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" < r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
+      r"[A-Za-z0-9_]+" < r"[0-9]+" :> nil
+      r"[0-9]+" < r"[0-9]+" :> nil
+
+
 :mini:`fun regex::escape(String: string): string`
    Escapes characters in :mini:`String` that are treated specially in regular expressions.
 
    .. code-block:: mini
 
       regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
+
+
+:mini:`meth (Arg₁: regex) = (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" = r"[A-Za-z0-9_]+" :> nil
+      r"[A-Za-z0-9_]+" = r"[0-9]+" :> nil
+      r"[0-9]+" = r"[0-9]+" :> /[0-9]+/
 
 
 :mini:`fun string::escape(String: string): string`
@@ -669,6 +649,26 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> [0, 2, 3, 7, 8, 11, 12]
 
 
+:mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" != r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
+      r"[A-Za-z0-9_]+" != r"[0-9]+" :> /[0-9]+/
+      r"[0-9]+" != r"[0-9]+" :> nil
+
+
+:mini:`meth (A: regex) <> (B: regex): integer`
+   Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively. Mainly for using regular expressions as keys in maps.
+
+   .. code-block:: mini
+
+      r"[0-9]+" <> r"[A-Za-z0-9_]+" :> -1
+      r"[A-Za-z0-9_]+" <> r"[0-9]+" :> 1
+      r"[0-9]+" <> r"[0-9]+" :> 0
+
+
 :mini:`meth (String: string):precount: integer`
    Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 
@@ -890,6 +890,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`def MLStringProperties: string::properties`
+   *TBD*
+
+
 :mini:`type string::buffer < stream`
    A string buffer that automatically grows and shrinks as required.
 
@@ -951,6 +955,18 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "1 + 1 = 2"
 
 
+:mini:`type string::charset < sequence`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::charset)[Arg₂: integer]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::charset):count`
+   *TBD*
+
+
 :mini:`type string::ctype < enum`
    * :mini:`::Cn` - General Other Types
    * :mini:`::Lu` - Uppercase Letter
@@ -989,6 +1005,42 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`::NFD`
    * :mini:`::NFKC`
    * :mini:`::NFKD`
+
+
+:mini:`meth (Arg₁: string::properties) :: (Arg₂: string)`
+   *TBD*
+
+
+:mini:`type string::property`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property) :: (Arg₂: string)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property)[Arg₂: integer]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property)[Arg₂: string]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property):max`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property):min`
+   *TBD*
+
+
+:mini:`meth stringcharset(Arg₁: string::property::value)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string::property::value)`
+   *TBD*
 
 
 :mini:`fun string::switch(Cases: string|regex, ...)`

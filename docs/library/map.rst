@@ -13,24 +13,18 @@ map
    *TBD*
 
 
-:mini:`fun mlmaptemplate()`
-   *TBD*
-
-
-:mini:`meth (Key: any):in(Map: map): any | nil`
-   Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      "A" in M :> "A"
-      "D" in M :> nil
-
-
 :mini:`type map < sequence`
    A map of key-value pairs.
    Keys can be of any type supporting hashing and comparison.
    By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
+
+
+:mini:`meth map(): map`
+   Returns a new map.
+
+   .. code-block:: mini
+
+      map() :> {}
 
 
 :mini:`meth map(Key₁ is Value₁, ...): map`
@@ -48,14 +42,6 @@ map
    .. code-block:: mini
 
       map("cake") :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-
-
-:mini:`meth map(): map`
-   Returns a new map.
-
-   .. code-block:: mini
-
-      map() :> {}
 
 
 :mini:`fun map::join(Map₁, : map, ..., Fn: function): map`
@@ -88,115 +74,6 @@ map
       :> {"a" is (a, 1, 6, 3), "p" is (p, 3, nil, 1), "l" is (l, 4, nil, nil), "e" is (e, 5, nil, 2), "b" is (b, nil, 1, nil), "n" is (n, nil, 5, nil), "r" is (r, nil, nil, 4)}
 
 
-:mini:`meth (Map: map) :: (Key: string): map::node`
-   Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
-
-   .. code-block:: mini
-
-      let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M::A :> 1
-      M::D :> nil
-
-
-:mini:`meth (Map₁: map) * (Map₂: map): map`
-   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A * B :> {"b" is 1, "a" is 4}
-
-
-:mini:`meth (Map₁: map) + (Map₂: map): map`
-   Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
-   If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A + B
-      :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
-
-
-:mini:`meth (Map₁: map) / (Map₂: map): map`
-   Returns a new map containing the entries of :mini:`Map₁` which are not in :mini:`Map₂`.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A / B :> {"n" is 5}
-
-
-:mini:`meth (Map₁: map) /\\ (Map₂: map): map`
-   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A /\ B :> {"b" is 1, "a" is 4}
-
-
-:mini:`meth (Map₁: map) <=> (Map₂: map): map`
-   Returns a tuple of :mini:`(Map₁ / Map₂,  Map₁ * Map₂,  Map₂ / Map₁)`.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A <=> B
-      :> ({n is 5}, {b is 1, a is 6}, {r is 2, e is 3, d is 5})
-
-
-:mini:`meth (Map₁: map) >< (Map₂: map): map`
-   Returns a new map containing the entries of :mini:`Map₁` and :mini:`Map₂` that are not in both.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A >< B :> {"n" is 5, "r" is 2, "e" is 3, "d" is 5}
-
-
-:mini:`meth (Map: map)[Key: any]: any | nil`
-   Returns the value corresponding to :mini:`Key` in :mini:`Map`,  or :mini:`nil` if :mini:`Key` is not in :mini:`Map`.
-
-   .. code-block:: mini
-
-      let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M["A"] :> 1
-      M["D"] :> nil
-
-
-:mini:`meth (Map₁: map) \\/ (Map₂: map): map`
-   Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
-   If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A \/ B
-      :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
-
-
 :mini:`meth (Map: map):count: integer`
    Returns the number of entries in :mini:`Map`.
 
@@ -213,16 +90,6 @@ map
    Returns the first key and value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
 
-:mini:`meth (Map: map):from(Key: any): sequence | nil`
-   Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
-      map(M:from("C")) :> {"C" is 3, "D" is 4, "E" is 5}
-      map(M:from("F")) :> {}
-
-
 :mini:`meth (Map: map):last`
    Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
@@ -235,6 +102,18 @@ map
    Returns the current ordering of :mini:`Map`.
 
 
+:mini:`meth (Map₁: map) >< (Map₂: map): map`
+   Returns a new map containing the entries of :mini:`Map₁` and :mini:`Map₂` that are not in both.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A >< B :> {"n" is 5, "r" is 2, "e" is 3, "d" is 5}
+
+
 :mini:`meth (Map: map):precount: integer`
    Returns the number of entries in :mini:`Map`.
 
@@ -243,15 +122,16 @@ map
       {"A" is 1, "B" is 2, "C" is 3}:count :> 3
 
 
-:mini:`meth (List: map):random: any`
-   Returns a random (assignable) node from :mini:`Map`.
+:mini:`meth (Map₁: map) /\\ (Map₂: map): map`
+   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
 
    .. code-block:: mini
 
-      let M := map("cake")
-      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "e"
-      M:random :> "e"
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A /\ B :> {"b" is 1, "a" is 4}
 
 
 :mini:`meth (Map: map):size: integer`
@@ -262,16 +142,26 @@ map
       {"A" is 1, "B" is 2, "C" is 3}:size :> 3
 
 
-:mini:`meth (Buffer: string::buffer):append(Map: map)`
-   Appends a representation of :mini:`Map` to :mini:`Buffer`.
+:mini:`meth (Map₁: map) \\/ (Map₂: map): map`
+   Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
+   If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
 
+   .. code-block:: mini
 
-:mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
-   Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A \/ B
+      :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
 :mini:`type map::labeller < function, map`
    *TBD*
+
+
+:mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
+   Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
 
 
 :mini:`type map::mutable < map`
@@ -304,17 +194,6 @@ map
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
 
 
-:mini:`meth (Map: map::mutable)[Key: any, Fn: function]: map::node`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M["A", fun(Key) Key:code] :> 1
-      M["D", fun(Key) Key:code] :> 68
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
-
-
 :mini:`meth (Map: map::mutable):delete(Key: any): any | nil`
    Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any,  otherwise :mini:`nil`.
 
@@ -345,19 +224,6 @@ map
       M:exists("A", fun(Key) Key:code) :> 1
       M:exists("D", fun(Key) Key:code) :> nil
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
-
-
-:mini:`meth (Arg₁: map::mutable):grow(Arg₂₁ is Value₁, ...)`
-   *TBD*
-
-
-:mini:`meth (Map: map::mutable):grow(Sequence: sequence, ...): map`
-   Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
-
-   .. code-block:: mini
-
-      map("cake"):grow("banana")
-      :> {1 is "b", 2 is "a", 3 is "n", 4 is "a", 5 is "n", 6 is "a"}
 
 
 :mini:`meth (Map: map::mutable):insert(Key: any, Value: any): any | nil`
@@ -556,6 +422,79 @@ map
       M:sort(>) :> {"k" is 3, "e" is 4, "c" is 1, "a" is 2}
 
 
+:mini:`meth (Map: map::mutable)[Key: any, Fn: function]: map::node`
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M["A", fun(Key) Key:code] :> 1
+      M["D", fun(Key) Key:code] :> 68
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+
+
+:mini:`meth (Map: map::mutable):grow(Sequence: sequence, ...): map`
+   Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
+
+   .. code-block:: mini
+
+      map("cake"):grow("banana")
+      :> {1 is "b", 2 is "a", 3 is "n", 4 is "a", 5 is "n", 6 is "a"}
+
+
+:mini:`meth (Arg₁: map::mutable):grow(Arg₂₁ is Value₁, ...)`
+   *TBD*
+
+
+:mini:`meth (Map₁: map) <=> (Map₂: map): map`
+   Returns a tuple of :mini:`(Map₁ / Map₂,  Map₁ * Map₂,  Map₂ / Map₁)`.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A <=> B
+      :> ({n is 5}, {b is 1, a is 6}, {r is 2, e is 3, d is 5})
+
+
+:mini:`meth (Map₁: map) / (Map₂: map): map`
+   Returns a new map containing the entries of :mini:`Map₁` which are not in :mini:`Map₂`.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A / B :> {"n" is 5}
+
+
+:mini:`meth (Map: map)[Key: any]: any | nil`
+   Returns the value corresponding to :mini:`Key` in :mini:`Map`,  or :mini:`nil` if :mini:`Key` is not in :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
+      M["A"] :> 1
+      M["D"] :> nil
+
+
+:mini:`meth (Map: map):from(Key: any): sequence | nil`
+   Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
+      map(M:from("C")) :> {"C" is 3, "D" is 4, "E" is 5}
+      map(M:from("F")) :> {}
+
+
+:mini:`meth (Buffer: string::buffer):append(Map: map)`
+   Appends a representation of :mini:`Map` to :mini:`Buffer`.
+
+
 :mini:`meth (Map: map::mutable):sort2(Cmp: function): Map`
    Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Keyᵢ,  Keyⱼ,  Valueᵢ,  Valueⱼ)` and returns :mini:`Map`
 
@@ -609,6 +548,53 @@ map
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
+:mini:`meth (List: map):random: any`
+   Returns a random (assignable) node from :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M:random :> "e"
+      M:random :> "c"
+
+
+:mini:`meth (Map: map) :: (Key: string): map::node`
+   Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
+
+   .. code-block:: mini
+
+      let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
+      M::A :> 1
+      M::D :> nil
+
+
+:mini:`meth (Map₁: map) * (Map₂: map): map`
+   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A * B :> {"b" is 1, "a" is 4}
+
+
+:mini:`meth (Map₁: map) + (Map₂: map): map`
+   Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
+   If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A + B
+      :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
+
+
 :mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
@@ -636,12 +622,30 @@ map
       :> {"b" is [1], "a" is [2, 4, 6], "n" is [3, 5]}
 
 
+:mini:`meth (Key: any):in(Map: map): any | nil`
+   Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      "A" in M :> "A"
+      "D" in M :> nil
+
+
+:mini:`fun mlmaptemplate()`
+   *TBD*
+
+
 :mini:`meth (Copy: visitor):const(Map: map): map::const`
    Returns a new constant map containing copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
 
 
 :mini:`meth (Copy: visitor):copy(Map: map): map`
    Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+
+
+:mini:`def MLAny: any`
+   *TBD*
 
 
 :mini:`meth (Copy: visitor):visit(Map: map): map`

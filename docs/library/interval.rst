@@ -9,6 +9,10 @@ interval
 
 .. rst-class:: mini-api
 
+:mini:`meth (Buffer: string::buffer):append(Value: char::interval)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
+
 :mini:`meth (X: double):between(Interval: integer::interval): X | nil`
    *TBD*
 
