@@ -1605,11 +1605,28 @@ ML_METHOD("lower", MLStringT) {
 //>string
 // Returns :mini:`String` with each character converted to lower case.
 //$= "Hello World":lower
+#ifdef ML_ICU
+	UErrorCode Error = U_ZERO_ERROR;
+	int SrcLimit = 4 * ml_string_length(Args[0]);
+	UChar Src[SrcLimit];
+	int Length;
+	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
+	size_t Capacity = 4 * Length;
+	UChar Dest[Capacity];
+	int Actual = u_strToLower(Dest, Capacity, Src, Length, NULL, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error lowercasing string");
+	char *String = snew(Actual * 4);
+	u_strToUTF8(String, Actual * 4, &Length, Dest, Actual, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error encoding UTF-8");
+	return ml_string(String, Length);
+#else
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
 	for (int I = 0; I < Length; ++I) Target[I] = tolower(Source[I]);
 	return ml_string(Target, Length);
+#endif
 }
 
 ML_METHOD("upper", MLStringT) {
@@ -1617,11 +1634,28 @@ ML_METHOD("upper", MLStringT) {
 //>string
 // Returns :mini:`String` with each character converted to upper case.
 //$= "Hello World":upper
+#ifdef ML_ICU
+	UErrorCode Error = U_ZERO_ERROR;
+	int SrcLimit = 4 * ml_string_length(Args[0]);
+	UChar Src[SrcLimit];
+	int Length;
+	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
+	size_t Capacity = 4 * Length;
+	UChar Dest[Capacity];
+	int Actual = u_strToUpper(Dest, Capacity, Src, Length, NULL, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error lowercasing string");
+	char *String = snew(Actual * 4);
+	u_strToUTF8(String, Actual * 4, &Length, Dest, Actual, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error encoding UTF-8");
+	return ml_string(String, Length);
+#else
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
 	for (int I = 0; I < Length; ++I) Target[I] = toupper(Source[I]);
 	return ml_string(Target, Length);
+#endif
 }
 
 ML_METHOD("title", MLStringT) {
@@ -1630,6 +1664,22 @@ ML_METHOD("title", MLStringT) {
 // Returns :mini:`String` with the first character and each character after whitespace converted to upper case and each other case converted to lower case.
 //$= "hello world":title
 //$= "HELLO WORLD":title
+#ifdef ML_ICU
+	UErrorCode Error = U_ZERO_ERROR;
+	int SrcLimit = 4 * ml_string_length(Args[0]);
+	UChar Src[SrcLimit];
+	int Length;
+	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
+	size_t Capacity = 4 * Length;
+	UChar Dest[Capacity];
+	int Actual = u_strToTitle(Dest, Capacity, Src, Length, NULL, NULL, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error lowercasing string");
+	char *String = snew(Actual * 4);
+	u_strToUTF8(String, Actual * 4, &Length, Dest, Actual, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error encoding UTF-8");
+	return ml_string(String, Length);
+#else
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
@@ -1639,6 +1689,7 @@ ML_METHOD("title", MLStringT) {
 		Upper = isblank(Source[I]);
 	}
 	return ml_string(Target, Length);
+#endif
 }
 
 #ifdef ML_ICU
