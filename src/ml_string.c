@@ -1366,6 +1366,17 @@ static size_t utf8_strlen(ml_value_t *S) {
 	return utf8_position(P, P + ml_string_length(S));
 }
 
+static uint32_t utf8_code(const char *S) {
+	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	uint32_t Mask = (1 << (8 - K)) - 1;
+	uint32_t Value = S[0] & Mask;
+	for (++S, --K; K > 0 && S[0]; ++S, --K) {
+		Value <<= 6;
+		Value += S[0] & 0x3F;
+	}
+	return Value;
+}
+
 static void utf8_expand(const char *S, uint32_t *P) {
 	while (S[0]) {
 		int K = __builtin_clz(~(S[0] << 24));
@@ -1399,7 +1410,6 @@ static subject_t utf8_index(ml_value_t *V, int P) {
 	}
 	return (subject_t){NULL, 0};
 }
-
 
 static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
 	const char *Start = Iter->Next;
@@ -1514,15 +1524,7 @@ ML_METHOD("code", MLStringT) {
 // Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
 //$= "A":code
 //$= "😀️":code
-	const char *S = ml_string_value(Args[0]);
-	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
-	uint32_t Mask = (1 << (8 - K)) - 1;
-	uint32_t Value = S[0] & Mask;
-	for (++S, --K; K > 0 && S[0]; ++S, --K) {
-		Value <<= 6;
-		Value += S[0] & 0x3F;
-	}
-	return ml_integer(Value);
+	return ml_integer(utf8_code(ml_string_value(Args[0])));
 }
 
 ML_METHOD("utf8", MLIntegerT) {
@@ -1562,14 +1564,7 @@ ML_METHOD("char", MLIntegerT) {
 #ifdef ML_ICU
 
 ML_METHOD("cname", MLStringT) {
-	const char *S = ml_string_value(Args[0]);
-	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
-	uint32_t Mask = (1 << (8 - K)) - 1;
-	uint32_t Value = S[0] & Mask;
-	for (++S, --K; K > 0 && S[0]; ++S, --K) {
-		Value <<= 6;
-		Value += S[0] & 0x3F;
-	}
+	uint32_t Value = utf8_code(ml_string_value(Args[0]));
 	UErrorCode Error = U_ZERO_ERROR;
 	int Length = u_charName(Value, U_UNICODE_CHAR_NAME, NULL, 0, &Error);
 	char *Name = snew(Length + 1);
@@ -1692,6 +1687,98 @@ ML_METHOD("title", MLStringT) {
 #endif
 }
 
+ML_TYPE(MLStringIntervalT, (MLIntegerIntervalT), "string::interval");
+
+ML_METHOD("append", MLStringBufferT, MLStringIntervalT) {
+//!interval
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	{
+		uint32_t Code = Interval->Start;
+		char Val[8];
+		uint32_t LeadByteMax = 0x7F;
+		int I = 8;
+		while (Code > LeadByteMax) {
+			Val[--I] = (Code & 0x3F) | 0x80;
+			Code >>= 6;
+			LeadByteMax >>= (I == 7 ? 2 : 1);
+		}
+		Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+		ml_stringbuffer_write(Buffer, Val + I, 8 - I);
+	}
+	ml_stringbuffer_write(Buffer, " .. ", strlen(" .. "));
+	{
+		uint32_t Code = Interval->Limit;
+		char Val[8];
+		uint32_t LeadByteMax = 0x7F;
+		int I = 8;
+		while (Code > LeadByteMax) {
+			Val[--I] = (Code & 0x3F) | 0x80;
+			Code >>= 6;
+			LeadByteMax >>= (I == 7 ? 2 : 1);
+		}
+		Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+		ml_stringbuffer_write(Buffer, Val + I, 8 - I);
+	}
+	return MLSome;
+}
+
+typedef struct {
+	const ml_type_t *Type;
+	uint32_t Current, Limit;
+} ml_char_iter_t;
+
+ML_TYPE(MLCharIterT, (), "char-iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_value, MLCharIterT, ml_state_t *Caller, ml_char_iter_t *Iter) {
+	uint32_t Code = Iter->Current;
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 8;
+	while (Code > LeadByteMax) {
+		Val[--I] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 7 ? 2 : 1);
+	}
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	ML_RETURN(ml_string_copy(Val + I, 8 - I));
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLCharIterT, ml_state_t *Caller, ml_char_iter_t *Iter) {
+	if (++Iter->Current > Iter->Limit) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLCharIterT, ml_state_t *Caller, ml_char_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Current));
+}
+
+static void ML_TYPED_FN(ml_iterate, MLStringIntervalT, ml_state_t *Caller, ml_value_t *Value) {
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Value;
+	if (Interval->Start > Interval->Limit) ML_RETURN(MLNil);
+	ml_char_iter_t *Iter = new(ml_char_iter_t);
+	Iter->Type = MLCharIterT;
+	Iter->Current = Interval->Start;
+	Iter->Limit = Interval->Limit;
+	ML_RETURN(Iter);
+}
+
+ML_METHOD("..", MLStringT, MLStringT) {
+//<Start
+//<Limit
+//>string::interval
+// Returns a interval from the first character of :mini:`Start` to the first character of :mini:`Limit` (inclusive).
+	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+	Interval->Type = MLStringIntervalT;
+	Interval->Start = utf8_code(ml_string_value(Args[0]));
+	Interval->Limit = utf8_code(ml_string_value(Args[1]));
+	return (ml_value_t *)Interval;
+}
+
 #ifdef ML_ICU
 
 enum {
@@ -1787,14 +1874,7 @@ ML_METHOD("ctype", MLStringT) {
 //>string::ctype
 // Returns the unicode type of the first character of :mini:`String`.
 //$= map("To €2 á\n" => (2, 2 -> :ctype))
-	const char *S = ml_string_value(Args[0]);
-	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
-	uint32_t Mask = (1 << (8 - K)) - 1;
-	uint32_t Value = S[0] & Mask;
-	for (++S, --K; K > 0 && S[0]; --K, ++S) {
-		Value <<= 6;
-		Value += S[0] & 0x3F;
-	}
+	uint32_t Value = utf8_code(ml_string_value(Args[0]));
 	return ml_enum_value(MLStringCTypeT, u_charType(Value));
 }
 
@@ -1804,7 +1884,7 @@ typedef struct {
 	UProperty Value;
 } ml_string_property_t;
 
-ML_TYPE(MLStringPropertyT, (), "string::property");
+ML_TYPE(MLStringPropertyT, (MLSequenceT), "string::property");
 
 ML_TYPE(MLStringPropertiesT, (), "string::properties");
 //!internal
@@ -1882,6 +1962,42 @@ ML_METHOD("[]", MLStringPropertyT, MLIntegerT) {
 	return (ml_value_t *)PropertyValue;
 }
 
+typedef struct {
+	const ml_type_t *Type;
+	uint32_t Current, Limit;
+	ml_string_property_t *Property;
+} ml_string_property_iter_t;
+
+ML_TYPE(MLStringPropertyIterT, (), "string::property-iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_value, MLStringPropertyIterT, ml_state_t *Caller, ml_string_property_iter_t *Iter) {
+	ml_string_property_value_t *PropertyValue = new(ml_string_property_value_t);
+	PropertyValue->Type = MLStringPropertyValueT;
+	PropertyValue->Property = Iter->Property;
+	PropertyValue->Value = Iter->Current;
+	PropertyValue->Name = u_getPropertyValueName(Iter->Property->Value, Iter->Current, U_LONG_PROPERTY_NAME);
+	ML_RETURN(PropertyValue);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLStringPropertyIterT, ml_state_t *Caller, ml_string_property_iter_t *Iter) {
+	if (++Iter->Current > Iter->Limit) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLStringPropertyIterT, ml_state_t *Caller, ml_string_property_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Current));
+}
+
+static void ML_TYPED_FN(ml_iterate, MLStringPropertyT, ml_state_t *Caller, ml_string_property_t *Property) {
+	ml_string_property_iter_t *Iter = new(ml_string_property_iter_t);
+	Iter->Type = MLStringPropertyIterT;
+	Iter->Current = u_getIntPropertyMinValue(Property->Value);
+	Iter->Limit = u_getIntPropertyMaxValue(Property->Value);
+	Iter->Property = Property;
+	ML_RETURN(Iter);
+}
+
 ML_METHOD("append", MLStringBufferT, MLStringPropertyValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_string_property_value_t *PropertyValue = (ml_string_property_value_t *)Args[1];
@@ -1920,87 +2036,6 @@ ML_METHOD("count", MLStringCharsetT) {
 	return ml_integer(uset_getItemCount(Charset->Handle));
 }
 
-ML_TYPE(MLCharIntervalT, (MLIntegerIntervalT), "string::char-range");
-//!internal
-
-ML_METHOD("append", MLStringBufferT, MLCharIntervalT) {
-//!interval
-//<Buffer
-//<Value
-// Appends a representation of :mini:`Value` to :mini:`Buffer`.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
-	{
-		uint32_t Code = Interval->Start;
-		char Val[8];
-		uint32_t LeadByteMax = 0x7F;
-		int I = 8;
-		while (Code > LeadByteMax) {
-			Val[--I] = (Code & 0x3F) | 0x80;
-			Code >>= 6;
-			LeadByteMax >>= (I == 7 ? 2 : 1);
-		}
-		Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-		ml_stringbuffer_write(Buffer, Val + I, 8 - I);
-	}
-	ml_stringbuffer_write(Buffer, " .. ", strlen(" .. "));
-	{
-		uint32_t Code = Interval->Limit;
-		char Val[8];
-		uint32_t LeadByteMax = 0x7F;
-		int I = 8;
-		while (Code > LeadByteMax) {
-			Val[--I] = (Code & 0x3F) | 0x80;
-			Code >>= 6;
-			LeadByteMax >>= (I == 7 ? 2 : 1);
-		}
-		Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-		ml_stringbuffer_write(Buffer, Val + I, 8 - I);
-	}
-	return MLSome;
-}
-
-typedef struct {
-	const ml_type_t *Type;
-	uint32_t Current, Limit;
-} ml_simple_iter_t;
-
-ML_TYPE(MLCharIterT, (), "char-iter");
-//!internal
-
-static void ML_TYPED_FN(ml_iter_value, MLCharIterT, ml_state_t *Caller, ml_simple_iter_t *Iter) {
-	uint32_t Code = Iter->Current;
-	char Val[8];
-	uint32_t LeadByteMax = 0x7F;
-	int I = 8;
-	while (Code > LeadByteMax) {
-		Val[--I] = (Code & 0x3F) | 0x80;
-		Code >>= 6;
-		LeadByteMax >>= (I == 7 ? 2 : 1);
-	}
-	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	ML_RETURN(ml_string_copy(Val + I, 8 - I));
-}
-
-static void ML_TYPED_FN(ml_iter_next, MLCharIterT, ml_state_t *Caller, ml_simple_iter_t *Iter) {
-	if (++Iter->Current > Iter->Limit) ML_RETURN(MLNil);
-	ML_RETURN(Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLCharIterT, ml_state_t *Caller, ml_simple_iter_t *Iter) {
-	ML_RETURN(ml_integer(Iter->Current));
-}
-
-static void ML_TYPED_FN(ml_iterate, MLCharIntervalT, ml_state_t *Caller, ml_value_t *Value) {
-	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Value;
-	if (Interval->Start > Interval->Limit) ML_RETURN(MLNil);
-	ml_simple_iter_t *Iter = new(ml_simple_iter_t);
-	Iter->Type = MLCharIterT;
-	Iter->Current = Interval->Start;
-	Iter->Limit = Interval->Limit;
-	ML_RETURN(Iter);
-}
-
 ML_METHOD("[]", MLStringCharsetT, MLIntegerT) {
 	ml_string_charset_t *Charset = (ml_string_charset_t *)Args[0];
 	int Index = ml_integer_value(Args[1]) - 1;
@@ -2017,12 +2052,11 @@ ML_METHOD("[]", MLStringCharsetT, MLIntegerT) {
 		if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error encoding UTF-8");
 		return ml_string(String, Length);
 	} else {
-		ml_integer_range_t *Range = new(ml_integer_range_t);
-		Range->Type = MLCharIntervalT;
-		Range->Start = Start;
-		Range->Limit = End;
-		Range->Step = 1;
-		return (ml_value_t *)Range;
+		ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+		Interval->Type = MLStringIntervalT;
+		Interval->Start = Start;
+		Interval->Limit = End;
+		return (ml_value_t *)Interval;
 	}
 }
 
@@ -2047,12 +2081,11 @@ static void ML_TYPED_FN(ml_iter_value, MLCharsetIterT, ml_state_t *Caller, ml_ch
 		if (U_FAILURE(Error)) ML_ERROR("UnicodeError", "Error encoding UTF-8");
 		ML_RETURN(ml_string(String, Length));
 	} else {
-		ml_integer_range_t *Range = new(ml_integer_range_t);
-		Range->Type = MLCharIntervalT;
-		Range->Start = Start;
-		Range->Limit = End;
-		Range->Step = 1;
-		ML_RETURN(Range);
+		ml_integer_interval_t *Interval = new(ml_integer_interval_t);
+		Interval->Type = MLStringIntervalT;
+		Interval->Start = Start;
+		Interval->Limit = End;
+		ML_RETURN(Interval);
 	}
 }
 

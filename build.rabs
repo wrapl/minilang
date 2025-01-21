@@ -4,6 +4,7 @@
 
 BIN_DIR := old or file("bin"):mkdir
 LIB_DIR := old or file("lib"):mkdir
+DOCS_DIR := old or file("docs"):mkdir
 
 let BuildDir := 'obj-{PLATFORM:lower}'
 
