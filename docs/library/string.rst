@@ -60,6 +60,26 @@ When creating a substring,  the first index is inclusive and second index is exc
       regex("[0-9") :> error("RegexError", "Missing ']'")
 
 
+:mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" != r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
+      r"[A-Za-z0-9_]+" != r"[0-9]+" :> /[0-9]+/
+      r"[0-9]+" != r"[0-9]+" :> nil
+
+
+:mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" < r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
+      r"[A-Za-z0-9_]+" < r"[0-9]+" :> nil
+      r"[0-9]+" < r"[0-9]+" :> nil
+
+
 :mini:`meth (Arg₁: regex) <= (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
 
@@ -70,6 +90,26 @@ When creating a substring,  the first index is inclusive and second index is exc
       r"[0-9]+" <= r"[0-9]+" :> /[0-9]+/
 
 
+:mini:`meth (A: regex) <> (B: regex): integer`
+   Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively. Mainly for using regular expressions as keys in maps.
+
+   .. code-block:: mini
+
+      r"[0-9]+" <> r"[A-Za-z0-9_]+" :> -1
+      r"[A-Za-z0-9_]+" <> r"[0-9]+" :> 1
+      r"[0-9]+" <> r"[0-9]+" :> 0
+
+
+:mini:`meth (Arg₁: regex) = (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" = r"[A-Za-z0-9_]+" :> nil
+      r"[A-Za-z0-9_]+" = r"[0-9]+" :> nil
+      r"[0-9]+" = r"[0-9]+" :> /[0-9]+/
+
+
 :mini:`meth (Arg₁: regex) > (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
 
@@ -78,16 +118,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       r"[0-9]+" > r"[A-Za-z0-9_]+" :> nil
       r"[A-Za-z0-9_]+" > r"[0-9]+" :> /[0-9]+/
       r"[0-9]+" > r"[0-9]+" :> nil
-
-
-:mini:`meth (Arg₁: regex) >= (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" >= r"[A-Za-z0-9_]+" :> nil
-      r"[A-Za-z0-9_]+" >= r"[0-9]+" :> /[0-9]+/
-      r"[0-9]+" >= r"[0-9]+" :> /[0-9]+/
 
 
 :mini:`meth (Regex: regex):pattern: string`
@@ -115,34 +145,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       string(nil) :> "nil"
       string("Hello world!\n") :> "Hello world!\n"
       string([1, 2, 3]) :> "[1, 2, 3]"
-
-
-:mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" < r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
-      r"[A-Za-z0-9_]+" < r"[0-9]+" :> nil
-      r"[0-9]+" < r"[0-9]+" :> nil
-
-
-:mini:`fun regex::escape(String: string): string`
-   Escapes characters in :mini:`String` that are treated specially in regular expressions.
-
-   .. code-block:: mini
-
-      regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
-
-
-:mini:`meth (Arg₁: regex) = (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" = r"[A-Za-z0-9_]+" :> nil
-      r"[A-Za-z0-9_]+" = r"[0-9]+" :> nil
-      r"[0-9]+" = r"[0-9]+" :> /[0-9]+/
 
 
 :mini:`fun string::escape(String: string): string`
@@ -209,6 +211,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello" + " " + "world" :> "Hello world"
+
+
+:mini:`meth (Start: string) .. (Limit: string): string::interval`
+   Returns a interval from the first character of :mini:`Start` to the first character of :mini:`Limit` (inclusive).
 
 
 :mini:`meth (String: string) / (Pattern: regex): list`
@@ -619,6 +625,24 @@ When creating a substring,  the first index is inclusive and second index is exc
       "abc":max("abcd") :> "abcd"
 
 
+:mini:`fun regex::escape(String: string): string`
+   Escapes characters in :mini:`String` that are treated specially in regular expressions.
+
+   .. code-block:: mini
+
+      regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
+
+
+:mini:`meth (Arg₁: regex) >= (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" >= r"[A-Za-z0-9_]+" :> nil
+      r"[A-Za-z0-9_]+" >= r"[0-9]+" :> /[0-9]+/
+      r"[0-9]+" >= r"[0-9]+" :> /[0-9]+/
+
+
 :mini:`meth (A: string):min(B: string): integer`
    Returns :mini:`min(A,  B)`
 
@@ -647,26 +671,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       let S := "λ:😀 → 😺"
       list(1 .. S:length, S:offset(_))
       :> [0, 2, 3, 7, 8, 11, 12]
-
-
-:mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" != r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
-      r"[A-Za-z0-9_]+" != r"[0-9]+" :> /[0-9]+/
-      r"[0-9]+" != r"[0-9]+" :> nil
-
-
-:mini:`meth (A: regex) <> (B: regex): integer`
-   Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively. Mainly for using regular expressions as keys in maps.
-
-   .. code-block:: mini
-
-      r"[0-9]+" <> r"[A-Za-z0-9_]+" :> -1
-      r"[A-Za-z0-9_]+" <> r"[0-9]+" :> 1
-      r"[0-9]+" <> r"[0-9]+" :> 0
 
 
 :mini:`meth (String: string):precount: integer`
@@ -886,11 +890,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
+:mini:`def MLStringProperties: string::properties`
    *TBD*
 
 
-:mini:`def MLStringProperties: string::properties`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
    *TBD*
 
 
@@ -1000,6 +1004,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`::Pf` - Final Punctuation
 
 
+:mini:`type string::interval < integer::interval`
+   *TBD*
+
+
 :mini:`type string::norm < enum`
    * :mini:`::NFC`
    * :mini:`::NFD`
@@ -1011,7 +1019,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
-:mini:`type string::property`
+:mini:`type string::property < sequence`
    *TBD*
 
 

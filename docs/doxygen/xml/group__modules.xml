@@ -116,6 +116,30 @@
         </inbodydescription>
         <location file="src/ml_types.h" line="1392" column="12" declfile="src/ml_types.h" declline="1392" declcolumn="12"/>
       </memberdef>
+      <memberdef kind="function" id="group__modules_1ga4d2e8549b2fa8019ecfcba1b7e5686d7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_callable_module</definition>
+        <argsstring>(const char *Path, ml_value_t *Fn,...) __attribute__((malloc</argsstring>
+        <name>ml_callable_module</name>
+        <param>
+          <type>const char *</type>
+          <declname>Path</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Fn</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1394" column="12"/>
+      </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>

@@ -1973,6 +1973,7 @@
     <member refid="group__modules_1ga796eb10d4e962bc49be3d495e898ec13" kind="function"><name>ml_module_path</name></member>
     <member refid="group__modules_1ga9a9edc767a2be7b1571227b4d40f4b6a" kind="function"><name>ml_module_import</name></member>
     <member refid="group__modules_1ga33b4b8ad2b74e2a0c54d78ffe11d82c7" kind="function"><name>ml_module_export</name></member>
+    <member refid="group__modules_1ga4d2e8549b2fa8019ecfcba1b7e5686d7" kind="function"><name>ml_callable_module</name></member>
     <member refid="group__externals_1gaf266e5b323fbb09411814763d3b01e91" kind="function"><name>ml_external</name></member>
     <member refid="group__externals_1ga380b46a551115456d5964f87854170f5" kind="function"><name>ml_externals_get_name</name></member>
     <member refid="group__externals_1gafbbd21d0403b4ff590e5ebf1696a42dd" kind="function"><name>ml_externals_get_value</name></member>
@@ -2817,6 +2818,7 @@
     <member refid="group__modules_1ga796eb10d4e962bc49be3d495e898ec13" kind="function"><name>ml_module_path</name></member>
     <member refid="group__modules_1ga9a9edc767a2be7b1571227b4d40f4b6a" kind="function"><name>ml_module_import</name></member>
     <member refid="group__modules_1ga33b4b8ad2b74e2a0c54d78ffe11d82c7" kind="function"><name>ml_module_export</name></member>
+    <member refid="group__modules_1ga4d2e8549b2fa8019ecfcba1b7e5686d7" kind="function"><name>ml_callable_module</name></member>
   </compound>
   <compound refid="group__externals" kind="group"><name>externals</name>
     <member refid="group__externals_1gaa4df5de379f9d031b34c9aedc2cb1ec5" kind="typedef"><name>ml_externals_t</name></member>

@@ -69,9 +69,10 @@ hierarchy
       "enum":e -> "byte::order":w;
       "address":e -> "string":w;
       "sequence":e -> "string":w;
+      "integer::interval":e -> "string::interval":w;
       "enum":e -> "string::norm":w;
       "enum":e -> "string::ctype":w;
-      "any":e -> "string::property":w;
+      "sequence":e -> "string::property":w;
       "sequence":e -> "string::charset":w;
       "function":e -> "regex":w;
       "stream":e -> "string::buffer":w;
