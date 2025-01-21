@@ -1884,7 +1884,42 @@ typedef struct {
 	UProperty Value;
 } ml_string_property_t;
 
-ML_TYPE(MLStringPropertyT, (MLSequenceT), "string::property");
+typedef struct {
+	ml_type_t *Type;
+	ml_string_property_t *Property;
+	const char *Name;
+	int32_t Value;
+} ml_string_property_value_t;
+
+ML_TYPE(MLStringPropertyValueT, (), "string::property_value");
+//!internal
+
+static void ml_string_property_call(ml_state_t *Caller, ml_string_property_t *Property, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1)
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	uint32_t Code = utf8_code(ml_string_value(ml_deref(Args[0])));
+	int Value = u_getIntPropertyValue(Code, Property->Value);
+	ml_string_property_value_t *PropertyValue = new(ml_string_property_value_t);
+	PropertyValue->Type = MLStringPropertyValueT;
+	PropertyValue->Property = Property;
+	PropertyValue->Value = Value;
+	PropertyValue->Name = u_getPropertyValueName(Property->Value, Value, U_LONG_PROPERTY_NAME);
+	ML_RETURN(PropertyValue);
+}
+
+ML_TYPE(MLStringPropertyT, (MLSequenceT), "string::property",
+	.call = (void *)ml_string_property_call
+);
+
+ML_METHOD("min", MLStringPropertyT) {
+	ml_string_property_t *Property = (ml_string_property_t *)Args[0];
+	return ml_integer(u_getIntPropertyMinValue(Property->Value));
+}
+
+ML_METHOD("max", MLStringPropertyT) {
+	ml_string_property_t *Property = (ml_string_property_t *)Args[0];
+	return ml_integer(u_getIntPropertyMaxValue(Property->Value));
+}
 
 ML_TYPE(MLStringPropertiesT, (), "string::properties");
 //!internal
@@ -1901,26 +1936,6 @@ ML_METHOD("::", MLStringPropertiesT, MLStringT) {
 }
 
 ML_VALUE(MLStringProperties, MLStringPropertiesT);
-
-typedef struct {
-	ml_type_t *Type;
-	ml_string_property_t *Property;
-	const char *Name;
-	int32_t Value;
-} ml_string_property_value_t;
-
-ML_TYPE(MLStringPropertyValueT, (), "string::property_value");
-//!internal
-
-ML_METHOD("min", MLStringPropertyT) {
-	ml_string_property_t *Property = (ml_string_property_t *)Args[0];
-	return ml_integer(u_getIntPropertyMinValue(Property->Value));
-}
-
-ML_METHOD("max", MLStringPropertyT) {
-	ml_string_property_t *Property = (ml_string_property_t *)Args[0];
-	return ml_integer(u_getIntPropertyMaxValue(Property->Value));
-}
 
 ML_METHOD("::", MLStringPropertyT, MLStringT) {
 	ml_string_property_t *Property = (ml_string_property_t *)Args[0];
