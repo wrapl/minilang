@@ -3039,6 +3039,35 @@ ML_METHOD("exports", MLModuleT) {
 	return Exports;
 }
 
+typedef struct {
+	ml_module_t Base;
+	ml_value_t *Fn;
+} ml_callable_module_t;
+
+static void ml_callable_module_call(ml_state_t *Caller, ml_callable_module_t *Module, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Module->Fn, Count, Args);
+}
+
+ML_TYPE(MLModuleCallableT, (MLModuleT), "module::callable",
+//!internal
+	.call = (void *)ml_callable_module_call
+);
+
+ml_value_t *ml_callable_module(const char *Path, ml_value_t *Fn, ...) {
+	ml_callable_module_t *Module = new(ml_callable_module_t);
+	Module->Base.Type = MLModuleCallableT;
+	Module->Base.Path = Path;
+	va_list Args;
+	va_start(Args, Fn);
+	const char *Export;
+	while ((Export = va_arg(Args, const char *))) {
+		stringmap_insert(Module->Base.Exports, Export, va_arg(Args, ml_value_t *));
+	}
+	va_end(Args);
+	Module->Fn = Fn;
+	return (ml_value_t *)Module;
+}
+
 // Externals //
 //!external
 

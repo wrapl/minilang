@@ -1391,6 +1391,8 @@ const char *ml_module_path(ml_value_t *Module) __attribute__ ((pure));
 ml_value_t *ml_module_import(ml_value_t *Module, const char *Name) __attribute__ ((pure));
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
 
+ml_value_t *ml_callable_module(const char *Path, ml_value_t *Fn, ...) __attribute__ ((malloc, sentinel));
+
 /// @}
 
 /// \defgroup externals
