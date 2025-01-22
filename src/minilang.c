@@ -332,7 +332,6 @@ int main(int Argc, const char *Argv[]) {
 #define UTIL_EXPORTS MLGlobals
 #define ENC_EXPORTS MLGlobals
 #endif
-
 	ml_stream_init(IO_EXPORTS);
 	ml_file_init(MLGlobals);
 	ml_socket_init(MLGlobals);

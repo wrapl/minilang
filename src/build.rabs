@@ -401,7 +401,7 @@ if defined("ASSERTS") then
 end
 
 if MINILANG_TABLES then
-	Objects:put(file("ml_table2.o"))
+	Objects:put(file("ml_table.o"))
 	CFLAGS := old + ["-DML_TABLES"]
 	InstallHeaders:put("ml_table.h")
 end

@@ -20,7 +20,6 @@
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
-
 #ifdef ML_MATH
 #include "ml_math.h"
 #include "ml_array.h"
@@ -450,7 +449,7 @@ void initialize(const char *BaseUrl) {
 	GC_disable();
 	ml_sequence_init(MLGlobals);
 	ml_object_init(MLGlobals);
-	//ml_time_init(MLGlobals);
+	ml_time_init(MLGlobals);
 #ifdef ML_STRUCT
 	ml_struct_init(MLGlobals);
 #endif
@@ -460,42 +459,6 @@ void initialize(const char *BaseUrl) {
 #endif
 #ifdef ML_AST
 	ml_ast_init(MLGlobals);
-#endif
-	ml_stream_init(MLGlobals);
-	//ml_file_init(MLGlobals);
-	//ml_socket_init(MLGlobals);
-#ifdef ML_JSON
-	ml_json_init(FMT_EXPORTS);
-#endif
-#ifdef ML_XML
-	ml_xml_init(FMT_EXPORTS);
-#endif
-#ifdef ML_XE
-	ml_xe_init(FMT_EXPORTS);
-#endif
-#ifdef ML_MATH
-	ml_math_init(MLGlobals);
-	ml_array_init(MLGlobals);
-	ml_polynomial_init(MLGlobals);
-#endif
-#ifdef ML_MODULES
-	ml_module_init(MLGlobals);
-#endif
-#ifdef ML_TABLES
-	ml_table_init(MLGlobals);
-#endif
-#ifdef ML_PQUEUES
-	ml_pqueue_init(MLGlobals);
-#endif
-#ifdef ML_UUID
-	ml_uuid_init(MLGlobals);
-#endif
-#ifdef ML_MINIJS
-	ml_minijs_init(MLGlobals);
-#endif
-#ifdef ML_ENCODINGS
-	ml_base16_init(MLGlobals);
-	ml_base64_init(MLGlobals);
 #endif
 	stringmap_insert(MLGlobals, "print", MLPrint);
 	stringmap_insert(MLGlobals, "raise", MLRaise);
