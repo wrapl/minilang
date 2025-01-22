@@ -124,7 +124,7 @@ ML_TYPE(MLTableRowT, (), "table::row",
 );
 
 static ml_value_t *ml_table_column_deref(ml_table_column_t *Column) {
-	return (ml_value_t *)Column->Values;
+	return (ml_value_t *)Column->Values ?: MLNil;
 }
 
 static void ml_table_column_append(ml_table_t *Table, ml_table_column_t *Column) {
