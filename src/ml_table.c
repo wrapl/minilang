@@ -716,15 +716,30 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLTableT, ml_table_t *Table) {
 ML_DESERIALIZER("table") {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLMapT);
-	ml_value_t *Table = ml_table();
+	ml_table_t *Table = (ml_table_t *)ml_table();
 	ML_MAP_FOREACH(Args[0], Iter) {
 		if (!ml_is(Iter->Key, MLStringT)) return ml_error("SerializationError", "Invalid table");
 		ml_array_t *Source = (ml_array_t *)ml_array_of(Iter->Value);
 		if (Source->Base.Type == MLErrorT) return (ml_value_t *)Source;
-		ml_value_t *Result = (ml_value_t *)ml_table_insert_column((ml_table_t *)Table, ml_string_value(Iter->Key), Source);
+		ml_value_t *Result = (ml_value_t *)ml_table_insert_column(Table, ml_string_value(Iter->Key), Source);
 		if (ml_is_error(Result)) return ml_error("SerializationError", "Invalid table");
 	}
-	return Table;
+	ml_table_column_t *Column = Table->Columns;
+	if (Column) {
+		size_t Length = Column->Values->Dimensions[0].Size;
+		ml_table_row_t *Row = Table->Rows = anew(ml_table_row_t, Length + 1);
+		for (int I = Length; --I >= 0; ++Row) {
+			Row->Type = MLTableRowT;
+			Row->Table = Table;
+		}
+		Table->Length = Length;
+		Table->Capacity = Length;
+		Table->Offset = 0;
+		while ((Column = Column->Next)) if (Column->Values->Dimensions[0].Size != Length) {
+			return ml_error("SerializationError", "Table columns do not have same length");
+		}
+	}
+	return (ml_value_t *)Table;
 }
 
 void ml_table_init(stringmap_t *Globals) {
