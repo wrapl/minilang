@@ -728,7 +728,7 @@ ML_DESERIALIZER("table") {
 }
 
 void ml_table_init(stringmap_t *Globals) {
-#include "ml_table2_init.c"
+#include "ml_table_init.c"
 	stringmap_insert(Globals, "table", MLTableT);
 }
 
