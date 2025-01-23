@@ -5067,6 +5067,124 @@ function _ml_finish(Index) { ml_finish(Index); }
     ;
   }
 
+  var isLeapYear = (year) => year%4 === 0 && (year%100 !== 0 || year%400 === 0);
+  
+  var MONTH_DAYS_LEAP_CUMULATIVE = [0,31,60,91,121,152,182,213,244,274,305,335];
+  
+  var MONTH_DAYS_REGULAR_CUMULATIVE = [0,31,59,90,120,151,181,212,243,273,304,334];
+  var ydayFromDate = (date) => {
+      var leap = isLeapYear(date.getFullYear());
+      var monthDaysCumulative = (leap ? MONTH_DAYS_LEAP_CUMULATIVE : MONTH_DAYS_REGULAR_CUMULATIVE);
+      var yday = monthDaysCumulative[date.getMonth()] + date.getDate() - 1; // -1 since it's days since Jan 1
+  
+      return yday;
+    };
+  
+  function __localtime_js(time_low, time_high,tmPtr) {
+    var time = convertI32PairToI53Checked(time_low, time_high);
+  
+    
+      var date = new Date(time*1000);
+      HEAP32[((tmPtr)>>2)] = date.getSeconds();
+      HEAP32[(((tmPtr)+(4))>>2)] = date.getMinutes();
+      HEAP32[(((tmPtr)+(8))>>2)] = date.getHours();
+      HEAP32[(((tmPtr)+(12))>>2)] = date.getDate();
+      HEAP32[(((tmPtr)+(16))>>2)] = date.getMonth();
+      HEAP32[(((tmPtr)+(20))>>2)] = date.getFullYear()-1900;
+      HEAP32[(((tmPtr)+(24))>>2)] = date.getDay();
+  
+      var yday = ydayFromDate(date)|0;
+      HEAP32[(((tmPtr)+(28))>>2)] = yday;
+      HEAP32[(((tmPtr)+(36))>>2)] = -(date.getTimezoneOffset() * 60);
+  
+      // Attention: DST is in December in South, and some regions don't have DST at all.
+      var start = new Date(date.getFullYear(), 0, 1);
+      var summerOffset = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
+      var winterOffset = start.getTimezoneOffset();
+      var dst = (summerOffset != winterOffset && date.getTimezoneOffset() == Math.min(winterOffset, summerOffset))|0;
+      HEAP32[(((tmPtr)+(32))>>2)] = dst;
+    ;
+  }
+
+  
+  /** @suppress {duplicate } */
+  var setTempRet0 = (val) => __emscripten_tempret_set(val);
+  var _setTempRet0 = setTempRet0;
+  
+  var __mktime_js = function(tmPtr) {
+  
+    var ret = (() => { 
+      var date = new Date(HEAP32[(((tmPtr)+(20))>>2)] + 1900,
+                          HEAP32[(((tmPtr)+(16))>>2)],
+                          HEAP32[(((tmPtr)+(12))>>2)],
+                          HEAP32[(((tmPtr)+(8))>>2)],
+                          HEAP32[(((tmPtr)+(4))>>2)],
+                          HEAP32[((tmPtr)>>2)],
+                          0);
+  
+      // There's an ambiguous hour when the time goes back; the tm_isdst field is
+      // used to disambiguate it.  Date() basically guesses, so we fix it up if it
+      // guessed wrong, or fill in tm_isdst with the guess if it's -1.
+      var dst = HEAP32[(((tmPtr)+(32))>>2)];
+      var guessedOffset = date.getTimezoneOffset();
+      var start = new Date(date.getFullYear(), 0, 1);
+      var summerOffset = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
+      var winterOffset = start.getTimezoneOffset();
+      var dstOffset = Math.min(winterOffset, summerOffset); // DST is in December in South
+      if (dst < 0) {
+        // Attention: some regions don't have DST at all.
+        HEAP32[(((tmPtr)+(32))>>2)] = Number(summerOffset != winterOffset && dstOffset == guessedOffset);
+      } else if ((dst > 0) != (dstOffset == guessedOffset)) {
+        var nonDstOffset = Math.max(winterOffset, summerOffset);
+        var trueOffset = dst > 0 ? dstOffset : nonDstOffset;
+        // Don't try setMinutes(date.getMinutes() + ...) -- it's messed up.
+        date.setTime(date.getTime() + (trueOffset - guessedOffset)*60000);
+      }
+  
+      HEAP32[(((tmPtr)+(24))>>2)] = date.getDay();
+      var yday = ydayFromDate(date)|0;
+      HEAP32[(((tmPtr)+(28))>>2)] = yday;
+      // To match expected behavior, update fields from date
+      HEAP32[((tmPtr)>>2)] = date.getSeconds();
+      HEAP32[(((tmPtr)+(4))>>2)] = date.getMinutes();
+      HEAP32[(((tmPtr)+(8))>>2)] = date.getHours();
+      HEAP32[(((tmPtr)+(12))>>2)] = date.getDate();
+      HEAP32[(((tmPtr)+(16))>>2)] = date.getMonth();
+      HEAP32[(((tmPtr)+(20))>>2)] = date.getYear();
+  
+      var timeMs = date.getTime();
+      if (isNaN(timeMs)) {
+        return -1;
+      }
+      // Return time in microseconds
+      return timeMs / 1000;
+     })();
+    return (setTempRet0((tempDouble = ret,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)), ret>>>0);
+  };
+
+  
+  var __timegm_js = function(tmPtr) {
+  
+    var ret = (() => { 
+      var time = Date.UTC(HEAP32[(((tmPtr)+(20))>>2)] + 1900,
+                          HEAP32[(((tmPtr)+(16))>>2)],
+                          HEAP32[(((tmPtr)+(12))>>2)],
+                          HEAP32[(((tmPtr)+(8))>>2)],
+                          HEAP32[(((tmPtr)+(4))>>2)],
+                          HEAP32[((tmPtr)>>2)],
+                          0);
+      var date = new Date(time);
+  
+      HEAP32[(((tmPtr)+(24))>>2)] = date.getUTCDay();
+      var start = Date.UTC(date.getUTCFullYear(), 0, 1, 0, 0, 0, 0);
+      var yday = ((date.getTime() - start) / (1000 * 60 * 60 * 24))|0;
+      HEAP32[(((tmPtr)+(28))>>2)] = yday;
+  
+      return date.getTime() / 1000;
+     })();
+    return (setTempRet0((tempDouble = ret,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)), ret>>>0);
+  };
+
   
   var __tzset_js = (timezone, daylight, std_name, dst_name) => {
       // TODO: Use (malleable) environment variables instead of system settings.
@@ -5882,6 +6000,308 @@ function _ml_finish(Index) { ml_finish(Index); }
   }
   }
 
+  
+  var arraySum = (array, index) => {
+      var sum = 0;
+      for (var i = 0; i <= index; sum += array[i++]) {
+        // no-op
+      }
+      return sum;
+    };
+  
+  
+  var MONTH_DAYS_LEAP = [31,29,31,30,31,30,31,31,30,31,30,31];
+  
+  var MONTH_DAYS_REGULAR = [31,28,31,30,31,30,31,31,30,31,30,31];
+  var addDays = (date, days) => {
+      var newDate = new Date(date.getTime());
+      while (days > 0) {
+        var leap = isLeapYear(newDate.getFullYear());
+        var currentMonth = newDate.getMonth();
+        var daysInCurrentMonth = (leap ? MONTH_DAYS_LEAP : MONTH_DAYS_REGULAR)[currentMonth];
+  
+        if (days > daysInCurrentMonth-newDate.getDate()) {
+          // we spill over to next month
+          days -= (daysInCurrentMonth-newDate.getDate()+1);
+          newDate.setDate(1);
+          if (currentMonth < 11) {
+            newDate.setMonth(currentMonth+1)
+          } else {
+            newDate.setMonth(0);
+            newDate.setFullYear(newDate.getFullYear()+1);
+          }
+        } else {
+          // we stay in current month
+          newDate.setDate(newDate.getDate()+days);
+          return newDate;
+        }
+      }
+  
+      return newDate;
+    };
+  
+  
+  
+  
+  
+  var _strptime = (buf, format, tm) => {
+      // char *strptime(const char *restrict buf, const char *restrict format, struct tm *restrict tm);
+      // http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
+      var pattern = UTF8ToString(format);
+  
+      // escape special characters
+      // TODO: not sure we really need to escape all of these in JS regexps
+      var SPECIAL_CHARS = '\\!@#$^&*()+=-[]/{}|:<>?,.';
+      for (var i=0, ii=SPECIAL_CHARS.length; i<ii; ++i) {
+        pattern = pattern.replace(new RegExp('\\'+SPECIAL_CHARS[i], 'g'), '\\'+SPECIAL_CHARS[i]);
+      }
+  
+      // reduce number of matchers
+      var EQUIVALENT_MATCHERS = {
+        'A':  '%a',
+        'B':  '%b',
+        'c':  '%a %b %d %H:%M:%S %Y',
+        'D':  '%m\\/%d\\/%y',
+        'e':  '%d',
+        'F':  '%Y-%m-%d',
+        'h':  '%b',
+        'R':  '%H\\:%M',
+        'r':  '%I\\:%M\\:%S\\s%p',
+        'T':  '%H\\:%M\\:%S',
+        'x':  '%m\\/%d\\/(?:%y|%Y)',
+        'X':  '%H\\:%M\\:%S'
+      };
+      // TODO: take care of locale
+  
+      var DATE_PATTERNS = {
+        /* weekday name */    'a': '(?:Sun(?:day)?)|(?:Mon(?:day)?)|(?:Tue(?:sday)?)|(?:Wed(?:nesday)?)|(?:Thu(?:rsday)?)|(?:Fri(?:day)?)|(?:Sat(?:urday)?)',
+        /* month name */      'b': '(?:Jan(?:uary)?)|(?:Feb(?:ruary)?)|(?:Mar(?:ch)?)|(?:Apr(?:il)?)|May|(?:Jun(?:e)?)|(?:Jul(?:y)?)|(?:Aug(?:ust)?)|(?:Sep(?:tember)?)|(?:Oct(?:ober)?)|(?:Nov(?:ember)?)|(?:Dec(?:ember)?)',
+        /* century */         'C': '\\d\\d',
+        /* day of month */    'd': '0[1-9]|[1-9](?!\\d)|1\\d|2\\d|30|31',
+        /* hour (24hr) */     'H': '\\d(?!\\d)|[0,1]\\d|20|21|22|23',
+        /* hour (12hr) */     'I': '\\d(?!\\d)|0\\d|10|11|12',
+        /* day of year */     'j': '00[1-9]|0?[1-9](?!\\d)|0?[1-9]\\d(?!\\d)|[1,2]\\d\\d|3[0-6]\\d',
+        /* month */           'm': '0[1-9]|[1-9](?!\\d)|10|11|12',
+        /* minutes */         'M': '0\\d|\\d(?!\\d)|[1-5]\\d',
+        /* whitespace */      'n': ' ',
+        /* AM/PM */           'p': 'AM|am|PM|pm|A\\.M\\.|a\\.m\\.|P\\.M\\.|p\\.m\\.',
+        /* seconds */         'S': '0\\d|\\d(?!\\d)|[1-5]\\d|60',
+        /* week number */     'U': '0\\d|\\d(?!\\d)|[1-4]\\d|50|51|52|53',
+        /* week number */     'W': '0\\d|\\d(?!\\d)|[1-4]\\d|50|51|52|53',
+        /* weekday number */  'w': '[0-6]',
+        /* 2-digit year */    'y': '\\d\\d',
+        /* 4-digit year */    'Y': '\\d\\d\\d\\d',
+        /* whitespace */      't': ' ',
+        /* time zone */       'z': 'Z|(?:[\\+\\-]\\d\\d:?(?:\\d\\d)?)'
+      };
+  
+      var MONTH_NUMBERS = {JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11};
+      var DAY_NUMBERS_SUN_FIRST = {SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6};
+      var DAY_NUMBERS_MON_FIRST = {MON: 0, TUE: 1, WED: 2, THU: 3, FRI: 4, SAT: 5, SUN: 6};
+  
+      var capture = [];
+      var pattern_out = pattern
+        .replace(/%(.)/g, (m, c) => EQUIVALENT_MATCHERS[c] || m)
+        .replace(/%(.)/g, (_, c) => {
+          let pat = DATE_PATTERNS[c];
+          if (pat){
+            capture.push(c);
+            return `(${pat})`;
+          } else {
+            return c;
+          }
+        })
+        .replace( // any number of space or tab characters match zero or more spaces
+          /\s+/g,'\\s*'
+        );
+  
+      var matches = new RegExp('^'+pattern_out, "i").exec(UTF8ToString(buf))
+  
+      function initDate() {
+        function fixup(value, min, max) {
+          return (typeof value != 'number' || isNaN(value)) ? min : (value>=min ? (value<=max ? value: max): min);
+        };
+        return {
+          year: fixup(HEAP32[(((tm)+(20))>>2)] + 1900 , 1970, 9999),
+          month: fixup(HEAP32[(((tm)+(16))>>2)], 0, 11),
+          day: fixup(HEAP32[(((tm)+(12))>>2)], 1, 31),
+          hour: fixup(HEAP32[(((tm)+(8))>>2)], 0, 23),
+          min: fixup(HEAP32[(((tm)+(4))>>2)], 0, 59),
+          sec: fixup(HEAP32[((tm)>>2)], 0, 59),
+          gmtoff: 0
+        };
+      };
+  
+      if (matches) {
+        var date = initDate();
+        var value;
+  
+        var getMatch = (symbol) => {
+          var pos = capture.indexOf(symbol);
+          // check if symbol appears in regexp
+          if (pos >= 0) {
+            // return matched value or null (falsy!) for non-matches
+            return matches[pos+1];
+          }
+          return;
+        };
+  
+        // seconds
+        if ((value=getMatch('S'))) {
+          date.sec = jstoi_q(value);
+        }
+  
+        // minutes
+        if ((value=getMatch('M'))) {
+          date.min = jstoi_q(value);
+        }
+  
+        // hours
+        if ((value=getMatch('H'))) {
+          // 24h clock
+          date.hour = jstoi_q(value);
+        } else if ((value = getMatch('I'))) {
+          // AM/PM clock
+          var hour = jstoi_q(value);
+          if ((value=getMatch('p'))) {
+            hour += value.toUpperCase()[0] === 'P' ? 12 : 0;
+          }
+          date.hour = hour;
+        }
+  
+        // year
+        if ((value=getMatch('Y'))) {
+          // parse from four-digit year
+          date.year = jstoi_q(value);
+        } else if ((value=getMatch('y'))) {
+          // parse from two-digit year...
+          var year = jstoi_q(value);
+          if ((value=getMatch('C'))) {
+            // ...and century
+            year += jstoi_q(value)*100;
+          } else {
+            // ...and rule-of-thumb
+            year += year<69 ? 2000 : 1900;
+          }
+          date.year = year;
+        }
+  
+        // month
+        if ((value=getMatch('m'))) {
+          // parse from month number
+          date.month = jstoi_q(value)-1;
+        } else if ((value=getMatch('b'))) {
+          // parse from month name
+          date.month = MONTH_NUMBERS[value.substring(0,3).toUpperCase()] || 0;
+          // TODO: derive month from day in year+year, week number+day of week+year
+        }
+  
+        // day
+        if ((value=getMatch('d'))) {
+          // get day of month directly
+          date.day = jstoi_q(value);
+        } else if ((value=getMatch('j'))) {
+          // get day of month from day of year ...
+          var day = jstoi_q(value);
+          var leapYear = isLeapYear(date.year);
+          for (var month=0; month<12; ++month) {
+            var daysUntilMonth = arraySum(leapYear ? MONTH_DAYS_LEAP : MONTH_DAYS_REGULAR, month-1);
+            if (day<=daysUntilMonth+(leapYear ? MONTH_DAYS_LEAP : MONTH_DAYS_REGULAR)[month]) {
+              date.day = day-daysUntilMonth;
+            }
+          }
+        } else if ((value=getMatch('a'))) {
+          // get day of month from weekday ...
+          var weekDay = value.substring(0,3).toUpperCase();
+          if ((value=getMatch('U'))) {
+            // ... and week number (Sunday being first day of week)
+            // Week number of the year (Sunday as the first day of the week) as a decimal number [00,53].
+            // All days in a new year preceding the first Sunday are considered to be in week 0.
+            var weekDayNumber = DAY_NUMBERS_SUN_FIRST[weekDay];
+            var weekNumber = jstoi_q(value);
+  
+            // January 1st
+            var janFirst = new Date(date.year, 0, 1);
+            var endDate;
+            if (janFirst.getDay() === 0) {
+              // Jan 1st is a Sunday, and, hence in the 1st CW
+              endDate = addDays(janFirst, weekDayNumber+7*(weekNumber-1));
+            } else {
+              // Jan 1st is not a Sunday, and, hence still in the 0th CW
+              endDate = addDays(janFirst, 7-janFirst.getDay()+weekDayNumber+7*(weekNumber-1));
+            }
+            date.day = endDate.getDate();
+            date.month = endDate.getMonth();
+          } else if ((value=getMatch('W'))) {
+            // ... and week number (Monday being first day of week)
+            // Week number of the year (Monday as the first day of the week) as a decimal number [00,53].
+            // All days in a new year preceding the first Monday are considered to be in week 0.
+            var weekDayNumber = DAY_NUMBERS_MON_FIRST[weekDay];
+            var weekNumber = jstoi_q(value);
+  
+            // January 1st
+            var janFirst = new Date(date.year, 0, 1);
+            var endDate;
+            if (janFirst.getDay()===1) {
+              // Jan 1st is a Monday, and, hence in the 1st CW
+               endDate = addDays(janFirst, weekDayNumber+7*(weekNumber-1));
+            } else {
+              // Jan 1st is not a Monday, and, hence still in the 0th CW
+              endDate = addDays(janFirst, 7-janFirst.getDay()+1+weekDayNumber+7*(weekNumber-1));
+            }
+  
+            date.day = endDate.getDate();
+            date.month = endDate.getMonth();
+          }
+        }
+  
+        // time zone
+        if ((value = getMatch('z'))) {
+          // GMT offset as either 'Z' or +-HH:MM or +-HH or +-HHMM
+          if (value.toLowerCase() === 'z'){
+            date.gmtoff = 0;
+          } else {          
+            var match = value.match(/^((?:\-|\+)\d\d):?(\d\d)?/);
+            date.gmtoff = match[1] * 3600;
+            if (match[2]) {
+              date.gmtoff += date.gmtoff >0 ? match[2] * 60 : -match[2] * 60
+            }
+          }
+        }
+  
+        /*
+        tm_sec  int seconds after the minute  0-61*
+        tm_min  int minutes after the hour  0-59
+        tm_hour int hours since midnight  0-23
+        tm_mday int day of the month  1-31
+        tm_mon  int months since January  0-11
+        tm_year int years since 1900
+        tm_wday int days since Sunday 0-6
+        tm_yday int days since January 1  0-365
+        tm_isdst  int Daylight Saving Time flag
+        tm_gmtoff long offset from GMT (seconds)
+        */
+  
+        var fullDate = new Date(date.year, date.month, date.day, date.hour, date.min, date.sec, 0);
+        HEAP32[((tm)>>2)] = fullDate.getSeconds();
+        HEAP32[(((tm)+(4))>>2)] = fullDate.getMinutes();
+        HEAP32[(((tm)+(8))>>2)] = fullDate.getHours();
+        HEAP32[(((tm)+(12))>>2)] = fullDate.getDate();
+        HEAP32[(((tm)+(16))>>2)] = fullDate.getMonth();
+        HEAP32[(((tm)+(20))>>2)] = fullDate.getFullYear()-1900;
+        HEAP32[(((tm)+(24))>>2)] = fullDate.getDay();
+        HEAP32[(((tm)+(28))>>2)] = arraySum(isLeapYear(fullDate.getFullYear()) ? MONTH_DAYS_LEAP : MONTH_DAYS_REGULAR, fullDate.getMonth()-1)+fullDate.getDate()-1;
+        HEAP32[(((tm)+(32))>>2)] = 0;
+        HEAP32[(((tm)+(36))>>2)] = date.gmtoff;
+   
+        // we need to convert the matched sequence into an integer array to take care of UTF-8 characters > 0x7F
+        // TODO: not sure that intArrayFromString handles all unicode characters correctly
+        return buf+intArrayFromString(matches[0]).length-1;
+      }
+  
+      return 0;
+    };
+
   var _uuid_compare = (uu1, uu2) => _memcmp(uu1, uu2, 16);
 
   var writeArrayToMemory = (array, buffer) => {
@@ -6116,9 +6536,15 @@ var wasmImports = {
   /** @export */
   _gmtime_js: __gmtime_js,
   /** @export */
+  _localtime_js: __localtime_js,
+  /** @export */
+  _mktime_js: __mktime_js,
+  /** @export */
   _ml_finish,
   /** @export */
   _ml_output,
+  /** @export */
+  _timegm_js: __timegm_js,
   /** @export */
   _tzset_js: __tzset_js,
   /** @export */
@@ -6191,6 +6617,8 @@ var wasmImports = {
   invoke_vii,
   /** @export */
   invoke_viii,
+  /** @export */
+  strptime: _strptime,
   /** @export */
   uuid_compare: _uuid_compare,
   /** @export */
@@ -6297,7 +6725,6 @@ var missingLibrarySymbols = [
   'convertI32PairToI53',
   'convertU32PairToI53',
   'getTempRet0',
-  'setTempRet0',
   'emscriptenLog',
   'readEmAsmArgs',
   'listenOnce',
@@ -6387,10 +6814,6 @@ var missingLibrarySymbols = [
   'ExceptionInfo',
   'findMatchingCatch',
   'Browser_asyncPrepareDataCounter',
-  'isLeapYear',
-  'ydayFromDate',
-  'arraySum',
-  'addDays',
   'FS_unlink',
   'FS_mkdirTree',
   '_setNetworkCallback',
@@ -6448,6 +6871,7 @@ var unexportedSymbols = [
   'stackSave',
   'stackRestore',
   'stackAlloc',
+  'setTempRet0',
   'ptrToString',
   'zeroMemory',
   'exitJS',
@@ -6532,6 +6956,10 @@ var unexportedSymbols = [
   'MONTH_DAYS_LEAP',
   'MONTH_DAYS_REGULAR_CUMULATIVE',
   'MONTH_DAYS_LEAP_CUMULATIVE',
+  'isLeapYear',
+  'ydayFromDate',
+  'arraySum',
+  'addDays',
   'SYSCALLS',
   'getSocketFromFD',
   'getSocketAddress',

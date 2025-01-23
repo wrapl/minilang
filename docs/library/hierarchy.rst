@@ -56,8 +56,6 @@ hierarchy
       "sequence":e -> "table":w;
       "any":e -> "table::row":w;
       "any":e -> "table::column":w;
-      "sequence":e -> "table":w;
-      "sequence":e -> "table::row":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
       "enum":e -> "byte::order":w;
