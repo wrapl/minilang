@@ -1271,7 +1271,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_OBJECT, ml_cbor_read_object);
 	ml_cbor_default_tag(ML_CBOR_TAG_MARK_REUSED, ml_cbor_mark_reused);
 	ml_cbor_default_tag(ML_CBOR_TAG_USE_PREVIOUS, ml_cbor_use_previous);
-#include "ml_cbor2_init.c"
+#include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
 			"encode", CborEncode,
