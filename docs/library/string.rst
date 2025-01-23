@@ -120,6 +120,16 @@ When creating a substring,  the first index is inclusive and second index is exc
       r"[0-9]+" > r"[0-9]+" :> nil
 
 
+:mini:`meth (Arg₁: regex) >= (Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      r"[0-9]+" >= r"[A-Za-z0-9_]+" :> nil
+      r"[A-Za-z0-9_]+" >= r"[0-9]+" :> /[0-9]+/
+      r"[0-9]+" >= r"[0-9]+" :> /[0-9]+/
+
+
 :mini:`meth (Regex: regex):pattern: string`
    Returns the pattern used to create :mini:`Regex`.
 
@@ -145,6 +155,14 @@ When creating a substring,  the first index is inclusive and second index is exc
       string(nil) :> "nil"
       string("Hello world!\n") :> "Hello world!\n"
       string([1, 2, 3]) :> "[1, 2, 3]"
+
+
+:mini:`fun regex::escape(String: string): string`
+   Escapes characters in :mini:`String` that are treated specially in regular expressions.
+
+   .. code-block:: mini
+
+      regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
 
 
 :mini:`fun string::escape(String: string): string`
@@ -625,24 +643,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "abc":max("abcd") :> "abcd"
 
 
-:mini:`fun regex::escape(String: string): string`
-   Escapes characters in :mini:`String` that are treated specially in regular expressions.
-
-   .. code-block:: mini
-
-      regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
-
-
-:mini:`meth (Arg₁: regex) >= (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" >= r"[A-Za-z0-9_]+" :> nil
-      r"[A-Za-z0-9_]+" >= r"[0-9]+" :> /[0-9]+/
-      r"[0-9]+" >= r"[0-9]+" :> /[0-9]+/
-
-
 :mini:`meth (A: string):min(B: string): integer`
    Returns :mini:`min(A,  B)`
 
@@ -874,6 +874,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       "λ:😀 → Y" ~ "λ:X → 😺" :> 2
 
 
+:mini:`def MLStringProperties: string::properties`
+   *TBD*
+
+
 :mini:`meth (A: string) ~> (B: string): integer`
    Returns an asymmetric edit distance from :mini:`A` to :mini:`B`.
 
@@ -890,19 +894,15 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`def MLStringProperties: string::properties`
-   *TBD*
-
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
    *TBD*
 
 
-:mini:`type string::buffer < stream`
+:mini:`type string::buffer`
    A string buffer that automatically grows and shrinks as required.
 
 
-:mini:`type string::buffer`
+:mini:`type string::buffer < stream`
    A string buffer that automatically grows and shrinks as required.
 
 
