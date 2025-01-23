@@ -474,9 +474,27 @@ end
 
 if MINILANG_XML then
 	CFLAGS := old + ['-DML_XML']
-	LDFLAGS := old + ["-lexpat"]
 	Objects:put(file("ml_xml.o"))
 	InstallHeaders:put("ml_xml.h")
+	if PLATFORM = "Wasm" then
+		let Dir := file("expat")
+		let Lib := file("expat/lib/.libs/libexpat.a"; Lib) do
+			Dir:rmdir:mkdir:chdir
+			execute("wget https://github.com/libexpat/libexpat/releases/download/R_2_6_4/expat-2.6.4.tar.gz -O- | tar xvzP --strip-components=1")
+			execute('CC={CC} ./configure', {
+				"--prefix" is PATH,
+				"--enable-static",
+				"--disable-shared"
+			})
+			execute("make clean")
+			execute("make -j4")
+		end
+		PREBUILDS := old + [Lib]
+		CFLAGS := old + ['-I{Dir / "lib"}']
+		LDFLAGS := old + [Lib]
+	else
+		LDFLAGS := old + ["-lexpat"]
+	end
 end
 
 if MINILANG_XE then
@@ -689,15 +707,15 @@ if PLATFORM = "Wasm" then
 	MINIHTML := (BIN_DIR / "minilang.html")[file("minilang.html"); Target] do
 		file("minilang.html"):copy(Target)
 	end
-	
+
 	let DocsJs := (DOCS_DIR / "_static/js/minilang.js")[MINIWASM; Target] do
 		(BIN_DIR / "minilang.js"):copy(Target)
 	end
-	
+
 	let DocsWasm := (DOCS_DIR / "_static/js/minilang.wasm")[MINIWASM; Target] do
 		(BIN_DIR / "minilang.wasm"):copy(Target)
 	end
-	
+
 	let DocsWasmMap := (DOCS_DIR / "_static/js/minilang.wasm.map")[MINIWASM; Target] do
 		(BIN_DIR / "minilang.wasm.map"):copy(Target)
 	end
