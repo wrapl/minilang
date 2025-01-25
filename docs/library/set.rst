@@ -222,7 +222,7 @@ set
    .. code-block:: mini
 
       let S := set("cake") :> {c, a, k, e}
-      S:random :> "c"
+      S:random :> "e"
       S:random :> "c"
 
 
