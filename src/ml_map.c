@@ -21,9 +21,9 @@ ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable");
 #define MLMapMutableT MLMapT
 #endif
 
-#ifdef ML_GENERICS
-
 ML_VALUE(MLAny, MLAnyT);
+
+#ifdef ML_GENERICS
 
 static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Value) {
 	if (Map->Type->Type != MLTypeGenericT) {

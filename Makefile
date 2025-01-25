@@ -38,7 +38,9 @@ obj/%_init.c: src/%.c | obj src/*.h
 	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
 obj/ml_bytecode.o: obj/ml_bytecode_init.c src/*.h
+obj/ml_cbor.o: obj/ml_cbor_init.c src/*.h
 obj/ml_compiler.o: obj/ml_compiler_init.c src/*.h
+obj/ml_console.o: obj/ml_console_init.c src/*.h
 obj/ml_file.o: obj/ml_file_init.c src/*.h
 obj/ml_json.o: obj/ml_json_init.c src/*.h
 obj/ml_list.o: obj/ml_list_init.c src/*.h
@@ -61,6 +63,7 @@ obj/ml_types.o: obj/ml_types_init.c src/*.h
 common_objects = \
 	obj/inthash.o \
 	obj/ml_bytecode.o \
+	obj/ml_cbor.o \
 	obj/ml_compiler.o \
 	obj/ml_console.o \
 	obj/ml_debugger.o \
@@ -142,6 +145,7 @@ install_h = \
 	$(install_include)/linenoise.h \
 	$(install_include)/minilang.h \
 	$(install_include)/ml_bytecode.h \
+	$(install_include)/ml_cbor.h \
 	$(install_include)/ml_compiler.h \
 	$(install_include)/ml_console.h \
 	$(install_include)/ml_file.h \
