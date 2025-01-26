@@ -1180,6 +1180,22 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_typeof(Value)->hash(Value, NewChain);
 }
 
+void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) {
+			*(long *)Hash = Link->Index;
+			return;
+		}
+	}
+	typeof(ml_value_sha256) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_sha256);
+	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
+	if (function) {
+		function(Value, NewChain, Hash);
+	} else {
+		*(long *)Hash = ml_typeof(Value)->hash(Value, NewChain);
+	}
+}
+
 #ifdef ML_NANBOXING
 
 #define NegOne ml_integer32(-1)
@@ -1795,6 +1811,15 @@ typedef struct ml_partial_function_t {
 	ml_value_t *Args[];
 } ml_partial_function_t;
 
+static long ml_partial_function_hash(ml_partial_function_t *Partial, ml_hash_chain_t *Chain) {
+	long Hash = ml_hash_chain(Partial->Function, Chain);
+	for (int I = 0; I < Partial->Count; ++I) {
+		ml_value_t *Arg = Partial->Args[I];
+		if (Arg) Hash ^= ml_hash(Arg) << (I + 1);
+	}
+	return Hash;
+}
+
 static void __attribute__ ((noinline)) ml_partial_function_copy_args(ml_partial_function_t *Partial, int CombinedCount, ml_value_t **CombinedArgs, int Count, ml_value_t **Args) {
 	ml_value_t *Copy[Count];
 	memcpy(Copy, Args, Count * sizeof(ml_value_t *));
@@ -1839,6 +1864,7 @@ ML_FUNCTION(MLFunctionPartial) {
 
 ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "function::partial",
 //!function
+	.hash = (void *)ml_partial_function_hash,
 	.call = (void *)ml_partial_function_call,
 	.Constructor = (ml_value_t *)MLFunctionPartial
 );

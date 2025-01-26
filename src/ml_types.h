@@ -271,6 +271,10 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
+#define SHA256_BLOCK_SIZE 32
+
+void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]);
+
 #define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
 
 #define ml_inline(STATE, VALUE, COUNT, ARGS ...) ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS})

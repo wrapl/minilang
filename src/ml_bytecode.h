@@ -35,8 +35,6 @@ union ml_inst_t {
 	void *Data;
 };
 
-#define SHA256_BLOCK_SIZE 32
-
 #define ML_CLOSURE_EXTRA_ARGS 1
 #define ML_CLOSURE_NAMED_ARGS 2
 #define ML_CLOSURE_RESERVED 4
