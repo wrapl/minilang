@@ -1885,6 +1885,14 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 	return Partial->Args[Index] = Value;
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLFunctionPartialT, ml_partial_function_t *Partial, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	ml_value_sha256(Partial->Function, Chain, Hash);
+	for (int I = 0; I < Partial->Count; ++I) {
+		ml_value_t *Arg = Partial->Args[I];
+		if (Arg) *(long *)(Hash + (I % 16)) ^= ml_hash_chain(Arg, Chain);
+	}
+}
+
 ML_METHOD("arity", MLFunctionPartialT) {
 //!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];

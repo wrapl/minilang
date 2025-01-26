@@ -1492,6 +1492,16 @@ void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE])
 	}
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLClosureT, ml_closure_t *Closure, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	ml_closure_info_t *Info = Closure->Info;
+	ml_closure_info_hash(Info);
+	memcpy(Hash, Info->Hash, SHA256_BLOCK_SIZE);
+	for (int I = 0; I < Info->NumUpValues; ++I) {
+		long ValueHash = ml_hash_chain(Closure->UpValues[I + 1], Chain);
+		*(long *)(Hash + (I % 16)) ^= ValueHash;
+	}
+}
+
 static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
