@@ -359,7 +359,7 @@ const char *ml_method_name(const ml_value_t *Value) {
 
 static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	long Hash = 5381;
+	long Hash = 2381;
 	for (const char *P = Method->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
 }
