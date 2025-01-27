@@ -96,6 +96,7 @@ endif
 
 ifeq ($(PLATFORM), Linux)
 	platform_objects += obj/linenoise.o
+	override CFLAGS += -DUSE_LINENOISE
 	override LDFLAGS += -lgc
 endif
 

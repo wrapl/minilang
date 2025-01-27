@@ -1679,9 +1679,19 @@ static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int 
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
 
+static long ml_cfunction_hash(ml_cfunction_t *Function, ml_hash_chain_t *Chain) {
+	if (Function->Source) {
+		long Hash = 23879;
+		for (const char *P = Function->Source; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+		return Hash + Function->Line;
+	} else {
+		return (long)(uintptr_t)Function->Callback;
+	}
+}
+
 ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
 //!internal
-	.hash = (void *)ml_value_hash,
+	.hash = (void *)ml_cfunction_hash,
 	.call = (void *)ml_cfunction_call
 );
 
@@ -1737,9 +1747,19 @@ static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 
+static long ml_cfunctionx_hash(ml_cfunctionx_t *Function, ml_hash_chain_t *Chain) {
+	if (Function->Source) {
+		long Hash = 23879;
+		for (const char *P = Function->Source; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+		return Hash + Function->Line;
+	} else {
+		return (long)(uintptr_t)Function->Callback;
+	}
+}
+
 ML_TYPE(MLCFunctionXT, (MLFunctionT), "c-functionx",
 //!internal
-	.hash = (void *)ml_value_hash,
+	.hash = (void *)ml_cfunctionx_hash,
 	.call = (void *)ml_cfunctionx_call
 );
 
@@ -1777,7 +1797,7 @@ static void ml_cfunctionz_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 
 ML_TYPE(MLCFunctionZT, (MLFunctionT), "c-functionx",
 //!internal
-	.hash = (void *)ml_value_hash,
+	.hash = (void *)ml_cfunctionx_hash,
 	.call = (void *)ml_cfunctionz_call
 );
 
