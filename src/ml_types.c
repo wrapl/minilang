@@ -248,9 +248,20 @@ void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_
 }
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	long Hash = 5381;
-	for (const char *P = ml_typeof(Value)->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
-	return Hash;
+	typeof(ml_value_sha256) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_sha256);
+	if (function) {
+		unsigned char SHA256[SHA256_BLOCK_SIZE];
+		function(Value, Chain, SHA256);
+		long Hash = 0;
+		long *P = (long *)SHA256;
+		long *Q = (long *)(SHA256 + SHA256_BLOCK_SIZE);
+		while (P < Q) Hash ^= *P++;
+		return Hash;
+	} else {
+		long Hash = 5381;
+		for (const char *P = ml_typeof(Value)->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+		return Hash;
+	}
 }
 
 long ml_value_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -1891,6 +1902,23 @@ static void ML_TYPED_FN(ml_value_sha256, MLFunctionPartialT, ml_partial_function
 		ml_value_t *Arg = Partial->Args[I];
 		if (Arg) *(long *)(Hash + (I % 16)) ^= ml_hash_chain(Arg, Chain);
 	}
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLFunctionPartialT, ml_partial_function_t *Partial) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("$!"));
+	ml_list_put(Result, Partial->Function);
+	for (int I = 0; I < Partial->Count; ++I) ml_list_put(Result, Partial->Args[I] ?: MLBlank);
+	return Result;
+}
+
+ML_DESERIALIZER("$!") {
+	ML_CHECK_ARG_COUNT(1);
+	ml_value_t *Partial = ml_partial_function(Args[0], Count - 1);
+	for (int I = 1; I < Count; ++I) {
+		if (Args[I] != MLBlank) ml_partial_function_set(Partial, I - 1, Args[I]);
+	}
+	return Partial;
 }
 
 ML_METHOD("arity", MLFunctionPartialT) {

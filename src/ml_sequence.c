@@ -151,6 +151,27 @@ ml_value_t *ml_chainedv(int Count, ...) {
 	return (ml_value_t *)Chained;
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLChainedT, ml_chained_function_t *Chained, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	ml_value_sha256(Chained->Entries[0], Chain, Hash);
+	ml_value_t **Entry = Chained->Entries;
+	for (int I = 1; *Entry; ++I, ++Entry) {
+		*(long *)(Hash + (I % 16)) ^= ml_hash_chain(*Entry, Chain);
+	}
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLChainedT, ml_chained_function_t *Chained) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("->"));
+	for (ml_value_t **Entry = Chained->Entries; *Entry; ++Entry) {
+		ml_list_put(Result, *Entry);
+	}
+	return Result;
+}
+
+ML_DESERIALIZER("->") {
+	return ml_chained(Count, Args);
+}
+
 typedef struct ml_chained_iterator_t {
 	ml_state_t Base;
 	ml_value_t *Iterator;

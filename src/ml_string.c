@@ -3,6 +3,7 @@
 #include "ml_macros.h"
 #include "ml_object.h"
 #include "ml_compiler2.h"
+#include "sha256.h"
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
@@ -337,6 +338,19 @@ ML_METHOD("find", MLAddressT, MLAddressT, MLIntegerT) {
 	char *Find = memmem(Address1->Value + Start, Address1->Length - Start, Address2->Value, Address2->Length);
 	if (!Find) return MLNil;
 	return ml_integer(Find - Address1->Value);
+}
+
+static void ML_TYPED_FN(ml_value_sha256, MLAddressT, ml_address_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	SHA256_CTX Ctx[1];
+	sha256_init(Ctx);
+	sha256_update(Ctx, (unsigned char *)Value->Value, Value->Length);
+	sha256_final(Ctx, Hash);
+}
+
+ML_METHOD("sha256", MLAnyT) {
+	char *Hash = snew(SHA256_BLOCK_SIZE);
+	ml_value_sha256(Args[0], NULL, (unsigned char *)Hash);
+	return ml_address(Hash, SHA256_BLOCK_SIZE);
 }
 
 ML_TYPE(MLBufferT, (MLAddressT), "buffer",
