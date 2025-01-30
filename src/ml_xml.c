@@ -319,6 +319,21 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 	return (ml_value_t *)Element;
 }
 
+ML_METHOD("index", MLXmlT, MLBooleanT) {
+//<Node
+//<Text
+//>integer|nil
+// Returns the index of :mini:`Node` in its parent including or excluding text nodes or :mini:`nil`.
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (!Node->Parent) return MLNil;
+	if (Args[1] == (ml_value_t *)MLFalse) {
+		int Index = 1;
+		for (ml_xml_node_t *Child = Node->Parent->Head; Child != Node; Child = Child->Next) ++Index;
+		return ml_integer(Node->Index);
+	}
+	return ml_integer(Node->Index);
+}
+
 ML_METHOD("tag", MLXmlElementT) {
 //<Xml
 //>string

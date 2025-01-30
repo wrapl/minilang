@@ -4896,6 +4896,45 @@ ML_METHOD("rest", MLStringBufferT) {
 	return ml_stringbuffer_get_value(Buffer);
 }
 
+ML_METHOD("unread", MLStringBufferT, MLAddressT) {
+//<Buffer
+//<Bytes
+//>string::buffer
+// Inserts the contents of :mini:`Bytes` at the start of :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	size_t Length = ml_address_length(Args[1]);
+	const char *Bytes = ml_address_value(Args[1]);
+	Buffer->Length += Length;
+	if (Buffer->Start >= Length) {
+		Buffer->Start -= Length;
+		memcpy(Buffer->Head->Chars + Buffer->Start, Bytes, Length);
+		return (ml_value_t *)Buffer;
+	}
+	Bytes += Length;
+	int Start = Buffer->Start;
+	if (Start) {
+		memcpy(Buffer->Head->Chars, Bytes - Start, Start);
+		Bytes -= Start;
+		Length -= Start;
+		Buffer->Start = 0;
+	}
+	while (Length > ML_STRINGBUFFER_NODE_SIZE) {
+		ml_stringbuffer_node_t *Node = ml_stringbuffer_node();
+		Node->Next = Buffer->Head;
+		memcpy(Node->Chars, Bytes - ML_STRINGBUFFER_NODE_SIZE, ML_STRINGBUFFER_NODE_SIZE);
+		Buffer->Head = Node;
+		Length -= ML_STRINGBUFFER_NODE_SIZE;
+	}
+	if (Length > 0) {
+		Start = Buffer->Start = ML_STRINGBUFFER_NODE_SIZE - Length;
+		ml_stringbuffer_node_t *Node = ml_stringbuffer_node();
+		Node->Next = Buffer->Head;
+		memcpy(Node->Chars + Start, Bytes - Length, Length);
+		Buffer->Head = Node;
+	}
+	return (ml_value_t *)Buffer;
+}
+
 ML_METHOD("get", MLStringBufferT) {
 //<Buffer
 //>string
