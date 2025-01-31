@@ -328,7 +328,9 @@ ML_METHOD("index", MLXmlT, MLBooleanT) {
 	if (!Node->Parent) return MLNil;
 	if (Args[1] == (ml_value_t *)MLFalse) {
 		int Index = 1;
-		for (ml_xml_node_t *Child = Node->Parent->Head; Child != Node; Child = Child->Next) ++Index;
+		for (ml_xml_node_t *Child = Node->Parent->Head; Child != Node; Child = Child->Next) {
+			if (Child->Base.Type == MLXmlElementT) ++Index;
+		}
 		return ml_integer(Node->Index);
 	}
 	return ml_integer(Node->Index);
