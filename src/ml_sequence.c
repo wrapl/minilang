@@ -1280,6 +1280,7 @@ ML_METHODX("apply", MLSequenceT, MLFunctionT) {
 /****************************** Find ******************************/
 
 static ML_METHOD_DECL(EqualMethod, "=");
+static ML_METHOD_DECL(NotEqualMethod, "!=");
 
 typedef struct {
 	ml_state_t Base;
@@ -2566,6 +2567,16 @@ ML_METHOD("provided", MLSequenceT, MLFunctionT) {
 	return (ml_value_t *)Provided;
 }
 
+ML_METHOD("before", MLSequenceT, MLAnyT) {
+	ml_value_t *Partial = ml_partial_function(NotEqualMethod, 2);
+	ml_partial_function_set(Partial, 1, Args[1]);
+	ml_provided_t *Provided = new(ml_provided_t);
+	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
+	Provided->Value = Args[0];
+	Provided->Fn = Partial;
+	return (ml_value_t *)Provided;
+}
+
 ML_TYPE(MLIgnoringT, (MLSequenceT), "ignoring-state");
 //!internal
 
@@ -2605,19 +2616,46 @@ static void ML_TYPED_FN(ml_iterate, MLIgnoringT, ml_state_t *Caller, ml_provided
 	return ml_iterate((ml_state_t *)State, Ignoring->Value);
 }
 
-ML_METHOD("ignoring", MLSequenceT, MLFunctionT) {
+ML_METHOD("skipuntil", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Fn
 //>sequence
 // Returns an sequence that skips initial values for which which :mini:`Fn(Value)` is :mini:`nil`.
 //$= list("banana")
-//$= list("banana" ignoring (_ != "b"))
+//$= list("banana" skipuntil (_ != "b"))
 	ml_provided_t *Ignoring = new(ml_provided_t);
 	Ignoring->Type = ml_generic_sequence(MLIgnoringT, Args[0]);
 	Ignoring->Value = Args[0];
 	Ignoring->Fn = Args[1];
 	return (ml_value_t *)Ignoring;
 }
+
+ML_METHOD("from", MLSequenceT, MLAnyT) {
+//<Sequence
+//<Value
+//>sequence
+// Returns an sequence that skips initial values not equal to :mini:`Value`.
+//$= list("banana")
+//$= list("banana" from "n")
+	ml_value_t *Partial = ml_partial_function(EqualMethod, 2);
+	ml_partial_function_set(Partial, 1, Args[1]);
+	ml_provided_t *Ignoring = new(ml_provided_t);
+	Ignoring->Type = ml_generic_sequence(MLIgnoringT, Args[0]);
+	Ignoring->Value = Args[0];
+	Ignoring->Fn = Partial;
+	return (ml_value_t *)Ignoring;
+}
+
+/*
+ML_METHOD("after", MLSequenceT, MLAnyT) {
+//<Sequence
+//<Value
+//>sequence
+// Returns an sequence that skips initial values not equal to :mini:`Value` and skips :mini:`Value` itself once.
+//$= list("banana")
+//$= list("banana" after "n")
+}
+*/
 
 typedef struct ml_unique_t {
 	ml_type_t *Type;
@@ -4337,6 +4375,9 @@ void ml_sequence_init(stringmap_t *Globals) {
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;
 	MLSequenceT->Constructor = (ml_value_t *)MLChained;
 #include "ml_sequence_init.c"
+	ml_value_t *Skip1 = ml_partial_function(ml_method("skip"), 2);
+	ml_partial_function_set(Skip1, 1, ml_integer(1));
+	ml_method_definev(ml_method("after"), ml_chainedv(2, ml_method("from"), Skip1), NULL, MLSequenceT, MLAnyT, NULL);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLChainedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLDoubledT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
