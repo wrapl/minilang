@@ -323,7 +323,7 @@ ML_METHOD("index", MLXmlT, MLBooleanT) {
 //<Node
 //<Text
 //>integer|nil
-// Returns the index of :mini:`Node` in its parent including or excluding text nodes or :mini:`nil`.
+// Returns the index of :mini:`Node` in its parent including or excluding text nodes.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	if (!Node->Parent) return MLNil;
 	if (Args[1] == (ml_value_t *)MLFalse) {
@@ -659,6 +659,141 @@ ML_METHOD("[]", MLXmlElementT, MLIntegerT) {
 	ml_xml_node_t *Child = Element->Head;
 	while (--Index >= 0) Child = Child->Next;
 	return (ml_value_t *)Child;
+}
+
+ML_METHOD("[]", MLXmlElementT, MLIntegerT, MLStringT) {
+//<Parent
+//<Index
+//<Tag
+//>xml|nil
+// Returns the :mini:`Index`-th child of :mini:`Parent` with tag :mini:`Tag` or :mini:`nil`.
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	if (Index == 0) return MLNil;
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[2]));
+	if (!Tag) return MLNil;
+	if (Index < 0) {
+		for (ml_xml_node_t *Child = Element->Tail; Child; Child = Child->Prev) {
+			if (Child->Base.Type != MLXmlElementT) continue;
+			if (Child->Base.Value != Tag) continue;
+			if (++Index == 0) return (ml_value_t *)Child;
+		}
+	} else {
+		for (ml_xml_node_t *Child = Element->Head; Child; Child = Child->Next) {
+			if (Child->Base.Type != MLXmlElementT) continue;
+			if (Child->Base.Value != Tag) continue;
+			if (--Index == 0) return (ml_value_t *)Child;
+		}
+	}
+	return MLNil;
+}
+
+ML_METHODV("[]", MLXmlElementT, MLIntegerT, MLNamesT) {
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	if (Index == 0) return MLNil;
+	ML_NAMES_CHECK_ARG_COUNT(2);
+	int I = 2;
+	ML_LIST_FOREACH(Args[2], Iter) {
+		++I;
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
+	}
+	if (Index < 0) {
+		for (ml_xml_node_t *Child = Element->Tail; Child; Child = Child->Prev) {
+			if (Child->Base.Type != MLXmlElementT) continue;
+			ml_value_t *Attributes = ((ml_xml_element_t *)Child)->Attributes;
+			int I = 2;
+			ML_LIST_FOREACH(Args[2], Iter) {
+				++I;
+				ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+				if (Args[I] == MLNil) {
+					if (Value != MLNil) goto next1;
+				} else {
+					if (Value == MLNil) goto next1;
+					if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next1;
+				}
+			}
+			if (++Index == 0) return (ml_value_t *)Child;
+		next1:
+			continue;
+		}
+	} else {
+		for (ml_xml_node_t *Child = Element->Head; Child; Child = Child->Next) {
+			if (Child->Base.Type != MLXmlElementT) continue;
+			ml_value_t *Attributes = ((ml_xml_element_t *)Child)->Attributes;
+			int I = 2;
+			ML_LIST_FOREACH(Args[2], Iter) {
+				++I;
+				ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+				if (Args[I] == MLNil) {
+					if (Value != MLNil) goto next2;
+				} else {
+					if (Value == MLNil) goto next2;
+					if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next2;
+				}
+			}
+			if (--Index == 0) return (ml_value_t *)Child;
+		next2:
+			continue;
+		}
+	}
+	return MLNil;
+}
+
+ML_METHODV("[]", MLXmlElementT, MLIntegerT, MLStringT, MLNamesT) {
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	if (Index == 0) return MLNil;
+	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[2]));
+	if (!Tag) return MLNil;
+	ML_NAMES_CHECK_ARG_COUNT(3);
+	int I = 3;
+	ML_LIST_FOREACH(Args[3], Iter) {
+		++I;
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
+	}
+	if (Index < 0) {
+		for (ml_xml_node_t *Child = Element->Tail; Child; Child = Child->Prev) {
+			if (Child->Base.Type != MLXmlElementT) continue;
+			if (Child->Base.Value != Tag) continue;
+			ml_value_t *Attributes = ((ml_xml_element_t *)Child)->Attributes;
+			int I = 3;
+			ML_LIST_FOREACH(Args[3], Iter) {
+				++I;
+				ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+				if (Args[I] == MLNil) {
+					if (Value != MLNil) goto next1;
+				} else {
+					if (Value == MLNil) goto next1;
+					if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next1;
+				}
+			}
+			if (++Index == 0) return (ml_value_t *)Child;
+		next1:
+			continue;
+		}
+	} else {
+		for (ml_xml_node_t *Child = Element->Head; Child; Child = Child->Next) {
+			if (Child->Base.Type != MLXmlElementT) continue;
+			if (Child->Base.Value != Tag) continue;
+			ml_value_t *Attributes = ((ml_xml_element_t *)Child)->Attributes;
+			int I = 3;
+			ML_LIST_FOREACH(Args[3], Iter) {
+				++I;
+				ml_value_t *Value = ml_map_search(Attributes, Iter->Value);
+				if (Args[I] == MLNil) {
+					if (Value != MLNil) goto next2;
+				} else {
+					if (Value == MLNil) goto next2;
+					if (strcmp(ml_string_value(Args[I]), ml_string_value(Value))) goto next2;
+				}
+			}
+			if (--Index == 0) return (ml_value_t *)Child;
+		next2:
+			continue;
+		}
+	}
+	return MLNil;
 }
 
 ML_METHODX("[]", MLXmlElementT, MLStringT) {

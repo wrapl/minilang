@@ -556,6 +556,16 @@ sequence
    *TBD*
 
 
+:mini:`meth (Sequence: sequence):ignoring(Fn: function): sequence`
+   Returns an sequence that skips initial values for which which :mini:`Fn(Value)` is :mini:`nil`.
+
+   .. code-block:: mini
+
+      list("banana") :> ["b", "a", "n", "a", "n", "a"]
+      list("banana" ignoring (_ != "b"))
+      :> ["a", "n", "a", "n", "a"]
+
+
 :mini:`meth (Sequence: sequence):join: string`
    Joins the elements of :mini:`Sequence` into a string.
 
@@ -613,7 +623,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "c"
       random([]) :> nil
 
 

@@ -2492,7 +2492,6 @@ ML_METHODX("precount", MLSkippedT) {
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value, *Fn;
-	int Remaining;
 } ml_provided_t;
 
 ML_TYPE(MLProvidedT, (MLSequenceT), "provided");
@@ -2565,6 +2564,59 @@ ML_METHOD("provided", MLSequenceT, MLFunctionT) {
 	Provided->Value = Args[0];
 	Provided->Fn = Args[1];
 	return (ml_value_t *)Provided;
+}
+
+ML_TYPE(MLIgnoringT, (MLSequenceT), "ignoring-state");
+//!internal
+
+ML_TYPE(MLIgnoringStateT, (MLStateT), "ignoring-state");
+//!internal
+
+static void ignoring_check(ml_provided_state_t *State, ml_value_t *Value);
+
+static void ignoring_iterate(ml_provided_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_deref(Value) != MLNil) ML_CONTINUE(State->Base.Caller, State->Iter);
+	State->Base.run = (ml_state_fn)ignoring_check;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ignoring_value(ml_provided_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)ignoring_iterate;
+	State->Args[0] = Value;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ignoring_check(ml_provided_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)ignoring_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLIgnoringT, ml_state_t *Caller, ml_provided_t *Ignoring) {
+	ml_provided_state_t *State = new(ml_provided_state_t);
+	State->Base.Type = MLIgnoringStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ignoring_check;
+	State->Fn = Ignoring->Fn;
+	return ml_iterate((ml_state_t *)State, Ignoring->Value);
+}
+
+ML_METHOD("ignoring", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Returns an sequence that skips initial values for which which :mini:`Fn(Value)` is :mini:`nil`.
+//$= list("banana")
+//$= list("banana" ignoring (_ != "b"))
+	ml_provided_t *Ignoring = new(ml_provided_t);
+	Ignoring->Type = ml_generic_sequence(MLIgnoringT, Args[0]);
+	Ignoring->Value = Args[0];
+	Ignoring->Fn = Args[1];
+	return (ml_value_t *)Ignoring;
 }
 
 typedef struct ml_unique_t {

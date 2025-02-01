@@ -22,6 +22,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`meth (Arg₁: any):sha256`
+   *TBD*
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: any, Arg₃: function, ...)`
    *TBD*
 
@@ -947,6 +951,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:write("Hello world")
       B:rest :> "Hello world"
       B:rest :> ""
+
+
+:mini:`meth (Buffer: string::buffer):unread(Bytes: address): string::buffer`
+   Inserts the contents of :mini:`Bytes` at the start of :mini:`Buffer`.
 
 
 :mini:`meth (Buffer: string::buffer):write(Value₁, : any, ...): integer`

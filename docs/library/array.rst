@@ -738,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 992570985>>
+      A:minidx(2) :> <<2 1> <1 743733349>>
 
 
 :mini:`meth (Array: array):minval: number`
