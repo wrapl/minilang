@@ -3551,7 +3551,7 @@ ML_FUNCTION(Swap) {
 #else
 	Swapped->Type = MLSwappedT;
 #endif
-	Swapped->Value = Args[0];
+	Swapped->Value = ml_chained(Count, Args);
 	return (ml_value_t *)Swapped;
 }
 
@@ -3611,7 +3611,7 @@ ML_FUNCTION(Key) {
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_key_t *Key = new(ml_key_t);
 	Key->Type = MLKeyT;
-	Key->Value = Args[0];
+	Key->Value = ml_chained(Count, Args);
 	return (ml_value_t *)Key;
 }
 
@@ -3675,7 +3675,7 @@ ML_FUNCTION(Dup) {
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_dup_t *Dup = new(ml_dup_t);
 	Dup->Type = MLDupT;
-	Dup->Value = Args[0];
+	Dup->Value = ml_chained(Count, Args);
 	return (ml_value_t *)Dup;
 }
 
