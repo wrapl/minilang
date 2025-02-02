@@ -196,6 +196,8 @@ hierarchy
       "ast::expr":e -> "ast::expr::if":w;
       "ast::expr":e -> "ast::expr::fun":w;
       "ast::expr":e -> "ast::expr::for":w;
+      "ast::expr":e -> "ast::expr::call":w;
+      "ast::expr":e -> "ast::expr::args":w;
       "ast::expr":e -> "ast::expr::value":w;
       "ast::expr":e -> "ast::expr::subst":w;
       "ast::expr":e -> "ast::expr::ident":w;
@@ -206,12 +208,12 @@ hierarchy
       "ast::expr":e -> "ast::expr::parent":w;
       "ast::expr":e -> "ast::expr::default":w;
       "ast::expr":e -> "ast::expr::ifconfig":w;
+      "ast::expr":e -> "ast::expr::callvalue":w;
       "ast::expr":e -> "ast::expr::parentvalue":w;
       "ast::expr::parent":e -> "ast::expr::and":w;
       "ast::expr::parent":e -> "ast::expr::assign":w;
       "ast::expr":e -> "ast::expr::blank":w;
-      "ast::expr::parent":e -> "ast::expr::call":w;
-      "ast::expr::parentvalue":e -> "ast::expr::constcall":w;
+      "ast::expr::callvalue":e -> "ast::expr::constcall":w;
       "ast::expr::parent":e -> "ast::expr::debug":w;
       "ast::expr::local":e -> "ast::expr::def":w;
       "ast::expr::local":e -> "ast::expr::defin":w;
@@ -234,6 +236,7 @@ hierarchy
       "ast::expr::parent":e -> "ast::expr::not":w;
       "ast::expr":e -> "ast::expr::old":w;
       "ast::expr::parent":e -> "ast::expr::or":w;
+      "ast::expr":e -> "ast::expr::recur":w;
       "ast::expr::local":e -> "ast::expr::ref":w;
       "ast::expr::local":e -> "ast::expr::refin":w;
       "ast::expr::local":e -> "ast::expr::refunpack":w;
