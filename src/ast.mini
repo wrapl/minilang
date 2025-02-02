@@ -33,6 +33,8 @@ with Input := file("src/ml_compiler2.h", "r") do
 					end
 				end
 			end
+			Fields:delete("Type")
+			Fields:delete("CacheInst")
 			Structs[Name] := struct(Fields, 0, List)
 		end
 	end
@@ -46,7 +48,7 @@ end
 with Input := file("src/ml_compiler.c", "r") do
 	loop
 		let Line := while Input:read
-		if let Match := Line % r"static void ml_([a-z_]+_expr)_compile\(mlc_function_t \*Function, (mlc_[a-z_]+_t) \*Expr" then
+		if let Match := Line % r"void ml_([a-z_]+_expr)_compile\(mlc_function_t \*Function, (?:const )?(mlc_[a-z_]+_t) \*Expr" then
 			Types["mlc_" + Match[2] + "_t"] := Match[3]
 		end
 	end
