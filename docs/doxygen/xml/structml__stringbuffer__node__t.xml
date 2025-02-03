@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="786" column="24" bodyfile="src/ml_types.h" bodystart="786" bodyend="-1"/>
+        <location file="src/ml_types.h" line="790" column="24" bodyfile="src/ml_types.h" bodystart="790" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__node__t_1a96c5959eec1087332b3186152d0943b5" prot="public" static="no" mutable="no">
         <type>char</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="787" column="6" bodyfile="src/ml_types.h" bodystart="787" bodyend="-1"/>
+        <location file="src/ml_types.h" line="791" column="6" bodyfile="src/ml_types.h" bodystart="791" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -45,7 +45,7 @@
         </childnode>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="785" column="1" bodyfile="src/ml_types.h" bodystart="785" bodyend="788"/>
+    <location file="src/ml_types.h" line="789" column="1" bodyfile="src/ml_types.h" bodystart="789" bodyend="792"/>
     <listofallmembers>
       <member refid="structml__stringbuffer__node__t_1a96c5959eec1087332b3186152d0943b5" prot="public" virt="non-virtual"><scope>ml_stringbuffer_node_t</scope><name>Chars</name></member>
       <member refid="structml__stringbuffer__node__t_1aa7bc1e1e4709cd1932f0d75b54ff539d" prot="public" virt="non-virtual"><scope>ml_stringbuffer_node_t</scope><name>Next</name></member>

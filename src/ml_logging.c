@@ -218,7 +218,7 @@ static mlc_expr_t *ml_log_macro_fn(mlc_expr_t *Expr, mlc_expr_t *Child, ml_log_i
 	LevelExpr->Value = ml_integer(Info->Level);
 	LevelExpr->Next = Child;
 
-	mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
+	mlc_call_value_expr_t *CallExpr = new(mlc_call_value_expr_t);
 	CallExpr->compile = ml_const_call_expr_compile;
 	CallExpr->Source = Expr->Source;
 	CallExpr->StartLine = Expr->StartLine;

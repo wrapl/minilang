@@ -187,6 +187,10 @@ xml
    Returns the index of :mini:`Node` in its parent or :mini:`nil`.
 
 
+:mini:`meth (Node: xml):index(Text: boolean): integer | nil`
+   Returns the index of :mini:`Node` in its parent including or excluding text nodes.
+
+
 :mini:`meth (Xml: xml):next: xml | nil`
    Returns the next sibling of :mini:`Xml` or :mini:`nil`.
 
@@ -297,6 +301,18 @@ xml
 
 :mini:`meth (Parent: xml::element)[Index: integer]: xml | nil`
    Returns the :mini:`Index`-th child of :mini:`Parent` or :mini:`nil`.
+
+
+:mini:`meth (Arg₁: xml::element)[Arg₂: integer, Arg₃₁ is Value₁, ...]`
+   *TBD*
+
+
+:mini:`meth (Parent: xml::element)[Index: integer, Tag: string]: xml | nil`
+   Returns the :mini:`Index`-th child of :mini:`Parent` with tag :mini:`Tag` or :mini:`nil`.
+
+
+:mini:`meth (Arg₁: xml::element)[Arg₂: integer, Arg₃: string, Arg₄₁ is Value₁, ...]`
+   *TBD*
 
 
 :mini:`meth (Parent: xml::element)[Attribute: string]: string | nil`

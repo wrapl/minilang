@@ -151,6 +151,27 @@ ml_value_t *ml_chainedv(int Count, ...) {
 	return (ml_value_t *)Chained;
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLChainedT, ml_chained_function_t *Chained, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	ml_value_sha256(Chained->Entries[0], Chain, Hash);
+	ml_value_t **Entry = Chained->Entries;
+	for (int I = 1; *Entry; ++I, ++Entry) {
+		*(long *)(Hash + (I % 16)) ^= ml_hash_chain(*Entry, Chain);
+	}
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLChainedT, ml_chained_function_t *Chained) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("->"));
+	for (ml_value_t **Entry = Chained->Entries; *Entry; ++Entry) {
+		ml_list_put(Result, *Entry);
+	}
+	return Result;
+}
+
+ML_DESERIALIZER("->") {
+	return ml_chained(Count, Args);
+}
+
 typedef struct ml_chained_iterator_t {
 	ml_state_t Base;
 	ml_value_t *Iterator;
@@ -691,8 +712,33 @@ typedef struct {
 	ml_value_t *Sequence, *ValueFn;
 } ml_doubled_t;
 
-ML_TYPE(MLDoubledT, (MLSequenceT), "doubled");
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *ValueFn;
+} ml_doubled_call_state_t;
+
+ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function);
+
+static void ml_doubled_run(ml_doubled_call_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ML_RETURN(ml_doubled(Value, State->ValueFn));
+}
+
+static void ml_doubled_call(ml_state_t *Caller, ml_doubled_t *Doubled, int Count, ml_value_t **Args) {
+	ml_doubled_call_state_t *State = new(ml_doubled_call_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_doubled_run;
+	State->ValueFn = Doubled->ValueFn;
+	return ml_call((ml_state_t *)State, Doubled->Sequence, Count, Args);
+}
+
+ML_TYPE(MLDoubledT, (MLSequenceT), "doubled",
 //!internal
+	.call = (void *)ml_doubled_call
+);
 
 typedef struct ml_double_state_t {
 	ml_state_t Base;
@@ -792,6 +838,11 @@ ML_METHOD("^", MLSequenceT, MLFunctionT) {
 //
 //    Use :mini:`->>` instead.
 //$= list(1 .. 5 ^ (1 .. _))
+	return ml_doubled(Args[0], Args[1]);
+}
+
+ML_METHOD("->>", MLFunctionT, MLFunctionT) {
+//!internal
 	return ml_doubled(Args[0], Args[1]);
 }
 
@@ -1229,6 +1280,7 @@ ML_METHODX("apply", MLSequenceT, MLFunctionT) {
 /****************************** Find ******************************/
 
 static ML_METHOD_DECL(EqualMethod, "=");
+static ML_METHOD_DECL(NotEqualMethod, "!=");
 
 typedef struct {
 	ml_state_t Base;
@@ -2441,7 +2493,6 @@ ML_METHODX("precount", MLSkippedT) {
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value, *Fn;
-	int Remaining;
 } ml_provided_t;
 
 ML_TYPE(MLProvidedT, (MLSequenceT), "provided");
@@ -2515,6 +2566,96 @@ ML_METHOD("provided", MLSequenceT, MLFunctionT) {
 	Provided->Fn = Args[1];
 	return (ml_value_t *)Provided;
 }
+
+ML_METHOD("before", MLSequenceT, MLAnyT) {
+	ml_value_t *Partial = ml_partial_function(NotEqualMethod, 2);
+	ml_partial_function_set(Partial, 1, Args[1]);
+	ml_provided_t *Provided = new(ml_provided_t);
+	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
+	Provided->Value = Args[0];
+	Provided->Fn = Partial;
+	return (ml_value_t *)Provided;
+}
+
+ML_TYPE(MLIgnoringT, (MLSequenceT), "ignoring-state");
+//!internal
+
+ML_TYPE(MLIgnoringStateT, (MLStateT), "ignoring-state");
+//!internal
+
+static void ignoring_check(ml_provided_state_t *State, ml_value_t *Value);
+
+static void ignoring_iterate(ml_provided_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_deref(Value) != MLNil) ML_CONTINUE(State->Base.Caller, State->Iter);
+	State->Base.run = (ml_state_fn)ignoring_check;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ignoring_value(ml_provided_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)ignoring_iterate;
+	State->Args[0] = Value;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ignoring_check(ml_provided_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)ignoring_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLIgnoringT, ml_state_t *Caller, ml_provided_t *Ignoring) {
+	ml_provided_state_t *State = new(ml_provided_state_t);
+	State->Base.Type = MLIgnoringStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ignoring_check;
+	State->Fn = Ignoring->Fn;
+	return ml_iterate((ml_state_t *)State, Ignoring->Value);
+}
+
+ML_METHOD("skipuntil", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Returns an sequence that skips initial values for which which :mini:`Fn(Value)` is :mini:`nil`.
+//$= list("banana")
+//$= list("banana" skipuntil (_ != "b"))
+	ml_provided_t *Ignoring = new(ml_provided_t);
+	Ignoring->Type = ml_generic_sequence(MLIgnoringT, Args[0]);
+	Ignoring->Value = Args[0];
+	Ignoring->Fn = Args[1];
+	return (ml_value_t *)Ignoring;
+}
+
+ML_METHOD("from", MLSequenceT, MLAnyT) {
+//<Sequence
+//<Value
+//>sequence
+// Returns an sequence that skips initial values not equal to :mini:`Value`.
+//$= list("banana")
+//$= list("banana" from "n")
+	ml_value_t *Partial = ml_partial_function(EqualMethod, 2);
+	ml_partial_function_set(Partial, 1, Args[1]);
+	ml_provided_t *Ignoring = new(ml_provided_t);
+	Ignoring->Type = ml_generic_sequence(MLIgnoringT, Args[0]);
+	Ignoring->Value = Args[0];
+	Ignoring->Fn = Partial;
+	return (ml_value_t *)Ignoring;
+}
+
+/*
+ML_METHOD("after", MLSequenceT, MLAnyT) {
+//<Sequence
+//<Value
+//>sequence
+// Returns an sequence that skips initial values not equal to :mini:`Value` and skips :mini:`Value` itself once.
+//$= list("banana")
+//$= list("banana" after "n")
+}
+*/
 
 typedef struct ml_unique_t {
 	ml_type_t *Type;
@@ -3410,7 +3551,7 @@ ML_FUNCTION(Swap) {
 #else
 	Swapped->Type = MLSwappedT;
 #endif
-	Swapped->Value = Args[0];
+	Swapped->Value = ml_chained(Count, Args);
 	return (ml_value_t *)Swapped;
 }
 
@@ -3470,7 +3611,7 @@ ML_FUNCTION(Key) {
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_key_t *Key = new(ml_key_t);
 	Key->Type = MLKeyT;
-	Key->Value = Args[0];
+	Key->Value = ml_chained(Count, Args);
 	return (ml_value_t *)Key;
 }
 
@@ -3534,7 +3675,7 @@ ML_FUNCTION(Dup) {
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_dup_t *Dup = new(ml_dup_t);
 	Dup->Type = MLDupT;
-	Dup->Value = Args[0];
+	Dup->Value = ml_chained(Count, Args);
 	return (ml_value_t *)Dup;
 }
 
@@ -4234,6 +4375,9 @@ void ml_sequence_init(stringmap_t *Globals) {
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;
 	MLSequenceT->Constructor = (ml_value_t *)MLChained;
 #include "ml_sequence_init.c"
+	ml_value_t *Skip1 = ml_partial_function(ml_method("skip"), 2);
+	ml_partial_function_set(Skip1, 1, ml_integer(1));
+	ml_method_definev(ml_method("after"), ml_chainedv(2, ml_method("from"), Skip1), NULL, MLSequenceT, MLAnyT, NULL);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLChainedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLDoubledT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);

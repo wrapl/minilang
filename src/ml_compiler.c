@@ -2010,6 +2010,7 @@ typedef struct {
 	mlc_expr_t *Child;
 	ml_value_t *Value;
 	ml_inst_t *NilInst;
+	ml_inst_t **CacheSlot;
 	int Count, Index, Flags;
 } ml_call_expr_frame_t;
 
@@ -2074,6 +2075,8 @@ static void ml_call_expr_compile5(mlc_function_t *Function, ml_value_t *Value, m
 		if (ml_typeof(Frame->Value) == MLMethodT) {
 			ml_inst_t *CallInst;
 			CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_METHOD : MLI_CALL_METHOD), 3);
+			if (Frame->CacheSlot[0] && Frame->CacheSlot[0]->Data) CallInst[3].Data = Frame->CacheSlot[0]->Data;
+			Frame->CacheSlot[0] = &CallInst[3];
 			CallInst[2].Count = Count;
 			CallInst[1].Value = Frame->Value;
 		} else {
@@ -2252,9 +2255,10 @@ static void ml_call_expr_compile4(mlc_function_t *Function, ml_value_t *Value, m
 
 extern ml_cfunctionx_t MLCall[];
 
-void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+void ml_call_expr_compile(mlc_function_t *Function, mlc_call_expr_t *Expr, int Flags) {
 	MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);
 	Frame->Expr = (mlc_expr_t *)Expr;
+	Frame->CacheSlot = &Expr->CacheInst;
 	Frame->Child = Expr->Child->Next;
 	int Count = 0;
 	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) ++Count;
@@ -2293,9 +2297,10 @@ void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int
 	return mlc_compile(Function, Expr->Child, MLCF_CONSTANT | MLCF_PUSH);
 }
 
-void ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, int Flags) {
+void ml_const_call_expr_compile(mlc_function_t *Function, mlc_call_value_expr_t *Expr, int Flags) {
 	MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);
 	Frame->Expr = (mlc_expr_t *)Expr;
+	Frame->CacheSlot = &Expr->CacheInst;
 	Frame->Child = Expr->Child;
 	int Count = 0;
 	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
@@ -3756,7 +3761,7 @@ ML_FUNCTION(MLBlockBuilder) {
 
 typedef struct {
 	ml_type_t *Type;
-	mlc_parent_expr_t *Expr;
+	mlc_expr_t *Expr;
 	mlc_expr_t **ExprSlot;
 } mlc_expr_builder_t;
 
@@ -3776,7 +3781,7 @@ ML_FUNCTION(MLTupleBuilder) {
 	Expr->EndLine = 1;
 	mlc_expr_builder_t *Builder = new(mlc_expr_builder_t);
 	Builder->Type = MLExprBuilderT;
-	Builder->Expr = Expr;
+	Builder->Expr = (mlc_expr_t *)Expr;
 	Builder->ExprSlot = &Expr->Child;
 	return (ml_value_t *)Builder;
 }
@@ -3793,7 +3798,7 @@ ML_FUNCTION(MLListBuilder) {
 	Expr->EndLine = 1;
 	mlc_expr_builder_t *Builder = new(mlc_expr_builder_t);
 	Builder->Type = MLExprBuilderT;
-	Builder->Expr = Expr;
+	Builder->Expr = (mlc_expr_t *)Expr;
 	Builder->ExprSlot = &Expr->Child;
 	return (ml_value_t *)Builder;
 }
@@ -3810,7 +3815,7 @@ ML_FUNCTION(MLMapBuilder) {
 	Expr->EndLine = 1;
 	mlc_expr_builder_t *Builder = new(mlc_expr_builder_t);
 	Builder->Type = MLExprBuilderT;
-	Builder->Expr = Expr;
+	Builder->Expr = (mlc_expr_t *)Expr;
 	Builder->ExprSlot = &Expr->Child;
 	return (ml_value_t *)Builder;
 }
@@ -3820,14 +3825,14 @@ ML_FUNCTION(MLCallBuilder) {
 //@macro::call
 //>exprbuilder
 // Returns a new call builder.
-	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
+	mlc_call_expr_t *Expr = new(mlc_call_expr_t);
 	Expr->compile = ml_call_expr_compile;
 	Expr->Source = "<macro>";
 	Expr->StartLine = 1;
 	Expr->EndLine = 1;
 	mlc_expr_builder_t *Builder = new(mlc_expr_builder_t);
 	Builder->Type = MLExprBuilderT;
-	Builder->Expr = Expr;
+	Builder->Expr = (mlc_expr_t *)Expr;
 	Builder->ExprSlot = &Expr->Child;
 	return (ml_value_t *)Builder;
 }
@@ -4939,7 +4944,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 //extern ml_cfunctionx_t MLMethodSet[];
 
 static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
-	ML_EXPR(MethodExpr, parent_value, const_call);
+	ML_EXPR(MethodExpr, call_value, const_call);
 	//MethodExpr->Value = (ml_value_t *)MLMethodSet;
 	MethodExpr->Value = MLMethodDefine;
 	mlc_expr_t *Method = ml_accept_term(Parser, 1);
@@ -5408,7 +5413,7 @@ static void ML_TYPED_FN(ml_iterate, MLCompilerZipT, ml_state_t *Caller, ml_compi
 }
 
 static void ml_accept_for_decls(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
-	ML_EXPR(CallExpr, parent_value, const_call);
+	ML_EXPR(CallExpr, call_value, const_call);
 	CallExpr->Value = (ml_value_t *)MLCompilerZip;
 	if (Expr->Key) {
 		mlc_local_t *Local = mlc_local_new(Expr->Key, Expr->StartLine);
@@ -5598,16 +5603,16 @@ with_name:
 		mlc_expr_t *Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 		mlc_expr_t **CaseExprs = NULL;
 		if (ml_parse(Parser, MLT_COLON)) {
-			ML_EXPR(ProviderExpr, parent_value, const_call);
+			ML_EXPR(ProviderExpr, call_value, const_call);
 			ProviderExpr->Value = MLCompilerSwitch;
 			ProviderExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 			ML_EXPR(InlineExpr, parent, inline);
 			InlineExpr->Child = ML_EXPR_END(ProviderExpr);
 			CaseExprs = &InlineExpr->Next;
-			ML_EXPR(SwitchExpr, parent, call);
+			ML_EXPR(SwitchExpr, call, call);
 			SwitchExpr->Child = ML_EXPR_END(InlineExpr);
 			SwitchExpr->Next = Child;
-			ML_EXPR(CallExpr, parent, call);
+			ML_EXPR(CallExpr, call, call);
 			CallExpr->Child = ML_EXPR_END(SwitchExpr);
 			Child = ML_EXPR_END(CallExpr);
 		}
@@ -5680,7 +5685,7 @@ with_name:
 		ML_EXPR(FunExpr, fun, fun);
 		FunExpr->Source = Parser->Source.Name;
 		FunExpr->Body = ml_accept_expression(Parser, EXPR_DEFAULT);
-		ML_EXPR(SequenceExpr, parent_value, const_call);
+		ML_EXPR(SequenceExpr, call_value, const_call);
 		SequenceExpr->Value = (ml_value_t *)MLFunctionSequenceT;
 		SequenceExpr->Child = ML_EXPR_END(FunExpr);
 		return ML_EXPR_END(SequenceExpr);
@@ -5789,7 +5794,7 @@ with_name:
 		ValueExpr->Value = ml_expr_value(ml_accept_expression(Parser, EXPR_DEFAULT));
 		mlc_expr_t *Expr = ML_EXPR_END(ValueExpr);
 		if (ml_parse(Parser, MLT_COMMA)) {
-			ML_EXPR(CallExpr, parent_value, const_call);
+			ML_EXPR(CallExpr, call_value, const_call);
 			CallExpr->Value = ml_method("subst");
 			CallExpr->Child = Expr;
 			ml_accept_arguments(Parser, MLT_RIGHT_BRACE, &Expr->Next);
@@ -5877,7 +5882,7 @@ with_name:
 			} while (ml_parse2(Parser, MLT_COMMA));
 			ml_accept(Parser, MLT_RIGHT_BRACE);
 			if (UseTemplate) {
-				ML_EXPR(CallExpr, parent_value, const_call);
+				ML_EXPR(CallExpr, call_value, const_call);
 				ml_value_t *Template = CallExpr->Value = ml_map();
 				mlc_expr_t **ArgsSlot = &CallExpr->Child;
 				int Index = 0;
@@ -5904,14 +5909,14 @@ with_name:
 			ValueExpr->Value = Operator;
 			return ML_EXPR_END(ValueExpr);
 		} else if (ml_parse(Parser, MLT_LEFT_PAREN)) {
-			ML_EXPR(CallExpr, parent_value, const_call);
+			ML_EXPR(CallExpr, call_value, const_call);
 			CallExpr->Value = Operator;
 			ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &CallExpr->Child);
 			return ML_EXPR_END(CallExpr);
 		} else {
 			mlc_expr_t *Child = ml_parse_term(Parser, 0);
 			if (Child) {
-				ML_EXPR(CallExpr, parent_value, const_call);
+				ML_EXPR(CallExpr, call_value, const_call);
 				CallExpr->Value = Operator;
 				CallExpr->Child = Child;
 				return ML_EXPR_END(CallExpr);
@@ -5938,7 +5943,7 @@ static mlc_expr_t *ml_parse_term_postfix(ml_parser_t *Parser, int MethDecl, mlc_
 		case MLT_LEFT_PAREN: {
 			if (MethDecl) return Expr;
 			ml_next(Parser);
-			ML_EXPR(CallExpr, parent, call);
+			ML_EXPR(CallExpr, call, call);
 			CallExpr->Child = Expr;
 			ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &Expr->Next);
 			Expr = ML_EXPR_END(CallExpr);
@@ -5946,7 +5951,7 @@ static mlc_expr_t *ml_parse_term_postfix(ml_parser_t *Parser, int MethDecl, mlc_
 		}
 		case MLT_LEFT_SQUARE: {
 			ml_next(Parser);
-			ML_EXPR(IndexExpr, parent_value, const_call);
+			ML_EXPR(IndexExpr, call_value, const_call);
 			IndexExpr->Value = IndexMethod;
 			IndexExpr->Child = Expr;
 			ml_accept_arguments(Parser, MLT_RIGHT_SQUARE, &Expr->Next);
@@ -5955,7 +5960,7 @@ static mlc_expr_t *ml_parse_term_postfix(ml_parser_t *Parser, int MethDecl, mlc_
 		}
 		case MLT_METHOD: {
 			ml_next(Parser);
-			ML_EXPR(CallExpr, parent_value, const_call);
+			ML_EXPR(CallExpr, call_value, const_call);
 			CallExpr->Value = ml_method(Parser->Ident);
 			CallExpr->Child = Expr;
 			if (ml_parse(Parser, MLT_LEFT_PAREN)) {
@@ -6020,7 +6025,7 @@ static mlc_expr_t *ml_parse_expression(ml_parser_t *Parser, ml_expr_level_t Leve
 	for (;;) switch (ml_current(Parser)) {
 	case MLT_OPERATOR: case MLT_IDENT: case MLT_IN: {
 		ml_next(Parser);
-		ML_EXPR(CallExpr, parent_value, const_call);
+		ML_EXPR(CallExpr, call_value, const_call);
 		CallExpr->Value = ml_method(Parser->Ident);
 		CallExpr->Child = Expr;
 		if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
@@ -6323,7 +6328,7 @@ static void ml_accept_block_def(ml_parser_t *Parser, ml_accept_block_t *Accept) 
 			mlc_local_t *Local = Accept->DefsSlot[0] = mlc_local_new(Parser->Ident, Parser->Source.Line);
 			Accept->DefsSlot = &Local->Next;
 			ML_EXPR(LocalExpr, local, def);
-			ML_EXPR(CallExpr, parent_value, const_call);
+			ML_EXPR(CallExpr, call_value, const_call);
 			CallExpr->Value = (ml_value_t *)MLVariableT;
 			mlc_expr_t *TypeExpr = ml_parse(Parser, MLT_COLON) ? ml_accept_term(Parser, 0) : NULL;
 			if (ml_parse(Parser, MLT_ASSIGN)) {
@@ -6377,7 +6382,7 @@ static void ml_accept_block_fun(ml_parser_t *Parser, ml_accept_block_t *Accept) 
 }
 
 static mlc_expr_t *ml_accept_block_export(ml_parser_t *Parser, mlc_expr_t *Expr, mlc_local_t *Export) {
-	ML_EXPR(CallExpr, parent, call);
+	ML_EXPR(CallExpr, call, call);
 	CallExpr->Child = Expr;
 	ml_value_t *Names = ml_names();
 	ML_EXPR(NamesExpr, value, value);
@@ -6439,7 +6444,7 @@ static mlc_expr_t *ml_parse_block_expr(ml_parser_t *Parser, ml_accept_block_t *A
 				Accept->ExprSlot = &Child->Next;
 				Expr = ml_accept_block_export(Parser, Expr, Previous.DefsSlot[0]);
 			} else {
-				mlc_parent_expr_t *CallExpr = (mlc_parent_expr_t *)Child;
+				mlc_call_expr_t *CallExpr = (mlc_call_expr_t *)Child;
 				if (CallExpr->compile != ml_call_expr_compile) {
 					ml_parse_warn(Parser, "ParseError", "Invalid declaration");
 					return Expr;
@@ -7244,7 +7249,7 @@ static void ml_command_evaluate_expr(mlc_function_t *Function, ml_parser_t *Pars
 	if (ml_parse(Parser, MLT_COLON)) {
 		ml_accept(Parser, MLT_IDENT);
 		const char *Ident = Parser->Ident;
-		ML_EXPR(CallExpr, parent, call);
+		ML_EXPR(CallExpr, call, call);
 		CallExpr->Child = Expr;
 		ml_accept(Parser, MLT_LEFT_PAREN);
 		ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &Expr->Next);
@@ -7501,7 +7506,7 @@ static void ml_inline_call_macro_fn(ml_state_t *Caller, void *Value, int Count, 
 		Parser->Source.Name = "<macro>";
 		Parser->Source.Line = 1;
 	}
-	ML_EXPR(CallExpr, parent_value, const_call);
+	ML_EXPR(CallExpr, call_value, const_call);
 	CallExpr->Value = (ml_value_t *)Value;
 	mlc_expr_t **Slot = &CallExpr->Child;
 	for (int I = 0; I < Count; ++I) {

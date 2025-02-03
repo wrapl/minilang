@@ -22,6 +22,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`meth (Arg₁: any):sha256`
+   *TBD*
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: any, Arg₃: function, ...)`
    *TBD*
 
@@ -229,6 +233,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello" + " " + "world" :> "Hello world"
+
+
+:mini:`meth (Start: string) .. (Limit: string): string::interval`
+   Returns a interval from the first character of :mini:`Start` to the first character of :mini:`Limit` (inclusive).
 
 
 :mini:`meth (String: string) / (Pattern: regex): list`
@@ -870,6 +878,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       "λ:😀 → Y" ~ "λ:X → 😺" :> 2
 
 
+:mini:`def MLStringProperties: string::properties`
+   *TBD*
+
+
 :mini:`meth (A: string) ~> (B: string): integer`
    Returns an asymmetric edit distance from :mini:`A` to :mini:`B`.
 
@@ -890,11 +902,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
-:mini:`type string::buffer < stream`
+:mini:`type string::buffer`
    A string buffer that automatically grows and shrinks as required.
 
 
-:mini:`type string::buffer`
+:mini:`type string::buffer < stream`
    A string buffer that automatically grows and shrinks as required.
 
 
@@ -941,6 +953,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> ""
 
 
+:mini:`meth (Buffer: string::buffer):unread(Bytes: address): string::buffer`
+   Inserts the contents of :mini:`Bytes` at the start of :mini:`Buffer`.
+
+
 :mini:`meth (Buffer: string::buffer):write(Value₁, : any, ...): integer`
    Writes each :mini:`Valueᵢ` in turn to :mini:`Buffer`.
 
@@ -949,6 +965,18 @@ When creating a substring,  the first index is inclusive and second index is exc
       let B := string::buffer()
       B:write("1 + 1 = ", 1 + 1)
       B:rest :> "1 + 1 = 2"
+
+
+:mini:`type string::charset < sequence`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::charset)[Arg₂: integer]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::charset):count`
+   *TBD*
 
 
 :mini:`type string::ctype < enum`
@@ -984,11 +1012,51 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`::Pf` - Final Punctuation
 
 
+:mini:`type string::interval < integer::interval`
+   *TBD*
+
+
 :mini:`type string::norm < enum`
    * :mini:`::NFC`
    * :mini:`::NFD`
    * :mini:`::NFKC`
    * :mini:`::NFKD`
+
+
+:mini:`meth (Arg₁: string::properties) :: (Arg₂: string)`
+   *TBD*
+
+
+:mini:`type string::property < sequence`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property) :: (Arg₂: string)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property)[Arg₂: integer]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property)[Arg₂: string]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property):max`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::property):min`
+   *TBD*
+
+
+:mini:`meth stringcharset(Arg₁: string::property::value)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string::property::value)`
+   *TBD*
 
 
 :mini:`fun string::switch(Cases: string|regex, ...)`

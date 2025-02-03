@@ -1959,6 +1959,7 @@ void ml_runtime_init(const char *ExecName) {
 #endif
 #ifdef ML_UNWIND
 	signal(SIGSEGV, error_handler);
+	signal(SIGABRT, error_handler);
 #endif
 	GC_set_warn_proc(ml_gc_warn_fn);
 #ifdef ML_BACKTRACE

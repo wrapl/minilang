@@ -197,3 +197,7 @@ interval
    *TBD*
 
 
+:mini:`meth (Buffer: string::buffer):append(Value: string::interval)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
+

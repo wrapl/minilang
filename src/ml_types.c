@@ -248,9 +248,20 @@ void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_
 }
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	long Hash = 5381;
-	for (const char *P = ml_typeof(Value)->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
-	return Hash;
+	typeof(ml_value_sha256) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_sha256);
+	if (function) {
+		unsigned char SHA256[SHA256_BLOCK_SIZE];
+		function(Value, Chain, SHA256);
+		long Hash = 0;
+		long *P = (long *)SHA256;
+		long *Q = (long *)(SHA256 + SHA256_BLOCK_SIZE);
+		while (P < Q) Hash ^= *P++;
+		return Hash;
+	} else {
+		long Hash = 5381;
+		for (const char *P = ml_typeof(Value)->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+		return Hash;
+	}
 }
 
 long ml_value_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -1180,6 +1191,22 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_typeof(Value)->hash(Value, NewChain);
 }
 
+void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) {
+			*(long *)Hash = Link->Index;
+			return;
+		}
+	}
+	typeof(ml_value_sha256) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_sha256);
+	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
+	if (function) {
+		function(Value, NewChain, Hash);
+	} else {
+		*(long *)Hash = ml_typeof(Value)->hash(Value, NewChain);
+	}
+}
+
 #ifdef ML_NANBOXING
 
 #define NegOne ml_integer32(-1)
@@ -1652,9 +1679,19 @@ static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int 
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
 
+static long ml_cfunction_hash(ml_cfunction_t *Function, ml_hash_chain_t *Chain) {
+	if (Function->Source) {
+		long Hash = 23879;
+		for (const char *P = Function->Source; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+		return Hash + Function->Line;
+	} else {
+		return (long)(uintptr_t)Function->Callback;
+	}
+}
+
 ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
 //!internal
-	.hash = (void *)ml_value_hash,
+	.hash = (void *)ml_cfunction_hash,
 	.call = (void *)ml_cfunction_call
 );
 
@@ -1710,9 +1747,19 @@ static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 
+static long ml_cfunctionx_hash(ml_cfunctionx_t *Function, ml_hash_chain_t *Chain) {
+	if (Function->Source) {
+		long Hash = 23879;
+		for (const char *P = Function->Source; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+		return Hash + Function->Line;
+	} else {
+		return (long)(uintptr_t)Function->Callback;
+	}
+}
+
 ML_TYPE(MLCFunctionXT, (MLFunctionT), "c-functionx",
 //!internal
-	.hash = (void *)ml_value_hash,
+	.hash = (void *)ml_cfunctionx_hash,
 	.call = (void *)ml_cfunctionx_call
 );
 
@@ -1750,7 +1797,7 @@ static void ml_cfunctionz_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 
 ML_TYPE(MLCFunctionZT, (MLFunctionT), "c-functionx",
 //!internal
-	.hash = (void *)ml_value_hash,
+	.hash = (void *)ml_cfunctionx_hash,
 	.call = (void *)ml_cfunctionz_call
 );
 
@@ -1794,6 +1841,15 @@ typedef struct ml_partial_function_t {
 	int Count, Set;
 	ml_value_t *Args[];
 } ml_partial_function_t;
+
+static long ml_partial_function_hash(ml_partial_function_t *Partial, ml_hash_chain_t *Chain) {
+	long Hash = ml_hash_chain(Partial->Function, Chain);
+	for (int I = 0; I < Partial->Count; ++I) {
+		ml_value_t *Arg = Partial->Args[I];
+		if (Arg) Hash ^= ml_hash(Arg) << (I + 1);
+	}
+	return Hash;
+}
 
 static void __attribute__ ((noinline)) ml_partial_function_copy_args(ml_partial_function_t *Partial, int CombinedCount, ml_value_t **CombinedArgs, int Count, ml_value_t **Args) {
 	ml_value_t *Copy[Count];
@@ -1839,6 +1895,7 @@ ML_FUNCTION(MLFunctionPartial) {
 
 ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "function::partial",
 //!function
+	.hash = (void *)ml_partial_function_hash,
 	.call = (void *)ml_partial_function_call,
 	.Constructor = (ml_value_t *)MLFunctionPartial
 );
@@ -1857,6 +1914,31 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 	++Partial->Set;
 	if (Partial->Count < Index + 1) Partial->Count = Index + 1;
 	return Partial->Args[Index] = Value;
+}
+
+static void ML_TYPED_FN(ml_value_sha256, MLFunctionPartialT, ml_partial_function_t *Partial, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	ml_value_sha256(Partial->Function, Chain, Hash);
+	for (int I = 0; I < Partial->Count; ++I) {
+		ml_value_t *Arg = Partial->Args[I];
+		if (Arg) *(long *)(Hash + (I % 16)) ^= ml_hash_chain(Arg, Chain);
+	}
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLFunctionPartialT, ml_partial_function_t *Partial) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("$!"));
+	ml_list_put(Result, Partial->Function);
+	for (int I = 0; I < Partial->Count; ++I) ml_list_put(Result, Partial->Args[I] ?: MLBlank);
+	return Result;
+}
+
+ML_DESERIALIZER("$!") {
+	ML_CHECK_ARG_COUNT(1);
+	ml_value_t *Partial = ml_partial_function(Args[0], Count - 1);
+	for (int I = 1; I < Count; ++I) {
+		if (Args[I] != MLBlank) ml_partial_function_set(Partial, I - 1, Args[I]);
+	}
+	return Partial;
 }
 
 ML_METHOD("arity", MLFunctionPartialT) {
@@ -3037,6 +3119,35 @@ ML_METHOD("exports", MLModuleT) {
 	ml_value_t *Exports = ml_map();
 	stringmap_foreach(Module->Exports, Exports, (void *)ml_module_exports_fn);
 	return Exports;
+}
+
+typedef struct {
+	ml_module_t Base;
+	ml_value_t *Fn;
+} ml_callable_module_t;
+
+static void ml_callable_module_call(ml_state_t *Caller, ml_callable_module_t *Module, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Module->Fn, Count, Args);
+}
+
+ML_TYPE(MLModuleCallableT, (MLModuleT), "module::callable",
+//!internal
+	.call = (void *)ml_callable_module_call
+);
+
+ml_value_t *ml_callable_module(const char *Path, ml_value_t *Fn, ...) {
+	ml_callable_module_t *Module = new(ml_callable_module_t);
+	Module->Base.Type = MLModuleCallableT;
+	Module->Base.Path = Path;
+	va_list Args;
+	va_start(Args, Fn);
+	const char *Export;
+	while ((Export = va_arg(Args, const char *))) {
+		stringmap_insert(Module->Base.Exports, Export, va_arg(Args, ml_value_t *));
+	}
+	va_end(Args);
+	Module->Fn = Fn;
+	return (ml_value_t *)Module;
 }
 
 // Externals //

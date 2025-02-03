@@ -271,6 +271,10 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
+#define SHA256_BLOCK_SIZE 32
+
+void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]);
+
 #define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
 
 #define ml_inline(STATE, VALUE, COUNT, ARGS ...) ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS})
@@ -1390,6 +1394,8 @@ ml_value_t *ml_module(const char *Path, ...) __attribute__ ((malloc, sentinel));
 const char *ml_module_path(ml_value_t *Module) __attribute__ ((pure));
 ml_value_t *ml_module_import(ml_value_t *Module, const char *Name) __attribute__ ((pure));
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
+
+ml_value_t *ml_callable_module(const char *Path, ml_value_t *Fn, ...) __attribute__ ((malloc, sentinel));
 
 /// @}
 

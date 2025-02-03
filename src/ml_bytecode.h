@@ -35,8 +35,6 @@ union ml_inst_t {
 	void *Data;
 };
 
-#define SHA256_BLOCK_SIZE 32
-
 #define ML_CLOSURE_EXTRA_ARGS 1
 #define ML_CLOSURE_NAMED_ARGS 2
 #define ML_CLOSURE_RESERVED 4
@@ -90,7 +88,6 @@ ml_value_t *ml_variable_set(ml_value_t *Variable, ml_value_t *Value);
 extern ml_type_t MLVariableT[];
 
 const char *ml_closure_debug(ml_value_t *Value);
-void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
 void ml_closure_info_labels(ml_closure_info_t *Info);
 //void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info, int Indent);

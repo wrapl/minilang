@@ -1481,13 +1481,12 @@ static void ml_closure_info_hash(ml_closure_info_t *Info) {
 	}
 }
 
-void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
+static void ML_TYPED_FN(ml_value_sha256, MLClosureT, ml_closure_t *Closure, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
 	ml_closure_info_t *Info = Closure->Info;
 	ml_closure_info_hash(Info);
 	memcpy(Hash, Info->Hash, SHA256_BLOCK_SIZE);
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		long ValueHash = ml_hash(Closure->UpValues[I + 1]);
+		long ValueHash = ml_hash_chain(Closure->UpValues[I + 1], Chain);
 		*(long *)(Hash + (I % 16)) ^= ValueHash;
 	}
 }
@@ -1672,15 +1671,6 @@ ML_METHOD("parameters", MLClosureT) {
 	return Map;
 }
 
-ML_METHOD("sha256", MLClosureT) {
-//<Closure
-//>address
-// Returns the SHA256 hash of :mini:`Closure`.
-	char *Hash = snew(SHA256_BLOCK_SIZE);
-	ml_closure_sha256(Args[0], (unsigned char *)Hash);
-	return ml_address(Hash, SHA256_BLOCK_SIZE);
-}
-
 #ifdef ML_NANBOXING
 
 #define NegOne ml_integer32(-1)
@@ -1698,8 +1688,8 @@ static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 ML_METHOD("<>", MLClosureT, MLClosureT) {
 //!internal
 	char Hash1[SHA256_BLOCK_SIZE], Hash2[SHA256_BLOCK_SIZE];
-	ml_closure_sha256(Args[0], (unsigned char *)Hash1);
-	ml_closure_sha256(Args[1], (unsigned char *)Hash2);
+	ml_value_sha256(Args[0], NULL, (unsigned char *)Hash1);
+	ml_value_sha256(Args[1], NULL, (unsigned char *)Hash2);
 	int Comp = memcmp(Hash1, Hash2, SHA256_BLOCK_SIZE);
 	if (Comp < 0) return (ml_value_t *)NegOne;
 	if (Comp > 0) return (ml_value_t *)One;

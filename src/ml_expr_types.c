@@ -1,5 +1,6 @@
 ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {
 	if (Expr->compile == (void *)ml_and_expr_compile) return ML_EXPR_AND;
+	if (Expr->compile == (void *)ml_args_expr_compile) return ML_EXPR_ARGS;
 	if (Expr->compile == (void *)ml_assign_expr_compile) return ML_EXPR_ASSIGN;
 	if (Expr->compile == (void *)ml_blank_expr_compile) return ML_EXPR_BLANK;
 	if (Expr->compile == (void *)ml_block_expr_compile) return ML_EXPR_BLOCK;
@@ -33,6 +34,7 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {
 	if (Expr->compile == (void *)ml_not_expr_compile) return ML_EXPR_NOT;
 	if (Expr->compile == (void *)ml_old_expr_compile) return ML_EXPR_OLD;
 	if (Expr->compile == (void *)ml_or_expr_compile) return ML_EXPR_OR;
+	if (Expr->compile == (void *)ml_recur_expr_compile) return ML_EXPR_RECUR;
 	if (Expr->compile == (void *)ml_ref_expr_compile) return ML_EXPR_REF;
 	if (Expr->compile == (void *)ml_ref_in_expr_compile) return ML_EXPR_REF_IN;
 	if (Expr->compile == (void *)ml_ref_unpack_expr_compile) return ML_EXPR_REF_UNPACK;

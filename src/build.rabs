@@ -401,7 +401,7 @@ if defined("ASSERTS") then
 end
 
 if MINILANG_TABLES then
-	Objects:put(file("ml_table2.o"))
+	Objects:put(file("ml_table.o"))
 	CFLAGS := old + ["-DML_TABLES"]
 	InstallHeaders:put("ml_table.h")
 end
@@ -474,9 +474,27 @@ end
 
 if MINILANG_XML then
 	CFLAGS := old + ['-DML_XML']
-	LDFLAGS := old + ["-lexpat"]
 	Objects:put(file("ml_xml.o"))
 	InstallHeaders:put("ml_xml.h")
+	if PLATFORM = "Wasm" then
+		let Dir := file("expat")
+		let Lib := file("expat/lib/.libs/libexpat.a"; Lib) do
+			Dir:rmdir:mkdir:chdir
+			execute("wget https://github.com/libexpat/libexpat/releases/download/R_2_6_4/expat-2.6.4.tar.gz -O- | tar xvzP --strip-components=1")
+			execute('CC={CC} ./configure', {
+				"--prefix" is PATH,
+				"--enable-static",
+				"--disable-shared"
+			})
+			execute("make clean")
+			execute("make -j4")
+		end
+		PREBUILDS := old + [Lib]
+		CFLAGS := old + ['-I{Dir / "lib"}']
+		LDFLAGS := old + [Lib]
+	else
+		LDFLAGS := old + ["-lexpat"]
+	end
 end
 
 if MINILANG_XE then
@@ -686,11 +704,23 @@ if PLATFORM = "Wasm" then
 	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sEXIT_RUNTIME=1", "-sALLOW_MEMORY_GROWTH=1", "-gsource-map ", "-sEXIT_RUNTIME=0"] :>, "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""]
 	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
 
-	MINIHTML := (BIN_DIR / "minilang.html")[file("minilang.html")] => fun(Target) do
+	MINIHTML := (BIN_DIR / "minilang.html")[file("minilang.html"); Target] do
 		file("minilang.html"):copy(Target)
 	end
 
-	DEFAULT[MINIWASM, MINIHTML]
+	let DocsJs := (DOCS_DIR / "_static/js/minilang.js")[MINIWASM; Target] do
+		(BIN_DIR / "minilang.js"):copy(Target)
+	end
+
+	let DocsWasm := (DOCS_DIR / "_static/js/minilang.wasm")[MINIWASM; Target] do
+		(BIN_DIR / "minilang.wasm"):copy(Target)
+	end
+
+	let DocsWasmMap := (DOCS_DIR / "_static/js/minilang.wasm.map")[MINIWASM; Target] do
+		(BIN_DIR / "minilang.wasm.map"):copy(Target)
+	end
+
+	DEFAULT[MINIWASM, MINIHTML, DocsJs, DocsWasm, DocsWasmMap]
 else
 	LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
 

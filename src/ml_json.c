@@ -63,6 +63,7 @@ struct json_stack_t {
 struct json_decoder_t {
 	void (*emit)(json_decoder_t *Decoder, ml_value_t *Value);
 	void *Data;
+	const char *Skip;
 	ml_value_t *Collection, *Key;
 	json_stack_t *Stack;
 	ml_stringbuffer_t Buffer[1];
@@ -80,6 +81,7 @@ static void json_decoder_init(json_decoder_t *Decoder, void (*emit)(json_decoder
 	Decoder->Buffer[0] = ML_STRINGBUFFER_INIT;
 	Decoder->State = JS_VALUE;
 	Decoder->Mode = JSM_VALUE;
+	Decoder->Skip = "";
 }
 
 json_decoder_t *json_decoder(void (*emit)(json_decoder_t *Decoder, ml_value_t *Value), void *Data) {
@@ -197,6 +199,7 @@ ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_
 			// no break
 		case JS_VALUE:
 			switch (Char) {
+			case 0: return ml_error("JSONError", "Invalid character: %c", Char);
 			case ' ': case '\r': case '\n': case '\t': break;
 			case '\"':
 				Decoder->State = JS_STRING;
@@ -226,6 +229,7 @@ ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_
 				Decoder->State = JS_KEYWORD;
 				break;
 			default:
+				if (strchr(Decoder->Skip, Char)) break;
 				return ml_error("JSONError", "Invalid character: %c", Char);
 			}
 			break;
@@ -684,26 +688,40 @@ static void ml_json_decoder_run(ml_json_decoder_t *State, ml_value_t *Value) {
 	return ml_call(State, State->Callback, 1, State->Args);
 }
 
-ML_FUNCTIONX(MLJsonDecoder) {
+ML_TYPE(MLJsonDecoderT, (MLStreamT), "json-decoder");
+//@json::decoder
+// A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
+
+ML_METHODX(MLJsonDecoderT, MLFunctionT) {
 //@json::decoder
 //<Callback
 //>json::decoder
 // Returns a new JSON decoder that calls :mini:`Callback(Value)` whenever a complete JSON value is written to the decoder.
-	ML_CHECKX_ARG_COUNT(1);
 	ml_json_decoder_t *Decoder = new(ml_json_decoder_t);
 	Decoder->Base.Type = MLJsonDecoderT;
 	Decoder->Base.run = (ml_state_fn)ml_json_decoder_run;
 	Decoder->Values = ml_list();
 	Decoder->Callback = Args[0];
 	json_decoder_init(Decoder->Decoder, json_decode_fn, Decoder);
+	Decoder->Decoder->Skip = "";
 	ML_RETURN(Decoder);
 }
 
-ML_TYPE(MLJsonDecoderT, (MLStreamT), "json-decoder",
+ML_METHODX(MLJsonDecoderT, MLStringT, MLFunctionT) {
 //@json::decoder
-// A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
-	.Constructor = (ml_value_t *)MLJsonDecoder
-);
+//<Skip
+//<Callback
+//>json::decoder
+// Returns a new JSON decoder that calls :mini:`Callback(Value)` whenever a complete JSON value is written to the decoder.
+	ml_json_decoder_t *Decoder = new(ml_json_decoder_t);
+	Decoder->Base.Type = MLJsonDecoderT;
+	Decoder->Base.run = (ml_state_fn)ml_json_decoder_run;
+	Decoder->Values = ml_list();
+	Decoder->Callback = Args[1];
+	json_decoder_init(Decoder->Decoder, json_decode_fn, Decoder);
+	Decoder->Decoder->Skip = ml_string_value(Args[0]);
+	ML_RETURN(Decoder);
+}
 
 static void ML_TYPED_FN(ml_stream_write, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder, const void *Address, int Count) {
 	Decoder->Result = ml_integer(Count);

@@ -43,7 +43,7 @@ class FoldersDirective(Directive):
 
 class TryItDirective(Directive):
 	has_content = True
-    
+
 	def run(self):
 		env = self.state.document.settings.env
 		block = nodes.line_block()

@@ -509,8 +509,21 @@ sequence
       :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
 
 
+:mini:`meth (Sequence: sequence):after(Value: any): sequence`
+   Returns an sequence that skips initial values not equal to :mini:`Value` and skips :mini:`Value` itself once.
+
+   .. code-block:: mini
+
+      list("banana") :> ["b", "a", "n", "a", "n", "a"]
+      list("banana" after "n") :> ["a", "n", "a"]
+
+
 :mini:`meth (Sequence: sequence):apply(Fn: function): sequence`
    Calls :mini:`Fn(Key,  Value)` for each key and value produced by :mini:`Sequence`,  then returns :mini:`Sequence`.
+
+
+:mini:`meth (Arg₁: sequence):before(Arg₂: any)`
+   *TBD*
 
 
 :mini:`meth (Arg₁: sequence):chunk(Arg₂: integer)`
@@ -537,6 +550,15 @@ sequence
 
       first2("cake") :> (1, c)
       first2([]) :> nil
+
+
+:mini:`meth (Sequence: sequence):from(Value: any): sequence`
+   Returns an sequence that skips initial values not equal to :mini:`Value`.
+
+   .. code-block:: mini
+
+      list("banana") :> ["b", "a", "n", "a", "n", "a"]
+      list("banana" from "n") :> ["n", "a", "n", "a"]
 
 
 :mini:`meth (Sequence: sequence):generate(Function: function): function`
@@ -624,6 +646,16 @@ sequence
 
       list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
       list(1 .. 10 skip 5) :> [6, 7, 8, 9, 10]
+
+
+:mini:`meth (Sequence: sequence):skipuntil(Fn: function): sequence`
+   Returns an sequence that skips initial values for which which :mini:`Fn(Value)` is :mini:`nil`.
+
+   .. code-block:: mini
+
+      list("banana") :> ["b", "a", "n", "a", "n", "a"]
+      list("banana" skipuntil (_ != "b"))
+      :> ["a", "n", "a", "n", "a"]
 
 
 :mini:`meth (Arg₁: sequence):split(Arg₂: function)`
