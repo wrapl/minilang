@@ -23,6 +23,11 @@ ast
    
 
 
+:mini:`type ast::expr::args < ast::expr`
+   An :mini:`args` expression
+   
+
+
 :mini:`type ast::expr::assign < ast::expr::parent`
    An :mini:`assign` expression
    
@@ -49,12 +54,23 @@ ast
    * :mini:`:numdefs(Value: ast::expr::block): integer`
 
 
-:mini:`type ast::expr::call < ast::expr::parent`
+:mini:`type ast::expr::call < ast::expr`
    A :mini:`call` expression
    
+   
+   * :mini:`:child(Value: ast::expr::call): list[ast::expr]`
+   * :mini:`:name(Value: ast::expr::call): string`
 
 
-:mini:`type ast::expr::constcall < ast::expr::parentvalue`
+:mini:`type ast::expr::callvalue < ast::expr`
+   A :mini:`call` :mini:`value` expression
+   
+   
+   * :mini:`:child(Value: ast::expr::callvalue): list[ast::expr]`
+   * :mini:`:value(Value: ast::expr::callvalue): any`
+
+
+:mini:`type ast::expr::constcall < ast::expr::callvalue`
    A :mini:`const` :mini:`call` expression
    
 
@@ -248,6 +264,11 @@ ast
    * :mini:`:value(Value: ast::expr::parentvalue): any`
 
 
+:mini:`type ast::expr::recur < ast::expr`
+   A :mini:`recur` expression
+   
+
+
 :mini:`type ast::expr::ref < ast::expr::local`
    A :mini:`ref` expression
    
@@ -375,7 +396,6 @@ ast
    
    
    * :mini:`:ident(Value: ast::param): string`
-   * :mini:`:type(Value: ast::param): list[ast::expr]`
    * :mini:`:line(Value: ast::param): integer`
    * :mini:`:kind(Value: ast::param): ast::paramkind`
 

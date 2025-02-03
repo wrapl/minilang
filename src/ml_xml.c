@@ -2112,7 +2112,7 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	TagExpr->Value = Tag;
 	TagExpr->Source = Parser->Source.Name;
 	TagExpr->StartLine = TagExpr->EndLine = Parser->Source.Line;
-	mlc_parent_value_expr_t *ElementExpr = new(mlc_parent_value_expr_t);
+	mlc_call_value_expr_t *ElementExpr = new(mlc_call_value_expr_t);
 	ElementExpr->compile = ml_const_call_expr_compile;
 	ElementExpr->Value = Parser->Constructor;
 	ElementExpr->Source = Parser->Source.Name;
