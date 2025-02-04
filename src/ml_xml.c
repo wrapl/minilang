@@ -821,9 +821,9 @@ extern ml_type_t MLChainedT[];
 
 #ifdef ML_GENERICS
 
-ML_GENERIC_TYPE(MLXmlSequenceT, MLSequenceT, MLIntegerT, MLXmlT);
-ML_GENERIC_TYPE(MLXmlDoubledT, MLDoubledT, MLIntegerT, MLXmlT);
-ML_GENERIC_TYPE(MLXmlChainedT, MLChainedT, MLIntegerT, MLXmlT);
+ML_GENERIC_TYPE(MLXmlSequenceT, MLSequenceT, MLAnyT, MLXmlT);
+ML_GENERIC_TYPE(MLXmlDoubledT, MLDoubledT, MLAnyT, MLXmlT);
+ML_GENERIC_TYPE(MLXmlChainedT, MLChainedT, MLAnyT, MLXmlT);
 
 #else
 
