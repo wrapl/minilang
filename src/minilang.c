@@ -308,8 +308,16 @@ int main(int Argc, const char *Argv[]) {
 	ml_library_init(MLGlobals);
 	ml_module_t *Sys = ml_library_internal("sys");
 	stringmap_insert(MLGlobals, "sys", Sys);
+	ml_module_t *Std = ml_library_internal("std");
+	stringmap_insert(MLGlobals, "std", Std);
+	ml_module_t *Fmt = ml_library_internal("fmt");
+	stringmap_insert(MLGlobals, "fmt", Fmt);
 	ml_module_t *IO = ml_library_internal("io");
 	stringmap_insert(MLGlobals, "io", IO);
+	ml_module_t *Util = ml_library_internal("util");
+	stringmap_insert(MLGlobals, "util", Util);
+	ml_module_t *Enc = ml_library_internal("enc");
+	stringmap_insert(MLGlobals, "enc", Enc);
 #define SYS_EXPORTS Sys->Exports
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports
@@ -318,7 +326,11 @@ int main(int Argc, const char *Argv[]) {
 #define ENC_EXPORTS Enc->Exports
 #else
 #define SYS_EXPORTS MLGlobals
+#define STD_EXPORTS MLGlobals
+#define FMT_EXPORTS MLGlobals
 #define IO_EXPORTS MLGlobals
+#define UTIL_EXPORTS MLGlobals
+#define ENC_EXPORTS MLGlobals
 #endif
 	ml_stream_init(IO_EXPORTS);
 	ml_file_init(MLGlobals);
@@ -327,16 +339,16 @@ int main(int Argc, const char *Argv[]) {
 	ml_mmap_init(MLGlobals);
 #endif
 #ifdef ML_CBOR
-	ml_cbor_init(MLGlobals);
+	ml_cbor_init(FMT_EXPORTS);
 #endif
 #ifdef ML_JSON
-	ml_json_init(MLGlobals);
+	ml_json_init(FMT_EXPORTS);
 #endif
 #ifdef ML_XML
-	ml_xml_init(MLGlobals);
+	ml_xml_init(FMT_EXPORTS);
 #endif
 #ifdef ML_XE
-	ml_xe_init(MLGlobals);
+	ml_xe_init(FMT_EXPORTS);
 #endif
 #ifdef ML_MATH
 	ml_math_init(MLGlobals);
@@ -350,17 +362,17 @@ int main(int Argc, const char *Argv[]) {
 	ml_table_init(MLGlobals);
 #endif
 #ifdef ML_PQUEUES
-	ml_pqueue_init(MLGlobals);
+	ml_pqueue_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_UUID
-	ml_uuid_init(MLGlobals);
+	ml_uuid_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_MINIJS
-	ml_minijs_init(MLGlobals);
+	ml_minijs_init(FMT_EXPORTS);
 #endif
 #ifdef ML_ENCODINGS
-	ml_base16_init(MLGlobals);
-	ml_base64_init(MLGlobals);
+	ml_base16_init(ENC_EXPORTS);
+	ml_base64_init(ENC_EXPORTS);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);

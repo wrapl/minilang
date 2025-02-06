@@ -13,10 +13,10 @@ P:input(S:rest)
 
 let F1 := P:compile(C)()
 
-let E := cbor::encode(F1)
+let E := fmt::cbor::encode(F1)
 
-print(base16::encode(E), "\n")
+print(enc::base16::encode(E), "\n")
 
-let F2 := cbor::decode(E)
+let F2 := fmt::cbor::decode(E)
 
 print(F2({}))
