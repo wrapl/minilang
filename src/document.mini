@@ -133,18 +133,15 @@ fun write_examples(Buffer, Examples) do
 	end
 	Buffer:write("\n   .. code-block:: mini\n\n")
 	for Example in Examples do
-		print('Example = {Example}\n')
 		var Result := ""
 		let Last := Example:after("\n", -1) or Example
 		Parser:reset:input(Example)
 		loop
 			let Next := Parser:evaluate(Compiler)
-			until type(Next) = any and Next = compiler::EOI
+			until Next = compiler::EOI
 			Result := image(Next)
-			print('\tResult = {Result}\n')
 		on Error do
 			Result := image(Error)
-			print('\tError = {Error}\n')
 			exit
 		end
 		if (Last + Result):length > 60 then

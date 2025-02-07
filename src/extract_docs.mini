@@ -60,7 +60,7 @@ fun is_symbol(Method) Method:lower = Method:upper
 
 method: image()
 
-meth image(V: any) string(V)
+meth image(V: any) := string
 meth image(V: nil) "nil"
 meth image(S: string) '\"{S:escape}\"'
 meth image(A: address) with B := string::buffer() do
@@ -95,8 +95,8 @@ end
 meth image(E: error) 'error(\"{E:type}\", \"{E:message}\")'
 
 fun write_examples(Examples) do
-	let Code := xml::element("code")
-	let Output := xml::element("output")
+	let Code := []
+	let Output := string::buffer()
 	let Parser := parser(nil)
 	let Compiler := compiler(; Name) do
 		if Name = "print" then
@@ -108,7 +108,7 @@ fun write_examples(Examples) do
 	for Example in Examples do
 		var Result := ""
 		let Last := Example:after("\n", -1) or Example
-		Parser:input(Example)
+		Parser:reset:input(Example)
 		loop
 			let Next := Parser:evaluate(Compiler)
 			until Next = compiler::EOI
@@ -117,13 +117,13 @@ fun write_examples(Examples) do
 			Result := image(Error)
 			exit
 		end
-		if (Last + Result):length > 60 then
-			Code:put(Example, "\n      :> ", Result, "\n")
-		else
-			Code:put(Example, " :> ", Result, "\n")
+		Code:put(xml::element("code", Example))
+		Code:put(xml::element("result", Result))
+		if Output:length > 0 then
+			Code:put(xml::element("output", Output:rest))
 		end
 	end
-	ret xml::element("example", Code, Output)
+	ret Code
 end
 
 fun write_method(Category, Kind, Method0, Params, Return, Description, Examples, Location) do
@@ -310,11 +310,11 @@ fun process(FileName) do
 					elseif Line % r"^/[/*]\n" then
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("      ", Line[6, 0])
+						Example:write(Line[6, 0])
 					elseif Line % r"^/[/*]\$-" then
-						Example:write("      \n")
+						Example:write("\n")
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("      ", Line[6, -1])
+						Example:write(Line[6, -1])
 						Examples:put(Example:rest)
 					else
 						exit
@@ -369,11 +369,11 @@ fun process(FileName) do
 					elseif Line % r"^/[/*]\n" then
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("      ", Line[6, 0])
+						Example:write(Line[6, 0])
 					elseif Line % r"^/[/*]\$-" then
-						Example:write("      \n")
+						Example:write("\n")
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("      ", Line[6, -1])
+						Example:write(Line[6, -1])
 						Examples:put(Example:rest)
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])
@@ -433,11 +433,11 @@ fun process(FileName) do
 					elseif Line % r"^/[/*]\n" then
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("      ", Line[6, 0])
+						Example:write(Line[6, 0])
 					elseif Line % r"^/[/*]\$-" then
-						Example:write("      \n")
+						Example:write("\n")
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("      ", Line[6, -1])
+						Example:write(Line[6, -1])
 						Examples:put(Example:rest)
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])
@@ -523,11 +523,11 @@ fun process(FileName) do
 					elseif Line % r"^/[/*]\n" then
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("      ", Line[6, 0])
+						Example:write(Line[6, 0])
 					elseif Line % r"^/[/*]\$-" then
-						Example:write("      \n")
+						Example:write("\n")
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("      ", Line[6, -1])
+						Example:write(Line[6, -1])
 						Examples:put(Example:rest)
 					else
 						exit
@@ -544,7 +544,11 @@ fun process(FileName) do
 				let K := Line:find(",", J + 1)
 				var Name := Line[I + 1, J]:trim(", ")
 				var Category := DefaultCategory
-				let Parent := if Line % r"^ML_ENUM" then "MLEnumT" else "MLFlagsT" end
+				let Parent := switch Line: string
+					case r"^ML_ENUM_CYCLIC" do "MLEnumCyclicT"
+					case r"^ML_ENUM" do "MLEnumT"
+					else "MLFlagsT"
+				end
 				let Title := Line[J + 1, K]:trim(", ){")
 				let Description := []
 				let Examples := []
@@ -561,12 +565,18 @@ fun process(FileName) do
 					elseif Line % r"^/[/*]\n" then
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("      ", Line[6, 0])
+						Example:write(Line[6, 0])
 					elseif Line % r"^/[/*]\$-" then
-						Example:write("      \n")
+						Example:write("\n")
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("      ", Line[6, -1])
+						Example:write(Line[6, -1])
 						Examples:put(Example:rest)
+					elseif let Match := Line % r"\s*\"([A-Za-z0-9_]+)\"" or Line % r"\s*[A-Za-z0-9_]+\(([A-Za-z0-9_]+)\)" then
+						if let Comment := Line:after("//") then
+							Description:put('* :mini:`::{Match[2]}` - {Comment:trim}\n')
+						else
+							Description:put('* :mini:`::{Match[2]}`\n')
+						end
 					else
 						exit
 					end
