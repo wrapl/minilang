@@ -23,7 +23,7 @@ fun emit(Category, Key, Node) do
 end
 
 fun write_overview(Category, Description) do
-	emit(Category, tuple(), xml::element("description", Description))
+	emit(Category, tuple(), xml::element("description", write_description(Description)))
 end
 
 fun type_name(var Type) do
@@ -94,6 +94,33 @@ meth image(M: map) with B := string::buffer() do
 end
 meth image(E: error) 'error(\"{E:type}\", \"{E:message}\")'
 
+fun convert_description(Parts, var Description) do
+	loop
+		if let (I, Match) := Description:find2(r":[a-z]+:`") then
+			if let J := I > Description:find("`") then
+				Parts:put(Description[1, J])
+				ret Description[J + 1, 0]
+			end
+			Parts:put(Description[1, I])
+			let Child := []
+			Description := convert_description(Child, Description[I + Match:length, 0])
+			Parts:put(xml::element(Match[2, -2], Child))
+		elseif let I := Description:find("`") then
+			Parts:put(Description[1, I])
+			ret Description[I + 1, 0]
+		else
+			Parts:put(Description)
+			ret ""
+		end
+	end
+end
+
+fun write_description(var Description) do
+	let Parts := []
+	each Description -> convert_description(Parts, _)
+	ret Parts
+end
+
 fun write_examples(Examples) do
 	let Code := []
 	let Output := string::buffer()
@@ -153,7 +180,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 				"type" is type_name(Param[2])
 			})
 		end),
-		xml::element("description", Description),
+		xml::element("description", write_description(Description)),
 		xml::element("examples", write_examples(Examples))
 	))
 end
@@ -168,7 +195,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Examples, 
 				"type" is type_name(Param[2])
 			})
 		end),
-		xml::element("description", Description),
+		xml::element("description", write_description(Description)),
 		xml::element("examples", write_examples(Examples))
 	))
 end
@@ -182,7 +209,7 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 				"type" is type_name(Param[2])
 			})
 		end),
-		xml::element("description", Description)
+		xml::element("description", write_description(Description))
 	))
 end
 
@@ -191,7 +218,7 @@ fun write_type(Category, Name, Parents, Description, Examples, Location) do
 		xml::element("parents", list(Parents; Parent) do
 			xml::element("parent", {"type" is type_name(Parent)})
 		end),
-		xml::element("description", Description),
+		xml::element("description", write_description(Description)),
 		xml::element("examples", write_examples(Examples))
 	))
 end
@@ -199,7 +226,7 @@ end
 fun write_value(Category, Name, Type, Description, Location) do
 	emit(Category, (Name, item::Export), xml::element("value", {"name" is type_name(Name)},
 		xml::element("type", {"name" is type_name(Type)}),
-		xml::element("description", Description)
+		xml::element("description", write_description(Description))
 	))
 end
 
