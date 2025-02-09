@@ -331,7 +331,7 @@ ML_METHOD("index", MLXmlT, MLBooleanT) {
 		for (ml_xml_node_t *Child = Node->Parent->Head; Child != Node; Child = Child->Next) {
 			if (Child->Base.Type == MLXmlElementT) ++Index;
 		}
-		return ml_integer(Node->Index);
+		return ml_integer(Index);
 	}
 	return ml_integer(Node->Index);
 }
@@ -1839,7 +1839,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
-	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
+	State->read = (typeof(ml_stream_read) *)ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_xml_stream_state_run;
@@ -1930,7 +1930,7 @@ ML_METHODX(MLXmlParse, MLStreamT) {
 	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
-	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
+	State->read = (typeof(ml_stream_read) *)ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_xml_stream_state_run;
