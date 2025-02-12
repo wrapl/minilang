@@ -1835,7 +1835,7 @@ ml_value_t *ml_return_second(void *Data, int Count, ml_value_t **Args) {
 	return Args[1];
 }
 
-typedef struct ml_partial_function_t {
+typedef struct {
 	const ml_type_t *Type;
 	ml_value_t *Function;
 	int Count, Set;

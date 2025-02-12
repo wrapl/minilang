@@ -71,17 +71,6 @@ ML_FIELD("name", AstForExprT);
 
 ML_FIELD("unpack", AstForExprT);
 
-ML_CLASS(AstCallExprT, (AstExprT), "ast::expr::call");
-//@ast::expr::call
-// A :mini:`call` expression
-//
-// * :mini:`:child(Value: ast::expr::call): list[ast::expr]`
-// * :mini:`:name(Value: ast::expr::call): string`
-
-ML_FIELD("child", AstCallExprT);
-
-ML_FIELD("name", AstCallExprT);
-
 ML_CLASS(AstArgsExprT, (AstExprT), "ast::expr::args");
 //@ast::expr::args
 // An :mini:`args` expression
@@ -206,17 +195,6 @@ ML_FIELD("child", AstIfConfigExprT);
 
 ML_FIELD("config", AstIfConfigExprT);
 
-ML_CLASS(AstCallValueExprT, (AstExprT), "ast::expr::callvalue");
-//@ast::expr::callvalue
-// A :mini:`call` :mini:`value` expression
-//
-// * :mini:`:child(Value: ast::expr::callvalue): list[ast::expr]`
-// * :mini:`:value(Value: ast::expr::callvalue): any`
-
-ML_FIELD("child", AstCallValueExprT);
-
-ML_FIELD("value", AstCallValueExprT);
-
 ML_CLASS(AstParentValueExprT, (AstExprT), "ast::expr::parentvalue");
 //@ast::expr::parentvalue
 // A :mini:`parent` :mini:`value` expression
@@ -243,7 +221,12 @@ ML_CLASS(AstBlankExprT, (AstExprT), "ast::expr::blank");
 // A :mini:`blank` expression
 //
 
-ML_CLASS(AstConstCallExprT, (AstCallValueExprT), "ast::expr::constcall");
+ML_CLASS(AstCallExprT, (AstParentExprT), "ast::expr::call");
+//@ast::expr::call
+// A :mini:`call` expression
+//
+
+ML_CLASS(AstConstCallExprT, (AstParentValueExprT), "ast::expr::constcall");
 //@ast::expr::constcall
 // A :mini:`const` :mini:`call` expression
 //
@@ -506,7 +489,6 @@ static void ml_ast_types_init() {
 	stringmap_insert(AstExprT->Exports, "if", AstIfExprT);
 	stringmap_insert(AstExprT->Exports, "fun", AstFunExprT);
 	stringmap_insert(AstExprT->Exports, "for", AstForExprT);
-	stringmap_insert(AstExprT->Exports, "call", AstCallExprT);
 	stringmap_insert(AstExprT->Exports, "args", AstArgsExprT);
 	stringmap_insert(AstExprT->Exports, "value", AstValueExprT);
 	stringmap_insert(AstExprT->Exports, "subst", AstSubstExprT);
@@ -518,11 +500,11 @@ static void ml_ast_types_init() {
 	stringmap_insert(AstExprT->Exports, "parent", AstParentExprT);
 	stringmap_insert(AstExprT->Exports, "default", AstDefaultExprT);
 	stringmap_insert(AstExprT->Exports, "ifconfig", AstIfConfigExprT);
-	stringmap_insert(AstExprT->Exports, "callvalue", AstCallValueExprT);
 	stringmap_insert(AstExprT->Exports, "parentvalue", AstParentValueExprT);
 	stringmap_insert(AstExprT->Exports, "and", AstAndExprT);
 	stringmap_insert(AstExprT->Exports, "assign", AstAssignExprT);
 	stringmap_insert(AstExprT->Exports, "blank", AstBlankExprT);
+	stringmap_insert(AstExprT->Exports, "call", AstCallExprT);
 	stringmap_insert(AstExprT->Exports, "constcall", AstConstCallExprT);
 	stringmap_insert(AstExprT->Exports, "debug", AstDebugExprT);
 	stringmap_insert(AstExprT->Exports, "def", AstDefExprT);
@@ -768,28 +750,6 @@ static ml_value_t *a_mlc_if_config_expr_t(ml_type_t *Class, mlc_if_config_expr_t
 	NULL);
 }
 
-static ml_value_t *a_mlc_call_value_expr_t(ml_type_t *Class, mlc_call_value_expr_t *Struct) {
-	if (!Struct) return MLNil;
-	return ml_object(Class,
-		"source", ml_string(Struct->Source, -1),
-		"startline", ml_integer(Struct->StartLine),
-		"endline", ml_integer(Struct->EndLine),
-		"child", l_mlc_expr_t(Struct->Child),
-		"value", ml_ast_names(Struct->Value),
-	NULL);
-}
-
-static ml_value_t *a_mlc_call_expr_t(ml_type_t *Class, mlc_call_expr_t *Struct) {
-	if (!Struct) return MLNil;
-	return ml_object(Class,
-		"source", ml_string(Struct->Source, -1),
-		"startline", ml_integer(Struct->StartLine),
-		"endline", ml_integer(Struct->EndLine),
-		"child", l_mlc_expr_t(Struct->Child),
-		"name", Struct->Name ? ml_string(Struct->Name, -1) : MLNil,
-	NULL);
-}
-
 static ml_value_t *a_mlc_parent_value_expr_t(ml_type_t *Class, mlc_parent_value_expr_t *Struct) {
 	if (!Struct) return MLNil;
 	return ml_object(Class,
@@ -841,8 +801,8 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		case ML_EXPR_ASSIGN: return a_mlc_parent_expr_t(AstAssignExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_BLANK: return a_mlc_expr_t(AstBlankExprT, (mlc_expr_t *)Expr);
 		case ML_EXPR_BLOCK: return a_mlc_block_expr_t(AstBlockExprT, (mlc_block_expr_t *)Expr);
-		case ML_EXPR_CALL: return a_mlc_call_expr_t(AstCallExprT, (mlc_call_expr_t *)Expr);
-		case ML_EXPR_CONST_CALL: return a_mlc_call_value_expr_t(AstConstCallExprT, (mlc_call_value_expr_t *)Expr);
+		case ML_EXPR_CALL: return a_mlc_parent_expr_t(AstCallExprT, (mlc_parent_expr_t *)Expr);
+		case ML_EXPR_CONST_CALL: return a_mlc_parent_value_expr_t(AstConstCallExprT, (mlc_parent_value_expr_t *)Expr);
 		case ML_EXPR_DEBUG: return a_mlc_parent_expr_t(AstDebugExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_DEF: return a_mlc_local_expr_t(AstDefExprT, (mlc_local_expr_t *)Expr);
 		case ML_EXPR_DEF_IN: return a_mlc_local_expr_t(AstDefInExprT, (mlc_local_expr_t *)Expr);
