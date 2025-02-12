@@ -440,6 +440,7 @@ if MINILANG_AST then
 	Objects:put(file("ml_ast.o"))
 	CFLAGS := old + ["-DML_AST"]
 	InstallHeaders:put("ml_ast.h")
+	file("ml_ast_init.c")[file("ml_ast_types.c")]
 end
 
 if MINILANG_LIGHTNING or defined("LIGHTNING") then

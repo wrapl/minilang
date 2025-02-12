@@ -105,16 +105,15 @@ ml_value_t *ml_flags_value(ml_type_t *Type, uint64_t Flags);
 uint64_t ml_flags_value_value(ml_value_t *Value);
 const char *ml_flags_value_name(ml_value_t *Value);
 
+#ifndef GENERATE_INIT
+
+#define ML_CLASS(TYPE, PARENTS, NAME) ml_type_t *TYPE
 #define ML_CLASS_ADD_PARENTS(TYPE, PARENTS ...) { \
 	ml_type_t *Parents[] = {PARENTS}; \
 	for (int I = 0; I < (sizeof(Parents) / sizeof(ml_type_t *)); ++I) { \
 		ml_class_add_parent(NULL, TYPE, Parents[I]); \
 	} \
 }
-
-#ifndef GENERATE_INIT
-
-#define ML_CLASS(TYPE, PARENTS, NAME) ml_type_t *TYPE
 #define ML_FIELD(FIELD, TYPE)
 #define ML_ENUM(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 #define ML_ENUM_CYCLIC(TYPE, NAME, VALUES ...) ml_type_t *TYPE
