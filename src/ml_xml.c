@@ -1818,7 +1818,13 @@ static void ml_xml_stream_state_run(ml_xml_stream_state_t *State, ml_value_t *Re
 		enum XML_Error Error = XML_GetErrorCode(State->Handle);
 		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
-	if (!Length) ML_RETURN(State->Result ?: ml_error("XMLError", "Incomplete XML"));
+	if (!Length) {
+		if (XML_Parse(State->Handle, "", 0, 0) == XML_STATUS_ERROR) {
+			enum XML_Error Error = XML_GetErrorCode(State->Handle);
+			ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
+		}
+		ML_RETURN(State->Result ?: ml_error("XMLError", "Incomplete XML"));
+	}
 	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
 }
 
@@ -1832,6 +1838,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	State->Parser.Stack = &State->Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetReparseDeferralEnabled(Handle, XML_FALSE);
 	XML_SetUserData(Handle, &State->Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
@@ -1923,6 +1930,7 @@ ML_METHODX(MLXmlParse, MLStreamT) {
 	State->Parser.Stack = &State->Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetReparseDeferralEnabled(Handle, XML_FALSE);
 	XML_SetUserData(Handle, &State->Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);

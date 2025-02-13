@@ -376,7 +376,7 @@ static void __attribute__ ((noinline)) ml_partial_function_named_copy_args(ml_pa
 		int NamedBlanks = 0;
 		for (int K = Partial->Names + 1; K < Partial->Count; ++K) if (!Partial->Args[K]) ++NamedBlanks;
 		if (UnnamedCount > J + NamedBlanks) {
-			for (int K = J + NamedBlanks; K < UnnamedCount; ++K) Copy[I++] = Copy[K];
+			for (int K = J + NamedBlanks; K < UnnamedCount; ++K) CombinedArgs[I++] = Copy[K];
 			UnnamedCount = J + NamedBlanks;
 		}
 	}
