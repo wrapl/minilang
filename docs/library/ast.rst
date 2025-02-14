@@ -54,23 +54,12 @@ ast
    * :mini:`:numdefs(Value: ast::expr::block): integer`
 
 
-:mini:`type ast::expr::call < ast::expr`
+:mini:`type ast::expr::call < ast::expr::parent`
    A :mini:`call` expression
    
-   
-   * :mini:`:child(Value: ast::expr::call): list[ast::expr]`
-   * :mini:`:name(Value: ast::expr::call): string`
 
 
-:mini:`type ast::expr::callvalue < ast::expr`
-   A :mini:`call` :mini:`value` expression
-   
-   
-   * :mini:`:child(Value: ast::expr::callvalue): list[ast::expr]`
-   * :mini:`:value(Value: ast::expr::callvalue): any`
-
-
-:mini:`type ast::expr::constcall < ast::expr::callvalue`
+:mini:`type ast::expr::constcall < ast::expr::parentvalue`
    A :mini:`const` :mini:`call` expression
    
 

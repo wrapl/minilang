@@ -3529,17 +3529,12 @@ static void ML_TYPED_FN(ml_iter_next, MLSwappedStateT, ml_state_t *Caller, ml_sw
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-ML_FUNCTION(Swap) {
-//@swap
-//<Sequence:sequence
-// Returns a new sequence which swaps the keys and values produced by :mini:`Sequence`.
-//$= map(swap("cake"))
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLSequenceT);
+ml_value_t *ml_swap(ml_value_t *Value) {
 	ml_swapped_t *Swapped = new(ml_swapped_t);
+	Swapped->Value = Value;
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3];
-	if (ml_find_generic_parent(ml_typeof(Args[0]), MLSequenceT, 3, TArgs) == 3) {
+	if (ml_find_generic_parent(ml_typeof(Swapped->Value), MLSequenceT, 3, TArgs) == 3) {
 		TArgs[0] = MLSwappedT;
 		ml_type_t *KeyType = TArgs[1];
 		TArgs[1] = TArgs[2];
@@ -3551,7 +3546,32 @@ ML_FUNCTION(Swap) {
 #else
 	Swapped->Type = MLSwappedT;
 #endif
+	return (ml_value_t *)Swapped;
+}
+
+ML_FUNCTION(Swap) {
+//@swap
+//<Sequence:sequence
+// Returns a new sequence which swaps the keys and values produced by :mini:`Sequence`.
+//$= map(swap("cake"))
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLSequenceT);
+	ml_swapped_t *Swapped = new(ml_swapped_t);
 	Swapped->Value = ml_chained(Count, Args);
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3];
+	if (ml_find_generic_parent(ml_typeof(Swapped->Value), MLSequenceT, 3, TArgs) == 3) {
+		TArgs[0] = MLSwappedT;
+		ml_type_t *KeyType = TArgs[1];
+		TArgs[1] = TArgs[2];
+		TArgs[2] = KeyType;
+		Swapped->Type = ml_generic_type(3, TArgs);
+	} else {
+		Swapped->Type = MLSwappedT;
+	}
+#else
+	Swapped->Type = MLSwappedT;
+#endif
 	return (ml_value_t *)Swapped;
 }
 
@@ -3666,6 +3686,24 @@ static void ML_TYPED_FN(ml_iter_next, MLDupStateT, ml_state_t *Caller, ml_dup_st
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
+ml_value_t *ml_dup(ml_value_t *Value) {
+	ml_dup_t *Dup = new(ml_dup_t);
+	Dup->Value = Value;
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3];
+	if (ml_find_generic_parent(ml_typeof(Dup->Value), MLSequenceT, 3, TArgs) == 3) {
+		TArgs[0] = MLDupT;
+		TArgs[1] = TArgs[2];
+		Dup->Type = ml_generic_type(3, TArgs);
+	} else {
+		Dup->Type = MLDupT;
+	}
+#else
+	Dup->Type = MLDupT;
+#endif
+	return (ml_value_t *)Dup;
+}
+
 ML_FUNCTION(Dup) {
 //@dup
 //<Sequence:sequence
@@ -3674,8 +3712,19 @@ ML_FUNCTION(Dup) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_dup_t *Dup = new(ml_dup_t);
-	Dup->Type = MLDupT;
 	Dup->Value = ml_chained(Count, Args);
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3];
+	if (ml_find_generic_parent(ml_typeof(Dup->Value), MLSequenceT, 3, TArgs) == 3) {
+		TArgs[0] = MLDupT;
+		TArgs[1] = TArgs[2];
+		Dup->Type = ml_generic_type(3, TArgs);
+	} else {
+		Dup->Type = MLDupT;
+	}
+#else
+	Dup->Type = MLDupT;
+#endif
 	return (ml_value_t *)Dup;
 }
 

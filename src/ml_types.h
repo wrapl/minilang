@@ -336,6 +336,9 @@ ml_value_t *ml_chained(int Count, ml_value_t **Functions);
 ml_value_t *ml_chainedv(int Count, ...);
 ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function);
 
+ml_value_t *ml_dup(ml_value_t *Sequence);
+ml_value_t *ml_swap(ml_value_t *Sequence);
+
 /// @}
 
 /// \defgroup functions
