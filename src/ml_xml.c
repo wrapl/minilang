@@ -1613,29 +1613,40 @@ ML_METHOD("has", MLXmlSequenceT, MLFunctionT) {
 }
 
 static void ml_xml_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Count) {
+	const char *Head = String;
 	while (--Count >= 0) {
 		switch (*String) {
 		case '<':
-			ml_stringbuffer_write(Buffer, "&lt;", 4);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&lt;", strlen("&lt;"));
 			break;
 		case '>':
-			ml_stringbuffer_write(Buffer, "&gt;", 4);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&gt;", strlen("&gt;"));
 			break;
 		case '&':
-			ml_stringbuffer_write(Buffer, "&amp;", 5);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&amp;", strlen("&amp;"));
 			break;
 		case '\"':
-			ml_stringbuffer_write(Buffer, "&quot;", 6);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&quot;", strlen("&quot;"));
 			break;
 		case '\'':
-			ml_stringbuffer_write(Buffer, "&apos;", 6);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&apos;", strlen("&apos;"));
 			break;
 		default:
-			ml_stringbuffer_put(Buffer, *String);
+			++String;
 			break;
 		}
-		++String;
 	}
+	ml_stringbuffer_write(Buffer, Head, String - Head);
 }
 
 static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_element_t *Node) {
