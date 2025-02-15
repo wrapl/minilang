@@ -1819,7 +1819,7 @@ static void ml_xml_stream_state_run(ml_xml_stream_state_t *State, ml_value_t *Re
 		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
 	if (!Length) {
-		if (XML_Parse(State->Handle, "", 0, 0) == XML_STATUS_ERROR) {
+		if (XML_Parse(State->Handle, "", 0, 1) == XML_STATUS_ERROR) {
 			enum XML_Error Error = XML_GetErrorCode(State->Handle);
 			ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 		}
