@@ -1597,6 +1597,68 @@ ML_FUNCTIONX(Prod) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+static void range_iter_next(ml_iter_state_t *State, ml_value_t *Value);
+
+static void range_max(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) State->Values[2] = Value;
+	State->Base.run = (ml_state_fn)range_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void range_min(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) State->Values[0] = Value;
+	State->Base.run = (ml_state_fn)range_max;
+	return ml_call(State, MaxMethod, 2, State->Values + 2);
+}
+
+static void range_value(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Values[1] = Value;
+	State->Values[3] = Value;
+	State->Base.run = (ml_state_fn)range_min;
+	return ml_call(State, MinMethod, 2, State->Values + 0);
+}
+
+static void range_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_tuplev(2, State->Values[0], State->Values[2]));
+	State->Base.run = (ml_state_fn)range_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void range_value_first(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Values[0] = Value;
+	State->Values[1] = Value;
+	State->Base.run = (ml_state_fn)range_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void range_iterate_first(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)range_value_first;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_FUNCTIONX(Range) {
+//<Sequence
+//>tuple[any,any] | nil
+// Returns the smallest and largest values (using :mini:`:min` and :mini:`:max`) produced by :mini:`Sequence`.
+//$= range([1, 5, 2, 10, 6])
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)range_iterate_first;
+	State->Values[0] = MLNil;
+	State->Values[2] = MLNil;
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
 static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value);
 
 static void reduce2_call(ml_iter_state_t *State, ml_value_t *Value) {
@@ -4458,6 +4520,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "max", Max);
 		stringmap_insert(Globals, "sum", Sum);
 		stringmap_insert(Globals, "prod", Prod);
+		stringmap_insert(Globals, "range", Range);
 		stringmap_insert(Globals, "reduce2", Reduce2);
 		stringmap_insert(Globals, "min2", Min2);
 		stringmap_insert(Globals, "max2", Max2);

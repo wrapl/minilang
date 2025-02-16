@@ -246,6 +246,14 @@ sequence
       prod([1, 5, 2, 10, 6]) :> 600
 
 
+:mini:`fun range(Sequence: sequence): tuple[any, any] | nil`
+   Returns the smallest and largest values (using :mini:`:min` and :mini:`:max`) produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      range([1, 5, 2, 10, 6]) :> (1, 10)
+
+
 :mini:`fun reduce(Initial?: any, Sequence: sequence, Fn: function): any | nil`
    Returns :mini:`Fn(Fn( ... Fn(Initial,  V₁),  V₂) ...,  Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Sequence`.
    If :mini:`Initial` is omitted,  the first value produced by :mini:`Sequence` is used.
@@ -635,7 +643,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "e"
       random([]) :> nil
 
 
