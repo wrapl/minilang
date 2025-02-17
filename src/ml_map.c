@@ -230,13 +230,16 @@ ML_FUNCTION(MLMapTemplate) {
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLMapTemplateT, ml_value_t *Template) {
 	ml_value_t *Result = ml_list();
 	ml_list_put(Result, ml_cstring("map::template"));
-	ML_MAP_FOREACH(Template, Node) ml_list_put(Result, Node->Key);
+	ML_MAP_FOREACH(Template, Node) {
+		ml_list_put(Result, Node->Key);
+		ml_list_put(Result, Node->Value);
+	}
 	return Result;
 }
 
 ML_DESERIALIZER("map::template") {
 	ml_value_t *Template = ml_map();
-	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
+	for (int I = 0; I < Count; I += 2) ml_map_insert(Template, Args[I], Args[I + 1]);
 	Template->Type = MLMapTemplateT;
 	return Template;
 }

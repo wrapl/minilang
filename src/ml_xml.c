@@ -507,6 +507,32 @@ ML_METHOD("remove", MLXmlT) {
 	return (ml_value_t *)Node;
 }
 
+ML_METHOD("replace", MLXmlT, MLXmlT) {
+//<Node/1
+//<Node/2
+//>xml
+// Removes :mini:`Node/1` from its parent and replaces it with :mini:`Node/2`.
+	ml_xml_node_t *Node1 = (ml_xml_node_t *)Args[0];
+	ml_xml_node_t *Node2 = (ml_xml_node_t *)Args[1];
+	if (Node1 == Node2) return (ml_value_t *)Node2;
+	if (!Node1->Parent) return (ml_value_t *)Node2;
+	if (Node2->Parent) ml_xml_node_remove(Node2);
+	ml_xml_element_t *Parent = Node2->Parent = Node1->Parent;
+	if ((Node2->Next = Node1->Next)) {
+		Node2->Next->Prev = Node2;
+	} else {
+		Parent->Tail = Node2;
+	}
+	if ((Node2->Prev = Node1->Prev)) {
+		Node2->Prev->Next = Node2;
+	} else {
+		Parent->Head = Node2;
+	}
+	Node1->Parent = NULL;
+	Node1->Next = Node1->Prev = NULL;
+	return (ml_value_t *)Node2;
+}
+
 ML_METHODV("add_next", MLXmlT, MLAnyT) {
 //<Node
 //<Other
