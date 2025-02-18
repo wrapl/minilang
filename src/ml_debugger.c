@@ -3,7 +3,9 @@
 #include "ml_compiler.h"
 #include "ml_macros.h"
 #include "ml_logging.h"
+#ifdef ML_JSON
 #include "ml_json.h"
+#endif
 #include "ml_minijs.h"
 #include <string.h>
 #include <stdlib.h>
@@ -407,6 +409,8 @@ ml_value_t *ml_interactive_debugger(
 
 #ifdef Linux
 
+#ifdef ML_JSON
+
 typedef struct {
 	ml_state_t Base;
 	ml_debugger_t Debugger;
@@ -756,6 +760,8 @@ void ml_remote_debugger_init(ml_context_t *Context, const char *Address) {
 	GC_pthread_create(&Remote->Thread, NULL, ml_remote_debugger_fn, Remote);
 	ml_context_set_static(Context, ML_DEBUGGER_INDEX, &Remote->Debugger);
 }
+
+#endif
 
 #endif
 
