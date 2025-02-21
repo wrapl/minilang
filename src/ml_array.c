@@ -5263,11 +5263,12 @@ static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealIntervalT, ml
 ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
 	typeof(ml_array_of_create) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_create);
 	if (function) return function(Value, Degree, Format);
+	if (!Degree) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 	ml_array_t *Array = ml_array_alloc(Format, Degree);
-	if (Degree) {
+	/*if (Degree) {
 		Array->Dimensions[Degree - 1].Size = 1;
 		Array->Dimensions[Degree - 1].Stride = MLArraySizes[Format];
-	}
+	}*/
 	return Array;
 }
 

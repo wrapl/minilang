@@ -255,6 +255,10 @@ xml
    Removes :mini:`Node` from its parent.
 
 
+:mini:`meth (Node₁: xml):replace(Node₂: xml): xml`
+   Removes :mini:`Node₁` from its parent and replaces it with :mini:`Node₂`.
+
+
 :mini:`meth (Arg₁: xml::element):append(Arg₂: xml, ...)`
    *TBD*
 
