@@ -165,6 +165,13 @@ ML_METHOD("text", MLXmlTextT) {
 	return ml_string_unchecked(Node->Base.Value, Node->Base.Length);
 }
 
+ML_METHOD("copy", MLVisitorT, MLXmlTextT) {
+	ml_xml_node_t *Source = (ml_xml_node_t *)Args[1];
+	ml_xml_node_t *Text = new(ml_xml_node_t);
+	Text->Base = Source->Base;
+	return (ml_value_t *)Text;
+}
+
 static stringmap_t MLXmlTags[1] = {STRINGMAP_INIT};
 
 struct ml_xml_element_t {
@@ -393,6 +400,56 @@ ML_METHOD("set", MLXmlElementT, MLStringT, MLStringT) {
 	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
 	ml_map_insert(Element->Attributes, Args[1], Args[2]);
 	return (ml_value_t *)Element;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Visitor;
+	ml_xml_element_t *Dest;
+	ml_xml_node_t *Node;
+	ml_value_t *Args[];
+} ml_xml_element_visit_t;
+
+static void ml_xml_element_copy_run(ml_xml_element_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!ml_is(Value, MLXmlT)) ML_ERROR("TypeError", "Expected xml node");
+	ml_xml_node_t *Node = (ml_xml_node_t *)Value;
+	ml_xml_element_t *Dest = State->Dest;
+	if ((Node->Prev = Dest->Tail)) {
+		Dest->Tail->Next = Node;
+		Node->Index = Dest->Tail->Index + 1;
+	} else {
+		Dest->Head = Node;
+		Node->Index = 1;
+	}
+	Dest->Tail = Node;
+	if (State->Node->Next) {
+		State->Node = State->Node->Next;
+		State->Args[0] = (ml_value_t *)State->Node;
+		return ml_call(State, (ml_value_t *)State->Visitor, 1, State->Args);
+	}
+	ML_RETURN(Dest);
+}
+
+ML_METHODX("copy", MLVisitorT, MLXmlElementT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_xml_element_t *Source = (ml_xml_element_t *)Args[1];
+	ml_xml_element_t *Target = new(ml_xml_element_t);
+	Target->Base.Base = Source->Base.Base;
+	Target->Attributes = ml_map();
+	ML_MAP_FOREACH(Source->Attributes, Iter) ml_map_insert(Target->Attributes, Iter->Key, Iter->Value);
+	inthash_insert(Visitor->Cache, (uintptr_t)Source, Target);
+	if (!Source->Head) ML_RETURN(Target);
+	ml_xml_element_visit_t *State = new(ml_xml_element_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_xml_element_copy_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Dest = Target;
+	State->Node = Source->Head;
+	State->Args[0] = (ml_value_t *)State->Node;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
 
 typedef struct {
