@@ -5265,10 +5265,8 @@ ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t 
 	if (function) return function(Value, Degree, Format);
 	if (!Degree) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 	ml_array_t *Array = ml_array_alloc(Format, Degree);
-	/*if (Degree) {
-		Array->Dimensions[Degree - 1].Size = 1;
-		Array->Dimensions[Degree - 1].Stride = MLArraySizes[Format];
-	}*/
+	Array->Dimensions[Degree - 1].Size = 1;
+	Array->Dimensions[Degree - 1].Stride = MLArraySizes[Format];
 	return Array;
 }
 
