@@ -410,6 +410,32 @@ typedef struct {
 	ml_value_t *Args[];
 } ml_xml_element_visit_t;
 
+static void ml_xml_element_visit_run(ml_xml_element_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!ml_is(Value, MLXmlT)) ML_ERROR("TypeError", "Expected xml node");
+	if (State->Node->Next) {
+		State->Node = State->Node->Next;
+		State->Args[0] = (ml_value_t *)State->Node;
+		return ml_call(State, (ml_value_t *)State->Visitor, 1, State->Args);
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_METHODX("visit", MLVisitorT, MLXmlElementT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_xml_element_t *Source = (ml_xml_element_t *)Args[1];
+	if (!Source->Head) ML_RETURN(MLNil);
+	ml_xml_element_visit_t *State = new(ml_xml_element_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_xml_element_visit_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Node = Source->Head;
+	State->Args[0] = (ml_value_t *)State->Node;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
 static void ml_xml_element_copy_run(ml_xml_element_visit_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);

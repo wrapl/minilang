@@ -35,6 +35,18 @@ xml
    *TBD*
 
 
+:mini:`meth (Arg₁: visitor):copy(Arg₂: xml::element)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: visitor):copy(Arg₂: xml::text)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: visitor):visit(Arg₂: xml::element)`
+   *TBD*
+
+
 :mini:`type xml`
    An XML node.
 
