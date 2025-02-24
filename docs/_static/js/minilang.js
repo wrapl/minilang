@@ -6633,6 +6633,8 @@ var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
 var _malloc = createExportWrapper('malloc', 1);
 var _ml_session = Module['_ml_session'] = createExportWrapper('ml_session', 1);
 var _ml_session_evaluate = Module['_ml_session_evaluate'] = createExportWrapper('ml_session_evaluate', 2);
+var _ml_session_define = Module['_ml_session_define'] = createExportWrapper('ml_session_define', 3);
+var _ml_session_lookup = Module['_ml_session_lookup'] = createExportWrapper('ml_session_lookup', 2);
 var _free = createExportWrapper('free', 1);
 var _memcmp = createExportWrapper('memcmp', 3);
 var _strerror = createExportWrapper('strerror', 1);

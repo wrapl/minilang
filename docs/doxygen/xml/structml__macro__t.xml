@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="316" column="11" bodyfile="src/ml_compiler2.h" bodystart="316" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="300" column="11" bodyfile="src/ml_compiler2.h" bodystart="300" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__macro__t_1a6443c4e99156544c144fd14905683ce1" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="317" column="12" bodyfile="src/ml_compiler2.h" bodystart="317" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="301" column="12" bodyfile="src/ml_compiler2.h" bodystart="301" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__macro__t_1a7c0fe4512b8c59b834208d1786017ef8" prot="public" static="no" mutable="no">
         <type>const <ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *(*</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="318" column="7" bodyfile="src/ml_compiler2.h" bodystart="318" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="302" column="7" bodyfile="src/ml_compiler2.h" bodystart="302" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__macro__t_1a93462051e04a57e2459e6a2ab149a01c" prot="public" static="no" mutable="no">
         <type>void *</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="319" column="6" bodyfile="src/ml_compiler2.h" bodystart="319" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="303" column="6" bodyfile="src/ml_compiler2.h" bodystart="303" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -122,7 +122,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="315" column="1" bodyfile="src/ml_compiler2.h" bodystart="315" bodyend="320"/>
+    <location file="src/ml_compiler2.h" line="299" column="1" bodyfile="src/ml_compiler2.h" bodystart="299" bodyend="304"/>
     <listofallmembers>
       <member refid="structml__macro__t_1a93462051e04a57e2459e6a2ab149a01c" prot="public" virt="non-virtual"><scope>ml_macro_t</scope><name>Data</name></member>
       <member refid="structml__macro__t_1a6443c4e99156544c144fd14905683ce1" prot="public" virt="non-virtual"><scope>ml_macro_t</scope><name>Function</name></member>

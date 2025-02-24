@@ -61,6 +61,14 @@ function
    Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
 
 
+:mini:`meth (Function: function) $! (List: list, Arg₃: map): function::partial`
+   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
+
+
+:mini:`meth (Function: function) $! (List: map): function::partial`
+   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
+
+
 :mini:`meth (Base: function) -> (Function: function): chained`
    Returns a chained function equivalent to :mini:`Function(Base(...))`.
 
@@ -101,6 +109,10 @@ function
 
       let F := :upper => +
       F("h", "e", "l", "l", "o") :> "HELLO"
+
+
+:mini:`meth (Arg₁: function):source`
+   *TBD*
 
 
 :mini:`type function::partial < function, sequence`

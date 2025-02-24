@@ -13,6 +13,10 @@ map
    *TBD*
 
 
+:mini:`fun map::by(Sequence: any): map`
+   *TBD*
+
+
 :mini:`type map < sequence`
    A map of key-value pairs.
    Keys can be of any type supporting hashing and comparison.
@@ -555,8 +559,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "e"
-      M:random :> "k"
+      M:random :> "a"
+      M:random :> "a"
 
 
 :mini:`meth (Map: map) :: (Key: string): map::node`

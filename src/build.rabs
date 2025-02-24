@@ -132,12 +132,14 @@ generate_init_files(PATH / "array")
 
 let Objects := [
 	file("inthash.o"),
+	file("ml_boolean.o"),
 	file("ml_bytecode.o"),
 	file("ml_compiler.o"),
 	file("ml_tasks.o"),
 	file("ml_console.o"),
 	file("ml_debugger.o"),
 	file("ml_file.o"),
+	file("ml_function.o"),
 	file("ml_list.o"),
 	file("ml_logging.o"),
 	file("ml_map.o"),
@@ -153,6 +155,7 @@ let Objects := [
 	file("ml_stream.o"),
 	file("ml_string.o"),
 	file("ml_time.o"),
+	file("ml_tuple.o"),
 	file("ml_types.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
@@ -440,6 +443,7 @@ if MINILANG_AST then
 	Objects:put(file("ml_ast.o"))
 	CFLAGS := old + ["-DML_AST"]
 	InstallHeaders:put("ml_ast.h")
+	file("ml_ast_init.c")[file("ml_ast_types.c")]
 end
 
 if MINILANG_LIGHTNING or defined("LIGHTNING") then

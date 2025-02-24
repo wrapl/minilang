@@ -186,6 +186,40 @@
         </inbodydescription>
         <location file="src/ml_types.h" line="337" column="12" declfile="src/ml_types.h" declline="337" declcolumn="12"/>
       </memberdef>
+      <memberdef kind="function" id="group__iterators_1ga469d52d4441c804bef025e749bd7155d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_dup</definition>
+        <argsstring>(ml_value_t *Sequence)</argsstring>
+        <name>ml_dup</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Sequence</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="339" column="12" declfile="src/ml_types.h" declline="339" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gab120644a7e278d2f859b3e1875e1433f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_swap</definition>
+        <argsstring>(ml_value_t *Sequence)</argsstring>
+        <name>ml_swap</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Sequence</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="340" column="12" declfile="src/ml_types.h" declline="340" declcolumn="12"/>
+      </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>

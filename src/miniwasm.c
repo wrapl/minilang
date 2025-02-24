@@ -16,6 +16,7 @@
 #include "ml_sequence.h"
 #include "ml_stream.h"
 #include "ml_logging.h"
+#include "ml_json.h"
 #include <string.h>
 #include <emscripten.h>
 #include <emscripten/html5.h>
@@ -605,4 +606,32 @@ void EMSCRIPTEN_KEEPALIVE ml_session_evaluate(int Index, const char *Text) {
 		GC_gcollect();
 		Scheduler->run(Scheduler);
 	}
+}
+
+int EMSCRIPTEN_KEEPALIVE ml_session_define(int Index, const char *Name, const char *Json) {
+	ml_session_t *Session = Sessions + Index;
+	ml_value_t *Value = ml_json_decode(Json, strlen(Json));
+	if (ml_is_error(Value)) {
+		Session->Result = Value;
+		return 1;
+	}
+	ml_compiler_define(Session->Compiler, GC_strdup(Name), Value);
+	return 0;
+}
+
+const char *EMSCRIPTEN_KEEPALIVE ml_session_lookup(int Index, const char *Name) {
+	ml_session_t *Session = Sessions + Index;
+	ml_value_t *Value = ml_compiler_lookup(Session->Compiler, Name, "<session>", 1, 0);
+	if (ml_is_error(Value)) {
+		Session->Result = Value;
+		return "";
+	}
+	Value = ml_deref(Value);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_value_t *Error = ml_json_encode(Buffer, Value);
+	if (Error) {
+		Session->Result = Error;
+		return "";
+	}
+	return ml_stringbuffer_get_string(Buffer);
 }

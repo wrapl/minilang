@@ -35,6 +35,18 @@ xml
    *TBD*
 
 
+:mini:`meth (Arg₁: visitor):copy(Arg₂: xml::element)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: visitor):copy(Arg₂: xml::text)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: visitor):visit(Arg₂: xml::element)`
+   *TBD*
+
+
 :mini:`type xml`
    An XML node.
 
@@ -253,6 +265,10 @@ xml
 
 :mini:`meth (Node: xml):remove: xml`
    Removes :mini:`Node` from its parent.
+
+
+:mini:`meth (Node₁: xml):replace(Node₂: xml): xml`
+   Removes :mini:`Node₁` from its parent and replaces it with :mini:`Node₂`.
 
 
 :mini:`meth (Arg₁: xml::element):append(Arg₂: xml, ...)`

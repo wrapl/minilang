@@ -1,4 +1,3 @@
-#include "ml_map.h"
 #include "minilang.h"
 #include "ml_macros.h"
 #include <string.h>
@@ -231,13 +230,16 @@ ML_FUNCTION(MLMapTemplate) {
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLMapTemplateT, ml_value_t *Template) {
 	ml_value_t *Result = ml_list();
 	ml_list_put(Result, ml_cstring("map::template"));
-	ML_MAP_FOREACH(Template, Node) ml_list_put(Result, Node->Key);
+	ML_MAP_FOREACH(Template, Node) {
+		ml_list_put(Result, Node->Key);
+		ml_list_put(Result, Node->Value);
+	}
 	return Result;
 }
 
 ML_DESERIALIZER("map::template") {
 	ml_value_t *Template = ml_map();
-	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
+	for (int I = 0; I < Count; I += 2) ml_map_insert(Template, Args[I], Args[I + 1]);
 	Template->Type = MLMapTemplateT;
 	return Template;
 }
@@ -2142,6 +2144,20 @@ static int ML_TYPED_FN(ml_value_is_constant, MLMapT, ml_value_t *Map) {
 	return 1;
 }
 
+ML_FUNCTIONX(MLMapBy) {
+//@map::by
+//<Sequence
+//>map
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Sequence = Args[0];
+	Args[0] = ml_dup(Sequence);
+	ml_value_t *Swapped = ml_swap(ml_chained(Count, Args));
+	Args[0] = Sequence;
+	ml_value_t **Args2 = ml_alloc_args(1);
+	Args2[0] = Swapped;
+	return ml_call(Caller, (ml_value_t *)MLMapT, 1, Args);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Map, *Key, *Fn;
@@ -2335,6 +2351,7 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "reduce", MLMapReduce);
 	stringmap_insert(MLMapT->Exports, "labeller", MLMapLabeller);
 	stringmap_insert(MLMapT->Exports, "template", MLMapTemplate);
+	stringmap_insert(MLMapT->Exports, "by", MLMapBy);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #ifdef ML_MUTABLES

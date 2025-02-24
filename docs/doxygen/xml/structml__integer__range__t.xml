@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="674" column="17" bodyfile="src/ml_types.h" bodystart="674" bodyend="-1"/>
+        <location file="src/ml_types.h" line="677" column="17" bodyfile="src/ml_types.h" bodystart="677" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__integer__range__t_1ae869fb5dcf79da56aac1fadac719dc21" prot="public" static="no" mutable="no">
         <type>long</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="675" column="6" bodyfile="src/ml_types.h" bodystart="675" bodyend="-1"/>
+        <location file="src/ml_types.h" line="678" column="6" bodyfile="src/ml_types.h" bodystart="678" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__integer__range__t_1aa7af31cea4c172e7bcb060e8296fb8de" prot="public" static="no" mutable="no">
         <type>long</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="675" column="12" bodyfile="src/ml_types.h" bodystart="675" bodyend="-1"/>
+        <location file="src/ml_types.h" line="678" column="12" bodyfile="src/ml_types.h" bodystart="678" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__integer__range__t_1ac8db2e243084c35368da21c91528e966" prot="public" static="no" mutable="no">
         <type>long</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="675" column="18" bodyfile="src/ml_types.h" bodystart="675" bodyend="-1"/>
+        <location file="src/ml_types.h" line="678" column="18" bodyfile="src/ml_types.h" bodystart="678" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -106,7 +106,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="673" column="1" bodyfile="src/ml_types.h" bodystart="673" bodyend="676"/>
+    <location file="src/ml_types.h" line="676" column="1" bodyfile="src/ml_types.h" bodystart="676" bodyend="679"/>
     <listofallmembers>
       <member refid="structml__integer__range__t_1aa7af31cea4c172e7bcb060e8296fb8de" prot="public" virt="non-virtual"><scope>ml_integer_range_t</scope><name>Limit</name></member>
       <member refid="structml__integer__range__t_1ae869fb5dcf79da56aac1fadac719dc21" prot="public" virt="non-virtual"><scope>ml_integer_range_t</scope><name>Start</name></member>

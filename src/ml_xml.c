@@ -165,6 +165,13 @@ ML_METHOD("text", MLXmlTextT) {
 	return ml_string_unchecked(Node->Base.Value, Node->Base.Length);
 }
 
+ML_METHOD("copy", MLVisitorT, MLXmlTextT) {
+	ml_xml_node_t *Source = (ml_xml_node_t *)Args[1];
+	ml_xml_node_t *Text = new(ml_xml_node_t);
+	Text->Base = Source->Base;
+	return (ml_value_t *)Text;
+}
+
 static stringmap_t MLXmlTags[1] = {STRINGMAP_INIT};
 
 struct ml_xml_element_t {
@@ -331,7 +338,7 @@ ML_METHOD("index", MLXmlT, MLBooleanT) {
 		for (ml_xml_node_t *Child = Node->Parent->Head; Child != Node; Child = Child->Next) {
 			if (Child->Base.Type == MLXmlElementT) ++Index;
 		}
-		return ml_integer(Node->Index);
+		return ml_integer(Index);
 	}
 	return ml_integer(Node->Index);
 }
@@ -393,6 +400,82 @@ ML_METHOD("set", MLXmlElementT, MLStringT, MLStringT) {
 	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
 	ml_map_insert(Element->Attributes, Args[1], Args[2]);
 	return (ml_value_t *)Element;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Visitor;
+	ml_xml_element_t *Dest;
+	ml_xml_node_t *Node;
+	ml_value_t *Args[];
+} ml_xml_element_visit_t;
+
+static void ml_xml_element_visit_run(ml_xml_element_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!ml_is(Value, MLXmlT)) ML_ERROR("TypeError", "Expected xml node");
+	if (State->Node->Next) {
+		State->Node = State->Node->Next;
+		State->Args[0] = (ml_value_t *)State->Node;
+		return ml_call(State, (ml_value_t *)State->Visitor, 1, State->Args);
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_METHODX("visit", MLVisitorT, MLXmlElementT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_xml_element_t *Source = (ml_xml_element_t *)Args[1];
+	if (!Source->Head) ML_RETURN(MLNil);
+	ml_xml_element_visit_t *State = new(ml_xml_element_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_xml_element_visit_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Node = Source->Head;
+	State->Args[0] = (ml_value_t *)State->Node;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static void ml_xml_element_copy_run(ml_xml_element_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!ml_is(Value, MLXmlT)) ML_ERROR("TypeError", "Expected xml node");
+	ml_xml_node_t *Node = (ml_xml_node_t *)Value;
+	ml_xml_element_t *Dest = State->Dest;
+	if ((Node->Prev = Dest->Tail)) {
+		Dest->Tail->Next = Node;
+		Node->Index = Dest->Tail->Index + 1;
+	} else {
+		Dest->Head = Node;
+		Node->Index = 1;
+	}
+	Dest->Tail = Node;
+	if (State->Node->Next) {
+		State->Node = State->Node->Next;
+		State->Args[0] = (ml_value_t *)State->Node;
+		return ml_call(State, (ml_value_t *)State->Visitor, 1, State->Args);
+	}
+	ML_RETURN(Dest);
+}
+
+ML_METHODX("copy", MLVisitorT, MLXmlElementT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_xml_element_t *Source = (ml_xml_element_t *)Args[1];
+	ml_xml_element_t *Target = new(ml_xml_element_t);
+	Target->Base.Base = Source->Base.Base;
+	Target->Attributes = ml_map();
+	ML_MAP_FOREACH(Source->Attributes, Iter) ml_map_insert(Target->Attributes, Iter->Key, Iter->Value);
+	inthash_insert(Visitor->Cache, (uintptr_t)Source, Target);
+	if (!Source->Head) ML_RETURN(Target);
+	ml_xml_element_visit_t *State = new(ml_xml_element_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_xml_element_copy_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Dest = Target;
+	State->Node = Source->Head;
+	State->Args[0] = (ml_value_t *)State->Node;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
 
 typedef struct {
@@ -505,6 +588,32 @@ ML_METHOD("remove", MLXmlT) {
 		Node->Next = Node->Prev = NULL;
 	}
 	return (ml_value_t *)Node;
+}
+
+ML_METHOD("replace", MLXmlT, MLXmlT) {
+//<Node/1
+//<Node/2
+//>xml
+// Removes :mini:`Node/1` from its parent and replaces it with :mini:`Node/2`.
+	ml_xml_node_t *Node1 = (ml_xml_node_t *)Args[0];
+	ml_xml_node_t *Node2 = (ml_xml_node_t *)Args[1];
+	if (Node1 == Node2) return (ml_value_t *)Node2;
+	if (!Node1->Parent) return (ml_value_t *)Node2;
+	if (Node2->Parent) ml_xml_node_remove(Node2);
+	ml_xml_element_t *Parent = Node2->Parent = Node1->Parent;
+	if ((Node2->Next = Node1->Next)) {
+		Node2->Next->Prev = Node2;
+	} else {
+		Parent->Tail = Node2;
+	}
+	if ((Node2->Prev = Node1->Prev)) {
+		Node2->Prev->Next = Node2;
+	} else {
+		Parent->Head = Node2;
+	}
+	Node1->Parent = NULL;
+	Node1->Next = Node1->Prev = NULL;
+	return (ml_value_t *)Node2;
 }
 
 ML_METHODV("add_next", MLXmlT, MLAnyT) {
@@ -821,9 +930,9 @@ extern ml_type_t MLChainedT[];
 
 #ifdef ML_GENERICS
 
-ML_GENERIC_TYPE(MLXmlSequenceT, MLSequenceT, MLIntegerT, MLXmlT);
-ML_GENERIC_TYPE(MLXmlDoubledT, MLDoubledT, MLIntegerT, MLXmlT);
-ML_GENERIC_TYPE(MLXmlChainedT, MLChainedT, MLIntegerT, MLXmlT);
+ML_GENERIC_TYPE(MLXmlSequenceT, MLSequenceT, MLAnyT, MLXmlT);
+ML_GENERIC_TYPE(MLXmlDoubledT, MLDoubledT, MLAnyT, MLXmlT);
+ML_GENERIC_TYPE(MLXmlChainedT, MLChainedT, MLAnyT, MLXmlT);
 
 #else
 
@@ -1613,29 +1722,40 @@ ML_METHOD("has", MLXmlSequenceT, MLFunctionT) {
 }
 
 static void ml_xml_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Count) {
+	const char *Head = String;
 	while (--Count >= 0) {
 		switch (*String) {
 		case '<':
-			ml_stringbuffer_write(Buffer, "&lt;", 4);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&lt;", strlen("&lt;"));
 			break;
 		case '>':
-			ml_stringbuffer_write(Buffer, "&gt;", 4);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&gt;", strlen("&gt;"));
 			break;
 		case '&':
-			ml_stringbuffer_write(Buffer, "&amp;", 5);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&amp;", strlen("&amp;"));
 			break;
 		case '\"':
-			ml_stringbuffer_write(Buffer, "&quot;", 6);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&quot;", strlen("&quot;"));
 			break;
 		case '\'':
-			ml_stringbuffer_write(Buffer, "&apos;", 6);
+			ml_stringbuffer_write(Buffer, Head, String - Head);
+			Head = ++String;
+			ml_stringbuffer_write(Buffer, "&apos;", strlen("&apos;"));
 			break;
 		default:
-			ml_stringbuffer_put(Buffer, *String);
+			++String;
 			break;
 		}
-		++String;
 	}
+	ml_stringbuffer_write(Buffer, Head, String - Head);
 }
 
 static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_element_t *Node) {
@@ -1818,7 +1938,13 @@ static void ml_xml_stream_state_run(ml_xml_stream_state_t *State, ml_value_t *Re
 		enum XML_Error Error = XML_GetErrorCode(State->Handle);
 		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
-	if (!Length) ML_RETURN(State->Result ?: ml_error("XMLError", "Incomplete XML"));
+	if (!Length) {
+		if (XML_Parse(State->Handle, "", 0, 1) == XML_STATUS_ERROR) {
+			enum XML_Error Error = XML_GetErrorCode(State->Handle);
+			ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
+		}
+		ML_RETURN(State->Result ?: ml_error("XMLError", "Incomplete XML"));
+	}
 	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
 }
 
@@ -1832,6 +1958,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	State->Parser.Stack = &State->Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetReparseDeferralEnabled(Handle, XML_FALSE);
 	XML_SetUserData(Handle, &State->Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
@@ -1839,7 +1966,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
-	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
+	State->read = (typeof(ml_stream_read) *)ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_xml_stream_state_run;
@@ -1923,6 +2050,7 @@ ML_METHODX(MLXmlParse, MLStreamT) {
 	State->Parser.Stack = &State->Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetReparseDeferralEnabled(Handle, XML_FALSE);
 	XML_SetUserData(Handle, &State->Parser);
 	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
 	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
@@ -1930,7 +2058,7 @@ ML_METHODX(MLXmlParse, MLStreamT) {
 	XML_SetCommentHandler(Handle, (void *)xml_comment);
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	State->Stream = Args[0];
-	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
+	State->read = (typeof(ml_stream_read) *)ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_xml_stream_state_run;
@@ -2112,7 +2240,7 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	TagExpr->Value = Tag;
 	TagExpr->Source = Parser->Source.Name;
 	TagExpr->StartLine = TagExpr->EndLine = Parser->Source.Line;
-	mlc_call_value_expr_t *ElementExpr = new(mlc_call_value_expr_t);
+	mlc_parent_value_expr_t *ElementExpr = new(mlc_parent_value_expr_t);
 	ElementExpr->compile = ml_const_call_expr_compile;
 	ElementExpr->Value = Parser->Constructor;
 	ElementExpr->Source = Parser->Source.Name;

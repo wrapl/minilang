@@ -3,8 +3,9 @@
 <head>
 </head>
 <body>
-	<div id="session" style="width:400px;margin:auto;"/>
-	<div id="target", style="width:640px;height:480px;border:2px solid red;"/>
+	<div id="session" style="width:400px;margin:auto;"></div>
+	<div id="target", style="width:640px;height:480px;border:2px solid red;"></div>
+	<textarea id="editor" rows="20" cols="80"></textarea>
 	<script src="minilang.js"></script>
 	<script>
 function create(tag) {
@@ -49,6 +50,8 @@ function ml_finish(index) {
 
 ml_session = Module.cwrap("ml_session", "number", ["string"]);
 ml_session_evaluate = Module.cwrap("ml_session_evaluate", "number", ["number", "string"]);
+ml_session_define = Module.cwrap("ml_session_define", "number", ["number", "string", "string"]);
+ml_session_lookup = Module.cwrap("ml_session_lookup", "string", ["number", "string"]);
 
 function Cell(session, value) {
 	this.session = session;
@@ -108,6 +111,11 @@ Session.prototype.finish = function() {
 }
 
 let container = document.getElementById("session");
+
+let editor = document.getElementById("editor");
+editor.onchange = function(event) {
+	ml_session_define(0, "Source", JSON.stringify(editor.value));
+};
 
 Module.onRuntimeInitialized = function() {
 	let session = new Session("2 + 2", "3 + 4 * 5");

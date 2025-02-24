@@ -31,6 +31,20 @@
         </inbodydescription>
         <location file="src/ml_compiler2.h" line="179" column="12" bodyfile="src/ml_compiler2.h" bodystart="179" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="variable" id="structmlc__parent__expr__t_1a7f1398d666a6d1bf05bd214e88186068" prot="public" static="no" mutable="no">
+        <type><ref refid="unionml__inst__t" kindref="compound">ml_inst_t</ref> *</type>
+        <definition>ml_inst_t* CacheInst</definition>
+        <argsstring></argsstring>
+        <name>CacheInst</name>
+        <qualifiedname>mlc_parent_expr_t::CacheInst</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="180" column="11" bodyfile="src/ml_compiler2.h" bodystart="180" bodyend="-1"/>
+      </memberdef>
     </sectiondef>
     <sectiondef kind="public-func">
       <memberdef kind="function" id="structmlc__parent__expr__t_1a514b3accdb60f8f34e320f1e0241ee41" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -59,6 +73,58 @@
       <node id="5">
         <label>inthash_t</label>
         <link refid="structinthash__t"/>
+      </node>
+      <node id="8">
+        <label>ml_closure_info_t</label>
+        <link refid="structml__closure__info__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Entry</edgelabel>
+          <edgelabel>Halt</edgelabel>
+          <edgelabel>Return</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Params</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>ml_decl_t</label>
+        <link refid="structml__decl__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ml_inst_t</label>
+        <link refid="unionml__inst__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Inst</edgelabel>
+          <edgelabel>Insts</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Value</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>ClosureInfo</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>Decls</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
       </node>
       <node id="3">
         <label>ml_type_t</label>
@@ -101,14 +167,18 @@
         <childnode refid="2" relation="usage">
           <edgelabel>Child</edgelabel>
         </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>CacheInst</edgelabel>
+        </childnode>
       </node>
       <node id="6">
         <label>stringmap_t</label>
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="176" column="1" bodyfile="src/ml_compiler2.h" bodystart="176" bodyend="180"/>
+    <location file="src/ml_compiler2.h" line="176" column="1" bodyfile="src/ml_compiler2.h" bodystart="176" bodyend="181"/>
     <listofallmembers>
+      <member refid="structmlc__parent__expr__t_1a7f1398d666a6d1bf05bd214e88186068" prot="public" virt="non-virtual"><scope>mlc_parent_expr_t</scope><name>CacheInst</name></member>
       <member refid="structmlc__parent__expr__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" virt="non-virtual"><scope>mlc_parent_expr_t</scope><name>Child</name></member>
       <member refid="structmlc__parent__expr__t_1a514b3accdb60f8f34e320f1e0241ee41" prot="public" virt="non-virtual"><scope>mlc_parent_expr_t</scope><name>MLC_EXPR_FIELDS</name></member>
       <member refid="structmlc__parent__expr__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>mlc_parent_expr_t</scope><name>Name</name></member>
