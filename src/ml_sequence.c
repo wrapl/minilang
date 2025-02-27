@@ -1438,6 +1438,32 @@ static void reduce_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
+void ml_sum_optimized(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	typeof(ml_sum_optimized) *function = ml_typed_fn_get(ml_typeof(Value), ml_sum_optimized);
+	if (function) return function(State, Value);
+	State->Values[1] = Value;
+	State->Base.run = (void *)reduce_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void reduce_iterate_sum(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
+	State->Base.run = (void *)ml_sum_optimized;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+void ml_sum_fallback(ml_iter_state_t *State, ml_value_t *Iter, ml_value_t *Total, ml_value_t *Value) {
+	ml_value_t *Function = State->Values[0];
+	State->Values[1] = Total;
+	State->Values[2] = Value;
+	State->Iter = Iter;
+	State->Base.run = (void *)reduce_call;
+	return ml_call(State, Function, 2, State->Values + 1);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;
@@ -1451,13 +1477,7 @@ static void string_sum_next_value(ml_string_sum_t *Sum, ml_value_t *Value) {
 	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
 	if (!ml_is(Value, MLStringT)) {
-		ml_iter_state_t *State0 = Sum->State;
-		ml_value_t *Function = State0->Values[0];
-		State0->Values[1] = ml_stringbuffer_get_value(Sum->Buffer);
-		State0->Values[2] = Value;
-		State0->Iter = Sum->Iter;
-		State0->Base.run = (void *)reduce_call;
-		return ml_call(State0, Function, 2, State0->Values + 1);
+		return ml_sum_fallback(Sum->State, Sum->Iter, ml_stringbuffer_get_value(Sum->Buffer), Value);
 	}
 	ml_stringbuffer_write(Sum->Buffer, ml_string_value(Value), ml_string_length(Value));
 	Sum->Base.run = (void *)string_sum_iter_next;
@@ -1471,39 +1491,62 @@ static void string_sum_iter_next(ml_string_sum_t *Sum, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)Sum, Sum->Iter = Value);
 }
 
-extern ml_cfunction_t MLAddStringString[1];
-
-static __attribute__ ((noinline)) int is_string_add(ml_context_t *Context) {
-	ml_value_t *Args[2] = {ml_cstring(""), ml_cstring("")};
-	ml_value_t *Method = ml_method_search(ml_context_get_static(Context, ML_METHODS_INDEX), (ml_method_t *)AddMethod, 2, Args);
-	return Method == (ml_value_t *)MLAddStringString;
+static void ML_TYPED_FN(ml_sum_optimized, MLStringT, ml_iter_state_t *State, ml_value_t *Value) {
+	ml_string_sum_t *Sum = new(ml_string_sum_t);
+	Sum->Base.Caller = State->Base.Caller;
+	Sum->Base.Context = State->Base.Context;
+	Sum->Base.run = (void *)string_sum_iter_next;
+	Sum->State = State;
+	Sum->Iter = State->Iter;
+	ml_stringbuffer_write(Sum->Buffer, ml_string_value(Value), ml_string_length(Value));
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
 }
 
-static void reduce_first_value_sum(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (ml_is(Value, MLStringT)) {// && is_string_add(State->Base.Context)) {
-		ml_string_sum_t *Sum = new(ml_string_sum_t);
-		Sum->Base.Caller = State->Base.Caller;
-		Sum->Base.Context = State->Base.Context;
-		Sum->Base.run = (void *)string_sum_iter_next;
-		Sum->State = State;
-		Sum->Iter = State->Iter;
-		ml_stringbuffer_write(Sum->Buffer, ml_string_value(Value), ml_string_length(Value));
-		return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
-	} else {
-		State->Values[1] = Value;
-		State->Base.run = (void *)reduce_iter_next;
-		return ml_iter_next((ml_state_t *)State, State->Iter);
-	}
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_iter_state_t *State;
+	ml_value_t *Value;
+} ml_container_sum_t;
+
+#define ML_CONTAINER_SUM(TYPE, LNAME, UNAME, CREATE, INSERT) \
+\
+static void LNAME ## _sum_iter_next(ml_container_sum_t *Sum, ml_value_t *Value); \
+\
+static void LNAME ## _sum_next_value(ml_container_sum_t *Sum, ml_value_t *Value) { \
+	Value = ml_deref(Value); \
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value); \
+	if (!ml_is(Value, TYPE)) { \
+		return ml_sum_fallback(Sum->State, Sum->Iter, Sum->Value, Value); \
+	} \
+	ML_ ## UNAME ## _FOREACH(Value, Iter) INSERT; \
+	Sum->Base.run = (void *)LNAME ## _sum_iter_next; \
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter); \
+} \
+\
+static void LNAME ## _sum_iter_next(ml_container_sum_t *Sum, ml_value_t *Value) { \
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value); \
+	if (Value == MLNil) ML_CONTINUE(Sum->Base.Caller, Sum->Value); \
+	Sum->Base.run = (void *)LNAME ## _sum_next_value; \
+	return ml_iter_value((ml_state_t *)Sum, Sum->Iter = Value); \
+} \
+\
+static void ML_TYPED_FN(ml_sum_optimized, TYPE, ml_iter_state_t *State, ml_value_t *Value) { \
+	ml_container_sum_t *Sum = new(ml_container_sum_t); \
+	Sum->Base.Caller = State->Base.Caller; \
+	Sum->Base.Context = State->Base.Context; \
+	Sum->Base.run = (void *)LNAME ## _sum_iter_next; \
+	Sum->State = State; \
+	Sum->Iter = State->Iter; \
+	Sum->Value = CREATE; \
+	ML_ ## UNAME ## _FOREACH(Value, Iter) INSERT; \
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter); \
 }
 
-static void reduce_iterate_sum(ml_iter_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
-	State->Base.run = (void *)reduce_first_value_sum;
-	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
-}
+ML_CONTAINER_SUM(MLListT, list, LIST, ml_list(), ml_list_put(Sum->Value, Iter->Value))
+ML_CONTAINER_SUM(MLSliceT, slice, SLICE, ml_slice(0), ml_slice_put(Sum->Value, Iter->Value))
+ML_CONTAINER_SUM(MLSetT, set, SET, ml_set(), ml_set_insert(Sum->Value, Iter->Key))
+ML_CONTAINER_SUM(MLMapT, map, MAP, ml_map(), ml_map_insert(Sum->Value, Iter->Key, Iter->Value))
 
 ML_FUNCTIONX(Reduce) {
 //<Initial?:any

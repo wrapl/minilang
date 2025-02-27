@@ -165,6 +165,9 @@ typedef struct {
 	ml_value_t *Values[];
 } ml_iter_state_t;
 
+void ml_sum_optimized(ml_iter_state_t *State, ml_value_t *Value);
+void ml_sum_fallback(ml_iter_state_t *State, ml_value_t *Iter, ml_value_t *Total, ml_value_t *Value);
+
 void ml_runtime_init(const char *ExecName);
 
 // Caches //
