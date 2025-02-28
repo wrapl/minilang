@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include <string.h>
+#include "sha256.h"
 #include "ml_sequence.h"
 
 #undef ML_CATEGORY
@@ -82,6 +83,18 @@ ml_value_t *ml_slice(size_t Capacity) {
 		Slice->Nodes = Empty;
 	}
 	return (ml_value_t *)Slice;
+}
+
+static void ML_TYPED_FN(ml_value_sha256, MLSliceT, ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	SHA256_CTX Ctx[1];
+	sha256_init(Ctx);
+	sha256_update(Ctx, (unsigned char *)"slice", strlen("slice"));
+	ML_SLICE_FOREACH(Value, Iter) {
+		unsigned char Hash[SHA256_BLOCK_SIZE];
+		ml_value_sha256(Iter->Value, Chain, Hash);
+		sha256_update(Ctx, Hash, SHA256_BLOCK_SIZE);
+	}
+	sha256_final(Ctx, Hash);
 }
 
 ML_METHOD(MLSliceT) {

@@ -4239,6 +4239,14 @@ ml_value_t *ml_regexi(const char *Pattern0, int Length) {
 	return (ml_value_t *)Regex;
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLRegexT, ml_regex_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	SHA256_CTX Ctx[1];
+	sha256_init(Ctx);
+	sha256_update(Ctx, (unsigned char *)"regex", strlen("regex"));
+	sha256_update(Ctx, (unsigned char *)Value->Pattern, strlen(Value->Pattern));
+	sha256_final(Ctx, Hash);
+}
+
 static ml_value_t *ml_parser_escape_regex(ml_parser_t *Parser) {
 	const char *Next = ml_parser_clear(Parser);
 	char Quote = *Next++;

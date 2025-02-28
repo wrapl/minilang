@@ -714,10 +714,14 @@ ml_value_t *ml_object(ml_type_t *Class0, ...) {
 	const char *Name;
 	while ((Name = va_arg(Arg, const char *))) {
 		ml_field_info_t *Info = stringmap_search(Class->Names, Name);
-		if (!Info) return ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, Name);
+		if (!Info) {
+			va_end(Arg);
+			return ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, Name);
+		}
 		ml_field_t *Field = &Object->Fields[Info->Index];
 		Field->Value = va_arg(Arg, ml_value_t *);
 	}
+	va_end(Arg);
 	for (ml_field_info_t *Info = Class->Fields; Info; Info = Info->Next) {
 		Object->Fields[Info->Index].Type = Info->Type;
 	}

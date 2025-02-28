@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include <string.h>
+#include "sha256.h"
 #include "ml_sequence.h"
 #include "ml_method.h"
 #include "ml_object.h"
@@ -60,6 +61,18 @@ ml_value_t *ml_set() {
 	ml_set_t *Set = new(ml_set_t);
 	Set->Type = MLSetMutableT;
 	return (ml_value_t *)Set;
+}
+
+static void ML_TYPED_FN(ml_value_sha256, MLSetT, ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	SHA256_CTX Ctx[1];
+	sha256_init(Ctx);
+	sha256_update(Ctx, (unsigned char *)"set", strlen("set"));
+	ML_SET_FOREACH(Value, Iter) {
+		unsigned char Hash[SHA256_BLOCK_SIZE];
+		ml_value_sha256(Iter->Key, Chain, Hash);
+		sha256_update(Ctx, Hash, SHA256_BLOCK_SIZE);
+	}
+	sha256_final(Ctx, Hash);
 }
 
 ML_METHOD(MLSetT) {

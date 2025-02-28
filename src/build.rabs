@@ -93,6 +93,8 @@ elseif CC_TYPE = "CLANG" then
 	]
 end
 
+print('CFLAGS = {CFLAGS}\n')
+
 PREBUILDS := old + [file("ml_config.h")]
 INIT_HEADERS := [file("ml_types.h")]
 

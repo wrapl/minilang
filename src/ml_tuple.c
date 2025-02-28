@@ -166,6 +166,18 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLTupleT, ml_tuple_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	SHA256_CTX Ctx[1];
+	sha256_init(Ctx);
+	sha256_update(Ctx, (unsigned char *)"tuple", strlen("tuple"));
+	for (int I = 0; I < Value->Size; ++I)  {
+		unsigned char Hash[SHA256_BLOCK_SIZE];
+		ml_value_sha256(Value->Values[I], Chain, Hash);
+		sha256_update(Ctx, Hash, SHA256_BLOCK_SIZE);
+	}
+	sha256_final(Ctx, Hash);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Visitor, *Dest;
