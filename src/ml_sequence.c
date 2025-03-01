@@ -1468,6 +1468,82 @@ typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;
 	ml_iter_state_t *State;
+	union {
+		int64_t Integer;
+		double Real;
+	};
+} ml_number_sum_t;
+
+static void real_sum_iter_next(ml_number_sum_t *Sum, ml_value_t *Value);
+
+static void real_sum_next_value(ml_number_sum_t *Sum, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (!ml_is(Value, MLRealT)) {
+		return ml_sum_fallback(Sum->State, Sum->Iter, ml_real(Sum->Real), Value);
+	}
+	Sum->Real += ml_real_value(Value);
+	Sum->Base.run = (void *)real_sum_iter_next;
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+}
+
+static void real_sum_iter_next(ml_number_sum_t *Sum, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(Sum->Base.Caller, ml_real(Sum->Real));
+	Sum->Base.run = (void *)real_sum_next_value;
+	return ml_iter_value((ml_state_t *)Sum, Sum->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_sum_optimized, MLRealT, ml_iter_state_t *State, ml_value_t *Value) {
+	ml_number_sum_t *Sum = new(ml_number_sum_t);
+	Sum->Base.Caller = State->Base.Caller;
+	Sum->Base.Context = State->Base.Context;
+	Sum->Base.run = (void *)real_sum_iter_next;
+	Sum->State = State;
+	Sum->Iter = State->Iter;
+	Sum->Real = ml_real_value(Value);
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+}
+
+static void integer_sum_iter_next(ml_number_sum_t *Sum, ml_value_t *Value);
+
+static void integer_sum_next_value(ml_number_sum_t *Sum, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (ml_is(Value, MLIntegerT)) {
+		Sum->Integer += ml_integer_value(Value);
+		Sum->Base.run = (void *)integer_sum_iter_next;
+	} else if (ml_is(Value, MLRealT)) {
+		Sum->Real = Sum->Integer + ml_real_value(Value);
+		Sum->Base.run = (void *)real_sum_iter_next;
+	} else {
+		return ml_sum_fallback(Sum->State, Sum->Iter, ml_integer(Sum->Integer), Value);
+	}
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+}
+
+static void integer_sum_iter_next(ml_number_sum_t *Sum, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(Sum->Base.Caller, ml_integer(Sum->Integer));
+	Sum->Base.run = (void *)integer_sum_next_value;
+	return ml_iter_value((ml_state_t *)Sum, Sum->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_sum_optimized, MLIntegerT, ml_iter_state_t *State, ml_value_t *Value) {
+	ml_number_sum_t *Sum = new(ml_number_sum_t);
+	Sum->Base.Caller = State->Base.Caller;
+	Sum->Base.Context = State->Base.Context;
+	Sum->Base.run = (void *)integer_sum_iter_next;
+	Sum->State = State;
+	Sum->Iter = State->Iter;
+	Sum->Integer = ml_integer_value(Value);
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_iter_state_t *State;
 	ml_stringbuffer_t Buffer[1];
 } ml_string_sum_t;
 
