@@ -1471,19 +1471,63 @@ typedef struct {
 	union {
 		int64_t Integer;
 		double Real;
+#ifdef ML_COMPLEX
+		complex_double Complex;
+#endif
 	};
 } ml_number_sum_t;
+
+#ifdef ML_COMPLEX
+
+static void complex_sum_iter_next(ml_number_sum_t *Sum, ml_value_t *Value);
+
+static void complex_sum_next_value(ml_number_sum_t *Sum, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (!ml_is(Value, MLComplexT)) {
+		return ml_sum_fallback(Sum->State, Sum->Iter, ml_complex(Sum->Complex), Value);
+	}
+	Sum->Complex += ml_complex_value(Value);
+	Sum->Base.run = (void *)complex_sum_iter_next;
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+}
+
+static void complex_sum_iter_next(ml_number_sum_t *Sum, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(Sum->Base.Caller, ml_complex(Sum->Complex));
+	Sum->Base.run = (void *)complex_sum_next_value;
+	return ml_iter_value((ml_state_t *)Sum, Sum->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_sum_optimized, MLComplexT, ml_iter_state_t *State, ml_value_t *Value) {
+	ml_number_sum_t *Sum = new(ml_number_sum_t);
+	Sum->Base.Caller = State->Base.Caller;
+	Sum->Base.Context = State->Base.Context;
+	Sum->Base.run = (void *)complex_sum_iter_next;
+	Sum->State = State;
+	Sum->Iter = State->Iter;
+	Sum->Complex = ml_complex_value(Value);
+	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
+}
+
+#endif
 
 static void real_sum_iter_next(ml_number_sum_t *Sum, ml_value_t *Value);
 
 static void real_sum_next_value(ml_number_sum_t *Sum, ml_value_t *Value) {
 	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(Sum->Base.Caller, Value);
-	if (!ml_is(Value, MLRealT)) {
-		return ml_sum_fallback(Sum->State, Sum->Iter, ml_real(Sum->Real), Value);
+	if (ml_is(Value, MLRealT)) {
+		Sum->Real += ml_real_value(Value);
+		Sum->Base.run = (void *)real_sum_iter_next;
+#ifdef ML_COMPLEX
+	} else if (ml_is(Value, MLComplexT)) {
+		Sum->Complex = Sum->Real + ml_complex_value(Value);
+		Sum->Base.run = (void *)complex_sum_iter_next;
+#endif
+	} else {
+		return ml_sum_fallback(Sum->State, Sum->Iter, ml_real(Sum->Integer), Value);
 	}
-	Sum->Real += ml_real_value(Value);
-	Sum->Base.run = (void *)real_sum_iter_next;
 	return ml_iter_next((ml_state_t *)Sum, Sum->Iter);
 }
 
@@ -1516,6 +1560,11 @@ static void integer_sum_next_value(ml_number_sum_t *Sum, ml_value_t *Value) {
 	} else if (ml_is(Value, MLRealT)) {
 		Sum->Real = Sum->Integer + ml_real_value(Value);
 		Sum->Base.run = (void *)real_sum_iter_next;
+#ifdef ML_COMPLEX
+	} else if (ml_is(Value, MLComplexT)) {
+		Sum->Complex = Sum->Integer + ml_complex_value(Value);
+		Sum->Base.run = (void *)complex_sum_iter_next;
+#endif
 	} else {
 		return ml_sum_fallback(Sum->State, Sum->Iter, ml_integer(Sum->Integer), Value);
 	}
