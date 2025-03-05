@@ -1792,6 +1792,31 @@ ML_METHOD("..", MLStringT, MLStringT) {
 	return (ml_value_t *)Interval;
 }
 
+
+
+ML_METHOD("random", MLStringIntervalT) {
+//!interval
+//<Interval
+//>string
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
+	int64_t Diff = Interval->Limit - Interval->Start;
+	int Limit = Diff + 1;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	uint32_t Code = Interval->Start + Random;
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 8;
+	while (Code > LeadByteMax) {
+		Val[--I] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 7 ? 2 : 1);
+	}
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	return ml_string_copy(Val + I, 8 - I);
+}
+
 #ifdef ML_ICU
 
 enum {
