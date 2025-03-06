@@ -45,7 +45,7 @@ static void ml_task_set(ml_task_t *Task, ml_value_t *Value) {
 		for (ml_waiter_t *Waiter = Task->Waiters; Waiter; Waiter = Waiter->Next) {
 			ml_state_schedule(Waiter->State, Value);
 		}
-		ML_RETURN(Value);
+		ml_state_schedule(Caller, Value);
 	}
 }
 
@@ -58,7 +58,7 @@ ML_METHOD(MLTaskT) {
 }
 
 static void ml_task_run(ml_task_t *Task, ml_value_t *Result) {
-	if (!Task->Value) return ml_task_set(Task, Result);
+	if (!Task->Value) ml_task_set(Task, Result);
 }
 
 ML_METHODVZ(MLTaskT, MLAnyT) {
