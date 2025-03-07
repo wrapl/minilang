@@ -2265,6 +2265,54 @@ ML_METHOD("by", MLIntegerIntervalT, MLDoubleT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("clamp", MLIntegerT, MLIntegerIntervalT) {
+//!interval
+//<Value
+//<Interval
+//>integer
+	int64_t Value = ml_integer_value_fast(Args[0]);
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	if (Value < Interval->Start) return ml_integer(Interval->Start);
+	if (Value > Interval->Limit) return ml_integer(Interval->Limit);
+	return ml_integer(Value);
+}
+
+ML_METHOD("clamp", MLRealT, MLIntegerIntervalT) {
+//!interval
+//<Value
+//<Interval
+//>integer
+	double Value = ml_real_value(Args[0]);
+	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
+	if (Value < Interval->Start) return ml_integer(Interval->Start);
+	if (Value > Interval->Limit) return ml_integer(Interval->Limit);
+	return ml_real(Value);
+}
+
+ML_METHOD("clamp", MLIntegerT, MLRealIntervalT) {
+//!interval
+//<Value
+//<Interval
+//>real
+	int64_t Value = ml_integer_value_fast(Args[0]);
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
+	if (Value < Interval->Start) return ml_real(Interval->Start);
+	if (Value > Interval->Limit) return ml_real(Interval->Limit);
+	return ml_integer(Value);
+}
+
+ML_METHOD("clamp", MLRealT, MLRealIntervalT) {
+//!interval
+//<Value
+//<Interval
+//>integer
+	double Value = ml_real_value(Args[0]);
+	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
+	if (Value < Interval->Start) return ml_real(Interval->Start);
+	if (Value > Interval->Limit) return ml_real(Interval->Limit);
+	return ml_real(Value);
+}
+
 ML_METHOD("bin", MLIntegerRangeT, MLIntegerT) {
 //!interval
 //<Interval

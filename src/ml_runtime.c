@@ -1458,7 +1458,7 @@ static void ml_semaphore_signal(ml_semaphore_t *Semaphore) {
 		ml_state_t *State = Semaphore->States[Semaphore->Read];
 		Semaphore->States[Semaphore->Read] = NULL;
 		Semaphore->Read = (Semaphore->Read + 1) % Semaphore->Size;
-		ml_state_schedule(State, State, ml_integer(Semaphore->Value));
+		ml_state_schedule(State, ml_integer(Semaphore->Value));
 	} else {
 		++Semaphore->Value;
 	}

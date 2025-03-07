@@ -1528,6 +1528,8 @@
     <member refid="group__runtime_1gaac161795d2df9af58f3deca0dff384bf" kind="function"><name>ml_call_state</name></member>
     <member refid="group__runtime_1gabbc4d2f9454ddfeffb90419fd2de6428" kind="function"><name>ml_simple_call</name></member>
     <member refid="group__runtime_1ga0d52632f3a3fd7def5aaee9a23f75ec4" kind="function"><name>ml_simple_assign</name></member>
+    <member refid="group__runtime_1gad8fcb3447cd4bc637a8aff5a273aff55" kind="function"><name>ml_sum_optimized</name></member>
+    <member refid="group__runtime_1gac9e2caf17e74f9c796094f5b7b98c0dc" kind="function"><name>ml_sum_fallback</name></member>
     <member refid="group__runtime_1ga2d50ff08bfb2e37a7e4b393a53831f41" kind="function"><name>ml_runtime_init</name></member>
     <member refid="group__runtime_1ga0fb05fc1f88efb7c780cc10fba3930b7" kind="function"><name>ml_cache_register</name></member>
     <member refid="group__runtime_1ga823bea14529cb6eabae32f79c167dfbf" kind="function"><name>ml_cache_usage</name></member>
@@ -2374,6 +2376,8 @@
     <member refid="group__runtime_1gaac161795d2df9af58f3deca0dff384bf" kind="function"><name>ml_call_state</name></member>
     <member refid="group__runtime_1gabbc4d2f9454ddfeffb90419fd2de6428" kind="function"><name>ml_simple_call</name></member>
     <member refid="group__runtime_1ga0d52632f3a3fd7def5aaee9a23f75ec4" kind="function"><name>ml_simple_assign</name></member>
+    <member refid="group__runtime_1gad8fcb3447cd4bc637a8aff5a273aff55" kind="function"><name>ml_sum_optimized</name></member>
+    <member refid="group__runtime_1gac9e2caf17e74f9c796094f5b7b98c0dc" kind="function"><name>ml_sum_fallback</name></member>
     <member refid="group__runtime_1ga2d50ff08bfb2e37a7e4b393a53831f41" kind="function"><name>ml_runtime_init</name></member>
     <member refid="group__runtime_1ga0fb05fc1f88efb7c780cc10fba3930b7" kind="function"><name>ml_cache_register</name></member>
     <member refid="group__runtime_1ga823bea14529cb6eabae32f79c167dfbf" kind="function"><name>ml_cache_usage</name></member>
