@@ -1,11 +1,9 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
   <compounddef id="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir">
     <compoundname>src</compoundname>
     <innerfile refid="coro_8h">coro.h</innerfile>
-    <innerfile refid="dap_8h">dap.h</innerfile>
     <innerfile refid="inthash_8h">inthash.h</innerfile>
-    <innerfile refid="inthash2_8h">inthash2.h</innerfile>
     <innerfile refid="linenoise_8h">linenoise.h</innerfile>
     <innerfile refid="minilang_8h">minilang.h</innerfile>
     <innerfile refid="ml__array_8h">ml_array.h</innerfile>
@@ -39,7 +37,6 @@
     <innerfile refid="ml__sequence_8h">ml_sequence.h</innerfile>
     <innerfile refid="ml__socket_8h">ml_socket.h</innerfile>
     <innerfile refid="ml__stream_8h">ml_stream.h</innerfile>
-    <innerfile refid="ml__struct_8h">ml_struct.h</innerfile>
     <innerfile refid="ml__table_8h">ml_table.h</innerfile>
     <innerfile refid="ml__tasks_8h">ml_tasks.h</innerfile>
     <innerfile refid="ml__thread_8h">ml_thread.h</innerfile>

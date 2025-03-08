@@ -7810,6 +7810,85 @@ static int ml_lu_decomp_complex(complex double **A, int *P, int N) {
 
 #endif
 
+ML_METHOD("lu", MLMatrixT) {
+//<A
+//>tuple[matrix,matrix,matrix]
+// Returns a tuple of matrices :mini:`(L, U, P)` such that :mini:`L` is lower triangular, :mini:`U` is upper triangular, :mini:`P` is a permutation matrix and :mini:`P . A = L . U`.
+//$= let A := $[[0, 5, 22/3], [4, 2, 1], [2, 7, 9]]
+//$= let (L, U, P) := A:lu
+//$= \P . L . U
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int N = Source->Dimensions[0].Size;
+	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
+	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+		ml_array_t *LU = ml_array_alloc(ML_ARRAY_FORMAT_F64, 2);
+		ml_array_copy(LU, Source);
+		int Stride = LU->Dimensions->Stride;
+		double *A[N];
+		char *Data = LU->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (double *)Data;
+			Data += Stride;
+		}
+		int *P0 = anew(int, N + 1);
+		if (!ml_lu_decomp_real(A, P0, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		ml_array_t *L = ml_array(ML_ARRAY_FORMAT_F64, 2, N, N);
+		ml_array_t *U = ml_array(ML_ARRAY_FORMAT_F64, 2, N, N);
+		ml_array_t *P = ml_array(ML_ARRAY_FORMAT_I8, 2, N, N);
+		double *LData = (double *)L->Base.Value;
+		double *UData = (double *)U->Base.Value;
+		int8_t *PData = (int8_t *)P->Base.Value;
+		memset(LData, 0, N * N * sizeof(double));
+		memset(UData, 0, N * N * sizeof(double));
+		memset(PData, 0, N * N * sizeof(int8_t));
+		for (int I = 0; I < N; ++I) {
+			memcpy(LData, A[I], I * sizeof(double));
+			LData[I] = 1;
+			LData += N;
+			memcpy(UData + I, A[I] + I, (N - I) * sizeof(double));
+			UData += N;
+			PData[P0[I]] = 1;
+			PData += N;
+		}
+		return ml_tuplev(3, L, U, P);
+#ifdef ML_COMPLEX
+	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
+		ml_array_t *LU = ml_array_alloc(ML_ARRAY_FORMAT_C64, 2);
+		ml_array_copy(LU, Source);
+		int Stride = LU->Dimensions->Stride;
+		complex double *A[N];
+		char *Data = LU->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (complex double *)Data;
+			Data += Stride;
+		}
+		int *P0 = anew(int, N + 1);
+		if (!ml_lu_decomp_complex(A, P0, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		ml_array_t *L = ml_array(ML_ARRAY_FORMAT_C64, 2, N, N);
+		ml_array_t *U = ml_array(ML_ARRAY_FORMAT_C64, 2, N, N);
+		ml_array_t *P = ml_array(ML_ARRAY_FORMAT_I8, 2, N, N);
+		complex double *LData = (complex double *)L->Base.Value;
+		complex double *UData = (complex double *)U->Base.Value;
+		int8_t *PData = (int8_t *)P->Base.Value;
+		memset(LData, 0, N * N * sizeof(complex double));
+		memset(UData, 0, N * N * sizeof(complex double));
+		memset(PData, 0, N * N * sizeof(int8_t));
+		for (int I = 0; I < N; ++I) {
+			memcpy(LData, A[I], I * sizeof(complex double));
+			LData[I] = 1;
+			LData += N;
+			memcpy(UData + I, A[I] + I, (N - I) * sizeof(complex double));
+			UData += N;
+			PData[P0[I]] = 1;
+			PData += N;
+		}
+		return ml_tuplev(3, L, U, P);
+#endif
+	} else {
+		return ml_error("ArrayError", "Invalid array type for operation");
+	}
+}
+
 ML_METHOD("\\", MLMatrixT) {
 //<A
 //>matrix

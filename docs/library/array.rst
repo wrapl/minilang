@@ -738,7 +738,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1952671094>>
+      A:minidx(2) :> <<2 1> <1 1180653889>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1475,6 +1475,18 @@ array
 
 :mini:`meth (A: matrix):det: any`
    Returns the determinant of :mini:`A`.
+
+
+:mini:`meth (A: matrix):lu: tuple[matrix, matrix, matrix]`
+   Returns a tuple of matrices :mini:`(L,  U,  P)` such that :mini:`L` is lower triangular,  :mini:`U` is upper triangular,  :mini:`P` is a permutation matrix and :mini:`P . A = L . U`.
+
+   .. code-block:: mini
+
+      let A := $[[0, 5, 22/3], [4, 2, 1], [2, 7, 9]]
+      :> <<0 5 7.33333> <4 2 1> <2 7 9>>
+      let (L, U, P) := A:lu
+      :> (<<1 0 0> <0.5 1 0> <0 0.833333 1>>, <<4 2 1> <0 6 8.5> <0 0 0.25>>, <<0 1 0> <0 0 1> <1 0 0>>)
+      \P . L . U :> <<0 5 7.33333> <4 2 1> <2 7 9>>
 
 
 :mini:`meth (A: matrix):tr: any`

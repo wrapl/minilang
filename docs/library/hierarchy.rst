@@ -51,12 +51,6 @@ hierarchy
       "sequence":e -> "table":w;
       "any":e -> "table::row":w;
       "any":e -> "table::column":w;
-      "any":e -> "instance::field":w;
-      "any":e -> "instance":w;
-      "function":e -> "struct::getter":w;
-      "function":e -> "struct::getter::fast":w;
-      "type":e -> "struct":w;
-      "any":e -> "ref":w;
       "any":e -> "address":w;
       "address":e -> "buffer":w;
       "enum":e -> "byte::order":w;
