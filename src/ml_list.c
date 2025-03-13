@@ -1699,10 +1699,7 @@ ML_METHODX("order", MLListMutableT) {
 //<List
 //>List
 // Sorts :mini:`List` in-place using :mini:`<` and returns the ordered indices.
-	if (!ml_list_length(Args[0])) {
-		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, 0);
-		ML_RETURN(Permutation);
-	}
+	if (!ml_list_length(Args[0])) ML_RETURN(ml_array(ML_ARRAY_FORMAT_I32, 1, 0));
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -1728,10 +1725,7 @@ ML_METHODX("order", MLListMutableT, MLFunctionT) {
 //<Compare
 //>List
 // Sorts :mini:`List` in-place using :mini:`Compare` and returns the ordered indices.
-	if (!ml_list_length(Args[0])) {
-		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, 0);
-		ML_RETURN(Permutation);
-	}
+	if (!ml_list_length(Args[0])) ML_RETURN(ml_array(ML_ARRAY_FORMAT_I32, 1, 0));
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

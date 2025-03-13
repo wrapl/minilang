@@ -242,6 +242,14 @@ slice
    *TBD*
 
 
+:mini:`meth (Arg₁: slice::mutable):order`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice::mutable):order(Arg₂: function)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: slice::mutable):permutations`
    *TBD*
 

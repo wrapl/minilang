@@ -3,6 +3,9 @@
 #include <string.h>
 #include "sha256.h"
 #include "ml_sequence.h"
+#ifdef ML_MATH
+#include "ml_array.h"
+#endif
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "slice"
@@ -1419,6 +1422,142 @@ ML_METHODX("sort", MLSliceT, MLFunctionT) {
 	State->Args[1] = Source[1].Value;
 	return ml_call(State, State->Compare, 2, State->Args);
 }
+
+#ifdef ML_MATH
+
+typedef struct {
+	ml_state_t Base;
+	ml_slice_t *Slice;
+	ml_slice_node_t *Nodes;
+	ml_value_t *Compare;
+	int32_t *Source, *Dest;
+	int32_t *IndexA, *LimitA, *IndexB, *LimitB;
+	int32_t *Target, *Limit;
+	ml_value_t *Args[2];
+	size_t Length, BlockSize;
+} ml_slice_order_state_t;
+
+static void ml_slice_order_state_run(ml_slice_order_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	int32_t *Target = State->Target;
+	if (Value != MLNil) {
+		int32_t *Index = State->IndexA;
+		*Target++ = *Index++;
+		if (Index < State->LimitA) {
+			State->Target = Target;
+			State->IndexA = Index;
+			State->Args[0] = State->Nodes[*Index].Value;
+			State->Args[1] = State->Nodes[*State->IndexB].Value;
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
+	} else {
+		int32_t *Index = State->IndexB;
+		*Target++ = *Index++;
+		if (Index < State->LimitB) {
+			State->Target = Target;
+			State->IndexB = Index;
+			State->Args[0] = State->Nodes[*State->IndexA].Value;
+			State->Args[1] = State->Nodes[*Index].Value;
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(int32_t));
+	}
+	size_t Remaining = State->Limit - Target;
+	size_t BlockSize = State->BlockSize;
+	int32_t *IndexA = State->LimitB;
+	if (Remaining <= BlockSize) {
+		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
+		BlockSize *= 2;
+		Remaining = State->Length;
+		if (Remaining <= BlockSize) {
+			ml_slice_node_t *Sorted = anew(ml_slice_node_t, Remaining);
+			ml_slice_node_t *Nodes = State->Nodes;
+			for (int I = 0; I < Remaining; ++I) {
+				Sorted[I] = Nodes[State->Dest[I]];
+				++State->Dest[I];
+			}
+			State->Slice->Nodes = Sorted;
+			State->Slice->Capacity = Remaining;
+			State->Slice->Offset = 0;
+			ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+			Permutation->Base.Type = MLPermutationT;
+			Permutation->Base.Value = (char *)State->Dest;
+			Permutation->Base.Length = Remaining * sizeof(int32_t);
+			Permutation->Dimensions[0].Size = Remaining;
+			Permutation->Dimensions[0].Stride = sizeof(int32_t);
+			ML_CONTINUE(State->Base.Caller, Permutation);
+		}
+		State->BlockSize = BlockSize;
+		int32_t *Temp = State->Source;
+		IndexA = State->Source = State->Dest;
+		Target = State->Dest = Temp;
+		State->Limit = Target + State->Length;
+	}
+	State->Target = Target;
+	State->IndexA = IndexA;
+	int32_t *IndexB = IndexA + BlockSize;
+	State->LimitA = State->IndexB = IndexB;
+	Remaining -= BlockSize;
+	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
+	State->Args[0] = State->Nodes[*IndexA].Value;
+	State->Args[1] = State->Nodes[*IndexB].Value;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("order", MLSliceMutableT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Length = Slice->Length;
+	if (Length < 2) ML_RETURN(ml_array(ML_ARRAY_FORMAT_I32, 1, 0));
+	ml_slice_order_state_t *State = new(ml_slice_order_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_order_state_run;
+	State->Slice = Slice;
+	State->Compare = LessMethod;
+	int32_t *Source = State->Source = asnew(int32_t, Length);
+	int32_t *Dest = State->Dest = asnew(int32_t, Length);
+	for (int I = 0; I < Length; ++I) Source[I] = I;
+	State->Nodes = Slice->Nodes + Slice->Offset;
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = State->Nodes[Source[0]].Value;
+	State->Args[1] = State->Nodes[Source[1]].Value;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("order", MLSliceMutableT, MLFunctionT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Length = Slice->Length;
+	if (Length < 2) ML_RETURN(ml_array(ML_ARRAY_FORMAT_I32, 1, 0));
+	ml_slice_order_state_t *State = new(ml_slice_order_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_order_state_run;
+	State->Slice = Slice;
+	State->Compare = Args[1];
+	int32_t *Source = State->Source = asnew(int32_t, Length);
+	int32_t *Dest = State->Dest = asnew(int32_t, Length);
+	for (int I = 0; I < Length; ++I) Source[I] = I;
+	State->Nodes = Slice->Nodes + Slice->Offset;
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = State->Nodes[Source[0]].Value;
+	State->Args[1] = State->Nodes[Source[1]].Value;
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+#endif
 
 typedef struct {
 	ml_state_t Base;
