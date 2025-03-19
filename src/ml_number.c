@@ -338,6 +338,64 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	return 0;
 }
 
+uint64_t ml_gcd(uint64_t A, uint64_t B) {
+	int Shift = __builtin_ctzl(A | B);
+	A >>= __builtin_ctz(A);
+	do {
+		B >>= __builtin_ctz(B);
+		if (A > B) {
+			unsigned int C = B;
+			B = A;
+			A = C;
+		}
+		B = B - A;
+	} while (B != 0);
+	return A << Shift;
+}
+
+#ifdef ML_RATIONAL
+
+ML_TYPE(MLRationalT, (MLRealT), "rational");
+//!internal
+
+static long ml_rational48_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return (uint64_t)(intptr_t)Value & 0xFFFFFFFFFFFF;
+}
+
+ML_TYPE(MLRational48T, (MLRationalT), "rational48",
+//!internal
+	.hash = (void *)ml_rational48_hash,
+	.NoInherit = 1
+);
+
+static long ml_rational128_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+#ifdef ML_FLINT
+	return fmpq_get_d(((ml_rational_t *)Value)->Value);
+#else
+	return ((ml_integer_t *)Value)->Value;
+#endif
+}
+
+ML_TYPE(MLRational128T, (MLIntegerT), "rational128",
+//!internal
+	.hash = (void *)ml_rational128_hash,
+	.NoInherit = 1
+);
+
+ml_value_t *ml_rational128(int64_t Num, uint64_t Den) {
+	ml_rational_t *Value = new(ml_rational_t);
+	Value->Type = MLRational128T;
+#ifdef ML_FLINT
+	fmpq_set_si(Value->Value, Num, Den);
+#else
+	Value->Num = Num;
+	Value->Den = Den;
+#endif
+	return (ml_value_t *)Value;
+}
+
+#endif
+
 ML_METHOD(MLRealT, MLInteger32T) {
 //!internal
 	return ml_real((int32_t)(intptr_t)Args[0]);
@@ -488,24 +546,6 @@ ML_METHOD(MLIntegerT, MLDoubleT) {
 	return ml_integer(ml_double_value_fast(Args[0]));
 }
 
-#ifdef ML_RATIONAL
-
-#ifdef ML_NANBOXING
-
-static inline ml_value_t *ml_rat48(int32_t Num, uint32_t Den) {
-	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)(Den && 0xFFFF) << 32) + (uint32_t)Num);
-}
-
-ml_value_t *ml_rational(fmpq Value) {
-
-}
-
-#else
-
-#endif
-
-#endif
-
 #ifdef ML_FLINT
 
 static void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest) {
@@ -516,9 +556,9 @@ static void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest) {
 	}
 }
 
-static ml_value_t *ml_integer_fmpz(fmpz_t Source) {
-	if (fmpz_fits_si(Source)) {
-		return ml_integer(fmpz_get_si(Source));
+ml_value_t *ml_integer_fmpz(fmpz_t Source) {
+	if (fmpz_cmp_si(Source, INT32_MIN) >= 0 && fmpz_cmp_si(Source, INT32_MAX) <= 0) {
+		return ml_integer32(fmpz_get_si(Source));
 	} else {
 		ml_integer_t *Value = new(ml_integer_t);
 		Value->Type = MLInteger64T;
@@ -526,6 +566,23 @@ static ml_value_t *ml_integer_fmpz(fmpz_t Source) {
 		return (ml_value_t *)Value;
 	}
 }
+
+#ifdef ML_RATIONAL
+
+ml_value_t *ml_rational_fmpq(fmpq_t Source) {
+	fmpz *Num = fmpq_numref(Source);
+	fmpz *Den = fmpq_denref(Source);
+	if (fmpz_fits_si(Num) && fmpz_cmp_ui(Den, UINT16_MAX) <= 0) {
+		return ml_rational48(fmpz_get_si(Num), fmpz_get_ui(Den));
+	} else {
+		ml_rational_t *Value = new(ml_rational_t);
+		Value->Type = MLRational128T;
+		Value->Value[0] = Source[0];
+		return (ml_value_t *)Value;
+	}
+}
+
+#endif
 
 #define ml_arith_method_integer(NAME, FUNC) \
 ML_METHOD(#NAME, MLIntegerT) { \
@@ -680,6 +737,15 @@ ml_arith_method_integer_integer(NAME, FUNC) \
 ml_arith_method_real_real(NAME, FUNC) \
 ml_arith_method_real_integer(NAME, FUNC) \
 ml_arith_method_integer_real(NAME, FUNC)
+
+#endif
+
+#ifdef ML_FLINT
+
+static void fmpz_diff(fmpz_t f, const fmpz_t g, const fmpz_t h) {
+	fmpz_sub(f, g, h);
+	fmpz_abs(f, f);
+}
 
 #endif
 

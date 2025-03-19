@@ -930,6 +930,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 	} else {
 		const char *Str = fmpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
 		ml_stringbuffer_write(Buffer, Str, strlen(Str));
+		return MLSome;
 	}
 int32:;
 #endif
@@ -947,6 +948,18 @@ int32:;
 	ml_stringbuffer_write(Buffer, P, Q - P);
 	return MLSome;
 }
+
+#ifdef ML_RATIONAL
+
+ML_METHOD("append", MLStringBufferT, MLRationalT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_rational_t *Value = (ml_rational_t *)Args[1];
+#ifdef ML_FLINT
+#else
+#endif
+}
+
+#endif
 
 static regex_t IntFormat[1];
 static regex_t LongFormat[1];

@@ -347,6 +347,7 @@ MINILANG_ENCODINGS := old or defined("ENCODINGS")
 MINILANG_STRUCTS := old or defined("STRUCTS")
 MINILANG_MMAP := old or defined("MMAP")
 MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
+MINILANG_RATIONAL := old or defined("RATIONAL")
 MINILANG_FLINT := old or defined("FLINT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_CONTEXT_SECTION := old or defined("CONTEXTSECTION")
@@ -369,6 +370,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_NANBOXING then
 		File:write("\n#define ML_NANBOXING\n")
+	end
+	if MINILANG_RATIONAL then
+		File:write("\n#define ML_RATIONAL\n")
 	end
 	if MINILANG_FLINT then
 		File:write("\n#define ML_FLINT\n")

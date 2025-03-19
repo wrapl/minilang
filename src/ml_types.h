@@ -557,6 +557,8 @@ extern ml_type_t MLRealT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLDoubleT[];
 
+uint64_t ml_gcd(uint64_t A, uint64_t B);
+
 #ifdef ML_RATIONAL
 
 extern ml_type_t MLRationalT[];
@@ -599,6 +601,12 @@ static inline ml_value_t *ml_integer(int64_t Integer) {
 	}
 }
 
+#ifdef ML_FLINT
+
+ml_value_t *ml_integer_fmpz(fmpz_t Source);
+
+#endif
+
 static inline ml_value_t *ml_real(double Value) {
 	union { ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
 	Boxed.Double = Value;
@@ -608,9 +616,35 @@ static inline ml_value_t *ml_real(double Value) {
 
 #ifdef ML_RATIONAL
 
-static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+typedef struct {
+	ml_type_t *Type;
+#ifdef ML_FLINT
+	fmpq_t Value;
+#else
+	int64_t Num;
+	int64_t Den;
+#endif
+} ml_rational_t;
 
+static inline ml_value_t *ml_rational48(int32_t Num, uint16_t Den) {
+	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)Den << 32) + (uint32_t)Num);
 }
+
+ml_value_t *ml_rational128(int64_t Num, uint64_t Den);
+
+static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
+		return ml_rational48(Num, Den);
+	} else {
+		return ml_rational128(Num, Den);
+	}
+}
+
+#ifdef ML_FLINT
+
+ml_value_t *ml_rational_fmpq(fmpq_t Source);
+
+#endif
 
 #endif
 
@@ -651,6 +685,12 @@ typedef struct {
 inline double ml_double_value_fast(const ml_value_t *Value) {
 	return ((ml_double_t *)Value)->Value;
 }
+
+#ifdef ML_RATIONAL
+
+ml_value_t *ml_rational(int64_t Num, uint64_t Den) __attribute__((malloc));
+
+#endif
 
 #endif
 
