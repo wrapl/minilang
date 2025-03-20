@@ -989,13 +989,40 @@ ml_value_t *ml_cbor_read_complex(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLComplexT, ml_cbor_writer_t *Writer, ml_complex_t *Arg) {
-	minicbor_write_tag(Writer, 43000);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_COMPLEX);
 	minicbor_write_array(Writer, 2);
 	minicbor_write_float8(Writer, creal(Arg->Value));
 	minicbor_write_float8(Writer, cimag(Arg->Value));
 }
 
 ML_FUNCTION(DecodeComplex) {
+//!internal
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLRealT);
+	ML_CHECK_ARG_TYPE(1, MLRealT);
+	return ml_complex(ml_real_value(Args[0]) + ml_real_value(Args[1]) * _Complex_I);
+}
+
+#endif
+
+#ifdef ML_DECIMAL
+
+ml_value_t *ml_cbor_read_decimal(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Decimal requires list");
+	if (ml_list_length(Value) != 2) return ml_error("TagError", "Decimal requires 2 values");
+	ml_value_t *Unscaled = ml_list_get(Value, 1);
+	if (!ml_is(Unscaled, MLIntegerT)) return ml_error("TagError", "Decimal requires integer unscaled value");
+	return ml_decimal(Unscaled, ml_integer_value(ml_list_get(Value, 2)));
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLDecimalT, ml_cbor_writer_t *Writer, ml_decimal_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_DECIMAL_FRACTION);
+	minicbor_write_array(Writer, 2);
+	ml_cbor_write(Writer, Arg->Unscaled);
+	minicbor_write_integer(Writer, Arg->Scale);
+}
+
+ML_FUNCTION(DecodeDecimal) {
 //!internal
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLRealT);
@@ -1265,6 +1292,10 @@ void ml_cbor_init(stringmap_t *Globals) {
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", (ml_value_t *)DecodeComplex);
 	ml_cbor_default_tag(ML_CBOR_TAG_COMPLEX, ml_cbor_read_complex);
+#endif
+#ifdef ML_DECIMAL
+	ml_cbor_default_object("decimal", (ml_value_t *)DecodeDecimal);
+	ml_cbor_default_tag(ML_CBOR_TAG_DECIMAL_FRACTION, ml_cbor_read_complex);
 #endif
 	ml_cbor_default_tag(ML_CBOR_TAG_REGEX, ml_cbor_read_regex);
 	ml_cbor_default_tag(ML_CBOR_TAG_IDENTIFIER, ml_cbor_read_method);

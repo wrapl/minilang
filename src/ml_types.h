@@ -570,6 +570,9 @@ typedef struct { int64_t Num; uint64_t Den; } rat64_t;
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
+ml_value_t *ml_integer_parse(char *String);
+ml_value_t *ml_real_parse(char *String);
+
 #ifdef ML_FLINT
 
 #include <flint/flint.h>
@@ -711,6 +714,20 @@ extern ml_type_t MLComplexT[];
 
 ml_value_t *ml_complex(complex_double Value);
 complex_double ml_complex_value(const ml_value_t *Value);
+
+#endif
+
+#ifdef ML_DECIMAL
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Unscaled;
+	int32_t Scale;
+} ml_decimal_t;
+
+extern ml_type_t MLDecimalT[];
+
+ml_value_t *ml_decimal(ml_value_t *Unscaled, int32_t Scale);
 
 #endif
 

@@ -110,6 +110,7 @@ hierarchy
       "sequence":e -> "pqueue":w;
       "function":e -> "polynomial":w;
       "any":e -> "polynomial::rational":w;
+      "any":e -> "piece::table":w;
       "any":e -> "field":w;
       "field":e -> "field::mutable":w;
       "any":e -> "object":w;

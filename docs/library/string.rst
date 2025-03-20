@@ -51,6 +51,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: rational)`
+   *TBD*
+
+
 :mini:`type regex < function`
    A regular expression.
 
@@ -256,16 +260,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "<A>-<B>-<C>" / (r">(-)<", 1) :> ["<A>", "<B>", "<C>"]
-
-
-:mini:`meth (String: string) / (Pattern: string): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
-
-   .. code-block:: mini
-
-      "The cat snored  as he slept" / " "
-      :> ["The", "cat", "snored", "as", "he", "slept"]
-      "2022/03/08" / "/" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string) /* (Pattern: regex): tuple[string,  string]`
@@ -572,6 +566,16 @@ When creating a substring,  the first index is inclusive and second index is exc
       "The cat snored as he slept":find2("dog") :> nil
 
 
+:mini:`meth (String: string) / (Pattern: string): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
+
+   .. code-block:: mini
+
+      "The cat snored  as he slept" / " "
+      :> ["The", "cat", "snored", "as", "he", "slept"]
+      "2022/03/08" / "/" :> ["2022", "03", "08"]
+
+
 :mini:`meth (Haystack: string):find2(Needle: string, Start: integer): tuple[integer, string] | nil`
    Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
 
@@ -866,6 +870,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`def MLStringProperties: string::properties`
+   *TBD*
+
+
 :mini:`meth (A: string) ~ (B: string): integer`
    Returns the edit distance between :mini:`A` and :mini:`B`.
 
@@ -876,10 +884,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "say" ~ "goodbye" :> 6
       "goodbye" ~ "say" :> 6
       "λ:😀 → Y" ~ "λ:X → 😺" :> 2
-
-
-:mini:`def MLStringProperties: string::properties`
-   *TBD*
 
 
 :mini:`meth (A: string) ~> (B: string): integer`

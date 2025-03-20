@@ -312,11 +312,11 @@ number
    Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
 
 
-:mini:`fun integer::random_permutation(Max: integer): permutation`
+:mini:`fun integer::random_permutation(Max: integer): list`
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
-:mini:`fun integer::random_permutation(Max: integer): list`
+:mini:`fun integer::random_permutation(Max: integer): permutation`
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
@@ -350,6 +350,10 @@ number
    Returns :mini:`A * B`.
 
 
+:mini:`meth (A: integer) * (B: real): real`
+   Returns :mini:`A * B`.
+
+
 :mini:`meth (A: integer) + (B: complex): complex`
    Returns :mini:`A + B`.
 
@@ -359,6 +363,10 @@ number
 
 
 :mini:`meth (A: integer) + (B: integer): integer`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: integer) + (B: real): real`
    Returns :mini:`A + B`.
 
 
@@ -379,6 +387,10 @@ number
 
 
 :mini:`meth (A: integer) - (B: integer): integer`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: integer) - (B: real): real`
    Returns :mini:`A - B`.
 
 
@@ -403,6 +415,10 @@ number
       type(N) :> <<integer32>>
       let R := 10 / 3 :> 3.33333333333333
       type(R) :> <<double>>
+
+
+:mini:`meth (A: integer) / (B: real): real`
+   Returns :mini:`A / B`.
 
 
 :mini:`meth (A: integer) /\\ (B: integer): integer`
@@ -563,6 +579,10 @@ number
    Returns :mini:`A ~ B`.
 
 
+:mini:`meth (A: integer) ~ (B: real): real`
+   Returns :mini:`A ~ B`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: integer)`
    Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 
@@ -599,12 +619,12 @@ number
    *TBD*
 
 
-:mini:`def real::NaN: real`
-   Not a number.
-
-
 :mini:`def real::Inf: real`
    Positive infinity.
+
+
+:mini:`def real::NaN: real`
+   Not a number.
 
 
 :mini:`meth real(String: string): real | error`
@@ -615,6 +635,42 @@ number
    Returns the remainder of :mini:`Real₁` divided by :mini:`Real₂`.
    Note: the result is calculated by rounding towards 0. In particular,  if :mini:`Real₁` is negative,  the result will be negative.
    For a nonnegative remainder,  use :mini:`Real₁ mod Real₂`.
+
+
+:mini:`meth (A: real) * (B: integer): real`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: real) * (B: real): real`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: real) + (B: integer): real`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: real) + (B: real): real`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth -(A: real): real`
+   Returns :mini:`-A`.
+
+
+:mini:`meth (A: real) - (B: integer): real`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: real) - (B: real): real`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: real) / (B: integer): real`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: real) / (B: real): real`
+   Returns :mini:`A / B`.
 
 
 :mini:`meth complex(Arg₁: real)`
@@ -633,6 +689,14 @@ number
 :mini:`meth (Int₁: real):mod(Int₂: real): integer`
    Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
    Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
+
+
+:mini:`meth (A: real) ~ (B: integer): real`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (A: real) ~ (B: real): real`
+   Returns :mini:`A ~ B`.
 
 
 :mini:`meth number(String: string): integer | real | complex | error`

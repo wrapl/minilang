@@ -195,6 +195,7 @@ let Options := [
 	"AST",
 	"COMPLEX",
 	"RATIONAL",
+	"DECIMAL",
 	"CBOR",
 	"JSON",
 	"XML",
@@ -240,6 +241,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_MATH := 1
 	MINILANG_AST := 1
 	MINILANG_COMPLEX := not defined("NOCOMPLEX")
+	MINILANG_DECIMAL := 1
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
 	MINILANG_XML := 1
@@ -319,6 +321,7 @@ MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
+MINILANG_DECIMAL := old or defined("DECIMAL")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
@@ -376,6 +379,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_FLINT then
 		File:write("\n#define ML_FLINT\n")
+	end
+	if MINILANG_DECIMAL then
+		File:write("\n#define ML_DECIMAL\n")
 	end
 	if MINILANG_COMPLEX then
 		File:write("\n#define ML_COMPLEX\n")

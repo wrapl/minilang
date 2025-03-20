@@ -1836,8 +1836,11 @@
     <member refid="group__tuples_1ga8f3d07715072ebb78a856e5cbb68348f" kind="function"><name>ml_unpack</name></member>
     <member refid="group__booleans_1gaf2917c1df458f0cf9475a531af368362" kind="function"><name>ml_boolean</name></member>
     <member refid="group__booleans_1gae68130990e046a964dcb7ad9d61c78fd" kind="function"><name>ml_boolean_value</name></member>
+    <member refid="group__numbers_1gaf2ce1a9d7884b519b1c0328b5d174a3d" kind="function"><name>ml_gcd</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
+    <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>
+    <member refid="group__numbers_1ga082c453c65a095369a4997191d9fec07" kind="function"><name>ml_real_parse</name></member>
     <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
     <member refid="group__numbers_1gacbf417155859dac0636077db335a130c" kind="function"><name>ml_integer_value_fast</name></member>
@@ -2601,8 +2604,11 @@
     <member refid="group__numbers_1gaca7fa7ee81f270f09369a33323aa465d" kind="variable"><name>MLIntegerIntervalT</name></member>
     <member refid="group__numbers_1ga4375c307ffeb47f4fbd0099b21838ad5" kind="variable"><name>MLRealRangeT</name></member>
     <member refid="group__numbers_1ga60567984e82fce3c83d3a5bfc81fe7c3" kind="variable"><name>MLRealIntervalT</name></member>
+    <member refid="group__numbers_1gaf2ce1a9d7884b519b1c0328b5d174a3d" kind="function"><name>ml_gcd</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
+    <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>
+    <member refid="group__numbers_1ga082c453c65a095369a4997191d9fec07" kind="function"><name>ml_real_parse</name></member>
     <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
     <member refid="group__numbers_1gacbf417155859dac0636077db335a130c" kind="function"><name>ml_integer_value_fast</name></member>

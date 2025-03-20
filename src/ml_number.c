@@ -106,38 +106,69 @@ ML_METHOD(MLRealT, MLComplexT) {
 
 extern complex double ml_complex_value(const ml_value_t *Value);
 
-complex double ml_complex_value(const ml_value_t *Value) {
 #ifdef ML_NANBOXING
+
+complex double ml_complex_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
-	if (Tag == 0) {
-		if (Value->Type == MLInteger64T) {
-#ifdef ML_FLINT
-			return fmpz_get_d(((ml_integer_t *)Value)->Value);
-#else
-			return ((ml_integer_t *)Value)->Value;
-#endif
-		} else if (Value->Type == MLComplexT) {
-			return ((ml_complex_t *)Value)->Value;
-		}
-	}
+	if (Tag == 0 && Value->Type == MLComplexT) return ((ml_complex_t *)Value)->Value;
+	typeof(ml_complex_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_complex_value);
+	if (fn) return fn(Value);
+	typeof(ml_real_value) *fn2 = ml_typed_fn_get(ml_typeof(Value), ml_real_value);
+	if (fn2) return fn2(Value);
+	typeof(ml_integer_value) *fn3 = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
+	if (fn3) return fn3(Value);
 	return 0;
+}
+
+static complex double ML_TYPED_FN(ml_complex_value, MLInteger64T, ml_integer_t *Value) {
+#ifdef ML_FLINT
+	return fmpz_get_d(Value->Value);
 #else
+	return Value->Value;
+#endif
+}
+
+#else
+
+complex double ml_complex_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
+#ifdef ML_FLINT
+		return fmpz_get_d(((ml_integer_t *)Value)->Value);
+#else
 		return ((ml_integer_t *)Value)->Value;
+#endif
 	} else if (Value->Type == MLDoubleT) {
 		return ((ml_double_t *)Value)->Value;
-	} else if (ml_is(Value, MLIntegerT)) {
-		return ((ml_integer_t *)Value)->Value;
-	} else if (ml_is(Value, MLDoubleT)) {
-		return ((ml_double_t *)Value)->Value;
-	} else if (ml_is(Value, MLComplexT)) {
+	} else if (Value->Type == MLComplexT) {
 		return ((ml_complex_t *)Value)->Value;
-	} else {
-		return 0;
 	}
+	typeof(ml_complex_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_complex_value);
+	if (fn) return fn(Value);
+	typeof(ml_real_value) *fn2 = ml_typed_fn_get(ml_typeof(Value), ml_real_value);
+	if (fn2) return fn2(Value);
+	typeof(ml_integer_value) *fn3 = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
+	if (fn3) return fn3(Value);
+	return 0;
+}
+
+static complex double ML_TYPED_FN(ml_complex_value, MLIntegerT, ml_integer_t *Value) {
+#ifdef ML_FLINT
+	return fmpz_get_d(Value->Value);
+#else
+	return Value->Value;
 #endif
+}
+
+static complex double ML_TYPED_FN(ml_complex_value, MLDoubleT, ml_double_t *Value) {
+	return Value->Value;
+}
+
+#endif
+
+static complex double ML_TYPED_FN(ml_complex_value, MLComplexT, ml_complex_t *Value) {
+	return Value->Value;
 }
 
 #define ml_arith_method_complex(NAME, FUNC) \
@@ -328,14 +359,21 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
-	if ((Tag == 0) && ml_is_subtype(Value->Type, MLInteger64T)) {
-#ifdef ML_FLINT
-		return fmpz_get_si(((ml_integer_t *)Value)->Value);
-#else
-		return ((ml_integer_t *)Value)->Value;
-#endif
-	}
+	typeof(ml_integer_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
+	if (fn) return fn(Value);
 	return 0;
+}
+
+static int64_t ML_TYPED_FN(ml_integer_value, MLInteger64T, const ml_integer_t *Value) {
+#ifdef ML_FLINT
+	return fmpz_get_si(Value->Value);
+#else
+	return Value->Value;
+#endif
+}
+
+ml_value_t *ml_integer_parse(char *String) {
+	return ml_integer(strtoll(String, NULL, 10));
 }
 
 uint64_t ml_gcd(uint64_t A, uint64_t B) {
@@ -468,7 +506,11 @@ ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
 ml_value_t *ml_integer(int64_t Value) {
 	ml_integer_t *Integer = new(ml_integer_t);
 	Integer->Type = MLIntegerT;
+#ifdef ML_FLINT
+	fmpz_set_si(Integer->Value, Integer);
+#else
 	Integer->Value = Value;
+#endif
 	return (ml_value_t *)Integer;
 }
 
@@ -480,10 +522,14 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	} else if (Value->Type == MLDoubleT) {
 		return ((ml_double_t *)Value)->Value;
 	} else if (ml_is(Value, MLIntegerT)) {
+#ifdef ML_FLINT
+		return fmpz_get_si(((ml_integer_t *)Value)->Value);
+#else
 		return ((ml_integer_t *)Value)->Value;
-	} else if (ml_is(Value, MLDoubleT)) {
-		return ((ml_double_t *)Value)->Value;
+#endif
 	} else {
+		typeof(ml_integer_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
+		if (fn) return fn(Value);
 		return 0;
 	}
 }
@@ -509,17 +555,23 @@ double ml_real_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value_fast(Value);
-	if (Tag == 0) {
-		if (Value->Type == MLInteger64T) {
-#ifdef ML_FLINT
-			return fmpz_get_d(((ml_integer_t *)Value)->Value);
-#else
-			return ((ml_integer_t *)Value)->Value;
-#endif
-
-		}
-	}
+	typeof(ml_real_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_real_value);
+	if (fn) return fn(Value);
+	typeof(ml_integer_value) *fn2 = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
+	if (fn2) return fn2(Value);
 	return 0;
+}
+
+static double ML_TYPED_FN(ml_real_value, MLInteger64T, ml_integer_t *Value) {
+#ifdef ML_FLINT
+	return fmpz_get_d(Value->Value);
+#else
+	return Value->Value;
+#endif
+}
+
+ml_value_t *ml_real_parse(char *String) {
+	return ml_real(strtod(String, NULL));
 }
 
 ML_METHOD(MLDoubleT, MLInteger32T) {
@@ -547,16 +599,27 @@ ml_value_t *ml_real(double Value) {
 
 double ml_real_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
+#ifdef ML_FLINT
+		return fmpz_get_d(((ml_integer_t *)Value)->Value);
+#else
 		return ((ml_integer_t *)Value)->Value;
+#endif
 	} else if (Value->Type == MLDoubleT) {
 		return ((ml_double_t *)Value)->Value;
-	} else if (ml_is(Value, MLIntegerT)) {
-		return ((ml_integer_t *)Value)->Value;
-	} else if (ml_is(Value, MLDoubleT)) {
-		return ((ml_double_t *)Value)->Value;
-	} else {
-		return 0;
 	}
+	typeof(ml_real_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_real_value);
+	if (fn) return fn(Value);
+	typeof(ml_integer_value) *fn2 = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
+	if (fn2) return fn2(Value);
+	return 0;
+}
+
+static double ML_TYPED_FN(ml_real_value, MLIntegerT, ml_integer_t *Value) {
+#ifdef ML_FLINT
+	return fmpz_get_d(Value->Value);
+#else
+	return Value->Value;
+#endif
 }
 
 ML_METHOD(MLDoubleT, MLIntegerT) {
@@ -697,6 +760,15 @@ ML_METHOD(#NAME, MLDoubleT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	return ml_real(ml_ ## FUNC(RealA)); \
+} \
+\
+ML_METHOD(#NAME, MLRealT) { \
+/*<A
+//>real
+// Returns :mini:`NAMEA`.
+*/\
+	double RealA = ml_real_value(Args[0]); \
+	return ml_real(ml_ ## FUNC(RealA)); \
 }
 
 #define ml_arith_method_real_real(NAME, FUNC) \
@@ -708,6 +780,17 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
+	return ml_real(ml_ ## FUNC(RealA, RealB)); \
+} \
+\
+ML_METHOD(#NAME, MLRealT, MLRealT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`A NAME B`.
+*/\
+	double RealA = ml_real_value(Args[0]); \
+	double RealB = ml_real_value(Args[1]); \
 	return ml_real(ml_ ## FUNC(RealA, RealB)); \
 }
 
@@ -721,6 +804,17 @@ ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 	double RealA = ml_double_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 	return ml_real(ml_ ## FUNC(RealA, IntegerB)); \
+} \
+\
+ML_METHOD(#NAME, MLRealT, MLIntegerT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`A NAME B`.
+*/\
+	double RealA = ml_real_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	return ml_real(ml_ ## FUNC(RealA, IntegerB)); \
 }
 
 #define ml_arith_method_integer_real(NAME, FUNC) \
@@ -732,6 +826,17 @@ ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
+	return ml_real(ml_ ## FUNC(IntegerA, RealB)); \
+} \
+\
+ML_METHOD(#NAME, MLIntegerT, MLRealT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`A NAME B`.
+*/\
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	double RealB = ml_real_value(Args[1]); \
 	return ml_real(ml_ ## FUNC(IntegerA, RealB)); \
 }
 
@@ -2931,6 +3036,142 @@ ML_DESERIALIZER("real-switch") {
 	Case->Index = ml_integer(Count);
 	return (ml_value_t *)Switch;
 }
+
+#ifdef ML_DECIMAL
+
+static long ml_decimal_hash(ml_decimal_t *Value, ml_hash_chain_t *Chain) {
+	return ml_hash_chain(Value->Unscaled, Chain) + Value->Scale;
+}
+
+ML_TYPE(MLDecimalT, (MLRealT), "decimal",
+	.hash = (void *)ml_decimal_hash
+);
+
+ml_value_t *ml_decimal(ml_value_t *Unscaled, int32_t Scale) {
+	ml_decimal_t *Decimal = new(ml_decimal_t);
+	Decimal->Type = MLDecimalT;
+	Decimal->Unscaled = Unscaled;
+	Decimal->Scale = Scale;
+	return (ml_value_t *)Decimal;
+}
+
+ML_METHOD("unscaled", MLDecimalT) {
+	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
+	return Decimal->Unscaled;
+}
+
+ML_METHOD("scale", MLDecimalT) {
+	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
+	return ml_integer(Decimal->Scale);
+}
+
+static int64_t ML_TYPED_FN(ml_integer_value, MLDecimalT, ml_decimal_t *Value) {
+	if (Value->Scale <= 0)  {
+		return ml_integer_value(Value->Unscaled) * (long)exp10(-Value->Scale);
+	} else {
+		return ml_integer_value(Value->Unscaled) / exp10(Value->Scale);
+	}
+}
+
+static double ML_TYPED_FN(ml_real_value, MLDecimalT, ml_decimal_t *Value) {
+	return ml_integer_value(Value->Unscaled) / exp10(Value->Scale);
+}
+
+ML_METHOD(MLDecimalT, MLIntegerT, MLIntegerT) {
+	ml_decimal_t *Decimal = new(ml_decimal_t);
+	Decimal->Type = MLDecimalT;
+	Decimal->Unscaled = Args[0];
+	Decimal->Scale = ml_integer_value(Args[1]);
+	return (ml_value_t *)Decimal;
+}
+
+ML_METHOD(MLDecimalT, MLIntegerT) {
+	ml_decimal_t *Decimal = new(ml_decimal_t);
+	Decimal->Type = MLDecimalT;
+	Decimal->Unscaled = Args[0];
+	Decimal->Scale = 0;
+	return (ml_value_t *)Decimal;
+}
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+ML_METHOD(MLDecimalT, MLRealT) {
+	char Temp[DBL_DIG + 10];
+	int Length = sprintf(Temp, "%." TOSTRING(DBL_DIG) "g", ml_real_value(Args[0]));
+	int Scale = 0;
+	char *Tail = strchr(Temp, 'e');
+	if (Tail) {
+		Scale = -strtol(Tail + 1, NULL, 10);
+		*Tail = 0;
+	} else {
+		Tail = Temp + Length;
+	}
+	char *Point = strchr(Temp, '.');
+	if (Point) {
+		int Digits = Tail - (Point + 1);
+		Scale += Digits;
+		memmove(Point, Point + 1, Digits);
+		*--Tail = 0;
+	}
+	ml_decimal_t *Decimal = new(ml_decimal_t);
+	Decimal->Type = MLDecimalT;
+	Decimal->Unscaled = ml_integer_parse(Temp);
+	Decimal->Scale = Scale;
+	return (ml_value_t *)Decimal;
+}
+
+ML_METHOD("append", MLStringBufferT, MLDecimalT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_decimal_t *Decimal = (ml_decimal_t *)Args[1];
+	ml_stringbuffer_t TempBuffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_simple_append(TempBuffer, Decimal->Unscaled);
+	int Scale = Decimal->Scale;
+	if (Scale > 0) {
+		if (Scale >= TempBuffer->Length) {
+			ml_stringbuffer_write(Buffer, "0.", strlen("0."));
+			for (int I = Scale - TempBuffer->Length; --I >= 0;) ml_stringbuffer_put(Buffer, '0');
+			ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+		} else {
+			int WholeDigits = TempBuffer->Length - Scale;
+			while (WholeDigits > 0) {
+				int N = ml_stringbuffer_reader(TempBuffer, 0);
+				if (N >= WholeDigits) {
+					ml_stringbuffer_write(Buffer, TempBuffer->Head->Chars + TempBuffer->Start, WholeDigits);
+					ml_stringbuffer_reader(TempBuffer, WholeDigits);
+					break;
+				}
+				ml_stringbuffer_write(Buffer, TempBuffer->Head->Chars + TempBuffer->Start, N);
+				ml_stringbuffer_reader(TempBuffer, N);
+				WholeDigits -= N;
+			}
+			ml_stringbuffer_put(Buffer, '.');
+			ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+		}
+	} else if (Scale < 0) {
+		ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+		for (int I = Scale; ++I <= 0;) ml_stringbuffer_put(Buffer, '0');
+	} else {
+		ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+	}
+	return MLSome;
+}
+
+ML_METHOD(MLRealT, MLDecimalT) {
+	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
+	return ml_real(ml_integer_value(Decimal->Unscaled) / exp10(Decimal->Scale));
+}
+
+ML_METHOD(MLNumberT, MLDecimalT) {
+	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
+	if (Decimal->Scale <= 0)  {
+		return ml_integer(ml_integer_value(Decimal->Unscaled) * (long)exp10(-Decimal->Scale));
+	} else {
+		return ml_real(ml_integer_value(Decimal->Unscaled) / exp10(Decimal->Scale));
+	}
+}
+
+#endif
 
 void ml_number_init() {
 #include "ml_number_init.c"
