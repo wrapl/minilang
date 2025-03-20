@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1026" column="11" bodyfile="src/ml_types.h" bodystart="1026" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1040" column="11" bodyfile="src/ml_types.h" bodystart="1040" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__slice__t_1ad2d3545c4abbcedba2b4ab5394b454d4" prot="public" static="no" mutable="no">
         <type><ref refid="structml__slice__node__t" kindref="compound">ml_slice_node_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1027" column="17" bodyfile="src/ml_types.h" bodystart="1027" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1041" column="17" bodyfile="src/ml_types.h" bodystart="1041" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__slice__t_1a6734bdfeb331b64313d219bc7caa8497" prot="public" static="no" mutable="no">
         <type>size_t</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1028" column="8" bodyfile="src/ml_types.h" bodystart="1028" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1042" column="8" bodyfile="src/ml_types.h" bodystart="1042" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__slice__t_1a63a2e91d18fabd71e0759c2406145574" prot="public" static="no" mutable="no">
         <type>size_t</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1028" column="17" bodyfile="src/ml_types.h" bodystart="1028" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1042" column="17" bodyfile="src/ml_types.h" bodystart="1042" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__slice__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" prot="public" static="no" mutable="no">
         <type>size_t</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1028" column="24" bodyfile="src/ml_types.h" bodystart="1028" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1042" column="24" bodyfile="src/ml_types.h" bodystart="1042" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -130,7 +130,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1025" column="1" bodyfile="src/ml_types.h" bodystart="1025" bodyend="1029"/>
+    <location file="src/ml_types.h" line="1039" column="1" bodyfile="src/ml_types.h" bodystart="1039" bodyend="1043"/>
     <listofallmembers>
       <member refid="structml__slice__t_1a6734bdfeb331b64313d219bc7caa8497" prot="public" virt="non-virtual"><scope>ml_slice_t</scope><name>Capacity</name></member>
       <member refid="structml__slice__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" prot="public" virt="non-virtual"><scope>ml_slice_t</scope><name>Length</name></member>

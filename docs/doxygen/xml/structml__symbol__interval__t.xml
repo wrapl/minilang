@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1523" column="11" bodyfile="src/ml_types.h" bodystart="1523" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1537" column="11" bodyfile="src/ml_types.h" bodystart="1537" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__symbol__interval__t_1a207dca2cc50284a4758381fea6ab1cad" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1524" column="12" bodyfile="src/ml_types.h" bodystart="1524" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1538" column="12" bodyfile="src/ml_types.h" bodystart="1538" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__symbol__interval__t_1a50f85990a56a7263d638002cbd80d4b3" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1524" column="18" bodyfile="src/ml_types.h" bodystart="1524" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1538" column="18" bodyfile="src/ml_types.h" bodystart="1538" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -92,7 +92,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1522" column="1" bodyfile="src/ml_types.h" bodystart="1522" bodyend="1525"/>
+    <location file="src/ml_types.h" line="1536" column="1" bodyfile="src/ml_types.h" bodystart="1536" bodyend="1539"/>
     <listofallmembers>
       <member refid="structml__symbol__interval__t_1a207dca2cc50284a4758381fea6ab1cad" prot="public" virt="non-virtual"><scope>ml_symbol_interval_t</scope><name>First</name></member>
       <member refid="structml__symbol__interval__t_1a50f85990a56a7263d638002cbd80d4b3" prot="public" virt="non-virtual"><scope>ml_symbol_interval_t</scope><name>Last</name></member>

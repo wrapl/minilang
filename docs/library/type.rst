@@ -9,6 +9,42 @@ type
 
 .. rst-class:: mini-api
 
+:mini:`type decimal < real`
+   *TBD*
+
+
+:mini:`meth number(Arg₁: decimal)`
+   *TBD*
+
+
+:mini:`meth real(Arg₁: decimal)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: decimal):scale`
+   *TBD*
+
+
+:mini:`meth (Arg₁: decimal):unscaled`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: decimal)`
+   *TBD*
+
+
+:mini:`meth decimal(Arg₁: integer)`
+   *TBD*
+
+
+:mini:`meth decimal(Arg₁: integer, Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth decimal(Arg₁: real)`
+   *TBD*
+
+
 :mini:`type type < function`
    Type of all types.
    Every type contains a set of named exports,  which allows them to be used as modules.

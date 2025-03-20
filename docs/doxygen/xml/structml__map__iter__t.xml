@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1231" column="15" bodyfile="src/ml_types.h" bodystart="1231" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1245" column="15" bodyfile="src/ml_types.h" bodystart="1245" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__map__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1232" column="12" bodyfile="src/ml_types.h" bodystart="1232" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1246" column="12" bodyfile="src/ml_types.h" bodystart="1246" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__map__iter__t_1a87afd663f0a4b73070f1de58a6e47ceb" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1232" column="16" bodyfile="src/ml_types.h" bodystart="1232" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1246" column="16" bodyfile="src/ml_types.h" bodystart="1246" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -155,7 +155,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1230" column="1" bodyfile="src/ml_types.h" bodystart="1230" bodyend="1233"/>
+    <location file="src/ml_types.h" line="1244" column="1" bodyfile="src/ml_types.h" bodystart="1244" bodyend="1247"/>
     <listofallmembers>
       <member refid="structml__map__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" virt="non-virtual"><scope>ml_map_iter_t</scope><name>Key</name></member>
       <member refid="structml__map__iter__t_1afc78fff3c29652843496f018eba98489" prot="public" virt="non-virtual"><scope>ml_map_iter_t</scope><name>Node</name></member>

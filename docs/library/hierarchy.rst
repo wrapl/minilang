@@ -134,6 +134,7 @@ hierarchy
       "sequence":e -> "integer::interval":w;
       "sequence":e -> "real::range":w;
       "sequence":e -> "real::interval":w;
+      "real":e -> "decimal":w;
       "address":e -> "mmap":w;
       "mmap":e -> "mmap::buffer":w;
       "buffer":e -> "mmap::buffer":w;
