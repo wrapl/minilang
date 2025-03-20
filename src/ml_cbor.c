@@ -1010,16 +1010,16 @@ ML_FUNCTION(DecodeComplex) {
 ml_value_t *ml_cbor_read_decimal(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Decimal requires list");
 	if (ml_list_length(Value) != 2) return ml_error("TagError", "Decimal requires 2 values");
-	ml_value_t *Unscaled = ml_list_get(Value, 1);
+	ml_value_t *Unscaled = ml_list_get(Value, 2);
 	if (!ml_is(Unscaled, MLIntegerT)) return ml_error("TagError", "Decimal requires integer unscaled value");
-	return ml_decimal(Unscaled, ml_integer_value(ml_list_get(Value, 2)));
+	return ml_decimal(Unscaled, -ml_integer_value(ml_list_get(Value, 1)));
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLDecimalT, ml_cbor_writer_t *Writer, ml_decimal_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_DECIMAL_FRACTION);
 	minicbor_write_array(Writer, 2);
+	minicbor_write_integer(Writer, -Arg->Scale);
 	ml_cbor_write(Writer, Arg->Unscaled);
-	minicbor_write_integer(Writer, Arg->Scale);
 }
 
 ML_FUNCTION(DecodeDecimal) {
@@ -1027,7 +1027,7 @@ ML_FUNCTION(DecodeDecimal) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
-	return ml_decimal(Args[0], ml_integer_value(Args[1]));
+	return ml_decimal(Args[1], -ml_integer_value(Args[0]));
 }
 
 #endif
