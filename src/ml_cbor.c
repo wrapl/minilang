@@ -1295,7 +1295,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 #endif
 #ifdef ML_DECIMAL
 	ml_cbor_default_object("decimal", (ml_value_t *)DecodeDecimal);
-	ml_cbor_default_tag(ML_CBOR_TAG_DECIMAL_FRACTION, ml_cbor_read_complex);
+	ml_cbor_default_tag(ML_CBOR_TAG_DECIMAL_FRACTION, ml_cbor_read_decimal);
 #endif
 	ml_cbor_default_tag(ML_CBOR_TAG_REGEX, ml_cbor_read_regex);
 	ml_cbor_default_tag(ML_CBOR_TAG_IDENTIFIER, ml_cbor_read_method);
