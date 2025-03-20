@@ -368,7 +368,7 @@ ML_TYPE(MLRational48T, (MLRationalT), "rational48",
 	.NoInherit = 1
 );
 
-static long ml_rational128_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+static long ml_rational64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #ifdef ML_FLINT
 	return fmpq_get_d(((ml_rational_t *)Value)->Value);
 #else
@@ -376,15 +376,15 @@ static long ml_rational128_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #endif
 }
 
-ML_TYPE(MLRational128T, (MLIntegerT), "rational128",
+ML_TYPE(MLRational64T, (MLIntegerT), "rational64",
 //!internal
-	.hash = (void *)ml_rational128_hash,
+	.hash = (void *)ml_rational64_hash,
 	.NoInherit = 1
 );
 
-ml_value_t *ml_rational128(int64_t Num, uint64_t Den) {
+ml_value_t *ml_rational64(int64_t Num, uint64_t Den) {
 	ml_rational_t *Value = new(ml_rational_t);
-	Value->Type = MLRational128T;
+	Value->Type = MLRational64T;
 #ifdef ML_FLINT
 	fmpq_set_si(Value->Value, Num, Den);
 #else
@@ -392,6 +392,33 @@ ml_value_t *ml_rational128(int64_t Num, uint64_t Den) {
 	Value->Den = Den;
 #endif
 	return (ml_value_t *)Value;
+}
+
+rat64_t ml_rational_value(const ml_value_t *Value) {
+	int Tag = ml_tag(Value);
+	if (Tag == 1) return (rat64_t){(int32_t)(intptr_t)Value, 1};
+	if (Tag == 2) return (rat64_t){(int32_t)(intptr_t)Value, ((uint64_t)(intptr_t)Value >> 48) & 0xFFFF};
+	if (Tag >= 7) {
+		double Dbl = ml_double_value_fast(Value);
+		// TODO: Approximate rational here
+		return (rat64_t){Dbl, 1};
+	}
+	if (Tag != 0) return (rat64_1){0, 1};
+	if (ml_is_subtype(Value->Type, MLInteger64T)) {
+#ifdef ML_FLINT
+		return (rat64_t){fmpz_get_si(((ml_integer_t *)Value)->Value), 1};
+#else
+		return (rat64_t){((ml_integer_t *)Value)->Value, 1};
+#endif
+	}
+	if (ml_is_subtype(Value->Type, MLRational64T)) {
+#ifdef ML_FLINT
+		return (rat64_t){fmpz_get_si(((ml_integer_t *)Value)->Value), 1};
+#else
+		return (rat64_t){((ml_integer_t *)Value)->Value, 1};
+#endif
+	}
+	return (rat64_t){0, 1};
 }
 
 #endif
@@ -548,7 +575,7 @@ ML_METHOD(MLIntegerT, MLDoubleT) {
 
 #ifdef ML_FLINT
 
-static void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest) {
+void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest) {
 	if (__builtin_expect(!!ml_tag(Source), 1)) {
 		fmpz_init_set_si(Dest, (int32_t)(intptr_t)Source);
 	} else {
@@ -562,7 +589,7 @@ ml_value_t *ml_integer_fmpz(fmpz_t Source) {
 	} else {
 		ml_integer_t *Value = new(ml_integer_t);
 		Value->Type = MLInteger64T;
-		Value->Value[0] = Source[0];
+		fmpz_set(Value->Value, Source);
 		return (ml_value_t *)Value;
 	}
 }
@@ -576,8 +603,8 @@ ml_value_t *ml_rational_fmpq(fmpq_t Source) {
 		return ml_rational48(fmpz_get_si(Num), fmpz_get_ui(Den));
 	} else {
 		ml_rational_t *Value = new(ml_rational_t);
-		Value->Type = MLRational128T;
-		Value->Value[0] = Source[0];
+		Value->Type = MLRational64T;
+		fmpq_set(Value->Value, Source);
 		return (ml_value_t *)Value;
 	}
 }

@@ -134,6 +134,23 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 //$= type(N)
 //$= let R := 2 ^ -1
 //$= type(R)
+#ifdef ML_FLINT
+	fmpz_t IntegerB; ml_integer_fmpz_init(Args[1], IntegerB);
+	switch (fmpz_sgn(IntegerB)) {
+	case 0: return ml_integer(1);
+	case 1: {
+		fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA);
+		fmpz_t Result; fmpz_init(Result);
+		fmpz_pow_fmpz(Result, IntegerA, IntegerB);
+		return ml_integer_fmpz(Result);
+	}
+	case -1: {
+		double RealA = ml_real_value(Args[0]);
+		return ml_real(pow(RealA, fmpz_get_d(IntegerB)));
+	}
+	default: __builtin_unreachable();
+	}
+#else
 	int64_t Base = ml_integer_value_fast(Args[0]);
 	int64_t Exponent = ml_integer_value_fast(Args[1]);
 	if (Exponent >= 0) {
@@ -147,6 +164,7 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	} else {
 		return ml_real(pow(Base, Exponent));
 	}
+#endif
 }
 
 ML_METHOD("^", MLRealT, MLIntegerT) {
@@ -342,6 +360,28 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 //@math::sqrt
 //>integer|real
 // Returns the square root of :mini:`Arg/1`.
+#ifdef ML_FLINT
+	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA);
+	switch (fmpz_sgn(IntegerA)) {
+	case 0: return ml_integer(0);
+	case 1: {
+		fmpz_t Result; fmpz_init(Result);
+		if (fmpz_root(Result, IntegerA, 2)) {
+			return ml_integer_fmpz(Result);
+		} else {
+			return ml_real(sqrt(fmpz_get_d(IntegerA)));
+		}
+	}
+	case -1: {
+#ifdef ML_COMPLEX
+		return ml_complex(csqrt(fmpz_get_d(IntegerA)));
+#else
+		return ml_real(-NAN);
+#endif
+	}
+	default: __builtin_unreachable();
+	}
+#else
 	int64_t N = ml_integer_value_fast(Args[0]);
 	if (N < 0) {
 #ifdef ML_COMPLEX
@@ -359,6 +399,7 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 	}
 	if (X * X == N) return ml_integer(X);
 	return ml_real(sqrt(N));
+#endif
 }
 
 ML_METHOD_ANON(SquareMethod, "math::square");

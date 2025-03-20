@@ -925,14 +925,18 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int Base = ml_integer_value_fast(Args[2]);
 #ifdef ML_FLINT
+#ifdef ML_NANBOXING
 	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
 		goto int32;
 	} else {
+#endif
 		const char *Str = fmpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
 		ml_stringbuffer_write(Buffer, Str, strlen(Str));
 		return MLSome;
+#ifdef ML_NANBOXING
 	}
 int32:;
+#endif
 #endif
 	int64_t Value = ml_integer_value_fast(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
@@ -955,7 +959,20 @@ ML_METHOD("append", MLStringBufferT, MLRationalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_rational_t *Value = (ml_rational_t *)Args[1];
 #ifdef ML_FLINT
+#ifdef ML_NANBOXING
+	if (__builtin_expect(!!ml_tag(Args[1]), 2)) {
+		goto rat48;
+	} else {
+#endif
+		const char *Str = fmpq_get_str(NULL, Base, ((ml_rational_t *)Args[1])->Value);
+		ml_stringbuffer_write(Buffer, Str, strlen(Str));
+		return MLSome;
+#ifdef ML_NANBOXING
+	}
+rat48:;
+#endif
 #else
+
 #endif
 }
 

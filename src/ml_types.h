@@ -563,6 +563,8 @@ uint64_t ml_gcd(uint64_t A, uint64_t B);
 
 extern ml_type_t MLRationalT[];
 
+typedef struct { int64_t Num; uint64_t Den; } rat64_t;
+
 #endif
 
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
@@ -603,6 +605,7 @@ static inline ml_value_t *ml_integer(int64_t Integer) {
 
 #ifdef ML_FLINT
 
+void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest);
 ml_value_t *ml_integer_fmpz(fmpz_t Source);
 
 #endif
@@ -630,13 +633,13 @@ static inline ml_value_t *ml_rational48(int32_t Num, uint16_t Den) {
 	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)Den << 32) + (uint32_t)Num);
 }
 
-ml_value_t *ml_rational128(int64_t Num, uint64_t Den);
+ml_value_t *ml_rational64(int64_t Num, uint64_t Den);
 
 static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
 	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
 		return ml_rational48(Num, Den);
 	} else {
-		return ml_rational128(Num, Den);
+		return ml_rational64(Num, Den);
 	}
 }
 
