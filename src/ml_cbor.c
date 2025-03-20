@@ -1025,9 +1025,9 @@ static void ML_TYPED_FN(ml_cbor_write, MLDecimalT, ml_cbor_writer_t *Writer, ml_
 ML_FUNCTION(DecodeDecimal) {
 //!internal
 	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLRealT);
-	ML_CHECK_ARG_TYPE(1, MLRealT);
-	return ml_complex(ml_real_value(Args[0]) + ml_real_value(Args[1]) * _Complex_I);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	return ml_decimal(Args[0], ml_integer_value(Args[1]));
 }
 
 #endif

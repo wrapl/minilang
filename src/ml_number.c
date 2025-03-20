@@ -3121,42 +3121,6 @@ ML_METHOD(MLDecimalT, MLRealT) {
 	return (ml_value_t *)Decimal;
 }
 
-ML_METHOD("append", MLStringBufferT, MLDecimalT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_decimal_t *Decimal = (ml_decimal_t *)Args[1];
-	ml_stringbuffer_t TempBuffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_simple_append(TempBuffer, Decimal->Unscaled);
-	int Scale = Decimal->Scale;
-	if (Scale > 0) {
-		if (Scale >= TempBuffer->Length) {
-			ml_stringbuffer_write(Buffer, "0.", strlen("0."));
-			for (int I = Scale - TempBuffer->Length; --I >= 0;) ml_stringbuffer_put(Buffer, '0');
-			ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
-		} else {
-			int WholeDigits = TempBuffer->Length - Scale;
-			while (WholeDigits > 0) {
-				int N = ml_stringbuffer_reader(TempBuffer, 0);
-				if (N >= WholeDigits) {
-					ml_stringbuffer_write(Buffer, TempBuffer->Head->Chars + TempBuffer->Start, WholeDigits);
-					ml_stringbuffer_reader(TempBuffer, WholeDigits);
-					break;
-				}
-				ml_stringbuffer_write(Buffer, TempBuffer->Head->Chars + TempBuffer->Start, N);
-				ml_stringbuffer_reader(TempBuffer, N);
-				WholeDigits -= N;
-			}
-			ml_stringbuffer_put(Buffer, '.');
-			ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
-		}
-	} else if (Scale < 0) {
-		ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
-		for (int I = Scale; ++I <= 0;) ml_stringbuffer_put(Buffer, '0');
-	} else {
-		ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
-	}
-	return MLSome;
-}
-
 ML_METHOD(MLRealT, MLDecimalT) {
 	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
 	return ml_real(ml_integer_value(Decimal->Unscaled) / exp10(Decimal->Scale));
