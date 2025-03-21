@@ -550,7 +550,7 @@ ML_METHOD("[]", MLListT, MLIntegerT) {
 //$= L[-2]
 //$= L[8]
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Index = ml_integer_value_fast(Args[1]);
+	int Index = ml_integer_value(Args[1]);
 	return (ml_value_t *)ml_list_index(List, Index) ?: MLNil;
 }
 
@@ -574,8 +574,8 @@ static ml_value_t *ml_list_slice_copy(ml_list_t *List, int Start, int End) {
 ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 //!internal
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
+	int Start = ml_integer_value(Args[1]);
+	int End = ml_integer_value(Args[2]);
 	return ml_list_slice_copy(List, Start, End);
 }
 
@@ -656,8 +656,8 @@ ML_METHOD("[]", MLListMutableT, MLIntegerT, MLIntegerT) {
 // Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
+	int Start = ml_integer_value(Args[1]);
+	int End = ml_integer_value(Args[2]);
 	return ml_list_slice(List, Start, End);
 }
 
@@ -1254,11 +1254,11 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT) {
 //>list | nil
 // Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
+	int Start = ml_integer_value(Args[1]);
 	if (Start <= 0) Start += List->Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > List->Length + 1) return MLNil;
-	int Remove = ml_integer_value_fast(Args[2]);
+	int Remove = ml_integer_value(Args[2]);
 	if (Remove < 0) return MLNil;
 	int End = Start + Remove - 1;
 	if (End > List->Length) return MLNil;
@@ -1320,11 +1320,11 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT, MLListMutableT) {
 //>list | nil
 // Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`, then inserts the elements from :mini:`Source`, leaving :mini:`Source` empty. Returns the removed elements as a new list.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
+	int Start = ml_integer_value(Args[1]);
 	if (Start <= 0) Start += List->Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > List->Length + 1) return MLNil;
-	int Remove = ml_integer_value_fast(Args[2]);
+	int Remove = ml_integer_value(Args[2]);
 	if (Remove < 0) return MLNil;
 	int End = Start + Remove - 1;
 	if (End > List->Length) return MLNil;
@@ -1443,7 +1443,7 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLListMutableT) {
 //>nil
 // Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`, leaving :mini:`Source` empty.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
+	int Start = ml_integer_value(Args[1]);
 	if (Start <= 0) Start += List->Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > List->Length + 1) return MLNil;

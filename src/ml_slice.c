@@ -563,8 +563,8 @@ static ml_value_t *ml_slice_slice_copy(ml_slice_t *Source, int Start, int End) {
 ML_METHOD("[]", MLSliceT, MLIntegerT, MLIntegerT) {
 //!internal
 	ml_slice_t *Source = (ml_slice_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
+	int Start = ml_integer_value(Args[1]);
+	int End = ml_integer_value(Args[2]);
 	return ml_slice_slice_copy(Source, Start, End);
 }
 
@@ -658,8 +658,8 @@ ML_METHOD("[]", MLSliceMutableT, MLIntegerT, MLIntegerT) {
 //>slice
 // Returns a slice containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
 	ml_slice_t *Source = (ml_slice_t *)Args[0];
-	int Start = ml_integer_value_fast(Args[1]);
-	int End = ml_integer_value_fast(Args[2]);
+	int Start = ml_integer_value(Args[1]);
+	int End = ml_integer_value(Args[2]);
 	return ml_slice_slice(Source, Start, End);
 }
 
@@ -1182,11 +1182,11 @@ ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLIntegerT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Offset = Slice->Offset;
 	size_t Length = Slice->Length;
-	int Start = ml_integer_value_fast(Args[1]);
+	int Start = ml_integer_value(Args[1]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > Length + 1) return MLNil;
-	int Remove = ml_integer_value_fast(Args[2]);
+	int Remove = ml_integer_value(Args[2]);
 	if (Remove < 0) return MLNil;
 	int End = Start + Remove - 1;
 	if (End > Length) return MLNil;
@@ -1206,11 +1206,11 @@ ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLIntegerT, MLSliceMutableT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Offset = Slice->Offset;
 	size_t Length = Slice->Length;
-	int Start = ml_integer_value_fast(Args[1]);
+	int Start = ml_integer_value(Args[1]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > Length + 1) return MLNil;
-	int Remove = ml_integer_value_fast(Args[2]);
+	int Remove = ml_integer_value(Args[2]);
 	if (Remove < 0) return MLNil;
 	int End = Start + Remove - 1;
 	if (End > Length) return MLNil;
@@ -1255,7 +1255,7 @@ ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLSliceMutableT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Offset = Slice->Offset;
 	size_t Length = Slice->Length;
-	int Start = ml_integer_value_fast(Args[1]);
+	int Start = ml_integer_value(Args[1]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > Length + 1) return MLNil;

@@ -351,7 +351,7 @@ MINILANG_STRUCTS := old or defined("STRUCTS")
 MINILANG_MMAP := old or defined("MMAP")
 MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
 MINILANG_RATIONAL := old or defined("RATIONAL")
-MINILANG_FLINT := old or defined("FLINT")
+MINILANG_BIGINT := old or defined("BIGINT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_CONTEXT_SECTION := old or defined("CONTEXTSECTION")
 
@@ -377,8 +377,8 @@ file("ml_config.h") => fun(Target) do
 	if MINILANG_RATIONAL then
 		File:write("\n#define ML_RATIONAL\n")
 	end
-	if MINILANG_FLINT then
-		File:write("\n#define ML_FLINT\n")
+	if MINILANG_BIGINT then
+		File:write("\n#define ML_BIGINT\n")
 	end
 	if MINILANG_DECIMAL then
 		File:write("\n#define ML_DECIMAL\n")
@@ -691,8 +691,8 @@ if MINILANG_STRINGCACHE then
 	CFLAGS := old + ["-DML_STRINGCACHE"]
 end
 
-if MINILANG_FLINT then
-	LDFLAGS := old + ["-lflint"]
+if MINILANG_BIGINT then
+	LDFLAGS := old + ["-lgmp"]
 end
 
 if PLATFORM = "Linux" then

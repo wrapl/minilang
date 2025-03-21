@@ -361,7 +361,7 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 // Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of interval.
 // Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
-	long Index = ml_integer_value_fast(Args[1]);
+	long Index = ml_integer_value(Args[1]);
 	if (--Index < 0) Index += Tuple->Size + 1;
 	if (Index < 0 || Index >= Tuple->Size) return ml_error("IntervalError", "Tuple index out of bounds");
 	return Tuple->Values[Index];

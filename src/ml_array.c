@@ -1034,7 +1034,7 @@ static ml_array_t MLArrayNil[1] = {{
 }};
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
-	int IndexValue = ml_integer_value_fast(Index);
+	int IndexValue = ml_integer_value(Index);
 	if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
 	if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
 	if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
@@ -4597,7 +4597,7 @@ ML_METHOD(#NAME, MLArrayIntegerT, MLIntegerT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4640,7 +4640,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayIntegerT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4797,7 +4797,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4817,7 +4817,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4843,7 +4843,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4863,7 +4863,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4987,7 +4987,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -5011,7 +5011,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -7680,7 +7680,7 @@ ML_FUNCTION(RandomPermutation) {
 //>permutation
 // Returns a random permutation of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
+	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
 	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
@@ -7707,7 +7707,7 @@ ML_FUNCTION(RandomCycle) {
 //>permutation
 // Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
+	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
 	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;

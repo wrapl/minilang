@@ -2617,7 +2617,7 @@ ML_METHOD("limit", MLSequenceT, MLIntegerT) {
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = ml_generic_sequence(MLLimitedT, Args[0]);
 	Limited->Value = Args[0];
-	Limited->Remaining = ml_integer_value_fast(Args[1]);
+	Limited->Remaining = ml_integer_value(Args[1]);
 	return (ml_value_t *)Limited;
 }
 
@@ -2695,7 +2695,7 @@ ML_METHOD("skip", MLSequenceT, MLIntegerT) {
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = ml_generic_sequence(MLSkippedT, Args[0]);
 	Skipped->Value = Args[0];
-	Skipped->Remaining = ml_integer_value_fast(Args[1]);
+	Skipped->Remaining = ml_integer_value(Args[1]);
 	return (ml_value_t *)Skipped;
 }
 

@@ -134,7 +134,7 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 //$= type(N)
 //$= let R := 2 ^ -1
 //$= type(R)
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	fmpz_t IntegerB; ml_integer_fmpz_init(Args[1], IntegerB);
 	switch (fmpz_sgn(IntegerB)) {
 	case 0: return ml_integer(1);
@@ -151,8 +151,8 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	default: __builtin_unreachable();
 	}
 #else
-	int64_t Base = ml_integer_value_fast(Args[0]);
-	int64_t Exponent = ml_integer_value_fast(Args[1]);
+	int64_t Base = ml_integer_value(Args[0]);
+	int64_t Exponent = ml_integer_value(Args[1]);
 	if (Exponent >= 0) {
 		int64_t N = 1;
 		while (Exponent) {
@@ -173,7 +173,7 @@ ML_METHOD("^", MLRealT, MLIntegerT) {
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
 //$= 2.3 ^ 2
-	return ml_real(pow(ml_real_value(Args[0]), ml_integer_value_fast(Args[1])));
+	return ml_real(pow(ml_real_value(Args[0]), ml_integer_value(Args[1])));
 }
 
 ML_METHOD("^", MLRealT, MLRealT) {
@@ -209,7 +209,7 @@ ML_METHOD("^", MLComplexT, MLIntegerT) {
 // Returns :mini:`X` raised to the power of :mini:`Y`.
 //$= (1 + 2i) ^ 2
 	complex double Base = ml_complex_value(Args[0]);
-	int64_t Power = ml_integer_value_fast(Args[1]);
+	int64_t Power = ml_integer_value(Args[1]);
 	if (Power == 0) return ml_real(0);
 	complex double Result;
 	if (Power > 0 && Power < 10) {
@@ -260,7 +260,7 @@ ML_METHOD("!", MLIntegerT) {
 //>integer
 // Returns the factorial of :mini:`N`.
 //$= !10
-	int N = ml_integer_value_fast(Args[0]);
+	int N = ml_integer_value(Args[0]);
 	if (N > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
 	int64_t F = N;
 	while (--N > 1) F *= N;
@@ -274,8 +274,8 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 //<R
 //>integer
 // Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
-	int N = ml_integer_value_fast(Args[0]);
-	int K = ml_integer_value_fast(Args[1]);
+	int N = ml_integer_value(Args[0]);
+	int K = ml_integer_value(Args[1]);
 	int64_t C = 1;
 	if (K > N - K) K = N - K;
 	for (int I = 0; I < K; ++I) {
@@ -293,8 +293,8 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns the greatest common divisor of :mini:`A` and :mini:`B`.
-	unsigned long A = labs(ml_integer_value_fast(Args[0]));
-	unsigned long B = labs(ml_integer_value_fast(Args[1]));
+	unsigned long A = labs(ml_integer_value(Args[0]));
+	unsigned long B = labs(ml_integer_value(Args[1]));
 	if (A == 0) return Args[1];
 	if (B == 0) return Args[0];
 	int Shift = __builtin_ctzl(A | B);
@@ -330,7 +330,7 @@ ML_METHOD(AbsMethod, MLIntegerT) {
 //<N
 //>integer
 // Returns the absolute value of :mini:`N`.
-	return ml_integer(labs(ml_integer_value_fast(Args[0])));
+	return ml_integer(labs(ml_integer_value(Args[0])));
 }
 
 #ifdef ML_COMPLEX
@@ -360,7 +360,7 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 //@math::sqrt
 //>integer|real
 // Returns the square root of :mini:`Arg/1`.
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA);
 	switch (fmpz_sgn(IntegerA)) {
 	case 0: return ml_integer(0);
@@ -382,7 +382,7 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 	default: __builtin_unreachable();
 	}
 #else
-	int64_t N = ml_integer_value_fast(Args[0]);
+	int64_t N = ml_integer_value(Args[0]);
 	if (N < 0) {
 #ifdef ML_COMPLEX
 		return ml_complex(csqrt(N));
@@ -409,7 +409,7 @@ ML_METHOD(SquareMethod, MLIntegerT) {
 //>integer
 // Returns :mini:`N * N`
 //$= math::square(10)
-	int64_t N = ml_integer_value_fast(Args[0]);
+	int64_t N = ml_integer_value(Args[0]);
 	return ml_integer(N * N);
 }
 ML_METHOD(SquareMethod, MLRealT) {

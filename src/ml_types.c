@@ -2103,7 +2103,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	GC_INIT();
 	ml_runtime_init(ExecName);
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	__flint_set_memory_functions(GC_malloc, GC_calloc, GC_realloc, GC_nop);
 #endif
 	ml_method_init();

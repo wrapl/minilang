@@ -1809,7 +1809,7 @@ static void ml_assign_expr_compile3(mlc_function_t *Function, ml_value_t *Value,
 static void ml_assign_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
 	Frame->Count = Function->Old;
 	if (Value) {
-		Function->Old = ml_integer_value_fast(Value);
+		Function->Old = ml_integer_value(Value);
 		Function->Frame->run = (mlc_frame_fn)ml_assign_expr_compile3;
 	} else {
 		Function->Old = Function->Top - 1;

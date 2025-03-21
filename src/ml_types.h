@@ -573,18 +573,16 @@ double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 ml_value_t *ml_integer_parse(char *String);
 ml_value_t *ml_real_parse(char *String);
 
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 
-#include <flint/flint.h>
-#include <flint/fmpz.h>
-#include <flint/fmpq.h>
+#include <gmp.h>
 
 #endif
 
 typedef struct {
 	ml_type_t *Type;
-#ifdef ML_FLINT
-	fmpz_t Value;
+#ifdef ML_BIGINT
+	mpz_t Value;
 #else
 	int64_t Value;
 #endif
@@ -606,7 +604,7 @@ static inline ml_value_t *ml_integer(int64_t Integer) {
 	}
 }
 
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 
 void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest);
 ml_value_t *ml_integer_fmpz(fmpz_t Source);
@@ -624,7 +622,7 @@ static inline ml_value_t *ml_real(double Value) {
 
 typedef struct {
 	ml_type_t *Type;
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	fmpq_t Value;
 #else
 	int64_t Num;
@@ -646,7 +644,7 @@ static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
 	}
 }
 
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 
 ml_value_t *ml_rational_fmpq(fmpq_t Source);
 
@@ -658,16 +656,19 @@ static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
 
-static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
-	if (__builtin_expect(!!ml_tag(Value), 1)) return (int32_t)(intptr_t)Value;
-#ifdef ML_FLINT
+static inline int64_t ml_integer32_value(const ml_value_t *Value) {
+	return (int32_t)(intptr_t)Value;
+}
+
+static inline int64_t ml_integer64_value(const ml_value_t *Value) {
+#ifdef ML_BIGINT
 	return fmpz_get_si(((ml_integer_t *)Value)->Value);
 #else
 	return ((ml_integer_t *)Value)->Value;
 #endif
 }
 
-static inline double ml_double_value_fast(const ml_value_t *Value) {
+static inline double ml_double_value(const ml_value_t *Value) {
 	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
 	Boxed.Value = Value;
 	Boxed.Bits -= 0x07000000000000;
@@ -679,7 +680,7 @@ static inline double ml_double_value_fast(const ml_value_t *Value) {
 ml_value_t *ml_integer(int64_t Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
-inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
+inline int64_t ml_integer64_value(const ml_value_t *Value) {
 	return ((ml_integer_t *)Value)->Value;
 }
 
@@ -688,7 +689,7 @@ typedef struct {
 	double Value;
 } ml_double_t;
 
-inline double ml_double_value_fast(const ml_value_t *Value) {
+inline double ml_double_value(const ml_value_t *Value) {
 	return ((ml_double_t *)Value)->Value;
 }
 

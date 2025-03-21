@@ -1134,7 +1134,7 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 			ERROR();
 		}
 		int Count = Inst[1].Count;
-		int Index = ml_integer_value_fast(Result);
+		int Index = ml_integer_value(Result);
 		if (Index < 0 || Index >= Count) Index = Count - 1;
 		ADVANCE(Inst[2].Insts[Index]);
 	}

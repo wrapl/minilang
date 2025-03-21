@@ -860,7 +860,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLGlobalT, ml_cbor_writer_t *Writer, ml_v
 
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	//printf("%s()\n", __func__);
-	int64_t Value = ml_integer_value_fast(Arg);
+	int64_t Value = ml_integer_value(Arg);
 	if (Value < 0) {
 		minicbor_write_negative(Writer, ~Value);
 	} else {
@@ -911,7 +911,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLMapT, ml_cbor_writer_t *Writer, ml_valu
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLDoubleT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
-	minicbor_write_float8(Writer, ml_double_value_fast(Arg));
+	minicbor_write_float8(Writer, ml_double_value(Arg));
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLNilT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {

@@ -153,7 +153,7 @@ ML_FUNCTION(MLHalt) {
 // Causes the current process to exit with optional exit code :mini:`Code` or :mini:`0` if omitted.
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
-		exit(ml_integer_value_fast(Args[0]));
+		exit(ml_integer_value(Args[0]));
 	} else {
 		exit(0);
 	}

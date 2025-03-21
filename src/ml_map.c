@@ -186,7 +186,7 @@ static ml_map_node_t *ml_map_template_node(ml_map_node_t *Template, ml_value_t *
 	ml_map_node_t *Node = new(ml_map_node_t);
 	Node->Type = MLMapNodeMutableT;
 	Node->Key = Template->Key;
-	int Index = ml_integer_value_fast(Template->Value);
+	int Index = ml_integer_value(Template->Value);
 	Node->Value = ml_deref(Args[Index]);
 	Nodes[Index] = Node;
 	Node->Hash = Template->Hash;

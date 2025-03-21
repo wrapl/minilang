@@ -498,13 +498,13 @@ ML_FUNCTIONX(Parallel) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(3, MLFunctionT);
-		Parallel->MaxRunning = ml_integer_value_fast(Args[2]);
-		Parallel->Burst = ml_integer_value_fast(Args[1]) + 1;
+		Parallel->MaxRunning = ml_integer_value(Args[2]);
+		Parallel->Burst = ml_integer_value(Args[1]) + 1;
 		Parallel->Fn = Args[3];
 	} else if (Count > 2) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
-		Parallel->MaxRunning = ml_integer_value_fast(Args[1]);
+		Parallel->MaxRunning = ml_integer_value(Args[1]);
 		Parallel->Burst = SIZE_MAX;
 		Parallel->Fn = Args[2];
 	} else {

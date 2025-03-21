@@ -111,7 +111,7 @@ extern complex double ml_complex_value(const ml_value_t *Value);
 complex double ml_complex_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
-	if (Tag >= 7) return ml_double_value_fast(Value);
+	if (Tag >= 7) return ml_double_value(Value);
 	if (Tag == 0 && Value->Type == MLComplexT) return ((ml_complex_t *)Value)->Value;
 	typeof(ml_complex_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_complex_value);
 	if (fn) return fn(Value);
@@ -123,7 +123,7 @@ complex double ml_complex_value(const ml_value_t *Value) {
 }
 
 static complex double ML_TYPED_FN(ml_complex_value, MLInteger64T, ml_integer_t *Value) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return fmpz_get_d(Value->Value);
 #else
 	return Value->Value;
@@ -134,7 +134,7 @@ static complex double ML_TYPED_FN(ml_complex_value, MLInteger64T, ml_integer_t *
 
 complex double ml_complex_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 		return fmpz_get_d(((ml_integer_t *)Value)->Value);
 #else
 		return ((ml_integer_t *)Value)->Value;
@@ -154,7 +154,7 @@ complex double ml_complex_value(const ml_value_t *Value) {
 }
 
 static complex double ML_TYPED_FN(ml_complex_value, MLIntegerT, ml_integer_t *Value) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return fmpz_get_d(Value->Value);
 #else
 	return Value->Value;
@@ -211,7 +211,7 @@ ML_METHOD(#NAME, MLComplexT, MLIntegerT) { \
 // Returns :mini:`A NAME B`.
 */\
 	complex double ComplexA = ml_complex_value(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	complex double ComplexC = ml_ ## FUNC(ComplexA, IntegerB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
@@ -227,7 +227,7 @@ ML_METHOD(#NAME, MLIntegerT, MLComplexT) { \
 //>complex
 // Returns :mini:`A NAME B`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
 	complex double ComplexB = ml_complex_value(Args[1]); \
 	complex double ComplexC = ml_ ## FUNC(IntegerA, ComplexB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
@@ -245,7 +245,7 @@ ML_METHOD(#NAME, MLComplexT, MLDoubleT) { \
 // Returns :mini:`A NAME B`.
 */\
 	complex double ComplexA = ml_complex_value(Args[0]); \
-	double RealB = ml_double_value_fast(Args[1]); \
+	double RealB = ml_double_value(Args[1]); \
 	complex double ComplexC = ml_ ## FUNC(ComplexA, RealB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
@@ -261,7 +261,7 @@ ML_METHOD(#NAME, MLDoubleT, MLComplexT) { \
 //>complex
 // Returns :mini:`A NAME B`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
+	double RealA = ml_double_value(Args[0]); \
 	complex double ComplexB = ml_complex_value(Args[1]); \
 	complex double ComplexC = ml_ ## FUNC(RealA, ComplexB); \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
@@ -331,7 +331,7 @@ ML_TYPE(MLInteger32T, (MLIntegerT), "integer32",
 );
 
 static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return fmpz_get_si(((ml_integer_t *)Value)->Value);
 #else
 	return ((ml_integer_t *)Value)->Value;
@@ -347,7 +347,7 @@ ML_TYPE(MLInteger64T, (MLIntegerT), "integer64",
 ml_value_t *ml_integer64(int64_t Integer) {
 	ml_integer_t *Value = new(ml_integer_t);
 	Value->Type = MLInteger64T;
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	fmpz_set_si(Value->Value, Integer);
 #else
 	Value->Value = Integer;
@@ -358,14 +358,14 @@ ml_value_t *ml_integer64(int64_t Integer) {
 int64_t ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
-	if (Tag >= 7) return ml_double_value_fast(Value);
+	if (Tag >= 7) return ml_double_value(Value);
 	typeof(ml_integer_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
 	if (fn) return fn(Value);
 	return 0;
 }
 
 static int64_t ML_TYPED_FN(ml_integer_value, MLInteger64T, const ml_integer_t *Value) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return fmpz_get_si(Value->Value);
 #else
 	return Value->Value;
@@ -407,7 +407,7 @@ ML_TYPE(MLRational48T, (MLRationalT), "rational48",
 );
 
 static long ml_rational64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return fmpq_get_d(((ml_rational_t *)Value)->Value);
 #else
 	return ((ml_integer_t *)Value)->Value;
@@ -423,7 +423,7 @@ ML_TYPE(MLRational64T, (MLIntegerT), "rational64",
 ml_value_t *ml_rational64(int64_t Num, uint64_t Den) {
 	ml_rational_t *Value = new(ml_rational_t);
 	Value->Type = MLRational64T;
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	fmpq_set_si(Value->Value, Num, Den);
 #else
 	Value->Num = Num;
@@ -437,20 +437,20 @@ rat64_t ml_rational_value(const ml_value_t *Value) {
 	if (Tag == 1) return (rat64_t){(int32_t)(intptr_t)Value, 1};
 	if (Tag == 2) return (rat64_t){(int32_t)(intptr_t)Value, ((uint64_t)(intptr_t)Value >> 48) & 0xFFFF};
 	if (Tag >= 7) {
-		double Dbl = ml_double_value_fast(Value);
+		double Dbl = ml_double_value(Value);
 		// TODO: Approximate rational here
 		return (rat64_t){Dbl, 1};
 	}
 	if (Tag != 0) return (rat64_1){0, 1};
 	if (ml_is_subtype(Value->Type, MLInteger64T)) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 		return (rat64_t){fmpz_get_si(((ml_integer_t *)Value)->Value), 1};
 #else
 		return (rat64_t){((ml_integer_t *)Value)->Value, 1};
 #endif
 	}
 	if (ml_is_subtype(Value->Type, MLRational64T)) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 		return (rat64_t){fmpz_get_si(((ml_integer_t *)Value)->Value), 1};
 #else
 		return (rat64_t){((ml_integer_t *)Value)->Value, 1};
@@ -468,7 +468,7 @@ ML_METHOD(MLRealT, MLInteger32T) {
 
 ML_METHOD(MLRealT, MLInteger64T) {
 //!internal
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
 #else
 	return ml_real(((ml_integer_t *)Args[0])->Value);
@@ -506,7 +506,7 @@ ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
 ml_value_t *ml_integer(int64_t Value) {
 	ml_integer_t *Integer = new(ml_integer_t);
 	Integer->Type = MLIntegerT;
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	fmpz_set_si(Integer->Value, Integer);
 #else
 	Integer->Value = Value;
@@ -514,7 +514,7 @@ ml_value_t *ml_integer(int64_t Value) {
 	return (ml_value_t *)Integer;
 }
 
-extern int64_t ml_integer_value_fast(const ml_value_t *Value);
+extern int64_t ml_integer_value(const ml_value_t *Value);
 
 int64_t ml_integer_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
@@ -522,7 +522,7 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	} else if (Value->Type == MLDoubleT) {
 		return ((ml_double_t *)Value)->Value;
 	} else if (ml_is(Value, MLIntegerT)) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 		return fmpz_get_si(((ml_integer_t *)Value)->Value);
 #else
 		return ((ml_integer_t *)Value)->Value;
@@ -535,13 +535,13 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 }
 
 ML_METHOD(MLRealT, MLIntegerT) {
-	return ml_real(ml_integer_value_fast(Args[0]));
+	return ml_real(ml_integer_value(Args[0]));
 }
 
 #endif
 
 static long ml_double_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	return (long)ml_double_value_fast(Value);
+	return (long)ml_double_value(Value);
 }
 
 ML_TYPE(MLDoubleT, (MLRealT), "double",
@@ -554,7 +554,7 @@ ML_TYPE(MLDoubleT, (MLRealT), "double",
 double ml_real_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
-	if (Tag >= 7) return ml_double_value_fast(Value);
+	if (Tag >= 7) return ml_double_value(Value);
 	typeof(ml_real_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_real_value);
 	if (fn) return fn(Value);
 	typeof(ml_integer_value) *fn2 = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
@@ -563,7 +563,7 @@ double ml_real_value(const ml_value_t *Value) {
 }
 
 static double ML_TYPED_FN(ml_real_value, MLInteger64T, ml_integer_t *Value) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return fmpz_get_d(Value->Value);
 #else
 	return Value->Value;
@@ -581,7 +581,7 @@ ML_METHOD(MLDoubleT, MLInteger32T) {
 
 ML_METHOD(MLDoubleT, MLInteger64T) {
 //!internal
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
 #else
 	return ml_real(((ml_integer_t *)Args[0])->Value);
@@ -599,7 +599,7 @@ ml_value_t *ml_real(double Value) {
 
 double ml_real_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 		return fmpz_get_d(((ml_integer_t *)Value)->Value);
 #else
 		return ((ml_integer_t *)Value)->Value;
@@ -615,7 +615,7 @@ double ml_real_value(const ml_value_t *Value) {
 }
 
 static double ML_TYPED_FN(ml_real_value, MLIntegerT, ml_integer_t *Value) {
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	return fmpz_get_d(Value->Value);
 #else
 	return Value->Value;
@@ -624,7 +624,7 @@ static double ML_TYPED_FN(ml_real_value, MLIntegerT, ml_integer_t *Value) {
 
 ML_METHOD(MLDoubleT, MLIntegerT) {
 //!internal
-	return ml_real(ml_integer_value_fast(Args[0]));
+	return ml_real(ml_integer_value(Args[0]));
 }
 
 #endif
@@ -633,10 +633,10 @@ ML_METHOD(MLIntegerT, MLDoubleT) {
 //<Real
 //>integer
 // Converts :mini:`Real` to an integer (using default rounding).
-	return ml_integer(ml_double_value_fast(Args[0]));
+	return ml_integer(ml_double_value(Args[0]));
 }
 
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 
 void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest) {
 	if (__builtin_expect(!!ml_tag(Source), 1)) {
@@ -722,7 +722,7 @@ ML_METHOD(#NAME, MLIntegerT) { \
 //>integer
 // Returns :mini:`NAMEA`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
 	return ml_integer(ml_ ## FUNC(IntegerA)); \
 }
 
@@ -733,8 +733,8 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 //>integer
 // Returns :mini:`A NAME B`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_integer(ml_ ## FUNC(IntegerA, IntegerB)); \
 }
 
@@ -745,8 +745,8 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 //>integer
 // Returns the bitwise OP of :mini:`A` and :mini:`B`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_integer(ml_ ## FUNC(IntegerA, IntegerB)); \
 }
 
@@ -758,7 +758,7 @@ ML_METHOD(#NAME, MLDoubleT) { \
 //>real
 // Returns :mini:`NAMEA`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
+	double RealA = ml_double_value(Args[0]); \
 	return ml_real(ml_ ## FUNC(RealA)); \
 } \
 \
@@ -778,8 +778,8 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 //>real
 // Returns :mini:`A NAME B`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
-	double RealB = ml_double_value_fast(Args[1]); \
+	double RealA = ml_double_value(Args[0]); \
+	double RealB = ml_double_value(Args[1]); \
 	return ml_real(ml_ ## FUNC(RealA, RealB)); \
 } \
 \
@@ -801,8 +801,8 @@ ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 //>real
 // Returns :mini:`A NAME B`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	double RealA = ml_double_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_real(ml_ ## FUNC(RealA, IntegerB)); \
 } \
 \
@@ -813,7 +813,7 @@ ML_METHOD(#NAME, MLRealT, MLIntegerT) { \
 // Returns :mini:`A NAME B`.
 */\
 	double RealA = ml_real_value(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_real(ml_ ## FUNC(RealA, IntegerB)); \
 }
 
@@ -824,8 +824,8 @@ ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 //>real
 // Returns :mini:`A NAME B`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	double RealB = ml_double_value_fast(Args[1]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
+	double RealB = ml_double_value(Args[1]); \
 	return ml_real(ml_ ## FUNC(IntegerA, RealB)); \
 } \
 \
@@ -835,7 +835,7 @@ ML_METHOD(#NAME, MLIntegerT, MLRealT) { \
 //>real
 // Returns :mini:`A NAME B`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
 	double RealB = ml_real_value(Args[1]); \
 	return ml_real(ml_ ## FUNC(IntegerA, RealB)); \
 }
@@ -872,7 +872,7 @@ ml_arith_method_integer_real(NAME, FUNC)
 
 #endif
 
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 
 static void fmpz_diff(fmpz_t f, const fmpz_t g, const fmpz_t h) {
 	fmpz_sub(f, g, h);
@@ -895,7 +895,7 @@ ML_METHOD("popcount", MLIntegerT) {
 //<A
 //>integer
 // Returns the number of bits set in :mini:`A`.
-	int64_t A = ml_integer_value_fast(Args[0]);
+	int64_t A = ml_integer_value(Args[0]);
 	return ml_integer(__builtin_popcount(A));
 }
 
@@ -904,8 +904,8 @@ ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns :mini:`A << B`.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	int64_t IntegerC;
 	if (IntegerB > 0) {
 		IntegerC = IntegerA << IntegerB;
@@ -926,8 +926,8 @@ ML_METHOD(">>", MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns :mini:`A >> B`.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	int64_t IntegerC;
 	if (IntegerB > 0) {
 		if (IntegerA < 0) {
@@ -947,14 +947,14 @@ ML_METHOD("++", MLIntegerT) {
 //<Int
 //>integer
 // Returns :mini:`Int + 1`
-	return ml_integer(ml_integer_value_fast(Args[0]) + 1);
+	return ml_integer(ml_integer_value(Args[0]) + 1);
 }
 
 ML_METHOD("--", MLIntegerT) {
 //<Int
 //>integer
 // Returns :mini:`Int - 1`
-	return ml_integer(ml_integer_value_fast(Args[0]) - 1);
+	return ml_integer(ml_integer_value(Args[0]) - 1);
 }
 
 ML_METHODZ("inc", MLIntegerT) {
@@ -997,14 +997,14 @@ ML_METHOD("++", MLDoubleT) {
 //<Real
 //>real
 // Returns :mini:`Real + 1`
-	return ml_real(ml_double_value_fast(Args[0]) + 1);
+	return ml_real(ml_double_value(Args[0]) + 1);
 }
 
 ML_METHOD("--", MLDoubleT) {
 //<Real
 //>real
 // Returns :mini:`Real - 1`
-	return ml_real(ml_double_value_fast(Args[0]) - 1);
+	return ml_real(ml_double_value(Args[0]) - 1);
 }
 
 ml_arith_method_real_real(/, div)
@@ -1031,7 +1031,7 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 //$= type(N)
 //$= let R := 10 / 3
 //$= type(R)
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	fmpq_t Quotient; fmpq_init(Quotient);
 	ml_integer_fmpz_init(Args[1], fmpq_denref(Quotient));
 	if (!Quotient->den) return ml_error("ValueError", "Division by 0");
@@ -1043,8 +1043,8 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 		return ml_real(fmpq_get_d(Quotient));
 	}
 #else
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
 	if (IntegerA % IntegerB == 0) {
 		return ml_integer(IntegerA / IntegerB);
@@ -1061,8 +1061,8 @@ ML_METHOD("%", MLIntegerT, MLIntegerT) {
 // Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
 // Note: the result is calculated by rounding towards 0. In particular, if :mini:`Int/1` is negative, the result will be negative.
 // For a nonnegative remainder, use :mini:`Int/1 mod Int/2`.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
 	return ml_integer(IntegerA % IntegerB);
 }
@@ -1072,8 +1072,8 @@ ML_METHOD("|", MLIntegerT, MLIntegerT) {
 //<Int/2
 //>integer
 // Returns :mini:`Int/2` if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerA) return ml_error("ValueError", "Division by 0");
 	return (IntegerB % IntegerA) ? MLNil : Args[1];
 }
@@ -1083,8 +1083,8 @@ ML_METHOD("!|", MLIntegerT, MLIntegerT) {
 //<Int/2
 //>integer
 // Returns :mini:`Int/2` if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerA) return ml_error("ValueError", "Division by 0");
 	return (IntegerB % IntegerA) ? Args[1] : MLNil;
 }
@@ -1095,8 +1095,8 @@ ML_METHOD("div", MLIntegerT, MLIntegerT) {
 //>integer
 // Returns the quotient of :mini:`Int/1` divided by :mini:`Int/2`.
 // The result is calculated by rounding down in all cases.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
 	ldiv_t Div = ldiv(IntegerA, IntegerB);
 	if (Div.rem < 0) {
@@ -1116,8 +1116,8 @@ ML_METHOD("mod", MLIntegerT, MLIntegerT) {
 //>integer
 // Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
 // Note: the result is calculated by rounding down in all cases. In particular, the result is always nonnegative.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
 	long A = IntegerA;
 	long B = IntegerB;
@@ -1133,7 +1133,7 @@ ML_METHOD("bsf", MLIntegerT) {
 //$= 16:bsf
 //$= 10:bsf
 //$= 0:bsf
-	uint64_t A = (uint64_t)ml_integer_value_fast(Args[0]);
+	uint64_t A = (uint64_t)ml_integer_value(Args[0]);
 	return ml_integer(__builtin_ffsl(A));
 }
 
@@ -1144,7 +1144,7 @@ ML_METHOD("bsr", MLIntegerT) {
 //$= 16:bsr
 //$= 10:bsr
 //$= 0:bsr
-	uint64_t A = (uint64_t)ml_integer_value_fast(Args[0]);
+	uint64_t A = (uint64_t)ml_integer_value(Args[0]);
 	return ml_integer(A ? 64 - __builtin_clzl(A) : 0);
 }
 
@@ -1155,8 +1155,8 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 //>integer
 // Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_ ## FUNC(IntegerA, IntegerB) ? Args[1] : MLNil; \
 }
 
@@ -1167,8 +1167,8 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 //>real
 // Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
-	double RealB = ml_double_value_fast(Args[1]); \
+	double RealA = ml_double_value(Args[0]); \
+	double RealB = ml_double_value(Args[1]); \
 	return ml_ ## FUNC(RealA, RealB) ? Args[1] : MLNil; \
 }
 
@@ -1179,8 +1179,8 @@ ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 //>real
 // Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	double RealA = ml_double_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_ ## FUNC(RealA, IntegerB) ? Args[1] : MLNil; \
 }
 
@@ -1191,8 +1191,8 @@ ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 //>real
 // Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	double RealB = ml_double_value_fast(Args[1]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
+	double RealB = ml_double_value(Args[1]); \
 	return ml_ ## FUNC(IntegerA, RealB) ? Args[1] : MLNil; \
 }
 
@@ -1216,8 +1216,8 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 //>integer
 // Returns :mini:`NAME(A, B)`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_ ## FUNC(IntegerA, IntegerB) ? Args[0] : Args[1]; \
 }
 
@@ -1228,8 +1228,8 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 //>real
 // Returns :mini:`NAME(A, B)`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
-	double RealB = ml_double_value_fast(Args[1]); \
+	double RealA = ml_double_value(Args[0]); \
+	double RealB = ml_double_value(Args[1]); \
 	return ml_ ## FUNC(RealA, RealB) ? Args[0] : Args[1]; \
 }
 
@@ -1240,8 +1240,8 @@ ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
 //>real
 // Returns :mini:`NAME(A, B)`.
 */\
-	double RealA = ml_double_value_fast(Args[0]); \
-	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	double RealA = ml_double_value(Args[0]); \
+	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_ ## FUNC(RealA, IntegerB) ? Args[0] : Args[1]; \
 }
 
@@ -1252,8 +1252,8 @@ ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
 //>real
 // Returns :mini:`NAME(A, B)`.
 */\
-	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	double RealB = ml_double_value_fast(Args[1]); \
+	int64_t IntegerA = ml_integer_value(Args[0]); \
+	double RealB = ml_double_value(Args[1]); \
 	return ml_ ## FUNC(IntegerA, RealB) ? Args[0] : Args[1]; \
 }
 
@@ -1285,8 +1285,8 @@ ML_METHOD("<>", MLIntegerT, MLIntegerT) {
 //<Int/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Int/2`.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (IntegerA < IntegerB) return (ml_value_t *)NegOne;
 	if (IntegerA > IntegerB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
@@ -1297,8 +1297,8 @@ ML_METHOD("<>", MLDoubleT, MLIntegerT) {
 //<Int/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Int/2`.
-	double RealA = ml_double_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	double RealA = ml_double_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (RealA < IntegerB) return (ml_value_t *)NegOne;
 	if (RealA > IntegerB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
@@ -1309,8 +1309,8 @@ ML_METHOD("<>", MLIntegerT, MLDoubleT) {
 //<Real/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Real/2`.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	double RealB = ml_double_value_fast(Args[1]);
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	double RealB = ml_double_value(Args[1]);
 	if (IntegerA < RealB) return (ml_value_t *)NegOne;
 	if (IntegerA > RealB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
@@ -1321,8 +1321,8 @@ ML_METHOD("<>", MLDoubleT, MLDoubleT) {
 //<Real/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Real/2`.
-	double RealA = ml_double_value_fast(Args[0]);
-	double RealB = ml_double_value_fast(Args[1]);
+	double RealA = ml_double_value(Args[0]);
+	double RealB = ml_double_value(Args[1]);
 	if (RealA < RealB) return (ml_value_t *)NegOne;
 	if (RealA > RealB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
@@ -1371,7 +1371,7 @@ ML_METHOD("isfinite", MLDoubleT) {
 //<Number:number
 //>number|nil
 // Returns :mini:`Number` if it is finite (neither |plusmn|\ |infin| nor ``NaN``), otherwise returns :mini:`nil`.
-	double X = ml_double_value_fast(Args[0]);
+	double X = ml_double_value(Args[0]);
 	if (!isfinite(X)) return MLNil;
 	return Args[0];
 }
@@ -1380,7 +1380,7 @@ ML_METHOD("isnan", MLDoubleT) {
 //<Number:number
 //>number|nil
 // Returns :mini:`Number` if it is ``NaN``, otherwise returns :mini:`Number`.
-	double X = ml_double_value_fast(Args[0]);
+	double X = ml_double_value(Args[0]);
 	if (!isnan(X)) return MLNil;
 	return Args[0];
 }
@@ -1426,7 +1426,7 @@ ML_FUNCTION(RandomPermutation) {
 //>list
 // Returns a random permutation of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
+	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
 	int *Values = asnew(int, Limit);
 	Values[0] = 1;
@@ -1452,7 +1452,7 @@ ML_FUNCTION(RandomCycle) {
 //>list
 // Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
+	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
 	if (Limit == 1) {
 		ml_value_t *Permutation = ml_list();
@@ -1620,8 +1620,8 @@ ML_METHOD("..", MLIntegerT, MLIntegerT) {
 // Returns a interval from :mini:`Start` to :mini:`Limit` (inclusive).
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
-	Interval->Start = ml_integer_value_fast(Args[0]);
-	Interval->Limit = ml_integer_value_fast(Args[1]);
+	Interval->Start = ml_integer_value(Args[0]);
+	Interval->Limit = ml_integer_value(Args[1]);
 	return (ml_value_t *)Interval;
 }
 
@@ -1633,8 +1633,8 @@ ML_METHOD("..<", MLIntegerT, MLIntegerT) {
 // Returns a interval from :mini:`Start` to :mini:`Limit` (exclusive).
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
-	Interval->Start = ml_integer_value_fast(Args[0]);
-	Interval->Limit = ml_integer_value_fast(Args[1]) - 1;
+	Interval->Start = ml_integer_value(Args[0]);
+	Interval->Limit = ml_integer_value(Args[1]) - 1;
 	return (ml_value_t *)Interval;
 }
 
@@ -1647,9 +1647,9 @@ ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
 // Returns a range from :mini:`Start` to :mini:`Limit` (inclusive) with step :mini:`Step`.
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
-	Range->Limit = ml_integer_value_fast(Args[1]);
-	Range->Step = ml_integer_value_fast(Args[2]);
+	Range->Start = ml_integer_value(Args[0]);
+	Range->Limit = ml_integer_value(Args[1]);
+	Range->Step = ml_integer_value(Args[2]);
 	return (ml_value_t *)Range;
 }
 
@@ -1660,7 +1660,7 @@ ML_METHOD("up", MLIntegerT) {
 // Returns an unlimited interval from :mini:`Start`.
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
-	Interval->Start = ml_integer_value_fast(Args[0]);
+	Interval->Start = ml_integer_value(Args[0]);
 	Interval->Limit = LONG_MAX;
 	return (ml_value_t *)Interval;
 }
@@ -1673,8 +1673,8 @@ ML_METHOD("up", MLIntegerT, MLIntegerT) {
 // Returns an interval from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
-	Interval->Start = ml_integer_value_fast(Args[0]);
-	Interval->Limit = Interval->Start + ml_integer_value_fast(Args[1]) - 1;
+	Interval->Start = ml_integer_value(Args[0]);
+	Interval->Limit = Interval->Start + ml_integer_value(Args[1]) - 1;
 	return (ml_value_t *)Interval;
 }
 
@@ -1685,7 +1685,7 @@ ML_METHOD("down", MLIntegerT) {
 // Returns an unlimited range from :mini:`Start`.
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Start = ml_integer_value(Args[0]);
 	Range->Limit = LONG_MIN;
 	Range->Step = -1;
 	return (ml_value_t *)Range;
@@ -1699,8 +1699,8 @@ ML_METHOD("down", MLIntegerT, MLIntegerT) {
 // Returns a range from :mini:`Start` to :mini:`Start - Count + 1` (inclusive).
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
-	Range->Limit = Range->Start - ml_integer_value_fast(Args[1]) + 1;
+	Range->Start = ml_integer_value(Args[0]);
+	Range->Limit = Range->Start - ml_integer_value(Args[1]) + 1;
 	Range->Step = -1;
 	return (ml_value_t *)Range;
 }
@@ -1713,8 +1713,8 @@ ML_METHOD("by", MLIntegerT, MLIntegerT) {
 // Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = ml_integer_value_fast(Args[0]);
-	Range->Step = ml_integer_value_fast(Args[1]);
+	Range->Start = ml_integer_value(Args[0]);
+	Range->Step = ml_integer_value(Args[1]);
 	if (Range->Step < 0) {
 		Range->Limit = LONG_MIN;
 	} else if (Range->Step > 0) {
@@ -1736,7 +1736,7 @@ ML_METHOD("by", MLIntegerIntervalT, MLIntegerT) {
 	Range->Type = MLIntegerRangeT;
 	Range->Start = Interval0->Start;
 	Range->Limit = Interval0->Limit;
-	Range->Step = ml_integer_value_fast(Args[1]);
+	Range->Step = ml_integer_value(Args[1]);
 	return (ml_value_t *)Range;
 }
 
@@ -1747,7 +1747,7 @@ ML_METHOD("+", MLIntegerRangeT, MLIntegerT) {
 //>integer::range
 // Returns a range
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
-	int64_t Shift = ml_integer_value_fast(Args[1]);
+	int64_t Shift = ml_integer_value(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
 	Range->Start = Range0->Start;
@@ -1763,7 +1763,7 @@ ML_METHOD("-", MLIntegerRangeT, MLIntegerT) {
 //>integer::range
 // Returns a range
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
-	int64_t Shift = ml_integer_value_fast(Args[1]);
+	int64_t Shift = ml_integer_value(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
 	Range->Start = Range0->Start;
@@ -1779,7 +1779,7 @@ ML_METHOD("*", MLIntegerRangeT, MLIntegerT) {
 //>integer::range
 // Returns a range
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
-	int64_t Scale = ml_integer_value_fast(Args[1]);
+	int64_t Scale = ml_integer_value(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
 	Range->Start = Range0->Start * Scale;
@@ -1794,7 +1794,7 @@ ML_METHOD("+", MLIntegerT, MLIntegerRangeT) {
 //<Range
 //>integer::range
 // Returns a range
-	int64_t Shift = ml_integer_value_fast(Args[0]);
+	int64_t Shift = ml_integer_value(Args[0]);
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[1];
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
@@ -1810,7 +1810,7 @@ ML_METHOD("*", MLIntegerT, MLIntegerRangeT) {
 //<Range
 //>integer::range
 // Returns a range
-	int64_t Scale = ml_integer_value_fast(Args[0]);
+	int64_t Scale = ml_integer_value(Args[0]);
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[1];
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
@@ -1955,7 +1955,7 @@ ML_METHOD("find", MLIntegerRangeT, MLIntegerT) {
 //<X
 //>integer | nil
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
-	long Value = ml_integer_value_fast(Args[1]);
+	long Value = ml_integer_value(Args[1]);
 	if (Range->Step < 0) {
 		if (Value > Range->Start) return MLNil;
 		if (Value < Range->Limit) return MLNil;
@@ -1993,7 +1993,7 @@ ML_METHOD("+", MLIntegerIntervalT, MLIntegerT) {
 //>integer::interval
 // Returns a interval
 	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
-	int64_t Shift = ml_integer_value_fast(Args[1]);
+	int64_t Shift = ml_integer_value(Args[1]);
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
 	Interval->Start = Interval0->Start;
@@ -2008,7 +2008,7 @@ ML_METHOD("-", MLIntegerIntervalT, MLIntegerT) {
 //>integer::interval
 // Returns a interval
 	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
-	int64_t Shift = ml_integer_value_fast(Args[1]);
+	int64_t Shift = ml_integer_value(Args[1]);
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
 	Interval->Start = Interval0->Start;
@@ -2023,7 +2023,7 @@ ML_METHOD("*", MLIntegerIntervalT, MLIntegerT) {
 //>integer::interval
 // Returns a interval
 	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
-	int64_t Scale = ml_integer_value_fast(Args[1]);
+	int64_t Scale = ml_integer_value(Args[1]);
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
 	Interval->Start = Interval0->Start * Scale;
@@ -2037,7 +2037,7 @@ ML_METHOD("+", MLIntegerT, MLIntegerIntervalT) {
 //<Interval
 //>integer::interval
 // Returns a interval
-	int64_t Shift = ml_integer_value_fast(Args[0]);
+	int64_t Shift = ml_integer_value(Args[0]);
 	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[1];
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
@@ -2052,7 +2052,7 @@ ML_METHOD("*", MLIntegerT, MLIntegerIntervalT) {
 //<Interval
 //>integer::interval
 // Returns a interval
-	int64_t Scale = ml_integer_value_fast(Args[0]);
+	int64_t Scale = ml_integer_value(Args[0]);
 	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[1];
 	ml_integer_interval_t *Interval = new(ml_integer_interval_t);
 	Interval->Type = MLIntegerIntervalT;
@@ -2150,7 +2150,7 @@ ML_METHOD("between", MLIntegerT, MLIntegerIntervalT) {
 //<X
 //<Interval
 //>X | nil
-	long Value = ml_integer_value_fast(Args[0]);
+	long Value = ml_integer_value(Args[0]);
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
 	if (Value < Interval->Start) return MLNil;
 	if (Value > Interval->Limit) return MLNil;
@@ -2162,7 +2162,7 @@ ML_METHOD("between", MLDoubleT, MLIntegerIntervalT) {
 //<X
 //<Interval
 //>X | nil
-	double Value = ml_double_value_fast(Args[0]);
+	double Value = ml_double_value(Args[0]);
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
 	if (Value < Interval->Start) return MLNil;
 	if (Value > Interval->Limit) return MLNil;
@@ -2414,7 +2414,7 @@ ML_METHOD("in", MLIntegerIntervalT, MLIntegerT) {
 //<Count
 //>integer::range|real::range
 	ml_integer_interval_t *Interval0 = (ml_integer_interval_t *)Args[0];
-	long C = ml_integer_value_fast(Args[1]);
+	long C = ml_integer_value(Args[1]);
 	if (C <= 0) return ml_error("IntervalError", "Invalid step count");
 	if ((Interval0->Limit - Interval0->Start) % C) {
 		ml_real_range_t *Range = new(ml_real_range_t);
@@ -2439,7 +2439,7 @@ ML_METHOD("in", MLRealIntervalT, MLIntegerT) {
 //<Count
 //>real::range
 	ml_real_interval_t *Interval0 = (ml_real_interval_t *)Args[0];
-	long C = ml_integer_value_fast(Args[1]);
+	long C = ml_integer_value(Args[1]);
 	if (C <= 0) return ml_error("IntervalError", "Invalid step count");
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
@@ -2459,7 +2459,7 @@ ML_METHOD("by", MLIntegerIntervalT, MLDoubleT) {
 	Range->Type = MLRealRangeT;
 	Range->Start = Interval0->Start;
 	Range->Limit = Interval0->Limit;
-	Range->Step = ml_double_value_fast(Args[1]);
+	Range->Step = ml_double_value(Args[1]);
 	return (ml_value_t *)Range;
 }
 
@@ -2468,7 +2468,7 @@ ML_METHOD("clamp", MLIntegerT, MLIntegerIntervalT) {
 //<Value
 //<Interval
 //>integer
-	int64_t Value = ml_integer_value_fast(Args[0]);
+	int64_t Value = ml_integer_value(Args[0]);
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
 	if (Value < Interval->Start) return ml_integer(Interval->Start);
 	if (Value > Interval->Limit) return ml_integer(Interval->Limit);
@@ -2492,7 +2492,7 @@ ML_METHOD("clamp", MLIntegerT, MLRealIntervalT) {
 //<Value
 //<Interval
 //>real
-	int64_t Value = ml_integer_value_fast(Args[0]);
+	int64_t Value = ml_integer_value(Args[0]);
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
 	if (Value < Interval->Start) return ml_real(Interval->Start);
 	if (Value > Interval->Limit) return ml_real(Interval->Limit);
@@ -2517,7 +2517,7 @@ ML_METHOD("bin", MLIntegerRangeT, MLIntegerT) {
 //<Value
 //>integer | nil
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
-	int64_t Value = ml_integer_value_fast(Args[1]);
+	int64_t Value = ml_integer_value(Args[1]);
 	if (Value < Range->Start) return MLNil;
 	if (Value > Range->Limit) return MLNil;
 	return ml_integer((Value - Range->Start) / Range->Step + 1);
@@ -2719,7 +2719,7 @@ ML_METHOD("between", MLIntegerT, MLRealIntervalT) {
 //<X
 //<Interval
 //>X | nil
-	long Value = ml_integer_value_fast(Args[0]);
+	long Value = ml_integer_value(Args[0]);
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
 	if (Value < Interval->Start) return MLNil;
 	if (Value > Interval->Limit) return MLNil;
@@ -2731,7 +2731,7 @@ ML_METHOD("between", MLDoubleT, MLRealIntervalT) {
 //<X
 //<Interval
 //>X | nil
-	double Value = ml_double_value_fast(Args[0]);
+	double Value = ml_double_value(Args[0]);
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
 	if (Value < Interval->Start) return MLNil;
 	if (Value > Interval->Limit) return MLNil;
@@ -2782,7 +2782,7 @@ ML_METHOD("bin", MLRealRangeT, MLIntegerT) {
 //<Value
 //>integer | nil
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	int64_t Value = ml_integer_value_fast(Args[1]);
+	int64_t Value = ml_integer_value(Args[1]);
 	if (Value < Range->Start) return MLNil;
 	if (Value > Range->Limit) return MLNil;
 	return ml_integer((Value - Range->Start) / Range->Step + 1);

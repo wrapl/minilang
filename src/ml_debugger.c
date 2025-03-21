@@ -141,7 +141,7 @@ static ml_value_t *debugger_breakpoint_set(ml_interactive_debugger_t *Debugger, 
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	const char *Source = ml_string_value(Args[0]);
-	size_t LineNo = ml_integer_value_fast(Args[1]);
+	size_t LineNo = ml_integer_value(Args[1]);
 	size_t *Breakpoints = debugger_breakpoints(Debugger, Source, LineNo);
 	Breakpoints[LineNo / SIZE_BITS] |= 1L << (LineNo % SIZE_BITS);
 	++Debugger->Base.Revision;
@@ -153,7 +153,7 @@ static ml_value_t *debugger_breakpoint_clear(ml_interactive_debugger_t *Debugger
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	const char *Source = ml_string_value(Args[0]);
-	size_t LineNo = ml_integer_value_fast(Args[1]);
+	size_t LineNo = ml_integer_value(Args[1]);
 	size_t *Breakpoints = debugger_breakpoints(Debugger, Source, LineNo);
 	Breakpoints[LineNo / SIZE_BITS] &= ~(1L << (LineNo % SIZE_BITS));
 	++Debugger->Base.Revision;
@@ -165,7 +165,7 @@ static ml_value_t *debugger_breakpoint_toggle(ml_interactive_debugger_t *Debugge
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	const char *Source = ml_string_value(Args[0]);
-	size_t LineNo = ml_integer_value_fast(Args[1]);
+	size_t LineNo = ml_integer_value(Args[1]);
 	size_t *Breakpoints = debugger_breakpoints(Debugger, Source, LineNo);
 	size_t Bit = 1L << (LineNo % SIZE_BITS);
 	Breakpoints[LineNo / SIZE_BITS] ^= Bit;
@@ -313,7 +313,7 @@ static ml_value_t *debugger_threads(ml_interactive_debugger_t *Debugger, int Cou
 static ml_value_t *debugger_thread(ml_interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Index = ml_integer_value_fast(Args[0]);
+	int Index = ml_integer_value(Args[0]);
 	if (Index < 0 || Index >= Debugger->MaxThreads) return ml_error("IndexError", "Invalid thread number");
 	debug_thread_t *Thread = Debugger->Threads + Index;
 	if (!Thread->State) return ml_error("IndexError", "Invalid thread number");
@@ -486,7 +486,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 	case ML_DEBUGGER_COMMAND_BREAKPOINT_SET: {
 		const char *Source = ml_string_value(ml_list_pop(Command));
 		while (ml_list_length(Command)) {
-			size_t LineNo = ml_integer_value_fast(ml_list_pop(Command));
+			size_t LineNo = ml_integer_value(ml_list_pop(Command));
 			size_t *Breakpoints = stringmap_breakpoints(Remote->Modules, Source, LineNo);
 			Breakpoints[LineNo / SIZE_BITS] |= 1L << (LineNo % SIZE_BITS);
 		}
@@ -496,7 +496,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 	case ML_DEBUGGER_COMMAND_BREAKPOINT_CLEAR: {
 		const char *Source = ml_string_value(ml_list_pop(Command));
 		while (ml_list_length(Command)) {
-			size_t LineNo = ml_integer_value_fast(ml_list_pop(Command));
+			size_t LineNo = ml_integer_value(ml_list_pop(Command));
 			size_t *Breakpoints = stringmap_breakpoints(Remote->Modules, Source, LineNo);
 			Breakpoints[LineNo / SIZE_BITS] &= ~(1L << (LineNo % SIZE_BITS));
 		}

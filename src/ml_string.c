@@ -101,7 +101,7 @@ ML_METHOD("@", MLAddressT, MLIntegerT) {
 //$= let A := address("Hello world!\n")
 //$= A @ 5
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	long Length = ml_integer_value_fast(Args[1]);
+	long Length = ml_integer_value(Args[1]);
 	if (Length > Address->Length) return ml_error("SizeError", "Size larger than buffer");
 	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
 	ml_address_t *Address2 = new(ml_address_t);
@@ -121,8 +121,8 @@ ML_METHOD("@", MLAddressT, MLIntegerT, MLIntegerT) {
 //$= let A := address("Hello world!\n")
 //$= A @ (4, 4)
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	long Offset = ml_integer_value_fast(Args[1]);
-	long Length = ml_integer_value_fast(Args[2]);
+	long Offset = ml_integer_value(Args[1]);
+	long Length = ml_integer_value(Args[2]);
 	if (Offset < 0) return ml_error("SizeError", "Offset must be non-negative");
 	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
 	if (Offset + Length > Address->Length) return ml_error("SizeError", "Offset + size larger than buffer");
@@ -142,7 +142,7 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 //$= let A := address("Hello world!\n")
 //$= A + 4
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	long Offset = ml_integer_value_fast(Args[1]);
+	long Offset = ml_integer_value(Args[1]);
 	if (Offset < 0) return ml_error("SizeError", "Offset must be non-negative");
 	if (Offset > Address->Length) return ml_error("SizeError", "Offset larger than buffer");
 	ml_address_t *Address2 = new(ml_address_t);
@@ -331,7 +331,7 @@ ML_METHOD("find", MLAddressT, MLAddressT, MLIntegerT) {
 //$= A:find("other")
 	ml_address_t *Address1 = (ml_address_t *)Args[0];
 	ml_address_t *Address2 = (ml_address_t *)Args[1];
-	long Start = ml_integer_value_fast(Args[2]);
+	long Start = ml_integer_value(Args[2]);
 	if (Start < 0) return ml_error("SizeError", "Offset must be non-negative");
 	if (Start > Address1->Length) return ml_error("SizeError", "Offset larger than buffer");
 	char *Find = memmem(Address1->Value + Start, Address1->Length - Start, Address2->Value, Address2->Length);
@@ -372,7 +372,7 @@ ML_METHOD(MLBufferT, MLIntegerT) {
 //>buffer
 // Allocates a new buffer with :mini:`Length` bytes.
 //$= buffer(16)
-	long Size = ml_integer_value_fast(Args[0]);
+	long Size = ml_integer_value(Args[0]);
 	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
 	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
@@ -903,7 +903,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
 		ml_stringbuffer_printf(Buffer, "%d", (int32_t)(intptr_t)Args[1]);
 	} else {
@@ -911,7 +911,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 		ml_stringbuffer_write(Buffer, Str, strlen(Str));
 	}
 #else
-	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Args[1]));
 #endif
 	return MLSome;
 }
@@ -923,8 +923,8 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 //<Base
 // Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	int Base = ml_integer_value_fast(Args[2]);
-#ifdef ML_FLINT
+	int Base = ml_integer_value(Args[2]);
+#ifdef ML_BIGINT
 #ifdef ML_NANBOXING
 	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
 		goto int32;
@@ -938,7 +938,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 int32:;
 #endif
 #endif
-	int64_t Value = ml_integer_value_fast(Args[1]);
+	int64_t Value = ml_integer_value(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
@@ -958,7 +958,7 @@ int32:;
 ML_METHOD("append", MLStringBufferT, MLRationalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_rational_t *Value = (ml_rational_t *)Args[1];
-#ifdef ML_FLINT
+#ifdef ML_BIGINT
 #ifdef ML_NANBOXING
 	if (__builtin_expect(!!ml_tag(Args[1]), 2)) {
 		goto rat48;
@@ -990,7 +990,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
 // Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	const char *Format = ml_string_value(Args[2]);
-	int64_t Value = ml_integer_value_fast(Args[1]);
+	int64_t Value = ml_integer_value(Args[1]);
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
 		ml_stringbuffer_printf(Buffer, Format, (int)Value);
 	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
@@ -1060,7 +1060,7 @@ ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", ml_double_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", ml_double_value(Args[1]));
 	return MLSome;
 }
 
@@ -1072,7 +1072,7 @@ ML_METHOD("append", MLStringBufferT, MLDoubleT, MLStringT) {
 // Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	const char *Format = ml_string_value(Args[2]);
-	double Value = ml_double_value_fast(Args[1]);
+	double Value = ml_double_value(Args[1]);
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
 		ml_stringbuffer_printf(Buffer, Format, (int)Value);
 	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
@@ -1239,7 +1239,7 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 	const char *Start = ml_string_value(Args[0]);
 	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
 	char *End;
-	long Value = strtol(Start, &End, ml_integer_value_fast(Args[1]));
+	long Value = strtol(Start, &End, ml_integer_value(Args[1]));
 	if (End - Start == ml_string_length(Args[0])) {
 		return ml_integer(Value);
 	} else {
@@ -2241,7 +2241,7 @@ ML_METHOD("[]", MLStringT, MLIntegerT) {
 // Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 //$- let S := "λ:😀 → 😺"
 //$= map(-7 .. 7 => (2, 2 -> S[_]))
-	int N = ml_integer_value_fast(Args[1]);
+	int N = ml_integer_value(Args[1]);
 	subject_t Index = utf8_index(Args[0], N);
 	if (!Index.Length) return MLNil;
 	return ml_string(Index.Chars, utf8_next(Index.Chars) - Index.Chars);
@@ -2253,8 +2253,8 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 //<End
 //>string|nil
 // Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
-	int Lo = ml_integer_value_fast(Args[1]);
-	int Hi = ml_integer_value_fast(Args[2]);
+	int Lo = ml_integer_value(Args[1]);
+	int Hi = ml_integer_value(Args[2]);
 	subject_t IndexLo = utf8_index(Args[0], Lo);
 	subject_t IndexHi = utf8_index(Args[0], Hi);
 	if (!IndexLo.Chars || !IndexHi.Chars) return MLNil;
@@ -2283,7 +2283,7 @@ ML_METHOD("limit", MLStringT, MLIntegerT) {
 // Returns the prefix of :mini:`String` limited to :mini:`Length`.
 //$= "Hello world":limit(5)
 //$= "Cake":limit(5)
-	int N = ml_integer_value_fast(Args[1]);
+	int N = ml_integer_value(Args[1]);
 	subject_t Index = utf8_index(Args[0], N + 1);
 	if (!Index.Length) return Args[0];
 	const char *Start = ml_string_value(Args[0]);
@@ -2297,7 +2297,7 @@ ML_METHOD("offset", MLStringT, MLIntegerT) {
 // Returns the byte position of the :mini:`Index`-th character of :mini:`String`.
 //$- let S := "λ:😀 → 😺"
 //$= list(1 .. S:length, S:offset(_))
-	int N = ml_integer_value_fast(Args[1]);
+	int N = ml_integer_value(Args[1]);
 	subject_t Index = utf8_index(Args[0], N);
 	if (!Index.Chars) return Args[0];
 	const char *Start = ml_string_value(Args[0]);
@@ -3069,7 +3069,7 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find("s", 1)
 //$= "The cat snored as he slept":find("s", 10)
 //$= "The cat snored as he slept":find("s", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
 	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
@@ -3090,7 +3090,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
 	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
@@ -3206,7 +3206,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find(r"s[a-z]+", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
 #ifdef ML_TRE
@@ -3235,7 +3235,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value_fast(Args[2]));
+	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
@@ -4026,7 +4026,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + ml_string_length(Args[0]);
-	int N = ml_integer_value_fast(Args[1]);
+	int N = ml_integer_value(Args[1]);
 	if (N <= 0) N += Length + 1;
 	if (N <= 0) return MLNil;
 	if (N > Length) return MLNil;
@@ -4055,8 +4055,8 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + ml_string_length(Args[0]);
-	int Lo = ml_integer_value_fast(Args[1]);
-	int Hi = ml_integer_value_fast(Args[2]);
+	int Lo = ml_integer_value(Args[1]);
+	int Hi = ml_integer_value(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
 	if (Hi <= 0) Hi += Length + 1;
 	if (Lo <= 0) return MLNil;
@@ -4113,7 +4113,7 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLFunctionT) {
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + ml_string_length(Args[0]);
-	int N = ml_integer_value_fast(Args[1]);
+	int N = ml_integer_value(Args[1]);
 	if (N <= 0) N += Length + 1;
 	if (N <= 0) ML_RETURN(MLNil);
 	if (N > Length) ML_RETURN(MLNil);
@@ -4147,8 +4147,8 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + ml_string_length(Args[0]);
-	int Lo = ml_integer_value_fast(Args[1]);
-	int Hi = ml_integer_value_fast(Args[2]);
+	int Lo = ml_integer_value(Args[1]);
+	int Hi = ml_integer_value(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
 	if (Hi <= 0) Hi += Length + 1;
 	if (Lo <= 0) ML_RETURN(MLNil);
