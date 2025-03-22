@@ -2077,11 +2077,18 @@ ml_value_t *ml_return_second(void *Data, int Count, ml_value_t **Args) {
 	return Args[1];
 }
 
+static void *GC_realloc2(void *Ptr, size_t Old, size_t New) {
+	return GC_realloc(Ptr, New);
+}
+
 static void *GC_calloc(size_t N, size_t S) {
 	return GC_malloc(N * S);
 }
 
 static void GC_nop(void *Ptr) {
+}
+
+static void GC_nop2(void *Ptr, size_t Old) {
 }
 
 extern void ml_function_init();
@@ -2104,7 +2111,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	GC_INIT();
 	ml_runtime_init(ExecName);
 #ifdef ML_BIGINT
-	__flint_set_memory_functions(GC_malloc, GC_calloc, GC_realloc, GC_nop);
+	mp_set_memory_functions(GC_malloc, GC_realloc2, GC_nop2);
 #endif
 	ml_method_init();
 #include "ml_types_init.c"

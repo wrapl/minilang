@@ -588,6 +588,15 @@ typedef struct {
 #endif
 } ml_integer_t;
 
+#ifdef ML_BIGINT
+
+void ml_integer_mpz_init(mpz_t Dest, ml_value_t *Source);
+ml_value_t *ml_integer_mpz(const mpz_t Source);
+
+int64_t mpz_get_s64(const mpz_t Z);
+
+#endif
+
 #ifdef ML_NANBOXING
 
 static inline ml_value_t *ml_integer32(int32_t Integer) {
@@ -603,13 +612,6 @@ static inline ml_value_t *ml_integer(int64_t Integer) {
 		return ml_integer64(Integer);
 	}
 }
-
-#ifdef ML_BIGINT
-
-void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest);
-ml_value_t *ml_integer_fmpz(fmpz_t Source);
-
-#endif
 
 static inline ml_value_t *ml_real(double Value) {
 	union { ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
@@ -662,7 +664,7 @@ static inline int64_t ml_integer32_value(const ml_value_t *Value) {
 
 static inline int64_t ml_integer64_value(const ml_value_t *Value) {
 #ifdef ML_BIGINT
-	return fmpz_get_si(((ml_integer_t *)Value)->Value);
+	return mpz_get_s64(((ml_integer_t *)Value)->Value);
 #else
 	return ((ml_integer_t *)Value)->Value;
 #endif

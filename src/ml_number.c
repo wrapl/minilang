@@ -124,7 +124,7 @@ complex double ml_complex_value(const ml_value_t *Value) {
 
 static complex double ML_TYPED_FN(ml_complex_value, MLInteger64T, ml_integer_t *Value) {
 #ifdef ML_BIGINT
-	return fmpz_get_d(Value->Value);
+	return mpz_get_d(Value->Value);
 #else
 	return Value->Value;
 #endif
@@ -135,7 +135,7 @@ static complex double ML_TYPED_FN(ml_complex_value, MLInteger64T, ml_integer_t *
 complex double ml_complex_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 #ifdef ML_BIGINT
-		return fmpz_get_d(((ml_integer_t *)Value)->Value);
+		return mpz_get_d(((ml_integer_t *)Value)->Value);
 #else
 		return ((ml_integer_t *)Value)->Value;
 #endif
@@ -155,7 +155,7 @@ complex double ml_complex_value(const ml_value_t *Value) {
 
 static complex double ML_TYPED_FN(ml_complex_value, MLIntegerT, ml_integer_t *Value) {
 #ifdef ML_BIGINT
-	return fmpz_get_d(Value->Value);
+	return mpz_get_d(Value->Value);
 #else
 	return Value->Value;
 #endif
@@ -332,7 +332,7 @@ ML_TYPE(MLInteger32T, (MLIntegerT), "integer32",
 
 static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #ifdef ML_BIGINT
-	return fmpz_get_si(((ml_integer_t *)Value)->Value);
+	return ml_integer64_value(Value);
 #else
 	return ((ml_integer_t *)Value)->Value;
 #endif
@@ -344,11 +344,40 @@ ML_TYPE(MLInteger64T, (MLIntegerT), "integer64",
 	.NoInherit = 1
 );
 
+#ifdef ML_BIGINT
+
+#define LIMBS64 ((64 + GMP_NUMB_BITS  - 1) / GMP_NUMB_BITS)
+
+int64_t mpz_get_s64(const mpz_t Z) {
+	int N = Z->_mp_size;
+#if LIMBS64 == 1
+	if (N < 0) return -Z->_mp_d[0];
+	if (N > 0) return Z->_mp_d[0];
+	return 0;
+#else
+	uint64_t V = 0;
+	if (N < 0) {
+		N = -N;
+		if (N > LIMBS64) N = LIMBS64;
+		while (N--) V = (V << GMP_NUMB_BITS) | Z->_mp_d[N];
+		return -V;
+	} else if (N > 0) {
+		if (N > LIMBS64) N = LIMBS64;
+		while (N--) V = (V << GMP_NUMB_BITS) | Z->_mp_d[N];
+		return V;
+	} else {
+		return 0;
+	}
+#endif
+}
+
+#endif
+
 ml_value_t *ml_integer64(int64_t Integer) {
 	ml_integer_t *Value = new(ml_integer_t);
 	Value->Type = MLInteger64T;
 #ifdef ML_BIGINT
-	fmpz_set_si(Value->Value, Integer);
+	mpz_import(Value->Value, 1, 0, sizeof(int64_t), 0, 0, &Integer);
 #else
 	Value->Value = Integer;
 #endif
@@ -366,7 +395,7 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 
 static int64_t ML_TYPED_FN(ml_integer_value, MLInteger64T, const ml_integer_t *Value) {
 #ifdef ML_BIGINT
-	return fmpz_get_si(Value->Value);
+	return mpz_get_s64(Value->Value);
 #else
 	return Value->Value;
 #endif
@@ -444,14 +473,14 @@ rat64_t ml_rational_value(const ml_value_t *Value) {
 	if (Tag != 0) return (rat64_1){0, 1};
 	if (ml_is_subtype(Value->Type, MLInteger64T)) {
 #ifdef ML_BIGINT
-		return (rat64_t){fmpz_get_si(((ml_integer_t *)Value)->Value), 1};
+		return (rat64_t){mpz_get_si(((ml_integer_t *)Value)->Value), 1};
 #else
 		return (rat64_t){((ml_integer_t *)Value)->Value, 1};
 #endif
 	}
 	if (ml_is_subtype(Value->Type, MLRational64T)) {
 #ifdef ML_BIGINT
-		return (rat64_t){fmpz_get_si(((ml_integer_t *)Value)->Value), 1};
+		return (rat64_t){mpz_get_si(((ml_integer_t *)Value)->Value), 1};
 #else
 		return (rat64_t){((ml_integer_t *)Value)->Value, 1};
 #endif
@@ -469,7 +498,7 @@ ML_METHOD(MLRealT, MLInteger32T) {
 ML_METHOD(MLRealT, MLInteger64T) {
 //!internal
 #ifdef ML_BIGINT
-	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
+	return ml_real(mpz_get_d(((ml_integer_t *)Args[0])->Value));
 #else
 	return ml_real(((ml_integer_t *)Args[0])->Value);
 #endif
@@ -507,7 +536,7 @@ ml_value_t *ml_integer(int64_t Value) {
 	ml_integer_t *Integer = new(ml_integer_t);
 	Integer->Type = MLIntegerT;
 #ifdef ML_BIGINT
-	fmpz_set_si(Integer->Value, Integer);
+	mpz_set_si(Integer->Value, Integer);
 #else
 	Integer->Value = Value;
 #endif
@@ -523,7 +552,7 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 		return ((ml_double_t *)Value)->Value;
 	} else if (ml_is(Value, MLIntegerT)) {
 #ifdef ML_BIGINT
-		return fmpz_get_si(((ml_integer_t *)Value)->Value);
+		return mpz_get_si(((ml_integer_t *)Value)->Value);
 #else
 		return ((ml_integer_t *)Value)->Value;
 #endif
@@ -564,7 +593,7 @@ double ml_real_value(const ml_value_t *Value) {
 
 static double ML_TYPED_FN(ml_real_value, MLInteger64T, ml_integer_t *Value) {
 #ifdef ML_BIGINT
-	return fmpz_get_d(Value->Value);
+	return mpz_get_d(Value->Value);
 #else
 	return Value->Value;
 #endif
@@ -582,7 +611,7 @@ ML_METHOD(MLDoubleT, MLInteger32T) {
 ML_METHOD(MLDoubleT, MLInteger64T) {
 //!internal
 #ifdef ML_BIGINT
-	return ml_real(fmpz_get_d(((ml_integer_t *)Args[0])->Value));
+	return ml_real(mpz_get_d(((ml_integer_t *)Args[0])->Value));
 #else
 	return ml_real(((ml_integer_t *)Args[0])->Value);
 #endif
@@ -600,7 +629,7 @@ ml_value_t *ml_real(double Value) {
 double ml_real_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 #ifdef ML_BIGINT
-		return fmpz_get_d(((ml_integer_t *)Value)->Value);
+		return mpz_get_d(((ml_integer_t *)Value)->Value);
 #else
 		return ((ml_integer_t *)Value)->Value;
 #endif
@@ -616,7 +645,7 @@ double ml_real_value(const ml_value_t *Value) {
 
 static double ML_TYPED_FN(ml_real_value, MLIntegerT, ml_integer_t *Value) {
 #ifdef ML_BIGINT
-	return fmpz_get_d(Value->Value);
+	return mpz_get_d(Value->Value);
 #else
 	return Value->Value;
 #endif
@@ -638,21 +667,21 @@ ML_METHOD(MLIntegerT, MLDoubleT) {
 
 #ifdef ML_BIGINT
 
-void ml_integer_fmpz_init(ml_value_t *Source, fmpz_t Dest) {
+void ml_integer_mpz_init(mpz_t Dest, ml_value_t *Source) {
 	if (__builtin_expect(!!ml_tag(Source), 1)) {
-		fmpz_init_set_si(Dest, (int32_t)(intptr_t)Source);
+		mpz_init_set_si(Dest, ml_integer32_value(Source));
 	} else {
-		Dest[0] = ((ml_integer_t *)Source)->Value[0];
+		mpz_init_set(Dest, ((ml_integer_t *)Source)->Value);
 	}
 }
 
-ml_value_t *ml_integer_fmpz(fmpz_t Source) {
-	if (fmpz_cmp_si(Source, INT32_MIN) >= 0 && fmpz_cmp_si(Source, INT32_MAX) <= 0) {
-		return ml_integer32(fmpz_get_si(Source));
+ml_value_t *ml_integer_mpz(const mpz_t Source) {
+	if (mpz_cmp_si(Source, INT32_MIN) >= 0 && mpz_cmp_si(Source, INT32_MAX) <= 0) {
+		return ml_integer32(mpz_get_si(Source));
 	} else {
 		ml_integer_t *Value = new(ml_integer_t);
 		Value->Type = MLInteger64T;
-		fmpz_set(Value->Value, Source);
+		mpz_init_set(Value->Value, Source);
 		return (ml_value_t *)Value;
 	}
 }
@@ -660,10 +689,10 @@ ml_value_t *ml_integer_fmpz(fmpz_t Source) {
 #ifdef ML_RATIONAL
 
 ml_value_t *ml_rational_fmpq(fmpq_t Source) {
-	fmpz *Num = fmpq_numref(Source);
-	fmpz *Den = fmpq_denref(Source);
-	if (fmpz_fits_si(Num) && fmpz_cmp_ui(Den, UINT16_MAX) <= 0) {
-		return ml_rational48(fmpz_get_si(Num), fmpz_get_ui(Den));
+	mpz *Num = fmpq_numref(Source);
+	mpz *Den = fmpq_denref(Source);
+	if (mpz_fits_si(Num) && mpz_cmp_ui(Den, UINT16_MAX) <= 0) {
+		return ml_rational48(mpz_get_si(Num), mpz_get_ui(Den));
 	} else {
 		ml_rational_t *Value = new(ml_rational_t);
 		Value->Type = MLRational64T;
@@ -680,10 +709,10 @@ ML_METHOD(#NAME, MLIntegerT) { \
 //>integer
 // Returns :mini:`NAMEA`.
 */\
-	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA); \
-	fmpz_t Result; fmpz_init(Result); \
-	fmpz_ ## FUNC(Result, IntegerA); \
-	return ml_integer_fmpz(Result); \
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]); \
+	mpz_t Result; mpz_init(Result); \
+	mpz_ ## FUNC(Result, IntegerA); \
+	return ml_integer_mpz(Result); \
 }
 
 #define ml_arith_method_integer_integer(NAME, FUNC) \
@@ -693,11 +722,11 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 //>integer
 // Returns :mini:`A NAME B`.
 */\
-	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA); \
-	fmpz_t IntegerB; ml_integer_fmpz_init(Args[1], IntegerB); \
-	fmpz_t Result; fmpz_init(Result); \
-	fmpz_ ## FUNC(Result, IntegerA, IntegerB); \
-	return ml_integer_fmpz(Result); \
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]); \
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]); \
+	mpz_t Result; mpz_init(Result); \
+	mpz_ ## FUNC(Result, IntegerA, IntegerB); \
+	return ml_integer_mpz(Result); \
 }
 
 #define ml_arith_method_integer_integer_bitwise(NAME, FUNC, OP) \
@@ -707,11 +736,11 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 //>integer
 // Returns the bitwise OP of :mini:`A` and :mini:`B`.
 */\
-	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA); \
-	fmpz_t IntegerB; ml_integer_fmpz_init(Args[1], IntegerB); \
-	fmpz_t Result; fmpz_init(Result); \
-	fmpz_ ## FUNC(Result, IntegerA, IntegerB); \
-	return ml_integer_fmpz(Result); \
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]); \
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]); \
+	mpz_t Result; mpz_init(Result); \
+	mpz_ ## FUNC(Result, IntegerA, IntegerB); \
+	return ml_integer_mpz(Result); \
 }
 
 #else
@@ -874,9 +903,9 @@ ml_arith_method_integer_real(NAME, FUNC)
 
 #ifdef ML_BIGINT
 
-static void fmpz_diff(fmpz_t f, const fmpz_t g, const fmpz_t h) {
-	fmpz_sub(f, g, h);
-	fmpz_abs(f, f);
+static void mpz_diff(mpz_t f, const mpz_t g, const mpz_t h) {
+	mpz_sub(f, g, h);
+	mpz_abs(f, f);
 }
 
 #endif
@@ -886,9 +915,9 @@ ml_arith_method_number_number(+, add)
 ml_arith_method_number_number(-, sub)
 ml_arith_method_number_number(~, diff)
 ml_arith_method_number_number(*, mul)
-ml_arith_method_integer(~, complement);
+ml_arith_method_integer(~, com);
 ml_arith_method_integer_integer_bitwise(/\\, and, and);
-ml_arith_method_integer_integer_bitwise(\\/, or, or);
+ml_arith_method_integer_integer_bitwise(\\/, ior, or);
 ml_arith_method_integer_integer_bitwise(><, xor, xor);
 
 ML_METHOD("popcount", MLIntegerT) {
@@ -1032,15 +1061,15 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 //$= let R := 10 / 3
 //$= type(R)
 #ifdef ML_BIGINT
-	fmpq_t Quotient; fmpq_init(Quotient);
-	ml_integer_fmpz_init(Args[1], fmpq_denref(Quotient));
-	if (!Quotient->den) return ml_error("ValueError", "Division by 0");
-	ml_integer_fmpz_init(Args[0], fmpq_numref(Quotient));
-	fmpz_t Result; fmpz_init(Result);
-	if (fmpz_divides(Result, fmpq_denref(Quotient), fmpq_numref(Quotient))) {
-		return ml_integer_fmpz(Result);
+	mpq_t Quotient;
+	ml_integer_mpz_init(mpq_denref(Quotient), Args[1]);
+	if (!mpq_denref(Quotient)->_mp_size) return ml_error("ValueError", "Division by 0");
+	ml_integer_mpz_init(mpq_numref(Quotient), Args[0]);
+	mpq_canonicalize(Quotient);
+	if (!mpz_cmp_ui(mpq_denref(Quotient), 1)) {
+		return ml_integer_mpz(mpq_numref(Quotient));
 	} else {
-		return ml_real(fmpq_get_d(Quotient));
+		return ml_real(mpq_get_d(Quotient));
 	}
 #else
 	int64_t IntegerA = ml_integer_value(Args[0]);

@@ -907,7 +907,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 	if (__builtin_expect(!!ml_tag(Args[1]), 1)) {
 		ml_stringbuffer_printf(Buffer, "%d", (int32_t)(intptr_t)Args[1]);
 	} else {
-		const char *Str = fmpz_get_str(NULL, 10, ((ml_integer_t *)Args[1])->Value);
+		const char *Str = mpz_get_str(NULL, 10, ((ml_integer_t *)Args[1])->Value);
 		ml_stringbuffer_write(Buffer, Str, strlen(Str));
 	}
 #else
@@ -930,7 +930,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 		goto int32;
 	} else {
 #endif
-		const char *Str = fmpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
+		const char *Str = mpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
 		ml_stringbuffer_write(Buffer, Str, strlen(Str));
 		return MLSome;
 #ifdef ML_NANBOXING

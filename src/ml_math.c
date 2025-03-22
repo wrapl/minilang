@@ -134,25 +134,21 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 //$= type(N)
 //$= let R := 2 ^ -1
 //$= type(R)
+	int64_t Exponent = ml_integer_value(Args[1]);
 #ifdef ML_BIGINT
-	fmpz_t IntegerB; ml_integer_fmpz_init(Args[1], IntegerB);
-	switch (fmpz_sgn(IntegerB)) {
-	case 0: return ml_integer(1);
-	case 1: {
-		fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA);
-		fmpz_t Result; fmpz_init(Result);
-		fmpz_pow_fmpz(Result, IntegerA, IntegerB);
-		return ml_integer_fmpz(Result);
-	}
-	case -1: {
-		double RealA = ml_real_value(Args[0]);
-		return ml_real(pow(RealA, fmpz_get_d(IntegerB)));
-	}
-	default: __builtin_unreachable();
+	if (Exponent < 0) {
+		double Base = ml_real_value(Args[0]);
+		return ml_real(pow(Base, Exponent));
+	} else if (Exponent > 0) {
+		mpz_t Base; ml_integer_mpz_init(Base, Args[0]);
+		mpz_t Result; mpz_init(Result);
+		mpz_pow_ui(Result, Base, Exponent);
+		return ml_integer_mpz(Result);
+	} else {
+		return ml_integer(1);
 	}
 #else
 	int64_t Base = ml_integer_value(Args[0]);
-	int64_t Exponent = ml_integer_value(Args[1]);
 	if (Exponent >= 0) {
 		int64_t N = 1;
 		while (Exponent) {
@@ -361,20 +357,20 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 //>integer|real
 // Returns the square root of :mini:`Arg/1`.
 #ifdef ML_BIGINT
-	fmpz_t IntegerA; ml_integer_fmpz_init(Args[0], IntegerA);
-	switch (fmpz_sgn(IntegerA)) {
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
+	switch (mpz_sgn(IntegerA)) {
 	case 0: return ml_integer(0);
 	case 1: {
-		fmpz_t Result; fmpz_init(Result);
-		if (fmpz_root(Result, IntegerA, 2)) {
-			return ml_integer_fmpz(Result);
+		mpz_t Result; mpz_init(Result);
+		if (mpz_root(Result, IntegerA, 2)) {
+			return ml_integer_mpz(Result);
 		} else {
-			return ml_real(sqrt(fmpz_get_d(IntegerA)));
+			return ml_real(sqrt(mpz_get_d(IntegerA)));
 		}
 	}
 	case -1: {
 #ifdef ML_COMPLEX
-		return ml_complex(csqrt(fmpz_get_d(IntegerA)));
+		return ml_complex(csqrt(mpz_get_d(IntegerA)));
 #else
 		return ml_real(-NAN);
 #endif

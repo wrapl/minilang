@@ -772,7 +772,7 @@ typedef struct {
 
 static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 #ifdef ML_BIGINT
-	return (long)Value->Base.Type + fmpz_get_si(Value->Base.Value);
+	return (long)Value->Base.Type + mpz_get_si(Value->Base.Value);
 #else
 	return (long)Value->Base.Type + Value->Base.Value;
 #endif
@@ -809,7 +809,7 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 		int64_t Index = ml_integer_value(Arg);
 		for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++Value) {
 #ifdef ML_BIGINT
-			if (fmpz_get_si(Value->Base.Value) == Index) ML_RETURN(Value);
+			if (mpz_get_si(Value->Base.Value) == Index) ML_RETURN(Value);
 #else
 			if (Value->Base.Value == Index) ML_RETURN(Value);
 #endif
@@ -850,7 +850,7 @@ static ml_value_t *ml_enum_string_fn(void *Type, int Count, ml_value_t **Args) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Args[I];
 #ifdef ML_BIGINT
-		fmpz_set_ui(Value->Base.Value, I + 1);
+		mpz_set_ui(Value->Base.Value, I + 1);
 #else
 		Value->Base.Value = I + 1;
 #endif
@@ -877,7 +877,7 @@ static ml_value_t *ml_enum_names_fn(void *Type, int Count, ml_value_t **Args) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Iter->Value;
 #ifdef ML_BIGINT
-		fmpz_set_ui(Value->Base.Value, ml_integer_value(Args[++Index]));
+		mpz_set_ui(Value->Base.Value, ml_integer_value(Args[++Index]));
 #else
 		Value->Base.Value = ml_integer_value(Args[++Index]);
 #endif
@@ -1029,7 +1029,7 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
 #ifdef ML_BIGINT
-		fmpz_set_ui(Value->Base.Value, ++Index);
+		mpz_set_ui(Value->Base.Value, ++Index);
 #else
 		Value->Base.Value = ++Index;
 #endif
@@ -1064,7 +1064,7 @@ ml_type_t *ml_enum_cyclic(const char *TypeName, ...) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
 #ifdef ML_BIGINT
-		fmpz_set_ui(Value->Base.Value, ++Index);
+		mpz_set_ui(Value->Base.Value, ++Index);
 #else
 		Value->Base.Value = ++Index;
 #endif
@@ -1101,7 +1101,7 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
 #ifdef ML_BIGINT
-		fmpz_set_ui(Value->Base.Value, va_arg(Args, int));
+		mpz_set_ui(Value->Base.Value, va_arg(Args, int));
 #else
 		Value->Base.Value = va_arg(Args, int);
 #endif
@@ -1135,7 +1135,7 @@ ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Value) {
 	const ml_enum_value_t *EnumValue = Enum->Values;
 	for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++EnumValue) {
 #ifdef ML_BIGINT
-		if (fmpz_get_si(EnumValue->Base.Value) == Value) return (ml_value_t *)EnumValue;
+		if (mpz_get_si(EnumValue->Base.Value) == Value) return (ml_value_t *)EnumValue;
 #else
 		if (EnumValue->Base.Value == Value) return (ml_value_t *)EnumValue;
 #endif
@@ -1145,7 +1145,7 @@ ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Value) {
 
 int64_t ml_enum_value_value(ml_value_t *Value) {
 #ifdef ML_BIGINT
-	return fmpz_get_si(((ml_enum_value_t *)Value)->Base.Value);
+	return mpz_get_si(((ml_enum_value_t *)Value)->Base.Value);
 #else
 	return ((ml_enum_value_t *)Value)->Base.Value;
 #endif
@@ -1406,7 +1406,7 @@ ML_METHOD("<>", MLIntegerT, MLEnumValueT) {
 ML_METHOD("+", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 #ifdef ML_BIGINT
-	int64_t Value = fmpz_get_si(A->Base.Value) + ml_integer_value(Args[1]);
+	int64_t Value = mpz_get_si(A->Base.Value) + ml_integer_value(Args[1]);
 #else
 	int64_t Value = A->Base.Value + ml_integer_value(Args[1]);
 #endif
@@ -1423,7 +1423,7 @@ ML_METHOD("+", MLEnumValueT, MLIntegerT) {
 ML_METHOD("+", MLIntegerT, MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[1];
 #ifdef ML_BIGINT
-	int64_t Value = fmpz_get_si(A->Base.Value) + ml_integer_value(Args[0]);
+	int64_t Value = mpz_get_si(A->Base.Value) + ml_integer_value(Args[0]);
 #else
 	int64_t Value = A->Base.Value + ml_integer_value(Args[0]);
 #endif
@@ -1440,7 +1440,7 @@ ML_METHOD("+", MLIntegerT, MLEnumValueT) {
 ML_METHOD("-", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 #ifdef ML_BIGINT
-	int64_t Value = fmpz_get_si(A->Base.Value) - ml_integer_value(Args[1]);
+	int64_t Value = mpz_get_si(A->Base.Value) - ml_integer_value(Args[1]);
 #else
 	int64_t Value = A->Base.Value - ml_integer_value(Args[1]);
 #endif
@@ -1457,7 +1457,7 @@ ML_METHOD("-", MLEnumValueT, MLIntegerT) {
 ML_METHOD("next", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 #ifdef ML_BIGINT
-	int64_t Value = fmpz_get_si(A->Base.Value) + 1;
+	int64_t Value = mpz_get_si(A->Base.Value) + 1;
 #else
 	int64_t Value = A->Base.Value + 1;
 #endif
@@ -1474,7 +1474,7 @@ ML_METHOD("next", MLEnumValueT) {
 ML_METHOD("prev", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 #ifdef ML_BIGINT
-	int64_t Value = fmpz_get_si(A->Base.Value) - 1;
+	int64_t Value = mpz_get_si(A->Base.Value) - 1;
 #else
 	int64_t Value = A->Base.Value - 1;
 #endif
