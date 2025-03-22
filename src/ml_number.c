@@ -55,7 +55,7 @@ static int ML_TYPED_FN(ml_value_is_constant, MLNumberT, ml_value_t *Value) {
 }
 
 #define ml_neg(X) (-(X))
-#define ml_complement(X) (~(X))
+#define ml_com(X) (~(X))
 
 #define ml_add(X, Y) ((X) + (Y))
 #define ml_sub(X, Y) ((X) - (Y))
@@ -63,7 +63,7 @@ static int ML_TYPED_FN(ml_value_is_constant, MLNumberT, ml_value_t *Value) {
 #define ml_div(X, Y) ((X) / (Y))
 
 #define ml_and(X, Y) ((X) & (Y))
-#define ml_or(X, Y) ((X) | (Y))
+#define ml_ior(X, Y) ((X) | (Y))
 #define ml_xor(X, Y) ((X) ^ (Y))
 
 #define ml_eq(X, Y) ((X) == (Y))
@@ -292,6 +292,9 @@ ML_TYPE(MLRealT, (MLNumberT), "real");
 #endif
 // Base type for real numbers.
 
+ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer");
+// Base type of integers.
+
 /*
 ML_DEF(Inf);
 //!number
@@ -319,9 +322,6 @@ static void ml_integer32_call(ml_state_t *Caller, ml_value_t *Value, int Count, 
 	if (Index > Count) ML_RETURN(MLNil);
 	ML_RETURN(Args[Index - 1]);
 }
-
-ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer");
-//!internal
 
 ML_TYPE(MLInteger32T, (MLIntegerT), "integer32",
 //!internal
@@ -371,13 +371,41 @@ int64_t mpz_get_s64(const mpz_t Z) {
 #endif
 }
 
+void mpz_set_s64(mpz_t Z, int64_t V) {
+	mpz_init2(Z, 64);
+	uint64_t Abs = V< 0 ? -V : V;
+#if LIMBS64 == 1
+	Z->_mp_d[0] = (mp_limb_t)Abs;
+	Z->_mp_size = V < 0 ? -1 : V ? 1 : 0;
+#else
+	int I = 0;
+	while (I < LIMBS64 && Abs) {
+		Z->_mp_d[I++] = Abs & GMP_NUMB_MASK;
+		Abs >>= GMP_NUMB_BITS;
+	}
+	Z->_mp_size = V < 0 ? -I : V ? I : 0;
+#endif
+}
+
 #endif
 
 ml_value_t *ml_integer64(int64_t Integer) {
 	ml_integer_t *Value = new(ml_integer_t);
 	Value->Type = MLInteger64T;
 #ifdef ML_BIGINT
-	mpz_import(Value->Value, 1, 0, sizeof(int64_t), 0, 0, &Integer);
+	mpz_init2(Value->Value, 64);
+	uint64_t Abs = Integer < 0 ? -Integer : Integer;
+#if LIMBS64 == 1
+	Value->Value->_mp_d[0] = (mp_limb_t)Abs;
+	Value->Value->_mp_size = Integer < 0 ? -1 : Integer ? 1 : 0;
+#else
+	int I = 0;
+	while (I < LIMBS64 && Abs) {
+		Value->Value->_mp_d[I++] = Abs & GMP_NUMB_MASK;
+		Abs >>= GMP_NUMB_BITS;
+	}
+	Value->Value->_mp_size = Integer < 0 ? -I : Integer ? I : 0;
+#endif
 #else
 	Value->Value = Integer;
 #endif
@@ -506,11 +534,11 @@ ML_METHOD(MLRealT, MLInteger64T) {
 
 #else
 
-static long ml_integer_hash(ml_integer_t *Integer, ml_hash_chain_t *Chain) {
+static long ml_integer64_hash(ml_integer_t *Integer, ml_hash_chain_t *Chain) {
 	return Integer->Value;
 }
 
-static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Integer, int Count, ml_value_t **Args) {
+static void ml_integer64_call(ml_state_t *Caller, ml_integer_t *Integer, int Count, ml_value_t **Args) {
 	long Index = Integer->Value;
 	if (Index <= 0) Index += Count + 1;
 	if (Index <= 0) ML_RETURN(MLNil);
@@ -518,7 +546,7 @@ static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Integer, int Count
 	ML_RETURN(Args[Index - 1]);
 }
 
-ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
+ML_TYPE(MLInteger64T, (MLIntegerT), "integer",
 // A 64-bit signed integer value.
 //
 // :mini:`fun (I: integer)(Arg/1, ..., Arg/n): any | nil`
@@ -528,15 +556,15 @@ ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
 //$= -1("a", "b", "c")
 //$= 4("a", "b", "c")
 //$= 0("a", "b", "c")
-	.hash = (void *)ml_integer_hash,
-	.call = (void *)ml_integer_call
+	.hash = (void *)ml_integer64_hash,
+	.call = (void *)ml_integer64_call
 );
 
 ml_value_t *ml_integer(int64_t Value) {
 	ml_integer_t *Integer = new(ml_integer_t);
-	Integer->Type = MLIntegerT;
+	Integer->Type = MLInteger64T;
 #ifdef ML_BIGINT
-	mpz_set_si(Integer->Value, Integer);
+	mpz_set_s64(Integer->Value, Integer);
 #else
 	Integer->Value = Value;
 #endif
@@ -665,18 +693,68 @@ ML_METHOD(MLIntegerT, MLDoubleT) {
 	return ml_integer(ml_double_value(Args[0]));
 }
 
+#ifdef ML_NANBOXING
+
+#define ml_arith_method_integer32(NAME, FUNC) \
+ML_METHOD(#NAME, MLInteger32T) { \
+/*<A
+//>integer
+// Returns :mini:`NAMEA`.
+*/\
+	int64_t IntegerA = ml_integer32_value(Args[0]); \
+	return ml_integer(ml_ ## FUNC(IntegerA)); \
+}
+
+#define ml_arith_method_integer32_integer32(NAME, FUNC) \
+ML_METHOD(#NAME, MLInteger32T, MLInteger32T) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`A NAME B`.
+*/\
+	int64_t IntegerA = ml_integer32_value(Args[0]); \
+	int64_t IntegerB = ml_integer32_value(Args[1]); \
+	return ml_integer(ml_ ## FUNC(IntegerA, IntegerB)); \
+}
+
+#define ml_arith_method_integer32_integer32_bitwise(NAME, FUNC, OP) \
+ML_METHOD(#NAME, MLInteger32T, MLInteger32T) { \
+/*<A
+//<B
+//>integer
+// Returns the bitwise OP of :mini:`A` and :mini:`B`.
+*/\
+	int64_t IntegerA = ml_integer32_value(Args[0]); \
+	int64_t IntegerB = ml_integer32_value(Args[1]); \
+	return ml_integer(ml_ ## FUNC(IntegerA, IntegerB)); \
+}
+
+#else
+
+#define ml_arith_method_integer32(NAME, FUNC)
+#define ml_arith_method_integer32_integer32(NAME, FUNC)
+#define ml_arith_method_integer32_integer32_bitwise(NAME, FUNC, OP)
+
+#endif
+
 #ifdef ML_BIGINT
 
 void ml_integer_mpz_init(mpz_t Dest, ml_value_t *Source) {
-	if (__builtin_expect(!!ml_tag(Source), 1)) {
-		mpz_init_set_si(Dest, ml_integer32_value(Source));
-	} else {
-		mpz_init_set(Dest, ((ml_integer_t *)Source)->Value);
+	int Tag = ml_tag(Source);
+	if (__builtin_expect(Tag, 1)) {
+		return mpz_init_set_si(Dest, ml_integer32_value(Source));
+	} else if (Tag == 0 && Source->Type == MLInteger64T) {
+		return mpz_init_set(Dest, ((ml_integer_t *)Source)->Value);
+	} else if (Tag >= 7) {
+		return mpz_init_set_d(Dest, ml_double_value(Source));
 	}
+	typeof(ml_integer_mpz_init) *fn = ml_typed_fn_get(Source->Type, ml_integer_mpz_init);
+	if (fn) return fn(Dest, Source);
+	mpz_init(Dest);
 }
 
 ml_value_t *ml_integer_mpz(const mpz_t Source) {
-	if (mpz_cmp_si(Source, INT32_MIN) >= 0 && mpz_cmp_si(Source, INT32_MAX) <= 0) {
+	if (mpz_fits_sint_p(Source)) {
 		return ml_integer32(mpz_get_si(Source));
 	} else {
 		ml_integer_t *Value = new(ml_integer_t);
@@ -688,10 +766,10 @@ ml_value_t *ml_integer_mpz(const mpz_t Source) {
 
 #ifdef ML_RATIONAL
 
-ml_value_t *ml_rational_fmpq(fmpq_t Source) {
-	mpz *Num = fmpq_numref(Source);
-	mpz *Den = fmpq_denref(Source);
-	if (mpz_fits_si(Num) && mpz_cmp_ui(Den, UINT16_MAX) <= 0) {
+ml_value_t *ml_rational_mpq(mpq_t Source) {
+	__mpz_struct *Num = mpq_numref(Source);
+	__mpz_struct *Den = mpq_denref(Source);
+	if (mpz_fits_sint_p(Num) && mpz_fits_ushort_p(Den)) {
 		return ml_rational48(mpz_get_si(Num), mpz_get_ui(Den));
 	} else {
 		ml_rational_t *Value = new(ml_rational_t);
@@ -704,6 +782,20 @@ ml_value_t *ml_rational_fmpq(fmpq_t Source) {
 #endif
 
 #define ml_arith_method_integer(NAME, FUNC) \
+\
+ml_arith_method_integer32(NAME, FUNC) \
+\
+ML_METHOD(#NAME, MLInteger64T) { \
+/*<A
+//>integer
+// Returns :mini:`NAMEA`.
+*/\
+	ml_integer_t *A = (ml_integer_t *)Args[0]; \
+	mpz_t Result; mpz_init(Result); \
+	mpz_ ## FUNC(Result, A->Value); \
+	return ml_integer_mpz(Result); \
+} \
+\
 ML_METHOD(#NAME, MLIntegerT) { \
 /*<A
 //>integer
@@ -716,36 +808,168 @@ ML_METHOD(#NAME, MLIntegerT) { \
 }
 
 #define ml_arith_method_integer_integer(NAME, FUNC) \
+\
+ml_arith_method_integer32_integer32(NAME, FUNC) \
+\
+ML_METHOD(#NAME, MLInteger64T, MLInteger64T) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`A NAME B`.
+*/\
+	ml_integer_t *A = (ml_integer_t *)Args[0]; \
+	ml_integer_t *B = (ml_integer_t *)Args[1]; \
+	mpz_t Result; mpz_init(Result); \
+	mpz_ ## FUNC(Result, A->Value, B->Value); \
+	return ml_integer_mpz(Result); \
+} \
+\
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
 //>integer
 // Returns :mini:`A NAME B`.
 */\
-	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]); \
+	mpz_t Result; ml_integer_mpz_init(Result, Args[0]); \
 	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]); \
-	mpz_t Result; mpz_init(Result); \
-	mpz_ ## FUNC(Result, IntegerA, IntegerB); \
+	mpz_ ## FUNC(Result, Result, IntegerB); \
 	return ml_integer_mpz(Result); \
 }
 
 #define ml_arith_method_integer_integer_bitwise(NAME, FUNC, OP) \
+\
+ml_arith_method_integer32_integer32_bitwise(NAME, FUNC, OP) \
+\
+ML_METHOD(#NAME, MLInteger64T, MLInteger64T) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`A NAME B`.
+*/\
+	ml_integer_t *A = (ml_integer_t *)Args[0]; \
+	ml_integer_t *B = (ml_integer_t *)Args[1]; \
+	mpz_t Result; mpz_init(Result); \
+	mpz_ ## FUNC(Result, A->Value, B->Value); \
+	return ml_integer_mpz(Result); \
+} \
+\
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
 //>integer
 // Returns the bitwise OP of :mini:`A` and :mini:`B`.
 */\
-	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]); \
+	mpz_t Result; ml_integer_mpz_init(Result, Args[0]); \
 	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]); \
-	mpz_t Result; mpz_init(Result); \
-	mpz_ ## FUNC(Result, IntegerA, IntegerB); \
+	mpz_ ## FUNC(Result, Result, IntegerB); \
 	return ml_integer_mpz(Result); \
 }
+
+#ifdef ML_NANBOXING
+
+ML_METHOD("+", MLInteger64T, MLInteger32T) {
+	ml_integer_t *A = (ml_integer_t *)Args[0];
+	int32_t B = ml_integer32_value(Args[1]);
+	mpz_t Result; mpz_init_set(Result, A->Value);
+	if (B > 0) {
+		mpz_add_ui(Result, Result, (uint32_t)B);
+	} else {
+		mpz_sub_ui(Result, Result, (uint32_t)-(int64_t)B);
+	}
+	return ml_integer_mpz(Result);
+}
+
+ML_METHOD("+", MLInteger32T, MLInteger64T) {
+	int32_t A = ml_integer32_value(Args[0]);
+	ml_integer_t *B = (ml_integer_t *)Args[1];
+	mpz_t Result; mpz_init_set(Result, B->Value);
+	if (A > 0) {
+		mpz_add_ui(Result, Result, (uint32_t)A);
+	} else {
+		mpz_sub_ui(Result, Result, (uint32_t)-(int64_t)A);
+	}
+	return ml_integer_mpz(Result);
+}
+
+ML_METHOD("-", MLInteger64T, MLInteger32T) {
+	ml_integer_t *A = (ml_integer_t *)Args[0];
+	int32_t B = ml_integer32_value(Args[1]);
+	mpz_t Result; mpz_init_set(Result, A->Value);
+	if (B > 0) {
+		mpz_sub_ui(Result, Result, (uint32_t)B);
+	} else {
+		mpz_add_ui(Result, Result, (uint32_t)-(int64_t)B);
+	}
+	return ml_integer_mpz(Result);
+}
+
+ML_METHOD("-", MLInteger32T, MLInteger64T) {
+	int32_t A = ml_integer32_value(Args[0]);
+	ml_integer_t *B = (ml_integer_t *)Args[1];
+	mpz_t Result; mpz_init_set(Result, B->Value);
+	mpz_neg(Result, Result);
+	if (A > 0) {
+		mpz_add_ui(Result, Result, (uint32_t)A);
+	} else {
+		mpz_sub_ui(Result, Result, (uint32_t)-(int64_t)A);
+	}
+	return ml_integer_mpz(Result);
+}
+
+ML_METHOD("*", MLInteger64T, MLInteger32T) {
+	ml_integer_t *A = (ml_integer_t *)Args[0];
+	int32_t B = ml_integer32_value(Args[1]);
+	mpz_t Result; mpz_init_set(Result, A->Value);
+	mpz_mul_si(Result, Result, B);
+	return ml_integer_mpz(Result);
+}
+
+ML_METHOD("*", MLInteger32T, MLInteger64T) {
+	int32_t A = ml_integer32_value(Args[0]);
+	ml_integer_t *B = (ml_integer_t *)Args[1];
+	mpz_t Result; mpz_init_set(Result, B->Value);
+	mpz_mul_si(Result, Result, A);
+	return ml_integer_mpz(Result);
+}
+
+ML_METHOD("/", MLInteger64T, MLInteger32T) {
+	ml_integer_t *A = (ml_integer_t *)Args[0];
+	int32_t B = ml_integer32_value(Args[1]);
+	if (!B) return ml_error("ValueError", "Division by 0");
+	mpq_t Quotient;
+	mpz_init_set_si(mpq_denref(Quotient), B);
+	mpz_init_set(mpq_numref(Quotient), A->Value);
+	mpq_canonicalize(Quotient);
+	if (!mpz_cmp_ui(mpq_denref(Quotient), 1)) {
+		return ml_integer_mpz(mpq_numref(Quotient));
+	} else {
+		return ml_real(mpq_get_d(Quotient));
+	}
+}
+
+ML_METHOD("/", MLInteger32T, MLInteger64T) {
+	int32_t A = ml_integer32_value(Args[0]);
+	ml_integer_t *B = (ml_integer_t *)Args[1];
+	if (!B->Value->_mp_size) return ml_error("ValueError", "Division by 0");
+	mpq_t Quotient;
+	mpz_init_set(mpq_denref(Quotient), B->Value);
+	mpz_init_set_si(mpq_numref(Quotient), A);
+	mpq_canonicalize(Quotient);
+	if (!mpz_cmp_ui(mpq_denref(Quotient), 1)) {
+		return ml_integer_mpz(mpq_numref(Quotient));
+	} else {
+		return ml_real(mpq_get_d(Quotient));
+	}
+}
+
+#endif
 
 #else
 
 #define ml_arith_method_integer(NAME, FUNC) \
+\
+ml_arith_method_integer32(NAME, FUNC) \
+\
 ML_METHOD(#NAME, MLIntegerT) { \
 /*<A
 //>integer
@@ -756,6 +980,9 @@ ML_METHOD(#NAME, MLIntegerT) { \
 }
 
 #define ml_arith_method_integer_integer(NAME, FUNC) \
+\
+ml_arith_method_integer32_integer32(NAME, FUNC) \
+\
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
@@ -768,6 +995,9 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 }
 
 #define ml_arith_method_integer_integer_bitwise(NAME, FUNC, OP) \
+\
+ml_arith_method_integer32_integer32_bitwise(NAME, FUNC, OP) \
+\
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
@@ -823,52 +1053,6 @@ ML_METHOD(#NAME, MLRealT, MLRealT) { \
 	return ml_real(ml_ ## FUNC(RealA, RealB)); \
 }
 
-#define ml_arith_method_real_integer(NAME, FUNC) \
-ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
-/*<A
-//<B
-//>real
-// Returns :mini:`A NAME B`.
-*/\
-	double RealA = ml_double_value(Args[0]); \
-	int64_t IntegerB = ml_integer_value(Args[1]); \
-	return ml_real(ml_ ## FUNC(RealA, IntegerB)); \
-} \
-\
-ML_METHOD(#NAME, MLRealT, MLIntegerT) { \
-/*<A
-//<B
-//>real
-// Returns :mini:`A NAME B`.
-*/\
-	double RealA = ml_real_value(Args[0]); \
-	int64_t IntegerB = ml_integer_value(Args[1]); \
-	return ml_real(ml_ ## FUNC(RealA, IntegerB)); \
-}
-
-#define ml_arith_method_integer_real(NAME, FUNC) \
-ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
-/*<A
-//<B
-//>real
-// Returns :mini:`A NAME B`.
-*/\
-	int64_t IntegerA = ml_integer_value(Args[0]); \
-	double RealB = ml_double_value(Args[1]); \
-	return ml_real(ml_ ## FUNC(IntegerA, RealB)); \
-} \
-\
-ML_METHOD(#NAME, MLIntegerT, MLRealT) { \
-/*<A
-//<B
-//>real
-// Returns :mini:`A NAME B`.
-*/\
-	int64_t IntegerA = ml_integer_value(Args[0]); \
-	double RealB = ml_real_value(Args[1]); \
-	return ml_real(ml_ ## FUNC(IntegerA, RealB)); \
-}
-
 #ifdef ML_COMPLEX
 
 #define ml_arith_method_number(NAME, FUNC) \
@@ -879,8 +1063,6 @@ ml_arith_method_complex(NAME, FUNC)
 #define ml_arith_method_number_number(NAME, FUNC) \
 ml_arith_method_integer_integer(NAME, FUNC) \
 ml_arith_method_real_real(NAME, FUNC) \
-ml_arith_method_real_integer(NAME, FUNC) \
-ml_arith_method_integer_real(NAME, FUNC) \
 ml_arith_method_complex_complex(NAME, FUNC) \
 ml_arith_method_complex_real(NAME, FUNC) \
 ml_arith_method_complex_integer(NAME, FUNC) \
@@ -895,9 +1077,7 @@ ml_arith_method_real(NAME, FUNC)
 
 #define ml_arith_method_number_number(NAME, FUNC) \
 ml_arith_method_integer_integer(NAME, FUNC) \
-ml_arith_method_real_real(NAME, FUNC) \
-ml_arith_method_real_integer(NAME, FUNC) \
-ml_arith_method_integer_real(NAME, FUNC)
+ml_arith_method_real_real(NAME, FUNC)
 
 #endif
 
@@ -1037,8 +1217,6 @@ ML_METHOD("--", MLDoubleT) {
 }
 
 ml_arith_method_real_real(/, div)
-ml_arith_method_real_integer(/, div)
-ml_arith_method_integer_real(/, div)
 
 #ifdef ML_COMPLEX
 
@@ -1047,7 +1225,125 @@ ml_arith_method_complex_integer(/, div)
 ml_arith_method_integer_complex(/, div)
 ml_arith_method_complex_real(/, div)
 ml_arith_method_real_complex(/, div)
-ml_arith_method_complex(~, complement);
+ml_arith_method_complex(~, com);
+
+#endif
+
+#ifdef ML_NANBOXING
+
+ML_METHOD("/", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer | real
+// Returns :mini:`Int/1 / Int/2` as an integer if the division is exact, otherwise as a real.
+//$= let N := 10 / 2
+//$= type(N)
+//$= let R := 10 / 3
+//$= type(R)
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (!IntegerB) return ml_error("ValueError", "Division by 0");
+	ldiv_t Div = ldiv(IntegerA, IntegerB);
+	if (Div.rem) {
+		return ml_real((double)IntegerA / (double)IntegerB);
+	} else {
+		return ml_integer(Div.quot);
+	}
+}
+
+ML_METHOD("%", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
+// Note: the result is calculated by rounding towards 0. In particular, if :mini:`Int/1` is negative, the result will be negative.
+// For a nonnegative remainder, use :mini:`Int/1 mod Int/2`.
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (!IntegerB) return ml_error("ValueError", "Division by 0");
+	return ml_integer(IntegerA % IntegerB);
+}
+
+ML_METHOD("|", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`Int/2` if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (!IntegerA) return ml_error("ValueError", "Division by 0");
+	return (IntegerB % IntegerA) ? MLNil : Args[1];
+}
+
+ML_METHOD("!|", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`Int/2` if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (!IntegerA) return ml_error("ValueError", "Division by 0");
+	return (IntegerB % IntegerA) ? Args[1] : MLNil;
+}
+
+ML_METHOD("div", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns the quotient of :mini:`Int/1` divided by :mini:`Int/2`.
+// The result is calculated by rounding down in all cases.
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (!IntegerB) return ml_error("ValueError", "Division by 0");
+	ldiv_t Div = ldiv(IntegerA, IntegerB);
+	if (Div.rem < 0) {
+		if (IntegerB < 0) {
+			return ml_integer(Div.quot + 1);
+		} else {
+			return ml_integer(Div.quot - 1);
+		}
+	} else {
+		return ml_integer(Div.quot);
+	}
+}
+
+ML_METHOD("mod", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
+// Note: the result is calculated by rounding down in all cases. In particular, the result is always nonnegative.
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (!IntegerB) return ml_error("ValueError", "Division by 0");
+	long A = IntegerA;
+	long B = IntegerB;
+	long R = A % B;
+	if (R < 0) R += labs(B);
+	return ml_integer(R);
+}
+
+ML_METHOD("bsf", MLInteger32T) {
+//<A
+//>integer
+// Returns the index of the least significant 1-bit of :mini:`A`, or :mini:`0` if :mini:`A = 0`.
+//$= 16:bsf
+//$= 10:bsf
+//$= 0:bsf
+	uint64_t A = (uint64_t)ml_integer32_value(Args[0]);
+	return ml_integer(__builtin_ffsl(A));
+}
+
+ML_METHOD("bsr", MLInteger32T) {
+//<A
+//>integer
+// Returns the index of the most significant 1-bit of :mini:`A`, or :mini:`0` if :mini:`A = 0`.
+//$= 16:bsr
+//$= 10:bsr
+//$= 0:bsr
+	uint64_t A = (uint64_t)ml_integer32_value(Args[0]);
+	return ml_integer(A ? 64 - __builtin_clzl(A) : 0);
+}
 
 #endif
 
@@ -1177,7 +1473,30 @@ ML_METHOD("bsr", MLIntegerT) {
 	return ml_integer(A ? 64 - __builtin_clzl(A) : 0);
 }
 
+#ifdef ML_NANBOXING
+
+#define ml_comp_method_integer32_integer32(NAME, FUNC) \
+ML_METHOD(#NAME, MLInteger32T, MLInteger32T) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
+*/\
+	int64_t IntegerA = ml_integer32_value(Args[0]); \
+	int64_t IntegerB = ml_integer32_value(Args[1]); \
+	return ml_ ## FUNC(IntegerA, IntegerB) ? Args[1] : MLNil; \
+}
+
+#else
+
+#define ml_comp_method_integer32_integer32(NAME, FUNC)
+
+#endif
+
 #define ml_comp_method_integer_integer(NAME, FUNC) \
+\
+ml_comp_method_integer32_integer32(NAME, FUNC) \
+\
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
 //<B
@@ -1201,35 +1520,9 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 	return ml_ ## FUNC(RealA, RealB) ? Args[1] : MLNil; \
 }
 
-#define ml_comp_method_real_integer(NAME, FUNC) \
-ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
-/*<A
-//<B
-//>real
-// Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
-*/\
-	double RealA = ml_double_value(Args[0]); \
-	int64_t IntegerB = ml_integer_value(Args[1]); \
-	return ml_ ## FUNC(RealA, IntegerB) ? Args[1] : MLNil; \
-}
-
-#define ml_comp_method_integer_real(NAME, FUNC) \
-ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
-/*<A
-//<B
-//>real
-// Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
-*/\
-	int64_t IntegerA = ml_integer_value(Args[0]); \
-	double RealB = ml_double_value(Args[1]); \
-	return ml_ ## FUNC(IntegerA, RealB) ? Args[1] : MLNil; \
-}
-
 #define ml_comp_method_number_number(NAME, FUNC) \
 ml_comp_method_integer_integer(NAME, FUNC) \
-ml_comp_method_real_real(NAME, FUNC) \
-ml_comp_method_real_integer(NAME, FUNC) \
-ml_comp_method_integer_real(NAME, FUNC)
+ml_comp_method_real_real(NAME, FUNC)
 
 ml_comp_method_number_number(=, eq)
 ml_comp_method_number_number(!=, neq)

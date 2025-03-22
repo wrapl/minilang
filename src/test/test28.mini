@@ -1,0 +1,29 @@
+let A := 2147483647
+let B := -2147483648
+let C := A * 8
+let D := B * 8
+
+let Xs := {"A" is A, "B" is B, "C" is C, "D" is D}
+
+for Xn, X in Xs do
+	print('{Xn} = {X}\n')
+	print('{X} + 1 = {X + 1}\n')
+	print('{X} - 1 = {X - 1}\n')
+	print('1 + {X} = {1 + X}\n')
+	print('1 - {X} = {1 - X}\n')
+	print('{X} * 2 = {X * 2}\n')
+	print('2 * {X} = {2 * X}\n')
+	print('{X} / 2 = {X / 2}\n')
+	print('{X} * 4096 = {X * 4096}\n')
+	print('4096 * {X} = {4096 * X}\n')
+	print('{X} / 4096 = {X / 4096}\n')
+	print("---\n")
+end
+
+for Xn, X in Xs do
+	for Yn, Y in Xs do
+		print('{X} + {Y} = {X + Y}\n')
+		print('{X} - {Y} = {X - Y}\n')
+		print("---\n")
+	end
+end
