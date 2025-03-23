@@ -35,6 +35,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    * :mini:`::BigEndian`
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: decimal)`
+   *TBD*
+
+
 :mini:`meth (N: integer) * (String: string): string`
    Returns :mini:`String` concatentated :mini:`N` times.
 
@@ -241,16 +245,6 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 :mini:`meth (Start: string) .. (Limit: string): string::interval`
    Returns a interval from the first character of :mini:`Start` to the first character of :mini:`Limit` (inclusive).
-
-
-:mini:`meth (String: string) / (Pattern: regex): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
-
-   .. code-block:: mini
-
-      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
-      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
@@ -557,13 +551,14 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> (22, slept)
 
 
-:mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
-   Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
+:mini:`meth (String: string) / (Pattern: regex): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find2("cat") :> (5, cat)
-      "The cat snored as he slept":find2("dog") :> nil
+      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
+      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string) / (Pattern: string): list`
@@ -574,6 +569,15 @@ When creating a substring,  the first index is inclusive and second index is exc
       "The cat snored  as he slept" / " "
       :> ["The", "cat", "snored", "as", "he", "slept"]
       "2022/03/08" / "/" :> ["2022", "03", "08"]
+
+
+:mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
+   Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
+
+   .. code-block:: mini
+
+      "The cat snored as he slept":find2("cat") :> (5, cat)
+      "The cat snored as he slept":find2("dog") :> nil
 
 
 :mini:`meth (Haystack: string):find2(Needle: string, Start: integer): tuple[integer, string] | nil`
@@ -866,11 +870,11 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello World":upper :> "HELLO WORLD"
 
 
-:mini:`meth (Arg₁: string):utf8`
+:mini:`def MLStringProperties: string::properties`
    *TBD*
 
 
-:mini:`def MLStringProperties: string::properties`
+:mini:`meth (Arg₁: string):utf8`
    *TBD*
 
 

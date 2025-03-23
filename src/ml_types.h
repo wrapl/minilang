@@ -597,6 +597,9 @@ ml_value_t *ml_integer_mpz(const mpz_t Source);
 void mpz_set_s64(mpz_t Z, int64_t V);
 int64_t mpz_get_s64(const mpz_t Z);
 
+uint64_t mpz_get_u64(const mpz_t Z);
+void mpz_set_u64(mpz_t Z, uint64_t V);
+
 #define ml_integer_mpz_value(VALUE) (((ml_integer_t *)VALUE)->Value)
 
 #endif
@@ -740,7 +743,11 @@ complex_double ml_complex_value(const ml_value_t *Value);
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Unscaled;
+#ifdef ML_BIGINT
+	mpz_t Unscaled;
+#else
+	int64_t Unscaled;
+#endif
 	int32_t Scale;
 } ml_decimal_t;
 

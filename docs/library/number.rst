@@ -123,10 +123,6 @@ number
    Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
 
 
-:mini:`meth (A: double) != (B: integer): real`
-   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
-
-
 :mini:`meth (A: double) * (B: complex): complex`
    Returns :mini:`A * B`.
 
@@ -135,19 +131,11 @@ number
    Returns :mini:`A * B`.
 
 
-:mini:`meth (A: double) * (B: integer): real`
-   Returns :mini:`A * B`.
-
-
 :mini:`meth (A: double) + (B: complex): complex`
    Returns :mini:`A + B`.
 
 
 :mini:`meth (A: double) + (B: double): real`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: double) + (B: integer): real`
    Returns :mini:`A + B`.
 
 
@@ -167,10 +155,6 @@ number
    Returns :mini:`A - B`.
 
 
-:mini:`meth (A: double) - (B: integer): real`
-   Returns :mini:`A - B`.
-
-
 :mini:`meth --(Real: double): real`
    Returns :mini:`Real - 1`
 
@@ -183,23 +167,11 @@ number
    Returns :mini:`A / B`.
 
 
-:mini:`meth (A: double) / (B: integer): real`
-   Returns :mini:`A / B`.
-
-
 :mini:`meth (A: double) < (B: double): real`
    Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
 
-:mini:`meth (A: double) < (B: integer): real`
-   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
-
-
 :mini:`meth (A: double) <= (B: double): real`
-   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
-
-
-:mini:`meth (A: double) <= (B: integer): real`
    Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
 
 
@@ -215,23 +187,11 @@ number
    Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
 
 
-:mini:`meth (A: double) = (B: integer): real`
-   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
-
-
 :mini:`meth (A: double) > (B: double): real`
    Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
 
 
-:mini:`meth (A: double) > (B: integer): real`
-   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
-
-
 :mini:`meth (A: double) >= (B: double): real`
-   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
-
-
-:mini:`meth (A: double) >= (B: integer): real`
    Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
@@ -259,10 +219,6 @@ number
    Returns :mini:`A ~ B`.
 
 
-:mini:`meth (A: double) ~ (B: integer): real`
-   Returns :mini:`A ~ B`.
-
-
 :mini:`meth (Buffer: string::buffer):append(Value: double)`
    Appends :mini:`Value` to :mini:`Buffer`.
 
@@ -272,18 +228,7 @@ number
 
 
 :mini:`type integer < real, function`
-   A 64-bit signed integer value.
-   
-   :mini:`fun (I: integer)(Arg₁,  ...,  Argₙ): any | nil`
-      Returns the :mini:`I`-th argument or :mini:`nil` if there is no :mini:`I`-th argument. Negative values of :mini:`I` are counted from the last argument.
-      In particular,  :mini:`0(...)` always returns :mini:`nil` and :mini:`1` behaves as the identity function.
-
-   .. code-block:: mini
-
-      2("a", "b", "c") :> "b"
-      -1("a", "b", "c") :> "c"
-      4("a", "b", "c") :> nil
-      0("a", "b", "c") :> nil
+   Base type of integers.
 
 
 :mini:`meth integer(Real: double): integer`
@@ -320,10 +265,6 @@ number
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
-:mini:`meth (A: integer) != (B: double): real`
-   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
-
-
 :mini:`meth (A: integer) != (B: integer): integer`
    Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
 
@@ -342,15 +283,7 @@ number
    Returns :mini:`A * B`.
 
 
-:mini:`meth (A: integer) * (B: double): real`
-   Returns :mini:`A * B`.
-
-
 :mini:`meth (A: integer) * (B: integer): integer`
-   Returns :mini:`A * B`.
-
-
-:mini:`meth (A: integer) * (B: real): real`
    Returns :mini:`A * B`.
 
 
@@ -358,15 +291,7 @@ number
    Returns :mini:`A + B`.
 
 
-:mini:`meth (A: integer) + (B: double): real`
-   Returns :mini:`A + B`.
-
-
 :mini:`meth (A: integer) + (B: integer): integer`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: integer) + (B: real): real`
    Returns :mini:`A + B`.
 
 
@@ -382,15 +307,7 @@ number
    Returns :mini:`A - B`.
 
 
-:mini:`meth (A: integer) - (B: double): real`
-   Returns :mini:`A - B`.
-
-
 :mini:`meth (A: integer) - (B: integer): integer`
-   Returns :mini:`A - B`.
-
-
-:mini:`meth (A: integer) - (B: real): real`
    Returns :mini:`A - B`.
 
 
@@ -399,10 +316,6 @@ number
 
 
 :mini:`meth (A: integer) / (B: complex): complex`
-   Returns :mini:`A / B`.
-
-
-:mini:`meth (A: integer) / (B: double): real`
    Returns :mini:`A / B`.
 
 
@@ -417,16 +330,8 @@ number
       type(R) :> <<double>>
 
 
-:mini:`meth (A: integer) / (B: real): real`
-   Returns :mini:`A / B`.
-
-
 :mini:`meth (A: integer) /\\ (B: integer): integer`
    Returns the bitwise and of :mini:`A` and :mini:`B`.
-
-
-:mini:`meth (A: integer) < (B: double): real`
-   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
 
 :mini:`meth (A: integer) < (B: integer): integer`
@@ -435,10 +340,6 @@ number
 
 :mini:`meth (A: integer) << (B: integer): integer`
    Returns :mini:`A << B`.
-
-
-:mini:`meth (A: integer) <= (B: double): real`
-   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
 
 
 :mini:`meth (A: integer) <= (B: integer): integer`
@@ -453,16 +354,8 @@ number
    Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Int₂`.
 
 
-:mini:`meth (A: integer) = (B: double): real`
-   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
-
-
 :mini:`meth (A: integer) = (B: integer): integer`
    Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
-
-
-:mini:`meth (A: integer) > (B: double): real`
-   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
 
 
 :mini:`meth (A: integer) > (B: integer): integer`
@@ -471,10 +364,6 @@ number
 
 :mini:`meth (A: integer) >< (B: integer): integer`
    Returns the bitwise xor of :mini:`A` and :mini:`B`.
-
-
-:mini:`meth (A: integer) >= (B: double): real`
-   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
 :mini:`meth (A: integer) >= (B: integer): integer`
@@ -571,15 +460,7 @@ number
    Returns :mini:`A ~ B`.
 
 
-:mini:`meth (A: integer) ~ (B: double): real`
-   Returns :mini:`A ~ B`.
-
-
 :mini:`meth (A: integer) ~ (B: integer): integer`
-   Returns :mini:`A ~ B`.
-
-
-:mini:`meth (A: integer) ~ (B: real): real`
    Returns :mini:`A ~ B`.
 
 
@@ -592,6 +473,228 @@ number
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: integer, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+
+
+:mini:`meth (A: integer32) != (B: integer32): integer`
+   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (Int₁: integer32) !| (Int₂: integer32): integer`
+   Returns :mini:`Int₂` if it is not divisible by :mini:`Int₁` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Int₁: integer32) % (Int₂: integer32): integer`
+   Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
+   Note: the result is calculated by rounding towards 0. In particular,  if :mini:`Int₁` is negative,  the result will be negative.
+   For a nonnegative remainder,  use :mini:`Int₁ mod Int₂`.
+
+
+:mini:`meth (A: integer32) * (B: integer32): integer`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (Arg₁: integer32) * (Arg₂: integer64)`
+   *TBD*
+
+
+:mini:`meth (A: integer32) + (B: integer32): integer`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (Arg₁: integer32) + (Arg₂: integer64)`
+   *TBD*
+
+
+:mini:`meth -(A: integer32): integer`
+   Returns :mini:`-A`.
+
+
+:mini:`meth (A: integer32) - (B: integer32): integer`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (Arg₁: integer32) - (Arg₂: integer64)`
+   *TBD*
+
+
+:mini:`meth (Int₁: integer32) / (Int₂: integer32): integer | real`
+   Returns :mini:`Int₁ / Int₂` as an integer if the division is exact,  otherwise as a real.
+
+   .. code-block:: mini
+
+      let N := 10 / 2 :> 5
+      type(N) :> <<integer32>>
+      let R := 10 / 3 :> 3.33333333333333
+      type(R) :> <<double>>
+
+
+:mini:`meth (Arg₁: integer32) / (Arg₂: integer64)`
+   *TBD*
+
+
+:mini:`meth (A: integer32) /\\ (B: integer32): integer`
+   Returns the bitwise and of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth (A: integer32) < (B: integer32): integer`
+   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer32) <= (B: integer32): integer`
+   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer32) = (B: integer32): integer`
+   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer32) > (B: integer32): integer`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer32) >< (B: integer32): integer`
+   Returns the bitwise xor of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth (A: integer32) >= (B: integer32): integer`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer32) \\/ (B: integer32): integer`
+   Returns the bitwise or of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth (A: integer32):bsf: integer`
+   Returns the index of the least significant 1-bit of :mini:`A`,  or :mini:`0` if :mini:`A = 0`.
+
+   .. code-block:: mini
+
+      16:bsf :> 5
+      10:bsf :> 2
+      0:bsf :> 0
+
+
+:mini:`meth (A: integer32):bsr: integer`
+   Returns the index of the most significant 1-bit of :mini:`A`,  or :mini:`0` if :mini:`A = 0`.
+
+   .. code-block:: mini
+
+      16:bsr :> 5
+      10:bsr :> 4
+      0:bsr :> 0
+
+
+:mini:`meth (Int₁: integer32):div(Int₂: integer32): integer`
+   Returns the quotient of :mini:`Int₁` divided by :mini:`Int₂`.
+   The result is calculated by rounding down in all cases.
+
+
+:mini:`meth (Int₁: integer32):mod(Int₂: integer32): integer`
+   Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
+   Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
+
+
+:mini:`meth (Int₁: integer32) | (Int₂: integer32): integer`
+   Returns :mini:`Int₂` if it is divisible by :mini:`Int₁` and :mini:`nil` otherwise.
+
+
+:mini:`meth ~(A: integer32): integer`
+   Returns :mini:`~A`.
+
+
+:mini:`meth (A: integer32) ~ (B: integer32): integer`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer32)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer32, Base: integer)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
+
+
+:mini:`type integer64 < integer`
+   A 64-bit signed integer value.
+   
+   :mini:`fun (I: integer)(Arg₁,  ...,  Argₙ): any | nil`
+      Returns the :mini:`I`-th argument or :mini:`nil` if there is no :mini:`I`-th argument. Negative values of :mini:`I` are counted from the last argument.
+      In particular,  :mini:`0(...)` always returns :mini:`nil` and :mini:`1` behaves as the identity function.
+
+   .. code-block:: mini
+
+      2("a", "b", "c") :> "b"
+      -1("a", "b", "c") :> "c"
+      4("a", "b", "c") :> nil
+      0("a", "b", "c") :> nil
+
+
+:mini:`meth (Arg₁: integer64) * (Arg₂: integer32)`
+   *TBD*
+
+
+:mini:`meth (A: integer64) * (B: integer64): integer`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (Arg₁: integer64) + (Arg₂: integer32)`
+   *TBD*
+
+
+:mini:`meth (A: integer64) + (B: integer64): integer`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth -(A: integer64): integer`
+   Returns :mini:`-A`.
+
+
+:mini:`meth (Arg₁: integer64) - (Arg₂: integer32)`
+   *TBD*
+
+
+:mini:`meth (A: integer64) - (B: integer64): integer`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (Arg₁: integer64) / (Arg₂: integer32)`
+   *TBD*
+
+
+:mini:`meth (A: integer64) /\\ (B: integer64): integer`
+   Returns :mini:`A /\ B`.
+
+
+:mini:`meth (A: integer64) >< (B: integer64): integer`
+   Returns :mini:`A >< B`.
+
+
+:mini:`meth (A: integer64) \\/ (B: integer64): integer`
+   Returns :mini:`A \/ B`.
+
+
+:mini:`meth ~(A: integer64): integer`
+   Returns :mini:`~A`.
+
+
+:mini:`meth (A: integer64) ~ (B: integer64): integer`
+   Returns :mini:`A ~ B`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer64)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer64, Base: integer)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer64, Format: string)`
    Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 
 
@@ -637,16 +740,8 @@ number
    For a nonnegative remainder,  use :mini:`Real₁ mod Real₂`.
 
 
-:mini:`meth (A: real) * (B: integer): real`
-   Returns :mini:`A * B`.
-
-
 :mini:`meth (A: real) * (B: real): real`
    Returns :mini:`A * B`.
-
-
-:mini:`meth (A: real) + (B: integer): real`
-   Returns :mini:`A + B`.
 
 
 :mini:`meth (A: real) + (B: real): real`
@@ -657,16 +752,8 @@ number
    Returns :mini:`-A`.
 
 
-:mini:`meth (A: real) - (B: integer): real`
-   Returns :mini:`A - B`.
-
-
 :mini:`meth (A: real) - (B: real): real`
    Returns :mini:`A - B`.
-
-
-:mini:`meth (A: real) / (B: integer): real`
-   Returns :mini:`A / B`.
 
 
 :mini:`meth (A: real) / (B: real): real`
@@ -689,10 +776,6 @@ number
 :mini:`meth (Int₁: real):mod(Int₂: real): integer`
    Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
    Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
-
-
-:mini:`meth (A: real) ~ (B: integer): real`
-   Returns :mini:`A ~ B`.
 
 
 :mini:`meth (A: real) ~ (B: real): real`

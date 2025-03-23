@@ -1005,6 +1005,50 @@ ML_FUNCTION(DecodeComplex) {
 
 #endif
 
+#ifdef ML_BIGINT
+
+static void ML_TYPED_FN(ml_cbor_write, MLInteger64T, ml_cbor_writer_t *Writer, ml_integer_t *Arg) {
+	size_t Bits = mpz_sizeinbase(Arg->Value, 2);
+	if (Bits <= 64) {
+		uint64_t Unscaled = mpz_get_u64(Arg->Value);
+		if (mpz_sgn(Arg->Value) < 0) {
+			minicbor_write_negative(Writer, Unscaled);
+		} else {
+			minicbor_write_positive(Writer, Unscaled);
+		}
+	} else {
+		if (mpz_sgn(Arg->Value) < 0) {
+			minicbor_write_tag(Writer, ML_CBOR_TAG_NEGATIVE_BIGNUM);
+		} else {
+			minicbor_write_tag(Writer, ML_CBOR_TAG_UNSIGNED_BIGNUM);
+		}
+		unsigned char Bytes[(Bits / 8) + 1];
+		size_t Length;
+		mpz_export(Bytes, &Length, 1, 1, 1, 0, Arg->Value);
+		minicbor_write_bytes(Writer, Length);
+		ml_cbor_write_raw(Writer, Bytes, Length);
+	}
+}
+
+ml_value_t *ml_cbor_read_unsigned_bigint(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Bigint requires bytes");
+	mpz_t Import;
+	mpz_init(Import);
+	mpz_import(Import, ml_address_length(Value), 1, 1, 1, 0, ml_address_value(Value));
+	return ml_integer_mpz(Import);
+}
+
+ml_value_t *ml_cbor_read_negative_bigint(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Bigint requires bytes");
+	mpz_t Import;
+	mpz_init(Import);
+	mpz_import(Import, ml_address_length(Value), 1, 1, 1, 0, ml_address_value(Value));
+	mpz_neg(Import, Import);
+	return ml_integer_mpz(Import);
+}
+
+#endif
+
 #ifdef ML_DECIMAL
 
 ml_value_t *ml_cbor_read_decimal(ml_cbor_reader_t *Reader, ml_value_t *Value) {
@@ -1019,7 +1063,30 @@ static void ML_TYPED_FN(ml_cbor_write, MLDecimalT, ml_cbor_writer_t *Writer, ml_
 	minicbor_write_tag(Writer, ML_CBOR_TAG_DECIMAL_FRACTION);
 	minicbor_write_array(Writer, 2);
 	minicbor_write_integer(Writer, -Arg->Scale);
-	ml_cbor_write(Writer, Arg->Unscaled);
+#ifdef ML_BIGINT
+	size_t Bits = mpz_sizeinbase(Arg->Unscaled, 2);
+	if (Bits <= 64) {
+		uint64_t Unscaled = mpz_get_u64(Arg->Unscaled);
+		if (mpz_sgn(Arg->Unscaled) < 0) {
+			minicbor_write_negative(Writer, Unscaled);
+		} else {
+			minicbor_write_positive(Writer, Unscaled);
+		}
+	} else {
+		if (mpz_sgn(Arg->Unscaled) < 0) {
+			minicbor_write_tag(Writer, ML_CBOR_TAG_NEGATIVE_BIGNUM);
+		} else {
+			minicbor_write_tag(Writer, ML_CBOR_TAG_UNSIGNED_BIGNUM);
+		}
+		unsigned char Bytes[(Bits / 8) + 1];
+		size_t Length;
+		mpz_export(Bytes, &Length, 1, 1, 1, 0, Arg->Unscaled);
+		minicbor_write_bytes(Writer, Length);
+		ml_cbor_write_raw(Writer, Bytes, Length);
+	}
+#else
+	minicbor_write_integer(Writer, Arg->Unscaled);
+#endif
 }
 
 ML_FUNCTION(DecodeDecimal) {
@@ -1292,6 +1359,10 @@ void ml_cbor_init(stringmap_t *Globals) {
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", (ml_value_t *)DecodeComplex);
 	ml_cbor_default_tag(ML_CBOR_TAG_COMPLEX, ml_cbor_read_complex);
+#endif
+#ifdef ML_BIGINT
+	ml_cbor_default_tag(ML_CBOR_TAG_UNSIGNED_BIGNUM, ml_cbor_read_unsigned_bigint);
+	ml_cbor_default_tag(ML_CBOR_TAG_NEGATIVE_BIGNUM, ml_cbor_read_negative_bigint);
 #endif
 #ifdef ML_DECIMAL
 	ml_cbor_default_object("decimal", (ml_value_t *)DecodeDecimal);

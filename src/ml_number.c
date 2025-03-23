@@ -338,7 +338,7 @@ int64_t mpz_get_s64(const mpz_t Z) {
 
 void mpz_set_s64(mpz_t Z, int64_t V) {
 	mpz_init2(Z, 64);
-	uint64_t Abs = V< 0 ? -V : V;
+	uint64_t Abs = V < 0 ? -V : V;
 #if LIMBS64 == 1
 	Z->_mp_d[0] = (mp_limb_t)Abs;
 	Z->_mp_size = V < 0 ? -1 : V ? 1 : 0;
@@ -349,6 +349,35 @@ void mpz_set_s64(mpz_t Z, int64_t V) {
 		Abs >>= GMP_NUMB_BITS;
 	}
 	Z->_mp_size = V < 0 ? -I : V ? I : 0;
+#endif
+}
+
+uint64_t mpz_get_u64(const mpz_t Z) {
+	int N = Z->_mp_size;
+#if LIMBS64 == 1
+	if (N > 0) return Z->_mp_d[0];
+	return 0;
+#else
+	uint64_t V = 0;
+	if (N < 0) N = -N;
+	if (N > LIMBS64) N = LIMBS64;
+	while (N--) V = (V << GMP_NUMB_BITS) | Z->_mp_d[N];
+	return V;
+#endif
+}
+
+void mpz_set_u64(mpz_t Z, uint64_t V) {
+	mpz_init2(Z, 64);
+#if LIMBS64 == 1
+	Z->_mp_d[0] = (mp_limb_t)V;
+	Z->_mp_size = V ? 1 : 0;
+#else
+	int I = 0;
+	while (I < LIMBS64 && V) {
+		Z->_mp_d[I++] = V & GMP_NUMB_MASK;
+		V >>= GMP_NUMB_BITS;
+	}
+	Z->_mp_size = V ? I : 0;
 #endif
 }
 
@@ -3374,8 +3403,8 @@ ML_DESERIALIZER("real-switch") {
 
 #ifdef ML_DECIMAL
 
-static long ml_decimal_hash(ml_decimal_t *Value, ml_hash_chain_t *Chain) {
-	return ml_hash_chain(Value->Unscaled, Chain) + Value->Scale;
+static long ml_decimal_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return ml_integer_value(Value);
 }
 
 ML_TYPE(MLDecimalT, (MLRealT), "decimal",
@@ -3385,14 +3414,22 @@ ML_TYPE(MLDecimalT, (MLRealT), "decimal",
 ml_value_t *ml_decimal(ml_value_t *Unscaled, int32_t Scale) {
 	ml_decimal_t *Decimal = new(ml_decimal_t);
 	Decimal->Type = MLDecimalT;
-	Decimal->Unscaled = Unscaled;
+#ifdef ML_BIGINT
+	ml_integer_mpz_init(Decimal->Unscaled, Unscaled);
+#else
+	Decimal->Unscaled = ml_integer_value(Unscaled);
+#endif
 	Decimal->Scale = Scale;
 	return (ml_value_t *)Decimal;
 }
 
 ML_METHOD("unscaled", MLDecimalT) {
 	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
-	return Decimal->Unscaled;
+#ifdef ML_BIGINT
+	return ml_integer_mpz(Decimal->Unscaled);
+#else
+	return ml_integer(Decimal->Unscaled);
+#endif
 }
 
 ML_METHOD("scale", MLDecimalT) {
@@ -3400,22 +3437,75 @@ ML_METHOD("scale", MLDecimalT) {
 	return ml_integer(Decimal->Scale);
 }
 
-static int64_t ML_TYPED_FN(ml_integer_value, MLDecimalT, ml_decimal_t *Value) {
-	if (Value->Scale <= 0)  {
-		return ml_integer_value(Value->Unscaled) * (long)exp10(-Value->Scale);
+static int64_t ML_TYPED_FN(ml_integer_value, MLDecimalT, ml_decimal_t *Decimal) {
+#ifdef ML_BIGINT
+	if (Decimal->Scale > 0) {
+		mpz_t Value;
+		mpz_init(Value);
+		mpz_ui_pow_ui(Value, 10, Decimal->Scale);
+		mpz_fdiv_q(Value, Decimal->Unscaled, Value);
+		return mpz_get_s64(Value);
+	} else if (Decimal->Scale < 0) {
+		mpz_t Value;
+		mpz_init(Value);
+		mpz_ui_pow_ui(Value, 10, -Decimal->Scale);
+		mpz_mul(Value, Decimal->Unscaled, Value);
+		return mpz_get_s64(Value);
 	} else {
-		return ml_integer_value(Value->Unscaled) / exp10(Value->Scale);
+		return mpz_get_s64(Decimal->Unscaled);
+	}
+#else
+	return Decimal->Unscaled / exp10(Decimal->Scale);
+#endif
+}
+
+#ifdef ML_BIGINT
+
+static void ML_TYPED_FN(ml_integer_mpz_init, MLDecimalT, mpz_t Value, ml_decimal_t *Decimal) {
+	mpz_init(Value);
+	if (Decimal->Scale > 0) {
+		mpz_ui_pow_ui(Value, 10, Decimal->Scale);
+		mpz_fdiv_q(Value, Decimal->Unscaled, Value);
+	} else if (Decimal->Scale < 0) {
+		mpz_ui_pow_ui(Value, 10, -Decimal->Scale);
+		mpz_mul(Value, Decimal->Unscaled, Value);
+	} else {
+		mpz_set(Value, Decimal->Unscaled);
 	}
 }
 
-static double ML_TYPED_FN(ml_real_value, MLDecimalT, ml_decimal_t *Value) {
-	return ml_integer_value(Value->Unscaled) / exp10(Value->Scale);
+#endif
+
+static double ML_TYPED_FN(ml_real_value, MLDecimalT, ml_decimal_t *Decimal) {
+#ifdef ML_BIGINT
+	if (Decimal->Scale > 0) {
+		mpq_t Scaled;
+		mpz_init_set(mpq_numref(Scaled), Decimal->Unscaled);
+		mpz_init(mpq_denref(Scaled));
+		mpz_ui_pow_ui(mpq_denref(Scaled), 10, Decimal->Scale);
+		return mpq_get_d(Scaled);
+	} else if (Decimal->Scale < 0) {
+		mpz_t Scaled;
+		mpz_init(Scaled);
+		mpz_ui_pow_ui(Scaled, 10, -Decimal->Scale);
+		mpz_mul(Scaled, Decimal->Unscaled, Scaled);
+		return mpz_get_d(Scaled);
+	} else {
+		return mpz_get_d(Decimal->Unscaled);
+	}
+#else
+	return Decimal->Unscaled / exp10(Decimal->Scale);
+#endif
 }
 
 ML_METHOD(MLDecimalT, MLIntegerT, MLIntegerT) {
 	ml_decimal_t *Decimal = new(ml_decimal_t);
 	Decimal->Type = MLDecimalT;
-	Decimal->Unscaled = Args[0];
+#ifdef ML_BIGINT
+	ml_integer_mpz_init(Decimal->Unscaled, Args[0]);
+#else
+	Decimal->Unscaled = ml_integer_value(Args[0]);
+#endif
 	Decimal->Scale = ml_integer_value(Args[1]);
 	return (ml_value_t *)Decimal;
 }
@@ -3423,7 +3513,11 @@ ML_METHOD(MLDecimalT, MLIntegerT, MLIntegerT) {
 ML_METHOD(MLDecimalT, MLIntegerT) {
 	ml_decimal_t *Decimal = new(ml_decimal_t);
 	Decimal->Type = MLDecimalT;
-	Decimal->Unscaled = Args[0];
+#ifdef ML_BIGINT
+	ml_integer_mpz_init(Decimal->Unscaled, Args[0]);
+#else
+	Decimal->Unscaled = ml_integer_value(Args[0]);
+#endif
 	Decimal->Scale = 0;
 	return (ml_value_t *)Decimal;
 }
@@ -3451,23 +3545,36 @@ ML_METHOD(MLDecimalT, MLRealT) {
 	}
 	ml_decimal_t *Decimal = new(ml_decimal_t);
 	Decimal->Type = MLDecimalT;
-	Decimal->Unscaled = ml_integer_parse(Temp);
+#ifdef ML_BIGINT
+	mpz_init_set_str(Decimal->Unscaled, Temp, 10);
+#else
+	Decimal->Unscaled = strtoll(Temp, NULL, 10);
+#endif
 	Decimal->Scale = Scale;
 	return (ml_value_t *)Decimal;
 }
 
 ML_METHOD(MLRealT, MLDecimalT) {
 	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
-	return ml_real(ml_integer_value(Decimal->Unscaled) / exp10(Decimal->Scale));
-}
-
-ML_METHOD(MLNumberT, MLDecimalT) {
-	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
-	if (Decimal->Scale <= 0)  {
-		return ml_integer(ml_integer_value(Decimal->Unscaled) * (long)exp10(-Decimal->Scale));
+#ifdef ML_BIGINT
+	if (Decimal->Scale > 0) {
+		mpq_t Scaled;
+		mpz_init_set(mpq_numref(Scaled), Decimal->Unscaled);
+		mpz_init(mpq_denref(Scaled));
+		mpz_ui_pow_ui(mpq_denref(Scaled), 10, Decimal->Scale);
+		return ml_real(mpq_get_d(Scaled));
+	} else if (Decimal->Scale < 0) {
+		mpz_t Scaled;
+		mpz_init(Scaled);
+		mpz_ui_pow_ui(Scaled, 10, -Decimal->Scale);
+		mpz_mul(Scaled, Decimal->Unscaled, Scaled);
+		return ml_real(mpz_get_d(Scaled));
 	} else {
-		return ml_real(ml_integer_value(Decimal->Unscaled) / exp10(Decimal->Scale));
+		return ml_real(mpz_get_d(Decimal->Unscaled));
 	}
+#else
+	return ml_real(Decimal->Unscaled / exp10(Decimal->Scale));
+#endif
 }
 
 #endif

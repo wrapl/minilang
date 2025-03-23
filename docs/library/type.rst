@@ -13,10 +13,6 @@ type
    *TBD*
 
 
-:mini:`meth number(Arg₁: decimal)`
-   *TBD*
-
-
 :mini:`meth real(Arg₁: decimal)`
    *TBD*
 
@@ -26,10 +22,6 @@ type
 
 
 :mini:`meth (Arg₁: decimal):unscaled`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: decimal)`
    *TBD*
 
 

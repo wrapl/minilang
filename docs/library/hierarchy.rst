@@ -129,6 +129,7 @@ hierarchy
       "complex":e -> "real":w;
       "real":e -> "integer":w;
       "function":e -> "integer":w;
+      "integer":e -> "integer64":w;
       "real":e -> "double":w;
       "sequence":e -> "integer::range":w;
       "sequence":e -> "integer::interval":w;

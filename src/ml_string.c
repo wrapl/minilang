@@ -930,7 +930,7 @@ ML_METHOD("append", MLStringBufferT, MLInteger64T) {
 	const char *Str = mpz_get_str(NULL, 10, ((ml_integer_t *)Args[1])->Value);
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
-	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%ld", ml_integer64_value(Args[1]));
 #endif
 	return MLSome;
 }
@@ -945,6 +945,51 @@ ML_METHOD("append", MLStringBufferT, MLInteger64T, MLIntegerT) {
 	int Base = ml_integer_value(Args[2]);
 #ifdef ML_BIGINT
 	const char *Str = mpz_get_str(NULL, Base, ((ml_integer_t *)Args[1])->Value);
+	ml_stringbuffer_write(Buffer, Str, strlen(Str));
+#else
+	int64_t Value = ml_integer64_value(Args[1]);
+	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
+	int Max = 65;
+	char Temp[Max + 1], *P = Temp + Max, *Q = P;
+	*P = '\0';
+	int64_t Neg = Value < 0 ? Value : -Value;
+	do {
+		*--P = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[-(Neg % Base)];
+		Neg /= Base;
+	} while (Neg);
+	if (Value < 0) *--P = '-';
+	ml_stringbuffer_write(Buffer, P, Q - P);
+#endif
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLIntegerT) {
+//!number
+//<Buffer
+//<Value
+// Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+#ifdef ML_BIGINT
+	mpz_t Value; ml_integer_mpz_init(Value, Args[1]);
+	const char *Str = mpz_get_str(NULL, 10, Value);
+	ml_stringbuffer_write(Buffer, Str, strlen(Str));
+#else
+	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Args[1]));
+#endif
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
+//!number
+//<Buffer
+//<Value
+//<Base
+// Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	int Base = ml_integer_value(Args[2]);
+#ifdef ML_BIGINT
+	mpz_t Value; ml_integer_mpz_init(Value, Args[1]);
+	const char *Str = mpz_get_str(NULL, Base, Value);
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
 	int64_t Value = ml_integer_value(Args[1]);
@@ -992,27 +1037,6 @@ static regex_t IntFormat[1];
 static regex_t LongFormat[1];
 static regex_t RealFormat[1];
 
-ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
-//!number
-//<Buffer
-//<Value
-//<Format
-// Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	const char *Format = ml_string_value(Args[2]);
-	int64_t Value = ml_integer_value(Args[1]);
-	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_printf(Buffer, Format, (int)Value);
-	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_printf(Buffer, Format, (long)Value);
-	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_printf(Buffer, Format, (double)Value);
-	} else {
-		return ml_error("FormatError", "Invalid format string");
-	}
-	return MLSome;
-}
-
 #ifdef ML_BIGINT
 
 static regex_t BigIntFormat[1];
@@ -1034,8 +1058,59 @@ ML_METHOD("append", MLStringBufferT, MLInteger64T, MLStringT) {
 	} else if (!regexec(BigIntFormat, Format, 0, NULL, 0)) {
 		ml_stringbuffer_printf(Buffer, Format, ((ml_integer_t *)Args[1])->Value);
 	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
+		double Value = ml_real_value(Args[1]);
+		ml_stringbuffer_printf(Buffer, Format, Value);
+	} else {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
+//!number
+//<Buffer
+//<Value
+//<Format
+// Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Format = ml_string_value(Args[2]);
+	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
 		int64_t Value = ml_integer_value(Args[1]);
-		ml_stringbuffer_printf(Buffer, Format, (double)Value);
+		ml_stringbuffer_printf(Buffer, Format, (int)Value);
+	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
+		int64_t Value = ml_integer_value(Args[1]);
+		ml_stringbuffer_printf(Buffer, Format, (long)Value);
+	} else if (!regexec(BigIntFormat, Format, 0, NULL, 0)) {
+		mpz_t Value; ml_integer_mpz_init(Value, Args[1]);
+		ml_stringbuffer_printf(Buffer, Format, Value);
+	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
+		double Value = ml_real_value(Args[1]);
+		ml_stringbuffer_printf(Buffer, Format, Value);
+	} else {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	return MLSome;
+}
+
+#else
+
+ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
+//!number
+//<Buffer
+//<Value
+//<Format
+// Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Format = ml_string_value(Args[2]);
+	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
+		int64_t Value = ml_integer_value(Args[1]);
+		ml_stringbuffer_printf(Buffer, Format, (int)Value);
+	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
+		int64_t Value = ml_integer_value(Args[1]);
+		ml_stringbuffer_printf(Buffer, Format, (long)Value);
+	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
+		double Value = ml_real_value(Args[1]);
+		ml_stringbuffer_printf(Buffer, Format, Value);
 	} else {
 		return ml_error("FormatError", "Invalid format string");
 	}
@@ -1197,35 +1272,30 @@ ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
 ML_METHOD("append", MLStringBufferT, MLDecimalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_decimal_t *Decimal = (ml_decimal_t *)Args[1];
-	ml_stringbuffer_t TempBuffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_simple_append(TempBuffer, Decimal->Unscaled);
+#ifdef ML_BIGINT
+	char *Temp = mpz_get_str(NULL, 10, Decimal->Unscaled);
+	int Length = strlen(Temp);
+#else
+	char Temp[24];
+	int Length = sprintf(Temp, "%ld", Decimal->Unscaled);
+#endif
 	int Scale = Decimal->Scale;
 	if (Scale > 0) {
-		if (Scale >= TempBuffer->Length) {
+		if (Scale >= Length) {
 			ml_stringbuffer_write(Buffer, "0.", strlen("0."));
-			for (int I = Scale - TempBuffer->Length; --I >= 0;) ml_stringbuffer_put(Buffer, '0');
-			ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+			for (int I = Scale - Length; --I >= 0;) ml_stringbuffer_put(Buffer, '0');
+			ml_stringbuffer_write(Buffer, Temp, Length);
 		} else {
-			int WholeDigits = TempBuffer->Length - Scale;
-			while (WholeDigits > 0) {
-				int N = ml_stringbuffer_reader(TempBuffer, 0);
-				if (N >= WholeDigits) {
-					ml_stringbuffer_write(Buffer, TempBuffer->Head->Chars + TempBuffer->Start, WholeDigits);
-					ml_stringbuffer_reader(TempBuffer, WholeDigits);
-					break;
-				}
-				ml_stringbuffer_write(Buffer, TempBuffer->Head->Chars + TempBuffer->Start, N);
-				ml_stringbuffer_reader(TempBuffer, N);
-				WholeDigits -= N;
-			}
+			int WholeDigits = Length - Scale;
+			ml_stringbuffer_write(Buffer, Temp, WholeDigits);
 			ml_stringbuffer_put(Buffer, '.');
-			ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+			ml_stringbuffer_write(Buffer, Temp + WholeDigits, Length - WholeDigits);
 		}
 	} else if (Scale < 0) {
-		ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+		ml_stringbuffer_write(Buffer, Temp, Length);
 		for (int I = Scale; ++I <= 0;) ml_stringbuffer_put(Buffer, '0');
 	} else {
-		ml_stringbuffer_drain(TempBuffer, Buffer, (void *)ml_stringbuffer_write);
+		ml_stringbuffer_write(Buffer, Temp, Length);
 	}
 	return MLSome;
 }
@@ -5200,6 +5270,9 @@ void ml_string_init() {
 	stringmap_insert(MLStringBufferT->Exports, "count", MLStringBufferCount);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
+#ifdef ML_BIGINT
+	regcomp(BigIntFormat, "^\\s*%[-+ #'0]*[.0-9]*Zd\\s*$", REG_NOSUB);
+#endif
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	regcomp(StringFormat, "^\\s*%[-]?[0-9]*[s]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
