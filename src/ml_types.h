@@ -556,6 +556,7 @@ extern ml_type_t MLNumberT[];
 extern ml_type_t MLRealT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLDoubleT[];
+extern ml_type_t MLInteger64T[];
 
 uint64_t ml_gcd(uint64_t A, uint64_t B);
 
@@ -601,6 +602,10 @@ int64_t mpz_get_s64(const mpz_t Z);
 #endif
 
 #ifdef ML_NANBOXING
+
+#define NegOne ml_integer32(-1)
+#define One ml_integer32(1)
+#define Zero ml_integer32(0)
 
 static inline ml_value_t *ml_integer32(int32_t Integer) {
 	return (ml_value_t *)(((uint64_t)1 << 48) + (uint32_t)Integer);
@@ -682,11 +687,19 @@ static inline double ml_double_value(const ml_value_t *Value) {
 
 #else
 
+extern ml_integer_t One[1];
+extern ml_integer_t NegOne[1];
+extern ml_integer_t Zero[1];
+
 ml_value_t *ml_integer(int64_t Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
 inline int64_t ml_integer64_value(const ml_value_t *Value) {
+#ifdef ML_BIGINT
+	return mpz_get_s64(((ml_integer_t *)Value)->Value);
+#else
 	return ((ml_integer_t *)Value)->Value;
+#endif
 }
 
 typedef struct {

@@ -309,41 +309,6 @@ ML_DEF(NaN);
 // Not a number.
 */
 
-#ifdef ML_NANBOXING
-
-static long ml_integer32_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	return (int32_t)(intptr_t)Value;
-}
-
-static void ml_integer32_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	long Index = (int32_t)(intptr_t)Value;
-	if (Index <= 0) Index += Count + 1;
-	if (Index <= 0) ML_RETURN(MLNil);
-	if (Index > Count) ML_RETURN(MLNil);
-	ML_RETURN(Args[Index - 1]);
-}
-
-ML_TYPE(MLInteger32T, (MLIntegerT), "integer32",
-//!internal
-	.hash = (void *)ml_integer32_hash,
-	.call = (void *)ml_integer32_call,
-	.NoInherit = 1
-);
-
-static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-#ifdef ML_BIGINT
-	return ml_integer64_value(Value);
-#else
-	return ((ml_integer_t *)Value)->Value;
-#endif
-}
-
-ML_TYPE(MLInteger64T, (MLIntegerT), "integer64",
-//!internal
-	.hash = (void *)ml_integer64_hash,
-	.NoInherit = 1
-);
-
 #ifdef ML_BIGINT
 
 #define LIMBS64 ((64 + GMP_NUMB_BITS  - 1) / GMP_NUMB_BITS)
@@ -389,6 +354,37 @@ void mpz_set_s64(mpz_t Z, int64_t V) {
 
 #endif
 
+#ifdef ML_NANBOXING
+
+static long ml_integer32_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return (int32_t)(intptr_t)Value;
+}
+
+static void ml_integer32_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+	long Index = (int32_t)(intptr_t)Value;
+	if (Index <= 0) Index += Count + 1;
+	if (Index <= 0) ML_RETURN(MLNil);
+	if (Index > Count) ML_RETURN(MLNil);
+	ML_RETURN(Args[Index - 1]);
+}
+
+ML_TYPE(MLInteger32T, (MLIntegerT), "integer32",
+//!internal
+	.hash = (void *)ml_integer32_hash,
+	.call = (void *)ml_integer32_call,
+	.NoInherit = 1
+);
+
+static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return ml_integer64_value(Value);
+}
+
+ML_TYPE(MLInteger64T, (MLIntegerT), "integer64",
+//!internal
+	.hash = (void *)ml_integer64_hash,
+	.NoInherit = 1
+);
+
 ml_value_t *ml_integer64(int64_t Integer) {
 	ml_integer_t *Value = new(ml_integer_t);
 	Value->Type = MLInteger64T;
@@ -416,17 +412,14 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_double_value(Value);
+	if (Tag == 0 && Value->Type == MLInteger64T) return ml_integer64_value(Value);
 	typeof(ml_integer_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
 	if (fn) return fn(Value);
 	return 0;
 }
 
-static int64_t ML_TYPED_FN(ml_integer_value, MLInteger64T, const ml_integer_t *Value) {
-#ifdef ML_BIGINT
-	return mpz_get_s64(Value->Value);
-#else
-	return Value->Value;
-#endif
+static int64_t ML_TYPED_FN(ml_integer_value, MLInteger64T, const ml_value_t *Value) {
+	return ml_integer64_value(Value);
 }
 
 ml_value_t *ml_integer_parse(char *String) {
@@ -534,12 +527,12 @@ ML_METHOD(MLRealT, MLInteger64T) {
 
 #else
 
-static long ml_integer64_hash(ml_integer_t *Integer, ml_hash_chain_t *Chain) {
-	return Integer->Value;
+static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return ml_integer64_value(Value);
 }
 
-static void ml_integer64_call(ml_state_t *Caller, ml_integer_t *Integer, int Count, ml_value_t **Args) {
-	long Index = Integer->Value;
+static void ml_integer64_call(ml_state_t *Caller, ml_value_t *Integer, int Count, ml_value_t **Args) {
+	long Index = ml_integer64_value(Integer);
 	if (Index <= 0) Index += Count + 1;
 	if (Index <= 0) ML_RETURN(MLNil);
 	if (Index > Count) ML_RETURN(MLNil);
@@ -564,26 +557,18 @@ ml_value_t *ml_integer(int64_t Value) {
 	ml_integer_t *Integer = new(ml_integer_t);
 	Integer->Type = MLInteger64T;
 #ifdef ML_BIGINT
-	mpz_set_s64(Integer->Value, Integer);
+	mpz_set_s64(Integer->Value, Value);
 #else
 	Integer->Value = Value;
 #endif
 	return (ml_value_t *)Integer;
 }
 
-extern int64_t ml_integer_value(const ml_value_t *Value);
-
 int64_t ml_integer_value(const ml_value_t *Value) {
-	if (Value->Type == MLIntegerT) {
-		return ((ml_integer_t *)Value)->Value;
+	if (Value->Type == MLInteger64T) {
+		return ml_integer64_value(Value);
 	} else if (Value->Type == MLDoubleT) {
 		return ((ml_double_t *)Value)->Value;
-	} else if (ml_is(Value, MLIntegerT)) {
-#ifdef ML_BIGINT
-		return mpz_get_si(((ml_integer_t *)Value)->Value);
-#else
-		return ((ml_integer_t *)Value)->Value;
-#endif
 	} else {
 		typeof(ml_integer_value) *fn = ml_typed_fn_get(ml_typeof(Value), ml_integer_value);
 		if (fn) return fn(Value);
@@ -739,6 +724,8 @@ ML_METHOD(#NAME, MLInteger32T, MLInteger32T) { \
 
 #ifdef ML_BIGINT
 
+#ifdef ML_NANBOXING
+
 void ml_integer_mpz_init(mpz_t Dest, ml_value_t *Source) {
 	int Tag = ml_tag(Source);
 	if (__builtin_expect(Tag, 1)) {
@@ -763,6 +750,28 @@ ml_value_t *ml_integer_mpz(const mpz_t Source) {
 		return (ml_value_t *)Value;
 	}
 }
+
+#else
+
+void ml_integer_mpz_init(mpz_t Dest, ml_value_t *Source) {
+	if (Source->Type == MLInteger64T) {
+		return mpz_init_set(Dest, ((ml_integer_t *)Source)->Value);
+	} else if (Source->Type == MLDoubleT) {
+		return mpz_init_set_d(Dest, ml_double_value(Source));
+	}
+	typeof(ml_integer_mpz_init) *fn = ml_typed_fn_get(Source->Type, ml_integer_mpz_init);
+	if (fn) return fn(Dest, Source);
+	mpz_init(Dest);
+}
+
+ml_value_t *ml_integer_mpz(const mpz_t Source) {
+	ml_integer_t *Value = new(ml_integer_t);
+	Value->Type = MLInteger64T;
+	mpz_init_set(Value->Value, Source);
+	return (ml_value_t *)Value;
+}
+
+#endif
 
 #ifdef ML_RATIONAL
 
@@ -1588,17 +1597,21 @@ ml_select_method_integer_real(NAME, FUNC)
 ml_select_method_number_number(min, lt);
 ml_select_method_number_number(max, gt);
 
-#ifdef ML_NANBOXING
+#ifndef ML_NANBOXING
 
-#define NegOne ml_integer32(-1)
-#define One ml_integer32(1)
-#define Zero ml_integer32(0)
+#ifdef ML_BIGINT
+
+ml_integer_t One[1] = {{MLIntegerT}};
+ml_integer_t NegOne[1] = {{MLIntegerT}};
+ml_integer_t Zero[1] = {{MLIntegerT}};
 
 #else
 
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
+ml_integer_t One[1] = {{MLIntegerT, 1}};
+ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
+ml_integer_t Zero[1] = {{MLIntegerT, 0}};
+
+#endif
 
 #endif
 
@@ -3460,6 +3473,11 @@ ML_METHOD(MLNumberT, MLDecimalT) {
 #endif
 
 void ml_number_init() {
+#if defined(ML_BIGINT) && !defined(ML_NANBOXING)
+	mpz_init_set_si(One->Value, 1);
+	mpz_init_set_si(Zero->Value, 0);
+	mpz_init_set_si(NegOne->Value, -1);
+#endif
 #include "ml_number_init.c"
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLIntegerT};

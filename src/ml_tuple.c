@@ -507,20 +507,6 @@ static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index
 	return Tuple->Values[Index - 1];
 }
 
-#ifdef ML_NANBOXING
-
-#define NegOne ml_integer32(-1)
-#define One ml_integer32(1)
-#define Zero ml_integer32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
-
 static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
 	// TODO: Replace this with a state to remove ml_simple_call
 	ml_value_t *Args[2];

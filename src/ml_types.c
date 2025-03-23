@@ -1181,20 +1181,6 @@ void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Ha
 	}
 }
 
-#ifdef ML_NANBOXING
-
-#define NegOne ml_integer32(-1)
-#define One ml_integer32(1)
-#define Zero ml_integer32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
-
 ML_METHODVZ("()", MLAnyT) {
 //!internal
 	ml_value_t *Value = ml_deref(Args[0]);

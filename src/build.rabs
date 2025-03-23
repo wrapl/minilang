@@ -196,6 +196,7 @@ let Options := [
 	"COMPLEX",
 	"RATIONAL",
 	"DECIMAL",
+	"BIGINT",
 	"CBOR",
 	"JSON",
 	"XML",

@@ -1671,20 +1671,6 @@ ML_METHOD("parameters", MLClosureT) {
 	return Map;
 }
 
-#ifdef ML_NANBOXING
-
-#define NegOne ml_integer32(-1)
-#define One ml_integer32(1)
-#define Zero ml_integer32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
-
 ML_METHOD("<>", MLClosureT, MLClosureT) {
 //!internal
 	char Hash1[SHA256_BLOCK_SIZE], Hash2[SHA256_BLOCK_SIZE];
