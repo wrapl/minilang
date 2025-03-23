@@ -13,6 +13,12 @@
 /// @{
 ///
 
+#ifdef ML_BIGINT
+
+#include <gmp.h>
+
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -573,12 +579,6 @@ double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
 ml_value_t *ml_integer_parse(char *String);
 ml_value_t *ml_real_parse(char *String);
-
-#ifdef ML_BIGINT
-
-#include <gmp.h>
-
-#endif
 
 typedef struct {
 	ml_type_t *Type;
