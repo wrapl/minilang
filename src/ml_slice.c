@@ -1371,33 +1371,6 @@ static void ml_slice_sort_state_run(ml_slice_sort_state_t *State, ml_value_t *Va
 	return ml_call(State, State->Compare, 2, State->Args);
 }
 
-extern ml_value_t *LessMethod;
-
-ML_METHODX("sort", MLSliceT) {
-	ml_slice_t *Slice = (ml_slice_t *)Args[0];
-	size_t Length = Slice->Length;
-	if (Length < 2) ML_RETURN(Slice);
-	ml_slice_sort_state_t *State = new(ml_slice_sort_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_slice_sort_state_run;
-	State->Slice = Slice;
-	State->Compare = LessMethod;
-	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
-	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
-	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
-	State->IndexA = Source;
-	State->IndexB = State->LimitA = Source + 1;
-	State->LimitB = Source + 2;
-	State->Target = Dest;
-	State->Limit = Dest + Length;
-	State->Length = Length;
-	State->BlockSize = 1;
-	State->Args[0] = Source[0].Value;
-	State->Args[1] = Source[1].Value;
-	return ml_call(State, State->Compare, 2, State->Args);
-}
-
 ML_METHODX("sort", MLSliceT, MLFunctionT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Length = Slice->Length;
@@ -1421,6 +1394,148 @@ ML_METHODX("sort", MLSliceT, MLFunctionT) {
 	State->Args[0] = Source[0].Value;
 	State->Args[1] = Source[1].Value;
 	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_slice_t *Slice;
+	ml_method_t *Compare;
+	ml_methods_t *Methods;
+	ml_method_cached_t *Cached;
+	ml_slice_node_t *Source, *Dest;
+	ml_slice_node_t *IndexA, *LimitA, *IndexB, *LimitB;
+	ml_slice_node_t *Target, *Limit;
+	ml_value_t *Args[2];
+	size_t Length, BlockSize;
+} ml_slice_method_sort_state_t;
+
+static void ml_slice_method_sort_state_run(ml_slice_method_sort_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_slice_node_t *Target = State->Target;
+	if (Value != MLNil) {
+		ml_slice_node_t *Index = State->IndexA;
+		*Target++ = *Index++;
+		if (Index < State->LimitA) {
+			State->Target = Target;
+			State->IndexA = Index;
+			State->Args[0] = Index->Value;
+			State->Args[1] = State->IndexB->Value;
+			ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+			if (!Cached) return ml_slice_method_sort_state_run(State, ml_no_method_error(State->Compare, 2, State->Args));
+			State->Cached = Cached;
+			return ml_call(State, Cached->Callback, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(ml_slice_node_t));
+	} else {
+		ml_slice_node_t *Index = State->IndexB;
+		*Target++ = *Index++;
+		if (Index < State->LimitB) {
+			State->Target = Target;
+			State->IndexB = Index;
+			State->Args[0] = State->IndexA->Value;
+			State->Args[1] = Index->Value;
+			ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+			if (!Cached) return ml_slice_method_sort_state_run(State, ml_no_method_error(State->Compare, 2, State->Args));
+			State->Cached = Cached;
+			return ml_call(State, Cached->Callback, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(ml_slice_node_t));
+	}
+	size_t Remaining = State->Limit - Target;
+	size_t BlockSize = State->BlockSize;
+	ml_slice_node_t *IndexA = State->LimitB;
+	if (Remaining <= BlockSize) {
+		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
+		BlockSize *= 2;
+		Remaining = State->Length;
+		if (Remaining <= BlockSize) {
+			ml_slice_t *Slice = State->Slice;
+			memcpy(Slice->Nodes + Slice->Offset, State->Dest, Remaining * sizeof(ml_slice_node_t));
+			ML_CONTINUE(State->Base.Caller, Slice);
+		}
+		State->BlockSize = BlockSize;
+		ml_slice_node_t *Temp = State->Source;
+		IndexA = State->Source = State->Dest;
+		Target = State->Dest = Temp;
+		State->Limit = Target + State->Length;
+	}
+	State->Target = Target;
+	State->IndexA = IndexA;
+	ml_slice_node_t *IndexB = IndexA + BlockSize;
+	State->LimitA = State->IndexB = IndexB;
+	Remaining -= BlockSize;
+	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
+	State->Args[0] = IndexA->Value;
+	State->Args[1] = IndexB->Value;
+	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+	if (!Cached) return ml_slice_method_sort_state_run(State, ml_no_method_error(State->Compare, 2, State->Args));
+	State->Cached = Cached;
+	return ml_call(State, Cached->Callback, 2, State->Args);
+}
+
+extern ml_value_t *LessMethod;
+
+ML_METHODX("sort", MLSliceT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Length = Slice->Length;
+	if (Length < 2) ML_RETURN(Slice);
+	ml_slice_method_sort_state_t *State = new(ml_slice_method_sort_state_t);
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_method_sort_state_run;
+	State->Slice = Slice;
+	State->Compare = (ml_method_t *)LessMethod;
+	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
+	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
+	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = Source[0].Value;
+	State->Args[1] = Source[1].Value;
+	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+	if (Cached) {
+		State->Cached = Cached;
+		return ml_call(State, Cached->Callback, 2, State->Args);
+	} else {
+		return ml_call(State, (ml_value_t *)State->Compare, 2, State->Args);
+	}
+}
+
+ML_METHODX("sort", MLSliceT, MLMethodT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Length = Slice->Length;
+	if (Length < 2) ML_RETURN(Slice);
+	ml_slice_method_sort_state_t *State = new(ml_slice_method_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_method_sort_state_run;
+	State->Slice = Slice;
+	State->Compare = (ml_method_t *)Args[1];
+	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
+	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
+	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = Source[0].Value;
+	State->Args[1] = Source[1].Value;
+	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+	if (Cached) {
+		State->Cached = Cached;
+		return ml_call(State, Cached->Callback, 2, State->Args);
+	} else {
+		return ml_call(State, (ml_value_t *)State->Compare, 2, State->Args);
+	}
 }
 
 #ifdef ML_MATH

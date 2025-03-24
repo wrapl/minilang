@@ -1646,30 +1646,6 @@ finished:
 	ML_CONTINUE(State->Base.Caller, Result);
 }
 
-extern ml_value_t *LessMethod;
-
-ML_METHODX("sort", MLListMutableT) {
-//<List
-//>List
-// Sorts :mini:`List` in-place using :mini:`<` and returns it.
-	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
-	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_sort_state_run;
-	ml_list_t *List = (ml_list_t *)Args[0];
-	State->List = List;
-	State->Compare = LessMethod;
-	State->Head = State->List->Head;
-	State->Length = List->Length;
-	State->InSize = 1;
-	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
-	List->CachedNode = NULL;
-	List->Head = List->Tail = NULL;
-	List->Length = 0;
-	return ml_list_sort_state_run(State, NULL);
-}
-
 ML_METHODX("sort", MLListMutableT, MLFunctionT) {
 //<List
 //<Compare
@@ -1691,6 +1667,166 @@ ML_METHODX("sort", MLListMutableT, MLFunctionT) {
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
 	return ml_list_sort_state_run(State, NULL);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_list_t *List;
+	ml_method_t *Compare;
+	ml_methods_t *Methods;
+	ml_method_cached_t *Cached;
+	ml_value_t *Args[2];
+	ml_list_node_t *Head, *Tail;
+	ml_list_node_t *P, *Q;
+	int Length, ReturnOrder;
+	int InSize, NMerges;
+	int PSize, QSize;
+} ml_list_method_sort_state_t;
+
+static void ml_list_method_sort_state_run(ml_list_method_sort_state_t *State, ml_value_t *Result) {
+	if (Result) goto resume;
+	for (;;) {
+		State->P = State->Head;
+		State->Tail = State->Head = NULL;
+		State->NMerges = 0;
+		while (State->P) {
+			State->NMerges++;
+			State->Q = State->P;
+			State->PSize = 0;
+			for (int I = 0; I < State->InSize; I++) {
+				State->PSize++;
+				State->Q = State->Q->Next;
+				if (!State->Q) break;
+			}
+			State->QSize = State->InSize;
+			while (State->PSize > 0 || (State->QSize > 0 && State->Q)) {
+				ml_list_node_t *E;
+				if (State->PSize == 0) {
+					E = State->Q; State->Q = State->Q->Next; State->QSize--;
+				} else if (State->QSize == 0 || !State->Q) {
+					E = State->P; State->P = State->P->Next; State->PSize--;
+				} else {
+					State->Args[0] = State->P->Value;
+					State->Args[1] = State->Q->Value;
+					ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+					if (!Cached) return ml_list_method_sort_state_run(State, ml_no_method_error(State->Compare, 2, State->Args));
+					State->Cached = Cached;
+					return ml_call(State, Cached->Callback, 2, State->Args);
+				resume:
+					if (ml_is_error(Result)) {
+						ml_list_node_t *Node = State->P, *Next;
+						if (State->Tail) {
+							State->Tail->Next = Node;
+						} else {
+							State->Head = Node;
+						}
+						Node->Prev = State->Tail;
+						for (int Size = State->PSize; --Size > 0;) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Next = State->Q;
+						Node->Next = Next;
+						Next->Prev = Node;
+						Node = Next;
+						while (Node->Next) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Node->Next = NULL;
+						State->Tail = Node;
+						State->List->Head = State->Head;
+						State->List->Tail = State->Tail;
+						State->List->CachedIndex = 1;
+						State->List->CachedNode = State->Head;
+						State->List->Length = State->Length;
+						ML_CONTINUE(State->Base.Caller, Result);
+					} else if (Result == MLNil) {
+						E = State->Q; State->Q = State->Q->Next; State->QSize--;
+					} else {
+						E = State->P; State->P = State->P->Next; State->PSize--;
+					}
+				}
+				if (State->Tail) {
+					State->Tail->Next = E;
+				} else {
+					State->Head = E;
+				}
+				E->Prev = State->Tail;
+				State->Tail = E;
+			}
+			State->P = State->Q;
+		}
+		State->Tail->Next = 0;
+		if (State->NMerges <= 1) {
+			Result = (ml_value_t *)State->List;
+			goto finished;
+		}
+		State->InSize *= 2;
+	}
+finished:
+	State->List->Head = State->Head;
+	State->List->Tail = State->Tail;
+	State->List->CachedIndex = 1;
+	State->List->CachedNode = State->Head;
+	State->List->Length = State->Length;
+#ifdef ML_MATH
+	if (State->ReturnOrder) {
+		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, State->Length);
+		uint32_t *Indices = (uint32_t *)Permutation->Base.Value;
+		ML_LIST_FOREACH(State->List, Iter) *Indices++ = Iter->Index;
+		Permutation->Base.Type = MLPermutationT;
+		Result = (ml_value_t *)Permutation;
+	}
+#endif
+	ML_CONTINUE(State->Base.Caller, Result);
+}
+
+extern ml_value_t *LessMethod;
+
+ML_METHODX("sort", MLListMutableT) {
+//<List
+//>List
+// Sorts :mini:`List` in-place using :mini:`<` and returns it.
+	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
+	ml_list_method_sort_state_t *State = new(ml_list_method_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_method_sort_state_run;
+	ml_list_t *List = (ml_list_t *)Args[0];
+	State->List = List;
+	State->Compare = (ml_method_t *)LessMethod;
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	State->Head = State->List->Head;
+	State->Length = List->Length;
+	State->InSize = 1;
+	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
+	List->CachedNode = NULL;
+	List->Head = List->Tail = NULL;
+	List->Length = 0;
+	return ml_list_method_sort_state_run(State, NULL);
+}
+
+ML_METHODX("sort", MLListMutableT, MLMethodT) {
+//<List
+//<Compare
+//>List
+// Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
+	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
+	ml_list_method_sort_state_t *State = new(ml_list_method_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_method_sort_state_run;
+	ml_list_t *List = (ml_list_t *)Args[0];
+	State->List = List;
+	State->Compare = (ml_method_t *)Args[1];
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	State->Head = List->Head;
+	State->Length = List->Length;
+	State->InSize = 1;
+	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
+	List->CachedNode = NULL;
+	List->Head = List->Tail = NULL;
+	List->Length = 0;
+	return ml_list_method_sort_state_run(State, NULL);
 }
 
 #ifdef ML_MATH

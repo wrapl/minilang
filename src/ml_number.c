@@ -3521,6 +3521,20 @@ ML_METHOD(MLDecimalT, MLIntegerT) {
 	return (ml_value_t *)Decimal;
 }
 
+
+
+ML_METHOD("d", MLIntegerT, MLIntegerT) {
+	ml_decimal_t *Decimal = new(ml_decimal_t);
+	Decimal->Type = MLDecimalT;
+#ifdef ML_BIGINT
+	ml_integer_mpz_init(Decimal->Unscaled, Args[0]);
+#else
+	Decimal->Unscaled = ml_integer_value(Args[0]);
+#endif
+	Decimal->Scale = ml_integer_value(Args[1]);
+	return (ml_value_t *)Decimal;
+}
+
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
@@ -3574,6 +3588,125 @@ ML_METHOD(MLRealT, MLDecimalT) {
 #else
 	return ml_real(Decimal->Unscaled / exp10(Decimal->Scale));
 #endif
+}
+
+ML_METHOD("+", MLDecimalT, MLDecimalT) {
+	ml_decimal_t *A = (ml_decimal_t *)Args[0];
+	ml_decimal_t *B = (ml_decimal_t *)Args[1];
+	ml_decimal_t *C = new(ml_decimal_t);
+	C->Type = MLDecimalT;
+#ifdef ML_BIGINT
+	mpz_init(C->Unscaled);
+	if (A->Scale > B->Scale) {
+		mpz_ui_pow_ui(C->Unscaled, 10, A->Scale - B->Scale);
+		mpz_mul(C->Unscaled, C->Unscaled, B->Unscaled);
+		mpz_add(C->Unscaled, A->Unscaled, C->Unscaled);
+		C->Scale = A->Scale;
+	} else if (A->Scale < B->Scale) {
+		mpz_ui_pow_ui(C->Unscaled, 10, B->Scale - A->Scale);
+		mpz_mul(C->Unscaled, C->Unscaled, A->Unscaled);
+		mpz_add(C->Unscaled, C->Unscaled, B->Unscaled);
+		C->Scale = B->Scale;
+	} else {
+		mpz_add(C->Unscaled, A->Unscaled, B->Unscaled);
+		C->Scale = A->Scale;
+	}
+#else
+	if (A->Scale > B->Scale) {
+		int64_t Scale = exp10(A->Scale - B->Scale);
+		C->Unscaled = A->Unscaled + Scale * B->Unscaled;
+		C->Scale = A->Scale;
+	} else if (A->Scale < B->Scale) {
+		int64_t Scale = exp10(B->Scale - A->Scale);
+		C->Unscaled = Scale * A->Unscaled + B->Unscaled;
+		C->Scale = B->Scale;
+	} else {
+		C->Unscaled = A->Unscaled + B->Unscaled;
+		C->Scale = A->Scale;
+	}
+#endif
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("-", MLDecimalT, MLDecimalT) {
+	ml_decimal_t *A = (ml_decimal_t *)Args[0];
+	ml_decimal_t *B = (ml_decimal_t *)Args[1];
+	ml_decimal_t *C = new(ml_decimal_t);
+	C->Type = MLDecimalT;
+#ifdef ML_BIGINT
+	mpz_init(C->Unscaled);
+	if (A->Scale > B->Scale) {
+		mpz_ui_pow_ui(C->Unscaled, 10, A->Scale - B->Scale);
+		mpz_mul(C->Unscaled, C->Unscaled, B->Unscaled);
+		mpz_sub(C->Unscaled, A->Unscaled, C->Unscaled);
+		C->Scale = A->Scale;
+	} else if (A->Scale < B->Scale) {
+		mpz_ui_pow_ui(C->Unscaled, 10, B->Scale - A->Scale);
+		mpz_mul(C->Unscaled, C->Unscaled, A->Unscaled);
+		mpz_sub(C->Unscaled, C->Unscaled, B->Unscaled);
+		C->Scale = B->Scale;
+	} else {
+		mpz_sub(C->Unscaled, A->Unscaled, B->Unscaled);
+		C->Scale = A->Scale;
+	}
+#else
+	if (A->Scale > B->Scale) {
+		int64_t Scale = exp10(A->Scale - B->Scale);
+		C->Unscaled = A->Unscaled - Scale * B->Unscaled;
+		C->Scale = A->Scale;
+	} else if (A->Scale < B->Scale) {
+		int64_t Scale = exp10(B->Scale - A->Scale);
+		C->Unscaled = Scale * A->Unscaled - B->Unscaled;
+		C->Scale = B->Scale;
+	} else {
+		C->Unscaled = A->Unscaled - B->Unscaled;
+		C->Scale = A->Scale;
+	}
+#endif
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("*", MLDecimalT, MLDecimalT) {
+	ml_decimal_t *A = (ml_decimal_t *)Args[0];
+	ml_decimal_t *B = (ml_decimal_t *)Args[1];
+	ml_decimal_t *C = new(ml_decimal_t);
+	C->Type = MLDecimalT;
+#ifdef ML_BIGINT
+	mpz_init(C->Unscaled);
+	mpz_mul(C->Unscaled, A->Unscaled, B->Unscaled);
+#else
+	C->Unscaled = A->Unscaled * B->Unscaled;
+#endif
+	C->Scale = A->Scale + B->Scale;
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("*", MLDecimalT, MLIntegerT) {
+	ml_decimal_t *A = (ml_decimal_t *)Args[0];
+	ml_decimal_t *C = new(ml_decimal_t);
+	C->Type = MLDecimalT;
+#ifdef ML_BIGINT
+	ml_integer_mpz_init(C->Unscaled, Args[1]);
+	mpz_mul(C->Unscaled, A->Unscaled, C->Unscaled);
+#else
+	C->Unscaled = A->Unscaled * ml_integer_value(B);
+#endif
+	C->Scale = A->Scale;
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("*", MLIntegerT, MLDecimalT) {
+	ml_decimal_t *B = (ml_decimal_t *)Args[1];
+	ml_decimal_t *C = new(ml_decimal_t);
+	C->Type = MLDecimalT;
+#ifdef ML_BIGINT
+	ml_integer_mpz_init(C->Unscaled, Args[0]);
+	mpz_mul(C->Unscaled, C->Unscaled, B->Unscaled);
+#else
+	C->Unscaled = ml_integer_value(B);
+#endif
+	C->Scale = B->Scale;
+	return (ml_value_t *)C;
 }
 
 #endif

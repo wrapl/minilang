@@ -341,19 +341,9 @@ ML_METHODV("grow", MLMapMutableT, MLNamesT) {
 extern ml_value_t *CompareMethod;
 
 static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
-	ml_method_cached_t *Cached = Map->Cached;
-	if (Cached) {
-		if (Cached->Types[0] != ml_typeof(Args[0])) {
-			Cached = NULL;
-		} else if (Cached->Types[1] != ml_typeof(Args[1])) {
-			Cached = NULL;
-		}
-	}
-	if (!Cached || !Cached->Callback) {
-		Cached = ml_method_search_cached(NULL, (ml_method_t *)CompareMethod, 2, Args);
-		if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
-		Map->Cached = Cached;
-	}
+	ml_method_cached_t *Cached =  ml_method_check_cached(NULL, (ml_method_t *)CompareMethod, Map->Cached, 2, Args);
+	if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
+	Map->Cached = Cached;
 	return ml_simple_call(Cached->Callback, 2, Args);
 	//return ml_simple_call(CompareMethod, 2, Args);
 }
@@ -1895,32 +1885,6 @@ finished:
 	ML_CONTINUE(State->Base.Caller, Result);
 }
 
-extern ml_value_t *LessMethod;
-
-ML_METHODX("sort", MLMapMutableT) {
-//<Map
-//>Map
-// Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Key/i < Key/j` and returns :mini:`Map`.
-//$= let M := map(swap("cake"))
-//$= M:sort
-	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
-	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_map_sort_state_run;
-	ml_map_t *Map = (ml_map_t *)Args[0];
-	State->Map = Map;
-	State->Count = 2;
-	State->Compare = LessMethod;
-	State->Head = State->Map->Head;
-	State->Size = Map->Size;
-	State->InSize = 1;
-	// TODO: Improve ml_map_sort_state_run so that List is still valid during sort
-	Map->Head = Map->Tail = NULL;
-	Map->Size = 0;
-	return ml_map_sort_state_run(State, NULL);
-}
-
 ML_METHODX("sort", MLMapMutableT, MLFunctionT) {
 //<Map
 //<Cmp
@@ -1969,6 +1933,156 @@ ML_METHODX("sort2", MLMapMutableT, MLFunctionT) {
 	Map->Head = Map->Tail = NULL;
 	Map->Size = 0;
 	return ml_map_sort_state_run(State, NULL);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_map_t *Map;
+	ml_method_t *Compare;
+	ml_methods_t *Methods;
+	ml_method_cached_t *Cached;
+	ml_value_t *Args[4];
+	ml_map_node_t *Head, *Tail;
+	ml_map_node_t *P, *Q;
+	int Count, Size;
+	int InSize, NMerges;
+	int PSize, QSize;
+} ml_map_method_sort_state_t;
+
+static void ml_map_method_sort_state_run(ml_map_method_sort_state_t *State, ml_value_t *Result) {
+	if (Result) goto resume;
+	for (;;) {
+		State->P = State->Head;
+		State->Tail = State->Head = NULL;
+		State->NMerges = 0;
+		while (State->P) {
+			State->NMerges++;
+			State->Q = State->P;
+			State->PSize = 0;
+			for (int I = 0; I < State->InSize; I++) {
+				State->PSize++;
+				State->Q = State->Q->Next;
+				if (!State->Q) break;
+			}
+			State->QSize = State->InSize;
+			while (State->PSize > 0 || (State->QSize > 0 && State->Q)) {
+				ml_map_node_t *E;
+				if (State->PSize == 0) {
+					E = State->Q; State->Q = State->Q->Next; State->QSize--;
+				} else if (State->QSize == 0 || !State->Q) {
+					E = State->P; State->P = State->P->Next; State->PSize--;
+				} else {
+					State->Args[0] = State->P->Key;
+					State->Args[1] = State->Q->Key;
+					State->Args[2] = State->P->Value;
+					State->Args[3] = State->Q->Value;
+					ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, State->Count, State->Args);
+					if (!Cached) return ml_map_method_sort_state_run(State, ml_no_method_error(State->Compare, State->Count, State->Args));
+					State->Cached = Cached;
+					return ml_call(State, Cached->Callback, State->Count, State->Args);
+				resume:
+					if (ml_is_error(Result)) {
+						ml_map_node_t *Node = State->P, *Next;
+						if (State->Tail) {
+							State->Tail->Next = Node;
+						} else {
+							State->Head = Node;
+						}
+						Node->Prev = State->Tail;
+						for (int Size = State->PSize; --Size > 0;) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Next = State->Q;
+						Node->Next = Next;
+						Next->Prev = Node;
+						Node = Next;
+						while (Node->Next) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Node->Next = NULL;
+						State->Tail = Node;
+						goto finished;
+					} else if (Result == MLNil) {
+						E = State->Q; State->Q = State->Q->Next; State->QSize--;
+					} else {
+						E = State->P; State->P = State->P->Next; State->PSize--;
+					}
+				}
+				if (State->Tail) {
+					State->Tail->Next = E;
+				} else {
+					State->Head = E;
+				}
+				E->Prev = State->Tail;
+				State->Tail = E;
+			}
+			State->P = State->Q;
+		}
+		State->Tail->Next = 0;
+		if (State->NMerges <= 1) {
+			Result = (ml_value_t *)State->Map;
+			goto finished;
+		}
+		State->InSize *= 2;
+	}
+finished:
+	State->Map->Head = State->Head;
+	State->Map->Tail = State->Tail;
+	State->Map->Size = State->Size;
+	ML_CONTINUE(State->Base.Caller, Result);
+}
+
+extern ml_value_t *LessMethod;
+
+ML_METHODX("sort", MLMapMutableT) {
+//<Map
+//>Map
+// Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Key/i < Key/j` and returns :mini:`Map`.
+//$= let M := map(swap("cake"))
+//$= M:sort
+	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
+	ml_map_method_sort_state_t *State = new(ml_map_method_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_method_sort_state_run;
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	State->Map = Map;
+	State->Count = 2;
+	State->Compare = (ml_method_t *)LessMethod;
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	State->Head = State->Map->Head;
+	State->Size = Map->Size;
+	State->InSize = 1;
+	// TODO: Improve ml_map_sort_state_run so that List is still valid during sort
+	Map->Head = Map->Tail = NULL;
+	Map->Size = 0;
+	return ml_map_method_sort_state_run(State, NULL);
+}
+
+ML_METHODX("sort", MLMapMutableT, MLMethodT) {
+//<Map
+//<Cmp
+//>Map
+// Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Key/i, Key/j)` and returns :mini:`Map`
+//$= let M := map(swap("cake"))
+//$= M:sort(>)
+	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
+	ml_map_method_sort_state_t *State = new(ml_map_method_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_method_sort_state_run;
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	State->Map = Map;
+	State->Count = 2;
+	State->Compare = (ml_method_t *)Args[1];
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	State->Head = State->Map->Head;
+	State->Size = Map->Size;
+	State->InSize = 1;
+	// TODO: Improve ml_map_sort_state_run so that List is still valid during sort
+	Map->Head = Map->Tail = NULL;
+	Map->Size = 0;
+	return ml_map_method_sort_state_run(State, NULL);
 }
 
 ML_METHOD("reverse", MLMapMutableT) {
