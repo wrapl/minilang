@@ -769,13 +769,25 @@ void ml_integer_mpz_init(mpz_t Dest, ml_value_t *Source) {
 	mpz_init(Dest);
 }
 
-ml_value_t *ml_integer_mpz(const mpz_t Source) {
+ml_value_t *ml_integer_mpz_copy(const mpz_t Source) {
 	if (mpz_fits_sint_p(Source)) {
 		return ml_integer32(mpz_get_si(Source));
 	} else {
 		ml_integer_t *Value = new(ml_integer_t);
 		Value->Type = MLInteger64T;
 		mpz_init_set(Value->Value, Source);
+		return (ml_value_t *)Value;
+	}
+}
+
+ml_value_t *ml_integer_mpz(mpz_t Source) {
+	if (mpz_fits_sint_p(Source)) {
+		return ml_integer32(mpz_get_si(Source));
+	} else {
+		ml_integer_t *Value = new(ml_integer_t);
+		Value->Type = MLInteger64T;
+		mpz_init(Value->Value);
+		Value->Value[0] = Source[0];
 		return (ml_value_t *)Value;
 	}
 }
@@ -3425,7 +3437,7 @@ ml_value_t *ml_decimal(ml_value_t *Unscaled, int32_t Scale) {
 ML_METHOD("unscaled", MLDecimalT) {
 	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
 #ifdef ML_BIGINT
-	return ml_integer_mpz(Decimal->Unscaled);
+	return ml_integer_mpz_copy(Decimal->Unscaled);
 #else
 	return ml_integer(Decimal->Unscaled);
 #endif
@@ -3689,7 +3701,7 @@ ML_METHOD("*", MLDecimalT, MLIntegerT) {
 	ml_integer_mpz_init(C->Unscaled, Args[1]);
 	mpz_mul(C->Unscaled, A->Unscaled, C->Unscaled);
 #else
-	C->Unscaled = A->Unscaled * ml_integer_value(B);
+	C->Unscaled = A->Unscaled * ml_integer_value(Args[1]);
 #endif
 	C->Scale = A->Scale;
 	return (ml_value_t *)C;
@@ -3703,7 +3715,7 @@ ML_METHOD("*", MLIntegerT, MLDecimalT) {
 	ml_integer_mpz_init(C->Unscaled, Args[0]);
 	mpz_mul(C->Unscaled, C->Unscaled, B->Unscaled);
 #else
-	C->Unscaled = ml_integer_value(B);
+	C->Unscaled = ml_integer_value(Args[0]) * B->Unscaled;
 #endif
 	C->Scale = B->Scale;
 	return (ml_value_t *)C;

@@ -592,7 +592,8 @@ typedef struct {
 #ifdef ML_BIGINT
 
 void ml_integer_mpz_init(mpz_t Dest, ml_value_t *Source);
-ml_value_t *ml_integer_mpz(const mpz_t Source);
+ml_value_t *ml_integer_mpz_copy(const mpz_t Source);
+ml_value_t *ml_integer_mpz(mpz_t Source);
 
 void mpz_set_s64(mpz_t Z, int64_t V);
 int64_t mpz_get_s64(const mpz_t Z);

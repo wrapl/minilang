@@ -106,6 +106,14 @@ map
    Returns the current ordering of :mini:`Map`.
 
 
+:mini:`meth (Map: map):precount: integer`
+   Returns the number of entries in :mini:`Map`.
+
+   .. code-block:: mini
+
+      {"A" is 1, "B" is 2, "C" is 3}:count :> 3
+
+
 :mini:`meth (Map₁: map) >< (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` and :mini:`Map₂` that are not in both.
 
@@ -118,12 +126,12 @@ map
       A >< B :> {"n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
-:mini:`meth (Map: map):precount: integer`
+:mini:`meth (Map: map):size: integer`
    Returns the number of entries in :mini:`Map`.
 
    .. code-block:: mini
 
-      {"A" is 1, "B" is 2, "C" is 3}:count :> 3
+      {"A" is 1, "B" is 2, "C" is 3}:size :> 3
 
 
 :mini:`meth (Map₁: map) /\\ (Map₂: map): map`
@@ -138,12 +146,8 @@ map
       A /\ B :> {"b" is 1, "a" is 4}
 
 
-:mini:`meth (Map: map):size: integer`
-   Returns the number of entries in :mini:`Map`.
-
-   .. code-block:: mini
-
-      {"A" is 1, "B" is 2, "C" is 3}:size :> 3
+:mini:`type map::labeller < function, map`
+   *TBD*
 
 
 :mini:`meth (Map₁: map) \\/ (Map₂: map): map`
@@ -160,16 +164,12 @@ map
       :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
-:mini:`type map::labeller < function, map`
+:mini:`type map::mutable < map`
    *TBD*
 
 
 :mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
    Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
-
-
-:mini:`type map::mutable < map`
-   *TBD*
 
 
 :mini:`meth (Map: map::mutable) :: (Key: string): map::node`
@@ -426,6 +426,16 @@ map
       M:sort(>) :> {"k" is 3, "e" is 4, "c" is 1, "a" is 2}
 
 
+:mini:`meth (Map: map::mutable):sort(Cmp: method): Map`
+   Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Keyᵢ,  Keyⱼ)` and returns :mini:`Map`
+
+   .. code-block:: mini
+
+      let M := map(swap("cake"))
+      :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
+      M:sort(>) :> {"k" is 3, "e" is 4, "c" is 1, "a" is 2}
+
+
 :mini:`meth (Map: map::mutable)[Key: any, Fn: function]: map::node`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
 
@@ -546,7 +556,7 @@ map
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
@@ -560,7 +570,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "c"
-      M:random :> "c"
+      M:random :> "k"
 
 
 :mini:`meth (Map: map) :: (Key: string): map::node`
@@ -599,7 +609,7 @@ map
       :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.

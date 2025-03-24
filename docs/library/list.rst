@@ -225,8 +225,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
-      L:random :> "c"
+      L:random :> "a"
+      L:random :> "e"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -404,6 +404,10 @@ list
 
 
 :mini:`meth (List: list::mutable):sort(Compare: function): List`
+   Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
+
+
+:mini:`meth (List: list::mutable):sort(Compare: method): List`
    Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 
 

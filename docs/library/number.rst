@@ -119,6 +119,22 @@ number
    *TBD*
 
 
+:mini:`meth (Arg₁: decimal) * (Arg₂: decimal)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: decimal) * (Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: decimal) + (Arg₂: decimal)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: decimal) - (Arg₂: decimal)`
+   *TBD*
+
+
 :mini:`meth real(Arg₁: decimal)`
    *TBD*
 
@@ -299,6 +315,10 @@ number
    Returns :mini:`A * B`.
 
 
+:mini:`meth (Arg₁: integer) * (Arg₂: decimal)`
+   *TBD*
+
+
 :mini:`meth (A: integer) * (B: integer): integer`
    Returns :mini:`A * B`.
 
@@ -412,6 +432,10 @@ number
       16:bsr :> 5
       10:bsr :> 4
       0:bsr :> 0
+
+
+:mini:`meth (Arg₁: integer):d(Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth (X: integer):dec: integer`
@@ -746,12 +770,12 @@ number
    *TBD*
 
 
-:mini:`def real::Inf: real`
-   Positive infinity.
-
-
 :mini:`def real::NaN: real`
    Not a number.
+
+
+:mini:`def real::Inf: real`
+   Positive infinity.
 
 
 :mini:`meth real(String: string): real | error`

@@ -256,14 +256,18 @@ ML_METHOD("!", MLIntegerT) {
 //>integer
 // Returns the factorial of :mini:`N`.
 //$= !10
+#ifdef ML_BIGINT
+	mpz_t F; mpz_init(F);
+	mpz_fac_ui(F, ml_integer_value(Args[0]));
+	return ml_integer_mpz(F);
+#else
 	int N = ml_integer_value(Args[0]);
 	if (N > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
 	int64_t F = N;
 	while (--N > 1) F *= N;
 	return ml_integer(F);
+#endif
 }
-
-#define MIN(X, Y) (X < Y) ? X : Y
 
 ML_METHOD("!", MLIntegerT, MLIntegerT) {
 //<N
@@ -289,6 +293,13 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns the greatest common divisor of :mini:`A` and :mini:`B`.
+#ifdef ML_BIGINT
+	mpz_t A; ml_integer_mpz_init(A, Args[0]);
+	mpz_t B; ml_integer_mpz_init(B, Args[1]);
+	mpz_t C; mpz_init(C);
+	mpz_gcd(C, A, B);
+	return ml_integer_mpz(C);
+#else
 	unsigned long A = labs(ml_integer_value(Args[0]));
 	unsigned long B = labs(ml_integer_value(Args[1]));
 	if (A == 0) return Args[1];
@@ -305,6 +316,7 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 		B = B - A;
 	} while (B != 0);
 	return ml_integer(A << Shift);
+#endif
 }
 
 MATH_NUMBER_KEEP_REAL(Acos, acos, acos);
