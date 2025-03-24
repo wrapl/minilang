@@ -782,6 +782,10 @@ number
    Returns the real number in :mini:`String` or an error if :mini:`String` does not contain a valid real number.
 
 
+:mini:`meth (A: real) != (B: real): real`
+   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
+
+
 :mini:`meth (Real₁: real) % (Real₂: real): integer`
    Returns the remainder of :mini:`Real₁` divided by :mini:`Real₂`.
    Note: the result is calculated by rounding towards 0. In particular,  if :mini:`Real₁` is negative,  the result will be negative.
@@ -806,6 +810,26 @@ number
 
 :mini:`meth (A: real) / (B: real): real`
    Returns :mini:`A / B`.
+
+
+:mini:`meth (A: real) < (B: real): real`
+   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: real) <= (B: real): real`
+   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: real) = (B: real): real`
+   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: real) > (B: real): real`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: real) >= (B: real): real`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
 :mini:`meth complex(Arg₁: real)`

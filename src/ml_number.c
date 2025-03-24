@@ -1559,6 +1559,7 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 }
 
 #define ml_comp_method_real_real(NAME, FUNC) \
+\
 ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 /*<A
 //<B
@@ -1567,6 +1568,17 @@ ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
 */\
 	double RealA = ml_double_value(Args[0]); \
 	double RealB = ml_double_value(Args[1]); \
+	return ml_ ## FUNC(RealA, RealB) ? Args[1] : MLNil; \
+} \
+\
+ML_METHOD(#NAME, MLRealT, MLRealT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
+*/\
+	double RealA = ml_real_value(Args[0]); \
+	double RealB = ml_real_value(Args[1]); \
 	return ml_ ## FUNC(RealA, RealB) ? Args[1] : MLNil; \
 }
 
