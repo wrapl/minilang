@@ -3165,7 +3165,6 @@ ML_METHOD("bin", MLRealRangeT, MLDoubleT) {
 }
 
 // Switch Functions //
-//!type
 
 typedef struct {
 	ml_value_t *Index;

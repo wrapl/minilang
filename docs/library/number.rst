@@ -115,6 +115,22 @@ number
    Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string for the real and imaginary components.
 
 
+:mini:`type decimal < real`
+   *TBD*
+
+
+:mini:`meth real(Arg₁: decimal)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: decimal):scale`
+   *TBD*
+
+
+:mini:`meth (Arg₁: decimal):unscaled`
+   *TBD*
+
+
 :mini:`type double < real`
    *TBD*
 
@@ -404,6 +420,14 @@ number
 
 :mini:`meth (X: integer):dec(Y: integer): integer`
    Atomic equivalent to :mini:`X := old - Y`.
+
+
+:mini:`meth decimal(Arg₁: integer)`
+   *TBD*
+
+
+:mini:`meth decimal(Arg₁: integer, Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth (Int₁: integer):div(Int₂: integer): integer`
@@ -765,6 +789,10 @@ number
 
 
 :mini:`meth complex(Arg₁: real, Arg₂: real)`
+   *TBD*
+
+
+:mini:`meth decimal(Arg₁: real)`
    *TBD*
 
 
