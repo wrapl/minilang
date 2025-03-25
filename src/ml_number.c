@@ -831,6 +831,11 @@ ml_value_t *ml_rational_mpq(mpq_t Source) {
 
 #endif
 
+static void mpz_diff(mpz_t f, const mpz_t g, const mpz_t h) {
+	mpz_sub(f, g, h);
+	mpz_abs(f, f);
+}
+
 #define ml_arith_method_integer(NAME, FUNC) \
 \
 ml_arith_method_integer32(NAME, FUNC) \
@@ -1128,15 +1133,6 @@ ml_arith_method_real(NAME, FUNC)
 #define ml_arith_method_number_number(NAME, FUNC) \
 ml_arith_method_integer_integer(NAME, FUNC) \
 ml_arith_method_real_real(NAME, FUNC)
-
-#endif
-
-#ifdef ML_BIGINT
-
-static void mpz_diff(mpz_t f, const mpz_t g, const mpz_t h) {
-	mpz_sub(f, g, h);
-	mpz_abs(f, f);
-}
 
 #endif
 
@@ -1543,6 +1539,36 @@ ML_METHOD(#NAME, MLInteger32T, MLInteger32T) { \
 
 #endif
 
+#ifdef ML_BIGINT
+
+#define ml_comp_method_integer_integer(NAME, FUNC) \
+\
+ml_comp_method_integer32_integer32(NAME, FUNC) \
+\
+ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
+*/\
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]); \
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]); \
+	return ml_ ## FUNC(mpz_cmp(IntegerA, IntegerB), 0) ? Args[1] : MLNil; \
+} \
+\
+ML_METHOD(#NAME, MLInteger64T, MLInteger64T) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
+*/\
+	ml_integer_t *A = (ml_integer_t *)Args[0]; \
+	ml_integer_t *B = (ml_integer_t *)Args[1]; \
+	return ml_ ## FUNC(mpz_cmp(A->Value, B->Value), 0) ? Args[1] : MLNil; \
+}
+
+#else
+
 #define ml_comp_method_integer_integer(NAME, FUNC) \
 \
 ml_comp_method_integer32_integer32(NAME, FUNC) \
@@ -1557,6 +1583,8 @@ ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 	int64_t IntegerB = ml_integer_value(Args[1]); \
 	return ml_ ## FUNC(IntegerA, IntegerB) ? Args[1] : MLNil; \
 }
+
+#endif
 
 #define ml_comp_method_real_real(NAME, FUNC) \
 \
@@ -1673,12 +1701,96 @@ ML_METHOD("<>", MLIntegerT, MLIntegerT) {
 //<Int/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Int/2`.
+#ifdef ML_BIGINT
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]);
+	int Cmp = mpz_cmp(IntegerA, IntegerB);
+	if (Cmp < 0) return (ml_value_t *)NegOne;
+	if (Cmp > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (IntegerA < IntegerB) return (ml_value_t *)NegOne;
 	if (IntegerA > IntegerB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
+#endif
 }
+
+#ifdef ML_NANBOXING
+
+ML_METHOD("<>", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Int/2`.
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (IntegerA < IntegerB) return (ml_value_t *)NegOne;
+	if (IntegerA > IntegerB) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
+ML_METHOD("<>", MLInteger64T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Int/2`.
+#ifdef ML_BIGINT
+	ml_integer_t *A = (ml_integer_t *)Args[0];
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	int Cmp = mpz_cmp_si(A->Value, IntegerB);
+	if (Cmp < 0) return (ml_value_t *)NegOne;
+	if (Cmp > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+#else
+	ml_integer_t *A = (ml_integer_t *)Args[0];
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (A->Value < IntegerB) return (ml_value_t *)NegOne;
+	if (A->Value > IntegerB) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+#endif
+}
+
+ML_METHOD("<>", MLInteger32T, MLInteger64T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Int/2`.
+#ifdef ML_BIGINT
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	ml_integer_t *B = (ml_integer_t *)Args[1];
+	int Cmp = mpz_cmp_ui(B->Value, IntegerA);
+	if (Cmp > 0) return (ml_value_t *)NegOne;
+	if (Cmp < 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+#else
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	ml_integer_t *B = (ml_integer_t *)Args[1];
+	if (IntegerA < B->Value) return (ml_value_t *)NegOne;
+	if (IntegerA > B->Value) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+#endif
+}
+
+#endif
+
+#ifdef ML_BIGINT
+
+ML_METHOD("<>", MLInteger64T, MLInteger64T) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Int/2`.
+	ml_integer_t *A = (ml_integer_t *)Args[0];
+	ml_integer_t *B = (ml_integer_t *)Args[1];
+	int Cmp = mpz_cmp(A->Value, B->Value);
+	if (Cmp < 0) return (ml_value_t *)NegOne;
+	if (Cmp > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
+#endif
 
 ML_METHOD("<>", MLDoubleT, MLIntegerT) {
 //<Real/1
@@ -1686,9 +1798,9 @@ ML_METHOD("<>", MLDoubleT, MLIntegerT) {
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Int/2`.
 	double RealA = ml_double_value(Args[0]);
-	int64_t IntegerB = ml_integer_value(Args[1]);
-	if (RealA < IntegerB) return (ml_value_t *)NegOne;
-	if (RealA > IntegerB) return (ml_value_t *)One;
+	double RealB = ml_real_value(Args[1]);
+	if (RealA < RealB) return (ml_value_t *)NegOne;
+	if (RealA > RealB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
 }
 
@@ -1697,10 +1809,10 @@ ML_METHOD("<>", MLIntegerT, MLDoubleT) {
 //<Real/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Real/2`.
-	int64_t IntegerA = ml_integer_value(Args[0]);
+	double RealA = ml_real_value(Args[0]);
 	double RealB = ml_double_value(Args[1]);
-	if (IntegerA < RealB) return (ml_value_t *)NegOne;
-	if (IntegerA > RealB) return (ml_value_t *)One;
+	if (RealA < RealB) return (ml_value_t *)NegOne;
+	if (RealA > RealB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
 }
 

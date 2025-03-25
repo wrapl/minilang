@@ -351,10 +351,6 @@ static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 	ml_map_node_t *Node = Map->Root;
 	long Hash = ml_typeof(Key)->hash(Key, NULL);
-	ml_method_cached_t *Cached = Map->Cached;
-	if (Cached && Cached->Callback) {
-		if (Cached->Types[0] != ml_typeof(Key)) Cached = NULL;
-	}
 	while (Node) {
 		int Compare;
 		if (Hash < Node->Hash) {
