@@ -597,6 +597,14 @@ number
    Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
 
 
+:mini:`meth (Int₁: integer32) <> (Int₂: integer32): integer`
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Int₂`.
+
+
+:mini:`meth (Int₁: integer32) <> (Int₂: integer64): integer`
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Int₂`.
+
+
 :mini:`meth (A: integer32) = (B: integer32): integer`
    Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
 
@@ -682,6 +690,10 @@ number
       0("a", "b", "c") :> nil
 
 
+:mini:`meth (A: integer64) != (B: integer64): integer`
+   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
+
+
 :mini:`meth (Arg₁: integer64) * (Arg₂: integer32)`
    *TBD*
 
@@ -718,8 +730,36 @@ number
    Returns :mini:`A /\ B`.
 
 
+:mini:`meth (A: integer64) < (B: integer64): integer`
+   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer64) <= (B: integer64): integer`
+   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (Int₁: integer64) <> (Int₂: integer32): integer`
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Int₂`.
+
+
+:mini:`meth (Int₁: integer64) <> (Int₂: integer64): integer`
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Int₂`.
+
+
+:mini:`meth (A: integer64) = (B: integer64): integer`
+   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer64) > (B: integer64): integer`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
 :mini:`meth (A: integer64) >< (B: integer64): integer`
    Returns :mini:`A >< B`.
+
+
+:mini:`meth (A: integer64) >= (B: integer64): integer`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
 :mini:`meth (A: integer64) \\/ (B: integer64): integer`

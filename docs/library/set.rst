@@ -223,7 +223,7 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:random :> "a"
-      S:random :> "a"
+      S:random :> "e"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -414,6 +414,15 @@ set
 
 
 :mini:`meth (Set: set::mutable):sort(Cmp: function): Set`
+   Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Valueᵢ,  Valueⱼ)` and returns :mini:`Set`
+
+   .. code-block:: mini
+
+      let S := set("cake") :> {c, a, k, e}
+      S:sort(>) :> {k, e, c, a}
+
+
+:mini:`meth (Set: set::mutable):sort(Cmp: method): Set`
    Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Valueᵢ,  Valueⱼ)` and returns :mini:`Set`
 
    .. code-block:: mini

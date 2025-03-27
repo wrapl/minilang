@@ -235,7 +235,7 @@ if PLATFORM = "Wasm" then
 	MINILANG_TRAMPOLINE := 1
 end
 
-MINILANG_DEFAULTS := if some(Options ->? defined) then nil else 1 end
+MINILANG_DEFAULTS := if defined("NODEFAULTS") or some(Options ->? defined) then nil else 1 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_TABLES := 1

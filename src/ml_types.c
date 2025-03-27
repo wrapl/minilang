@@ -2097,7 +2097,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	GC_INIT();
 	ml_runtime_init(ExecName);
 #ifdef ML_BIGINT
-	mp_set_memory_functions(GC_malloc, GC_realloc2, GC_nop2);
+	mp_set_memory_functions(GC_malloc_atomic, GC_realloc2, GC_nop2);
 #endif
 	ml_method_init();
 #include "ml_types_init.c"
