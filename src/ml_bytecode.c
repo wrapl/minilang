@@ -1134,7 +1134,7 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 			ERROR();
 		}
 		int Count = Inst[1].Count;
-		int Index = ml_integer_value_fast(Result);
+		int Index = ml_integer_value(Result);
 		if (Index < 0 || Index >= Count) Index = Count - 1;
 		ADVANCE(Inst[2].Insts[Index]);
 	}
@@ -1670,20 +1670,6 @@ ML_METHOD("parameters", MLClosureT) {
 	}
 	return Map;
 }
-
-#ifdef ML_NANBOXING
-
-#define NegOne ml_integer32(-1)
-#define One ml_integer32(1)
-#define Zero ml_integer32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
 
 ML_METHOD("<>", MLClosureT, MLClosureT) {
 //!internal

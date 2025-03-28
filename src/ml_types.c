@@ -1181,20 +1181,6 @@ void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Ha
 	}
 }
 
-#ifdef ML_NANBOXING
-
-#define NegOne ml_integer32(-1)
-#define One ml_integer32(1)
-#define Zero ml_integer32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
-
 ML_METHODVZ("()", MLAnyT) {
 //!internal
 	ml_value_t *Value = ml_deref(Args[0]);
@@ -2077,11 +2063,18 @@ ml_value_t *ml_return_second(void *Data, int Count, ml_value_t **Args) {
 	return Args[1];
 }
 
+static void *GC_realloc2(void *Ptr, size_t Old, size_t New) {
+	return GC_realloc(Ptr, New);
+}
+
 static void *GC_calloc(size_t N, size_t S) {
 	return GC_malloc(N * S);
 }
 
 static void GC_nop(void *Ptr) {
+}
+
+static void GC_nop2(void *Ptr, size_t Old) {
 }
 
 extern void ml_function_init();
@@ -2103,8 +2096,8 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	GC_INIT();
 	ml_runtime_init(ExecName);
-#ifdef ML_FLINT
-	__flint_set_memory_functions(GC_malloc, GC_calloc, GC_realloc, GC_nop);
+#ifdef ML_BIGINT
+	mp_set_memory_functions(GC_malloc_atomic, GC_realloc2, GC_nop2);
 #endif
 	ml_method_init();
 #include "ml_types_init.c"
@@ -2159,6 +2152,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_externals_default_add("complex", MLComplexT);
 	ml_externals_default_add("i", ml_complex(1i));
 #endif
+#ifdef ML_DECIMAL
+	ml_externals_default_add("decimal", MLDecimalT);
+#endif
 	ml_externals_default_add("method", MLMethodT);
 	ml_externals_default_add("address", MLAddressT);
 	ml_externals_default_add("buffer", MLBufferT);
@@ -2188,6 +2184,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_COMPLEX
 		stringmap_insert(Globals, "complex", MLComplexT);
 		stringmap_insert(Globals, "i", ml_complex(1i));
+#endif
+#ifdef ML_DECIMAL
+		stringmap_insert(Globals, "decimal", MLDecimalT);
 #endif
 		stringmap_insert(Globals, "method", MLMethodT);
 		stringmap_insert(Globals, "address", MLAddressT);

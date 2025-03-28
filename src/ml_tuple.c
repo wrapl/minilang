@@ -166,6 +166,18 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLTupleT, ml_tuple_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	SHA256_CTX Ctx[1];
+	sha256_init(Ctx);
+	sha256_update(Ctx, (unsigned char *)"tuple", strlen("tuple"));
+	for (int I = 0; I < Value->Size; ++I)  {
+		unsigned char Hash[SHA256_BLOCK_SIZE];
+		ml_value_sha256(Value->Values[I], Chain, Hash);
+		sha256_update(Ctx, Hash, SHA256_BLOCK_SIZE);
+	}
+	sha256_final(Ctx, Hash);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Visitor, *Dest;
@@ -349,7 +361,7 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 // Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of interval.
 // Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
-	long Index = ml_integer_value_fast(Args[1]);
+	long Index = ml_integer_value(Args[1]);
 	if (--Index < 0) Index += Tuple->Size + 1;
 	if (Index < 0 || Index >= Tuple->Size) return ml_error("IntervalError", "Tuple index out of bounds");
 	return Tuple->Values[Index];
@@ -494,20 +506,6 @@ static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index
 	if (Index > Tuple->Size) return MLNil;
 	return Tuple->Values[Index - 1];
 }
-
-#ifdef ML_NANBOXING
-
-#define NegOne ml_integer32(-1)
-#define One ml_integer32(1)
-#define Zero ml_integer32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
 
 static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
 	// TODO: Replace this with a state to remove ml_simple_call

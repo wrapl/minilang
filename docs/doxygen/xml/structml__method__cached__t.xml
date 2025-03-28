@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
   <compounddef id="structml__method__cached__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_method_cached_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1051" column="20" bodyfile="src/ml_types.h" bodystart="1051" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1138" column="20" bodyfile="src/ml_types.h" bodystart="1138" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__cached__t_1a106fe9164f291a64378340cce872cf60" prot="public" static="no" mutable="no">
         <type><ref refid="structml__method__cached__t" kindref="compound">ml_method_cached_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1051" column="25" bodyfile="src/ml_types.h" bodystart="1051" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1138" column="25" bodyfile="src/ml_types.h" bodystart="1138" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__cached__t_1a576a53c7c6d12a0325e35192b7cdd880" prot="public" static="no" mutable="no">
         <type>ml_methods_t *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1052" column="14" bodyfile="src/ml_types.h" bodystart="1052" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1139" column="14" bodyfile="src/ml_types.h" bodystart="1139" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__cached__t_1a4d30092819a00b5cf48e2a63558082d9" prot="public" static="no" mutable="no">
         <type><ref refid="structml__method__t" kindref="compound">ml_method_t</ref> *</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1053" column="13" bodyfile="src/ml_types.h" bodystart="1053" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1140" column="13" bodyfile="src/ml_types.h" bodystart="1140" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__cached__t_1a8eb5b6c962d413efc09d6124dd8841e7" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1054" column="12" bodyfile="src/ml_types.h" bodystart="1054" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1141" column="12" bodyfile="src/ml_types.h" bodystart="1141" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__cached__t_1aad462966ed963f892117056de1eba502" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -85,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1055" column="5" bodyfile="src/ml_types.h" bodystart="1055" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1142" column="5" bodyfile="src/ml_types.h" bodystart="1142" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__cached__t_1af8accc54acdf1feb2376dd92f1c4f559" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -99,7 +99,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1055" column="11" bodyfile="src/ml_types.h" bodystart="1055" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1142" column="11" bodyfile="src/ml_types.h" bodystart="1142" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__cached__t_1a5aad7f14f66f73adca61986365469c9f" prot="public" static="no" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -113,7 +113,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1056" column="11" bodyfile="src/ml_types.h" bodystart="1056" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1143" column="11" bodyfile="src/ml_types.h" bodystart="1143" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -179,7 +179,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1050" column="1" bodyfile="src/ml_types.h" bodystart="1050" bodyend="1057"/>
+    <location file="src/ml_types.h" line="1137" column="1" bodyfile="src/ml_types.h" bodystart="1137" bodyend="1144"/>
     <listofallmembers>
       <member refid="structml__method__cached__t_1a8eb5b6c962d413efc09d6124dd8841e7" prot="public" virt="non-virtual"><scope>ml_method_cached_t</scope><name>Callback</name></member>
       <member refid="structml__method__cached__t_1aad462966ed963f892117056de1eba502" prot="public" virt="non-virtual"><scope>ml_method_cached_t</scope><name>Count</name></member>

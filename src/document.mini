@@ -357,16 +357,17 @@ fun write_type(Category, Name, Parents, Description, Examples, Location) do
 		Buffer:write(" < ")
 		var Seperator := ""
 		if Category != "internal" then
+			TypesGraph:write('      \"{TypeName}\" [href=\"/library/{Category}.html#{TypeName}\",target=\"_top\",tooltip=\"{Parents -> type_name, ","}\"];\n')
 			for Parent in Parents do
 				let ParentName := type_name(Parent)
-				TypesGraph:write('      \"{ParentName}\":e -> \"{TypeName}\":w;\n')
+				TypesGraph:write('      \"{ParentName}\":e -> \"{TypeName}\":w [color=\"{random(real), "%0.3f"},1,0.5\"];\n')
 				Buffer:write(Seperator, type_name(Parent))
 				Seperator := ", "
 			end
 		end
 	else
 		if Category != "internal" and Name != "MLAnyT" then
-			TypesGraph:write('      \"any\":e -> \"{TypeName}\":w;\n')
+			TypesGraph:write('      \"any\":e -> \"{TypeName}\":w [color=\"{random(real), "%0.3f"},1,0.5\"];\n')
 		end
 	end
 	Buffer:write("`\n")
@@ -897,14 +898,18 @@ hierarchy
 =========
 
 .. graphviz::
+   :layout: dot
 
    digraph hierarchy \{
       rankdir="LR";
       fontsize="40pt"
-      concentrate=true;
-      overlap=false;
+      concentrate=false;
+      overlap=true;
+      splines=spline;
       packMode="node";
+      mode="hier";
       outputorder="edgesfirst";
+      mclimit=20;
       node [shape=box,fontsize=24];
 ')
 	File:write(TypesGraph:rest)

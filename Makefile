@@ -31,60 +31,45 @@ obj/ml_config.h: | obj
 	@echo "#define ML_CONFIG_H" >> $@
 	@echo "#endif" >> $@
 
-obj/%.o: src/%.c obj/ml_config.h | obj
+obj/%.o: src/%.c | obj obj/%_init.c src/*.h obj/ml_config.h 
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
-obj/%_init.c: src/%.c | obj src/*.h 
+#.PRECIOUS: obj/%_init.c
+
+obj/%_init.c: src/%.c | obj src/*.h obj/ml_config.h 
 	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
-obj/ml_bytecode.o: obj/ml_bytecode_init.c src/*.h
-obj/ml_cbor.o: obj/ml_cbor_init.c src/*.h
-obj/ml_compiler.o: obj/ml_compiler_init.c src/*.h
-obj/ml_console.o: obj/ml_console_init.c src/*.h
-obj/ml_file.o: obj/ml_file_init.c src/*.h
-obj/ml_json.o: obj/ml_json_init.c src/*.h
-obj/ml_list.o: obj/ml_list_init.c src/*.h
-obj/ml_logging.o: obj/ml_logging_init.c src/*.h
-obj/ml_map.o: obj/ml_map_init.c src/*.h
-obj/ml_math.o: obj/ml_math_init.c src/*.h
-obj/ml_method.o: obj/ml_method_init.c src/*.h
-obj/ml_number.o: obj/ml_number_init.c src/*.h
-obj/ml_object.o: obj/ml_object_init.c src/*.h
-obj/ml_runtime.o: obj/ml_runtime_init.c src/*.h
-obj/ml_sequence.o: obj/ml_sequence_init.c src/*.h
-obj/ml_set.o: obj/ml_set_init.c src/*.h
-obj/ml_slice.o: obj/ml_slice_init.c src/*.h
-obj/ml_socket.o: obj/ml_socket_init.c src/*.h
-obj/ml_stream.o: obj/ml_stream_init.c src/*.h
-obj/ml_string.o: obj/ml_string_init.c src/*.h
-obj/ml_time.o: obj/ml_time_init.c src/*.h
-obj/ml_types.o: obj/ml_types_init.c src/*.h
+sources = \
+	boolean \
+	bytecode \
+	cbor \
+	compiler \
+	console \
+	debugger \
+	file \
+	function \
+	json \
+	list \
+	logging \
+	map \
+	method \
+	number \
+	object \
+	opcodes \
+	runtime \
+	sequence \
+	set \
+	slice \
+	socket \
+	stream \
+	string \
+	time \
+	tuple \
+	types
 
 common_objects = \
+	$(foreach name, $(sources), obj/ml_$(name).o) \
 	obj/inthash.o \
-	obj/ml_bytecode.o \
-	obj/ml_cbor.o \
-	obj/ml_compiler.o \
-	obj/ml_console.o \
-	obj/ml_debugger.o \
-	obj/ml_file.o \
-	obj/ml_json.o \
-	obj/ml_list.o \
-	obj/ml_logging.o \
-	obj/ml_map.o \
-	obj/ml_method.o \
-	obj/ml_number.o \
-	obj/ml_object.o \
-	obj/ml_opcodes.o \
-	obj/ml_runtime.o \
-	obj/ml_sequence.o \
-	obj/ml_set.o \
-	obj/ml_slice.o \
-	obj/ml_socket.o \
-	obj/ml_stream.o \
-	obj/ml_string.o \
-	obj/ml_time.o \
-	obj/ml_types.o \
 	obj/sha256.o \
 	obj/stringmap.o
 
@@ -142,24 +127,26 @@ install_lib = $(DESTDIR)$(PREFIX)/lib
 install_exe = \
 	$(install_bin)/minilang
 
-install_h = \
-	$(install_include)/linenoise.h \
-	$(install_include)/minilang.h \
-	$(install_include)/ml_bytecode.h \
-	$(install_include)/ml_cbor.h \
-	$(install_include)/ml_compiler.h \
-	$(install_include)/ml_console.h \
-	$(install_include)/ml_file.h \
-	$(install_include)/ml_json.h \
-	$(install_include)/ml_macros.h \
-	$(install_include)/ml_object.h \
-	$(install_include)/ml_opcodes.h \
-	$(install_include)/ml_runtime.h \
-	$(install_include)/ml_sequence.h \
-	$(install_include)/ml_time.h \
-	$(install_include)/ml_types.h \
-	$(install_include)/sha256.h \
-	$(install_include)/stringmap.h
+headers = \
+	linenoise.h \
+	minilang.h \
+	ml_bytecode.h \
+	ml_cbor.h \
+	ml_compiler.h \
+	ml_console.h \
+	ml_file.h \
+	ml_json.h \
+	ml_macros.h \
+	ml_object.h \
+	ml_opcodes.h \
+	ml_runtime.h \
+	ml_sequence.h \
+	ml_time.h \
+	ml_types.h \
+	sha256.h \
+	stringmap.h
+
+install_h = $(foreach header, $(headers), $(install_include)/$(header))
 
 install_a = $(install_lib)/libminilang.a
 

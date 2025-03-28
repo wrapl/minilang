@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.12.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
   <compounddef id="structml__map__iter__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_map_iter_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1185" column="15" bodyfile="src/ml_types.h" bodystart="1185" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1272" column="15" bodyfile="src/ml_types.h" bodystart="1272" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__map__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1186" column="12" bodyfile="src/ml_types.h" bodystart="1186" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1273" column="12" bodyfile="src/ml_types.h" bodystart="1273" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__map__iter__t_1a87afd663f0a4b73070f1de58a6e47ceb" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1186" column="16" bodyfile="src/ml_types.h" bodystart="1186" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1273" column="16" bodyfile="src/ml_types.h" bodystart="1273" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -155,7 +155,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1184" column="1" bodyfile="src/ml_types.h" bodystart="1184" bodyend="1187"/>
+    <location file="src/ml_types.h" line="1271" column="1" bodyfile="src/ml_types.h" bodystart="1271" bodyend="1274"/>
     <listofallmembers>
       <member refid="structml__map__iter__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" prot="public" virt="non-virtual"><scope>ml_map_iter_t</scope><name>Key</name></member>
       <member refid="structml__map__iter__t_1afc78fff3c29652843496f018eba98489" prot="public" virt="non-virtual"><scope>ml_map_iter_t</scope><name>Node</name></member>

@@ -61,6 +61,11 @@ ml_value_t *ml_parser_escape_uuid(ml_parser_t *Parser) {
 	return ml_expr_value((mlc_expr_t *)ValueExpr);
 }
 
+static void ML_TYPED_FN(ml_value_sha256, MLUUIDT, ml_uuid_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	memset(Hash, 0, SHA256_BLOCK_SIZE);
+	memcpy(Hash, Value->Value, 16);
+}
+
 static int ML_TYPED_FN(ml_value_is_constant, MLUUIDT, ml_value_t *Value) {
 	return 1;
 }

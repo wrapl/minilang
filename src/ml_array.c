@@ -1034,7 +1034,7 @@ static ml_array_t MLArrayNil[1] = {{
 }};
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
-	int IndexValue = ml_integer_value_fast(Index);
+	int IndexValue = ml_integer_value(Index);
 	if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
 	if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
 	if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
@@ -4597,7 +4597,7 @@ ML_METHOD(#NAME, MLArrayIntegerT, MLIntegerT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4640,7 +4640,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayIntegerT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4797,7 +4797,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4817,7 +4817,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4843,7 +4843,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4863,7 +4863,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
 	int DataSize = ml_array_copy(C, A); \
@@ -4987,7 +4987,7 @@ ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[1]); \
+	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -5011,7 +5011,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
-	int64_t B = ml_integer_value_fast(Args[0]); \
+	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -7680,7 +7680,7 @@ ML_FUNCTION(RandomPermutation) {
 //>permutation
 // Returns a random permutation of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
+	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
 	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
@@ -7707,7 +7707,7 @@ ML_FUNCTION(RandomCycle) {
 //>permutation
 // Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
+	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
 	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
@@ -7809,6 +7809,85 @@ static int ml_lu_decomp_complex(complex double **A, int *P, int N) {
 }
 
 #endif
+
+ML_METHOD("lu", MLMatrixT) {
+//<A
+//>tuple[matrix,matrix,matrix]
+// Returns a tuple of matrices :mini:`(L, U, P)` such that :mini:`L` is lower triangular, :mini:`U` is upper triangular, :mini:`P` is a permutation matrix and :mini:`P . A = L . U`.
+//$= let A := $[[0, 5, 22/3], [4, 2, 1], [2, 7, 9]]
+//$= let (L, U, P) := A:lu
+//$= \P . L . U
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int N = Source->Dimensions[0].Size;
+	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
+	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+		ml_array_t *LU = ml_array_alloc(ML_ARRAY_FORMAT_F64, 2);
+		ml_array_copy(LU, Source);
+		int Stride = LU->Dimensions->Stride;
+		double *A[N];
+		char *Data = LU->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (double *)Data;
+			Data += Stride;
+		}
+		int *P0 = anew(int, N + 1);
+		if (!ml_lu_decomp_real(A, P0, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		ml_array_t *L = ml_array(ML_ARRAY_FORMAT_F64, 2, N, N);
+		ml_array_t *U = ml_array(ML_ARRAY_FORMAT_F64, 2, N, N);
+		ml_array_t *P = ml_array(ML_ARRAY_FORMAT_I8, 2, N, N);
+		double *LData = (double *)L->Base.Value;
+		double *UData = (double *)U->Base.Value;
+		int8_t *PData = (int8_t *)P->Base.Value;
+		memset(LData, 0, N * N * sizeof(double));
+		memset(UData, 0, N * N * sizeof(double));
+		memset(PData, 0, N * N * sizeof(int8_t));
+		for (int I = 0; I < N; ++I) {
+			memcpy(LData, A[I], I * sizeof(double));
+			LData[I] = 1;
+			LData += N;
+			memcpy(UData + I, A[I] + I, (N - I) * sizeof(double));
+			UData += N;
+			PData[P0[I]] = 1;
+			PData += N;
+		}
+		return ml_tuplev(3, L, U, P);
+#ifdef ML_COMPLEX
+	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
+		ml_array_t *LU = ml_array_alloc(ML_ARRAY_FORMAT_C64, 2);
+		ml_array_copy(LU, Source);
+		int Stride = LU->Dimensions->Stride;
+		complex double *A[N];
+		char *Data = LU->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (complex double *)Data;
+			Data += Stride;
+		}
+		int *P0 = anew(int, N + 1);
+		if (!ml_lu_decomp_complex(A, P0, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		ml_array_t *L = ml_array(ML_ARRAY_FORMAT_C64, 2, N, N);
+		ml_array_t *U = ml_array(ML_ARRAY_FORMAT_C64, 2, N, N);
+		ml_array_t *P = ml_array(ML_ARRAY_FORMAT_I8, 2, N, N);
+		complex double *LData = (complex double *)L->Base.Value;
+		complex double *UData = (complex double *)U->Base.Value;
+		int8_t *PData = (int8_t *)P->Base.Value;
+		memset(LData, 0, N * N * sizeof(complex double));
+		memset(UData, 0, N * N * sizeof(complex double));
+		memset(PData, 0, N * N * sizeof(int8_t));
+		for (int I = 0; I < N; ++I) {
+			memcpy(LData, A[I], I * sizeof(complex double));
+			LData[I] = 1;
+			LData += N;
+			memcpy(UData + I, A[I] + I, (N - I) * sizeof(complex double));
+			UData += N;
+			PData[P0[I]] = 1;
+			PData += N;
+		}
+		return ml_tuplev(3, L, U, P);
+#endif
+	} else {
+		return ml_error("ArrayError", "Invalid array type for operation");
+	}
+}
 
 ML_METHOD("\\", MLMatrixT) {
 //<A

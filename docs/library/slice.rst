@@ -173,6 +173,10 @@ slice
    *TBD*
 
 
+:mini:`meth (Arg₁: slice):sort(Arg₂: method)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: slice)`
    *TBD*
 
@@ -239,6 +243,14 @@ slice
 
 
 :mini:`meth (Arg₁: slice::mutable):insert(Arg₂: integer, Arg₃: any)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice::mutable):order`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice::mutable):order(Arg₂: function)`
    *TBD*
 
 

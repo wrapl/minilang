@@ -49,6 +49,14 @@ interval
    Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 
 
+:mini:`meth (Value: integer):clamp(Interval: integer::interval): integer`
+   *TBD*
+
+
+:mini:`meth (Value: integer):clamp(Interval: real::interval): real`
+   *TBD*
+
+
 :mini:`meth (Start: integer):down: integer::range`
    Returns an unlimited range from :mini:`Start`.
 
@@ -149,6 +157,14 @@ interval
    *TBD*
 
 
+:mini:`meth (Value: real):clamp(Interval: integer::interval): integer`
+   *TBD*
+
+
+:mini:`meth (Value: real):clamp(Interval: real::interval): integer`
+   *TBD*
+
+
 :mini:`type real::interval < sequence`
    *TBD*
 
@@ -194,6 +210,10 @@ interval
 
 
 :mini:`type real::range < sequence`
+   *TBD*
+
+
+:mini:`meth (Interval: string::interval):random: string`
    *TBD*
 
 

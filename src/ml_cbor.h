@@ -103,6 +103,9 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 
 #define ML_CBOR_TAG_TIME_STRING 0
 #define ML_CBOR_TAG_TIME_EPOCH 1
+#define ML_CBOR_TAG_UNSIGNED_BIGNUM 2
+#define ML_CBOR_TAG_NEGATIVE_BIGNUM 3
+#define ML_CBOR_TAG_DECIMAL_FRACTION 4
 #define ML_CBOR_TAG_OBJECT 27
 #define ML_CBOR_TAG_MARK_REUSED 28
 #define ML_CBOR_TAG_USE_PREVIOUS 29

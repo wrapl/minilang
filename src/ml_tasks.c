@@ -45,7 +45,7 @@ static void ml_task_set(ml_task_t *Task, ml_value_t *Value) {
 		for (ml_waiter_t *Waiter = Task->Waiters; Waiter; Waiter = Waiter->Next) {
 			ml_state_schedule(Waiter->State, Value);
 		}
-		ML_RETURN(Value);
+		ml_state_schedule(Caller, Value);
 	}
 }
 
@@ -372,17 +372,18 @@ static void ml_task_queue_empty(ml_task_queue_t *Queue, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_LOG_ERROR(Value, "Empty callback returned error");
 }
 
-ML_METHOD(MLTaskQueueT, MLIntegerT) {
+ML_METHODX(MLTaskQueueT, MLIntegerT) {
 //@task::queue
 //<MaxRunning
 //>task::queue
 // Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
 	ml_task_queue_t *Queue = new(ml_task_queue_t);
 	Queue->Base.Type = MLTaskQueueT;
+	Queue->Base.Context = Caller->Context;
 	Queue->Base.run = (ml_state_fn)ml_task_queue_run;
 	Queue->MaxRunning = ml_integer_value(Args[0]);
 	Queue->NumRunning = 0;
-	return (ml_value_t *)Queue;
+	ML_RETURN(Queue);
 }
 
 ML_METHODX(MLTaskQueueT, MLIntegerT, MLFunctionT) {
@@ -393,6 +394,7 @@ ML_METHODX(MLTaskQueueT, MLIntegerT, MLFunctionT) {
 // Returns a new task queue which runs at most :mini:`MaxRunning` tasks at a time.
 	ml_task_queue_t *Queue = new(ml_task_queue_t);
 	Queue->Base.Type = MLTaskQueueT;
+	Queue->Base.Context = Caller->Context;
 	Queue->Base.run = (ml_state_fn)ml_task_queue_run;
 	Queue->MaxRunning = ml_integer_value(Args[0]);
 	Queue->NumRunning = 0;
@@ -496,13 +498,13 @@ ML_FUNCTIONX(Parallel) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(3, MLFunctionT);
-		Parallel->MaxRunning = ml_integer_value_fast(Args[2]);
-		Parallel->Burst = ml_integer_value_fast(Args[1]) + 1;
+		Parallel->MaxRunning = ml_integer_value(Args[2]);
+		Parallel->Burst = ml_integer_value(Args[1]) + 1;
 		Parallel->Fn = Args[3];
 	} else if (Count > 2) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
-		Parallel->MaxRunning = ml_integer_value_fast(Args[1]);
+		Parallel->MaxRunning = ml_integer_value(Args[1]);
 		Parallel->Burst = SIZE_MAX;
 		Parallel->Fn = Args[2];
 	} else {

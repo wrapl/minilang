@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include <string.h>
+#include "sha256.h"
 #include "ml_sequence.h"
 #include "ml_method.h"
 #include "ml_object.h"
@@ -60,6 +61,18 @@ ml_value_t *ml_set() {
 	ml_set_t *Set = new(ml_set_t);
 	Set->Type = MLSetMutableT;
 	return (ml_value_t *)Set;
+}
+
+static void ML_TYPED_FN(ml_value_sha256, MLSetT, ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	SHA256_CTX Ctx[1];
+	sha256_init(Ctx);
+	sha256_update(Ctx, (unsigned char *)"set", strlen("set"));
+	ML_SET_FOREACH(Value, Iter) {
+		unsigned char Hash[SHA256_BLOCK_SIZE];
+		ml_value_sha256(Iter->Key, Chain, Hash);
+		sha256_update(Ctx, Hash, SHA256_BLOCK_SIZE);
+	}
+	sha256_final(Ctx, Hash);
 }
 
 ML_METHOD(MLSetT) {
@@ -130,27 +143,16 @@ ML_METHODVX("grow", MLSetMutableT, MLSequenceT) {
 extern ml_value_t *CompareMethod;
 
 static inline ml_value_t *ml_set_compare(ml_set_t *Set, ml_value_t **Args) {
-	/*ml_method_cached_t *Cached = Set->Cached;
-	if (Cached) {
-		if (Cached->Types[0] != ml_typeof(Args[0])) Cached = NULL;
-		if (Cached->Types[1] != ml_typeof(Args[1])) Cached = NULL;
-	}
-	if (!Cached || !Cached->Callback) {
-		Cached = ml_method_search_cached(NULL, (ml_method_t *)CompareMethod, 2, Args);
-		if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
-		Set->Cached = Cached;
-	}
-	return ml_simple_call(Cached->Callback, 2, Args);*/
-	return ml_simple_call(CompareMethod, 2, Args);
+	ml_method_cached_t *Cached =  ml_method_check_cached(NULL, (ml_method_t *)CompareMethod, Set->Cached, 2, Args);
+	if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
+	Set->Cached = Cached;
+	return ml_simple_call(Cached->Callback, 2, Args);
+	//return ml_simple_call(CompareMethod, 2, Args);
 }
 
 static ml_set_node_t *ml_set_find_node(ml_set_t *Set, ml_value_t *Key) {
 	ml_set_node_t *Node = Set->Root;
 	long Hash = ml_typeof(Key)->hash(Key, NULL);
-	ml_method_cached_t *Cached = Set->Cached;
-	if (Cached && Cached->Callback) {
-		if (Cached->Types[0] != ml_typeof(Key)) Cached = NULL;
-	}
 	while (Node) {
 		int Compare;
 		if (Hash < Node->Hash) {
@@ -1188,7 +1190,7 @@ typedef struct {
 	ml_value_t *Args[2];
 	ml_set_node_t *Head, *Tail;
 	ml_set_node_t *P, *Q;
-	int Count, Size;
+	int Size;
 	int InSize, NMerges;
 	int PSize, QSize;
 } ml_set_sort_state_t;
@@ -1218,7 +1220,126 @@ static void ml_set_sort_state_run(ml_set_sort_state_t *State, ml_value_t *Result
 				} else {
 					State->Args[0] = State->P->Key;
 					State->Args[1] = State->Q->Key;
-					return ml_call((ml_state_t *)State, State->Compare, State->Count, State->Args);
+					return ml_call((ml_state_t *)State, State->Compare, 2, State->Args);
+				resume:
+					if (ml_is_error(Result)) {
+						ml_set_node_t *Node = State->P, *Next;
+						if (State->Tail) {
+							State->Tail->Next = Node;
+						} else {
+							State->Head = Node;
+						}
+						Node->Prev = State->Tail;
+						for (int Size = State->PSize; --Size > 0;) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Next = State->Q;
+						Node->Next = Next;
+						Next->Prev = Node;
+						Node = Next;
+						while (Node->Next) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Node->Next = NULL;
+						State->Tail = Node;
+						goto finished;
+					} else if (Result == MLNil) {
+						E = State->Q; State->Q = State->Q->Next; State->QSize--;
+					} else {
+						E = State->P; State->P = State->P->Next; State->PSize--;
+					}
+				}
+				if (State->Tail) {
+					State->Tail->Next = E;
+				} else {
+					State->Head = E;
+				}
+				E->Prev = State->Tail;
+				State->Tail = E;
+			}
+			State->P = State->Q;
+		}
+		State->Tail->Next = 0;
+		if (State->NMerges <= 1) {
+			Result = (ml_value_t *)State->Set;
+			goto finished;
+		}
+		State->InSize *= 2;
+	}
+finished:
+	State->Set->Head = State->Head;
+	State->Set->Tail = State->Tail;
+	State->Set->Size = State->Size;
+	ML_CONTINUE(State->Base.Caller, Result);
+}
+
+ML_METHODX("sort", MLSetMutableT, MLFunctionT) {
+//<Set
+//<Cmp
+//>Set
+// Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Value/i, Value/j)` and returns :mini:`Set`
+//$= let S := set("cake")
+//$= S:sort(>)
+	if (!ml_set_size(Args[0])) ML_RETURN(Args[0]);
+	ml_set_sort_state_t *State = new(ml_set_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_sort_state_run;
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	State->Set = Set;
+	State->Compare = Args[1];
+	State->Head = State->Set->Head;
+	State->Size = Set->Size;
+	State->InSize = 1;
+	// TODO: Improve ml_set_sort_state_run so that List is still valid during sort
+	Set->Head = Set->Tail = NULL;
+	Set->Size = 0;
+	return ml_set_sort_state_run(State, NULL);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_set_t *Set;
+	ml_method_t *Compare;
+	ml_methods_t *Methods;
+	ml_method_cached_t *Cached;
+	ml_value_t *Args[2];
+	ml_set_node_t *Head, *Tail;
+	ml_set_node_t *P, *Q;
+	int Size;
+	int InSize, NMerges;
+	int PSize, QSize;
+} ml_set_method_sort_state_t;
+
+static void ml_set_method_sort_state_run(ml_set_method_sort_state_t *State, ml_value_t *Result) {
+	if (Result) goto resume;
+	for (;;) {
+		State->P = State->Head;
+		State->Tail = State->Head = NULL;
+		State->NMerges = 0;
+		while (State->P) {
+			State->NMerges++;
+			State->Q = State->P;
+			State->PSize = 0;
+			for (int I = 0; I < State->InSize; I++) {
+				State->PSize++;
+				State->Q = State->Q->Next;
+				if (!State->Q) break;
+			}
+			State->QSize = State->InSize;
+			while (State->PSize > 0 || (State->QSize > 0 && State->Q)) {
+				ml_set_node_t *E;
+				if (State->PSize == 0) {
+					E = State->Q; State->Q = State->Q->Next; State->QSize--;
+				} else if (State->QSize == 0 || !State->Q) {
+					E = State->P; State->P = State->P->Next; State->PSize--;
+				} else {
+					State->Args[0] = State->P->Key;
+					State->Args[1] = State->Q->Key;
+					ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+					if (!Cached) return ml_set_method_sort_state_run(State, ml_no_method_error(State->Compare, 2, State->Args));
+					State->Cached = Cached;
+					return ml_call(State, Cached->Callback, 2, State->Args);
 				resume:
 					if (ml_is_error(Result)) {
 						ml_set_node_t *Node = State->P, *Next;
@@ -1280,24 +1401,24 @@ ML_METHODX("sort", MLSetMutableT) {
 //$= let S := set("cake")
 //$= S:sort
 	if (!ml_set_size(Args[0])) ML_RETURN(Args[0]);
-	ml_set_sort_state_t *State = new(ml_set_sort_state_t);
+	ml_set_method_sort_state_t *State = new(ml_set_method_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_set_sort_state_run;
+	State->Base.run = (ml_state_fn)ml_set_method_sort_state_run;
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	State->Set = Set;
-	State->Count = 2;
-	State->Compare = LessMethod;
+	State->Compare = (ml_method_t *)LessMethod;
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	State->Head = State->Set->Head;
 	State->Size = Set->Size;
 	State->InSize = 1;
 	// TODO: Improve ml_set_sort_state_run so that List is still valid during sort
 	Set->Head = Set->Tail = NULL;
 	Set->Size = 0;
-	return ml_set_sort_state_run(State, NULL);
+	return ml_set_method_sort_state_run(State, NULL);
 }
 
-ML_METHODX("sort", MLSetMutableT, MLFunctionT) {
+ML_METHODX("sort", MLSetMutableT, MLMethodT) {
 //<Set
 //<Cmp
 //>Set
@@ -1305,21 +1426,21 @@ ML_METHODX("sort", MLSetMutableT, MLFunctionT) {
 //$= let S := set("cake")
 //$= S:sort(>)
 	if (!ml_set_size(Args[0])) ML_RETURN(Args[0]);
-	ml_set_sort_state_t *State = new(ml_set_sort_state_t);
+	ml_set_method_sort_state_t *State = new(ml_set_method_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_set_sort_state_run;
+	State->Base.run = (ml_state_fn)ml_set_method_sort_state_run;
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	State->Set = Set;
-	State->Count = 2;
-	State->Compare = Args[1];
+	State->Compare = (ml_method_t *)Args[1];
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	State->Head = State->Set->Head;
 	State->Size = Set->Size;
 	State->InSize = 1;
 	// TODO: Improve ml_set_sort_state_run so that List is still valid during sort
 	Set->Head = Set->Tail = NULL;
 	Set->Size = 0;
-	return ml_set_sort_state_run(State, NULL);
+	return ml_set_method_sort_state_run(State, NULL);
 }
 
 ML_METHOD("reverse", MLSetMutableT) {

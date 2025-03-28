@@ -134,8 +134,21 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 //$= type(N)
 //$= let R := 2 ^ -1
 //$= type(R)
-	int64_t Base = ml_integer_value_fast(Args[0]);
-	int64_t Exponent = ml_integer_value_fast(Args[1]);
+	int64_t Exponent = ml_integer_value(Args[1]);
+#ifdef ML_BIGINT
+	if (Exponent < 0) {
+		double Base = ml_real_value(Args[0]);
+		return ml_real(pow(Base, Exponent));
+	} else if (Exponent > 0) {
+		mpz_t Base; ml_integer_mpz_init(Base, Args[0]);
+		mpz_t Result; mpz_init(Result);
+		mpz_pow_ui(Result, Base, Exponent);
+		return ml_integer_mpz(Result);
+	} else {
+		return ml_integer(1);
+	}
+#else
+	int64_t Base = ml_integer_value(Args[0]);
 	if (Exponent >= 0) {
 		int64_t N = 1;
 		while (Exponent) {
@@ -147,6 +160,7 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	} else {
 		return ml_real(pow(Base, Exponent));
 	}
+#endif
 }
 
 ML_METHOD("^", MLRealT, MLIntegerT) {
@@ -155,7 +169,7 @@ ML_METHOD("^", MLRealT, MLIntegerT) {
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
 //$= 2.3 ^ 2
-	return ml_real(pow(ml_real_value(Args[0]), ml_integer_value_fast(Args[1])));
+	return ml_real(pow(ml_real_value(Args[0]), ml_integer_value(Args[1])));
 }
 
 ML_METHOD("^", MLRealT, MLRealT) {
@@ -191,7 +205,7 @@ ML_METHOD("^", MLComplexT, MLIntegerT) {
 // Returns :mini:`X` raised to the power of :mini:`Y`.
 //$= (1 + 2i) ^ 2
 	complex double Base = ml_complex_value(Args[0]);
-	int64_t Power = ml_integer_value_fast(Args[1]);
+	int64_t Power = ml_integer_value(Args[1]);
 	if (Power == 0) return ml_real(0);
 	complex double Result;
 	if (Power > 0 && Power < 10) {
@@ -242,22 +256,26 @@ ML_METHOD("!", MLIntegerT) {
 //>integer
 // Returns the factorial of :mini:`N`.
 //$= !10
-	int N = ml_integer_value_fast(Args[0]);
+#ifdef ML_BIGINT
+	mpz_t F; mpz_init(F);
+	mpz_fac_ui(F, ml_integer_value(Args[0]));
+	return ml_integer_mpz(F);
+#else
+	int N = ml_integer_value(Args[0]);
 	if (N > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
 	int64_t F = N;
 	while (--N > 1) F *= N;
 	return ml_integer(F);
+#endif
 }
-
-#define MIN(X, Y) (X < Y) ? X : Y
 
 ML_METHOD("!", MLIntegerT, MLIntegerT) {
 //<N
 //<R
 //>integer
 // Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
-	int N = ml_integer_value_fast(Args[0]);
-	int K = ml_integer_value_fast(Args[1]);
+	int N = ml_integer_value(Args[0]);
+	int K = ml_integer_value(Args[1]);
 	int64_t C = 1;
 	if (K > N - K) K = N - K;
 	for (int I = 0; I < K; ++I) {
@@ -275,8 +293,15 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns the greatest common divisor of :mini:`A` and :mini:`B`.
-	unsigned long A = labs(ml_integer_value_fast(Args[0]));
-	unsigned long B = labs(ml_integer_value_fast(Args[1]));
+#ifdef ML_BIGINT
+	mpz_t A; ml_integer_mpz_init(A, Args[0]);
+	mpz_t B; ml_integer_mpz_init(B, Args[1]);
+	mpz_t C; mpz_init(C);
+	mpz_gcd(C, A, B);
+	return ml_integer_mpz(C);
+#else
+	unsigned long A = labs(ml_integer_value(Args[0]));
+	unsigned long B = labs(ml_integer_value(Args[1]));
 	if (A == 0) return Args[1];
 	if (B == 0) return Args[0];
 	int Shift = __builtin_ctzl(A | B);
@@ -291,6 +316,7 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 		B = B - A;
 	} while (B != 0);
 	return ml_integer(A << Shift);
+#endif
 }
 
 MATH_NUMBER_KEEP_REAL(Acos, acos, acos);
@@ -312,7 +338,7 @@ ML_METHOD(AbsMethod, MLIntegerT) {
 //<N
 //>integer
 // Returns the absolute value of :mini:`N`.
-	return ml_integer(labs(ml_integer_value_fast(Args[0])));
+	return ml_integer(labs(ml_integer_value(Args[0])));
 }
 
 #ifdef ML_COMPLEX
@@ -342,7 +368,29 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 //@math::sqrt
 //>integer|real
 // Returns the square root of :mini:`Arg/1`.
-	int64_t N = ml_integer_value_fast(Args[0]);
+#ifdef ML_BIGINT
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
+	switch (mpz_sgn(IntegerA)) {
+	case 0: return ml_integer(0);
+	case 1: {
+		mpz_t Result; mpz_init(Result);
+		if (mpz_root(Result, IntegerA, 2)) {
+			return ml_integer_mpz(Result);
+		} else {
+			return ml_real(sqrt(mpz_get_d(IntegerA)));
+		}
+	}
+	case -1: {
+#ifdef ML_COMPLEX
+		return ml_complex(csqrt(mpz_get_d(IntegerA)));
+#else
+		return ml_real(-NAN);
+#endif
+	}
+	default: __builtin_unreachable();
+	}
+#else
+	int64_t N = ml_integer_value(Args[0]);
 	if (N < 0) {
 #ifdef ML_COMPLEX
 		return ml_complex(csqrt(N));
@@ -359,6 +407,7 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 	}
 	if (X * X == N) return ml_integer(X);
 	return ml_real(sqrt(N));
+#endif
 }
 
 ML_METHOD_ANON(SquareMethod, "math::square");
@@ -368,7 +417,7 @@ ML_METHOD(SquareMethod, MLIntegerT) {
 //>integer
 // Returns :mini:`N * N`
 //$= math::square(10)
-	int64_t N = ml_integer_value_fast(Args[0]);
+	int64_t N = ml_integer_value(Args[0]);
 	return ml_integer(N * N);
 }
 ML_METHOD(SquareMethod, MLRealT) {
