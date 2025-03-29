@@ -1583,6 +1583,10 @@ void ml_types_init(stringmap_t *Globals);
 #ifdef __cplusplus
 }
 
+template <typename T> inline T *ml_typed_fn_get(ml_type_t *Type, T *Key) {
+	return (T *)ml_typed_fn_get(Type, (void *)Key);
+}
+
 template <typename... args> void ml_method_by_auto(const char *Cached, void *Data, ml_callback_t Function, args... Args) {
 	ml_method_definev(ml_method(Cached), ml_cfunction(Data, Function), NULL, Args...);
 }
