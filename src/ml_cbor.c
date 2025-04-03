@@ -936,7 +936,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_v
 	const char *Name = ml_typeof(Arg)->Name;
 	minicbor_write_string(Writer, strlen(Name));
 	Writer->WriteFn(Writer->Data, (void *)Name, strlen(Name));
-	for (int I = 0; I < Size; ++I) ml_cbor_write(Writer, ml_object_field(Arg, I));
+	for (int I = 0; I < Size; ++I) ml_cbor_write(Writer, ml_object_field(Arg, I + 1));
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_cbor_writer_t *Writer, ml_integer_range_t *Arg) {
