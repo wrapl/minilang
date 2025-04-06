@@ -205,7 +205,6 @@ extern ml_type_t MLVisitorT[];
 #ifdef ML_NANBOXING
 
 extern ml_type_t MLInteger32T[];
-extern ml_type_t MLInteger64T[];
 extern ml_type_t MLDoubleT[];
 
 #ifdef ML_RATIONAL

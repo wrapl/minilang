@@ -5261,6 +5261,37 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, State->Args[0]);
 }
 
+typedef struct {
+	const char *Text;
+	size_t Length;
+} ml_piece_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_piece_t *Pieces;
+	ml_piece_t *CachedPiece;
+	size_t Capacity, Offset, Length;
+	size_t CachedOffset;
+	size_t Generation;
+} ml_piece_table_t;
+
+ML_TYPE(MLPieceTableT, (), "string::piece_table");
+
+ml_value_t *ml_piece_table() {
+	ml_piece_table_t *Table = new(ml_piece_table_t);
+	Table->Type = MLPieceTableT;
+	Table->Capacity = 8;
+	Table->Pieces = anew(ml_piece_t, 8 + 1);
+	return (ml_value_t *)Table;
+}
+
+void ml_piece_table_splice(size_t Position, size_t Remove, const char *Insert, size_t Length) {
+
+}
+
+size_t ml_piece_table_find(regex_t *Pattern, size_t Start, regmatch_t *Matches) {
+}
+
 void ml_string_init() {
 	setlocale(LC_ALL, "C.UTF-8");
 	GC_word StringBufferLayout[] = {1};
