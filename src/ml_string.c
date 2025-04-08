@@ -5273,7 +5273,7 @@ typedef struct {
 typedef struct {
 	ml_type_t *Type;
 	ml_piece_t *Pieces;
-	size_t Capacity, Offset, Count;
+	size_t Capacity, Count;
 	size_t Generation;
 } ml_piece_table_t;
 
@@ -5293,185 +5293,98 @@ static inline ml_piece_t ml_piece(const char *Text, size_t Size) {
 	return (ml_piece_t){Text, Size, utf8_position(Text, Text + Size)};
 }
 
-static ml_piece_t *ml_piece_table_resize(ml_piece_table_t *Table, size_t Incr, size_t Index) {
+static ml_piece_t *ml_piece_table_resize(ml_piece_table_t *Table, size_t Incr, ml_piece_t *Piece) {
 	size_t Count = Table->Count;
-	size_t Offset = Table->Offset;
-	ml_piece_t *OldPieces = Table->Pieces + Offset;
+	ml_piece_t *OldPieces = Table->Pieces;
+	size_t Index = Piece - OldPieces;
 	size_t Capacity = Table->Capacity;
 	Capacity += (Capacity >> 2) + 4;
 	ml_piece_t *Pieces = anew(ml_piece_t, Capacity);
-	Offset = (Capacity - Count - 1) / 2;
-	ml_piece_t *Piece = mempcpy(Pieces + Offset, OldPieces, Index * sizeof(ml_piece_t));
-	memcpy(Piece + Incr, OldPieces + Index, (Count - Index) * sizeof(ml_piece_t));
+	ml_piece_t *NewPiece = mempcpy(Pieces, OldPieces, Index * sizeof(ml_piece_t));
+	memcpy(NewPiece + Incr, Piece, (Count - Index) * sizeof(ml_piece_t));
 	Table->Pieces = Pieces;
 	Table->Capacity = Capacity;
-	Table->Offset = Offset;
-	return Piece;
+	return NewPiece;
 }
 
 void ml_piece_table_splice(ml_piece_table_t *Table, size_t Position, size_t Remove, const char *Text, size_t Insert) {
 	if (!Remove && !Insert) return;
-	size_t Offset = Table->Offset;
+	ml_piece_t Inserts[2];
+	int NumInserts = 0;
+	if (Insert) {
+		Inserts[0] = ml_piece(Text, Insert);
+		NumInserts = 1;
+	}
 	size_t Count = Table->Count;
 	size_t Capacity = Table->Capacity;
-	ml_piece_t *Pieces = Table->Pieces + Offset;
+	ml_piece_t *Pieces = Table->Pieces;
 	ml_piece_t *Limit = Pieces + Count;
-	ml_piece_t *StartPiece = Pieces;
-	while (StartPiece < Limit) {
-		if (Position <= StartPiece->Count) break;
-		Position -= StartPiece->Count;
-		++StartPiece;
+	ml_piece_t *Start = Pieces;
+	while (Start < Limit) {
+		if (Position < Start->Count) break;
+		Position -= Start->Count;
+		++Start;
 	}
-	ml_piece_t *EndPiece = StartPiece;
-	if (Remove > StartPiece->Count - Position) {
-		Remove -= (StartPiece->Count - Position);
-		++EndPiece;
-		while (EndPiece < Limit) {
-			if (Remove < EndPiece->Count) break;
-			Remove -= EndPiece->Count;
-			++EndPiece;
+	int NumRemoves = 0;
+	if (Position + Remove < Start->Count) {
+		if (Position) {
+			subject_t Subject1 = utf8_index(Start->Chars, Start->Length, Position);
+			Start->Length = Subject1.Chars - Start->Chars;
+			subject_t Subject2 = utf8_index(Subject1.Chars, Subject1.Length, Remove);
+			Inserts[NumInserts].Chars = Subject2.Chars;
+			Inserts[NumInserts].Length = Subject2.Length;
+			Inserts[NumInserts].Count = Start->Count - (Position + Remove);
+			++NumInserts;
+			Start->Count = Position;
+			++Start;
+		} else if (Remove) {
+			subject_t Subject = utf8_index(Start->Chars, Start->Length, Remove);
+			Start->Chars = Subject.Chars;
+			Start->Length = Subject.Length;
+			Start->Count -= Remove;
 		}
-	}
-	if (StartPiece != EndPiece) {
-		if (Position < StartPiece->Count) {
-			subject_t Subject = utf8_index(StartPiece->Chars, StartPiece->Length, Position);
-			StartPiece->Length -= Subject.Length;
-			StartPiece->Count = Position;
+	} else if (Position + Remove == Start->Count) {
+		if (Position) {
+			subject_t Subject = utf8_index(Start->Chars, Start->Length, Position);
+			Start->Length = Subject.Chars - Start->Chars;
+			Start->Count = Position;
+			++Start;
+		} else if (Start->Count) {
+			NumRemoves = 1;
 		}
-		for (ml_piece_t *Piece = StartPiece + 1; Piece < EndPiece; ++Piece) {
-			Piece->Chars = NULL;
-			Piece->Length = Piece->Count = 0;
-		}
-		if (EndPiece < Limit && Remove) {
-			subject_t Subject = utf8_index(EndPiece->Chars, EndPiece->Length, Remove);
-			EndPiece->Chars = Subject.Chars;
-			EndPiece->Length = Subject.Length;
-			EndPiece->Count -= Remove;
-		}
-		size_t R = EndPiece - StartPiece;
-		if (Insert) {
-			if ((R > 1) || (Offset + Count < Capacity)) {
-				memmove(StartPiece + 2, EndPiece, (Limit - EndPiece) * sizeof(ml_piece_t));
-				StartPiece[1] = ml_piece(Text, Insert);
-			} else if (Offset) {
-				memmove(Pieces - 1, Pieces, (StartPiece - Pieces) * sizeof(ml_piece_t));
-				StartPiece[0] = ml_piece(Text, Insert);
-			} else {
-				size_t Index = (StartPiece - Pieces) + 1;
-				ml_piece_t *Piece = ml_piece_table_resize(Table, 1, Index);
-				Piece[0] = ml_piece(Text, Insert);
-			}
-			Table->Count += (2 - R);
-		} else {
-			memmove(StartPiece + 1, EndPiece, (Limit - EndPiece) * sizeof(ml_piece_t));
-			Table->Count += (1 - R);
-		}
-	} else if (StartPiece == Limit) {
-		if (Insert) {
-			if (Count == Capacity) {
-				Capacity += (Capacity >> 2) + 4;
-				Pieces = anew(ml_piece_t, Capacity);
-				memcpy(Pieces, Table->Pieces, Count * sizeof(ml_piece_t));
-				Table->Pieces = Pieces;
-				Table->Capacity = Capacity;
-			} else if (Offset) {
-				memmove(Pieces - 1, Pieces, Count * sizeof(ml_piece_t));
-				--Pieces;
-			}
-			Pieces[Count] = ml_piece(Text, Insert);
-			Table->Count = Count + 1;
-		}
-	} else if (Position == 0) {
-		if (Remove) {
-			subject_t Subject = utf8_index(StartPiece->Chars, StartPiece->Length, Remove);
-			StartPiece->Chars = Subject.Chars;
-			StartPiece->Length = Subject.Length;
-			StartPiece->Count -= Remove;
-		}
-		if (Insert) {
-			if (Offset) {
-				Pieces[-1] = Pieces[0];
-				Pieces[0] = ml_piece(Text, Insert);
-			} else if (Count < Capacity) {
-				memmove(Pieces + 2, Pieces + 1, (Count - 1) * sizeof(ml_piece_t));
-				Pieces[1] = ml_piece(Text, Insert);
-			} else {
-				Capacity += (Capacity >> 2) + 4;
-				Pieces = anew(ml_piece_t, Capacity);
-				Pieces[0] = Table->Pieces[0];
-				Pieces[1] = ml_piece(Text, Insert);
-				memcpy(Pieces + 2, Table->Pieces + 1, (Count - 1) * sizeof(ml_piece_t));
-				Table->Pieces = Pieces;
-				Table->Capacity = Capacity;
-			}
-			Table->Count = Count + 1;
-		}
-	} else if (Position + Remove == StartPiece->Count) {
-		if (Remove) {
-			subject_t Subject = utf8_index(StartPiece->Chars, StartPiece->Length, Position);
-			StartPiece->Length -= Subject.Length;
-			StartPiece->Count = Position;
-		}
-		if (Offset + Count < Capacity) {
-			memmove(StartPiece + 2, StartPiece + 1, (Limit - StartPiece - 1) * sizeof(ml_piece_t));
-			StartPiece[1] = ml_piece(Text, Insert);
-		} else if (Offset) {
-			memmove(Pieces - 1, Pieces, (StartPiece - Pieces + 1) * sizeof(ml_piece_t));
-			StartPiece[0] = ml_piece(Text, Insert);
-		} else {
-			size_t Index = (StartPiece - Pieces) + 1;
-			ml_piece_t *Piece = ml_piece_table_resize(Table, 1, Index);
-			Piece[0] = ml_piece(Text, Insert);
-		}
-		Table->Count = Count + 1;
-	} else if (Insert) {
-		subject_t Start = utf8_index(StartPiece->Chars, StartPiece->Length, Position);
-		subject_t End = utf8_index(Start.Chars, Start.Length, Remove);
-		ml_piece_t Saved = {End.Chars, End.Length, StartPiece->Count - (Position + Remove)};
-		StartPiece->Length = Start.Chars - StartPiece->Chars;
-		StartPiece->Count = Position;
-		size_t Index = (StartPiece - Pieces) + 1;
-		if (Count + 2 > Capacity) {
-			ml_piece_t *Piece = ml_piece_table_resize(Table, 2, Index);
-			Piece[0] = ml_piece(Text, Insert);
-			Piece[1] = Saved;
-		} else if (Offset == 0) {
-			memmove(StartPiece + 3, StartPiece + 1, (Limit - StartPiece - 1) * sizeof(ml_piece_t));
-			StartPiece[1] = ml_piece(Text, Insert);
-			StartPiece[2] = Saved;
-		} else if (Offset == 1) {
-			Table->Offset = 0;
-			memmove(Pieces - 1, Pieces, Index * sizeof(ml_piece_t));
-			memmove(StartPiece + 2, StartPiece + 1, (Limit - StartPiece - 1) * sizeof(ml_piece_t));
-			StartPiece[0] = ml_piece(Text, Insert);
-			StartPiece[1] = Saved;
-		} else {
-			Table->Offset = Offset - 2;
-			memmove(Pieces - 2, Pieces, Index * sizeof(ml_piece_t));
-			StartPiece[-1] = ml_piece(Text, Insert);
-			StartPiece[0] = Saved;
-		}
-		Table->Count = Count + 2;
 	} else {
-		subject_t Start = utf8_index(StartPiece->Chars, StartPiece->Length, Position);
-		subject_t End = utf8_index(Start.Chars, Start.Length, Remove);
-		ml_piece_t Saved = {End.Chars, End.Length, StartPiece->Count - (Position + Remove)};
-		StartPiece->Length = Start.Chars - StartPiece->Chars;
-		StartPiece->Count = Position;
-		size_t Index = (StartPiece - Pieces) + 1;
-		if (Count == Capacity) {
-			ml_piece_t *Piece = ml_piece_table_resize(Table, 1, Index);
-			Piece[0] = Saved;
-		} else if (!Offset || (Index > Count / 2)) {
-			memmove(StartPiece + 2, StartPiece + 1, (Limit - StartPiece - 1) * sizeof(ml_piece_t));
-			StartPiece[1] = Saved;
-		} else {
-			Table->Offset = Offset - 1;
-			memmove(Pieces - 1, Pieces, Index * sizeof(ml_piece_t));
-			StartPiece[-1] = Saved;
+		ml_piece_t *End = Start + 1;
+		Remove -= (Start->Count - Position);
+		if (Position) {
+			subject_t Subject = utf8_index(Start->Chars, Start->Length, Position);
+			Start->Length = Subject.Chars - Start->Chars;
+			Start->Count = Position;
+			++Start;
 		}
-		Table->Count = Count + 1;
+		while (End < Limit) {
+			if (Remove < End->Count) break;
+			Remove -= End->Count;
+			++End;
+		}
+		if (End < Limit && Remove) {
+			subject_t Subject = utf8_index(End->Chars, End->Length, Remove);
+			End->Chars = Subject.Chars;
+			End->Length = Subject.Length;
+			End->Count -= Remove;
+		}
+		NumRemoves = End - Start;
 	}
+	int Incr = NumInserts - NumRemoves;
+	ml_piece_t *End = Start + NumRemoves;
+	if (Count + Incr > Capacity) {
+		Start = ml_piece_table_resize(Table, Incr, Start);
+	} else if (NumInserts != NumRemoves) {
+		int Move = Limit - End;
+		memmove(Start + NumInserts, End, Move * sizeof(ml_piece_t));
+		if (Incr < 0) memset(Limit + Incr, 0, -Incr * sizeof(ml_piece_t));
+	}
+	memcpy(Start, Inserts, NumInserts * sizeof(ml_piece_t));
+	Table->Count = Count + Incr;
 }
 
 size_t ml_piece_table_find(ml_piece_table_t *Table, size_t Start, regex_t *Pattern, regmatch_t *Matches) {
@@ -5490,8 +5403,7 @@ ML_METHOD(MLStringTableT, MLStringT) {
 ML_METHOD("append", MLStringBufferT, MLStringTableT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_piece_table_t *Table = (ml_piece_table_t *)Args[1];
-	size_t Offset = Table->Offset;
-	ml_piece_t *Pieces = Table->Pieces + Offset;
+	ml_piece_t *Pieces = Table->Pieces;
 	ml_piece_t *Limit = Pieces + Table->Count;
 	for (ml_piece_t *Piece = Pieces; Piece < Limit; ++Piece) {
 		ml_stringbuffer_write(Buffer, Piece->Chars, Piece->Length);
@@ -5502,13 +5414,11 @@ ML_METHOD("append", MLStringBufferT, MLStringTableT) {
 ML_METHOD("describe", MLStringTableT) {
 	ml_value_t *Parts = ml_list();
 	ml_piece_table_t *Table = (ml_piece_table_t *)Args[0];
-	size_t Offset = Table->Offset;
-	ml_list_put(Parts, ml_tuplev(3,
+	ml_list_put(Parts, ml_tuplev(2,
 		ml_integer(Table->Count),
-		ml_integer(Table->Offset),
 		ml_integer(Table->Capacity)
 	));
-	ml_piece_t *Pieces = Table->Pieces + Offset;
+	ml_piece_t *Pieces = Table->Pieces;
 	ml_piece_t *Limit = Pieces + Table->Count;
 	for (ml_piece_t *Piece = Pieces; Piece < Limit; ++Piece) {
 		ml_list_put(Parts, ml_tuplev(3,
