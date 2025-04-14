@@ -631,6 +631,8 @@ struct ml_cbor_writer_t {
 	inthash_t Reused[1];
 	ml_value_t *Error;
 	jmp_buf OnError;
+	stringmap_t ReusedKeys[1];
+	size_t Flags;
 	int Index, NumSettings;
 	unsigned char Buffer[9];
 	void *Settings[];
@@ -719,6 +721,8 @@ ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, ml_extern
 	Writer->Externals = Externals ?: MLExternals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = NumCborSettings;
 	return Writer;
@@ -728,7 +732,13 @@ void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data) {
 	Writer->Data = Data;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
 	Writer->Index = 0;
+}
+
+void ml_cbor_writer_set_flags(ml_cbor_writer_t *Writer, size_t Flags) {
+	Writer->Flags = Flags;
 }
 
 void ml_cbor_writer_set_setting(ml_cbor_writer_t *Writer, int Setting, void *Value) {
@@ -818,6 +828,8 @@ ml_cbor_t ml_cbor_encode(ml_value_t *Value) {
 	Writer->Externals = MLExternals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
 	if (setjmp(Writer->OnError)) return (ml_cbor_t){{.Error = Writer->Error}, 0};
@@ -835,6 +847,8 @@ ml_value_t *ml_cbor_encode_to(void *Data, ml_cbor_write_fn WriteFn, ml_externals
 	Writer->Externals = Externals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
 	if (setjmp(Writer->OnError)) return Writer->Error;
@@ -904,9 +918,30 @@ static void ML_TYPED_FN(ml_cbor_write, MLListT, ml_cbor_writer_t *Writer, ml_val
 
 static void ML_TYPED_FN(ml_cbor_write, MLMapT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	minicbor_write_map(Writer, ml_map_size(Arg));
-	ML_MAP_FOREACH(Arg, Node) {
-		ml_cbor_write(Writer, Node->Key);
-		ml_cbor_write(Writer, Node->Value);
+	if (Writer->Flags & ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS) {
+		ML_MAP_FOREACH(Arg, Node) {
+			if (ml_typeof(Node->Key) == MLStringT) {
+				const char *Key = ml_string_value(Node->Key);
+				uintptr_t *Slot = (uintptr_t *)stringmap_slot(Writer->ReusedKeys, Key);
+				int Index = Slot[0];
+				if (Index) {
+					minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
+					minicbor_write_integer(Writer, Index - 1);
+				} else {
+					Index = Slot[0] = ++Writer->Index;
+					minicbor_write_tag(Writer, ML_CBOR_TAG_MARK_REUSED);
+					size_t Length = ml_string_length(Node->Key);
+					minicbor_write_string(Writer, Length);
+					Writer->WriteFn(Writer->Data, (unsigned char *)Key, Length);
+				}
+			}
+			ml_cbor_write(Writer, Node->Value);
+		}
+	} else {
+		ML_MAP_FOREACH(Arg, Node) {
+			ml_cbor_write(Writer, Node->Key);
+			ml_cbor_write(Writer, Node->Value);
+		}
 	}
 }
 
@@ -1261,6 +1296,8 @@ ML_METHOD(CborEncode, MLAnyT, MLStringBufferT) {
 	Writer->Externals = MLExternals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
 	if (setjmp(Writer->OnError)) return Writer->Error;
@@ -1283,6 +1320,8 @@ ML_METHOD(CborEncode, MLAnyT, MLExternalSetT) {
 	Writer->Externals = (ml_externals_t *)Args[1];
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
 	if (setjmp(Writer->OnError)) return Writer->Error;
@@ -1307,12 +1346,52 @@ ML_METHOD(CborEncode, MLAnyT, MLStringBufferT, MLExternalSetT) {
 	Writer->Externals = (ml_externals_t *)Args[2];
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
 	if (setjmp(Writer->OnError)) return Writer->Error;
 	ml_cbor_writer_find_refs(Writer, Value);
 	ml_cbor_write(Writer, Value);
 	return (ml_value_t *)Buffer;
+}
+
+ML_ENUM2(CborFlagT, "cbor::flag",
+	"ReuseMapKeys", ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS
+);
+
+ML_METHODV(CborEncode, MLAnyT) {
+	ml_value_t *Value = Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_cbor_writer_t Writer[1];
+	Writer->Data = Buffer;
+	Writer->WriteFn = (void *)ml_stringbuffer_write;
+	Writer->Externals = MLExternals;
+	Writer->References[0] = INTHASH_INIT;
+	Writer->Reused[0] = INTHASH_INIT;
+	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Flags = 0;
+	Writer->Index = 0;
+	Writer->NumSettings = 0;
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Arg = Args[I];
+		if (ml_is(Arg, CborFlagT)) {
+			Writer->Flags = ml_enum_value_value(Arg);
+		} else if (ml_is(Arg, MLStringBufferT)) {
+			Writer->Data = (ml_stringbuffer_t *)Arg;
+		} else if (ml_is(Arg, MLExternalSetT)) {
+			Writer->Externals = (ml_externals_t *)Arg;
+		}
+	}
+	if (setjmp(Writer->OnError)) return Writer->Error;
+	ml_cbor_writer_find_refs(Writer, Value);
+	ml_cbor_write(Writer, Value);
+	if (Writer->Data == Buffer) {
+		int Length = ml_stringbuffer_length(Buffer);
+		return ml_address(ml_stringbuffer_get_string(Buffer), Length);
+	} else {
+		return Value;
+	}
 }
 
 ml_value_t *ml_cbor_read_regex(ml_cbor_reader_t *Reader, ml_value_t *Value) {
@@ -1376,6 +1455,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
+			"flag", CborFlagT,
 			"encode", CborEncode,
 			"decode", CborDecode,
 			"decoder", MLCborDecoderT,
