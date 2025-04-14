@@ -922,18 +922,25 @@ static void ML_TYPED_FN(ml_cbor_write, MLMapT, ml_cbor_writer_t *Writer, ml_valu
 		ML_MAP_FOREACH(Arg, Node) {
 			if (ml_typeof(Node->Key) == MLStringT) {
 				const char *Key = ml_string_value(Node->Key);
-				uintptr_t *Slot = (uintptr_t *)stringmap_slot(Writer->ReusedKeys, Key);
-				int Index = Slot[0];
-				if (Index) {
-					minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
-					minicbor_write_integer(Writer, Index - 1);
-				} else {
-					Index = Slot[0] = ++Writer->Index;
-					minicbor_write_tag(Writer, ML_CBOR_TAG_MARK_REUSED);
-					size_t Length = ml_string_length(Node->Key);
+				size_t Length = ml_string_length(Node->Key);
+				if (Length < 4) {
 					minicbor_write_string(Writer, Length);
 					Writer->WriteFn(Writer->Data, (unsigned char *)Key, Length);
+				} else {
+					uintptr_t *Slot = (uintptr_t *)stringmap_slot(Writer->ReusedKeys, Key);
+					int Index = Slot[0];
+					if (Index) {
+						minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
+						minicbor_write_integer(Writer, Index - 1);
+					} else {
+						Index = Slot[0] = ++Writer->Index;
+						minicbor_write_tag(Writer, ML_CBOR_TAG_MARK_REUSED);
+						minicbor_write_string(Writer, Length);
+						Writer->WriteFn(Writer->Data, (unsigned char *)Key, Length);
+					}
 				}
+			} else {
+				ml_cbor_write(Writer, Node->Key);
 			}
 			ml_cbor_write(Writer, Node->Value);
 		}
