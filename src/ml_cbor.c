@@ -102,23 +102,27 @@ ml_cbor_tag_fns_t *ml_cbor_tag_fns(int Default) {
 	}
 }
 
-typedef struct collection_t {
-	struct collection_t *Prev;
-	struct tag_t *Tags;
+typedef struct ml_cbor_reader_collection_t ml_cbor_reader_collection_t;
+
+struct ml_cbor_reader_collection_t {
+	ml_cbor_reader_collection_t *Prev;
+	struct ml_cbor_reader_tag_t *Tags;
 	ml_value_t *Key;
 	ml_value_t *Collection;
 	int Remaining;
-} collection_t;
+};
 
-typedef struct tag_t {
-	struct tag_t *Prev;
+typedef struct ml_cbor_reader_tag_t ml_cbor_reader_tag_t;
+
+struct ml_cbor_reader_tag_t {
+	ml_cbor_reader_tag_t *Prev;
 	ml_cbor_tag_fn Handler;
 	int Index;
-} tag_t;
+};
 
 struct ml_cbor_reader_t {
-	collection_t *Collection, *FreeCollection;
-	tag_t *Tags, *FreeTag;
+	ml_cbor_reader_collection_t *Collection, *FreeCollection;
+	ml_cbor_reader_tag_t *Tags, *FreeTag;
 	ml_value_t *Value;
 	ml_cbor_tag_fns_t *TagFns;
 	ml_external_fn_t GlobalGet;
@@ -158,6 +162,7 @@ void ml_cbor_reader_reset(ml_cbor_reader_t *Reader) {
 	Reader->Tags = NULL;
 	Reader->Value = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
+	Reader->Reused = NULL;
 	Reader->Buffer[0] = ML_STRINGBUFFER_INIT;
 	minicbor_stream_init(Reader->Stream);
 }
@@ -216,9 +221,9 @@ ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	}
 }
 
-static collection_t *collection_push(ml_cbor_reader_t *Reader) {
-	collection_t *Collection = Reader->FreeCollection;
-	if (Collection) Reader->FreeCollection = Collection->Prev; else Collection = new(collection_t);
+static ml_cbor_reader_collection_t *collection_push(ml_cbor_reader_t *Reader) {
+	ml_cbor_reader_collection_t *Collection = Reader->FreeCollection;
+	if (Collection) Reader->FreeCollection = Collection->Prev; else Collection = new(ml_cbor_reader_collection_t);
 	Collection->Prev = Reader->Collection;
 	Collection->Tags = Reader->Tags;
 	Reader->Tags = NULL;
@@ -229,7 +234,7 @@ static collection_t *collection_push(ml_cbor_reader_t *Reader) {
 static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value);
 
 static void collection_pop(ml_cbor_reader_t *Reader) {
-	collection_t *Collection = Reader->Collection;
+	ml_cbor_reader_collection_t *Collection = Reader->Collection;
 	Reader->Collection = Collection->Prev;
 	Reader->Tags = Collection->Tags;
 	ml_value_t *Value = Collection->Collection;
@@ -248,9 +253,9 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 		Reader->Stream->State = MCS_FINISHED;
 		return;
 	}
-	tag_t *Tags = Reader->Tags;
+	ml_cbor_reader_tag_t *Tags = Reader->Tags;
 	if (Tags) {
-		tag_t *Tag = Tags;
+		ml_cbor_reader_tag_t *Tag = Tags;
 		for (;;) {
 			if (Tag->Handler == ml_cbor_mark_reused) {
 				ml_value_t *Uninitialized = Reader->Reused[Tag->Index];
@@ -271,7 +276,7 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 		Reader->FreeTag = Tags;
 		Reader->Tags = NULL;
 	}
-	collection_t *Collection = Reader->Collection;
+	ml_cbor_reader_collection_t *Collection = Reader->Collection;
 	if (!Collection) {
 		Reader->Value = Value;
 		Reader->Stream->State = MCS_FINISHED;
@@ -322,7 +327,7 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 			break;
 		case MCE_ARRAY:
 			if (Stream->Required) {
-				collection_t *Collection = collection_push(Reader);
+				ml_cbor_reader_collection_t *Collection = collection_push(Reader);
 				Collection->Remaining = Stream->Required;
 				Collection->Key = IsList;
 				Collection->Collection = ml_list();
@@ -332,7 +337,7 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 			break;
 		case MCE_MAP:
 			if (Stream->Required) {
-				collection_t *Collection = collection_push(Reader);
+				ml_cbor_reader_collection_t *Collection = collection_push(Reader);
 				Collection->Remaining = Stream->Required;
 				Collection->Key = NULL;
 				Collection->Collection = ml_map();
@@ -343,8 +348,8 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 		case MCE_TAG: {
 			ml_cbor_tag_fn Handler = ml_cbor_tag_fn_get(Reader->TagFns, Stream->Tag);
 			if (Handler) {
-				tag_t *Tag = Reader->FreeTag;
-				if (Tag) Reader->FreeTag = Tag->Prev; else Tag = new(tag_t);
+				ml_cbor_reader_tag_t *Tag = Reader->FreeTag;
+				if (Tag) Reader->FreeTag = Tag->Prev; else Tag = new(ml_cbor_reader_tag_t);
 				Tag->Prev = Reader->Tags;
 				Tag->Handler = Handler;
 				// TODO: Reimplement this without hard-coding tag ML_CBOR_TAG_MARK_REUSED
