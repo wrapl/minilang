@@ -16,8 +16,6 @@ extern "C" {
 
 void ml_cbor_init(stringmap_t *Globals);
 
-void ml_cbor_default_object(const char *Name, ml_value_t *Constructor);
-
 int ml_cbor_setting();
 
 typedef struct ml_cbor_reader_t ml_cbor_reader_t;
@@ -30,8 +28,12 @@ ml_cbor_tag_fns_t *ml_cbor_tag_fns_copy(ml_cbor_tag_fns_t *TagFns);
 ml_cbor_tag_fn ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag);
 void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn);
 
-void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn);
+void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn Fn);
 void ml_cbor_default_global(const char *Name, void *Value);
+
+typedef ml_value_t *(*ml_cbor_object_fn)(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args);
+
+void ml_cbor_default_object(const char *Name, ml_cbor_object_fn Fn);
 
 typedef ml_value_t *(*ml_external_fn_t)(void *Data, const char *Name);
 

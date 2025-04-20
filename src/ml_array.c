@@ -8447,14 +8447,12 @@ static ml_value_t *ml_cbor_read_any_array_fn(ml_cbor_reader_t *Reader, ml_value_
 
 #ifdef ML_COMPLEX
 
-ML_FUNCTION(MLCborReadComplex32) {
-//!internal
+static ml_value_t *ml_cbor_read_complex32(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C32);
 }
 
-ML_FUNCTION(MLCborReadComplex64) {
-//!internal
+static ml_value_t *ml_cbor_read_complex64(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C64);
 }
@@ -8617,8 +8615,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_FLOAT32_LE, ml_cbor_read_float32_array_fn);
 	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_FLOAT64_LE, ml_cbor_read_float64_array_fn);
 #ifdef ML_COMPLEX
-	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
-	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
+	ml_cbor_default_object("array::complex32", ml_cbor_read_complex32);
+	ml_cbor_default_object("array::complex64", ml_cbor_read_complex64);
 #endif
 	ml_externals_default_add("array", MLArrayT);
 	ml_externals_default_add("vector", MLVectorT);

@@ -8,6 +8,7 @@
 #include <string.h>
 #include "ml_object.h"
 #include "ml_bytecode.h"
+#include "uuidmap.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "cbor"
@@ -90,8 +91,8 @@ ml_cbor_tag_fns_t *ml_cbor_tag_fns_copy(ml_cbor_tag_fns_t *TagFns) {
 
 static ml_cbor_tag_fns_t DefaultTagFns[1] = {{NULL, NULL, 0, 0}};
 
-void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn) {
-	ml_cbor_tag_fn_set(DefaultTagFns, Tag, TagFn);
+void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn Fn) {
+	ml_cbor_tag_fn_set(DefaultTagFns, Tag, Fn);
 }
 
 ml_cbor_tag_fns_t *ml_cbor_tag_fns(int Default) {
@@ -130,6 +131,7 @@ struct ml_cbor_reader_t {
 	ml_value_t **Reused;
 	minicbor_stream_t Stream[1];
 	ml_stringbuffer_t Buffer[1];
+	uuidmap_t Classes[1];
 	int NumReused, MaxReused;
 	int NumSettings;
 	void *Settings[];
@@ -637,6 +639,7 @@ struct ml_cbor_writer_t {
 	ml_value_t *Error;
 	jmp_buf OnError;
 	stringmap_t ReusedKeys[1];
+	uuidmap_t Classes[1];
 	size_t Flags;
 	int Index, NumSettings;
 	unsigned char Buffer[9];
@@ -727,6 +730,7 @@ ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, ml_extern
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = NumCborSettings;
@@ -738,6 +742,7 @@ void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data) {
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 }
@@ -834,6 +839,7 @@ ml_cbor_t ml_cbor_encode(ml_value_t *Value) {
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
@@ -853,6 +859,7 @@ ml_value_t *ml_cbor_encode_to(void *Data, ml_cbor_write_fn WriteFn, ml_externals
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
@@ -978,11 +985,30 @@ static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_cbor_writer_t *Writer, ml_v
 
 static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
-	int Size = ml_object_size(Arg);
-	minicbor_write_array(Writer, 1 + Size);
-	const char *Name = ml_typeof(Arg)->Name;
-	minicbor_write_string(Writer, strlen(Name));
-	Writer->WriteFn(Writer->Data, (void *)Name, strlen(Name));
+	ml_type_t *Class = Arg->Type;
+	int Size = ml_class_size(Class);
+	minicbor_write_array(Writer, 2 + Size);
+	minicbor_write_string(Writer, 6);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"object", 6);
+	const unsigned char *Id = ml_class_id(Class);
+	void **Slot = uuidmap_slot(Writer->Classes, Id);
+	if (Slot[0]) {
+		minicbor_write_tag(Writer, ML_CBOR_TAG_UUID);
+		minicbor_write_bytes(Writer, sizeof(uuid_t));
+		Writer->WriteFn(Writer->Data, Id, sizeof(uuid_t));
+	} else {
+		minicbor_write_array(Writer, 1 + Size);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_UUID);
+		minicbor_write_bytes(Writer, sizeof(uuid_t));
+		Writer->WriteFn(Writer->Data, Id, sizeof(uuid_t));
+		for (int I = 1; I <= Size; ++I) {
+			const char *Field = ml_class_field_name(Class, I);
+			size_t Length = strlen(Field);
+			minicbor_write_string(Writer, Length);
+			Writer->WriteFn(Writer->Data, (unsigned char *)Field, Length);
+		}
+		Slot[0] = Class;
+	}
 	for (int I = 0; I < Size; ++I) ml_cbor_write(Writer, ml_object_field(Arg, I + 1));
 }
 
@@ -1042,7 +1068,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLComplexT, ml_cbor_writer_t *Writer, ml_
 	minicbor_write_float8(Writer, cimag(Arg->Value));
 }
 
-ML_FUNCTION(DecodeComplex) {
+static ml_value_t *ml_cbor_object_complex(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 //!internal
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLRealT);
@@ -1136,7 +1162,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLDecimalT, ml_cbor_writer_t *Writer, ml_
 #endif
 }
 
-ML_FUNCTION(DecodeDecimal) {
+static ml_value_t *ml_cbor_object_decimal(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 //!internal
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
@@ -1309,6 +1335,7 @@ ML_METHOD(CborEncode, MLAnyT, MLStringBufferT) {
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
@@ -1333,6 +1360,7 @@ ML_METHOD(CborEncode, MLAnyT, MLExternalSetT) {
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
@@ -1359,6 +1387,7 @@ ML_METHOD(CborEncode, MLAnyT, MLStringBufferT, MLExternalSetT) {
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
@@ -1382,6 +1411,7 @@ ML_METHODV(CborEncode, MLAnyT) {
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->ReusedKeys[0] = STRINGMAP_INIT;
+	Writer->Classes[0] = UUIDMAP_INIT;
 	Writer->Flags = 0;
 	Writer->Index = 0;
 	Writer->NumSettings = 0;
@@ -1416,39 +1446,73 @@ ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	return ml_method(ml_string_value(Value));
 }
 
+static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_value_t *ClassDef = Args[0];
+	ml_type_t *Class;
+	if (ml_is(ClassDef, MLUUIDT)) {
+		Class = uuidmap_search(Reader->Classes, ml_uuid_value(ClassDef));
+		if (!Class) return ml_error("TagError", "Object type requires valid class");
+	} else if (ml_is(ClassDef, MLListT)) {
+		ml_list_iter_t Iter[1];
+		if (!ml_list_iter_forward(ClassDef, Iter)) return ml_error("TagError", "Object type requires valid class");
+		if (!ml_is(Iter->Value, MLUUIDT)) return ml_error("TagError", "Object type requires valid class");
+		const unsigned char *Id = ml_uuid_value(Iter->Value);
+		Class = ml_pseudo_class(NULL, Id);
+		while (ml_list_iter_next(Iter)) {
+			if (!ml_is(Iter->Value, MLStringT)) return ml_error("TagError", "Object type requires valid class");
+			ml_pseudo_class_add_field(Class, ml_string_value(Iter->Value));
+		}
+		uuidmap_insert(Reader->Classes, Id, Class);
+	} else {
+		return ml_error("TagError", "Object requires type description");
+	}
+	if (ml_class_size(Class) != Count - 1) return ml_error("TagError", "Fields and values do not match");
+	ml_object_t *Object = (ml_object_t *)ml_object(Class, NULL);
+	for (int I = 1; I < Count; ++I) Object->Fields[I].Value = Args[I];
+	return (ml_value_t *)Object;
+}
+
 static stringmap_t CborObjectTypes[1] = {STRINGMAP_INIT};
 
 ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Object requires list");
-	ml_list_iter_t Iter[1];
-	ml_list_iter_forward(Value, Iter);
-	if (!ml_list_iter_valid(Iter)) return ml_error("CBORError", "Object tag requires type name");
-	ml_value_t *TypeName = Iter->Value;
-	if (ml_typeof(TypeName) != MLStringT) return ml_error("CBORError", "Object tag requires type name");
-	const char *Type = ml_string_value(TypeName);
-	int Count = ml_list_length(Value) - 1;
-	ml_value_t **Args = ml_alloc_args(Count);
-	for (int I = 0; I < Count; ++I) {
-		ml_list_iter_next(Iter);
-		Args[I] = Iter->Value;
-	}
-	ml_value_t *Constructor = stringmap_search(CborObjectTypes, Type);
-	if (Constructor) return ml_simple_call(Constructor, Count, Args);
-	return ml_deserialize(Type, Count, Args);
+	int Count = ml_list_length(Value);
+	if (!Count) return ml_error("CBORError", "Object tag requires type name");
+	ml_value_t **Args = ml_alloc_args(Count), **Slot = Args;
+	ML_LIST_FOREACH(Value, Iter) *Slot++ = Iter->Value;
+	if (!ml_is(Args[0], MLStringT)) return ml_error("CBORError", "Object tag requires type name");
+	const char *Type = ml_string_value(Args[0]);
+	ml_cbor_object_fn Fn = stringmap_search(CborObjectTypes, Type);
+	if (Fn) return Fn(Reader, Count - 1, Args + 1);
+	return ml_deserialize(Type, Count - 1, Args + 1);
+}
+
+static ml_value_t *ml_cbor_object_some(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	return MLSome;
+}
+
+static ml_value_t *ml_cbor_object_tuple(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	return ml_tuplen(Count, Args);
 }
 
 extern ml_value_t *RangeMethod;
 
-void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
-	stringmap_insert(CborObjectTypes, Name, Constructor);
+static ml_value_t *ml_cbor_object_range(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	return ml_simple_call(RangeMethod, Count, Args);
+}
+
+void ml_cbor_default_object(const char *Name, ml_cbor_object_fn Fn) {
+	stringmap_insert(CborObjectTypes, Name, Fn);
 }
 
 void ml_cbor_init(stringmap_t *Globals) {
-	ml_cbor_default_object("some", (ml_value_t *)MLSomeT);
-	ml_cbor_default_object("tuple", (ml_value_t *)MLTupleT);
-	ml_cbor_default_object("range", RangeMethod);
+	ml_cbor_default_object("some", ml_cbor_object_some);
+	ml_cbor_default_object("tuple", ml_cbor_object_tuple);
+	ml_cbor_default_object("range", ml_cbor_object_range);
+	ml_cbor_default_object("object", ml_cbor_object_object);
 #ifdef ML_COMPLEX
-	ml_cbor_default_object("complex", (ml_value_t *)DecodeComplex);
+	ml_cbor_default_object("complex", ml_cbor_object_complex);
 	ml_cbor_default_tag(ML_CBOR_TAG_COMPLEX, ml_cbor_read_complex);
 #endif
 #ifdef ML_BIGINT
@@ -1456,7 +1520,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_NEGATIVE_BIGNUM, ml_cbor_read_negative_bigint);
 #endif
 #ifdef ML_DECIMAL
-	ml_cbor_default_object("decimal", (ml_value_t *)DecodeDecimal);
+	ml_cbor_default_object("decimal", ml_cbor_object_decimal);
 	ml_cbor_default_tag(ML_CBOR_TAG_DECIMAL_FRACTION, ml_cbor_read_decimal);
 #endif
 	ml_cbor_default_tag(ML_CBOR_TAG_REGEX, ml_cbor_read_regex);

@@ -168,6 +168,11 @@ ML_METHOD("fields", MLClassT) {
 	return Fields;
 }
 
+ML_METHOD("id", MLClassT) {
+	ml_class_t *Class = (ml_class_t *)Args[0];
+	return ml_uuid(Class->Id);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;
@@ -408,6 +413,11 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLTypeT, ml_context_t *Context, 
 	return NULL;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_class_modify, MLUUIDT, ml_context_t *Context, ml_class_t *Class, ml_uuid_t *Id) {
+	memcpy(Class->Id, ml_uuid_value(Id), sizeof(uuid_t));
+	return NULL;
+}
+
 ML_FUNCTIONZ(MLClass) {
 //!object
 //@class
@@ -516,6 +526,7 @@ ML_FUNCTIONZ(MLClass) {
 				if (Error) ML_RETURN(Error);
 			}
 		}
+		if (uuid_is_null(Class->Id)) uuid_generate(Class->Id);
 		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
@@ -678,6 +689,10 @@ size_t ml_class_size(const ml_type_t *Value) {
 	return ((ml_class_t *)Value)->NumFields;
 }
 
+const unsigned char *ml_class_id(const ml_type_t *Value) {
+	return ((ml_class_t *)Value)->Id;
+}
+
 typedef struct {
 	const char *Name;
 	int Index;
@@ -755,6 +770,57 @@ static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const
 	if (!Info) return;
 	ml_field_t *Field = &Object->Fields[Info->Index];
 	Field->Value = ml_string(Name, -1);
+}
+
+ML_TYPE(MLPseudoClassT, (MLClassT), "pseudo::class");
+ML_TYPE(MLPseudoObjectT, (MLObjectT), "pseudo::object");
+
+ml_type_t *ml_pseudo_class(const char *Name, const uuid_t Id) {
+	ml_class_t *Class = new(ml_class_t);
+	Class->Base.Type = MLPseudoClassT;
+	if (Name) {
+		Class->Base.Name = Name;
+	} else {
+		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
+	}
+	Class->Base.hash = ml_default_hash;
+	Class->Base.call = ml_default_call;
+	Class->Base.deref = ml_default_deref;
+	Class->Base.assign = ml_default_assign;
+	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
+	Class->Base.Constructor = Constructor;
+	ml_type_add_parent((ml_type_t *)Class, MLPseudoObjectT);
+	stringmap_insert(Class->Base.Exports, "new", Constructor);
+	memcpy(Class->Id, Id, sizeof(uuid_t));
+	return (ml_type_t *)Class;
+}
+
+void ml_pseudo_class_add_field(ml_type_t *Class0, const char *Name) {
+	ml_class_t *Class = (ml_class_t *)Class0;
+	ml_value_t *Method = ml_method(Name);
+	ml_field_info_t **Slot = &Class->Fields;
+	int Index = 1;
+	while (Slot[0]) {
+		if (Slot[0]->Method == Method) return;
+		++Index;
+		Slot = &Slot[0]->Next;
+	}
+	++Class->NumFields;
+	ml_field_info_t *Info = Slot[0] = new(ml_field_info_t);
+	Info->Method = Method;
+	Info->Type = MLFieldMutableT;
+	Info->Index = Index;
+	if (Name) stringmap_insert(Class->Names, Name, Info);
+}
+
+ML_METHOD(MLMethodDefault, MLMethodT, MLPseudoObjectT) {
+	const char *Name = ml_method_name(Args[0]);
+	ml_object_t *Object = (ml_object_t *)Args[1];
+	ml_class_t *Class = Object->Type;
+	ml_field_info_t *Info = stringmap_search(Class->Names, Name);
+	if (!Info) return ml_no_method_error((ml_method_t *)Args[0], 1, Args + 1);
+	ml_field_t *Field = &Object->Fields[Info->Index];
+	return (ml_value_t *)Field;
 }
 
 //!enum
