@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_object.h"
+#include "uuidmap.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -149,6 +150,13 @@ ML_METHOD("::", MLObjectT, MLStringT) {
 	if (!Info) return ml_error("NameError", "Type %s has no field %s", Object->Type->Base.Name, Name);
 	return (ml_value_t *)&Object->Fields[Info->Index];
 }
+
+typedef struct ml_class_table_t ml_class_table_t;
+
+struct ml_class_table_t {
+	ml_class_table_t *Prev;
+	uuidmap_t Classes[1];
+};
 
 extern ml_cfunctionx_t MLClass[];
 
@@ -414,7 +422,6 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLTypeT, ml_context_t *Context, 
 }
 
 static ml_value_t *ML_TYPED_FN(ml_class_modify, MLUUIDT, ml_context_t *Context, ml_class_t *Class, ml_uuid_t *Id) {
-	memcpy(Class->Id, ml_uuid_value(Id), sizeof(uuid_t));
 	return NULL;
 }
 
@@ -427,11 +434,16 @@ ML_FUNCTIONZ(MLClass) {
 //>class
 // Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 	ml_type_t *NativeType = NULL;
+	int NumFields = 0;
+	ml_value_t *Id = NULL;
 	for (int I = 0; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLNamesT) break;
 		Args[I] = ml_deref(Args[I]);
 		if (ml_typeof(Args[I]) == MLMethodT) {
+			++NumFields;
 		} else if (ml_is(Args[I], MLClassT)) {
+		} else if (ml_is(Args[I], MLUUIDT)) {
+			Id = Args[I];
 		} else if (ml_is(Args[I], MLNamedTypeT)) {
 			ml_named_type_t *Parent = (ml_named_type_t *)Args[I];
 			if (NativeType && NativeType != Parent->Native) {
@@ -488,7 +500,19 @@ ML_FUNCTIONZ(MLClass) {
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
 	} else {
-		ml_class_t *Class = new(ml_class_t);
+		ml_class_t *Class ;
+		if (Id) {
+			for (ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX); ClassTable; ClassTable = ClassTable->Prev) {
+				Class = uuidmap_search(ClassTable->Classes, ml_uuid_value(Id));
+				if (Class) {
+					if (Class->Base.Type != MLPseudoClassT) ML_ERROR("ClassError", "Class id must be unique");
+					if (Class->NumFields < NumFields) ML_ERROR("ClassError", "Class id previously declared with more fields");
+					goto have_class;
+				}
+			}
+		}
+		Class = new(ml_class_t);
+	have_class:
 		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
 #ifdef ML_GENERICS
 		ml_type_t *TypeArgs[2] = {MLClassT, (ml_type_t *)Class};
@@ -526,7 +550,13 @@ ML_FUNCTIONZ(MLClass) {
 				if (Error) ML_RETURN(Error);
 			}
 		}
-		if (uuid_is_null(Class->Id)) uuid_generate(Class->Id);
+		if (Id) {
+			memcpy(Class->Id, ml_uuid_value(Id), sizeof(uuid_t));
+			ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+			if (ClassTable) uuidmap_insert(ClassTable->Classes, Class->Id, Class);
+		} else {
+			uuid_generate(Class->Id);
+		}
 		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
@@ -821,6 +851,20 @@ ML_METHOD(MLMethodDefault, MLMethodT, MLPseudoObjectT) {
 	if (!Info) return ml_no_method_error((ml_method_t *)Args[0], 1, Args + 1);
 	ml_field_t *Field = &Object->Fields[Info->Index];
 	return (ml_value_t *)Field;
+}
+
+ML_METHODX("register", MLPseudoClassT) {
+	ml_class_t *Class = (ml_class_t *)Args[0];
+	ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+	if (!ClassTable) ML_ERROR("ClassError", "No class table found");
+	ml_class_t **Slot = (ml_class_t **)uuidmap_slot(ClassTable->Classes, Class->Id);
+	if (Slot[0]) {
+		if (Slot[0] != Class) ML_ERROR("ClassError", "Class id must be unique");
+	} else {
+		Slot[0] = Class;
+	}
+	uuidmap_insert(ClassTable->Classes, Class->Id, Class);
+	ML_RETURN(Class);
 }
 
 //!enum
@@ -1991,11 +2035,15 @@ ML_METHOD(MLListT, MLFlagsValueT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
+	ml_class_table_t *ClassTable = new(ml_class_table_t);
+	ml_context_set_static(MLRootContext, ML_CLASSES_INDEX, ClassTable);
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_string_fn, MLStringT, NULL);
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_names_fn, MLNamesT, NULL);
 	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_string_fn, MLStringT, NULL);
 	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_names_fn, MLNamesT, NULL);
 	stringmap_insert(MLEnumT->Exports, "cyclic", MLEnumCyclicT);
+	stringmap_insert(MLObjectT->Exports, "pseudo", MLPseudoObjectT);
+	stringmap_insert(MLClassT->Exports, "pseudo", MLPseudoClassT);
 	ml_externals_default_add("property", MLPropertyT);
 	ml_externals_default_add("object", MLObjectT);
 	ml_externals_default_add("class", MLClassT);
