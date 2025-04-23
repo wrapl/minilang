@@ -3330,6 +3330,37 @@ ML_FUNCTION(Grid) {
 	return (ml_value_t *)Grid;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_grid_t *Grid;
+	size_t Total;
+	int Index;
+} ml_grid_precount_state_t;
+
+static void ml_grid_precount_run(ml_grid_precount_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	size_t Total = State->Total * ml_integer_value(Value);
+	int Index = State->Index + 1;
+	if (Index == State->Grid->Count) ML_CONTINUE(State->Base.Caller, ml_integer(Total));
+	State->Total = Total;
+	State->Index = Index;
+	return ml_call(State, Precount, 1, State->Grid->Values + Index);
+}
+
+ML_METHODX("precount", MLGridT) {
+	ml_grid_t *Grid = (ml_grid_t *)Args[0];
+	if (!Grid->Count) ML_RETURN(ml_integer(0));
+	ml_grid_precount_state_t *State = new(ml_grid_precount_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_grid_precount_run;
+	State->Grid = Grid;
+	State->Index = 0;
+	State->Total = 1;
+	return ml_call(State, Precount, 1, Grid->Values);
+}
+
 typedef struct ml_paired_t {
 	ml_type_t *Type;
 	ml_value_t *Keys, *Values;
