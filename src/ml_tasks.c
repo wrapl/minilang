@@ -338,7 +338,7 @@ static void ml_task_queue_call(ml_state_t *Caller, ml_task_queue_t *Queue, int C
 		Pending->Task = Task;
 		Pending->Fn = Fn;
 		Pending->Count = Count - 1;
-		for (int I = 1; I < Count; ++I) Pending->Args[I - 1] = Args[I];
+		for (int I = 0; I < Count - 1; ++I) Pending->Args[I] = Args[I];
 		if (Queue->Tail) Queue->Tail->Next = Pending; else Queue->Head = Pending;
 		Queue->Tail = Pending;
 	}
