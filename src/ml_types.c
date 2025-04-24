@@ -2169,6 +2169,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_externals_default_add("raise", MLRaise);
 	ml_externals_default_add("copy", MLCopy);
 	if (Globals) {
+		stringmap_insert(Globals, "uninitialized", MLUninitializedT);
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "some", MLSome);
 		stringmap_insert(Globals, "type", MLTypeT);
