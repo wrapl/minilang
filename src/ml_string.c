@@ -2026,6 +2026,7 @@ ML_METHOD("normalize", MLStringT, MLStringNormT) {
 // Returns a normalized copy of :mini:`String` using the normalizer specified by :mini:`Norm`.
 //$= let S := "𝕥𝕖𝕩𝕥"
 //$= S:normalize(string::norm::NFD)
+	if (!ml_string_length(Args[0])) return Args[0];
 	UErrorCode Error = U_ZERO_ERROR;
 	int SrcLimit = 4 * ml_string_length(Args[0]);
 	UChar Src[SrcLimit];
