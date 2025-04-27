@@ -274,6 +274,15 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 //<R
 //>integer
 // Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
+#ifdef ML_BIGINT
+	mpz_t N; ml_integer_mpz_init(N, Args[0]);
+	mpz_t K; ml_integer_mpz_init(K, Args[1]);
+	if (!mpz_fits_ulong_p(K)) mpz_sub(K, N, K);
+	if (!mpz_fits_ulong_p(K)) return ml_error("RangeError", "Value out of bounds");
+	mpz_t C; mpz_init(C);
+	mpz_bin_ui(C, N, mpz_get_s64(K));
+	return ml_integer_mpz(C);
+#else
 	int N = ml_integer_value(Args[0]);
 	int K = ml_integer_value(Args[1]);
 	int64_t C = 1;
@@ -283,6 +292,7 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 		C /= (I + 1);
 	}
 	return ml_integer(C);
+#endif
 }
 
 ML_METHOD_DECL(GCDMethod, "math::gcd");

@@ -57,8 +57,6 @@
         </childnode>
         <childnode refid="24" relation="include">
         </childnode>
-        <childnode refid="25" relation="include">
-        </childnode>
         <childnode refid="26" relation="include">
         </childnode>
         <childnode refid="27" relation="include">
@@ -80,15 +78,15 @@
         <label>src/ml_base64.h</label>
         <link refid="ml__base64_8h_source"/>
       </node>
-      <node id="36">
+      <node id="35">
         <label>src/ml_bytecode.h</label>
         <link refid="ml__bytecode_8h_source"/>
-        <childnode refid="37" relation="include">
+        <childnode refid="36" relation="include">
         </childnode>
         <childnode refid="28" relation="include">
         </childnode>
       </node>
-      <node id="37">
+      <node id="36">
         <label>src/ml_bytecode_jit.h</label>
         <link refid="ml__bytecode__jit_8h_source"/>
       </node>
@@ -112,7 +110,7 @@
         <label>src/ml_console.h</label>
         <link refid="ml__console_8h_source"/>
       </node>
-      <node id="38">
+      <node id="37">
         <label>src/ml_coroutine.h</label>
         <link refid="ml__coroutine_8h_source"/>
       </node>
@@ -156,29 +154,29 @@
         <label>src/ml_module.h</label>
         <link refid="ml__module_8h_source"/>
       </node>
-      <node id="30">
+      <node id="25">
         <label>src/ml_object.h</label>
         <link refid="ml__object_8h_source"/>
       </node>
-      <node id="31">
+      <node id="30">
         <label>src/ml_polynomial.h</label>
         <link refid="ml__polynomial_8h_source"/>
       </node>
-      <node id="32">
+      <node id="31">
         <label>src/ml_pqueue.h</label>
         <link refid="ml__pqueue_8h_source"/>
       </node>
-      <node id="39">
+      <node id="38">
         <label>src/ml_runtime.h</label>
         <link refid="ml__runtime_8h_source"/>
-        <childnode refid="36" relation="include">
+        <childnode refid="35" relation="include">
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
         <childnode refid="29" relation="include">
         </childnode>
       </node>
-      <node id="33">
+      <node id="32">
         <label>src/ml_sequence.h</label>
         <link refid="ml__sequence_8h_source"/>
       </node>
@@ -191,44 +189,42 @@
         <link refid="ml__stream_8h_source"/>
       </node>
       <node id="21">
-        <label>src/ml_struct.h</label>
-        <link refid="ml__struct_8h_source"/>
-      </node>
-      <node id="22">
         <label>src/ml_table.h</label>
         <link refid="ml__table_8h_source"/>
       </node>
-      <node id="34">
+      <node id="33">
         <label>src/ml_tasks.h</label>
         <link refid="ml__tasks_8h_source"/>
       </node>
-      <node id="23">
+      <node id="22">
         <label>src/ml_thread.h</label>
         <link refid="ml__thread_8h_source"/>
       </node>
-      <node id="24">
+      <node id="23">
         <label>src/ml_time.h</label>
         <link refid="ml__time_8h_source"/>
       </node>
-      <node id="35">
+      <node id="34">
         <label>src/ml_types.h</label>
         <link refid="ml__types_8h_source"/>
-        <childnode refid="36" relation="include">
+        <childnode refid="35" relation="include">
         </childnode>
-        <childnode refid="38" relation="include">
+        <childnode refid="37" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
         </childnode>
         <childnode refid="30" relation="include">
         </childnode>
         <childnode refid="31" relation="include">
         </childnode>
-        <childnode refid="32" relation="include">
-        </childnode>
-        <childnode refid="39" relation="include">
+        <childnode refid="38" relation="include">
         </childnode>
       </node>
-      <node id="25">
+      <node id="24">
         <label>src/ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
+        <childnode refid="25" relation="include">
+        </childnode>
       </node>
       <node id="26">
         <label>src/ml_xe.h</label>
@@ -247,6 +243,8 @@
         </childnode>
         <childnode refid="29" relation="include">
         </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
         <childnode refid="30" relation="include">
         </childnode>
         <childnode refid="31" relation="include">
@@ -256,8 +254,6 @@
         <childnode refid="33" relation="include">
         </childnode>
         <childnode refid="34" relation="include">
-        </childnode>
-        <childnode refid="35" relation="include">
         </childnode>
       </node>
     </invincdepgraph>
@@ -300,7 +296,7 @@
 <codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size;</highlight></codeline>
 <codeline lineno="18"><highlight class="normal">};</highlight></codeline>
 <codeline lineno="19"><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGMAP_INIT<sp/>{0,}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGMAP_INIT<sp/>(stringmap_t){0,}</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="21"><highlight class="normal"></highlight></codeline>
 <codeline lineno="22"><highlight class="normal"><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*stringmap_new()<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
 <codeline lineno="23"><highlight class="normal"><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*stringmap_copy(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>

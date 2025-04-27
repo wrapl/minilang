@@ -4,6 +4,7 @@
     <compoundname>ml_uuid.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
     <includes local="no">uuid/uuid.h</includes>
+    <includedby refid="ml__object_8h" local="yes">src/ml_object.h</includedby>
     <incdepgraph>
       <node id="13">
         <label>inthash.h</label>
@@ -106,6 +107,18 @@
         <label>uuid/uuid.h</label>
       </node>
     </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>src/ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/ml_uuid.h</label>
+        <link refid="ml__uuid_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
     <innerclass refid="structml__uuid__t" prot="public">ml_uuid_t</innerclass>
     <sectiondef kind="define">
       <memberdef kind="define" id="ml__uuid_8h_1a6d37dd9ad8391595db1b71ca2103a228" prot="public" static="no">

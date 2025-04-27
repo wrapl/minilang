@@ -3,9 +3,7 @@
   <compounddef id="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir">
     <compoundname>src</compoundname>
     <innerfile refid="coro_8h">coro.h</innerfile>
-    <innerfile refid="dap_8h">dap.h</innerfile>
     <innerfile refid="inthash_8h">inthash.h</innerfile>
-    <innerfile refid="inthash2_8h">inthash2.h</innerfile>
     <innerfile refid="linenoise_8h">linenoise.h</innerfile>
     <innerfile refid="minilang_8h">minilang.h</innerfile>
     <innerfile refid="ml__array_8h">ml_array.h</innerfile>
@@ -39,7 +37,6 @@
     <innerfile refid="ml__sequence_8h">ml_sequence.h</innerfile>
     <innerfile refid="ml__socket_8h">ml_socket.h</innerfile>
     <innerfile refid="ml__stream_8h">ml_stream.h</innerfile>
-    <innerfile refid="ml__struct_8h">ml_struct.h</innerfile>
     <innerfile refid="ml__table_8h">ml_table.h</innerfile>
     <innerfile refid="ml__tasks_8h">ml_tasks.h</innerfile>
     <innerfile refid="ml__thread_8h">ml_thread.h</innerfile>
@@ -51,6 +48,7 @@
     <innerfile refid="sha256_8h">sha256.h</innerfile>
     <innerfile refid="stringmap_8h">stringmap.h</innerfile>
     <innerfile refid="timelib__mem_8h">timelib_mem.h</innerfile>
+    <innerfile refid="uuidmap_8h">uuidmap.h</innerfile>
     <innerfile refid="weakmap_8h">weakmap.h</innerfile>
     <innerfile refid="whereami_8h">whereami.h</innerfile>
     <briefdescription>

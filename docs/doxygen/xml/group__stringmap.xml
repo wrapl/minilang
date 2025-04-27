@@ -197,7 +197,7 @@
     <sectiondef kind="define">
       <memberdef kind="define" id="group__stringmap_1ga04ce49e388ce3b5f4bf48647a444a2be" prot="public" static="no">
         <name>STRINGMAP_INIT</name>
-        <initializer>{0,}</initializer>
+        <initializer>(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref>){0,}</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

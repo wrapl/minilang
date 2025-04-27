@@ -551,26 +551,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> (22, slept)
 
 
-:mini:`meth (String: string) / (Pattern: regex): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
-
-   .. code-block:: mini
-
-      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
-      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
-
-
-:mini:`meth (String: string) / (Pattern: string): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
-
-   .. code-block:: mini
-
-      "The cat snored  as he slept" / " "
-      :> ["The", "cat", "snored", "as", "he", "slept"]
-      "2022/03/08" / "/" :> ["2022", "03", "08"]
-
-
 :mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
    Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
 
@@ -626,6 +606,26 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello World":lower :> "hello world"
+
+
+:mini:`meth (String: string) / (Pattern: regex): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
+
+   .. code-block:: mini
+
+      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
+      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
+
+
+:mini:`meth (String: string) / (Pattern: string): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
+
+   .. code-block:: mini
+
+      "The cat snored  as he slept" / " "
+      :> ["The", "cat", "snored", "as", "he", "slept"]
+      "2022/03/08" / "/" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string):ltrim: string`
@@ -837,6 +837,10 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello world":starts("cake") :> nil
 
 
+:mini:`meth stringtable(Arg₁: string)`
+   *TBD*
+
+
 :mini:`meth (String: string):title: string`
    Returns :mini:`String` with the first character and each character after whitespace converted to upper case and each other case converted to lower case.
 
@@ -868,10 +872,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello World":upper :> "HELLO WORLD"
-
-
-:mini:`def MLStringProperties: string::properties`
-   *TBD*
 
 
 :mini:`meth (Arg₁: string):utf8`
@@ -907,6 +907,10 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
+   *TBD*
+
+
+:mini:`def MLStringProperties: string::properties`
    *TBD*
 
 
@@ -1064,6 +1068,26 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: string::property::value)`
+   *TBD*
+
+
+:mini:`type string::table`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::table):describe`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::table):splice(Arg₂: integer, Arg₃: integer, Arg₄: string)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string::table)`
+   *TBD*
+
+
+:mini:`meth stringtable()`
    *TBD*
 
 

@@ -4,20 +4,6 @@
     <member refid="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" kind="variable"><name>sptr</name></member>
     <member refid="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" kind="variable"><name>ssze</name></member>
   </compound>
-  <compound refid="structinthash2__node__t" kind="struct"><name>inthash2_node_t</name>
-    <member refid="structinthash2__node__t_1a4098168278c6e0666eedbfb6805c5f02" kind="variable"><name>Key</name></member>
-    <member refid="structinthash2__node__t_1a63a2e91d18fabd71e0759c2406145574" kind="variable"><name>Offset</name></member>
-  </compound>
-  <compound refid="structinthash2__result__t" kind="struct"><name>inthash2_result_t</name>
-    <member refid="structinthash2__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
-    <member refid="structinthash2__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
-  </compound>
-  <compound refid="structinthash2__t" kind="struct"><name>inthash2_t</name>
-    <member refid="structinthash2__t_1a8f351070e1bb0035edf33c1baaddd13e" kind="variable"><name>Nodes</name></member>
-    <member refid="structinthash2__t_1a93b817b8cb9e5be468df90c8a277e5bc" kind="variable"><name>Values</name></member>
-    <member refid="structinthash2__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
-    <member refid="structinthash2__t_1adbeb0cbccc7ac4e39443f6cf8049b260" kind="variable"><name>Space</name></member>
-  </compound>
   <compound refid="structinthash__result__t" kind="struct"><name>inthash_result_t</name>
     <member refid="structinthash__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
     <member refid="structinthash__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
@@ -88,6 +74,7 @@
     <member refid="structml__class__t_1a45dc058b3d3caf83f458f9ba9e3b3b3e" kind="variable"><name>Call</name></member>
     <member refid="structml__class__t_1abe63bfb65f252c406d1885ab2bfdeb93" kind="variable"><name>Fields</name></member>
     <member refid="structml__class__t_1ad221667156a88d2210ab522cd4857bd7" kind="variable"><name>Names</name></member>
+    <member refid="structml__class__t_1aad683eae2c5a5b7c43fb20615e5281f8" kind="variable"><name>Id</name></member>
     <member refid="structml__class__t_1a0b4a5fc671df8ad2881096927bfacce8" kind="variable"><name>NumFields</name></member>
   </compound>
   <compound refid="structml__closure__info__t" kind="struct"><name>ml_closure_info_t</name>
@@ -625,6 +612,10 @@
     <member refid="structstringmap__t_1ae4399f8c8d02037b3de60736354e4dae" kind="variable"><name>Root</name></member>
     <member refid="structstringmap__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
   </compound>
+  <compound refid="structuuidmap__t" kind="struct"><name>uuidmap_t</name>
+    <member refid="structuuidmap__t_1ade285c0a17c17464f6372d029bda1016" kind="variable"><name>Root</name></member>
+    <member refid="structuuidmap__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
+  </compound>
   <compound refid="structweakmap__t" kind="struct"><name>weakmap_t</name>
     <member refid="structweakmap__t_1a03b52dff1e4d61ef0018aea270163189" kind="variable"><name>Nodes</name></member>
     <member refid="structweakmap__t_1a5968f62599fab877c35a32a5a5f327ec" kind="variable"><name>Mask</name></member>
@@ -639,8 +630,6 @@
     <member refid="coro_8h_1af889af911dcc4afc6014c9402b77b2e5" kind="function"><name>coro_stack_alloc</name></member>
     <member refid="coro_8h_1a2b0db6ba1253ca9fb7753fef48c406f7" kind="function"><name>coro_stack_free</name></member>
   </compound>
-  <compound refid="dap_8h" kind="file"><name>dap.h</name>
-  </compound>
   <compound refid="inthash_8h" kind="file"><name>inthash.h</name>
     <member refid="group__inthash_1ga27d72e87f09dbeafc3d36cc7904db468" kind="define"><name>INTHASH_INDEX_SHIFT</name></member>
     <member refid="group__inthash_1ga815f76b04432c6fb81ad28140a77a6dc" kind="define"><name>INTHASH_INCR_SHIFT</name></member>
@@ -653,19 +642,6 @@
     <member refid="group__inthash_1gadc81ecd4ba4a3bc61c95fd9099b71e60" kind="function"><name>inthash_contains_inline</name></member>
     <member refid="group__inthash_1gaf28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
     <member refid="group__inthash_1ga6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
-  </compound>
-  <compound refid="inthash2_8h" kind="file"><name>inthash2.h</name>
-    <member refid="inthash2_8h_1ab6c05145f6e02872f65710b571dc7f12" kind="define"><name>INTHASH2_INDEX_SHIFT</name></member>
-    <member refid="inthash2_8h_1a0ed0865aee51b153806b21426a16d321" kind="define"><name>INTHASH2_INCR_SHIFT</name></member>
-    <member refid="inthash2_8h_1af2c0a9bf050afa4815d2c1c1aade99e6" kind="define"><name>INTHASH2_INIT</name></member>
-    <member refid="inthash2_8h_1ae916a2db26a51c6dbde5c46abbadadb2" kind="typedef"><name>inthash2_t</name></member>
-    <member refid="inthash2_8h_1a7cdb71feb5a0fe19667f82e2e676b36c" kind="function"><name>inthash2_new</name></member>
-    <member refid="inthash2_8h_1aa0e31570ddccb7de88a470257f8844aa" kind="function"><name>inthash2_search</name></member>
-    <member refid="inthash2_8h_1a82565f4aadc4818d019811dfce15bedf" kind="function"><name>inthash2_insert</name></member>
-    <member refid="inthash2_8h_1a8b64f716274ccb7e4e7fcc31ee61407b" kind="function"><name>inthash2_search_inline</name></member>
-    <member refid="inthash2_8h_1a089f5efb7d0b91774b589b61d3a8bde2" kind="function"><name>inthash2_foreach</name></member>
-    <member refid="inthash2_8h_1a289cc7841657f0ce2d8d7bccbae48a5e" kind="function"><name>inthash2_search2</name></member>
-    <member refid="inthash2_8h_1a53ec8f101c5f2e99efb769065156bc7b" kind="function"><name>inthash2_search2_inline</name></member>
   </compound>
   <compound refid="linenoise_8h" kind="file"><name>linenoise.h</name>
     <member refid="linenoise_8h_1ac910792e203989883a76044651a4f99b" kind="typedef"><name>linenoiseCompletions</name></member>
@@ -781,6 +757,7 @@
     <member refid="ml__bytecode__jit_8h_1a3ed7d8ba8b278ce720bafb3015488de2" kind="function"><name>ml_bytecode_jit</name></member>
   </compound>
   <compound refid="ml__cbor_8h" kind="file"><name>ml_cbor.h</name>
+    <member refid="group__cbor_1ga41a1421a02c06683c089d2350f3bf9ac" kind="define"><name>ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS</name></member>
     <member refid="group__cbor_1ga42c342cfc94c4315b24a889ae2a41fad" kind="define"><name>ML_CBOR_WRITER_ERROR</name></member>
     <member refid="group__cbor_1gaf2ac6052f01bbc3b128f4001f592d720" kind="define"><name>ML_CBOR_SIMPLE_FALSE</name></member>
     <member refid="group__cbor_1ga42e0117c6446bc0e25aae42cb686a0eb" kind="define"><name>ML_CBOR_SIMPLE_TRUE</name></member>
@@ -816,18 +793,19 @@
     <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
     <member refid="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" kind="typedef"><name>ml_cbor_tag_fn</name></member>
     <member refid="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" kind="typedef"><name>ml_cbor_tag_fns_t</name></member>
+    <member refid="group__cbor_1gab6177e86c49fa67c1fec09ccf3ec0e6e" kind="typedef"><name>ml_cbor_object_fn</name></member>
     <member refid="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" kind="typedef"><name>ml_external_fn_t</name></member>
     <member refid="group__cbor_1ga83753ed54fc23e31dc443dd870e693fa" kind="typedef"><name>ml_cbor_write_fn</name></member>
     <member refid="group__cbor_1ga8b3adf33c257a3a951f5ed9e013dfb08" kind="typedef"><name>ml_cbor_writer_t</name></member>
     <member refid="group__cbor_1ga1875649a317944eb80c96a3dbe837e22" kind="function"><name>ml_cbor_init</name></member>
-    <member refid="group__cbor_1gaa0708b17e23cbb8b9f8b6a7ae4336649" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" kind="function"><name>ml_cbor_setting</name></member>
     <member refid="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" kind="function"><name>ml_cbor_tag_fns</name></member>
     <member refid="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" kind="function"><name>ml_cbor_tag_fns_copy</name></member>
     <member refid="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" kind="function"><name>ml_cbor_tag_fn_get</name></member>
     <member refid="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" kind="function"><name>ml_cbor_tag_fn_set</name></member>
-    <member refid="group__cbor_1gadd973c7e9f41d7e5077073d540f8865e" kind="function"><name>ml_cbor_default_tag</name></member>
+    <member refid="group__cbor_1ga056bac65f9e6d3584cec1b302fe41cc9" kind="function"><name>ml_cbor_default_tag</name></member>
     <member refid="group__cbor_1ga0731346fd6ade363da69269de78ea66d" kind="function"><name>ml_cbor_default_global</name></member>
+    <member refid="group__cbor_1ga508e4d6e62acb4cfd930962ce683bc06" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" kind="function"><name>ml_cbor_reader</name></member>
     <member refid="group__cbor_1ga8f33df522c0cda12e6de463bc84ea5c2" kind="function"><name>ml_cbor_reader_reset</name></member>
     <member refid="group__cbor_1ga6c6781dee628dfa15ac2179a1e5e0f16" kind="function"><name>ml_cbor_reader_set_setting</name></member>
@@ -838,6 +816,7 @@
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
     <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
+    <member refid="group__cbor_1ga8a2684b2d4d77c018c4f0caaf0365bce" kind="function"><name>ml_cbor_writer_set_flags</name></member>
     <member refid="group__cbor_1ga654054d6c9c10b740bd0167794d52230" kind="function"><name>ml_cbor_writer_set_setting</name></member>
     <member refid="group__cbor_1ga2d018c5d6f978f4db12b92d7aec8836f" kind="function"><name>ml_cbor_writer_get_setting</name></member>
     <member refid="group__cbor_1ga8039fbc40c6a8c958cc51d7c19010f4a" kind="function"><name>ml_cbor_writer_find_refs</name></member>
@@ -1327,6 +1306,8 @@
     <member refid="group__objects_1ga177646a0c55dc0180d6c9657e57119ea" kind="variable"><name>MLObjectT</name></member>
     <member refid="group__objects_1gaf0860eca949bab3e4d5aa79b805cbee1" kind="variable"><name>MLFieldT</name></member>
     <member refid="group__objects_1gabcd0654d1007797f1546d9071fc01781" kind="variable"><name>MLFieldMutableT</name></member>
+    <member refid="group__objects_1ga371e267ba62149f46aeca560302abb60" kind="variable"><name>MLPseudoClassT</name></member>
+    <member refid="group__objects_1gaf7b31bf600cb2c08d581e78551293fe1" kind="variable"><name>MLPseudoObjectT</name></member>
     <member refid="group__enums_1ga55bf3f6aaa5344af28b9935aadf25e4f" kind="variable"><name>MLEnumT</name></member>
     <member refid="group__enums_1gacd8ad4a915700a0019bf3bf99a8d849f" kind="variable"><name>MLEnumValueT</name></member>
     <member refid="group__flags_1ga22c1e33d95637b0d82ab55db344c2b81" kind="variable"><name>MLFlagsT</name></member>
@@ -1342,11 +1323,14 @@
     <member refid="group__objects_1gaa9496be0561dc1d54c67d025874bdfa0" kind="function"><name>ml_modified_field</name></member>
     <member refid="group__objects_1gac07e61704f093be849b4152d5664cc41" kind="function"><name>ml_watched_field</name></member>
     <member refid="group__objects_1gafa86bd55039f9d84589faae382c4ed4f" kind="function"><name>ml_class_size</name></member>
+    <member refid="group__objects_1ga25ec961bff283ce82d7c95b4762bd926" kind="function"><name>ml_class_id</name></member>
     <member refid="group__objects_1gaff4c60fbfa3d5814be2d6176dee0c274" kind="function"><name>ml_class_field_name</name></member>
     <member refid="group__objects_1ga5523c0ae8d8ed812fc85d14d1acd115f" kind="function"><name>ml_object</name></member>
     <member refid="group__objects_1ga095d9d56848aefa66d2054fbbb9220b3" kind="function"><name>ml_object_size</name></member>
     <member refid="group__objects_1gad761297f2c77bc8b1bdd6fe0c1d147ef" kind="function"><name>ml_object_field</name></member>
     <member refid="group__objects_1ga77adb04068271677e3a51f9de1025e5c" kind="function"><name>ml_object_foreach</name></member>
+    <member refid="group__objects_1ga87e85950afae91739d7d3164b511eafc" kind="function"><name>ml_pseudo_class</name></member>
+    <member refid="group__objects_1gae2d9480d6f5c792d28372a15b7ba9109" kind="function"><name>ml_pseudo_class_add_field</name></member>
     <member refid="group__enums_1ga7a389a166525f8c68d3b799602c743a7" kind="function"><name>ml_enum</name></member>
     <member refid="group__enums_1ga5efee1e223a0f1f41d471ab8d21f42eb" kind="function"><name>ml_enum_cyclic</name></member>
     <member refid="group__enums_1gaea1aaa2b592b7adac6cb39555aa03d9d" kind="function"><name>ml_enum2</name></member>
@@ -1604,9 +1588,6 @@
     <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
     <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
     <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
-  </compound>
-  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
-    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
   </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
@@ -2044,6 +2025,18 @@
     <member refid="timelib__mem_8h_1a5cb7776101e4521b5778c01137b4f125" kind="function"><name>GC_calloc</name></member>
     <member refid="timelib__mem_8h_1a85326bf49026ede27d95b01ff0272bb3" kind="function"><name>timelib_strndup</name></member>
   </compound>
+  <compound refid="uuidmap_8h" kind="file"><name>uuidmap.h</name>
+    <member refid="group__uuidmap_1ga3f724c6655ab3216a5a1437a009c3087" kind="define"><name>UUIDMAP_INIT</name></member>
+    <member refid="group__uuidmap_1ga3516cb77fc19ea876c1222aaef5dbb18" kind="typedef"><name>uuidmap_t</name></member>
+    <member refid="group__uuidmap_1ga7b2bdf156a2f6c6952784c3761cfa516" kind="typedef"><name>uuidmap_node_t</name></member>
+    <member refid="group__uuidmap_1ga378267bf8b0785a84d2cf89e22b2cc4a" kind="function"><name>uuidmap_new</name></member>
+    <member refid="group__uuidmap_1ga0d2aac5cf50e10e51e70c94ffd61b727" kind="function"><name>uuidmap_copy</name></member>
+    <member refid="group__uuidmap_1gad2bab895f369482419e78efa69268586" kind="function"><name>uuidmap_search</name></member>
+    <member refid="group__uuidmap_1ga95583575a9f2e589652b571434181f34" kind="function"><name>uuidmap_insert</name></member>
+    <member refid="group__uuidmap_1gaf1c49787cc1d5c3e96d9120f6ca8a6cf" kind="function"><name>uuidmap_remove</name></member>
+    <member refid="group__uuidmap_1gacef21296ffe1daa0bada4958e29fcd38" kind="function"><name>uuidmap_slot</name></member>
+    <member refid="group__uuidmap_1ga9a46d6d27dca7f8e8d3b28d9d4a8372e" kind="function"><name>uuidmap_foreach</name></member>
+  </compound>
   <compound refid="weakmap_8h" kind="file"><name>weakmap.h</name>
     <member refid="weakmap_8h_1a49bc5df3d133fbffb650adee512a33b4" kind="define"><name>WEAKMAP_INIT</name></member>
     <member refid="weakmap_8h_1a7429fbd1d4989b2c532e6ab51e14f702" kind="typedef"><name>weakmap_node_t</name></member>
@@ -2073,18 +2066,19 @@
     <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
     <member refid="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" kind="typedef"><name>ml_cbor_tag_fn</name></member>
     <member refid="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" kind="typedef"><name>ml_cbor_tag_fns_t</name></member>
+    <member refid="group__cbor_1gab6177e86c49fa67c1fec09ccf3ec0e6e" kind="typedef"><name>ml_cbor_object_fn</name></member>
     <member refid="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" kind="typedef"><name>ml_external_fn_t</name></member>
     <member refid="group__cbor_1ga83753ed54fc23e31dc443dd870e693fa" kind="typedef"><name>ml_cbor_write_fn</name></member>
     <member refid="group__cbor_1ga8b3adf33c257a3a951f5ed9e013dfb08" kind="typedef"><name>ml_cbor_writer_t</name></member>
     <member refid="group__cbor_1ga1875649a317944eb80c96a3dbe837e22" kind="function"><name>ml_cbor_init</name></member>
-    <member refid="group__cbor_1gaa0708b17e23cbb8b9f8b6a7ae4336649" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" kind="function"><name>ml_cbor_setting</name></member>
     <member refid="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" kind="function"><name>ml_cbor_tag_fns</name></member>
     <member refid="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" kind="function"><name>ml_cbor_tag_fns_copy</name></member>
     <member refid="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" kind="function"><name>ml_cbor_tag_fn_get</name></member>
     <member refid="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" kind="function"><name>ml_cbor_tag_fn_set</name></member>
-    <member refid="group__cbor_1gadd973c7e9f41d7e5077073d540f8865e" kind="function"><name>ml_cbor_default_tag</name></member>
+    <member refid="group__cbor_1ga056bac65f9e6d3584cec1b302fe41cc9" kind="function"><name>ml_cbor_default_tag</name></member>
     <member refid="group__cbor_1ga0731346fd6ade363da69269de78ea66d" kind="function"><name>ml_cbor_default_global</name></member>
+    <member refid="group__cbor_1ga508e4d6e62acb4cfd930962ce683bc06" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" kind="function"><name>ml_cbor_reader</name></member>
     <member refid="group__cbor_1ga8f33df522c0cda12e6de463bc84ea5c2" kind="function"><name>ml_cbor_reader_reset</name></member>
     <member refid="group__cbor_1ga6c6781dee628dfa15ac2179a1e5e0f16" kind="function"><name>ml_cbor_reader_set_setting</name></member>
@@ -2095,6 +2089,7 @@
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
     <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
+    <member refid="group__cbor_1ga8a2684b2d4d77c018c4f0caaf0365bce" kind="function"><name>ml_cbor_writer_set_flags</name></member>
     <member refid="group__cbor_1ga654054d6c9c10b740bd0167794d52230" kind="function"><name>ml_cbor_writer_set_setting</name></member>
     <member refid="group__cbor_1ga2d018c5d6f978f4db12b92d7aec8836f" kind="function"><name>ml_cbor_writer_get_setting</name></member>
     <member refid="group__cbor_1ga8039fbc40c6a8c958cc51d7c19010f4a" kind="function"><name>ml_cbor_writer_find_refs</name></member>
@@ -2124,6 +2119,7 @@
     <member refid="group__cbor_1ga1a9844ccc58fb268ecd9bfb45acac18d" kind="function"><name>ml_to_cbor</name></member>
     <member refid="group__cbor_1ga875acf4b0085636e0ec8fc2b78cec64c" kind="function"><name>ml_from_cbor</name></member>
     <member refid="group__cbor_1gab60f5ad34cf7e3f07f2cd211778d5379" kind="function"><name>ml_from_cbor_extra</name></member>
+    <member refid="group__cbor_1ga41a1421a02c06683c089d2350f3bf9ac" kind="define"><name>ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS</name></member>
     <member refid="group__cbor_1ga42c342cfc94c4315b24a889ae2a41fad" kind="define"><name>ML_CBOR_WRITER_ERROR</name></member>
     <member refid="group__cbor_1gaf2ac6052f01bbc3b128f4001f592d720" kind="define"><name>ML_CBOR_SIMPLE_FALSE</name></member>
     <member refid="group__cbor_1ga42e0117c6446bc0e25aae42cb686a0eb" kind="define"><name>ML_CBOR_SIMPLE_TRUE</name></member>
@@ -2281,6 +2277,8 @@
     <member refid="group__objects_1ga177646a0c55dc0180d6c9657e57119ea" kind="variable"><name>MLObjectT</name></member>
     <member refid="group__objects_1gaf0860eca949bab3e4d5aa79b805cbee1" kind="variable"><name>MLFieldT</name></member>
     <member refid="group__objects_1gabcd0654d1007797f1546d9071fc01781" kind="variable"><name>MLFieldMutableT</name></member>
+    <member refid="group__objects_1ga371e267ba62149f46aeca560302abb60" kind="variable"><name>MLPseudoClassT</name></member>
+    <member refid="group__objects_1gaf7b31bf600cb2c08d581e78551293fe1" kind="variable"><name>MLPseudoObjectT</name></member>
     <member refid="group__objects_1ga08e4f63f432473b1e590ca6fcbddb580" kind="function"><name>ml_object_init</name></member>
     <member refid="group__objects_1ga2985e6f8f42dc6f056f3ab57689cf0cf" kind="function"><name>ml_field_fn</name></member>
     <member refid="group__objects_1ga879ddfefbf2438a69f766cd6681ad4ff" kind="function"><name>ml_field_owner</name></member>
@@ -2292,11 +2290,14 @@
     <member refid="group__objects_1gaa9496be0561dc1d54c67d025874bdfa0" kind="function"><name>ml_modified_field</name></member>
     <member refid="group__objects_1gac07e61704f093be849b4152d5664cc41" kind="function"><name>ml_watched_field</name></member>
     <member refid="group__objects_1gafa86bd55039f9d84589faae382c4ed4f" kind="function"><name>ml_class_size</name></member>
+    <member refid="group__objects_1ga25ec961bff283ce82d7c95b4762bd926" kind="function"><name>ml_class_id</name></member>
     <member refid="group__objects_1gaff4c60fbfa3d5814be2d6176dee0c274" kind="function"><name>ml_class_field_name</name></member>
     <member refid="group__objects_1ga5523c0ae8d8ed812fc85d14d1acd115f" kind="function"><name>ml_object</name></member>
     <member refid="group__objects_1ga095d9d56848aefa66d2054fbbb9220b3" kind="function"><name>ml_object_size</name></member>
     <member refid="group__objects_1gad761297f2c77bc8b1bdd6fe0c1d147ef" kind="function"><name>ml_object_field</name></member>
     <member refid="group__objects_1ga77adb04068271677e3a51f9de1025e5c" kind="function"><name>ml_object_foreach</name></member>
+    <member refid="group__objects_1ga87e85950afae91739d7d3164b511eafc" kind="function"><name>ml_pseudo_class</name></member>
+    <member refid="group__objects_1gae2d9480d6f5c792d28372a15b7ba9109" kind="function"><name>ml_pseudo_class_add_field</name></member>
   </compound>
   <compound refid="group__enums" kind="group"><name>enums</name>
     <member refid="group__enums_1ga55bf3f6aaa5344af28b9935aadf25e4f" kind="variable"><name>MLEnumT</name></member>
@@ -2335,6 +2336,7 @@
     <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfa334f839778b5b11a525196448d0e069f" kind="enumvalue"><name>ML_SCHEDULER_INDEX</name></member>
     <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfa2ffc514a89fc08fd889ff06c5eec7636" kind="enumvalue"><name>ML_COUNTER_INDEX</name></member>
     <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfa37b4572b78e0227ec99456dba33eba26" kind="enumvalue"><name>ML_THREAD_INDEX</name></member>
+    <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfae3df3843027f84f07e92596183f9e14c" kind="enumvalue"><name>ML_CLASSES_INDEX</name></member>
     <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfaf79d64693d119d01060920679480ed93" kind="enumvalue"><name>ML_CONTEXT_SIZE</name></member>
     <member refid="group__runtime_1gad422db96e7445bb8df941890132ae087" kind="typedef"><name>ml_config_fn</name></member>
     <member refid="group__runtime_1ga0a66ed25c741cc91af6ca91e2b021f32" kind="typedef"><name>ml_state_fn</name></member>
@@ -2875,6 +2877,18 @@
     <member refid="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" kind="function"><name>stringmap_foreach</name></member>
     <member refid="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" kind="function"><name>stringmap_hash</name></member>
     <member refid="group__stringmap_1ga04ce49e388ce3b5f4bf48647a444a2be" kind="define"><name>STRINGMAP_INIT</name></member>
+  </compound>
+  <compound refid="group__uuidmap" kind="group"><name>uuidmap</name>
+    <member refid="group__uuidmap_1ga3516cb77fc19ea876c1222aaef5dbb18" kind="typedef"><name>uuidmap_t</name></member>
+    <member refid="group__uuidmap_1ga7b2bdf156a2f6c6952784c3761cfa516" kind="typedef"><name>uuidmap_node_t</name></member>
+    <member refid="group__uuidmap_1ga378267bf8b0785a84d2cf89e22b2cc4a" kind="function"><name>uuidmap_new</name></member>
+    <member refid="group__uuidmap_1ga0d2aac5cf50e10e51e70c94ffd61b727" kind="function"><name>uuidmap_copy</name></member>
+    <member refid="group__uuidmap_1gad2bab895f369482419e78efa69268586" kind="function"><name>uuidmap_search</name></member>
+    <member refid="group__uuidmap_1ga95583575a9f2e589652b571434181f34" kind="function"><name>uuidmap_insert</name></member>
+    <member refid="group__uuidmap_1gaf1c49787cc1d5c3e96d9120f6ca8a6cf" kind="function"><name>uuidmap_remove</name></member>
+    <member refid="group__uuidmap_1gacef21296ffe1daa0bada4958e29fcd38" kind="function"><name>uuidmap_slot</name></member>
+    <member refid="group__uuidmap_1ga9a46d6d27dca7f8e8d3b28d9d4a8372e" kind="function"><name>uuidmap_foreach</name></member>
+    <member refid="group__uuidmap_1ga3f724c6655ab3216a5a1437a009c3087" kind="define"><name>UUIDMAP_INIT</name></member>
   </compound>
   <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>src</name>
   </compound>

@@ -73,6 +73,14 @@ sequence
       list(L:pull(_):repeat) :> [4, 3, 2, 1]
 
 
+:mini:`meth (Arg₁: grid):count`
+   *TBD*
+
+
+:mini:`meth (Arg₁: grid):precount`
+   *TBD*
+
+
 :mini:`type grouped < sequence`
    *TBD*
 
@@ -99,6 +107,14 @@ sequence
 
 :mini:`meth (Iterator: iterator):value: any`
    Returns the current value produced by :mini:`Iterator`.
+
+
+:mini:`meth (Arg₁: paired):count`
+   *TBD*
+
+
+:mini:`meth (Arg₁: paired):precount`
+   *TBD*
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: real::range)`
@@ -643,7 +659,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "e"
       random([]) :> nil
 
 
@@ -679,6 +695,26 @@ sequence
 
 
 :mini:`meth (Arg₁: type):random(...)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: unpacked):precount`
+   *TBD*
+
+
+:mini:`meth (Arg₁: zipped):count`
+   *TBD*
+
+
+:mini:`meth (Arg₁: zipped):precount`
+   *TBD*
+
+
+:mini:`meth (Arg₁: zipped2):count`
+   *TBD*
+
+
+:mini:`meth (Arg₁: zipped2):precount`
    *TBD*
 
 

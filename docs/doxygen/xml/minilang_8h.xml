@@ -22,7 +22,6 @@
     <includedby refid="ml__module_8h" local="yes">src/ml_module.h</includedby>
     <includedby refid="ml__socket_8h" local="yes">src/ml_socket.h</includedby>
     <includedby refid="ml__stream_8h" local="yes">src/ml_stream.h</includedby>
-    <includedby refid="ml__struct_8h" local="yes">src/ml_struct.h</includedby>
     <includedby refid="ml__table_8h" local="yes">src/ml_table.h</includedby>
     <includedby refid="ml__thread_8h" local="yes">src/ml_thread.h</includedby>
     <includedby refid="ml__time_8h" local="yes">src/ml_time.h</includedby>
@@ -166,8 +165,6 @@
         </childnode>
         <childnode refid="22" relation="include">
         </childnode>
-        <childnode refid="23" relation="include">
-        </childnode>
         <childnode refid="24" relation="include">
         </childnode>
         <childnode refid="25" relation="include">
@@ -233,6 +230,10 @@
         <label>src/ml_module.h</label>
         <link refid="ml__module_8h_source"/>
       </node>
+      <node id="23">
+        <label>src/ml_object.h</label>
+        <link refid="ml__object_8h_source"/>
+      </node>
       <node id="17">
         <label>src/ml_socket.h</label>
         <link refid="ml__socket_8h_source"/>
@@ -242,24 +243,22 @@
         <link refid="ml__stream_8h_source"/>
       </node>
       <node id="19">
-        <label>src/ml_struct.h</label>
-        <link refid="ml__struct_8h_source"/>
-      </node>
-      <node id="20">
         <label>src/ml_table.h</label>
         <link refid="ml__table_8h_source"/>
       </node>
-      <node id="21">
+      <node id="20">
         <label>src/ml_thread.h</label>
         <link refid="ml__thread_8h_source"/>
       </node>
-      <node id="22">
+      <node id="21">
         <label>src/ml_time.h</label>
         <link refid="ml__time_8h_source"/>
       </node>
-      <node id="23">
+      <node id="22">
         <label>src/ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
+        <childnode refid="23" relation="include">
+        </childnode>
       </node>
       <node id="24">
         <label>src/ml_xe.h</label>
@@ -273,7 +272,7 @@
     <sectiondef kind="define">
       <memberdef kind="define" id="minilang_8h_1a875c59e1c9dd3cd3dffe79f60a54a57e" prot="public" static="no">
         <name>MINILANG_VERSION</name>
-        <initializer>2, 11, 4</initializer>
+        <initializer>2, 12, 0</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -342,7 +341,7 @@
 <codeline lineno="14"><highlight class="normal"></highlight></codeline>
 <codeline lineno="15"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_init(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ExecName,<sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="16"><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MINILANG_VERSION<sp/>2,<sp/>11,<sp/>4</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MINILANG_VERSION<sp/>2,<sp/>12,<sp/>0</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>
 <codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="20"><highlight class="normal">}</highlight></codeline>
