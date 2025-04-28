@@ -1823,6 +1823,12 @@ ML_METHOD("<>", MLDoubleT, MLDoubleT) {
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Real/2`.
 	double RealA = ml_double_value(Args[0]);
 	double RealB = ml_double_value(Args[1]);
+	if (isnan(RealA)) {
+		if (isnan(RealB)) return (ml_value_t *)Zero;
+		return (ml_value_t *)NegOne;
+	} else if (isnan(RealB)) {
+		return (ml_value_t *)One;
+	}
 	if (RealA < RealB) return (ml_value_t *)NegOne;
 	if (RealA > RealB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
