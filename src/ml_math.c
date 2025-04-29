@@ -12,7 +12,7 @@
 #define ML_CATEGORY "math"
 
 #define MATH_REAL(NAME, CNAME, EXPORT) \
-ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
+ML_METHOD_DECL(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -27,7 +27,7 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 #ifdef ML_COMPLEX
 
 #define MATH_NUMBER(NAME, CNAME, EXPORT) \
-ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
+ML_METHOD_DECL(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -60,7 +60,7 @@ ML_METHOD(NAME ## Method, MLComplexT) { \
 }
 
 #define MATH_NUMBER_KEEP_REAL(NAME, CNAME, EXPORT) \
-ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
+ML_METHOD_DECL(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -90,7 +90,7 @@ ML_METHOD(NAME ## Method, MLComplexT) { \
 #else
 
 #define MATH_NUMBER(NAME, CNAME, EXPORT) \
-ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
+ML_METHOD_DECL(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -420,7 +420,7 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 #endif
 }
 
-ML_METHOD_ANON(SquareMethod, "math::square");
+ML_METHOD_DECL(SquareMethod, "math::square");
 ML_METHOD(SquareMethod, MLIntegerT) {
 //@math::square
 //<N
@@ -482,7 +482,7 @@ double logit(double X) {
 
 MATH_REAL(Logit, logit, logit);
 
-ML_METHOD_ANON(ArgMethod, "math::arg");
+ML_METHOD_DECL(ArgMethod, "math::arg");
 
 ML_METHOD(ArgMethod, MLRealT) {
 //@arg
@@ -492,7 +492,7 @@ ML_METHOD(ArgMethod, MLRealT) {
 	return ml_real(0.0);
 }
 
-ML_METHOD_ANON(ConjMethod, "math::conj");
+ML_METHOD_DECL(ConjMethod, "math::conj");
 
 ML_METHOD(ConjMethod, MLRealT) {
 //@conj
