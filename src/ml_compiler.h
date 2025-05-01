@@ -133,6 +133,8 @@ void ml_function_compile(ml_state_t *Caller, const mlc_expr_t *Expr, ml_compiler
 void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler);
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 
+ml_value_t *ml_function_static(const char *Source, int Line, const char *Code, const char **Parameters);
+
 ml_value_t *ml_stringmap_globals(stringmap_t *Globals);
 ml_value_t *ml_stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Eval);
 
