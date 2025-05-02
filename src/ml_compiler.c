@@ -7496,6 +7496,27 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	return ml_function_compile((ml_state_t *)State, Expr, Compiler, Parameters);
 }
 
+static ml_compiler_t *StaticCompiler = NULL;
+
+ml_value_t *ml_compile_static(const char *Source, int Line, const char *Code, const char *Parameters[]) {
+	ml_parser_t *Parser = ml_parser(NULL, NULL);
+	Parser->Source.Name = Source;
+	Parser->Source.Line = Line;
+	ml_parser_input(Parser, Code, 0);
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) {
+		fprintf(stderr, "Fatal: Error compiling internal code at %s:%d\n", Source, Line);
+		exit(-1);
+	}
+	ml_result_state_t State[1] = {{{MLStateT, NULL, (ml_state_fn)ml_result_state_run, MLRootContext}, MLNil}};
+	ml_function_compile((ml_state_t *)State, Expr, StaticCompiler, Parameters);
+	if (!State->Value) {
+		fprintf(stderr, "Fatal: Error compiling internal code at %s:%d\n", Source, Line);
+		exit(-1);
+	}
+	return State->Value;
+}
+
 static void ml_inline_call_macro_fn(ml_state_t *Caller, void *Value, int Count, ml_value_t **Args) {
 	struct { ml_source_t Source; } Parser[1];
 	if (Count) {
@@ -7527,8 +7548,9 @@ ML_FUNCTION(MLIdentCacheCheck) {
 	return MLNil;
 }
 
-void ml_compiler_init() {
+void ml_compiler_init(stringmap_t *Globals) {
 #include "ml_compiler_init.c"
+	if (Globals) StaticCompiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
 	stringmap_insert(MLParserT->Exports, "expr", MLExprT);
 	stringmap_insert(MLCompilerT->Exports, "eoi", MLCompilerEOIT);
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);

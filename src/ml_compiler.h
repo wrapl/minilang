@@ -133,7 +133,18 @@ void ml_function_compile(ml_state_t *Caller, const mlc_expr_t *Expr, ml_compiler
 void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler);
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 
-ml_value_t *ml_function_static(const char *Source, int Line, const char *Code, const char **Parameters);
+ml_value_t *ml_compile_static(const char *Source, int Line, const char *Code, const char *Parameters[]);
+
+#ifndef GENERATE_INIT
+
+#define ML_MINI_FUNCTION(NAME, PARAMS, CODE) static ml_value_t *NAME;
+
+#else
+
+#define UNWRAP2(ARGS...) ARGS
+#define ML_MINI_FUNCTION(NAME, PARAMS, CODE) INIT_CODE NAME = ml_compile_static(__FILE__, __LINE__, CODE, (const char *[]){UNWRAP2 PARAMS, NULL});
+
+#endif
 
 ml_value_t *ml_stringmap_globals(stringmap_t *Globals);
 ml_value_t *ml_stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Eval);
@@ -142,7 +153,7 @@ ml_value_t *ml_stringmap_global_get(const stringmap_t *Map, const char *Key, con
 
 //void ml_string_fn_register(const char *Prefix, string_fn_t Fn);
 
-void ml_compiler_init();
+void ml_compiler_init(stringmap_t *Globals);
 
 ml_value_t *ml_global(const char *Name);
 ml_value_t *ml_global_get(ml_value_t *Global);

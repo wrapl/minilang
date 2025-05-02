@@ -2131,7 +2131,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_slice_init();
 	ml_map_init();
 	ml_set_init();
-	ml_compiler_init();
+	ml_compiler_init(Globals);
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
