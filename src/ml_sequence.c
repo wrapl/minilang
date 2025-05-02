@@ -4787,6 +4787,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 #endif
 	ml_externals_default_add("min", Min);
 	ml_externals_default_add("max", Max);
+	ml_externals_default_add("unique", Unique);
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);
 		stringmap_insert(Globals, "first", ml_method("first"));
