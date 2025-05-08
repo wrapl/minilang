@@ -2909,9 +2909,8 @@ ML_TYPE(MLUniqueStateT, (MLStateT), "unique-state");
 static void ml_unique_fnx_iterate(ml_unique_state_t *State, ml_value_t *Value);
 
 static void ml_unique_fnx_value(ml_unique_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (ml_map_insert(State->History, Value, MLSome) == MLNil) {
+	if (ml_map_insert(State->History, ml_deref(Value), MLSome) == MLNil) {
 		State->Value = Value;
 		ML_CONTINUE(State->Base.Caller, State);
 	}
