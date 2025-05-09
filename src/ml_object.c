@@ -807,7 +807,7 @@ ml_class_t *ml_default_class_table_lookup(ml_class_table_t *_ClassTable, uuid_t 
 
 ml_value_t *ml_default_class_table_insert(ml_class_table_t *_ClassTable, ml_class_t *Class) {
 	ml_default_class_table_t *ClassTable = (ml_default_class_table_t *)_ClassTable;
-	ml_class_t **Slot = (ml_class_t **)uuidmap_search(ClassTable->Classes, Class->Id);
+	ml_class_t **Slot = (ml_class_t **)uuidmap_slot(ClassTable->Classes, Class->Id);
 	if (Slot[0]) {
 		char IdString[UUID_STR_LEN];
 		uuid_unparse_lower(Class->Id, IdString);

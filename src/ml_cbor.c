@@ -416,7 +416,7 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 
 ML_METHOD_ANON(CborDecode, "cbor::decode");
 
-ML_METHOD(CborDecode, MLAddressT) {
+ML_METHODX(CborDecode, MLAddressT) {
 //@cbor::decode
 //<Bytes
 //>any|error
@@ -426,14 +426,15 @@ ML_METHOD(CborDecode, MLAddressT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
+	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
-		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
-		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+		if (Reader->Value && ml_is_error(Reader->Value)) ML_RETURN(Reader->Value);
+		ML_ERROR("CBORError", "Extra bytes after decoding: %d", Extra);
 	}
-	return ml_cbor_reader_get(Reader);
+	ML_RETURN(ml_cbor_reader_get(Reader));
 }
 
 static ml_value_t *ml_cbor_global_get_map(ml_value_t *Map, const char *Name) {
@@ -442,7 +443,7 @@ static ml_value_t *ml_cbor_global_get_map(ml_value_t *Map, const char *Name) {
 	return ml_externals_get_value(MLExternals, Name);
 }
 
-ML_METHOD(CborDecode, MLAddressT, MLMapT) {
+ML_METHODX(CborDecode, MLAddressT, MLMapT) {
 //@cbor::decode
 //<Bytes
 //<Globals
@@ -453,14 +454,15 @@ ML_METHOD(CborDecode, MLAddressT, MLMapT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_map;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
+	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
-		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
-		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+		if (Reader->Value && ml_is_error(Reader->Value)) ML_RETURN(Reader->Value);
+		ML_ERROR("CBORError", "Extra bytes after decoding: %d", Extra);
 	}
-	return ml_cbor_reader_get(Reader);
+	ML_RETURN(ml_cbor_reader_get(Reader));
 }
 
 static ml_value_t *ml_cbor_global_get_fn(ml_value_t *Fn, const char *Name) {
@@ -469,7 +471,7 @@ static ml_value_t *ml_cbor_global_get_fn(ml_value_t *Fn, const char *Name) {
 	return ml_simple_call(Fn, 1, Args);
 }
 
-ML_METHOD(CborDecode, MLAddressT, MLFunctionT) {
+ML_METHODX(CborDecode, MLAddressT, MLFunctionT) {
 //@cbor::decode
 //<Bytes
 //<Globals
@@ -480,17 +482,18 @@ ML_METHOD(CborDecode, MLAddressT, MLFunctionT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_fn;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
+	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
-		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
-		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+		if (Reader->Value && ml_is_error(Reader->Value)) ML_RETURN(Reader->Value);
+		ML_ERROR("CBORError", "Extra bytes after decoding: %d", Extra);
 	}
-	return ml_cbor_reader_get(Reader);
+	ML_RETURN(ml_cbor_reader_get(Reader));
 }
 
-ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
+ML_METHODX(CborDecode, MLAddressT, MLExternalSetT) {
 //@cbor::decode
 //<Bytes
 //<Externals
@@ -501,14 +504,15 @@ ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
+	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) {
-		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
-		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+		if (Reader->Value && ml_is_error(Reader->Value)) ML_RETURN(Reader->Value);
+		ML_ERROR("CBORError", "Extra bytes after decoding: %d", Extra);
 	}
-	return ml_cbor_reader_get(Reader);
+	ML_RETURN(ml_cbor_reader_get(Reader));
 }
 
 typedef struct {
