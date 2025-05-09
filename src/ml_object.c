@@ -1,7 +1,6 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_object.h"
-#include "uuidmap.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -151,13 +150,6 @@ ML_METHOD("::", MLObjectT, MLStringT) {
 	return (ml_value_t *)&Object->Fields[Info->Index];
 }
 
-typedef struct ml_class_table_t ml_class_table_t;
-
-struct ml_class_table_t {
-	ml_class_table_t *Prev;
-	uuidmap_t Classes[1];
-};
-
 extern ml_cfunctionx_t MLClass[];
 
 ML_TYPE(MLClassT, (MLTypeT), "class",
@@ -272,6 +264,12 @@ typedef struct {
 	ml_value_t *Args[];
 } ml_named_init_state_t;
 
+static void ml_named_init_state_init(ml_init_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	ML_RETURN(State->Object);
+}
+
 static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Result) {
 	ml_type_t *Old = ml_typeof(Result);
 	if (Old == State->Old) {
@@ -285,7 +283,7 @@ static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Re
 	}
 	if (State->Init) {
 		State->Object = State->Args[0] = Result;
-		State->Base.run = (void *)ml_init_state_run;
+		State->Base.run = (void *)ml_named_init_state_init;
 		return ml_call(State, State->Init, State->Count, State->Args);
 	}
 	ML_CONTINUE(State->Base.Caller, Result);
@@ -503,7 +501,7 @@ ML_FUNCTIONZ(MLClass) {
 		ml_class_t *Class ;
 		if (Id) {
 			for (ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX); ClassTable; ClassTable = ClassTable->Prev) {
-				Class = uuidmap_search(ClassTable->Classes, ml_uuid_value(Id));
+				Class = ClassTable->lookup(ClassTable, ml_uuid_value(Id));
 				if (Class) {
 					if (Class->Base.Type != MLPseudoClassT) ML_ERROR("ClassError", "Class id must be unique");
 					if (Class->NumFields < NumFields) ML_ERROR("ClassError", "Class id previously declared with more fields");
@@ -553,7 +551,7 @@ ML_FUNCTIONZ(MLClass) {
 		if (Id) {
 			memcpy(Class->Id, ml_uuid_value(Id), sizeof(uuid_t));
 			ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
-			if (ClassTable) uuidmap_insert(ClassTable->Classes, Class->Id, Class);
+			if (ClassTable) ClassTable->insert(ClassTable, Class);
 		} else {
 			uuid_generate(Class->Id);
 		}
@@ -802,10 +800,27 @@ static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const
 	Field->Value = ml_string(Name, -1);
 }
 
+ml_class_t *ml_default_class_table_lookup(ml_class_table_t *_ClassTable, uuid_t Id) {
+	ml_default_class_table_t *ClassTable = (ml_default_class_table_t *)_ClassTable;
+	return uuidmap_search(ClassTable->Classes, Id);
+}
+
+ml_value_t *ml_default_class_table_insert(ml_class_table_t *_ClassTable, ml_class_t *Class) {
+	ml_default_class_table_t *ClassTable = (ml_default_class_table_t *)_ClassTable;
+	ml_class_t **Slot = (ml_class_t **)uuidmap_search(ClassTable->Classes, Class->Id);
+	if (Slot[0]) {
+		char IdString[UUID_STR_LEN];
+		uuid_unparse_lower(Class->Id, IdString);
+		return ml_error("ClassError", "Duplicate class id: %s", IdString);
+	}
+	Slot[0] = Class;
+	return NULL;
+}
+
 ML_TYPE(MLPseudoClassT, (MLClassT), "pseudo::class");
 ML_TYPE(MLPseudoObjectT, (MLObjectT), "pseudo::object");
 
-ml_type_t *ml_pseudo_class(const char *Name, const uuid_t Id) {
+ml_class_t *ml_pseudo_class(const char *Name, const uuid_t Id) {
 	ml_class_t *Class = new(ml_class_t);
 	Class->Base.Type = MLPseudoClassT;
 	if (Name) {
@@ -822,11 +837,10 @@ ml_type_t *ml_pseudo_class(const char *Name, const uuid_t Id) {
 	ml_type_add_parent((ml_type_t *)Class, MLPseudoObjectT);
 	stringmap_insert(Class->Base.Exports, "new", Constructor);
 	memcpy(Class->Id, Id, sizeof(uuid_t));
-	return (ml_type_t *)Class;
+	return Class;
 }
 
-void ml_pseudo_class_add_field(ml_type_t *Class0, const char *Name) {
-	ml_class_t *Class = (ml_class_t *)Class0;
+void ml_pseudo_class_add_field(ml_class_t *Class, const char *Name) {
 	ml_value_t *Method = ml_method(Name);
 	ml_field_info_t **Slot = &Class->Fields;
 	int Index = 1;
@@ -857,13 +871,8 @@ ML_METHODX("register", MLPseudoClassT) {
 	ml_class_t *Class = (ml_class_t *)Args[0];
 	ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
 	if (!ClassTable) ML_ERROR("ClassError", "No class table found");
-	ml_class_t **Slot = (ml_class_t **)uuidmap_slot(ClassTable->Classes, Class->Id);
-	if (Slot[0]) {
-		if (Slot[0] != Class) ML_ERROR("ClassError", "Class id must be unique");
-	} else {
-		Slot[0] = Class;
-	}
-	uuidmap_insert(ClassTable->Classes, Class->Id, Class);
+	ml_value_t *Error = ClassTable->insert(ClassTable, Class);
+	if (Error) ML_RETURN(Error);
 	ML_RETURN(Class);
 }
 
@@ -2035,7 +2044,9 @@ ML_METHOD(MLListT, MLFlagsValueT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
-	ml_class_table_t *ClassTable = new(ml_class_table_t);
+	ml_default_class_table_t *ClassTable = new(ml_default_class_table_t);
+	ClassTable->Base.lookup = ml_default_class_table_lookup;
+	ClassTable->Base.insert = ml_default_class_table_insert;
 	ml_context_set_static(MLRootContext, ML_CLASSES_INDEX, ClassTable);
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_string_fn, MLStringT, NULL);
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_names_fn, MLNamesT, NULL);

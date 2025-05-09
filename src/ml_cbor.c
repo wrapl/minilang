@@ -129,9 +129,9 @@ struct ml_cbor_reader_t {
 	ml_external_fn_t GlobalGet;
 	void *Globals;
 	ml_value_t **Reused;
+	ml_class_table_t *ClassTable;
 	minicbor_stream_t Stream[1];
 	ml_stringbuffer_t Buffer[1];
-	uuidmap_t Classes[1];
 	int NumReused, MaxReused;
 	int NumSettings;
 	void *Settings[];
@@ -1447,28 +1447,35 @@ ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 }
 
 static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	if (!Reader->ClassTable) return ml_error("TagError", "Objects not supported by reader");
 	ML_CHECK_ARG_COUNT(1);
 	ml_value_t *ClassDef = Args[0];
-	ml_type_t *Class;
+	ml_class_t *Class;
 	if (ml_is(ClassDef, MLUUIDT)) {
-		Class = uuidmap_search(Reader->Classes, ml_uuid_value(ClassDef));
+		Class = Reader->ClassTable->lookup(Reader->ClassTable, ml_uuid_value(ClassDef));
 		if (!Class) return ml_error("TagError", "Object type requires valid class");
 	} else if (ml_is(ClassDef, MLListT)) {
 		ml_list_iter_t Iter[1];
 		if (!ml_list_iter_forward(ClassDef, Iter)) return ml_error("TagError", "Object type requires valid class");
 		if (!ml_is(Iter->Value, MLUUIDT)) return ml_error("TagError", "Object type requires valid class");
 		const unsigned char *Id = ml_uuid_value(Iter->Value);
-		Class = ml_pseudo_class(NULL, Id);
-		while (ml_list_iter_next(Iter)) {
-			if (!ml_is(Iter->Value, MLStringT)) return ml_error("TagError", "Object type requires valid class");
-			ml_pseudo_class_add_field(Class, ml_string_value(Iter->Value));
+		Class = Reader->ClassTable->lookup(Reader->ClassTable, ml_uuid_value(ClassDef));
+		if (Class) {
+			int NumFields = ml_list_length(ClassDef) - 1;
+			if (Class->NumFields < NumFields) return ml_error("TagError", "Class definitions do not match");
+		} else {
+			Class = ml_pseudo_class(NULL, Id);
+			while (ml_list_iter_next(Iter)) {
+				if (!ml_is(Iter->Value, MLStringT)) return ml_error("TagError", "Object type requires valid class");
+				ml_pseudo_class_add_field(Class, ml_string_value(Iter->Value));
+			}
+			Reader->ClassTable->insert(Reader->ClassTable, Class);
 		}
-		uuidmap_insert(Reader->Classes, Id, Class);
 	} else {
 		return ml_error("TagError", "Object requires type description");
 	}
-	if (ml_class_size(Class) != Count - 1) return ml_error("TagError", "Fields and values do not match");
-	ml_object_t *Object = (ml_object_t *)ml_object(Class, NULL);
+	if (Class->NumFields != Count - 1) return ml_error("TagError", "Fields and values do not match");
+	ml_object_t *Object = (ml_object_t *)ml_object((ml_type_t *)Class, NULL);
 	for (int I = 1; I < Count; ++I) Object->Fields[I].Value = Args[I];
 	return (ml_value_t *)Object;
 }
