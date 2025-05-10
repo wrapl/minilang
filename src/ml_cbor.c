@@ -1463,7 +1463,7 @@ static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml
 		if (!ml_list_iter_forward(ClassDef, Iter)) return ml_error("TagError", "Object type requires valid class");
 		if (!ml_is(Iter->Value, MLUUIDT)) return ml_error("TagError", "Object type requires valid class");
 		const unsigned char *Id = ml_uuid_value(Iter->Value);
-		Class = Reader->ClassTable->lookup(Reader->ClassTable, ml_uuid_value(ClassDef));
+		Class = Reader->ClassTable->lookup(Reader->ClassTable, ml_uuid_value(Iter->Value));
 		if (Class) {
 			int NumFields = ml_list_length(ClassDef) - 1;
 			if (Class->NumFields < NumFields) return ml_error("TagError", "Class definitions do not match");
