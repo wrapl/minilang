@@ -36,24 +36,8 @@ static ml_scheduler_t DefaultScheduler = {default_swap};
 
 ml_context_t *MLRootContext;
 
-#ifdef ML_CONTEXT_SECTION
-
-__attribute__ ((section("ml_context_section"))) void *ML_METHODS_INDEX[1];
-__attribute__ ((section("ml_context_section"))) void *ML_VARIABLES_INDEX[1];
-__attribute__ ((section("ml_context_section"))) void *ML_DEBUGGER_INDEX[1];
-__attribute__ ((section("ml_context_section"))) void *ML_SCHEDULER_INDEX[1];
-__attribute__ ((section("ml_context_section"))) void *ML_COUNTER_INDEX[1];
-__attribute__ ((section("ml_context_section"))) void *ML_THREAD_INDEX[1];
-
-static int MLContextSize = 0;
-static uint64_t MLContextReserved = 0;
-
-#else
-
 static int MLContextSize = ML_CONTEXT_SIZE;
 static uint64_t MLContextReserved = (1 << ML_CONTEXT_SIZE) - 1;
-
-#endif
 
 ml_context_t *ml_context(ml_context_t *Parent) {
 	ml_context_t *Context = xnew(ml_context_t, MLContextSize, void *);
@@ -102,23 +86,20 @@ const char *ml_config_name(void *Fn) {
 	return (const char *)inthash_search(MLConfigFns, (uintptr_t)Fn);
 }
 
-typedef struct  {
-	ml_type_t *Type;
-} ml_context_key_t;
-
 typedef struct ml_context_value_t ml_context_value_t;
 
 struct ml_context_value_t {
 	ml_context_value_t *Prev;
-	ml_context_key_t *Key;
+	ml_value_t *Key;
 	ml_value_t *Value;
 };
 
-static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int Count, ml_value_t **Args) {
+static void ml_context_key_call(ml_state_t *Caller, ml_value_t *Key, int Count, ml_value_t **Args) {
 	ml_context_value_t *Values = ml_context_get_static(Caller->Context, ML_VARIABLES_INDEX);
 	if (Count == 0) {
 		while (Values) {
 			if (Values->Key == Key) ML_RETURN(Values->Value);
+			Values = Values->Prev;
 		}
 		ML_RETURN(MLNil);
 	} else if (Count == 1) {
@@ -140,7 +121,7 @@ ML_FUNCTION(MLContextKey) {
 //@context
 //>context
 // Creates a new context specific key.
-	ml_context_key_t *Key = new(ml_context_key_t);
+	ml_value_t *Key = new(ml_value_t);
 	Key->Type = MLContextKeyT;
 	return (ml_value_t *)Key;
 }

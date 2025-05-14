@@ -272,7 +272,6 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 		MINILANG_MMAP := 1
-		:>MINILANG_CONTEXT_SECTION := not defined("NOCONTEXTSECTION")
 	end
 end
 
@@ -355,7 +354,6 @@ MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
 MINILANG_RATIONAL := old or defined("RATIONAL")
 MINILANG_BIGINT := old or defined("BIGINT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
-MINILANG_CONTEXT_SECTION := old or defined("CONTEXTSECTION")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -405,9 +403,6 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
-	end
-	if MINILANG_CONTEXT_SECTION then
-		File:write("\n#define ML_CONTEXT_SECTION\n")
 	end
 	File:write("\n#endif")
 	File:close

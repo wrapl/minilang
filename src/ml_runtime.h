@@ -38,34 +38,6 @@ extern ml_context_t *MLRootContext;
 
 ml_context_t *ml_context(ml_context_t *Parent) __attribute__((malloc));
 
-#ifdef ML_CONTEXT_SECTION
-
-extern __attribute__ ((section("ml_context_section"))) void *ML_METHODS_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_VARIABLES_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_DEBUGGER_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_SCHEDULER_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_COUNTER_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_THREAD_INDEX[];
-
-extern __attribute__ ((section("ml_context_section"))) void *__start_ml_context_section[];
-extern __attribute__ ((section("ml_context_section"))) void *__stop_ml_context_section[];
-
-static inline void *ml_context_get_static(ml_context_t *Context, void **Index) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-	return Context->Values[Index - __start_ml_context_section];
-#pragma GCC diagnostic pop
-}
-
-static inline void ml_context_set_static(ml_context_t *Context, void **Index, void *Value) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-	Context->Values[Index - __start_ml_context_section] = Value;
-#pragma GCC diagnostic pop
-}
-
-#else
-
 enum {
 	ML_METHODS_INDEX,
 	ML_VARIABLES_INDEX,
@@ -90,8 +62,6 @@ static inline void ml_context_set_static(ml_context_t *Context, int Index, void 
 	Context->Values[Index] = Value;
 #pragma GCC diagnostic pop
 }
-
-#endif
 
 int ml_context_index();
 void ml_context_reserve(int Index);
