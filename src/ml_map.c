@@ -197,37 +197,39 @@ static ml_map_node_t *ml_map_template_node(ml_map_node_t *Template, ml_value_t *
 
 }
 
+static __attribute__((noinline)) void ml_map_template_call2(ml_map_t *Template, ml_map_t *Map, int Count, ml_value_t **Args) {
+	ml_map_node_t *Nodes[Count];
+	memset(Nodes, 0, Map->Size * sizeof(ml_map_node_t *));
+	Map->Root = ml_map_template_node(Template->Root, Args, Nodes);
+	ml_map_node_t **Slot = &Map->Head, *Prev = NULL;
+	for (int I = 0; I < Count; ++I) {
+		ml_map_node_t *Node = Nodes[I];
+		if (Node) {
+			ml_value_t *Value = Node->Value;
+			if (ml_typeof(Value) == MLUninitializedT) {
+				ml_uninitialized_use(Value, &Node->Value);
+				Value = MLAny;
+			}
+#ifdef ML_GENERICS
+			ml_map_update_generic(Map, Node->Key, Value);
+#endif
+			Node->Map = Map;
+			Node->Prev = Prev;
+			*Slot = Node;
+			Slot = &Node->Next;
+			Prev = Node;
+		}
+	}
+	Map->Tail = Prev;
+}
+
 static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Count, ml_value_t **Args) {
 	if (Template->Size > Count) ML_ERROR("CallError", "Mismatched call to map template");
 	ml_map_t *Map = (ml_map_t *)ml_map();
 	Map->Cached = Template->Cached;
 	Map->Size = Template->Size;
 	Map->Order = Template->Order;
-	if (Template->Root) {
-		ml_map_node_t *Nodes[Count];
-		memset(Nodes, 0, Map->Size * sizeof(ml_map_node_t *));
-		Map->Root = ml_map_template_node(Template->Root, Args, Nodes);
-		ml_map_node_t **Slot = &Map->Head, *Prev = NULL;
-		for (int I = 0; I < Count; ++I) {
-			ml_map_node_t *Node = Nodes[I];
-			if (Node) {
-				ml_value_t *Value = Node->Value;
-				if (ml_typeof(Value) == MLUninitializedT) {
-					ml_uninitialized_use(Value, &Node->Value);
-					Value = MLAny;
-				}
-#ifdef ML_GENERICS
-				ml_map_update_generic(Map, Node->Key, Value);
-#endif
-				Node->Map = Map;
-				Node->Prev = Prev;
-				*Slot = Node;
-				Slot = &Node->Next;
-				Prev = Node;
-			}
-		}
-		Map->Tail = Prev;
-	}
+	if (Template->Root) ml_map_template_call2(Template, Map, Count, Args);
 	ML_RETURN(Map);
 }
 
