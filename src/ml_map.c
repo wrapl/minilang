@@ -2282,7 +2282,7 @@ ML_FUNCTIONX(MLMapBy) {
 	Args[0] = Sequence;
 	ml_value_t **Args2 = ml_alloc_args(1);
 	Args2[0] = Swapped;
-	return ml_call(Caller, (ml_value_t *)MLMapT, 1, Args);
+	return ml_call(Caller, (ml_value_t *)MLMapT, 1, Args2);
 }
 
 typedef struct {
