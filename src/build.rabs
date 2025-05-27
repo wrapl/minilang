@@ -355,11 +355,15 @@ MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
 MINILANG_RATIONAL := old or defined("RATIONAL")
 MINILANG_BIGINT := old or defined("BIGINT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
+MINILANG_STRINGBUFFER_NODE_SIZE := old or defined("STRINGBUFFER_NODE_SIZE")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
 	File:write("#ifndef ML_CONFIG_H\n")
 	File:write("#define ML_CONFIG_H\n")
+	if MINILANG_STRINGBUFFER_NODE_SIZE then
+		File:write('\n#define ML_STRINGBUFFER_NODE_SIZE {MINILANG_STRINGBUFFER_NODE_SIZE}\n')
+	end
 	if MINILANG_MODULES then
 		File:write("\n#define ML_MODULES\n")
 	end

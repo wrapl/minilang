@@ -873,7 +873,9 @@ struct ml_stringbuffer_t {
 	int Space, Length, Start, Index;
 };
 
+#ifndef ML_STRINGBUFFER_NODE_SIZE
 #define ML_STRINGBUFFER_NODE_SIZE 248
+#endif
 
 struct ml_stringbuffer_node_t {
 	ml_stringbuffer_node_t *Next;
