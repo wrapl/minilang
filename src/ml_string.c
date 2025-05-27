@@ -5161,6 +5161,13 @@ ML_METHOD("unread", MLStringBufferT, MLAddressT) {
 	return (ml_value_t *)Buffer;
 }
 
+ML_METHOD("put", MLBufferT, MLStringBufferT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
+	if (Buffer->Length > ml_buffer_length(Args[0])) return ml_error("SizeError", "Not enough space");
+	ml_stringbuffer_finish(Buffer, ml_buffer_value(Args[0]));
+	return Args[0];
+}
+
 ML_METHOD("get", MLStringBufferT) {
 //<Buffer
 //>string
