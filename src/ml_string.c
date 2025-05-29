@@ -775,12 +775,9 @@ int GC_asprintf(char **Ptr, const char *Format, ...) {
 static weakmap_t StringCache[1] = {WEAKMAP_INIT};
 
 static void *_ml_string(const char *Value, int Length) {
-	char *Copy = snew(Length + 1);
-	memcpy(Copy, Value, Length);
-	Copy[Length] = 0;
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
-	String->Value = Copy;
+	String->Value = Value;
 	String->Length = Length;
 	return String;
 }
