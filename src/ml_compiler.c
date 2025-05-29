@@ -3410,11 +3410,17 @@ typedef struct {
 static ml_global_t *ml_command_global(stringmap_t *Globals, const char *Name);
 
 void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
+#ifndef ML_STRINGCACHE
 	long Hash = ml_ident_hash(Expr->Ident);
+#endif
 	//printf("#<%s> -> %ld\n", Expr->Ident, Hash);
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (ml_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
+#ifdef ML_STRINGCACHE
+			if (Decl->Ident == Expr->Ident) {
+#else
 			if (Hash == Decl->Hash && !strcmp(Decl->Ident, Expr->Ident)) {
+#endif
 				if (Decl->Flags == MLC_DECL_CONSTANT) {
 					if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident, (ml_source_t){Expr->Source, Expr->StartLine});
 					return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
@@ -3865,11 +3871,12 @@ void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, in
 	long Hash = ml_ident_hash(Expr->Ident);
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (mlc_define_t *Define = UpFunction->Defines; Define; Define = Define->Next) {
-			if (Hash == Define->Hash) {
-				//printf("\tTesting <%s>\n", Decl->Ident);
-				if (!strcmp(Define->Ident, Expr->Ident)) {
-					return mlc_compile(Function, Define->Expr, Flags);
-				}
+#ifdef ML_STRINGCACHE
+			if (Define->Ident == Expr->Ident) {
+#else
+			if ((Hash == Define->Hash) && !strcmp(Define->Ident, Expr->Ident)) {
+#endif
+				return mlc_compile(Function, Define->Expr, Flags);
 			}
 		}
 	}
@@ -4490,9 +4497,26 @@ eoi:
 	return D - Quoted;
 }
 
+#ifdef ML_STRINGCACHE
+
+#include "weakmap.h"
+
+static weakmap_t IdentCache[1] = {WEAKMAP_INIT};
+
+static void *ident_id(const char *Ident, int Length) {
+	return (void *)Ident;
+}
+
+#else
+
 static inthash_t IdentCache[1] = {INTHASH_INIT};
 
+#endif
+
 static const char *ml_ident(const char *Next, int Length) {
+#ifdef ML_STRINGCACHE
+	return weakmap_insert(IdentCache, Next, Length, ident_id);
+#else
 	uintptr_t Key = 0;
 	switch (Length) {
 	case 0: return "";
@@ -4513,9 +4537,11 @@ static const char *ml_ident(const char *Next, int Length) {
 	}
 	//fprintf(stderr, "%s -> 0x%lx\n", Ident, Ident);
 	return Ident;
+#endif
 }
 
 int ml_ident_cache_check() {
+#ifndef ML_STRINGCACHE
 	inthash_t Copy = IdentCache[0];
 	for (int I = 0; I < Copy.Size; ++I) {
 		if (Copy.Values[I]) {
@@ -4526,6 +4552,7 @@ int ml_ident_cache_check() {
 			}
 		}
 	}
+#endif
 	return 0;
 }
 
@@ -6598,7 +6625,7 @@ void ml_function_compile(ml_state_t *Caller, const mlc_expr_t *Expr, ml_compiler
 			ml_decl_t *Param = new(ml_decl_t);
 			Param->Source.Name = Function->Source;
 			Param->Source.Line = Expr->StartLine;
-			Param->Ident = P[0];
+			Param->Ident = ml_ident(P[0], strlen(P[0]));
 			Param->Hash = ml_ident_hash(P[0]);
 			Param->Index = Function->Top++;
 			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)Function->Top);
