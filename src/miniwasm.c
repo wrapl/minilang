@@ -100,7 +100,7 @@ typedef struct {
 	ml_value_t *Result;
 } ml_session_t;
 
-#define ML_SESSION_INDEX 6
+#define ML_SESSION_INDEX 7
 
 static ml_session_t *Sessions = NULL;
 static int NumSessions = 0, MaxSessions = 0;

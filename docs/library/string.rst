@@ -30,6 +30,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`meth (Arg₁: buffer):put(Arg₂: string::buffer)`
+   *TBD*
+
+
 :mini:`type byte::order < enum`
    * :mini:`::LittleEndian`
    * :mini:`::BigEndian`
