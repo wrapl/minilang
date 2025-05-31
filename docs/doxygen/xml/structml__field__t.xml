@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="38" column="17" bodyfile="src/ml_object.h" bodystart="38" bodyend="-1"/>
+        <location file="src/ml_object.h" line="39" column="17" bodyfile="src/ml_object.h" bodystart="39" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__field__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="39" column="12" bodyfile="src/ml_object.h" bodystart="39" bodyend="-1"/>
+        <location file="src/ml_object.h" line="40" column="12" bodyfile="src/ml_object.h" bodystart="40" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -81,7 +81,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_object.h" line="37" column="1" bodyfile="src/ml_object.h" bodystart="37" bodyend="40"/>
+    <location file="src/ml_object.h" line="38" column="1" bodyfile="src/ml_object.h" bodystart="38" bodyend="41"/>
     <listofallmembers>
       <member refid="structml__field__t_1a995de71ec1f0a304711c106993871f65" prot="public" virt="non-virtual"><scope>ml_field_t</scope><name>Type</name></member>
       <member refid="structml__field__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" virt="non-virtual"><scope>ml_field_t</scope><name>Value</name></member>

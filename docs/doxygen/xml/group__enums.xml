@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="89" column="18" declfile="src/ml_object.h" declline="89" declcolumn="18"/>
+        <location file="src/ml_object.h" line="106" column="18" declfile="src/ml_object.h" declline="106" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__enums_1gacd8ad4a915700a0019bf3bf99a8d849f" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -28,7 +28,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="90" column="18" declfile="src/ml_object.h" declline="90" declcolumn="18"/>
+        <location file="src/ml_object.h" line="107" column="18" declfile="src/ml_object.h" declline="107" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -50,7 +50,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="92" column="11" declfile="src/ml_object.h" declline="92" declcolumn="11"/>
+        <location file="src/ml_object.h" line="109" column="11" declfile="src/ml_object.h" declline="109" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1ga5efee1e223a0f1f41d471ab8d21f42eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -70,7 +70,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="93" column="11" declfile="src/ml_object.h" declline="93" declcolumn="11"/>
+        <location file="src/ml_object.h" line="110" column="11" declfile="src/ml_object.h" declline="110" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1gaea1aaa2b592b7adac6cb39555aa03d9d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -90,7 +90,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="94" column="11" declfile="src/ml_object.h" declline="94" declcolumn="11"/>
+        <location file="src/ml_object.h" line="111" column="11" declfile="src/ml_object.h" declline="111" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1gafdbc55ae9224493cdfca1a201cd264ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -114,7 +114,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="95" column="11" declfile="src/ml_object.h" declline="95" declcolumn="11"/>
+        <location file="src/ml_object.h" line="112" column="11" declfile="src/ml_object.h" declline="112" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1ga5ee952e00c3e2798f9b27627aa07b6f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -135,7 +135,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="97" column="12" declfile="src/ml_object.h" declline="97" declcolumn="12"/>
+        <location file="src/ml_object.h" line="114" column="12" declfile="src/ml_object.h" declline="114" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1ga2d0eb331616d6be8f24f342a6df9da64" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int64_t</type>
@@ -152,7 +152,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="98" column="9" declfile="src/ml_object.h" declline="98" declcolumn="9"/>
+        <location file="src/ml_object.h" line="115" column="9" declfile="src/ml_object.h" declline="115" declcolumn="9"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1ga0c31179e840acf0eea0e672ee7e69246" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char *</type>
@@ -169,7 +169,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="99" column="12" declfile="src/ml_object.h" declline="99" declcolumn="12"/>
+        <location file="src/ml_object.h" line="116" column="12" declfile="src/ml_object.h" declline="116" declcolumn="12"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

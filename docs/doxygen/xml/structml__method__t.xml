@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1109" column="11" bodyfile="src/ml_types.h" bodystart="1109" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1111" column="11" bodyfile="src/ml_types.h" bodystart="1111" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__method__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1110" column="12" bodyfile="src/ml_types.h" bodystart="1110" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1112" column="12" bodyfile="src/ml_types.h" bodystart="1112" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -78,7 +78,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1108" column="1" bodyfile="src/ml_types.h" bodystart="1108" bodyend="1111"/>
+    <location file="src/ml_types.h" line="1110" column="1" bodyfile="src/ml_types.h" bodystart="1110" bodyend="1113"/>
     <listofallmembers>
       <member refid="structml__method__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_method_t</scope><name>Name</name></member>
       <member refid="structml__method__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_method_t</scope><name>Type</name></member>

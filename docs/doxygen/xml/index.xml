@@ -4,6 +4,20 @@
     <member refid="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" kind="variable"><name>sptr</name></member>
     <member refid="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" kind="variable"><name>ssze</name></member>
   </compound>
+  <compound refid="structinthash2__node__t" kind="struct"><name>inthash2_node_t</name>
+    <member refid="structinthash2__node__t_1a4098168278c6e0666eedbfb6805c5f02" kind="variable"><name>Key</name></member>
+    <member refid="structinthash2__node__t_1a63a2e91d18fabd71e0759c2406145574" kind="variable"><name>Offset</name></member>
+  </compound>
+  <compound refid="structinthash2__result__t" kind="struct"><name>inthash2_result_t</name>
+    <member refid="structinthash2__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
+    <member refid="structinthash2__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
+  </compound>
+  <compound refid="structinthash2__t" kind="struct"><name>inthash2_t</name>
+    <member refid="structinthash2__t_1a8f351070e1bb0035edf33c1baaddd13e" kind="variable"><name>Nodes</name></member>
+    <member refid="structinthash2__t_1a93b817b8cb9e5be468df90c8a277e5bc" kind="variable"><name>Values</name></member>
+    <member refid="structinthash2__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
+    <member refid="structinthash2__t_1adbeb0cbccc7ac4e39443f6cf8049b260" kind="variable"><name>Space</name></member>
+  </compound>
   <compound refid="structinthash__result__t" kind="struct"><name>inthash_result_t</name>
     <member refid="structinthash__result__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
     <member refid="structinthash__result__t_1a3d1bc650fba3ce1c35900a7f3ba49aa2" kind="variable"><name>Present</name></member>
@@ -77,6 +91,11 @@
     <member refid="structml__class__t_1aad683eae2c5a5b7c43fb20615e5281f8" kind="variable"><name>Id</name></member>
     <member refid="structml__class__t_1a0b4a5fc671df8ad2881096927bfacce8" kind="variable"><name>NumFields</name></member>
   </compound>
+  <compound refid="structml__class__table__t" kind="struct"><name>ml_class_table_t</name>
+    <member refid="structml__class__table__t_1a2d23ae8d24f7afa542b67d8f8ab3cd9a" kind="variable"><name>Prev</name></member>
+    <member refid="structml__class__table__t_1aad70caa9333d4d74689326977e4cdaf8" kind="variable"><name>lookup</name></member>
+    <member refid="structml__class__table__t_1a2065de7ea011541cae3cdfcbfcf79141" kind="variable"><name>insert</name></member>
+  </compound>
   <compound refid="structml__closure__info__t" kind="struct"><name>ml_closure_info_t</name>
     <member refid="structml__closure__info__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
     <member refid="structml__closure__info__t_1a518cf6dc0b27ddac3e02bdb94b01fe32" kind="variable"><name>Entry</name></member>
@@ -126,6 +145,10 @@
     <member refid="structml__decl__t_1a295be8ec098a21a7f81d0932be0d327e" kind="variable"><name>Hash</name></member>
     <member refid="structml__decl__t_1a075e1e3c9dd399cef584d7338cc37938" kind="variable"><name>Index</name></member>
     <member refid="structml__decl__t_1ac3e60a9fc42fb6c0b656191ebb1d658b" kind="variable"><name>Flags</name></member>
+  </compound>
+  <compound refid="structml__default__class__table__t" kind="struct"><name>ml_default_class_table_t</name>
+    <member refid="structml__default__class__table__t_1aece287bb27d32d2e69f3cf6cf02875b5" kind="variable"><name>Base</name></member>
+    <member refid="structml__default__class__table__t_1a433a5091e31346d0725434a010d5b606" kind="variable"><name>Classes</name></member>
   </compound>
   <compound refid="structml__double__t" kind="struct"><name>ml_double_t</name>
     <member refid="structml__double__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
@@ -630,6 +653,8 @@
     <member refid="coro_8h_1af889af911dcc4afc6014c9402b77b2e5" kind="function"><name>coro_stack_alloc</name></member>
     <member refid="coro_8h_1a2b0db6ba1253ca9fb7753fef48c406f7" kind="function"><name>coro_stack_free</name></member>
   </compound>
+  <compound refid="dap_8h" kind="file"><name>dap.h</name>
+  </compound>
   <compound refid="inthash_8h" kind="file"><name>inthash.h</name>
     <member refid="group__inthash_1ga27d72e87f09dbeafc3d36cc7904db468" kind="define"><name>INTHASH_INDEX_SHIFT</name></member>
     <member refid="group__inthash_1ga815f76b04432c6fb81ad28140a77a6dc" kind="define"><name>INTHASH_INCR_SHIFT</name></member>
@@ -642,6 +667,19 @@
     <member refid="group__inthash_1gadc81ecd4ba4a3bc61c95fd9099b71e60" kind="function"><name>inthash_contains_inline</name></member>
     <member refid="group__inthash_1gaf28e2d798de07546d19ad48a8e9746cd" kind="function"><name>inthash_search2</name></member>
     <member refid="group__inthash_1ga6d0b8beaaf60a0692f8b1c2d40fa80b0" kind="function"><name>inthash_search2_inline</name></member>
+  </compound>
+  <compound refid="inthash2_8h" kind="file"><name>inthash2.h</name>
+    <member refid="inthash2_8h_1ab6c05145f6e02872f65710b571dc7f12" kind="define"><name>INTHASH2_INDEX_SHIFT</name></member>
+    <member refid="inthash2_8h_1a0ed0865aee51b153806b21426a16d321" kind="define"><name>INTHASH2_INCR_SHIFT</name></member>
+    <member refid="inthash2_8h_1af2c0a9bf050afa4815d2c1c1aade99e6" kind="define"><name>INTHASH2_INIT</name></member>
+    <member refid="inthash2_8h_1ae916a2db26a51c6dbde5c46abbadadb2" kind="typedef"><name>inthash2_t</name></member>
+    <member refid="inthash2_8h_1a7cdb71feb5a0fe19667f82e2e676b36c" kind="function"><name>inthash2_new</name></member>
+    <member refid="inthash2_8h_1aa0e31570ddccb7de88a470257f8844aa" kind="function"><name>inthash2_search</name></member>
+    <member refid="inthash2_8h_1a82565f4aadc4818d019811dfce15bedf" kind="function"><name>inthash2_insert</name></member>
+    <member refid="inthash2_8h_1a8b64f716274ccb7e4e7fcc31ee61407b" kind="function"><name>inthash2_search_inline</name></member>
+    <member refid="inthash2_8h_1a089f5efb7d0b91774b589b61d3a8bde2" kind="function"><name>inthash2_foreach</name></member>
+    <member refid="inthash2_8h_1a289cc7841657f0ce2d8d7bccbae48a5e" kind="function"><name>inthash2_search2</name></member>
+    <member refid="inthash2_8h_1a53ec8f101c5f2e99efb769065156bc7b" kind="function"><name>inthash2_search2_inline</name></member>
   </compound>
   <compound refid="linenoise_8h" kind="file"><name>linenoise.h</name>
     <member refid="linenoise_8h_1ac910792e203989883a76044651a4f99b" kind="typedef"><name>linenoiseCompletions</name></member>
@@ -748,7 +786,6 @@
     <member refid="ml__bytecode_8h_1a893ebddbf66338cb8025ed24cdc38c7b" kind="function"><name>ml_closure_params</name></member>
     <member refid="ml__bytecode_8h_1ae4c89df42bdfe839fe908718dd1fb3db" kind="function"><name>ml_variable</name></member>
     <member refid="ml__bytecode_8h_1aabc24e65136a141fc7643a81ea1f6b2e" kind="function"><name>ml_variable_set</name></member>
-    <member refid="ml__bytecode_8h_1a89566123e1f933cbf6e36d50e3d7a3a0" kind="function"><name>ml_closure_debug</name></member>
     <member refid="ml__bytecode_8h_1af5b6edafb0893765c5dc817fe227ed1b" kind="function"><name>ml_closure_info_labels</name></member>
     <member refid="ml__bytecode_8h_1a4baaad8a0886b5baf76fcfa273a6f4f1" kind="function"><name>ml_count_cached_frames</name></member>
     <member refid="ml__bytecode_8h_1a130a345d1d6abc145a204c3c4e32aab6" kind="function"><name>ml_bytecode_init</name></member>
@@ -850,6 +887,7 @@
   <compound refid="ml__compiler_8h" kind="file"><name>ml_compiler.h</name>
     <member refid="group__compiler_1ga6761f9e4533e970759d9d7ddc904ab87" kind="define"><name>ML_FUNCTION_INLINE2</name></member>
     <member refid="group__compiler_1gae956fbe148c24a82b7fb17dd79c4253c" kind="define"><name>ML_FUNCTION_INLINE</name></member>
+    <member refid="group__compiler_1ga9a5d4acc30197ce9a5ac25fc77f6b56e" kind="define"><name>ML_MINI_FUNCTION</name></member>
     <member refid="group__compiler_1gabb9604d66dcf58bbc3dade83dfa66d98" kind="typedef"><name>ml_parser_t</name></member>
     <member refid="group__compiler_1ga540ce579caebd438ae3fee9e6d305335" kind="typedef"><name>ml_compiler_t</name></member>
     <member refid="group__compiler_1ga4a9d89a9e618a8f7dba94b44f64b8721" kind="typedef"><name>mlc_expr_t</name></member>
@@ -889,9 +927,10 @@
     <member refid="group__compiler_1ga55bee9157ae10af96b1ea982dd3c22f3" kind="function"><name>ml_function_compile</name></member>
     <member refid="group__compiler_1ga4368e311e7391106a3a9c5908ce815fc" kind="function"><name>ml_command_evaluate</name></member>
     <member refid="group__compiler_1ga74a69436921639e9cb02c285852ce333" kind="function"><name>ml_load_file</name></member>
+    <member refid="group__compiler_1ga846028fc0d3db372f2f8c512fba646cf" kind="function"><name>ml_compile_static</name></member>
     <member refid="group__compiler_1gac6d491e41f0debbe3329b73134e8d1d6" kind="function"><name>ml_stringmap_globals</name></member>
     <member refid="group__compiler_1gab29aa8a643e7282bcaa307e232d27c1e" kind="function"><name>ml_stringmap_global_get</name></member>
-    <member refid="group__compiler_1gad4a469c6a89bb88079d70eb008b76493" kind="function"><name>ml_compiler_init</name></member>
+    <member refid="group__compiler_1gab96228018f15007100a437d57b4c7cec" kind="function"><name>ml_compiler_init</name></member>
     <member refid="group__compiler_1ga076b4ddab4f2553f5971f3bd6c512c44" kind="function"><name>ml_global</name></member>
     <member refid="group__compiler_1ga2a4581401ba4633e895544bd7cdc891c" kind="function"><name>ml_global_get</name></member>
     <member refid="group__compiler_1gad850ad9f0a14a8fffcc01d2115544531" kind="function"><name>ml_global_set</name></member>
@@ -1302,6 +1341,7 @@
     <member refid="group__objects_1ga9a70e051c2a7fcd44e1c356f977aa0f5" kind="typedef"><name>ml_object_t</name></member>
     <member refid="group__objects_1ga72704d3e342214fb2f53d72e3c8e85a7" kind="typedef"><name>ml_field_t</name></member>
     <member refid="group__objects_1gae65682223379e765e79c0f50e04f80a3" kind="typedef"><name>ml_field_info_t</name></member>
+    <member refid="group__objects_1ga757a1b6aa2572d42306cbdaa4b216100" kind="typedef"><name>ml_class_table_t</name></member>
     <member refid="group__objects_1ga22e8d0514421a25e9548e3b7f0797f81" kind="variable"><name>MLClassT</name></member>
     <member refid="group__objects_1ga177646a0c55dc0180d6c9657e57119ea" kind="variable"><name>MLObjectT</name></member>
     <member refid="group__objects_1gaf0860eca949bab3e4d5aa79b805cbee1" kind="variable"><name>MLFieldT</name></member>
@@ -1329,8 +1369,10 @@
     <member refid="group__objects_1ga095d9d56848aefa66d2054fbbb9220b3" kind="function"><name>ml_object_size</name></member>
     <member refid="group__objects_1gad761297f2c77bc8b1bdd6fe0c1d147ef" kind="function"><name>ml_object_field</name></member>
     <member refid="group__objects_1ga77adb04068271677e3a51f9de1025e5c" kind="function"><name>ml_object_foreach</name></member>
-    <member refid="group__objects_1ga87e85950afae91739d7d3164b511eafc" kind="function"><name>ml_pseudo_class</name></member>
-    <member refid="group__objects_1gae2d9480d6f5c792d28372a15b7ba9109" kind="function"><name>ml_pseudo_class_add_field</name></member>
+    <member refid="group__objects_1gace36eb0673a4e241cf51d58acf8b9dd0" kind="function"><name>ml_default_class_table_lookup</name></member>
+    <member refid="group__objects_1gafeb70793f651ebbd28545d33a23ffa69" kind="function"><name>ml_default_class_table_insert</name></member>
+    <member refid="group__objects_1ga46486884ec062b4b097472a4e8437a70" kind="function"><name>ml_pseudo_class</name></member>
+    <member refid="group__objects_1ga70abfe59115d3725312700a1e52cddd1" kind="function"><name>ml_pseudo_class_add_field</name></member>
     <member refid="group__enums_1ga7a389a166525f8c68d3b799602c743a7" kind="function"><name>ml_enum</name></member>
     <member refid="group__enums_1ga5efee1e223a0f1f41d471ab8d21f42eb" kind="function"><name>ml_enum_cyclic</name></member>
     <member refid="group__enums_1gaea1aaa2b592b7adac6cb39555aa03d9d" kind="function"><name>ml_enum2</name></member>
@@ -1588,6 +1630,9 @@
     <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
     <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
     <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
+  </compound>
+  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
+    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
   </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
@@ -2193,9 +2238,10 @@
     <member refid="group__compiler_1ga55bee9157ae10af96b1ea982dd3c22f3" kind="function"><name>ml_function_compile</name></member>
     <member refid="group__compiler_1ga4368e311e7391106a3a9c5908ce815fc" kind="function"><name>ml_command_evaluate</name></member>
     <member refid="group__compiler_1ga74a69436921639e9cb02c285852ce333" kind="function"><name>ml_load_file</name></member>
+    <member refid="group__compiler_1ga846028fc0d3db372f2f8c512fba646cf" kind="function"><name>ml_compile_static</name></member>
     <member refid="group__compiler_1gac6d491e41f0debbe3329b73134e8d1d6" kind="function"><name>ml_stringmap_globals</name></member>
     <member refid="group__compiler_1gab29aa8a643e7282bcaa307e232d27c1e" kind="function"><name>ml_stringmap_global_get</name></member>
-    <member refid="group__compiler_1gad4a469c6a89bb88079d70eb008b76493" kind="function"><name>ml_compiler_init</name></member>
+    <member refid="group__compiler_1gab96228018f15007100a437d57b4c7cec" kind="function"><name>ml_compiler_init</name></member>
     <member refid="group__compiler_1ga076b4ddab4f2553f5971f3bd6c512c44" kind="function"><name>ml_global</name></member>
     <member refid="group__compiler_1ga2a4581401ba4633e895544bd7cdc891c" kind="function"><name>ml_global_get</name></member>
     <member refid="group__compiler_1gad850ad9f0a14a8fffcc01d2115544531" kind="function"><name>ml_global_set</name></member>
@@ -2204,6 +2250,7 @@
     <member refid="group__compiler_1ga37c2bd6ded02705ed136763ef3f7d4e9" kind="function"><name>ml_inline_function</name></member>
     <member refid="group__compiler_1ga6761f9e4533e970759d9d7ddc904ab87" kind="define"><name>ML_FUNCTION_INLINE2</name></member>
     <member refid="group__compiler_1gae956fbe148c24a82b7fb17dd79c4253c" kind="define"><name>ML_FUNCTION_INLINE</name></member>
+    <member refid="group__compiler_1ga9a5d4acc30197ce9a5ac25fc77f6b56e" kind="define"><name>ML_MINI_FUNCTION</name></member>
   </compound>
   <compound refid="group__logging" kind="group"><name>logging</name>
     <member refid="group__logging_1gad85d5ad7f21721364ba021b14fbbbf5d" kind="enum"><name>ml_log_level_t</name></member>
@@ -2273,6 +2320,7 @@
     <member refid="group__objects_1ga9a70e051c2a7fcd44e1c356f977aa0f5" kind="typedef"><name>ml_object_t</name></member>
     <member refid="group__objects_1ga72704d3e342214fb2f53d72e3c8e85a7" kind="typedef"><name>ml_field_t</name></member>
     <member refid="group__objects_1gae65682223379e765e79c0f50e04f80a3" kind="typedef"><name>ml_field_info_t</name></member>
+    <member refid="group__objects_1ga757a1b6aa2572d42306cbdaa4b216100" kind="typedef"><name>ml_class_table_t</name></member>
     <member refid="group__objects_1ga22e8d0514421a25e9548e3b7f0797f81" kind="variable"><name>MLClassT</name></member>
     <member refid="group__objects_1ga177646a0c55dc0180d6c9657e57119ea" kind="variable"><name>MLObjectT</name></member>
     <member refid="group__objects_1gaf0860eca949bab3e4d5aa79b805cbee1" kind="variable"><name>MLFieldT</name></member>
@@ -2296,8 +2344,10 @@
     <member refid="group__objects_1ga095d9d56848aefa66d2054fbbb9220b3" kind="function"><name>ml_object_size</name></member>
     <member refid="group__objects_1gad761297f2c77bc8b1bdd6fe0c1d147ef" kind="function"><name>ml_object_field</name></member>
     <member refid="group__objects_1ga77adb04068271677e3a51f9de1025e5c" kind="function"><name>ml_object_foreach</name></member>
-    <member refid="group__objects_1ga87e85950afae91739d7d3164b511eafc" kind="function"><name>ml_pseudo_class</name></member>
-    <member refid="group__objects_1gae2d9480d6f5c792d28372a15b7ba9109" kind="function"><name>ml_pseudo_class_add_field</name></member>
+    <member refid="group__objects_1gace36eb0673a4e241cf51d58acf8b9dd0" kind="function"><name>ml_default_class_table_lookup</name></member>
+    <member refid="group__objects_1gafeb70793f651ebbd28545d33a23ffa69" kind="function"><name>ml_default_class_table_insert</name></member>
+    <member refid="group__objects_1ga46486884ec062b4b097472a4e8437a70" kind="function"><name>ml_pseudo_class</name></member>
+    <member refid="group__objects_1ga70abfe59115d3725312700a1e52cddd1" kind="function"><name>ml_pseudo_class_add_field</name></member>
   </compound>
   <compound refid="group__enums" kind="group"><name>enums</name>
     <member refid="group__enums_1ga55bf3f6aaa5344af28b9935aadf25e4f" kind="variable"><name>MLEnumT</name></member>
