@@ -684,6 +684,95 @@ ML_METHOD("last2", MLMapT) {
 	return Map->Tail ? ml_tuplev(2, Map->Tail->Key, Map->Tail) : MLNil;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Filter;
+	ml_map_t *Map, *Drop;
+	ml_map_node_t *Node;
+} ml_map_filter_state_t;
+
+static void ml_map_filter_state_run(ml_map_filter_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) {
+		ML_CONTINUE(State->Base.Caller, Result);
+	}
+	ml_map_node_t *Node = State->Node;
+	ml_map_node_t *Next = Node->Next;
+	if (Result == MLNil) {
+		ml_map_node(State->Drop, Node, Node->Hash, Node->Key);
+	} else {
+		ml_map_node(State->Map, Node, Node->Hash, Node->Key);
+	}
+	if (!Next) ML_CONTINUE(State->Base.Caller, State->Drop);
+	State->Node = Next;
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Next->Value);
+
+}
+
+ML_METHODX("filter", MLMapMutableT, MLFunctionT) {
+//<Map
+//<Filter
+//>map
+// Removes every :mini:`Value` from :mini:`Map` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new map.
+//$- let M := map(swap("abcdefghij"))
+//$= M:filter(2 | _)
+//$= M
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	if (!Map->Head) ML_RETURN(ml_map());
+	ml_map_filter_state_t *State = new(ml_map_filter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_filter_state_run;
+	ml_map_node_t *Node = State->Node = Map->Head;
+	Map->Head = Map->Tail = Map->Root = NULL;
+	Map->Size = 0;
+	Map->Type = MLMapMutableT;
+	State->Map = Map;
+	State->Drop = (ml_map_t *)ml_map();
+	State->Filter = Args[1];
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Node->Value);
+}
+
+static void ml_map_remove_state_run(ml_map_filter_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) {
+		ML_CONTINUE(State->Base.Caller, Result);
+	}
+	ml_map_node_t *Node = State->Node;
+	ml_map_node_t *Next = Node->Next;
+	if (Result != MLNil) {
+		ml_map_node(State->Drop, Node, Node->Hash, Node->Key);
+	} else {
+		ml_map_node(State->Map, Node, Node->Hash, Node->Key);
+	}
+	if (!Next) ML_CONTINUE(State->Base.Caller, State->Drop);
+	State->Node = Next;
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Next->Value);
+
+}
+
+ML_METHODX("remove", MLMapMutableT, MLFunctionT) {
+//<Map
+//<Filter
+//>map
+// Removes every :mini:`Value` from :mini:`Map` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new map.
+//$- let M := map(swap("abcdefghij"))
+//$= M:remove(2 | _)
+//$= M
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	if (!Map->Head) ML_RETURN(ml_map());
+	ml_map_filter_state_t *State = new(ml_map_filter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_remove_state_run;
+	ml_map_node_t *Node = State->Node = Map->Head;
+	Map->Head = Map->Tail = Map->Root = NULL;
+	Map->Size = 0;
+	Map->Type = MLMapMutableT;
+	State->Map = Map;
+	State->Drop = (ml_map_t *)ml_map();
+	State->Filter = Args[1];
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Node->Value);
+}
+
 static ml_value_t *ml_map_index_deref(ml_map_node_t *Index) {
 	return MLNil;
 }
