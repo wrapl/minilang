@@ -117,8 +117,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
-      M:random :> "c"
+      M:random :> "a"
+      M:random :> "e"
 
 
 :mini:`meth (Map₁: map) >< (Map₂: map): map`
@@ -232,9 +232,8 @@ map
 
       let M := map(swap("abcdefghij"))
       M:filter(2 | _)
-      :> error("MethodError", "no method found for filter(map::mutable[string,integer32], function::partial)")
-      M
-      :> {"a" is 1, "b" is 2, "c" is 3, "d" is 4, "e" is 5, "f" is 6, "g" is 7, "h" is 8, "i" is 9, "j" is 10}
+      :> {"a" is 1, "c" is 3, "e" is 5, "g" is 7, "i" is 9}
+      M :> {"b" is 2, "d" is 4, "f" is 6, "h" is 8, "j" is 10}
 
 
 :mini:`meth (Arg₁: map::mutable):grow(Arg₂₁ is Value₁, ...)`
@@ -408,15 +407,14 @@ map
 
 
 :mini:`meth (Map: map::mutable):remove(Filter: function): map`
-   Removes every :mini:`Value` from :mini:`Map` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new map.
+   Removes every :mini:`Value` from :mini:`Map` for which :mini:`Function(Value)` doesn't return :mini:`nil` and returns those values in a new map.
 
    .. code-block:: mini
 
       let M := map(swap("abcdefghij"))
       M:remove(2 | _)
-      :> error("MethodError", "no method found for remove(map::mutable[string,integer32], function::partial)")
-      M
-      :> {"a" is 1, "b" is 2, "c" is 3, "d" is 4, "e" is 5, "f" is 6, "g" is 7, "h" is 8, "i" is 9, "j" is 10}
+      :> {"b" is 2, "d" is 4, "f" is 6, "h" is 8, "j" is 10}
+      M :> {"a" is 1, "c" is 3, "e" is 5, "g" is 7, "i" is 9}
 
 
 :mini:`meth (Map: map::mutable):reverse: map`

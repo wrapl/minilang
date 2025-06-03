@@ -3928,6 +3928,7 @@ const char *MLTokens[] = {
 	"when", // MLT_WHEN,
 	"while", // MLT_WHILE,
 	"with", // MLT_WITH,
+	"xor", // MLT_XOR,
 	"<identifier>", // MLT_IDENT,
 	"_", // MLT_BLANK,
 	"(", // MLT_LEFT_PAREN,
@@ -5513,6 +5514,17 @@ ML_FUNCTION(MLNot) {
 	return MLNil;
 }
 
+ML_FUNCTION(MLXor) {
+	ml_value_t *Result = MLNil;
+	for (int I = 0; I < Count; ++I) {
+		if (Args[I] != MLNil) {
+			if (Result != MLNil) return MLNil;
+			Result = Args[I];
+		}
+	}
+	return Result;
+}
+
 static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	static void *CompileFns[] = {
 		[MLT_EACH] = ml_each_expr_compile,
@@ -5543,6 +5555,12 @@ with_name:
 			ValueExpr->Value = (ml_value_t *)MLNot;
 			return ML_EXPR_END(ValueExpr);
 		}
+	}
+	case MLT_XOR: {
+		ml_next(Parser);
+		ML_EXPR(ValueExpr, value, value);
+		ValueExpr->Value = (ml_value_t *)MLXor;
+		return ML_EXPR_END(ValueExpr);
 	}
 	case MLT_EACH:
 	{
@@ -6091,11 +6109,20 @@ done:
 		} while (ml_parse(Parser, MLT_AND));
 		Expr = ML_EXPR_END(AndExpr);
 	}
+	if (Level >= EXPR_XOR && ml_parse(Parser, MLT_XOR)) {
+		ML_EXPR(XorExpr, parent_value, const_call);
+		XorExpr->Value = (ml_value_t *)MLXor;
+		mlc_expr_t *LastChild = XorExpr->Child = Expr;
+		do {
+			LastChild = LastChild->Next = ml_accept_expression(Parser, EXPR_AND);
+		} while (ml_parse(Parser, MLT_XOR));
+		Expr = ML_EXPR_END(XorExpr);
+	}
 	if (Level >= EXPR_OR && ml_parse(Parser, MLT_OR)) {
 		ML_EXPR(OrExpr, parent, or);
 		mlc_expr_t *LastChild = OrExpr->Child = Expr;
 		do {
-			LastChild = LastChild->Next = ml_accept_expression(Parser, EXPR_AND);
+			LastChild = LastChild->Next = ml_accept_expression(Parser, EXPR_XOR);
 		} while (ml_parse(Parser, MLT_OR));
 		Expr = ML_EXPR_END(OrExpr);
 	}

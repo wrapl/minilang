@@ -382,7 +382,7 @@ list
 
 
 :mini:`meth (List: list::mutable):remove(Filter: function): list`
-   Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns non-:mini:`nil` and returns those values in a new list.
+   Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` doesn't return non-:mini:`nil` and returns those values in a new list.
 
    .. code-block:: mini
 

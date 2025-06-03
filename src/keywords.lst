@@ -40,3 +40,4 @@ var, MLT_VAR
 when, MLT_WHEN
 while, MLT_WHILE
 with, MLT_WITH
+xor, MLT_XOR

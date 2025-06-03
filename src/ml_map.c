@@ -753,7 +753,7 @@ ML_METHODX("remove", MLMapMutableT, MLFunctionT) {
 //<Map
 //<Filter
 //>map
-// Removes every :mini:`Value` from :mini:`Map` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new map.
+// Removes every :mini:`Value` from :mini:`Map` for which :mini:`Function(Value)` doesn't return :mini:`nil` and returns those values in a new map.
 //$- let M := map(swap("abcdefghij"))
 //$= M:remove(2 | _)
 //$= M

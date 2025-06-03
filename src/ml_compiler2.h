@@ -47,6 +47,7 @@ typedef enum {
 	MLT_WHEN,
 	MLT_WHILE,
 	MLT_WITH,
+	MLT_XOR,
 	MLT_IDENT,
 	MLT_BLANK,
 	MLT_LEFT_PAREN,
@@ -74,6 +75,7 @@ typedef enum {
 typedef enum {
 	EXPR_SIMPLE,
 	EXPR_AND,
+	EXPR_XOR,
 	EXPR_OR,
 	EXPR_FOR,
 	EXPR_DEFAULT
