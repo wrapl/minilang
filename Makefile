@@ -65,7 +65,8 @@ sources = \
 	string \
 	time \
 	tuple \
-	types
+	types \
+	uuid
 
 common_objects = \
 	$(foreach name, $(sources), obj/ml_$(name).o) \
