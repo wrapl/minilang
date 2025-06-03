@@ -72,7 +72,8 @@ common_objects = \
 	$(foreach name, $(sources), obj/ml_$(name).o) \
 	obj/inthash.o \
 	obj/sha256.o \
-	obj/stringmap.o
+	obj/stringmap.o \
+	obj/uuidmap.o
 
 platform_objects =
 
@@ -145,7 +146,8 @@ headers = \
 	ml_time.h \
 	ml_types.h \
 	sha256.h \
-	stringmap.h
+	stringmap.h \
+	uuidmap.h
 
 install_h = $(foreach header, $(headers), $(install_include)/$(header))
 
