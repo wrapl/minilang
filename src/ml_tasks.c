@@ -142,15 +142,16 @@ static void ml_task_all_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
 ML_TYPE(MLTaskSetT, (MLTaskT), "task::set");
 // A task combining a set of sub tasks.
 
-ML_METHOD("*", MLTaskT, MLTaskT) {
+ML_METHODX("*", MLTaskT, MLTaskT) {
 //<Task/1
 //<Task/2
 //>task::set
 // Returns a :mini:`task::set` that completes when all of its sub tasks complete, or any raises an error.
-	ML_CHECK_ARG_COUNT(1);
-	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ML_CHECKX_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTaskT);
 	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
 	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.Context = Caller->Context;
 	TaskSet->Base.Base.run = (ml_state_fn)ml_task_all_run;
 	TaskSet->Remaining = TaskSet->Count = Count;
 	for (int I = 0; I < Count; ++I) {
@@ -158,7 +159,7 @@ ML_METHOD("*", MLTaskT, MLTaskT) {
 		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
 		TaskSet->Tasks[I] = Task;
 	}
-	return (ml_value_t *)TaskSet;
+	ML_RETURN(TaskSet);
 }
 
 static void ml_task_any_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
@@ -167,15 +168,16 @@ static void ml_task_any_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
 	ml_task_set((ml_task_t *)TaskSet, Value);
 }
 
-ML_METHOD("+", MLTaskT, MLTaskT) {
+ML_METHODX("+", MLTaskT, MLTaskT) {
 //<Task/1
 //<Task/2
 //>task::set
 // Returns a :mini:`task::set` that completes when any of its sub tasks complete, or any raises an error.
-	ML_CHECK_ARG_COUNT(1);
-	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ML_CHECKX_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTaskT);
 	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
 	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.Context = Caller->Context;
 	TaskSet->Base.Base.run = (ml_state_fn)ml_task_any_run;
 	TaskSet->Remaining = TaskSet->Count = Count;
 	for (int I = 0; I < Count; ++I) {
@@ -183,7 +185,7 @@ ML_METHOD("+", MLTaskT, MLTaskT) {
 		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
 		TaskSet->Tasks[I] = Task;
 	}
-	return (ml_value_t *)TaskSet;
+	ML_RETURN(TaskSet);
 }
 
 ML_METHOD("done", MLTaskT, MLAnyT) {
