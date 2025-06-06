@@ -8,6 +8,8 @@
 #include "ml_types.h"
 #include "ml_logging.h"
 #include <time.h>
+#include <errno.h>
+#include <math.h>
 
 #ifdef ML_TIMESCHED
 #include <sys/time.h>
@@ -32,7 +34,10 @@ static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Va
 	return 0;
 }
 
-static ml_scheduler_t DefaultScheduler = {default_swap};
+static ml_scheduler_t DefaultScheduler = {
+	.add = default_swap,
+	.sleep = ml_scheduler_default_sleep
+};
 
 ml_context_t *MLRootContext;
 
@@ -1172,6 +1177,34 @@ void ml_scheduler_queue_run(ml_scheduler_queue_t *Queue) {
 	Queued.State->run(Queued.State, Queued.Value);
 }
 
+void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, const struct timespec Duration) {
+	ml_value_t *Result = MLNil;
+#ifdef ML_THREADS
+	ml_scheduler_split(Scheduler);
+	struct timespec Remainder = Duration;
+	while (nanosleep(&Remainder, &Remainder)) {
+		if (errno != EINTR) {
+			Result = ml_error("SleepError", "Failed to sleep");
+			break;
+		}
+	}
+	ml_scheduler_join(Scheduler);
+#endif
+	Scheduler->add(Scheduler, State, Result);
+}
+
+ML_FUNCTIONX(MLSleep) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLRealT);
+	double Time = ml_real_value(Args[0]);
+	if (Time <= 0) ML_RETURN(MLNil);
+	struct timespec Duration;
+	Duration.tv_sec = floor(Time);
+	Duration.tv_nsec = (Time - floor(Time)) * 1000000000;
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
+	return Scheduler->sleep(Scheduler, Caller, Duration);
+}
+
 /*static
 #ifdef ML_THREADS
 __thread
@@ -1183,6 +1216,7 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	Queue->Base.add = (ml_scheduler_add_fn)ml_scheduler_queue_add_signal;
 	Queue->Base.run = (ml_scheduler_run_fn)ml_scheduler_queue_run;
 	Queue->Base.fill = (ml_scheduler_fill_fn)ml_scheduler_queue_fill;
+	Queue->Base.sleep = ml_scheduler_default_sleep;
 	ml_queue_block_t *Block = new(ml_queue_block_t);
 	Block->Next = Block;
 	Queue->WriteBlock = Queue->ReadBlock = Block;
@@ -1918,7 +1952,7 @@ static void ml_preempt(int Signal) {
 	--MLPreempt;
 }
 
-void ml_runtime_init(const char *ExecName) {
+void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_CONTEXT_SECTION
 	MLContextSize = __stop_ml_context_section - __start_ml_context_section;
 	MLContextReserved = (1 << MLContextSize) - 1;
@@ -1954,4 +1988,7 @@ void ml_runtime_init(const char *ExecName) {
 #endif
 	ml_config_register("DEBUGGER", ml_config_debugger);
 #include "ml_runtime_init.c"
+	if (Globals) {
+		stringmap_insert(Globals, "sleep", MLSleep);
+	}
 }

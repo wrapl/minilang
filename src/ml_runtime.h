@@ -139,8 +139,6 @@ typedef struct {
 void ml_sum_optimized(ml_iter_state_t *State, ml_value_t *Value);
 void ml_sum_fallback(ml_iter_state_t *State, ml_value_t *Iter, ml_value_t *Total, ml_value_t *Value);
 
-void ml_runtime_init(const char *ExecName);
-
 // Caches //
 
 typedef size_t (*ml_cache_usage_fn)(void *Arg);
@@ -283,6 +281,9 @@ typedef struct ml_scheduler_t ml_scheduler_t;
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
 typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
 typedef int (*ml_scheduler_fill_fn)(ml_scheduler_t *Scheduler);
+typedef void (*ml_scheduler_sleep_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, const struct timespec Duration);
+
+void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, const struct timespec Duration);
 
 static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
@@ -298,6 +299,7 @@ struct ml_scheduler_t {
 	ml_scheduler_add_fn add;
 	ml_scheduler_run_fn run;
 	ml_scheduler_fill_fn fill;
+	ml_scheduler_sleep_fn sleep;
 #ifdef ML_THREADS
 	ml_scheduler_block_t *Resume;
 #endif
