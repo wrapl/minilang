@@ -281,9 +281,11 @@ typedef struct ml_scheduler_t ml_scheduler_t;
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
 typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
 typedef int (*ml_scheduler_fill_fn)(ml_scheduler_t *Scheduler);
-typedef void (*ml_scheduler_sleep_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, const struct timespec Duration);
+typedef void (*ml_scheduler_sleep_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result);
 
-void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, const struct timespec Duration);
+void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result);
+
+void ml_sleep(ml_state_t *State, double Duration, ml_value_t *Result);
 
 static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);

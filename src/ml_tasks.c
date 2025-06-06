@@ -87,6 +87,24 @@ ML_METHODX("wait", MLTaskT) {
 	return ml_task_call(Caller, Task, 0, NULL);
 }
 
+ML_METHODX("wait", MLTaskT, MLRealT) {
+//<Task
+//>any|error
+// Waits until :mini:`Task` is completed and returns its result.
+	ml_task_t *Task = (ml_task_t *)Args[0];
+	if (Task->Value) ML_RETURN(Task->Value);
+	if (!Task->Base.Caller) {
+		Task->Base.Caller = Caller;
+	} else {
+		ml_waiter_t *Waiter = new(ml_waiter_t);
+		Waiter->Next = Task->Waiters;
+		Waiter->State = Caller;
+		Task->Waiters = Waiter;
+	}
+	double Duration = ml_real_value(Args[1]);
+	ml_sleep((ml_state_t *)Task, Duration, ml_error("TaskError", "Task timed out"));
+}
+
 #ifdef ML_GENERICS
 
 ML_GENERIC_TYPE(MLTaskListT, MLListT, MLTaskT);

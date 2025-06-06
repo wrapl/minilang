@@ -65,6 +65,10 @@ runtime
    *TBD*
 
 
+:mini:`fun mlsleep(Arg₁: real)`
+   *TBD*
+
+
 :mini:`type resumable::state < state`
    *TBD*
 
