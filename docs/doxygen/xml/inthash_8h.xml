@@ -237,6 +237,8 @@
       <node id="34">
         <label>src/ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
       </node>
       <node id="35">
         <label>src/ml_xe.h</label>

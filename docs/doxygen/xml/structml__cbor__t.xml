@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="49" column="12" bodyfile="src/ml_cbor.h" bodystart="49" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="51" column="12" bodyfile="src/ml_cbor.h" bodystart="51" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cbor__t_1aa4ac06fe4d51708f71a9d71eef3896ca" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="50" column="12" bodyfile="src/ml_cbor.h" bodystart="50" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="52" column="12" bodyfile="src/ml_cbor.h" bodystart="52" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cbor__t_1aedf38f1750ca631ccbb311d9868711fa" prot="public" static="no" mutable="no">
         <type>union <ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="51" column="1"/>
+        <location file="src/ml_cbor.h" line="53" column="1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cbor__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" prot="public" static="no" mutable="no">
         <type>size_t</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_cbor.h" line="52" column="8" bodyfile="src/ml_cbor.h" bodystart="52" bodyend="-1"/>
+        <location file="src/ml_cbor.h" line="54" column="8" bodyfile="src/ml_cbor.h" bodystart="54" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -106,7 +106,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_cbor.h" line="47" column="1" bodyfile="src/ml_cbor.h" bodystart="47" bodyend="53"/>
+    <location file="src/ml_cbor.h" line="49" column="1" bodyfile="src/ml_cbor.h" bodystart="49" bodyend="55"/>
     <listofallmembers>
       <member refid="structml__cbor__t_1afd75d67662a1d310a64c44f30a50f088" prot="public" virt="non-virtual"><scope>ml_cbor_t</scope><name>Data</name></member>
       <member refid="structml__cbor__t_1aa4ac06fe4d51708f71a9d71eef3896ca" prot="public" virt="non-virtual"><scope>ml_cbor_t</scope><name>Error</name></member>

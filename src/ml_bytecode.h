@@ -87,8 +87,6 @@ ml_value_t *ml_variable_set(ml_value_t *Variable, ml_value_t *Value);
 
 extern ml_type_t MLVariableT[];
 
-const char *ml_closure_debug(ml_value_t *Value);
-
 void ml_closure_info_labels(ml_closure_info_t *Info);
 //void ml_closure_info_list(ml_stringbuffer_t *Buffer, ml_closure_info_t *Info, int Indent);
 

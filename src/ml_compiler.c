@@ -3410,11 +3410,17 @@ typedef struct {
 static ml_global_t *ml_command_global(stringmap_t *Globals, const char *Name);
 
 void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
+#ifndef ML_STRINGCACHE
 	long Hash = ml_ident_hash(Expr->Ident);
+#endif
 	//printf("#<%s> -> %ld\n", Expr->Ident, Hash);
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (ml_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
+#ifdef ML_STRINGCACHE
+			if (Decl->Ident == Expr->Ident) {
+#else
 			if (Hash == Decl->Hash && !strcmp(Decl->Ident, Expr->Ident)) {
+#endif
 				if (Decl->Flags == MLC_DECL_CONSTANT) {
 					if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident, (ml_source_t){Expr->Source, Expr->StartLine});
 					return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
@@ -3865,11 +3871,12 @@ void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, in
 	long Hash = ml_ident_hash(Expr->Ident);
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (mlc_define_t *Define = UpFunction->Defines; Define; Define = Define->Next) {
-			if (Hash == Define->Hash) {
-				//printf("\tTesting <%s>\n", Decl->Ident);
-				if (!strcmp(Define->Ident, Expr->Ident)) {
-					return mlc_compile(Function, Define->Expr, Flags);
-				}
+#ifdef ML_STRINGCACHE
+			if (Define->Ident == Expr->Ident) {
+#else
+			if ((Hash == Define->Hash) && !strcmp(Define->Ident, Expr->Ident)) {
+#endif
+				return mlc_compile(Function, Define->Expr, Flags);
 			}
 		}
 	}
@@ -3921,6 +3928,7 @@ const char *MLTokens[] = {
 	"when", // MLT_WHEN,
 	"while", // MLT_WHILE,
 	"with", // MLT_WITH,
+	"xor", // MLT_XOR,
 	"<identifier>", // MLT_IDENT,
 	"_", // MLT_BLANK,
 	"(", // MLT_LEFT_PAREN,
@@ -4490,9 +4498,26 @@ eoi:
 	return D - Quoted;
 }
 
+#ifdef ML_STRINGCACHE
+
+#include "weakmap.h"
+
+static weakmap_t IdentCache[1] = {WEAKMAP_INIT};
+
+static void *ident_id(const char *Ident, int Length) {
+	return (void *)Ident;
+}
+
+#else
+
 static inthash_t IdentCache[1] = {INTHASH_INIT};
 
+#endif
+
 static const char *ml_ident(const char *Next, int Length) {
+#ifdef ML_STRINGCACHE
+	return weakmap_insert(IdentCache, Next, Length, ident_id);
+#else
 	uintptr_t Key = 0;
 	switch (Length) {
 	case 0: return "";
@@ -4513,9 +4538,11 @@ static const char *ml_ident(const char *Next, int Length) {
 	}
 	//fprintf(stderr, "%s -> 0x%lx\n", Ident, Ident);
 	return Ident;
+#endif
 }
 
 int ml_ident_cache_check() {
+#ifndef ML_STRINGCACHE
 	inthash_t Copy = IdentCache[0];
 	for (int I = 0; I < Copy.Size; ++I) {
 		if (Copy.Values[I]) {
@@ -4526,6 +4553,7 @@ int ml_ident_cache_check() {
 			}
 		}
 	}
+#endif
 	return 0;
 }
 
@@ -5486,6 +5514,17 @@ ML_FUNCTION(MLNot) {
 	return MLNil;
 }
 
+ML_FUNCTION(MLXor) {
+	ml_value_t *Result = MLNil;
+	for (int I = 0; I < Count; ++I) {
+		if (Args[I] != MLNil) {
+			if (Result != MLNil) return MLNil;
+			Result = Args[I];
+		}
+	}
+	return Result;
+}
+
 static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	static void *CompileFns[] = {
 		[MLT_EACH] = ml_each_expr_compile,
@@ -5516,6 +5555,12 @@ with_name:
 			ValueExpr->Value = (ml_value_t *)MLNot;
 			return ML_EXPR_END(ValueExpr);
 		}
+	}
+	case MLT_XOR: {
+		ml_next(Parser);
+		ML_EXPR(ValueExpr, value, value);
+		ValueExpr->Value = (ml_value_t *)MLXor;
+		return ML_EXPR_END(ValueExpr);
 	}
 	case MLT_EACH:
 	{
@@ -6064,11 +6109,20 @@ done:
 		} while (ml_parse(Parser, MLT_AND));
 		Expr = ML_EXPR_END(AndExpr);
 	}
+	if (Level >= EXPR_XOR && ml_parse(Parser, MLT_XOR)) {
+		ML_EXPR(XorExpr, parent_value, const_call);
+		XorExpr->Value = (ml_value_t *)MLXor;
+		mlc_expr_t *LastChild = XorExpr->Child = Expr;
+		do {
+			LastChild = LastChild->Next = ml_accept_expression(Parser, EXPR_AND);
+		} while (ml_parse(Parser, MLT_XOR));
+		Expr = ML_EXPR_END(XorExpr);
+	}
 	if (Level >= EXPR_OR && ml_parse(Parser, MLT_OR)) {
 		ML_EXPR(OrExpr, parent, or);
 		mlc_expr_t *LastChild = OrExpr->Child = Expr;
 		do {
-			LastChild = LastChild->Next = ml_accept_expression(Parser, EXPR_AND);
+			LastChild = LastChild->Next = ml_accept_expression(Parser, EXPR_XOR);
 		} while (ml_parse(Parser, MLT_OR));
 		Expr = ML_EXPR_END(OrExpr);
 	}
@@ -6598,7 +6652,7 @@ void ml_function_compile(ml_state_t *Caller, const mlc_expr_t *Expr, ml_compiler
 			ml_decl_t *Param = new(ml_decl_t);
 			Param->Source.Name = Function->Source;
 			Param->Source.Line = Expr->StartLine;
-			Param->Ident = P[0];
+			Param->Ident = ml_ident(P[0], strlen(P[0]));
 			Param->Hash = ml_ident_hash(P[0]);
 			Param->Index = Function->Top++;
 			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)Function->Top);
@@ -7496,6 +7550,27 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	return ml_function_compile((ml_state_t *)State, Expr, Compiler, Parameters);
 }
 
+static ml_compiler_t *StaticCompiler = NULL;
+
+ml_value_t *ml_compile_static(const char *Source, int Line, const char *Code, const char *Parameters[]) {
+	ml_parser_t *Parser = ml_parser(NULL, NULL);
+	Parser->Source.Name = Source;
+	Parser->Source.Line = Line;
+	ml_parser_input(Parser, Code, 0);
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) {
+		fprintf(stderr, "Fatal: Error compiling internal code at %s:%d\n", Source, Line);
+		exit(-1);
+	}
+	ml_result_state_t State[1] = {{{MLStateT, NULL, (ml_state_fn)ml_result_state_run, MLRootContext}, MLNil}};
+	ml_function_compile((ml_state_t *)State, Expr, StaticCompiler, Parameters);
+	if (!State->Value) {
+		fprintf(stderr, "Fatal: Error compiling internal code at %s:%d\n", Source, Line);
+		exit(-1);
+	}
+	return State->Value;
+}
+
 static void ml_inline_call_macro_fn(ml_state_t *Caller, void *Value, int Count, ml_value_t **Args) {
 	struct { ml_source_t Source; } Parser[1];
 	if (Count) {
@@ -7527,8 +7602,9 @@ ML_FUNCTION(MLIdentCacheCheck) {
 	return MLNil;
 }
 
-void ml_compiler_init() {
+void ml_compiler_init(stringmap_t *Globals) {
 #include "ml_compiler_init.c"
+	if (Globals) StaticCompiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
 	stringmap_insert(MLParserT->Exports, "expr", MLExprT);
 	stringmap_insert(MLCompilerT->Exports, "eoi", MLCompilerEOIT);
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);

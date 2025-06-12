@@ -21,6 +21,10 @@ object
    *TBD*
 
 
+:mini:`meth (Arg₁: class):id`
+   *TBD*
+
+
 :mini:`type field`
    *TBD*
 
@@ -30,6 +34,10 @@ object
 
 
 :mini:`meth (Arg₁: method):MLMethodDefault(Arg₂: field::modifier)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: method):MLMethodDefault(Arg₂: pseudo::object)`
    *TBD*
 
 
@@ -55,5 +63,13 @@ object
 
 :mini:`fun property(Value: any, Set: function): property`
    Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`Set(NewValue)`.
+
+
+:mini:`type pseudo::class < class`
+   *TBD*
+
+
+:mini:`meth (Arg₁: pseudo::class):register`
+   *TBD*
 
 

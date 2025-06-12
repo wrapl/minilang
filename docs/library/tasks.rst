@@ -82,6 +82,10 @@ tasks
    Waits until :mini:`Task` is completed and returns its result.
 
 
+:mini:`meth (Task: task):wait(Arg₂: real): any | error`
+   Waits until :mini:`Task` is completed and returns its result.
+
+
 :mini:`meth (Tasks: task::list):wait: any | error`
    Waits until all the tasks in :mini:`Tasks` are completed or any task returns an error.
 

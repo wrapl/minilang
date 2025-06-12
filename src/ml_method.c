@@ -29,7 +29,6 @@ struct ml_methods_t {
 #ifdef ML_THREADSAFE
 	volatile atomic_flag Lock[1];
 #endif
-	int PreventChanges;
 };
 
 static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count, ml_value_t **Args) {
@@ -110,10 +109,6 @@ static ml_methods_t MLRootMethods[1] = {{
 	, {ATOMIC_FLAG_INIT}
 #endif
 }};
-
-void ml_methods_prevent_changes(ml_methods_t *Methods, int PreventChanges) {
-	Methods->PreventChanges = PreventChanges;
-}
 
 ml_methods_t *ml_methods_context(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
@@ -668,9 +663,8 @@ ML_FUNCTION_INLINE(MLMethodSwitch) {
 	return (ml_value_t *)Switch;
 }
 
-static inline void ml_method_set(ml_methods_t *Methods, int NumTypes, ml_type_t *Variadic, ml_value_t **Args, ml_value_t *Function) {
-	// Use alloca here, VLA prevents TCO.
-	ml_type_t **Types = alloca(NumTypes * sizeof(ml_type_t *));
+static __attribute__((noinline)) void ml_method_set(ml_methods_t *Methods, int NumTypes, ml_type_t *Variadic, ml_value_t **Args, ml_value_t *Function) {
+	ml_type_t *Types[NumTypes];
 	for (int I = 1; I <= NumTypes; ++I) {
 		if (Args[I] == MLNil) {
 			Types[I - 1] = MLNilT;
@@ -694,7 +688,6 @@ ML_METHODVX(MLMethodDefine, MLMethodT) {
 //>Function
 // Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
-	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);
 	int NumTypes = Count - 2;
 	ml_type_t *Variadic = NULL;
@@ -723,7 +716,6 @@ ML_METHODVX(MLMethodDefine, MLTypeT) {
 //>Function
 // Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
-	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);
 	Args[0] = ((ml_type_t *)Args[0])->Constructor;
 	ML_CHECKX_ARG_TYPE(0, MLMethodT);

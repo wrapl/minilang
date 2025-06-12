@@ -453,11 +453,114 @@ ML_METHOD("first", MLSetT) {
 	return Set->Head ? Set->Head->Key : MLNil;
 }
 
+ML_METHOD("first2", MLSetT) {
+//<Set
+// Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	return Set->Head ? ml_tuplev(2, Set->Head->Key, Set->Head->Key) : MLNil;
+}
+
 ML_METHOD("last", MLSetT) {
 //<Set
 // Returns the last value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	return Set->Tail ? Set->Tail->Key : MLNil;
+}
+
+ML_METHOD("last2", MLSetT) {
+//<Set
+// Returns the last value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	return Set->Tail ? ml_tuplev(2, Set->Tail->Key, Set->Tail->Key) : MLNil;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Filter;
+	ml_set_t *Set, *Drop;
+	ml_set_node_t *Node;
+} ml_set_filter_state_t;
+
+static void ml_set_filter_state_run(ml_set_filter_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) {
+		ML_CONTINUE(State->Base.Caller, Result);
+	}
+	ml_set_node_t *Node = State->Node;
+	ml_set_node_t *Next = Node->Next;
+	if (Result == MLNil) {
+		ml_set_node(State->Drop, Node, Node->Hash, Node->Key);
+	} else {
+		ml_set_node(State->Set, Node, Node->Hash, Node->Key);
+	}
+	if (!Next) ML_CONTINUE(State->Base.Caller, State->Drop);
+	State->Node = Next;
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Next->Key);
+
+}
+
+ML_METHODX("filter", MLSetMutableT, MLFunctionT) {
+//<Set
+//<Filter
+//>map
+// Removes every :mini:`Value` from :mini:`Set` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new map.
+//$- let S := set(1 .. 20)
+//$= S:filter(2 | _)
+//$= S
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	if (!Set->Head) ML_RETURN(ml_map());
+	ml_set_filter_state_t *State = new(ml_set_filter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_filter_state_run;
+	ml_set_node_t *Node = State->Node = Set->Head;
+	Set->Head = Set->Tail = Set->Root = NULL;
+	Set->Size = 0;
+	Set->Type = MLSetMutableT;
+	State->Set = Set;
+	State->Drop = (ml_set_t *)ml_map();
+	State->Filter = Args[1];
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Node->Key);
+}
+
+static void ml_set_remove_state_run(ml_set_filter_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) {
+		ML_CONTINUE(State->Base.Caller, Result);
+	}
+	ml_set_node_t *Node = State->Node;
+	ml_set_node_t *Next = Node->Next;
+	if (Result != MLNil) {
+		ml_set_node(State->Drop, Node, Node->Hash, Node->Key);
+	} else {
+		ml_set_node(State->Set, Node, Node->Hash, Node->Key);
+	}
+	if (!Next) ML_CONTINUE(State->Base.Caller, State->Drop);
+	State->Node = Next;
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Next->Key);
+
+}
+
+ML_METHODX("remove", MLSetMutableT, MLFunctionT) {
+//<Set
+//<Filter
+//>map
+// Removes every :mini:`Value` from :mini:`Set` for which :mini:`Function(Value)` doesn't return :mini:`nil` and returns those values in a new map.
+//$- let S := set(1 .. 20)
+//$= S:remove(2 | _)
+//$= S
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	if (!Set->Head) ML_RETURN(ml_map());
+	ml_set_filter_state_t *State = new(ml_set_filter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_remove_state_run;
+	ml_set_node_t *Node = State->Node = Set->Head;
+	Set->Head = Set->Tail = Set->Root = NULL;
+	Set->Size = 0;
+	Set->Type = MLSetMutableT;
+	State->Set = Set;
+	State->Drop = (ml_set_t *)ml_map();
+	State->Filter = Args[1];
+	return ml_call((ml_state_t *)State, State->Filter, 1, &Node->Key);
 }
 
 ML_METHOD("order", MLSetT) {
@@ -536,7 +639,7 @@ ML_METHOD("in", MLAnyT, MLSetT) {
 //<Value
 //<Set
 //>any|nil
-// Returns :mini:`Key` if it is in :mini:`Map`, otherwise return :mini:`nil`.
+// Returns :mini:`Key` if it is in :mini:`Set`, otherwise return :mini:`nil`.
 //$- let S := set(["A", "B", "C"])
 //$= "A" in S
 //$= "D" in S

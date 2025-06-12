@@ -13,6 +13,10 @@ compiler
    *TBD*
 
 
+:mini:`fun mlxor()`
+   *TBD*
+
+
 :mini:`fun source(): tuple[string, integer]`
    Returns the caller source location. Evaluated at compile time if possible.
 

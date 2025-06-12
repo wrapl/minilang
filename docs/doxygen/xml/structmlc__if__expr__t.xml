@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="170" column="15" bodyfile="src/ml_compiler2.h" bodystart="170" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="172" column="15" bodyfile="src/ml_compiler2.h" bodystart="172" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__if__expr__t_1a3b5b3709f7de1287178e02f4985c2c75" prot="public" static="no" mutable="no">
         <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="171" column="12" bodyfile="src/ml_compiler2.h" bodystart="171" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="173" column="12" bodyfile="src/ml_compiler2.h" bodystart="173" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="public-func">
@@ -48,7 +48,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="169" column="1"/>
+        <location file="src/ml_compiler2.h" line="171" column="1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -131,7 +131,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="168" column="1" bodyfile="src/ml_compiler2.h" bodystart="168" bodyend="172"/>
+    <location file="src/ml_compiler2.h" line="170" column="1" bodyfile="src/ml_compiler2.h" bodystart="170" bodyend="174"/>
     <listofallmembers>
       <member refid="structmlc__if__expr__t_1a6c9ec47e5957ba57c6700de8d12669cf" prot="public" virt="non-virtual"><scope>mlc_if_expr_t</scope><name>Cases</name></member>
       <member refid="structmlc__if__expr__t_1a3b5b3709f7de1287178e02f4985c2c75" prot="public" virt="non-virtual"><scope>mlc_if_expr_t</scope><name>Else</name></member>

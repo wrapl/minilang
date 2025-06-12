@@ -161,6 +161,7 @@ let Objects := [
 	file("ml_types.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
+	file("uuidmap.o"),
 	file("weakmap.o")
 ]
 
@@ -186,6 +187,7 @@ let InstallHeaders := [
 	"ml_time.h",
 	"ml_types.h",
 	"stringmap.h",
+	"uuidmap.h",
 	"weakmap.h"
 ]
 
@@ -271,7 +273,6 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 		MINILANG_MMAP := 1
-		:>MINILANG_CONTEXT_SECTION := not defined("NOCONTEXTSECTION")
 	end
 end
 
@@ -354,12 +355,15 @@ MINILANG_STRINGCACHE := old or defined("STRINGCACHE")
 MINILANG_RATIONAL := old or defined("RATIONAL")
 MINILANG_BIGINT := old or defined("BIGINT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
-MINILANG_CONTEXT_SECTION := old or defined("CONTEXTSECTION")
+MINILANG_STRINGBUFFER_NODE_SIZE := old or defined("STRINGBUFFER_NODE_SIZE")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
 	File:write("#ifndef ML_CONFIG_H\n")
 	File:write("#define ML_CONFIG_H\n")
+	if MINILANG_STRINGBUFFER_NODE_SIZE then
+		File:write('\n#define ML_STRINGBUFFER_NODE_SIZE {MINILANG_STRINGBUFFER_NODE_SIZE}\n')
+	end
 	if MINILANG_MODULES then
 		File:write("\n#define ML_MODULES\n")
 	end
@@ -404,9 +408,6 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
-	end
-	if MINILANG_CONTEXT_SECTION then
-		File:write("\n#define ML_CONTEXT_SECTION\n")
 	end
 	File:write("\n#endif")
 	File:close
@@ -725,15 +726,15 @@ if PLATFORM = "Wasm" then
 		file("minilang.html"):copy(Target)
 	end
 
-	let DocsJs := (DOCS_DIR / "_static/js/minilang.js")[MINIWASM; Target] do
+	let DocsJs := (DOCS_DIR / "_static/js/minilang.js")[BIN_DIR / "minilang.js"; Target] do
 		(BIN_DIR / "minilang.js"):copy(Target)
 	end
 
-	let DocsWasm := (DOCS_DIR / "_static/js/minilang.wasm")[MINIWASM; Target] do
+	let DocsWasm := (DOCS_DIR / "_static/js/minilang.wasm")[BIN_DIR / "minilang.wasm"; Target] do
 		(BIN_DIR / "minilang.wasm"):copy(Target)
 	end
 
-	let DocsWasmMap := (DOCS_DIR / "_static/js/minilang.wasm.map")[MINIWASM; Target] do
+	let DocsWasmMap := (DOCS_DIR / "_static/js/minilang.wasm.map")[BIN_DIR / "minilang.wasm.map"; Target] do
 		(BIN_DIR / "minilang.wasm.map"):copy(Target)
 	end
 

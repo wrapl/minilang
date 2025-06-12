@@ -57,7 +57,7 @@ enum
    A interval of enum values.
 
 
-:mini:`type enum::value < integer`
+:mini:`type enum::value < integer64`
    An instance of an enumeration type.
 
 

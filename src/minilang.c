@@ -354,6 +354,9 @@ int main(int Argc, const char *Argv[]) {
 	ml_math_init(MLGlobals);
 	ml_array_init(MLGlobals);
 	ml_polynomial_init(MLGlobals);
+#ifdef ML_LIBRARY
+	ml_library_register("math", stringmap_search(MLGlobals, "math"));
+#endif
 #endif
 #ifdef ML_MODULES
 	ml_module_init(MLGlobals);

@@ -3,7 +3,9 @@
   <compounddef id="ml__object_8h" kind="file" language="C++">
     <compoundname>ml_object.h</compoundname>
     <includes refid="ml__types_8h" local="yes">ml_types.h</includes>
+    <includes refid="ml__uuid_8h" local="yes">ml_uuid.h</includes>
     <includes refid="stringmap_8h" local="yes">stringmap.h</includes>
+    <includes refid="uuidmap_8h" local="yes">uuidmap.h</includes>
     <incdepgraph>
       <node id="8">
         <label>inthash.h</label>
@@ -13,12 +15,48 @@
         <childnode refid="10" relation="include">
         </childnode>
       </node>
+      <node id="13">
+        <label>minilang.h</label>
+        <link refid="minilang_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>ml_compiler.h</label>
+        <link refid="ml__compiler_8h_source"/>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
       <node id="1">
         <label>src/ml_object.h</label>
         <link refid="ml__object_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
         <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+      </node>
+      <node id="16">
+        <label>ml_runtime.h</label>
+        <link refid="ml__runtime_8h_source"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
         </childnode>
       </node>
       <node id="2">
@@ -39,12 +77,32 @@
         <childnode refid="11" relation="include">
         </childnode>
       </node>
+      <node id="12">
+        <label>ml_uuid.h</label>
+        <link refid="ml__uuid_8h_source"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
       <node id="7">
         <label>stringmap.h</label>
         <link refid="stringmap_8h_source"/>
       </node>
+      <node id="19">
+        <label>uuidmap.h</label>
+        <link refid="uuidmap_8h_source"/>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>limits.h</label>
+      </node>
       <node id="11">
         <label>ml_config.h</label>
+      </node>
+      <node id="15">
+        <label>setjmp.h</label>
       </node>
       <node id="5">
         <label>stdarg.h</label>
@@ -64,11 +122,16 @@
       <node id="6">
         <label>unistd.h</label>
       </node>
+      <node id="18">
+        <label>uuid/uuid.h</label>
+      </node>
     </incdepgraph>
     <innerclass refid="structml__field__info__t" prot="public">ml_field_info_t</innerclass>
     <innerclass refid="structml__class__t" prot="public">ml_class_t</innerclass>
     <innerclass refid="structml__field__t" prot="public">ml_field_t</innerclass>
     <innerclass refid="structml__object__t" prot="public">ml_object_t</innerclass>
+    <innerclass refid="structml__class__table__t" prot="public">ml_class_table_t</innerclass>
+    <innerclass refid="structml__default__class__table__t" prot="public">ml_default_class_table_t</innerclass>
     <sectiondef kind="define">
       <member refid="group__flags_1gaff64ed8b6e4351149f95843609cfb2bd" kind="define"><name>ML_CLASS</name></member>
       <member refid="group__flags_1ga3eb1398dbc4993ee4752e07d18edf082" kind="define"><name>ML_CLASS_ADD_PARENTS</name></member>
@@ -85,12 +148,15 @@
       <member refid="group__objects_1ga9a70e051c2a7fcd44e1c356f977aa0f5" kind="typedef"><name>ml_object_t</name></member>
       <member refid="group__objects_1ga72704d3e342214fb2f53d72e3c8e85a7" kind="typedef"><name>ml_field_t</name></member>
       <member refid="group__objects_1gae65682223379e765e79c0f50e04f80a3" kind="typedef"><name>ml_field_info_t</name></member>
+      <member refid="group__objects_1ga757a1b6aa2572d42306cbdaa4b216100" kind="typedef"><name>ml_class_table_t</name></member>
     </sectiondef>
     <sectiondef kind="var">
       <member refid="group__objects_1ga22e8d0514421a25e9548e3b7f0797f81" kind="variable"><name>MLClassT</name></member>
       <member refid="group__objects_1ga177646a0c55dc0180d6c9657e57119ea" kind="variable"><name>MLObjectT</name></member>
       <member refid="group__objects_1gaf0860eca949bab3e4d5aa79b805cbee1" kind="variable"><name>MLFieldT</name></member>
       <member refid="group__objects_1gabcd0654d1007797f1546d9071fc01781" kind="variable"><name>MLFieldMutableT</name></member>
+      <member refid="group__objects_1ga371e267ba62149f46aeca560302abb60" kind="variable"><name>MLPseudoClassT</name></member>
+      <member refid="group__objects_1gaf7b31bf600cb2c08d581e78551293fe1" kind="variable"><name>MLPseudoObjectT</name></member>
       <member refid="group__enums_1ga55bf3f6aaa5344af28b9935aadf25e4f" kind="variable"><name>MLEnumT</name></member>
       <member refid="group__enums_1gacd8ad4a915700a0019bf3bf99a8d849f" kind="variable"><name>MLEnumValueT</name></member>
       <member refid="group__flags_1ga22c1e33d95637b0d82ab55db344c2b81" kind="variable"><name>MLFlagsT</name></member>
@@ -108,11 +174,16 @@
       <member refid="group__objects_1gaa9496be0561dc1d54c67d025874bdfa0" kind="function"><name>ml_modified_field</name></member>
       <member refid="group__objects_1gac07e61704f093be849b4152d5664cc41" kind="function"><name>ml_watched_field</name></member>
       <member refid="group__objects_1gafa86bd55039f9d84589faae382c4ed4f" kind="function"><name>ml_class_size</name></member>
+      <member refid="group__objects_1ga25ec961bff283ce82d7c95b4762bd926" kind="function"><name>ml_class_id</name></member>
       <member refid="group__objects_1gaff4c60fbfa3d5814be2d6176dee0c274" kind="function"><name>ml_class_field_name</name></member>
       <member refid="group__objects_1ga5523c0ae8d8ed812fc85d14d1acd115f" kind="function"><name>ml_object</name></member>
       <member refid="group__objects_1ga095d9d56848aefa66d2054fbbb9220b3" kind="function"><name>ml_object_size</name></member>
       <member refid="group__objects_1gad761297f2c77bc8b1bdd6fe0c1d147ef" kind="function"><name>ml_object_field</name></member>
       <member refid="group__objects_1ga77adb04068271677e3a51f9de1025e5c" kind="function"><name>ml_object_foreach</name></member>
+      <member refid="group__objects_1gace36eb0673a4e241cf51d58acf8b9dd0" kind="function"><name>ml_default_class_table_lookup</name></member>
+      <member refid="group__objects_1gafeb70793f651ebbd28545d33a23ffa69" kind="function"><name>ml_default_class_table_insert</name></member>
+      <member refid="group__objects_1ga46486884ec062b4b097472a4e8437a70" kind="function"><name>ml_pseudo_class</name></member>
+      <member refid="group__objects_1ga70abfe59115d3725312700a1e52cddd1" kind="function"><name>ml_pseudo_class_add_field</name></member>
       <member refid="group__enums_1ga7a389a166525f8c68d3b799602c743a7" kind="function"><name>ml_enum</name></member>
       <member refid="group__enums_1ga5efee1e223a0f1f41d471ab8d21f42eb" kind="function"><name>ml_enum_cyclic</name></member>
       <member refid="group__enums_1gaea1aaa2b592b7adac6cb39555aa03d9d" kind="function"><name>ml_enum2</name></member>
@@ -136,135 +207,161 @@
 <codeline lineno="3"><highlight class="normal"></highlight></codeline>
 <codeline lineno="7"><highlight class="normal"></highlight></codeline>
 <codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_types.h&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;stringmap.h&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="14"><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref>;</highlight></codeline>
-<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__object__t" kindref="compound">ml_object_t</ref><sp/><ref refid="structml__object__t" kindref="compound">ml_object_t</ref>;</highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/><ref refid="structml__field__t" kindref="compound">ml_field_t</ref>;</highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref>;</highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight></codeline>
-<codeline lineno="20" refid="structml__field__info__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/>*Next;</highlight></codeline>
-<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Method;</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index;</highlight></codeline>
-<codeline lineno="25"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight></codeline>
-<codeline lineno="27" refid="structml__class__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>Base;</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Initializer,<sp/>*Call;</highlight></codeline>
-<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/>*Fields;</highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Names[1];</highlight></codeline>
-<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>NumFields;</highlight></codeline>
-<codeline lineno="33"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight></codeline>
-<codeline lineno="35" refid="structml__field__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;</highlight></codeline>
-<codeline lineno="38"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight></codeline>
-<codeline lineno="40" refid="structml__object__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__object__t" kindref="compound">ml_object_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>Fields[];</highlight></codeline>
-<codeline lineno="43"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="44"><highlight class="normal"></highlight></codeline>
-<codeline lineno="45"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_object_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
-<codeline lineno="46"><highlight class="normal"></highlight></codeline>
-<codeline lineno="47"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_field_fn(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
-<codeline lineno="48"><highlight class="normal"></highlight></codeline>
-<codeline lineno="49"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLClassT[];</highlight></codeline>
-<codeline lineno="50"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLObjectT[];</highlight></codeline>
-<codeline lineno="51"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFieldT[];</highlight></codeline>
-<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFieldMutableT[];</highlight></codeline>
-<codeline lineno="53"><highlight class="normal"></highlight></codeline>
-<codeline lineno="54"><highlight class="normal"><ref refid="structml__object__t" kindref="compound">ml_object_t</ref><sp/>*ml_field_owner(<ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>*Field);</highlight></codeline>
-<codeline lineno="55"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_field_name(<ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>*Field);</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ml_uuid.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;stringmap.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;uuidmap.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref>;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__object__t" kindref="compound">ml_object_t</ref><sp/><ref refid="structml__object__t" kindref="compound">ml_object_t</ref>;</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/><ref refid="structml__field__t" kindref="compound">ml_field_t</ref>;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref>;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22" refid="structml__field__info__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Method;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29" refid="structml__class__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>Base;</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Initializer,<sp/>*Call;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref><sp/>*Fields;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Names[1];</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>uuid_t<sp/>Id;</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>NumFields;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38" refid="structml__field__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43" refid="structml__object__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__object__t" kindref="compound">ml_object_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>Fields[];</highlight></codeline>
+<codeline lineno="46"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_object_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_field_fn(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLClassT[];</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLObjectT[];</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFieldT[];</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFieldMutableT[];</highlight></codeline>
 <codeline lineno="56"><highlight class="normal"></highlight></codeline>
-<codeline lineno="57"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_class(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="58"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_class_add_parent(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Class,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Parent);</highlight></codeline>
-<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_class_add_field(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Class,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Field,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type);</highlight></codeline>
-<codeline lineno="60"><highlight class="normal"></highlight></codeline>
-<codeline lineno="61"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_class_modify(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*Class,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Modifier);</highlight></codeline>
-<codeline lineno="62"><highlight class="normal"></highlight></codeline>
-<codeline lineno="63"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_modified_field(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Field,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type);</highlight></codeline>
-<codeline lineno="64"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_watched_field(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Callback);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><ref refid="structml__object__t" kindref="compound">ml_object_t</ref><sp/>*ml_field_owner(<ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>*Field);</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_field_name(<ref refid="structml__field__t" kindref="compound">ml_field_t</ref><sp/>*Field);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_class(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_class_add_parent(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Class,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Parent);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_class_add_field(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Class,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Field,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type);</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_class_modify(<ref refid="structml__context__t" kindref="compound">ml_context_t</ref><sp/>*Context,<sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*Class,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Modifier);</highlight></codeline>
 <codeline lineno="65"><highlight class="normal"></highlight></codeline>
-<codeline lineno="66"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_class_size(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Value)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
-<codeline lineno="67"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_class_field_name(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_modified_field(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Field,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type);</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_watched_field(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Callback);</highlight></codeline>
 <codeline lineno="68"><highlight class="normal"></highlight></codeline>
-<codeline lineno="69"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_object(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Class,<sp/>...)<sp/>__attribute__<sp/>((sentinel));</highlight></codeline>
-<codeline lineno="70"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_object_size(const<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
-<codeline lineno="71"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_object_field(const<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
-<codeline lineno="72"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_object_foreach(const<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*)(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
-<codeline lineno="73"><highlight class="normal"></highlight></codeline>
-<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_class_size(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Value)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_class_id(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Value)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_class_field_name(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_object(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Class,<sp/>...)<sp/>__attribute__<sp/>((sentinel));</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ml_object_size(const<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_object_field(const<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Index)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_object_foreach(const<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*)(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal">typedef<sp/>struct<sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref>;</highlight></codeline>
 <codeline lineno="79"><highlight class="normal"></highlight></codeline>
-<codeline lineno="80"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLEnumT[];</highlight></codeline>
-<codeline lineno="81"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLEnumValueT[];</highlight></codeline>
-<codeline lineno="82"><highlight class="normal"></highlight></codeline>
-<codeline lineno="83"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_enum(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
-<codeline lineno="84"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_enum_cyclic(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
-<codeline lineno="85"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_enum2(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
-<codeline lineno="86"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_sub_enum(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*TypeName,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Parent,<sp/>...);</highlight></codeline>
-<codeline lineno="87"><highlight class="normal"></highlight></codeline>
-<codeline lineno="88"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_enum_value(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>int64_t<sp/>Enum);</highlight></codeline>
-<codeline lineno="89"><highlight class="normal">int64_t<sp/>ml_enum_value_value(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="90"><highlight class="normal">const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_enum_value_name(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80" refid="structml__class__table__t" refkind="compound"><highlight class="normal">struct<sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*Prev;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*(*lookup)(<ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*,<sp/>uuid_t);</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*(*insert)(<ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*,<sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*);</highlight></codeline>
+<codeline lineno="84"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86" refid="structml__default__class__table__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>Base;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref><sp/>Classes[1];</highlight></codeline>
+<codeline lineno="89"><highlight class="normal">}<sp/><ref refid="structml__default__class__table__t" kindref="compound">ml_default_class_table_t</ref>;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*ml_default_class_table_lookup(<ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*ClassTable,<sp/>uuid_t<sp/>Id);</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_default_class_table_insert(<ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*ClassTable,<sp/><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*Class);</highlight></codeline>
 <codeline lineno="93"><highlight class="normal"></highlight></codeline>
-<codeline lineno="97"><highlight class="normal"></highlight></codeline>
-<codeline lineno="98"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFlagsT[];</highlight></codeline>
-<codeline lineno="99"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFlagsValueT[];</highlight></codeline>
-<codeline lineno="100"><highlight class="normal"></highlight></codeline>
-<codeline lineno="101"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_flags(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
-<codeline lineno="102"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_flags2(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
-<codeline lineno="103"><highlight class="normal"></highlight></codeline>
-<codeline lineno="104"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_flags_value(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>uint64_t<sp/>Flags);</highlight></codeline>
-<codeline lineno="105"><highlight class="normal">uint64_t<sp/>ml_flags_value_value(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="106"><highlight class="normal">const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_flags_value_name(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="107"><highlight class="normal"></highlight></codeline>
-<codeline lineno="108"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>GENERATE_INIT</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="109"><highlight class="normal"></highlight></codeline>
-<codeline lineno="110"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLASS(TYPE,<sp/>PARENTS,<sp/>NAME)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="111"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLASS_ADD_PARENTS(TYPE,<sp/>PARENTS<sp/>...)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="112"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>ml_type_t<sp/>*Parents[]<sp/>=<sp/>{PARENTS};<sp/>\</highlight></codeline>
-<codeline lineno="113"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>(sizeof(Parents)<sp/>/<sp/>sizeof(ml_type_t<sp/>*));<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="114"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_class_add_parent(NULL,<sp/>TYPE,<sp/>Parents[I]);<sp/>\</highlight></codeline>
-<codeline lineno="115"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
-<codeline lineno="116"><highlight class="preprocessor">}</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="117"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FIELD(FIELD,<sp/>TYPE)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="118"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="119"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM_CYCLIC(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="120"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="121"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM2(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS2(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="123"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_SUB_ENUM(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="124"><highlight class="normal"></highlight></codeline>
-<codeline lineno="125"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLPseudoClassT[];</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLPseudoObjectT[];</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*ml_pseudo_class(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uuid_t<sp/>Id);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_pseudo_class_add_field(<ref refid="structml__class__t" kindref="compound">ml_class_t</ref><sp/>*Class,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLEnumT[];</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLEnumValueT[];</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_enum(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_enum_cyclic(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_enum2(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_sub_enum(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*TypeName,<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Parent,<sp/>...);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_enum_value(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>int64_t<sp/>Enum);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal">int64_t<sp/>ml_enum_value_value(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_enum_value_name(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFlagsT[];</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLFlagsValueT[];</highlight></codeline>
 <codeline lineno="126"><highlight class="normal"></highlight></codeline>
-<codeline lineno="127"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLASS(TYPE,<sp/>PARENTS,<sp/>NAME)<sp/>\</highlight></codeline>
-<codeline lineno="128"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_class(NAME);<sp/>\</highlight></codeline>
-<codeline lineno="129"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>INIT_CODE<sp/>ML_CLASS_ADD_PARENTS(TYPE<sp/>UNWRAP<sp/>PARENTS)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="130"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FIELD(FIELD,<sp/>TYPE)<sp/>INIT_CODE<sp/>ml_class_add_field(NULL,<sp/>TYPE,<sp/>_Generic(FIELD,<sp/>char<sp/>*:<sp/>ml_method,<sp/>default:<sp/>ml_nop)(FIELD),<sp/>MLFieldMutableT)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="131"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_enum(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="132"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM_CYCLIC(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_enum_cyclic(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="133"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_flags(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="134"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM2(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_enum2(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="135"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS2(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_flags2(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="136"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_SUB_ENUM(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_sub_enum(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="137"><highlight class="normal"></highlight></codeline>
-<codeline lineno="138"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="139"><highlight class="normal"></highlight></codeline>
-<codeline lineno="140"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="141"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="142"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="143"><highlight class="normal"></highlight></codeline>
-<codeline lineno="145"><highlight class="normal"></highlight></codeline>
-<codeline lineno="146"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_flags(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*ml_flags2(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>...);</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_flags_value(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>uint64_t<sp/>Flags);</highlight></codeline>
+<codeline lineno="131"><highlight class="normal">uint64_t<sp/>ml_flags_value_value(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_flags_value_name(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>GENERATE_INIT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLASS(TYPE,<sp/>PARENTS,<sp/>NAME)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLASS_ADD_PARENTS(TYPE,<sp/>PARENTS<sp/>...)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="138"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>ml_type_t<sp/>*Parents[]<sp/>=<sp/>{PARENTS};<sp/>\</highlight></codeline>
+<codeline lineno="139"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(int<sp/>I<sp/>=<sp/>0;<sp/>I<sp/>&lt;<sp/>(sizeof(Parents)<sp/>/<sp/>sizeof(ml_type_t<sp/>*));<sp/>++I)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="140"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ml_class_add_parent(NULL,<sp/>TYPE,<sp/>Parents[I]);<sp/>\</highlight></codeline>
+<codeline lineno="141"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="142"><highlight class="preprocessor">}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FIELD(FIELD,<sp/>TYPE)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM_CYCLIC(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM2(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS2(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_SUB_ENUM(TYPE,<sp/>NAME,<sp/>VALUES<sp/>...)<sp/>ml_type_t<sp/>*TYPE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"></highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CLASS(TYPE,<sp/>PARENTS,<sp/>NAME)<sp/>\</highlight></codeline>
+<codeline lineno="154"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_class(NAME);<sp/>\</highlight></codeline>
+<codeline lineno="155"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>INIT_CODE<sp/>ML_CLASS_ADD_PARENTS(TYPE<sp/>UNWRAP<sp/>PARENTS)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FIELD(FIELD,<sp/>TYPE)<sp/>INIT_CODE<sp/>ml_class_add_field(NULL,<sp/>TYPE,<sp/>_Generic(FIELD,<sp/>char<sp/>*:<sp/>ml_method,<sp/>default:<sp/>ml_nop)(FIELD),<sp/>MLFieldMutableT)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_enum(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM_CYCLIC(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_enum_cyclic(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_flags(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ENUM2(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_enum2(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_FLAGS2(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_flags2(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_SUB_ENUM(TYPE,<sp/>NAME,<sp/>VALUES...)<sp/>INIT_CODE<sp/>TYPE<sp/>=<sp/>ml_sub_enum(NAME,<sp/>VALUES,<sp/>NULL)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_object.h"/>
   </compounddef>

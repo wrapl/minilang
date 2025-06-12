@@ -205,7 +205,6 @@ extern ml_type_t MLVisitorT[];
 #ifdef ML_NANBOXING
 
 extern ml_type_t MLInteger32T[];
-extern ml_type_t MLInteger64T[];
 extern ml_type_t MLDoubleT[];
 
 #ifdef ML_RATIONAL
@@ -874,7 +873,9 @@ struct ml_stringbuffer_t {
 	int Space, Length, Start, Index;
 };
 
+#ifndef ML_STRINGBUFFER_NODE_SIZE
 #define ML_STRINGBUFFER_NODE_SIZE 248
+#endif
 
 struct ml_stringbuffer_node_t {
 	ml_stringbuffer_node_t *Next;
@@ -1581,6 +1582,10 @@ extern ml_type_t MLSymbolIntervalT[];
 void ml_types_init(stringmap_t *Globals);
 
 #ifdef __cplusplus
+}
+
+template <typename T> inline T *ml_typed_fn_get(ml_type_t *Type, T *Key) {
+	return (T *)ml_typed_fn_get(Type, (void *)Key);
 }
 
 template <typename... args> void ml_method_by_auto(const char *Cached, void *Data, ml_callback_t Function, args... Args) {

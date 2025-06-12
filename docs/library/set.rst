@@ -10,7 +10,7 @@ set
 .. rst-class:: mini-api
 
 :mini:`meth (Value: any):in(Set: set): any | nil`
-   Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
+   Returns :mini:`Key` if it is in :mini:`Set`,  otherwise return :mini:`nil`.
 
    .. code-block:: mini
 
@@ -190,6 +190,10 @@ set
    Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
 
 
+:mini:`meth (Set: set):first2`
+   Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+
+
 :mini:`meth (Set: set):from(Value: any): sequence | nil`
    Returns the subset of :mini:`Set` after :mini:`Value` as a sequence.
 
@@ -201,6 +205,10 @@ set
 
 
 :mini:`meth (Set: set):last`
+   Returns the last value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+
+
+:mini:`meth (Set: set):last2`
    Returns the last value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
 
 
@@ -223,7 +231,7 @@ set
 
       let S := set("cake") :> {c, a, k, e}
       S:random :> "a"
-      S:random :> "e"
+      S:random :> "k"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -284,6 +292,17 @@ set
 
       let S := set(["A", "B", "C"]) :> {A, B, C}
       S:empty :> {}
+
+
+:mini:`meth (Set: set::mutable):filter(Filter: function): map`
+   Removes every :mini:`Value` from :mini:`Set` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new map.
+
+   .. code-block:: mini
+
+      let S := set(1 .. 20)
+      S:filter(2 | _)
+      :> {1 is <set::node>, 3 is 3, 5 is 5, 7 is 7, 9 is 9, 11 is 11, 13 is 13, 15 is 15, 17 is 17, 19 is 19}
+      S :> {2, 4, 6, 8, 10, 12, 14, 16, 18, 20}
 
 
 :mini:`meth (Set: set::mutable):grow(Sequence: sequence, ...): set`
@@ -393,6 +412,17 @@ set
       S:put("D") :> {B, C, A, D}
       S:put("E", "B") :> {C, A, D, E, B}
       S :> {C, A, D, E, B}
+
+
+:mini:`meth (Set: set::mutable):remove(Filter: function): map`
+   Removes every :mini:`Value` from :mini:`Set` for which :mini:`Function(Value)` doesn't return :mini:`nil` and returns those values in a new map.
+
+   .. code-block:: mini
+
+      let S := set(1 .. 20)
+      S:remove(2 | _)
+      :> {2 is <set::node>, 4 is 4, 6 is 6, 8 is 8, 10 is 10, 12 is 12, 14 is 14, 16 is 16, 18 is 18, 20 is 20}
+      S :> {1, 3, 5, 7, 9, 11, 13, 15, 17, 19}
 
 
 :mini:`meth (Set: set::mutable):reverse: set`

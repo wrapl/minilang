@@ -156,6 +156,7 @@
       <keyword>when</keyword>
       <keyword>while</keyword>
       <keyword>with</keyword>
+      <keyword>xor</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>all2</keyword>

@@ -775,12 +775,9 @@ int GC_asprintf(char **Ptr, const char *Format, ...) {
 static weakmap_t StringCache[1] = {WEAKMAP_INIT};
 
 static void *_ml_string(const char *Value, int Length) {
-	char *Copy = snew(Length + 1);
-	memcpy(Copy, Value, Length);
-	Copy[Length] = 0;
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
-	String->Value = Copy;
+	String->Value = Value;
 	String->Length = Length;
 	return String;
 }
@@ -1590,12 +1587,11 @@ typedef struct {
 	size_t Length;
 } subject_t;
 
-static subject_t utf8_index(ml_value_t *V, int P) {
-	const char *S = ml_string_value(V);
-	const char *E = S + ml_string_length(V);
-	if (P <= 0) P += utf8_strlen(V) + 1;
+static subject_t utf8_index(const char *S, int L, int P) {
+	const char *E = S + L;
 	while (S <= E) {
-		if (--P == 0) return (subject_t){S, E - S};
+		if (P == 0) return (subject_t){S, E - S};
+		--P;
 		if (utf8_is_multibyte(*S)) {
 			do ++S; while (utf8_is_continuation(*S));
 		} else {
@@ -1603,6 +1599,11 @@ static subject_t utf8_index(ml_value_t *V, int P) {
 		}
 	}
 	return (subject_t){NULL, 0};
+}
+
+static subject_t utf8_subject(ml_value_t *V, int P) {
+	if (P <= 0) P += utf8_strlen(V) + 1;
+	return utf8_index(ml_string_value(V), ml_string_length(V), P - 1);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
@@ -2022,6 +2023,7 @@ ML_METHOD("normalize", MLStringT, MLStringNormT) {
 // Returns a normalized copy of :mini:`String` using the normalizer specified by :mini:`Norm`.
 //$= let S := "𝕥𝕖𝕩𝕥"
 //$= S:normalize(string::norm::NFD)
+	if (!ml_string_length(Args[0])) return Args[0];
 	UErrorCode Error = U_ZERO_ERROR;
 	int SrcLimit = 4 * ml_string_length(Args[0]);
 	UChar Src[SrcLimit];
@@ -2353,7 +2355,7 @@ ML_METHOD("[]", MLStringT, MLIntegerT) {
 //$- let S := "λ:😀 → 😺"
 //$= map(-7 .. 7 => (2, 2 -> S[_]))
 	int N = ml_integer_value(Args[1]);
-	subject_t Index = utf8_index(Args[0], N);
+	subject_t Index = utf8_subject(Args[0], N);
 	if (!Index.Length) return MLNil;
 	return ml_string(Index.Chars, utf8_next(Index.Chars) - Index.Chars);
 }
@@ -2366,8 +2368,8 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 // Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 	int Lo = ml_integer_value(Args[1]);
 	int Hi = ml_integer_value(Args[2]);
-	subject_t IndexLo = utf8_index(Args[0], Lo);
-	subject_t IndexHi = utf8_index(Args[0], Hi);
+	subject_t IndexLo = utf8_subject(Args[0], Lo);
+	subject_t IndexHi = utf8_subject(Args[0], Hi);
 	if (!IndexLo.Chars || !IndexHi.Chars) return MLNil;
 	if (IndexLo.Chars > IndexHi.Chars) return MLNil;
 	return ml_string(IndexLo.Chars, IndexHi.Chars - IndexLo.Chars);
@@ -2380,8 +2382,8 @@ ML_METHOD("[]", MLStringT, MLIntegerIntervalT) {
 // Returns the substring of :mini:`String` corresponding to :mini:`Interval` inclusively.
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[1];
 	int Lo = Interval->Start, Hi = Interval->Limit + 1;
-	subject_t IndexLo = utf8_index(Args[0], Lo);
-	subject_t IndexHi = utf8_index(Args[0], Hi);
+	subject_t IndexLo = utf8_subject(Args[0], Lo);
+	subject_t IndexHi = utf8_subject(Args[0], Hi);
 	if (!IndexLo.Chars || !IndexHi.Chars) return MLNil;
 	if (IndexLo.Chars > IndexHi.Chars) return MLNil;
 	return ml_string(IndexLo.Chars, IndexHi.Chars - IndexLo.Chars);
@@ -2395,7 +2397,7 @@ ML_METHOD("limit", MLStringT, MLIntegerT) {
 //$= "Hello world":limit(5)
 //$= "Cake":limit(5)
 	int N = ml_integer_value(Args[1]);
-	subject_t Index = utf8_index(Args[0], N + 1);
+	subject_t Index = utf8_subject(Args[0], N + 1);
 	if (!Index.Length) return Args[0];
 	const char *Start = ml_string_value(Args[0]);
 	return ml_string(Start, Index.Chars - Start);
@@ -2409,7 +2411,7 @@ ML_METHOD("offset", MLStringT, MLIntegerT) {
 //$- let S := "λ:😀 → 😺"
 //$= list(1 .. S:length, S:offset(_))
 	int N = ml_integer_value(Args[1]);
-	subject_t Index = utf8_index(Args[0], N);
+	subject_t Index = utf8_subject(Args[0], N);
 	if (!Index.Chars) return Args[0];
 	const char *Start = ml_string_value(Args[0]);
 	return ml_integer(Index.Chars - Start);
@@ -3180,7 +3182,7 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find("s", 1)
 //$= "The cat snored as he slept":find("s", 10)
 //$= "The cat snored as he slept":find("s", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
+	subject_t Subject = utf8_subject(Args[0], ml_integer_value(Args[2]));
 	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
@@ -3201,7 +3203,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 //$= "The cat snored as he slept":find2("s", 1)
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
+	subject_t Subject = utf8_subject(Args[0], ml_integer_value(Args[2]));
 	if (!Subject.Length) return MLNil;
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
@@ -3317,7 +3319,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find(r"s[a-z]+", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
+	subject_t Subject = utf8_subject(Args[0], ml_integer_value(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
 #ifdef ML_TRE
@@ -3346,7 +3348,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
-	subject_t Subject = utf8_index(Args[0], ml_integer_value(Args[2]));
+	subject_t Subject = utf8_subject(Args[0], ml_integer_value(Args[2]));
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
@@ -3391,7 +3393,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2("s", 10)
 //$= "The cat snored as he slept":find2("s", -6)
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	subject_t Subject = utf8_index(Args[0], Start);
+	subject_t Subject = utf8_subject(Args[0], Start);
 	const char *Needle = ml_string_value(Args[1]);
 	size_t NeedleLength = ml_string_length(Args[1]);
 	const char *Match = memmem(Subject.Chars, Subject.Length, Needle, NeedleLength);
@@ -3412,7 +3414,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 //$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
 //$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
 	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
-	subject_t Subject = utf8_index(Args[0], Start);
+	subject_t Subject = utf8_subject(Args[0], Start);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
@@ -5156,6 +5158,13 @@ ML_METHOD("unread", MLStringBufferT, MLAddressT) {
 	return (ml_value_t *)Buffer;
 }
 
+ML_METHOD("put", MLBufferT, MLStringBufferT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
+	if (Buffer->Length > ml_buffer_length(Args[0])) return ml_error("SizeError", "Not enough space");
+	ml_stringbuffer_finish(Buffer, ml_buffer_value(Args[0]));
+	return Args[0];
+}
+
 ML_METHOD("get", MLStringBufferT) {
 //<Buffer
 //>string
@@ -5261,6 +5270,181 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, State->Args[0]);
 }
 
+typedef struct {
+	const char *Chars;
+	int Length, Count;
+} ml_piece_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_piece_t *Pieces;
+	size_t Capacity, Count;
+	size_t Generation;
+} ml_piece_table_t;
+
+ML_TYPE(MLStringTableT, (), "string::table");
+
+#define INITIAL_PIECE_COUNT 8
+
+ml_value_t *ml_piece_table() {
+	ml_piece_table_t *Table = new(ml_piece_table_t);
+	Table->Type = MLStringTableT;
+	Table->Capacity = INITIAL_PIECE_COUNT;
+	Table->Pieces = anew(ml_piece_t, INITIAL_PIECE_COUNT);
+	return (ml_value_t *)Table;
+}
+
+static inline ml_piece_t ml_piece(const char *Text, size_t Size) {
+	return (ml_piece_t){Text, Size, utf8_position(Text, Text + Size)};
+}
+
+static ml_piece_t *ml_piece_table_resize(ml_piece_table_t *Table, size_t Incr, ml_piece_t *Piece) {
+	size_t Count = Table->Count;
+	ml_piece_t *OldPieces = Table->Pieces;
+	size_t Index = Piece - OldPieces;
+	size_t Capacity = Table->Capacity;
+	Capacity += (Capacity >> 2) + 4;
+	ml_piece_t *Pieces = anew(ml_piece_t, Capacity);
+	ml_piece_t *NewPiece = mempcpy(Pieces, OldPieces, Index * sizeof(ml_piece_t));
+	memcpy(NewPiece + Incr, Piece, (Count - Index) * sizeof(ml_piece_t));
+	Table->Pieces = Pieces;
+	Table->Capacity = Capacity;
+	return NewPiece;
+}
+
+void ml_piece_table_splice(ml_piece_table_t *Table, size_t Position, size_t Remove, const char *Text, size_t Insert) {
+	if (!Remove && !Insert) return;
+	ml_piece_t Inserts[2];
+	int NumInserts = 0;
+	if (Insert) {
+		Inserts[0] = ml_piece(Text, Insert);
+		NumInserts = 1;
+	}
+	size_t Count = Table->Count;
+	size_t Capacity = Table->Capacity;
+	ml_piece_t *Pieces = Table->Pieces;
+	ml_piece_t *Limit = Pieces + Count;
+	ml_piece_t *Start = Pieces;
+	while (Start < Limit) {
+		if (Position < Start->Count) break;
+		Position -= Start->Count;
+		++Start;
+	}
+	int NumRemoves = 0;
+	if (Position + Remove < Start->Count) {
+		if (Position) {
+			subject_t Subject1 = utf8_index(Start->Chars, Start->Length, Position);
+			Start->Length = Subject1.Chars - Start->Chars;
+			subject_t Subject2 = utf8_index(Subject1.Chars, Subject1.Length, Remove);
+			Inserts[NumInserts].Chars = Subject2.Chars;
+			Inserts[NumInserts].Length = Subject2.Length;
+			Inserts[NumInserts].Count = Start->Count - (Position + Remove);
+			++NumInserts;
+			Start->Count = Position;
+			++Start;
+		} else if (Remove) {
+			subject_t Subject = utf8_index(Start->Chars, Start->Length, Remove);
+			Start->Chars = Subject.Chars;
+			Start->Length = Subject.Length;
+			Start->Count -= Remove;
+		}
+	} else if (Position + Remove == Start->Count) {
+		if (Position) {
+			subject_t Subject = utf8_index(Start->Chars, Start->Length, Position);
+			Start->Length = Subject.Chars - Start->Chars;
+			Start->Count = Position;
+			++Start;
+		} else if (Start->Count) {
+			NumRemoves = 1;
+		}
+	} else {
+		ml_piece_t *End = Start + 1;
+		Remove -= (Start->Count - Position);
+		if (Position) {
+			subject_t Subject = utf8_index(Start->Chars, Start->Length, Position);
+			Start->Length = Subject.Chars - Start->Chars;
+			Start->Count = Position;
+			++Start;
+		}
+		while (End < Limit) {
+			if (Remove < End->Count) break;
+			Remove -= End->Count;
+			++End;
+		}
+		if (End < Limit && Remove) {
+			subject_t Subject = utf8_index(End->Chars, End->Length, Remove);
+			End->Chars = Subject.Chars;
+			End->Length = Subject.Length;
+			End->Count -= Remove;
+		}
+		NumRemoves = End - Start;
+	}
+	int Incr = NumInserts - NumRemoves;
+	ml_piece_t *End = Start + NumRemoves;
+	if (Count + Incr > Capacity) {
+		Start = ml_piece_table_resize(Table, Incr, Start);
+	} else if (NumInserts != NumRemoves) {
+		int Move = Limit - End;
+		memmove(Start + NumInserts, End, Move * sizeof(ml_piece_t));
+		if (Incr < 0) memset(Limit + Incr, 0, -Incr * sizeof(ml_piece_t));
+	}
+	memcpy(Start, Inserts, NumInserts * sizeof(ml_piece_t));
+	Table->Count = Count + Incr;
+}
+
+size_t ml_piece_table_find(ml_piece_table_t *Table, size_t Start, regex_t *Pattern, regmatch_t *Matches) {
+}
+
+ML_METHOD(MLStringTableT) {
+	return ml_piece_table();
+}
+
+ML_METHOD(MLStringTableT, MLStringT) {
+	ml_piece_table_t *Table = (ml_piece_table_t *)ml_piece_table();
+	ml_piece_table_splice(Table, 0, 0, ml_string_value(Args[0]), ml_string_length(Args[0]));
+	return (ml_value_t *)Table;
+}
+
+ML_METHOD("append", MLStringBufferT, MLStringTableT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_piece_table_t *Table = (ml_piece_table_t *)Args[1];
+	ml_piece_t *Pieces = Table->Pieces;
+	ml_piece_t *Limit = Pieces + Table->Count;
+	for (ml_piece_t *Piece = Pieces; Piece < Limit; ++Piece) {
+		ml_stringbuffer_write(Buffer, Piece->Chars, Piece->Length);
+	}
+	return MLSome;
+}
+
+ML_METHOD("describe", MLStringTableT) {
+	ml_value_t *Parts = ml_list();
+	ml_piece_table_t *Table = (ml_piece_table_t *)Args[0];
+	ml_list_put(Parts, ml_tuplev(2,
+		ml_integer(Table->Count),
+		ml_integer(Table->Capacity)
+	));
+	ml_piece_t *Pieces = Table->Pieces;
+	ml_piece_t *Limit = Pieces + Table->Count;
+	for (ml_piece_t *Piece = Pieces; Piece < Limit; ++Piece) {
+		ml_list_put(Parts, ml_tuplev(3,
+			ml_integer(Piece->Count),
+			ml_integer(Piece->Length),
+			ml_string(Piece->Chars, Piece->Length)
+		));
+	}
+	return Parts;
+}
+
+ML_METHOD("splice", MLStringTableT, MLIntegerT, MLIntegerT, MLStringT) {
+	ml_piece_table_t *Table = (ml_piece_table_t *)Args[0];
+	size_t Position = ml_integer_value(Args[1]) - 1;
+	size_t Remove = ml_integer_value(Args[2]);
+	const char *Text = ml_string_value(Args[3]);
+	size_t Insert = ml_string_length(Args[3]);
+	ml_piece_table_splice(Table, Position, Remove, Text, Insert);
+	return (ml_value_t *)Table;
+}
+
 void ml_string_init() {
 	setlocale(LC_ALL, "C.UTF-8");
 	GC_word StringBufferLayout[] = {1};
@@ -5268,6 +5452,7 @@ void ml_string_init() {
 	ml_cache_register("StringBufferNode", ml_stringbuffer_cache_usage, ml_stringbuffer_cache_clear, NULL);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	stringmap_insert(MLStringBufferT->Exports, "count", MLStringBufferCount);
+	stringmap_insert(MLStringT->Exports, "table", MLStringTableT);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 #ifdef ML_BIGINT

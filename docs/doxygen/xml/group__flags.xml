@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="98" column="18" declfile="src/ml_object.h" declline="98" declcolumn="18"/>
+        <location file="src/ml_object.h" line="124" column="18" declfile="src/ml_object.h" declline="124" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__flags_1ga8f426dc32abaa0f640d2799f94e616b9" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -28,7 +28,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="99" column="18" declfile="src/ml_object.h" declline="99" declcolumn="18"/>
+        <location file="src/ml_object.h" line="125" column="18" declfile="src/ml_object.h" declline="125" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -50,7 +50,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="101" column="11" declfile="src/ml_object.h" declline="101" declcolumn="11"/>
+        <location file="src/ml_object.h" line="127" column="11" declfile="src/ml_object.h" declline="127" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__flags_1ga8a6e62bc2f6f4efb6192ea057a894b7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -70,7 +70,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="102" column="11" declfile="src/ml_object.h" declline="102" declcolumn="11"/>
+        <location file="src/ml_object.h" line="128" column="11" declfile="src/ml_object.h" declline="128" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__flags_1gae73f85be76af86969e688273e18e366f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -91,7 +91,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="104" column="12" declfile="src/ml_object.h" declline="104" declcolumn="12"/>
+        <location file="src/ml_object.h" line="130" column="12" declfile="src/ml_object.h" declline="130" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__flags_1gab6f50968d01441cd12d8da8976babd7c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>uint64_t</type>
@@ -108,7 +108,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="105" column="10" declfile="src/ml_object.h" declline="105" declcolumn="10"/>
+        <location file="src/ml_object.h" line="131" column="10" declfile="src/ml_object.h" declline="131" declcolumn="10"/>
       </memberdef>
       <memberdef kind="function" id="group__flags_1ga066edf5b12061ebbe7e2f420d2a85798" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char *</type>
@@ -125,7 +125,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="106" column="12" declfile="src/ml_object.h" declline="106" declcolumn="12"/>
+        <location file="src/ml_object.h" line="132" column="12" declfile="src/ml_object.h" declline="132" declcolumn="12"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -141,7 +141,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="110" column="9" bodyfile="src/ml_object.h" bodystart="110" bodyend="-1"/>
+        <location file="src/ml_object.h" line="136" column="9" bodyfile="src/ml_object.h" bodystart="136" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1ga3eb1398dbc4993ee4752e07d18edf082" prot="public" static="no">
         <name>ML_CLASS_ADD_PARENTS</name>
@@ -159,7 +159,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="111" column="9" bodyfile="src/ml_object.h" bodystart="111" bodyend="116"/>
+        <location file="src/ml_object.h" line="137" column="9" bodyfile="src/ml_object.h" bodystart="137" bodyend="142"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1gab2604f74e595e6834034ecd477d96036" prot="public" static="no">
         <name>ML_FIELD</name>
@@ -171,7 +171,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="117" column="9" bodyfile="src/ml_object.h" bodystart="117" bodyend="-1"/>
+        <location file="src/ml_object.h" line="143" column="9" bodyfile="src/ml_object.h" bodystart="143" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1ga82e405226ae6f4e48c3a15b9fff8cfc5" prot="public" static="no">
         <name>ML_ENUM</name>
@@ -185,7 +185,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="118" column="9" bodyfile="src/ml_object.h" bodystart="118" bodyend="-1"/>
+        <location file="src/ml_object.h" line="144" column="9" bodyfile="src/ml_object.h" bodystart="144" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1gac2cd8f2e32d448a162784ade1ecc4ef6" prot="public" static="no">
         <name>ML_ENUM_CYCLIC</name>
@@ -199,7 +199,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="119" column="9" bodyfile="src/ml_object.h" bodystart="119" bodyend="-1"/>
+        <location file="src/ml_object.h" line="145" column="9" bodyfile="src/ml_object.h" bodystart="145" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1gadc751bc7b4b146dc5e4733cb8c6b75f0" prot="public" static="no">
         <name>ML_FLAGS</name>
@@ -213,7 +213,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="120" column="9" bodyfile="src/ml_object.h" bodystart="120" bodyend="-1"/>
+        <location file="src/ml_object.h" line="146" column="9" bodyfile="src/ml_object.h" bodystart="146" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1ga3f906af67a6cad8c688fe2741ad92a79" prot="public" static="no">
         <name>ML_ENUM2</name>
@@ -227,7 +227,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="121" column="9" bodyfile="src/ml_object.h" bodystart="121" bodyend="-1"/>
+        <location file="src/ml_object.h" line="147" column="9" bodyfile="src/ml_object.h" bodystart="147" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1ga150596e88430f302a5208579891d659e" prot="public" static="no">
         <name>ML_FLAGS2</name>
@@ -241,7 +241,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="122" column="9" bodyfile="src/ml_object.h" bodystart="122" bodyend="-1"/>
+        <location file="src/ml_object.h" line="148" column="9" bodyfile="src/ml_object.h" bodystart="148" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__flags_1ga4debaf08105991d1cc3c7ce9c96b0792" prot="public" static="no">
         <name>ML_SUB_ENUM</name>
@@ -255,7 +255,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="123" column="9" bodyfile="src/ml_object.h" bodystart="123" bodyend="-1"/>
+        <location file="src/ml_object.h" line="149" column="9" bodyfile="src/ml_object.h" bodystart="149" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

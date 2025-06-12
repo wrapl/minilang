@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="161" column="15" bodyfile="src/ml_compiler2.h" bodystart="161" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="163" column="15" bodyfile="src/ml_compiler2.h" bodystart="163" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__if__case__t_1a525a11aa405d3a21799a237c4d4554d7" prot="public" static="no" mutable="no">
         <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="162" column="12" bodyfile="src/ml_compiler2.h" bodystart="162" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="164" column="12" bodyfile="src/ml_compiler2.h" bodystart="164" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__if__case__t_1ae1402862dedb75eff8bf2d083a91d790" prot="public" static="no" mutable="no">
         <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="163" column="12" bodyfile="src/ml_compiler2.h" bodystart="163" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="165" column="12" bodyfile="src/ml_compiler2.h" bodystart="165" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__if__case__t_1aa8e48b404b9cbbbd2354229b95773aab" prot="public" static="no" mutable="no">
         <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref></type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="164" column="13" bodyfile="src/ml_compiler2.h" bodystart="164" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="166" column="13" bodyfile="src/ml_compiler2.h" bodystart="166" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__if__case__t_1a467f11d902b73ee0102af63ac791ec3b" prot="public" static="no" mutable="no">
         <type>ml_token_t</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="165" column="12" bodyfile="src/ml_compiler2.h" bodystart="165" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="167" column="12" bodyfile="src/ml_compiler2.h" bodystart="167" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -144,7 +144,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="160" column="1" bodyfile="src/ml_compiler2.h" bodystart="160" bodyend="166"/>
+    <location file="src/ml_compiler2.h" line="162" column="1" bodyfile="src/ml_compiler2.h" bodystart="162" bodyend="168"/>
     <listofallmembers>
       <member refid="structmlc__if__case__t_1ae1402862dedb75eff8bf2d083a91d790" prot="public" virt="non-virtual"><scope>mlc_if_case_t</scope><name>Body</name></member>
       <member refid="structmlc__if__case__t_1a525a11aa405d3a21799a237c4d4554d7" prot="public" virt="non-virtual"><scope>mlc_if_case_t</scope><name>Condition</name></member>

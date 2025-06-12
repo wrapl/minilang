@@ -59,9 +59,9 @@
         </childnode>
         <childnode refid="25" relation="include">
         </childnode>
-        <childnode refid="26" relation="include">
-        </childnode>
         <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
         </childnode>
       </node>
       <node id="5">
@@ -85,7 +85,7 @@
         <link refid="ml__bytecode_8h_source"/>
         <childnode refid="37" relation="include">
         </childnode>
-        <childnode refid="28" relation="include">
+        <childnode refid="29" relation="include">
         </childnode>
       </node>
       <node id="37">
@@ -101,10 +101,10 @@
         <link refid="ml__compiler_8h_source"/>
         <childnode refid="4" relation="include">
         </childnode>
-        <childnode refid="28" relation="include">
+        <childnode refid="29" relation="include">
         </childnode>
       </node>
-      <node id="28">
+      <node id="29">
         <label>src/ml_compiler2.h</label>
         <link refid="ml__compiler2_8h_source"/>
       </node>
@@ -116,7 +116,7 @@
         <label>src/ml_coroutine.h</label>
         <link refid="ml__coroutine_8h_source"/>
       </node>
-      <node id="29">
+      <node id="30">
         <label>src/ml_debugger.h</label>
         <link refid="ml__debugger_8h_source"/>
       </node>
@@ -156,7 +156,7 @@
         <label>src/ml_module.h</label>
         <link refid="ml__module_8h_source"/>
       </node>
-      <node id="30">
+      <node id="26">
         <label>src/ml_object.h</label>
         <link refid="ml__object_8h_source"/>
       </node>
@@ -175,7 +175,7 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="29" relation="include">
+        <childnode refid="30" relation="include">
         </childnode>
       </node>
       <node id="33">
@@ -217,7 +217,7 @@
         </childnode>
         <childnode refid="38" relation="include">
         </childnode>
-        <childnode refid="30" relation="include">
+        <childnode refid="26" relation="include">
         </childnode>
         <childnode refid="31" relation="include">
         </childnode>
@@ -229,12 +229,14 @@
       <node id="25">
         <label>src/ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
+        <childnode refid="26" relation="include">
+        </childnode>
       </node>
-      <node id="26">
+      <node id="27">
         <label>src/ml_xe.h</label>
         <link refid="ml__xe_8h_source"/>
       </node>
-      <node id="27">
+      <node id="28">
         <label>src/ml_xml.h</label>
         <link refid="ml__xml_8h_source"/>
       </node>
@@ -245,9 +247,9 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="29" relation="include">
-        </childnode>
         <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
         </childnode>
         <childnode refid="31" relation="include">
         </childnode>
@@ -300,7 +302,7 @@
 <codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size;</highlight></codeline>
 <codeline lineno="18"><highlight class="normal">};</highlight></codeline>
 <codeline lineno="19"><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGMAP_INIT<sp/>{0,}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>STRINGMAP_INIT<sp/>(stringmap_t){0,}</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="21"><highlight class="normal"></highlight></codeline>
 <codeline lineno="22"><highlight class="normal"><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*stringmap_new()<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
 <codeline lineno="23"><highlight class="normal"><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*stringmap_copy(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>

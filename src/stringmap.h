@@ -17,7 +17,7 @@ struct stringmap_t {
 	int Size;
 };
 
-#define STRINGMAP_INIT {0,}
+#define STRINGMAP_INIT (stringmap_t){0,}
 
 stringmap_t *stringmap_new() __attribute__ ((malloc));
 stringmap_t *stringmap_copy(stringmap_t *Map) __attribute__ ((malloc));

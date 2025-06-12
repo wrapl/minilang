@@ -20,6 +20,9 @@ complex double clog10(complex double Z);
 #undef ML_CATEGORY
 #define ML_CATEGORY "array"
 
+#define MIN(X, Y) ((X < Y) ? X : Y)
+#define MAX(X, Y) ((X > Y) ? X : Y)
+
 typedef ml_value_t *any;
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
@@ -1648,6 +1651,32 @@ static char *ml_array_indexv(ml_array_t *Array, va_list Indices) {
 		++Dimension;
 	}
 	return Address;
+}
+
+ML_METHOD("diag", MLArrayT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	if (Degree < 2) return ml_error("ShapeError", "Degree must be at least 2");
+	ml_array_dimension_t *SourceDimensions = Source->Dimensions;
+	if (SourceDimensions[Degree - 2].Indices) return ml_error("NotImplementedError", "Not implemented for sparse arrays yet");
+	if (SourceDimensions[Degree - 1].Indices) return ml_error("NotImplementedError", "Not implemented for sparse arrays yet");
+	if (ml_is_subtype(Source->Base.Type, MLArrayMutableT)) {
+		ml_array_ref_t *Ref = ml_array_ref_alloc(Source->Format, Degree - 1);
+		Ref->Array->Base.Value = Source->Base.Value;
+		ml_array_dimension_t *TargetDimensions = Ref->Array->Dimensions;
+		for (int I = 0; I < Degree - 2; ++I) TargetDimensions[I] = SourceDimensions[I];
+		TargetDimensions[Degree - 2].Size = MIN(SourceDimensions[Degree - 2].Size, SourceDimensions[Degree - 1].Size);
+		TargetDimensions[Degree - 2].Stride = SourceDimensions[Degree - 2].Stride + SourceDimensions[Degree - 1].Stride;
+		return (ml_value_t *)Ref;
+	} else {
+		ml_array_t *Val = ml_array_const_alloc(Source->Format, Degree - 1);
+		Val->Base.Value = Source->Base.Value;
+		ml_array_dimension_t *TargetDimensions = Val->Dimensions;
+		for (int I = 0; I < Degree - 2; ++I) TargetDimensions[I] = SourceDimensions[I];
+		TargetDimensions[Degree - 2].Size = MIN(SourceDimensions[Degree - 2].Size, SourceDimensions[Degree - 1].Size);
+		TargetDimensions[Degree - 2].Stride = SourceDimensions[Degree - 2].Stride + SourceDimensions[Degree - 1].Stride;
+		return (ml_value_t *)Val;
+	}
 }
 
 typedef struct {
@@ -4439,9 +4468,6 @@ static ml_value_t *array_math_complex_real_fn(double (*fn)(complex_double), int 
 	return (ml_value_t *)D;
 }
 #endif
-
-#define MIN(X, Y) ((X < Y) ? X : Y)
-#define MAX(X, Y) ((X > Y) ? X : Y)
 
 static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 	update_row_fn_t *Updates = (update_row_fn_t *)Data;
@@ -8447,14 +8473,12 @@ static ml_value_t *ml_cbor_read_any_array_fn(ml_cbor_reader_t *Reader, ml_value_
 
 #ifdef ML_COMPLEX
 
-ML_FUNCTION(MLCborReadComplex32) {
-//!internal
+static ml_value_t *ml_cbor_read_complex32(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C32);
 }
 
-ML_FUNCTION(MLCborReadComplex64) {
-//!internal
+static ml_value_t *ml_cbor_read_complex64(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C64);
 }
@@ -8617,8 +8641,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_FLOAT32_LE, ml_cbor_read_float32_array_fn);
 	ml_cbor_default_tag(ML_CBOR_TAG_ARRAY_FLOAT64_LE, ml_cbor_read_float64_array_fn);
 #ifdef ML_COMPLEX
-	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
-	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
+	ml_cbor_default_object("array::complex32", ml_cbor_read_complex32);
+	ml_cbor_default_object("array::complex64", ml_cbor_read_complex64);
 #endif
 	ml_externals_default_add("array", MLArrayT);
 	ml_externals_default_add("vector", MLVectorT);

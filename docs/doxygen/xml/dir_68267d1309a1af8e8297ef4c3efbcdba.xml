@@ -51,6 +51,7 @@
     <innerfile refid="sha256_8h">sha256.h</innerfile>
     <innerfile refid="stringmap_8h">stringmap.h</innerfile>
     <innerfile refid="timelib__mem_8h">timelib_mem.h</innerfile>
+    <innerfile refid="uuidmap_8h">uuidmap.h</innerfile>
     <innerfile refid="weakmap_8h">weakmap.h</innerfile>
     <innerfile refid="whereami_8h">whereami.h</innerfile>
     <briefdescription>

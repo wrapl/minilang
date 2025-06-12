@@ -168,6 +168,11 @@ ML_METHOD("fields", MLClassT) {
 	return Fields;
 }
 
+ML_METHOD("id", MLClassT) {
+	ml_class_t *Class = (ml_class_t *)Args[0];
+	return ml_uuid(Class->Id);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;
@@ -259,6 +264,12 @@ typedef struct {
 	ml_value_t *Args[];
 } ml_named_init_state_t;
 
+static void ml_named_init_state_init(ml_init_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	ML_RETURN(State->Object);
+}
+
 static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Result) {
 	ml_type_t *Old = ml_typeof(Result);
 	if (Old == State->Old) {
@@ -272,7 +283,7 @@ static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Re
 	}
 	if (State->Init) {
 		State->Object = State->Args[0] = Result;
-		State->Base.run = (void *)ml_init_state_run;
+		State->Base.run = (void *)ml_named_init_state_init;
 		return ml_call(State, State->Init, State->Count, State->Args);
 	}
 	ML_CONTINUE(State->Base.Caller, Result);
@@ -408,6 +419,10 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLTypeT, ml_context_t *Context, 
 	return NULL;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_class_modify, MLUUIDT, ml_context_t *Context, ml_class_t *Class, ml_uuid_t *Id) {
+	return NULL;
+}
+
 ML_FUNCTIONZ(MLClass) {
 //!object
 //@class
@@ -417,11 +432,16 @@ ML_FUNCTIONZ(MLClass) {
 //>class
 // Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 	ml_type_t *NativeType = NULL;
+	int NumFields = 0;
+	ml_value_t *Id = NULL;
 	for (int I = 0; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLNamesT) break;
 		Args[I] = ml_deref(Args[I]);
 		if (ml_typeof(Args[I]) == MLMethodT) {
+			++NumFields;
 		} else if (ml_is(Args[I], MLClassT)) {
+		} else if (ml_is(Args[I], MLUUIDT)) {
+			Id = Args[I];
 		} else if (ml_is(Args[I], MLNamedTypeT)) {
 			ml_named_type_t *Parent = (ml_named_type_t *)Args[I];
 			if (NativeType && NativeType != Parent->Native) {
@@ -478,7 +498,19 @@ ML_FUNCTIONZ(MLClass) {
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
 	} else {
-		ml_class_t *Class = new(ml_class_t);
+		ml_class_t *Class ;
+		if (Id) {
+			for (ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX); ClassTable; ClassTable = ClassTable->Prev) {
+				Class = ClassTable->lookup(ClassTable, ml_uuid_value(Id));
+				if (Class) {
+					if (Class->Base.Type != MLPseudoClassT) ML_ERROR("ClassError", "Class id must be unique");
+					if (Class->NumFields < NumFields) ML_ERROR("ClassError", "Class id previously declared with more fields");
+					goto have_class;
+				}
+			}
+		}
+		Class = new(ml_class_t);
+	have_class:
 		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
 #ifdef ML_GENERICS
 		ml_type_t *TypeArgs[2] = {MLClassT, (ml_type_t *)Class};
@@ -515,6 +547,13 @@ ML_FUNCTIONZ(MLClass) {
 				ml_value_t *Error = ml_class_modify(Caller->Context, Class, Args[I]);
 				if (Error) ML_RETURN(Error);
 			}
+		}
+		if (Id) {
+			memcpy(Class->Id, ml_uuid_value(Id), sizeof(uuid_t));
+			ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+			if (ClassTable) ClassTable->insert(ClassTable, Class);
+		} else {
+			uuid_generate(Class->Id);
 		}
 		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
@@ -678,6 +717,10 @@ size_t ml_class_size(const ml_type_t *Value) {
 	return ((ml_class_t *)Value)->NumFields;
 }
 
+const unsigned char *ml_class_id(const ml_type_t *Value) {
+	return ((ml_class_t *)Value)->Id;
+}
+
 typedef struct {
 	const char *Name;
 	int Index;
@@ -757,6 +800,82 @@ static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const
 	Field->Value = ml_string(Name, -1);
 }
 
+ml_class_t *ml_default_class_table_lookup(ml_class_table_t *_ClassTable, uuid_t Id) {
+	ml_default_class_table_t *ClassTable = (ml_default_class_table_t *)_ClassTable;
+	return uuidmap_search(ClassTable->Classes, Id);
+}
+
+ml_value_t *ml_default_class_table_insert(ml_class_table_t *_ClassTable, ml_class_t *Class) {
+	ml_default_class_table_t *ClassTable = (ml_default_class_table_t *)_ClassTable;
+	ml_class_t **Slot = (ml_class_t **)uuidmap_slot(ClassTable->Classes, Class->Id);
+	if (Slot[0]) {
+		char IdString[UUID_STR_LEN];
+		uuid_unparse_lower(Class->Id, IdString);
+		return ml_error("ClassError", "Duplicate class id: %s", IdString);
+	}
+	Slot[0] = Class;
+	return NULL;
+}
+
+ML_TYPE(MLPseudoClassT, (MLClassT), "pseudo::class");
+ML_TYPE(MLPseudoObjectT, (MLObjectT), "pseudo::object");
+
+ml_class_t *ml_pseudo_class(const char *Name, const uuid_t Id) {
+	ml_class_t *Class = new(ml_class_t);
+	Class->Base.Type = MLPseudoClassT;
+	if (Name) {
+		Class->Base.Name = Name;
+	} else {
+		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
+	}
+	Class->Base.hash = ml_default_hash;
+	Class->Base.call = ml_default_call;
+	Class->Base.deref = ml_default_deref;
+	Class->Base.assign = ml_default_assign;
+	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
+	Class->Base.Constructor = Constructor;
+	ml_type_add_parent((ml_type_t *)Class, MLPseudoObjectT);
+	stringmap_insert(Class->Base.Exports, "new", Constructor);
+	memcpy(Class->Id, Id, sizeof(uuid_t));
+	return Class;
+}
+
+void ml_pseudo_class_add_field(ml_class_t *Class, const char *Name) {
+	ml_value_t *Method = ml_method(Name);
+	ml_field_info_t **Slot = &Class->Fields;
+	int Index = 1;
+	while (Slot[0]) {
+		if (Slot[0]->Method == Method) return;
+		++Index;
+		Slot = &Slot[0]->Next;
+	}
+	++Class->NumFields;
+	ml_field_info_t *Info = Slot[0] = new(ml_field_info_t);
+	Info->Method = Method;
+	Info->Type = MLFieldMutableT;
+	Info->Index = Index;
+	if (Name) stringmap_insert(Class->Names, Name, Info);
+}
+
+ML_METHOD(MLMethodDefault, MLMethodT, MLPseudoObjectT) {
+	const char *Name = ml_method_name(Args[0]);
+	ml_object_t *Object = (ml_object_t *)Args[1];
+	ml_class_t *Class = Object->Type;
+	ml_field_info_t *Info = stringmap_search(Class->Names, Name);
+	if (!Info) return ml_no_method_error((ml_method_t *)Args[0], 1, Args + 1);
+	ml_field_t *Field = &Object->Fields[Info->Index];
+	return (ml_value_t *)Field;
+}
+
+ML_METHODX("register", MLPseudoClassT) {
+	ml_class_t *Class = (ml_class_t *)Args[0];
+	ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+	if (!ClassTable) ML_ERROR("ClassError", "No class table found");
+	ml_value_t *Error = ClassTable->insert(ClassTable, Class);
+	if (Error) ML_RETURN(Error);
+	ML_RETURN(Class);
+}
+
 //!enum
 
 typedef struct {
@@ -771,24 +890,12 @@ typedef struct {
 } ml_enum_t;
 
 static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
-#ifdef ML_BIGINT
-	return (long)Value->Base.Type + mpz_get_si(Value->Base.Value);
-#else
-	return (long)Value->Base.Type + Value->Base.Value;
-#endif
+	return (long)Value->Base.Type + ml_integer64_value((ml_value_t *)Value);
 }
 
-#ifdef ML_NANBOXING
-#define MLIntegerT MLInteger64T
-#endif
-
-ML_TYPE(MLEnumValueT, (MLIntegerT), "enum-value");
+ML_TYPE(MLEnumValueT, (MLInteger64T), "enum-value");
 //@enum::value
 // An instance of an enumeration type.
-
-#ifdef ML_NANBOXING
-#undef MLIntegerT
-#endif
 
 ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
@@ -808,11 +915,7 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 		ml_enum_value_t *Value = Enum->Values;
 		int64_t Index = ml_integer_value(Arg);
 		for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++Value) {
-#ifdef ML_BIGINT
-			if (mpz_get_si(Value->Base.Value) == Index) ML_RETURN(Value);
-#else
-			if (Value->Base.Value == Index) ML_RETURN(Value);
-#endif
+			if (ml_integer64_value((ml_value_t *)Value) == Index) ML_RETURN(Value);
 		}
 		ML_ERROR("EnumError", "Invalid enum index");
 	} else {
@@ -1134,21 +1237,13 @@ ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Value) {
 	const ml_enum_t *Enum = (ml_enum_t *)Type;
 	const ml_enum_value_t *EnumValue = Enum->Values;
 	for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++EnumValue) {
-#ifdef ML_BIGINT
-		if (mpz_get_si(EnumValue->Base.Value) == Value) return (ml_value_t *)EnumValue;
-#else
-		if (EnumValue->Base.Value == Value) return (ml_value_t *)EnumValue;
-#endif
+		if (ml_integer64_value((ml_value_t *)EnumValue) == Value) return (ml_value_t *)EnumValue;
 	}
 	return ml_error("EnumError", "Invalid enum index");
 }
 
 int64_t ml_enum_value_value(ml_value_t *Value) {
-#ifdef ML_BIGINT
-	return mpz_get_si(((ml_enum_value_t *)Value)->Base.Value);
-#else
-	return ((ml_enum_value_t *)Value)->Base.Value;
-#endif
+	return ml_integer64_value(Value);
 }
 
 const char *ml_enum_value_name(ml_value_t *Value) {
@@ -1405,11 +1500,7 @@ ML_METHOD("<>", MLIntegerT, MLEnumValueT) {
 
 ML_METHOD("+", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
-#ifdef ML_BIGINT
-	int64_t Value = mpz_get_si(A->Base.Value) + ml_integer_value(Args[1]);
-#else
-	int64_t Value = A->Base.Value + ml_integer_value(Args[1]);
-#endif
+	int64_t Value = ml_integer64_value(Args[0]) + ml_integer_value(Args[1]);
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1422,11 +1513,7 @@ ML_METHOD("+", MLEnumValueT, MLIntegerT) {
 
 ML_METHOD("+", MLIntegerT, MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[1];
-#ifdef ML_BIGINT
-	int64_t Value = mpz_get_si(A->Base.Value) + ml_integer_value(Args[0]);
-#else
-	int64_t Value = A->Base.Value + ml_integer_value(Args[0]);
-#endif
+	int64_t Value = ml_integer64_value(Args[1]) + ml_integer_value(Args[0]);
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1439,11 +1526,7 @@ ML_METHOD("+", MLIntegerT, MLEnumValueT) {
 
 ML_METHOD("-", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
-#ifdef ML_BIGINT
-	int64_t Value = mpz_get_si(A->Base.Value) - ml_integer_value(Args[1]);
-#else
-	int64_t Value = A->Base.Value - ml_integer_value(Args[1]);
-#endif
+	int64_t Value = ml_integer64_value(Args[0]) - ml_integer_value(Args[1]);
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1456,11 +1539,7 @@ ML_METHOD("-", MLEnumValueT, MLIntegerT) {
 
 ML_METHOD("next", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
-#ifdef ML_BIGINT
-	int64_t Value = mpz_get_si(A->Base.Value) + 1;
-#else
-	int64_t Value = A->Base.Value + 1;
-#endif
+	int64_t Value = ml_integer64_value(Args[0]) + 1;
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1473,11 +1552,7 @@ ML_METHOD("next", MLEnumValueT) {
 
 ML_METHOD("prev", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
-#ifdef ML_BIGINT
-	int64_t Value = mpz_get_si(A->Base.Value) - 1;
-#else
-	int64_t Value = A->Base.Value - 1;
-#endif
+	int64_t Value = ml_integer64_value(Args[0]) - 1;
 	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
 	if (Enum->Base.Type == MLEnumCyclicT) {
 		int Index = (Value - 1) % Enum->Base.Exports->Size;
@@ -1969,11 +2044,17 @@ ML_METHOD(MLListT, MLFlagsValueT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
+	ml_default_class_table_t *ClassTable = new(ml_default_class_table_t);
+	ClassTable->Base.lookup = ml_default_class_table_lookup;
+	ClassTable->Base.insert = ml_default_class_table_insert;
+	ml_context_set_static(MLRootContext, ML_CLASSES_INDEX, ClassTable);
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_string_fn, MLStringT, NULL);
 	ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_names_fn, MLNamesT, NULL);
 	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_string_fn, MLStringT, NULL);
 	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_names_fn, MLNamesT, NULL);
 	stringmap_insert(MLEnumT->Exports, "cyclic", MLEnumCyclicT);
+	stringmap_insert(MLObjectT->Exports, "pseudo", MLPseudoObjectT);
+	stringmap_insert(MLClassT->Exports, "pseudo", MLPseudoClassT);
 	ml_externals_default_add("property", MLPropertyT);
 	ml_externals_default_add("object", MLObjectT);
 	ml_externals_default_add("class", MLClassT);

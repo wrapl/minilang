@@ -521,24 +521,6 @@ static ml_value_t *ml_xml_grow(ml_xml_grower_t *Grower, ml_value_t *Value) {
 	return NULL;
 }
 
-ML_METHODV("append", MLXmlElementT, MLStringT) {
-	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
-
-	return (ml_value_t *)Parent;
-}
-
-ML_METHODV("append", MLXmlElementT, MLStringT, MLMapT) {
-	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
-
-	return (ml_value_t *)Parent;
-}
-
-ML_METHODV("append", MLXmlElementT, MLXmlT) {
-	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
-
-	return (ml_value_t *)Parent;
-}
-
 ML_METHODV("put", MLXmlElementT, MLAnyT) {
 //<Parent
 //<Child

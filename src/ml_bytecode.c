@@ -2288,9 +2288,9 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
 }
 
 #define VLQ64_NEXT() ({ \
-	if (Length <= 0) ML_ERROR("CBORError", "Invalid closure info"); \
+	if (Length <= 0) return ml_error("CBORError", "Invalid closure info"); \
 	vlq_result_t Result = vlq64_decode(Bytes, Length); \
-	if (Length < Result.Count) ML_ERROR("CBORError", "Invalid closure info"); \
+	if (Length < Result.Count) return ml_error("CBORError", "Invalid closure info"); \
 	Length -= Result.Count; \
 	Bytes += Result.Count; \
 	Result.Value; \
@@ -2298,7 +2298,7 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
 
 #define VLQ64_NEXT_STRING() ({ \
 	int Count = VLQ64_NEXT(); \
-	if (Length < Count) ML_ERROR("CBORError", "Invalid closure info"); \
+	if (Length < Count) return ml_error("CBORError", "Invalid closure info"); \
 	char *String = snew(Length + 1); \
 	memcpy(String, Bytes, Count); \
 	String[Count] = 0; \
@@ -2308,7 +2308,7 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
 })
 
 #define NEXT_VALUE(DEST) { \
-	ML_CHECKX_ARG_COUNT(Index + 1); \
+	ML_CHECK_ARG_COUNT(Index + 1); \
 	ml_value_t *Value = Args[Index++]; \
 	if (ml_typeof(Value) == MLUninitializedT) { \
 		ml_uninitialized_use(Value, &DEST); \
@@ -2319,15 +2319,15 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
 #define TOP_UNKNOWN -1
 #define TOP_INVALID -2
 
-ML_FUNCTIONZ(DecodeClosureInfo) {
+static ml_value_t *decode_closure_info(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 //!internal
-	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECK_ARG_COUNT(1);
 	Args[0] = ml_deref(Args[0]);
-	ML_CHECKX_ARG_TYPE(0, MLAddressT);
+	ML_CHECK_ARG_TYPE(0, MLAddressT);
 	const unsigned char *Bytes = (const unsigned char *)ml_address_value(Args[0]);
 	int Length = ml_address_length(Args[0]);
 	int Version = VLQ64_NEXT();
-	if (Version != ML_BYTECODE_VERSION) ML_ERROR("CBORError", "Bytecode version mismatch");
+	if (Version != ML_BYTECODE_VERSION) return ml_error("CBORError", "Bytecode version mismatch");
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Type = MLClosureInfoT;
 	Info->Name = VLQ64_NEXT_STRING();
@@ -2385,7 +2385,7 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			const char *Name = VLQ64_NEXT_STRING();
 			ml_config_fn Fn = ml_config_lookup(Name);
-			if (!Fn) ML_ERROR("CBORError", "Unknown config %s", Name);
+			if (!Fn) return ml_error("CBORError", "Unknown config %s", Name);
 			Inst[2].Data = (void *)Fn;
 			Inst += 3; break;
 		}
@@ -2752,10 +2752,10 @@ ML_FUNCTIONZ(DecodeClosureInfo) {
 		}
 	}
 #endif
-	ML_RETURN(Info);
+	return (ml_value_t *)Info;
 }
 
-ML_FUNCTION(DecodeClosure) {
+static ml_value_t *decode_closure(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 //!internal
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLClosureInfoT);
@@ -2857,7 +2857,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLContinuationT, ml_cbor_writer_t *Writer
 	ml_cbor_write_break(Writer);
 }
 
-ML_FUNCTION(DecodeFrame) {
+static ml_value_t *decode_frame(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 //!internal
 	ML_CHECK_ARG_COUNT(6);
 	ML_CHECK_ARG_TYPE(1, MLClosureT);
@@ -2900,9 +2900,9 @@ void ml_bytecode_init() {
 #endif
 #include "ml_bytecode_init.c"
 #ifdef ML_CBOR
-	ml_cbor_default_object("!", (ml_value_t *)DecodeClosureInfo);
-	ml_cbor_default_object("*", (ml_value_t *)DecodeClosure);
-	ml_cbor_default_object("frame", (ml_value_t *)DecodeFrame);
+	ml_cbor_default_object("!", decode_closure_info);
+	ml_cbor_default_object("*", decode_closure);
+	ml_cbor_default_object("frame", decode_frame);
 #endif
 }
 #endif

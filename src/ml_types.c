@@ -2090,12 +2090,14 @@ extern void ml_map_init();
 extern void ml_set_init();
 extern void ml_slice_init();
 
+extern void ml_runtime_init(const char *ExecName, stringmap_t *Globals);
+
 void ml_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_JIT
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
-	ml_runtime_init(ExecName);
+	ml_runtime_init(ExecName, Globals);
 #ifdef ML_BIGINT
 	mp_set_memory_functions(GC_malloc_atomic, GC_realloc2, GC_nop2);
 #endif
@@ -2131,7 +2133,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_slice_init();
 	ml_map_init();
 	ml_set_init();
-	ml_compiler_init();
+	ml_compiler_init(Globals);
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
@@ -2169,6 +2171,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_externals_default_add("raise", MLRaise);
 	ml_externals_default_add("copy", MLCopy);
 	if (Globals) {
+		stringmap_insert(Globals, "uninitialized", MLUninitializedT);
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "some", MLSome);
 		stringmap_insert(Globals, "type", MLTypeT);

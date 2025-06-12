@@ -592,6 +592,10 @@ array
       A:degree :> 2
 
 
+:mini:`meth (Arg₁: array):diag`
+   *TBD*
+
+
 :mini:`meth (Array: array):expand(Indices: list): array`
    Returns an array sharing the underlying data with :mini:`Array` with additional unit-length axes at the specified :mini:`Indices`.
 
@@ -738,7 +742,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1953721967>>
+      A:minidx(2) :> <<2 1> <1 29150>>
 
 
 :mini:`meth (Array: array):minval: number`

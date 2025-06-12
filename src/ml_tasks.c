@@ -87,6 +87,24 @@ ML_METHODX("wait", MLTaskT) {
 	return ml_task_call(Caller, Task, 0, NULL);
 }
 
+ML_METHODX("wait", MLTaskT, MLRealT) {
+//<Task
+//>any|error
+// Waits until :mini:`Task` is completed and returns its result.
+	ml_task_t *Task = (ml_task_t *)Args[0];
+	if (Task->Value) ML_RETURN(Task->Value);
+	if (!Task->Base.Caller) {
+		Task->Base.Caller = Caller;
+	} else {
+		ml_waiter_t *Waiter = new(ml_waiter_t);
+		Waiter->Next = Task->Waiters;
+		Waiter->State = Caller;
+		Task->Waiters = Waiter;
+	}
+	double Duration = ml_real_value(Args[1]);
+	ml_sleep((ml_state_t *)Task, Duration, ml_error("TaskError", "Task timed out"));
+}
+
 #ifdef ML_GENERICS
 
 ML_GENERIC_TYPE(MLTaskListT, MLListT, MLTaskT);
@@ -142,15 +160,16 @@ static void ml_task_all_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
 ML_TYPE(MLTaskSetT, (MLTaskT), "task::set");
 // A task combining a set of sub tasks.
 
-ML_METHOD("*", MLTaskT, MLTaskT) {
+ML_METHODX("*", MLTaskT, MLTaskT) {
 //<Task/1
 //<Task/2
 //>task::set
 // Returns a :mini:`task::set` that completes when all of its sub tasks complete, or any raises an error.
-	ML_CHECK_ARG_COUNT(1);
-	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ML_CHECKX_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTaskT);
 	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
 	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.Context = Caller->Context;
 	TaskSet->Base.Base.run = (ml_state_fn)ml_task_all_run;
 	TaskSet->Remaining = TaskSet->Count = Count;
 	for (int I = 0; I < Count; ++I) {
@@ -158,7 +177,7 @@ ML_METHOD("*", MLTaskT, MLTaskT) {
 		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
 		TaskSet->Tasks[I] = Task;
 	}
-	return (ml_value_t *)TaskSet;
+	ML_RETURN(TaskSet);
 }
 
 static void ml_task_any_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
@@ -167,15 +186,16 @@ static void ml_task_any_run(ml_task_set_t *TaskSet, ml_value_t *Value) {
 	ml_task_set((ml_task_t *)TaskSet, Value);
 }
 
-ML_METHOD("+", MLTaskT, MLTaskT) {
+ML_METHODX("+", MLTaskT, MLTaskT) {
 //<Task/1
 //<Task/2
 //>task::set
 // Returns a :mini:`task::set` that completes when any of its sub tasks complete, or any raises an error.
-	ML_CHECK_ARG_COUNT(1);
-	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTaskT);
+	ML_CHECKX_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTaskT);
 	ml_task_set_t *TaskSet = xnew(ml_task_set_t, Count, ml_task_t *);
 	TaskSet->Base.Base.Type = MLTaskSetT;
+	TaskSet->Base.Base.Context = Caller->Context;
 	TaskSet->Base.Base.run = (ml_state_fn)ml_task_any_run;
 	TaskSet->Remaining = TaskSet->Count = Count;
 	for (int I = 0; I < Count; ++I) {
@@ -183,7 +203,7 @@ ML_METHOD("+", MLTaskT, MLTaskT) {
 		ml_task_call((ml_state_t *)TaskSet, Task, 0, NULL);
 		TaskSet->Tasks[I] = Task;
 	}
-	return (ml_value_t *)TaskSet;
+	ML_RETURN(TaskSet);
 }
 
 ML_METHOD("done", MLTaskT, MLAnyT) {
@@ -338,7 +358,7 @@ static void ml_task_queue_call(ml_state_t *Caller, ml_task_queue_t *Queue, int C
 		Pending->Task = Task;
 		Pending->Fn = Fn;
 		Pending->Count = Count - 1;
-		for (int I = 1; I < Count; ++I) Pending->Args[I - 1] = Args[I];
+		for (int I = 0; I < Count - 1; ++I) Pending->Args[I] = Args[I];
 		if (Queue->Tail) Queue->Tail->Next = Pending; else Queue->Head = Pending;
 		Queue->Tail = Pending;
 	}

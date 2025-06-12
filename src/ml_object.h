@@ -6,7 +6,9 @@
 ///
 
 #include "ml_types.h"
+#include "ml_uuid.h"
 #include "stringmap.h"
+#include "uuidmap.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +31,7 @@ struct ml_class_t {
 	ml_value_t *Initializer, *Call;
 	ml_field_info_t *Fields;
 	stringmap_t Names[1];
+	uuid_t Id;
 	int NumFields;
 };
 
@@ -64,12 +67,35 @@ ml_value_t *ml_modified_field(ml_value_t *Field, ml_type_t *Type);
 ml_value_t *ml_watched_field(ml_value_t *Callback);
 
 size_t ml_class_size(const ml_type_t *Value) __attribute__ ((pure));
+const unsigned char *ml_class_id(const ml_type_t *Value) __attribute__ ((pure));
 const char *ml_class_field_name(const ml_type_t *Value, int Index) __attribute__ ((pure));
 
 ml_value_t *ml_object(ml_type_t *Class, ...) __attribute__ ((sentinel));
 size_t ml_object_size(const ml_value_t *Value) __attribute__ ((pure));
 ml_value_t *ml_object_field(const ml_value_t *Value, int Index) __attribute__ ((pure));
 void ml_object_foreach(const ml_value_t *Value, void *Data, int (*)(const char *, ml_value_t *, void *));
+
+typedef struct ml_class_table_t ml_class_table_t;
+
+struct ml_class_table_t {
+	ml_class_table_t *Prev;
+	ml_class_t *(*lookup)(ml_class_table_t *, uuid_t);
+	ml_value_t *(*insert)(ml_class_table_t *, ml_class_t *);
+};
+
+typedef struct {
+	ml_class_table_t Base;
+	uuidmap_t Classes[1];
+} ml_default_class_table_t;
+
+ml_class_t *ml_default_class_table_lookup(ml_class_table_t *ClassTable, uuid_t Id);
+ml_value_t *ml_default_class_table_insert(ml_class_table_t *ClassTable, ml_class_t *Class);
+
+extern ml_type_t MLPseudoClassT[];
+extern ml_type_t MLPseudoObjectT[];
+
+ml_class_t *ml_pseudo_class(const char *Name, const uuid_t Id);
+void ml_pseudo_class_add_field(ml_class_t *Class, const char *Name);
 
 /// @}
 

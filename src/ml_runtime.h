@@ -38,34 +38,6 @@ extern ml_context_t *MLRootContext;
 
 ml_context_t *ml_context(ml_context_t *Parent) __attribute__((malloc));
 
-#ifdef ML_CONTEXT_SECTION
-
-extern __attribute__ ((section("ml_context_section"))) void *ML_METHODS_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_VARIABLES_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_DEBUGGER_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_SCHEDULER_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_COUNTER_INDEX[];
-extern __attribute__ ((section("ml_context_section"))) void *ML_THREAD_INDEX[];
-
-extern __attribute__ ((section("ml_context_section"))) void *__start_ml_context_section[];
-extern __attribute__ ((section("ml_context_section"))) void *__stop_ml_context_section[];
-
-static inline void *ml_context_get_static(ml_context_t *Context, void **Index) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-	return Context->Values[Index - __start_ml_context_section];
-#pragma GCC diagnostic pop
-}
-
-static inline void ml_context_set_static(ml_context_t *Context, void **Index, void *Value) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-	Context->Values[Index - __start_ml_context_section] = Value;
-#pragma GCC diagnostic pop
-}
-
-#else
-
 enum {
 	ML_METHODS_INDEX,
 	ML_VARIABLES_INDEX,
@@ -73,6 +45,7 @@ enum {
 	ML_SCHEDULER_INDEX,
 	ML_COUNTER_INDEX,
 	ML_THREAD_INDEX,
+	ML_CLASSES_INDEX,
 	ML_CONTEXT_SIZE
 };
 
@@ -89,8 +62,6 @@ static inline void ml_context_set_static(ml_context_t *Context, int Index, void 
 	Context->Values[Index] = Value;
 #pragma GCC diagnostic pop
 }
-
-#endif
 
 int ml_context_index();
 void ml_context_reserve(int Index);
@@ -167,8 +138,6 @@ typedef struct {
 
 void ml_sum_optimized(ml_iter_state_t *State, ml_value_t *Value);
 void ml_sum_fallback(ml_iter_state_t *State, ml_value_t *Iter, ml_value_t *Total, ml_value_t *Value);
-
-void ml_runtime_init(const char *ExecName);
 
 // Caches //
 
@@ -312,6 +281,11 @@ typedef struct ml_scheduler_t ml_scheduler_t;
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
 typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
 typedef int (*ml_scheduler_fill_fn)(ml_scheduler_t *Scheduler);
+typedef void (*ml_scheduler_sleep_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result);
+
+void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result);
+
+void ml_sleep(ml_state_t *State, double Duration, ml_value_t *Result);
 
 static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
@@ -327,6 +301,7 @@ struct ml_scheduler_t {
 	ml_scheduler_add_fn add;
 	ml_scheduler_run_fn run;
 	ml_scheduler_fill_fn fill;
+	ml_scheduler_sleep_fn sleep;
 #ifdef ML_THREADS
 	ml_scheduler_block_t *Resume;
 #endif

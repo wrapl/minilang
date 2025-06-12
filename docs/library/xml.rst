@@ -27,14 +27,6 @@ xml
       :> "\'1 + 2 &gt; 3 &amp; 2 &lt; 4\'"
 
 
-:mini:`meth (Arg₁: xml::element):append(Arg₂: string, ...)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xml::element):append(Arg₂: string, Arg₃: map, ...)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: visitor):copy(Arg₂: xml::element)`
    *TBD*
 
@@ -269,10 +261,6 @@ xml
 
 :mini:`meth (Node₁: xml):replace(Node₂: xml): xml`
    Removes :mini:`Node₁` from its parent and replaces it with :mini:`Node₂`.
-
-
-:mini:`meth (Arg₁: xml::element):append(Arg₂: xml, ...)`
-   *TBD*
 
 
 :mini:`type xml::element < xml, sequence`

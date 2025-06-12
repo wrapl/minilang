@@ -32,12 +32,12 @@
 #line 1 "keywords.lst"
 struct keyword_t {const char *Name; int Token;};
 
-#define TOTAL_KEYWORDS 40
+#define TOTAL_KEYWORDS 41
 #define MIN_WORD_LENGTH 1
 #define MAX_WORD_LENGTH 8
 #define MIN_HASH_VALUE 1
-#define MAX_HASH_VALUE 45
-/* maximum key range = 45, duplicates = 0 */
+#define MAX_HASH_VALUE 48
+/* maximum key range = 48, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -51,32 +51,32 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46,  0,  0, 46, 24, 46,
-      12, 15,  3, 33,  9, 46,  0, 46, 27,  6,
-       6,  0, 30, 30,  0, 21,  0, 27, 12,  3,
-      15, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46, 46, 46, 46,
-      46, 46, 46, 46, 46, 46, 46
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49,  0,  0, 49, 33, 49,
+      12, 15,  3, 33,  9, 49,  0, 49, 30,  6,
+       6,  0, 30, 36,  0, 21,  0, 27,  9, 27,
+      15,  3, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49
     };
   return len + asso_values[(unsigned char)str[len - 1]] + asso_values[(unsigned char)str[0]+1];
 }
@@ -97,8 +97,8 @@ lookup (register const char *str, register size_t len)
       {"next", MLT_NEXT},
 #line 15 "keywords.lst"
       {"if", MLT_IF},
-#line 39 "keywords.lst"
-      {"var", MLT_VAR},
+#line 43 "keywords.lst"
+      {"xor", MLT_XOR},
 #line 12 "keywords.lst"
       {"exit", MLT_EXIT},
 #line 17 "keywords.lst"
@@ -140,14 +140,14 @@ lookup (register const char *str, register size_t len)
       {"with", MLT_WITH},
 #line 37 "keywords.lst"
       {"to", MLT_TO},
-#line 25 "keywords.lst"
-      {"nil", MLT_NIL},
+#line 39 "keywords.lst"
+      {"var", MLT_VAR},
 #line 5 "keywords.lst"
       {"case", MLT_CASE},
 #line 29 "keywords.lst"
       {"or", MLT_OR},
-#line 33 "keywords.lst"
-      {"seq", MLT_SEQ},
+#line 25 "keywords.lst"
+      {"nil", MLT_NIL},
 #line 34 "keywords.lst"
       {"susp", MLT_SUSP},
 #line 41 "keywords.lst"
@@ -158,8 +158,8 @@ lookup (register const char *str, register size_t len)
       {"then", MLT_THEN},
 #line 28 "keywords.lst"
       {"on", MLT_ON},
-#line 4 "keywords.lst"
-      {"and", MLT_AND},
+#line 33 "keywords.lst"
+      {"seq", MLT_SEQ},
 #line 21 "keywords.lst"
       {"loop", MLT_LOOP},
 #line 16 "keywords.lst"
@@ -170,7 +170,10 @@ lookup (register const char *str, register size_t len)
 #line 38 "keywords.lst"
       {"until", MLT_UNTIL},
 #line 27 "keywords.lst"
-      {"old", MLT_OLD}
+      {"old", MLT_OLD},
+      {""}, {""},
+#line 4 "keywords.lst"
+      {"and", MLT_AND}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
