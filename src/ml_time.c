@@ -1010,6 +1010,7 @@ ML_TIME_PART_WITH_ZONE("second", second, ml_integer(TL.s))
 static void ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_time_t *Time) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
+	if (TM.tm_year < -1900 || TM.tm_year > 8099) ml_cbor_writer_error(Writer, ml_error("RangeError", "Year is outside range"));
 	char Buffer[60];
 	char *End = Buffer + strftime(Buffer, 50, "%FT%T", &TM);
 	unsigned long NSec = Time->Value->tv_nsec;

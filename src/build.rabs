@@ -726,15 +726,15 @@ if PLATFORM = "Wasm" then
 		file("minilang.html"):copy(Target)
 	end
 
-	let DocsJs := (DOCS_DIR / "_static/js/minilang.js")[MINIWASM; Target] do
+	let DocsJs := (DOCS_DIR / "_static/js/minilang.js")[BIN_DIR / "minilang.js"; Target] do
 		(BIN_DIR / "minilang.js"):copy(Target)
 	end
 
-	let DocsWasm := (DOCS_DIR / "_static/js/minilang.wasm")[MINIWASM; Target] do
+	let DocsWasm := (DOCS_DIR / "_static/js/minilang.wasm")[BIN_DIR / "minilang.wasm"; Target] do
 		(BIN_DIR / "minilang.wasm"):copy(Target)
 	end
 
-	let DocsWasmMap := (DOCS_DIR / "_static/js/minilang.wasm.map")[MINIWASM; Target] do
+	let DocsWasmMap := (DOCS_DIR / "_static/js/minilang.wasm.map")[BIN_DIR / "minilang.wasm.map"; Target] do
 		(BIN_DIR / "minilang.wasm.map"):copy(Target)
 	end
 

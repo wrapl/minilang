@@ -279,7 +279,7 @@
     <sectiondef kind="define">
       <memberdef kind="define" id="minilang_8h_1a875c59e1c9dd3cd3dffe79f60a54a57e" prot="public" static="no">
         <name>MINILANG_VERSION</name>
-        <initializer>2, 12, 0</initializer>
+        <initializer>2, 13, 0</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -348,7 +348,7 @@
 <codeline lineno="14"><highlight class="normal"></highlight></codeline>
 <codeline lineno="15"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_init(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ExecName,<sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="16"><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MINILANG_VERSION<sp/>2,<sp/>12,<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MINILANG_VERSION<sp/>2,<sp/>13,<sp/>0</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>
 <codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="20"><highlight class="normal">}</highlight></codeline>
