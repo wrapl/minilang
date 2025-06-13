@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="group__uuidmap" kind="group">
+    <compoundname>uuidmap</compoundname>
+    <title>Uuidmap</title>
+    <innerclass refid="structuuidmap__t" prot="public">uuidmap_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__uuidmap_1ga3516cb77fc19ea876c1222aaef5dbb18" prot="public" static="no">
+        <type>struct uuidmap_t</type>
+        <definition>typedef struct uuidmap_t uuidmap_t</definition>
+        <argsstring></argsstring>
+        <name>uuidmap_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="14" column="24" bodyfile="src/uuidmap.h" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__uuidmap_1ga7b2bdf156a2f6c6952784c3761cfa516" prot="public" static="no">
+        <type>struct uuidmap_node_t</type>
+        <definition>typedef struct uuidmap_node_t uuidmap_node_t</definition>
+        <argsstring></argsstring>
+        <name>uuidmap_node_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="15" column="29" bodyfile="src/uuidmap.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__uuidmap_1ga378267bf8b0785a84d2cf89e22b2cc4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+        <definition>uuidmap_t * uuidmap_new</definition>
+        <argsstring>() __attribute__((malloc))</argsstring>
+        <name>uuidmap_new</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="24" column="11" declfile="src/uuidmap.h" declline="24" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__uuidmap_1ga0d2aac5cf50e10e51e70c94ffd61b727" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+        <definition>uuidmap_t * uuidmap_copy</definition>
+        <argsstring>(uuidmap_t *Map) __attribute__((malloc))</argsstring>
+        <name>uuidmap_copy</name>
+        <param>
+          <type><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="25" column="11" declfile="src/uuidmap.h" declline="25" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__uuidmap_1gad2bab895f369482419e78efa69268586" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * uuidmap_search</definition>
+        <argsstring>(const uuidmap_t *Map, const uuid_t Key) __attribute__((pure))</argsstring>
+        <name>uuidmap_search</name>
+        <param>
+          <type>const <ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const uuid_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="27" column="6" declfile="src/uuidmap.h" declline="27" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__uuidmap_1ga95583575a9f2e589652b571434181f34" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * uuidmap_insert</definition>
+        <argsstring>(uuidmap_t *Map, const uuid_t Key, void *Value)</argsstring>
+        <name>uuidmap_insert</name>
+        <param>
+          <type><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const uuid_t</type>
+          <declname>Key</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="28" column="6" declfile="src/uuidmap.h" declline="28" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__uuidmap_1gaf1c49787cc1d5c3e96d9120f6ca8a6cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * uuidmap_remove</definition>
+        <argsstring>(uuidmap_t *Map, const uuid_t Key)</argsstring>
+        <name>uuidmap_remove</name>
+        <param>
+          <type><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const uuid_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="29" column="6" declfile="src/uuidmap.h" declline="29" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__uuidmap_1gacef21296ffe1daa0bada4958e29fcd38" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void **</type>
+        <definition>void ** uuidmap_slot</definition>
+        <argsstring>(uuidmap_t *Map, const uuid_t Key)</argsstring>
+        <name>uuidmap_slot</name>
+        <param>
+          <type><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>const uuid_t</type>
+          <declname>Key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="30" column="6" declfile="src/uuidmap.h" declline="30" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__uuidmap_1ga9a46d6d27dca7f8e8d3b28d9d4a8372e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int uuidmap_foreach</definition>
+        <argsstring>(uuidmap_t *Map, void *Data, int(*callback)(const uuid_t, void *, void *))</argsstring>
+        <name>uuidmap_foreach</name>
+        <param>
+          <type><ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Data</declname>
+        </param>
+        <param>
+          <type>int(*)(const uuid_t, void *, void *)</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="31" column="5" declfile="src/uuidmap.h" declline="31" declcolumn="5"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__uuidmap_1ga3f724c6655ab3216a5a1437a009c3087" prot="public" static="no">
+        <name>UUIDMAP_INIT</name>
+        <initializer>(<ref refid="structuuidmap__t" kindref="compound">uuidmap_t</ref>){0,}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/uuidmap.h" line="22" column="9" bodyfile="src/uuidmap.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>
