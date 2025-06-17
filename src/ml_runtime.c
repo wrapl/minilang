@@ -412,11 +412,11 @@ typedef struct ml_uninitialized_t {
 } ml_uninitialized_t;
 
 static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, int Count, ml_value_t **Args) {
-	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
+	ML_ERROR("ValueError", "%s is uninitialized at %s:%d", Uninitialized->Name, Uninitialized->Source.Name, Uninitialized->Source.Line);
 }
 
 static void ml_unitialized_assign(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
-	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
+	ML_ERROR("ValueError", "%s is uninitialized at %s:%d", Uninitialized->Name, Uninitialized->Source.Name, Uninitialized->Source.Line);
 }
 
 ML_TYPE(MLUninitializedT, (), "uninitialized",

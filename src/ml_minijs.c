@@ -184,6 +184,11 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLVariableT, ml_minijs_encoder_
 	return Json;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLUninitializedT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	ml_source_t Source = ml_uninitialized_source(Value);
+	return ml_error("ValueError", "%s is uninitialized at %s:%d", ml_uninitialized_name(Value), Source.Name, Source.Line);
+}
+
 #ifdef ML_UUID
 
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLUUIDT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
