@@ -782,7 +782,7 @@ ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 		}
 	} else if (ml_is(Value, MLIntegerT)) {
 		ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Value));
-	} else if (ml_is(Value, MLDoubleT)) {
+	} else if (ml_is(Value, MLRealT)) {
 		ml_stringbuffer_printf(Buffer, "%.20g", ml_real_value(Value));
 	} else if (ml_is(Value, MLStringT)) {
 		ml_json_encode_string(Buffer, Value);

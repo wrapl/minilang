@@ -23,6 +23,7 @@
 // * ``[type, ...]`` |harr| *other*
 
 ml_value_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	if (Encoder->Error) return Encoder->Error;
 	//if (Value == MLNil) return Value;
 	//if (Value == (ml_value_t *)MLTrue) return Value;
 	//if (Value == (ml_value_t *)MLFalse) return Value;
@@ -45,20 +46,20 @@ ml_value_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 		return Json;
 	}
 	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
-	if (encode) return encode(Encoder, Value);
+	if (encode) {
+		ml_value_t *Encoded = encode(Encoder, Value);
+		return Encoder->Error ?: Encoded;
+	}
 	ml_value_t *Serialized = ml_serialize(Value);
 	if (ml_is_error(Serialized)) {
 		ml_value_t *Deref = ml_deref(Value);
 		if (Deref != Value) return ml_minijs_encode(Encoder, Deref);
-		Json = ml_list();
-		ml_list_put(Json, ml_cstring("unsupported"));
-		ml_list_put(Json, ml_string(ml_typeof(Value)->Name, -1));
-		return Json;
+		return Encoder->Error = ml_error("MiniJSError", "Unsupported type: %s", ml_typeof(Value)->Name);
 	}
 	Json = ml_list();
 	ml_list_put(Json, ml_cstring("o"));
 	ML_LIST_FOREACH(Serialized, Iter) ml_list_put(Json, ml_minijs_encode(Encoder, Iter->Value));
-	return Json;
+	return Encoder->Error ?: Json;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLNilT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
@@ -86,7 +87,7 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLIntegerT, ml_minijs_encoder_t
 	return Value;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLDoubleT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLRealT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	return Value;
 }
 
@@ -186,7 +187,7 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLVariableT, ml_minijs_encoder_
 
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLUninitializedT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	ml_source_t Source = ml_uninitialized_source(Value);
-	return ml_error("ValueError", "%s is uninitialized at %s:%d", ml_uninitialized_name(Value), Source.Name, Source.Line);
+	return Encoder->Error = ml_error("ValueError", "%s is uninitialized at %s:%d", ml_uninitialized_name(Value), Source.Name, Source.Line);
 }
 
 #ifdef ML_UUID
@@ -331,12 +332,8 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLArrayT, ml_minijs_encoder_t *
 		Type = ml_cstring("any");
 		ml_minijs_encode_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Values, Encoder);
 		break;
-	default: {
-		ml_value_t *Json = ml_list();
-		ml_list_put(Json, ml_cstring("unsupported"));
-		ml_list_put(Json, ml_string(Array->Base.Type->Name, -1));
-		return Json;
-	}
+	default:
+		return Encoder->Error = ml_error("MiniJSError", "Unsupported array type: %s", Array->Base.Type->Name);
 	}
 	ml_value_t *Json = ml_list();
 	ml_list_put(Json, ml_cstring("a"));
@@ -552,7 +549,7 @@ ML_METHOD(MinijsEncode, MLAnyT) {
 //<Value
 //>any
 	ML_CHECK_ARG_COUNT(1);
-	ml_minijs_encoder_t Encoder[1] = {MLExternals, {INTHASH_INIT}, 0};
+	ml_minijs_encoder_t Encoder[1] = {MLExternals, NULL, {INTHASH_INIT}, 0};
 	return ml_minijs_encode(Encoder, Args[0]);
 }
 
@@ -562,7 +559,7 @@ ML_METHOD(MinijsEncode, MLAnyT, MLExternalSetT) {
 //<Externals
 //>any
 	ML_CHECK_ARG_COUNT(1);
-	ml_minijs_encoder_t Encoder[1] = {(ml_externals_t *)Args[1], {INTHASH_INIT}, 0};
+	ml_minijs_encoder_t Encoder[1] = {(ml_externals_t *)Args[1], NULL, {INTHASH_INIT}, 0};
 	return ml_minijs_encode(Encoder, Args[0]);
 }
 
@@ -1034,7 +1031,7 @@ ML_FUNCTION(MLMinijs) {
 //<Value:any
 //>minijs
 	ML_CHECK_ARG_COUNT(1);
-	ml_minijs_encoder_t Encoder[1] = {MLExternals, {INTHASH_INIT}, 0};
+	ml_minijs_encoder_t Encoder[1] = {MLExternals, NULL, {INTHASH_INIT}, 0};
 	ml_value_t *Value = ml_minijs_encode(Encoder, Args[0]);
 	if (ml_is_error(Value)) return Value;
 	ml_minijs_t *Minijs = new(ml_minijs_t);

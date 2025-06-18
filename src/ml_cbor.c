@@ -987,6 +987,11 @@ static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_cbor_writer_t *Writer, ml_v
 	Writer->WriteFn(Writer->Data, (void *)Name, strlen(Name));
 }
 
+static void ML_TYPED_FN(ml_cbor_write, MLBlankT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_ABSENT_VALUE);
+	minicbor_write_simple(Writer, CBOR_SIMPLE_UNDEF);
+}
+
 static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	ml_type_t *Class = Arg->Type;
@@ -1450,6 +1455,11 @@ ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	return ml_method(ml_string_value(Value));
 }
 
+ml_value_t *ml_cbor_read_blank(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (Value != MLNil) return ml_error("TagError", "Blank requires nil");
+	return MLBlank;
+}
+
 static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 	if (!Reader->ClassTable) return ml_error("TagError", "Objects not supported by reader");
 	ML_CHECK_ARG_COUNT(1);
@@ -1536,6 +1546,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 #endif
 	ml_cbor_default_tag(ML_CBOR_TAG_REGEX, ml_cbor_read_regex);
 	ml_cbor_default_tag(ML_CBOR_TAG_IDENTIFIER, ml_cbor_read_method);
+	ml_cbor_default_tag(ML_CBOR_TAG_ABSENT_VALUE, ml_cbor_read_blank);
 	ml_cbor_default_tag(ML_CBOR_TAG_OBJECT, ml_cbor_read_object);
 	ml_cbor_default_tag(ML_CBOR_TAG_MARK_REUSED, ml_cbor_mark_reused);
 	ml_cbor_default_tag(ML_CBOR_TAG_USE_PREVIOUS, ml_cbor_use_previous);

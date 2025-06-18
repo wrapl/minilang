@@ -114,6 +114,7 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 #define ML_CBOR_TAG_OBJECT 27
 #define ML_CBOR_TAG_MARK_REUSED 28
 #define ML_CBOR_TAG_USE_PREVIOUS 29
+#define ML_CBOR_TAG_ABSENT_VALUE 31
 #define ML_CBOR_TAG_REGEX 35
 #define ML_CBOR_TAG_UUID 37
 #define ML_CBOR_TAG_IDENTIFIER 39
