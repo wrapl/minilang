@@ -92,7 +92,7 @@ static void ML_TYPED_FN(ml_stream_read, MLFileT, ml_state_t *Caller, ml_file_t *
 }
 
 static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t *File, const void *Address, int Count) {
-	if (!File->Handle) ML_ERROR("FileError", "wrtiting to closed file");
+	if (!File->Handle) ML_ERROR("FileError", "writing to closed file");
 	ssize_t Result = fwrite(Address, 1, Count, File->Handle);
 	if (Result < 0) ML_ERROR("FileError", "error writing to file: %s", strerror(errno));
 	ML_RETURN(ml_integer(Result));
