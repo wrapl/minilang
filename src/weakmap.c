@@ -70,6 +70,28 @@ static void *weakmap_value(weakmap_node_t *Node) {
 	return Node->Value;
 }
 
+int weakmap_check(weakmap_t *Map) {
+#ifdef ML_THREADSAFE
+	pthread_mutex_lock(Map->Lock);
+#endif
+	int Corrupted = 0;
+	weakmap_node_t *Node = Map->Nodes;
+	if (Node) for (int I = Map->Mask + 1; --I >= 0; ++Node) {
+		if (Node->Value) {
+			if (weakmap_hash(Node->Key, strlen(Node->Key)) != Node->Hash) {
+				Corrupted = 1;
+				fprintf(stderr, "Weakmap corrupted\n");
+				void *Base = GC_base((void *)(Node->Key - 8));
+				if (Base) fprintf(stderr, "\tPrevious block = %ld\n", GC_size(Base));
+			}
+		}
+	}
+#ifdef ML_THREADSAFE
+	pthread_mutex_unlock(Map->Lock);
+#endif
+	return Corrupted;
+}
+
 #define INIT_SIZE 64
 #define MIN_SPACE 8
 

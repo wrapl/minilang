@@ -123,6 +123,7 @@
       <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
       <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
       <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+      <member refid="group__cbor_1ga466ddd9144af494098c164ea97fa5f56" kind="define"><name>ML_CBOR_TAG_ABSENT_VALUE</name></member>
       <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
       <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
       <member refid="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" kind="define"><name>ML_CBOR_TAG_IDENTIFIER</name></member>
@@ -321,32 +322,33 @@
 <codeline lineno="114"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_OBJECT<sp/>27</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="115"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_MARK_REUSED<sp/>28</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="116"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_USE_PREVIOUS<sp/>29</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="117"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_REGEX<sp/>35</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="118"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_UUID<sp/>37</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="119"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_IDENTIFIER<sp/>39</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="120"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_MULTI_ARRAY<sp/>40</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="121"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_ANY<sp/>41</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT8<sp/>64</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="123"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT16_LE<sp/>69</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="124"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT32_LE<sp/>70</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="125"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT64_LE<sp/>71</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="126"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT8<sp/>72</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="127"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT16_LE<sp/>77</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="128"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT32_LE<sp/>78</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="129"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT64_LE<sp/>79</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="130"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_FLOAT32_LE<sp/>85</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="131"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_FLOAT64_LE<sp/>86</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="132"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_FINITE_SET<sp/>258</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="133"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_EMBEDDED_JSON<sp/>262</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="134"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_COMPLEX<sp/>43000</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="135"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_COMPLEX_ARRAY<sp/>43001</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="136"><highlight class="normal"></highlight></codeline>
-<codeline lineno="137"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="138"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="139"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="140"><highlight class="normal"></highlight></codeline>
-<codeline lineno="142"><highlight class="normal"></highlight></codeline>
-<codeline lineno="143"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ABSENT_VALUE<sp/>31</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_REGEX<sp/>35</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_UUID<sp/>37</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_IDENTIFIER<sp/>39</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_MULTI_ARRAY<sp/>40</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_ANY<sp/>41</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT8<sp/>64</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT16_LE<sp/>69</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT32_LE<sp/>70</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_UINT64_LE<sp/>71</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT8<sp/>72</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT16_LE<sp/>77</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT32_LE<sp/>78</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_INT64_LE<sp/>79</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_FLOAT32_LE<sp/>85</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_ARRAY_FLOAT64_LE<sp/>86</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_FINITE_SET<sp/>258</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_EMBEDDED_JSON<sp/>262</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_COMPLEX<sp/>43000</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_COMPLEX_ARRAY<sp/>43001</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_cbor.h"/>
   </compounddef>

@@ -359,6 +359,18 @@ xml
    Appends a string representation of :mini:`Xml` to :mini:`Buffer`.
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element, Arg₃: nil, Arg₄: xml)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element, Arg₃: xml, Arg₄: nil)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element, Arg₃: xml, Arg₄: xml)`
+   *TBD*
+
+
 :mini:`type xml::filter < function`
    An XML filter.
 

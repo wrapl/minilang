@@ -34,4 +34,6 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 
 int weakmap_foreach(weakmap_t *Map, void *Data, int (*callback)(const char *, void *, void *));
 
+int weakmap_check(weakmap_t *Map);
+
 #endif
