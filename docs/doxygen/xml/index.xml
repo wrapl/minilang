@@ -306,6 +306,7 @@
   </compound>
   <compound refid="structml__minijs__encoder__t" kind="struct"><name>ml_minijs_encoder_t</name>
     <member refid="structml__minijs__encoder__t_1a648ddf2d0a9e244bcf220aebce1f235a" kind="variable"><name>Externals</name></member>
+    <member refid="structml__minijs__encoder__t_1aa4ac06fe4d51708f71a9d71eef3896ca" kind="variable"><name>Error</name></member>
     <member refid="structml__minijs__encoder__t_1a9b43dcac24c417556872e8c629b29c67" kind="variable"><name>Cached</name></member>
     <member refid="structml__minijs__encoder__t_1a9da0233db61be933269e71059da27b34" kind="variable"><name>LastIndex</name></member>
   </compound>
@@ -809,6 +810,7 @@
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
     <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
     <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+    <member refid="group__cbor_1ga466ddd9144af494098c164ea97fa5f56" kind="define"><name>ML_CBOR_TAG_ABSENT_VALUE</name></member>
     <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
     <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
     <member refid="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" kind="define"><name>ML_CBOR_TAG_IDENTIFIER</name></member>
@@ -2092,6 +2094,7 @@
     <member refid="weakmap_8h_1a7429fbd1d4989b2c532e6ab51e14f702" kind="typedef"><name>weakmap_node_t</name></member>
     <member refid="weakmap_8h_1aa879a039d43c8032a588f6797eb4c2c4" kind="function"><name>weakmap_insert</name></member>
     <member refid="weakmap_8h_1a7c69ee9d2e5df48f9527fa0290fbbb10" kind="function"><name>weakmap_foreach</name></member>
+    <member refid="weakmap_8h_1a4e9c54f9bec5c412d12766d9eaf98e0f" kind="function"><name>weakmap_check</name></member>
   </compound>
   <compound refid="whereami_8h" kind="file"><name>whereami.h</name>
     <member refid="whereami_8h_1af4a5433582844c6d1f4e5f48e911fe02" kind="define"><name>WAI_FUNCSPEC</name></member>
@@ -2183,6 +2186,7 @@
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
     <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
     <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+    <member refid="group__cbor_1ga466ddd9144af494098c164ea97fa5f56" kind="define"><name>ML_CBOR_TAG_ABSENT_VALUE</name></member>
     <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
     <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
     <member refid="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" kind="define"><name>ML_CBOR_TAG_IDENTIFIER</name></member>

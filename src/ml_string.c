@@ -782,6 +782,11 @@ static void *_ml_string(const char *Value, int Length) {
 	return String;
 }
 
+ML_FUNCTION(MLStringCheckCache) {
+	if (weakmap_check(StringCache)) return ml_error("InternalError", "Cache is corrupted");
+	return MLNil;
+}
+
 #endif
 
 static ml_string_t MLEmptyString[1] = {{MLStringT, "", 0, 0}};
@@ -5497,4 +5502,7 @@ void ml_string_init() {
 #endif
 	ml_parser_add_escape(NULL, "r", ml_parser_escape_regex);
 	ml_parser_add_escape(NULL, "ri", ml_parser_escape_regexi);
+#ifdef ML_STRINGCACHE
+	stringmap_insert(MLStringT->Exports, "_check_cache", MLStringCheckCache);
+#endif
 }

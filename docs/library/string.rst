@@ -22,6 +22,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`fun mlstringcheckcache()`
+   *TBD*
+
+
 :mini:`meth (Arg₁: any):sha256`
    *TBD*
 
@@ -251,13 +255,14 @@ When creating a substring,  the first index is inclusive and second index is exc
    Returns a interval from the first character of :mini:`Start` to the first character of :mini:`Limit` (inclusive).
 
 
-:mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   Only the :mini:`Index` subgroup matches are removed from the output substrings.
+:mini:`meth (String: string) / (Pattern: string): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
 
    .. code-block:: mini
 
-      "<A>-<B>-<C>" / (r">(-)<", 1) :> ["<A>", "<B>", "<C>"]
+      "The cat snored  as he slept" / " "
+      :> ["The", "cat", "snored", "as", "he", "slept"]
+      "2022/03/08" / "/" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string) /* (Pattern: regex): tuple[string,  string]`
@@ -595,6 +600,25 @@ When creating a substring,  the first index is inclusive and second index is exc
       "λ:😀 → 😺":size :> 16
 
 
+:mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+   Only the :mini:`Index` subgroup matches are removed from the output substrings.
+
+   .. code-block:: mini
+
+      "<A>-<B>-<C>" / (r">(-)<", 1) :> ["<A>", "<B>", "<C>"]
+
+
+:mini:`meth (String: string) / (Pattern: regex): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
+
+   .. code-block:: mini
+
+      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
+      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
+
+
 :mini:`meth (String: string):limit(Length: integer): string`
    Returns the prefix of :mini:`String` limited to :mini:`Length`.
 
@@ -610,26 +634,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello World":lower :> "hello world"
-
-
-:mini:`meth (String: string) / (Pattern: regex): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
-
-   .. code-block:: mini
-
-      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
-      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
-
-
-:mini:`meth (String: string) / (Pattern: string): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
-
-   .. code-block:: mini
-
-      "The cat snored  as he slept" / " "
-      :> ["The", "cat", "snored", "as", "he", "slept"]
-      "2022/03/08" / "/" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string):ltrim: string`
@@ -910,11 +914,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
+:mini:`def MLStringProperties: string::properties`
    *TBD*
 
 
-:mini:`def MLStringProperties: string::properties`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
    *TBD*
 
 

@@ -104,6 +104,23 @@
         </inbodydescription>
         <location file="src/weakmap.h" line="35" column="5" declfile="src/weakmap.h" declline="35" declcolumn="5"/>
       </memberdef>
+      <memberdef kind="function" id="weakmap_8h_1a4e9c54f9bec5c412d12766d9eaf98e0f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int weakmap_check</definition>
+        <argsstring>(weakmap_t *Map)</argsstring>
+        <name>weakmap_check</name>
+        <param>
+          <type><ref refid="structweakmap__t" kindref="compound">weakmap_t</ref> *</type>
+          <declname>Map</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/weakmap.h" line="37" column="5" declfile="src/weakmap.h" declline="37" declcolumn="5"/>
+      </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -146,7 +163,9 @@
 <codeline lineno="34"><highlight class="normal"></highlight></codeline>
 <codeline lineno="35"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>weakmap_foreach(<ref refid="structweakmap__t" kindref="compound">weakmap_t</ref><sp/>*Map,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
 <codeline lineno="36"><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>weakmap_check(<ref refid="structweakmap__t" kindref="compound">weakmap_t</ref><sp/>*Map);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/weakmap.h"/>
   </compounddef>
