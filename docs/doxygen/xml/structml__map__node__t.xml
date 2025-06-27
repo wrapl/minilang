@@ -59,6 +59,20 @@
         </inbodydescription>
         <location file="src/ml_types.h" line="1251" column="12" bodyfile="src/ml_types.h" bodystart="1251" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="variable" id="structml__map__node__t_1a87afd663f0a4b73070f1de58a6e47ceb" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * Value</definition>
+        <argsstring></argsstring>
+        <name>Value</name>
+        <qualifiedname>ml_map_node_t::Value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1251" column="16" bodyfile="src/ml_types.h" bodystart="1251" bodyend="-1"/>
+      </memberdef>
       <memberdef kind="variable" id="structml__map__node__t_1af7d5d5218b45b5401cbfba8becc67b43" prot="public" static="no" mutable="no">
         <type><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref> *</type>
         <definition>ml_map_node_t* Left</definition>
@@ -101,20 +115,6 @@
         </inbodydescription>
         <location file="src/ml_types.h" line="1253" column="10" bodyfile="src/ml_types.h" bodystart="1253" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structml__map__node__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" static="no" mutable="no">
-        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t* Value</definition>
-        <argsstring></argsstring>
-        <name>Value</name>
-        <qualifiedname>ml_map_node_t::Value</qualifiedname>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_types.h" line="1254" column="12" bodyfile="src/ml_types.h" bodystart="1254" bodyend="-1"/>
-      </memberdef>
       <memberdef kind="variable" id="structml__map__node__t_1a295be8ec098a21a7f81d0932be0d327e" prot="public" static="no" mutable="no">
         <type>long</type>
         <definition>long Hash</definition>
@@ -127,7 +127,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1255" column="6" bodyfile="src/ml_types.h" bodystart="1255" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1254" column="6" bodyfile="src/ml_types.h" bodystart="1254" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__map__node__t_1ac66dbe0e082fd3cc29bc1572a4dccc09" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -141,7 +141,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1256" column="5" bodyfile="src/ml_types.h" bodystart="1256" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1255" column="5" bodyfile="src/ml_types.h" bodystart="1255" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -242,7 +242,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1248" column="1" bodyfile="src/ml_types.h" bodystart="1248" bodyend="1257"/>
+    <location file="src/ml_types.h" line="1248" column="1" bodyfile="src/ml_types.h" bodystart="1248" bodyend="1256"/>
     <listofallmembers>
       <member refid="structml__map__node__t_1ac66dbe0e082fd3cc29bc1572a4dccc09" prot="public" virt="non-virtual"><scope>ml_map_node_t</scope><name>Depth</name></member>
       <member refid="structml__map__node__t_1a295be8ec098a21a7f81d0932be0d327e" prot="public" virt="non-virtual"><scope>ml_map_node_t</scope><name>Hash</name></member>
@@ -253,7 +253,7 @@
       <member refid="structml__map__node__t_1a8f72553bf41023b172df9d88f5a13435" prot="public" virt="non-virtual"><scope>ml_map_node_t</scope><name>Prev</name></member>
       <member refid="structml__map__node__t_1afb96917b11803f04d4ae20e8bde67f04" prot="public" virt="non-virtual"><scope>ml_map_node_t</scope><name>Right</name></member>
       <member refid="structml__map__node__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_map_node_t</scope><name>Type</name></member>
-      <member refid="structml__map__node__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" virt="non-virtual"><scope>ml_map_node_t</scope><name>Value</name></member>
+      <member refid="structml__map__node__t_1a87afd663f0a4b73070f1de58a6e47ceb" prot="public" virt="non-virtual"><scope>ml_map_node_t</scope><name>Value</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>
