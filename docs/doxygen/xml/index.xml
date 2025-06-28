@@ -274,10 +274,10 @@
     <member refid="structml__map__node__t_1aa8fead3709bf26701767709a42892325" kind="variable"><name>Next</name></member>
     <member refid="structml__map__node__t_1a8f72553bf41023b172df9d88f5a13435" kind="variable"><name>Prev</name></member>
     <member refid="structml__map__node__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" kind="variable"><name>Key</name></member>
+    <member refid="structml__map__node__t_1a87afd663f0a4b73070f1de58a6e47ceb" kind="variable"><name>Value</name></member>
     <member refid="structml__map__node__t_1af7d5d5218b45b5401cbfba8becc67b43" kind="variable"><name>Left</name></member>
     <member refid="structml__map__node__t_1afb96917b11803f04d4ae20e8bde67f04" kind="variable"><name>Right</name></member>
     <member refid="structml__map__node__t_1a8d55a981b360255bb2128cf7d252f6eb" kind="variable"><name>Map</name></member>
-    <member refid="structml__map__node__t_1a022b24deb82c844e73083ad06165b5bd" kind="variable"><name>Value</name></member>
     <member refid="structml__map__node__t_1a295be8ec098a21a7f81d0932be0d327e" kind="variable"><name>Hash</name></member>
     <member refid="structml__map__node__t_1ac66dbe0e082fd3cc29bc1572a4dccc09" kind="variable"><name>Depth</name></member>
   </compound>

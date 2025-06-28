@@ -1248,10 +1248,9 @@ struct ml_map_t {
 struct ml_map_node_t {
 	ml_type_t *Type;
 	ml_map_node_t *Next, *Prev;
-	ml_value_t *Key;
+	ml_value_t *Key, *Value;
 	ml_map_node_t *Left, *Right;
 	ml_map_t *Map;
-	ml_value_t *Value;
 	long Hash;
 	int Depth;
 };

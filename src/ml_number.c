@@ -3641,6 +3641,8 @@ static double ML_TYPED_FN(ml_real_value, MLDecimalT, ml_decimal_t *Decimal) {
 #endif
 }
 
+#ifdef ML_COMPLEX
+
 static complex double ML_TYPED_FN(ml_complex_value, MLDecimalT, ml_decimal_t *Decimal) {
 #ifdef ML_BIGINT
 	if (Decimal->Scale > 0) {
@@ -3662,6 +3664,8 @@ static complex double ML_TYPED_FN(ml_complex_value, MLDecimalT, ml_decimal_t *De
 	return Decimal->Unscaled / exp10(Decimal->Scale);
 #endif
 }
+
+#endif
 
 ML_METHOD(MLDecimalT, MLIntegerT, MLIntegerT) {
 	ml_decimal_t *Decimal = new(ml_decimal_t);
