@@ -390,12 +390,13 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 	return Size - Stream->Available;
 }
 
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable) {
 	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
+	Reader->ClassTable = ClassTable;
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, Cbor.Data, Cbor.Length);
 	int Extra = ml_cbor_reader_extra(Reader);
@@ -403,12 +404,13 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	return ml_cbor_reader_get(Reader);
 }
 
-ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable) {
 	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
+	Reader->ClassTable = ClassTable;
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, Cbor.Data, Cbor.Length);
 	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};

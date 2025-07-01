@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include "minilang.h"
+#include "ml_object.h"
 #include "stringmap.h"
 
 #ifdef __cplusplus
@@ -100,11 +101,11 @@ void ml_cbor_write_break(ml_cbor_writer_t *Writer);
 void ml_cbor_write_tag(ml_cbor_writer_t *Writer, uint64_t Tag);
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable);
 
 typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
-ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable);
 
 #define ML_CBOR_TAG_TIME_STRING 0
 #define ML_CBOR_TAG_TIME_EPOCH 1
