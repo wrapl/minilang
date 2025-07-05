@@ -887,7 +887,9 @@ static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_val
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLGlobalT, ml_cbor_writer_t *Writer, ml_value_t *Global) {
-	ml_cbor_write(Writer, ml_global_get(Global));
+	ml_value_t *Value = ml_global_get(Global);
+	if (!Value) ML_CBOR_WRITER_ERROR(Writer, "NameError", "Identifier %s not declared", ml_global_name(Global));
+	ml_cbor_write(Writer, Value);
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {

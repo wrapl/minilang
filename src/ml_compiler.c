@@ -6981,7 +6981,7 @@ ML_TYPE(MLGlobalT, (), "global",
 
 static void ML_TYPED_FN(ml_value_find_all, MLGlobalT, ml_global_t *Global, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Global, 1)) return;
-	ml_value_find_all(Global->Value, Data, RefFn);
+	if (Global->Value) ml_value_find_all(Global->Value, Data, RefFn);
 }
 
 ml_value_t *ml_global(const char *Name) {
@@ -6997,6 +6997,10 @@ ml_value_t *ml_global_get(ml_value_t *Global) {
 
 ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value) {
 	return ((ml_global_t *)Global)->Value = Value;
+}
+
+const char *ml_global_name(ml_value_t *Global) {
+	return ((ml_global_t *)Global)->Name;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLGlobalT, ml_global_t *Global, int Index) {

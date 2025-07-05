@@ -158,6 +158,7 @@ void ml_compiler_init(stringmap_t *Globals);
 ml_value_t *ml_global(const char *Name);
 ml_value_t *ml_global_get(ml_value_t *Global);
 ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value);
+const char *ml_global_name(ml_value_t *Global);
 
 ml_value_t *ml_macro(ml_value_t *Function);
 ml_value_t *ml_inline_call_macro(ml_value_t *Value);

@@ -173,8 +173,10 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTypeT, ml_minijs_encoder_t *E
 	return Json;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLGlobalT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
-	return ml_minijs_encode(Encoder, ml_global_get(Value));
+static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLGlobalT, ml_minijs_encoder_t *Encoder, ml_value_t *Global) {
+	ml_value_t *Value = ml_global_get(Global);
+	if (!Value) return ml_error("NameError", "Identifier %s not declared", ml_global_name(Global));
+	return ml_minijs_encode(Encoder, Value);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLVariableT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
