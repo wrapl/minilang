@@ -2281,7 +2281,7 @@ ML_METHOD("[]", MLStringCharsetT, MLIntegerT) {
 	ml_string_charset_t *Charset = (ml_string_charset_t *)Args[0];
 	int Index = ml_integer_value(Args[1]) - 1;
 	if (Index < 0) return ml_error("RangeError", "Invalid index");
-	if (Index >= uset_getItemCount(Charset->Handle)) ;
+	if (Index >= uset_getItemCount(Charset->Handle)) return ml_error("RangeError", "Invalid index");
 	UErrorCode Error = U_ZERO_ERROR;
 	UChar32 Start, End;
 	UChar Dest[256];
