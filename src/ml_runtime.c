@@ -1276,7 +1276,7 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 	return ml_scheduler_queue_add(DefaultQueue, State, Value);
 }*/
 
-#ifdef ML_THREADS
+#ifdef ML_SPLIT
 
 /*ml_queued_state_t ml_default_queue_next_wait() {
 	return ml_scheduler_queue_next_wait(DefaultQueue);

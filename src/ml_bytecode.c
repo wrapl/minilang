@@ -303,7 +303,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 
 #ifndef DEBUG_VERSION
 
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 static ml_frame_t * _Atomic FrameCache = NULL;
 #else
 static ml_frame_t *FrameCache = NULL;
@@ -322,7 +322,7 @@ static void ml_frame_cache_clear(void *Data) {
 #define ML_FRAME_REUSE_SIZE 384
 
 static ml_frame_t *ml_frame() {
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 	ml_frame_t *Next = FrameCache, *CacheNext;
 	do {
 		if (!Next) {
@@ -347,7 +347,7 @@ static ml_frame_t *ml_frame() {
 
 static void ml_frame_reuse(ml_frame_t *Frame) {
 	Frame->Base.Caller = NULL;
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 	ml_frame_t *CacheNext = FrameCache;
 	do {
 		Frame->Next = CacheNext;

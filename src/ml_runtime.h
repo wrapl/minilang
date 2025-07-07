@@ -291,7 +291,7 @@ static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
 }
 
-#ifdef ML_THREADS
+#ifdef ML_SPLIT
 
 typedef struct ml_scheduler_block_t ml_scheduler_block_t;
 
@@ -302,7 +302,7 @@ struct ml_scheduler_t {
 	ml_scheduler_run_fn run;
 	ml_scheduler_fill_fn fill;
 	ml_scheduler_sleep_fn sleep;
-#ifdef ML_THREADS
+#ifdef ML_SPLIT
 	ml_scheduler_block_t *Resume;
 #endif
 };

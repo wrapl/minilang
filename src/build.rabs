@@ -268,7 +268,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 		MINILANG_UNWIND := 1
 	end
 	if PLATFORM != "Wasm" then
-		MINILANG_THREADS := not defined("NOTHREADS")
+		MINILANG_SPLIT := not defined("NOSPLIT")
 	end
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
@@ -331,10 +331,11 @@ MINILANG_XE := old or defined("XE")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
-MINILANG_TRAMPOLINE := old or defined("TRAMPOLINE")
-MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or MINILANG_TRAMPOLINE or old or defined("SCHEDULER")
-MINILANG_TIMESCHED := old or defined("TIMESCHED")
+MINILANG_SPLIT := MINILANG_THREADS or old or defined("SPLIT")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
+MINILANG_TRAMPOLINE := old or defined("TRAMPOLINE")
+MINILANG_SCHEDULER := MINILANG_SPLIT or MINILANG_MODULES or MINILANG_THREADS or MINILANG_TRAMPOLINE or old or defined("SCHEDULER")
+MINILANG_TIMESCHED := old or defined("TIMESCHED")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
@@ -399,6 +400,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_THREADSAFE then
 		File:write("\n#define ML_THREADSAFE\n")
+	end
+	if MINILANG_SPLIT then
+		File:write("\n#define ML_SPLIT\n")
 	end
 	if MINILANG_THREADS then
 		File:write("\n#define ML_THREADS\n")
