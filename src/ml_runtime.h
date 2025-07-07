@@ -19,7 +19,7 @@ extern "C" {
 #define ML_ARG_CACHE_SIZE 64
 
 extern
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];

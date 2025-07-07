@@ -20,7 +20,7 @@
 
 // Runtime //
 
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
@@ -1987,7 +1987,7 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_BACKTRACE
 	BacktraceState = backtrace_create_state(ExecName, 0, NULL, NULL);
 #endif
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	//GC_add_roots(&CurrentScheduler, &CurrentScheduler + 1);
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 #endif
