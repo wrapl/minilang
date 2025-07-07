@@ -4809,7 +4809,7 @@ ML_TYPE(MLStringBufferT, (), "string::buffer",
 
 static GC_descr StringBufferDesc = 0;
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 static size_t _Atomic StringBufferNodeCount = 0;
 #else
@@ -4828,7 +4828,7 @@ static void ml_stringbuffer_cache_clear(void *Data) {
 }
 
 static ml_stringbuffer_node_t *ml_stringbuffer_node() {
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 	do {
 		if (!Next) {
@@ -4851,7 +4851,7 @@ static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 }
 
 static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Node->Next = CacheNext;
@@ -4999,7 +4999,7 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	*P++ = 0;
 
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Tail->Next = CacheNext;
@@ -5015,7 +5015,7 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer) {
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
 	if (!Head) return;
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Tail->Next = CacheNext;
@@ -5216,7 +5216,7 @@ int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)
 	Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 done:;
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Tail->Next = CacheNext;

@@ -20,7 +20,7 @@
 
 // Runtime //
 
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
@@ -1065,7 +1065,7 @@ struct ml_queue_block_t {
 struct ml_scheduler_queue_t {
 	ml_scheduler_t Base;
 	ml_queue_block_t *WriteBlock, *ReadBlock;
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_t Lock[1];
 	pthread_cond_t Available[1];
 #endif
@@ -1104,11 +1104,11 @@ int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue) {
 
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
 	ml_queued_state_t Next = {NULL, NULL};
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Queue->Lock);
 #endif
 	if (Queue->Fill) Next = ml_scheduler_queue_read(Queue);
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Queue->Lock);
 #endif
 	return Next;
@@ -1139,17 +1139,17 @@ static int ml_scheduler_queue_write(ml_scheduler_queue_t *Queue, ml_state_t *Sta
 }
 
 int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value) {
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Queue->Lock);
 #endif
 	int Fill = ml_scheduler_queue_write(Queue, State, Value);
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Queue->Lock);
 #endif
 	return Fill;
 }
 
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 
 ml_queued_state_t ml_scheduler_queue_next_wait(ml_scheduler_queue_t *Queue) {
 	pthread_mutex_lock(Queue->Lock);
@@ -1179,7 +1179,7 @@ void ml_scheduler_queue_run(ml_scheduler_queue_t *Queue) {
 
 void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result) {
 	if (Duration > 0) {
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 		ml_scheduler_split(Scheduler);
 		struct timespec Remainder;
 		double Seconds;
@@ -1211,7 +1211,7 @@ ML_FUNCTIONX(MLSleep) {
 }
 
 /*static
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 __thread
 #endif
 ml_scheduler_t *CurrentScheduler = NULL;*/
@@ -1228,7 +1228,7 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	Queue->WriteIndex = Queue->ReadIndex = QUEUE_BLOCK_SIZE - 1;
 	Queue->Space = QUEUE_BLOCK_SIZE;
 	Queue->Fill = 0;
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_init(Queue->Lock, NULL);
 	pthread_cond_init(Queue->Available, NULL);
 #endif
@@ -1276,7 +1276,7 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 	return ml_scheduler_queue_add(DefaultQueue, State, Value);
 }*/
 
-#ifdef ML_SPLIT
+#ifdef ML_HOSTTHREADS
 
 /*ml_queued_state_t ml_default_queue_next_wait() {
 	return ml_scheduler_queue_next_wait(DefaultQueue);

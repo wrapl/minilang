@@ -19,7 +19,7 @@ extern "C" {
 #define ML_ARG_CACHE_SIZE 64
 
 extern
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
@@ -291,7 +291,7 @@ static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
 }
 
-#ifdef ML_SPLIT
+#ifdef ML_HOSTTHREADS
 
 typedef struct ml_scheduler_block_t ml_scheduler_block_t;
 
@@ -302,7 +302,7 @@ struct ml_scheduler_t {
 	ml_scheduler_run_fn run;
 	ml_scheduler_fill_fn fill;
 	ml_scheduler_sleep_fn sleep;
-#ifdef ML_SPLIT
+#ifdef ML_HOSTTHREADS
 	ml_scheduler_block_t *Resume;
 #endif
 };
@@ -348,7 +348,7 @@ static void FUNCTION(ml_state_t *State, ml_value_t *Value)
 
 #define ML_STATE_FN(NAME) ML_STATE_FN2(NAME, CONCAT3(ml_state_fn_, __LINE__, __COUNTER__))
 
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 
 void ml_threads_set_max_count(int Max);
 

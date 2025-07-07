@@ -61,7 +61,7 @@ struct ml_log_state_t {
 
 extern ml_value_t *AppendMethod;
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 static ml_log_state_t * _Atomic LogStateCache = NULL;
 #else
 static ml_log_state_t *LogStateCache = NULL;
@@ -98,7 +98,7 @@ static void ml_log_state_run(ml_log_state_t *State, ml_value_t *Value) {
 	if (State->Index <= MAX_LOG_ARG_COUNT) {
 		for (int I = 0; I < State->Index; ++I) State->Args[I] = NULL;
 		State->Error = NULL;
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 		ml_log_state_t *CacheNext = LogStateCache;
 		do {
 			State->Next = CacheNext;
@@ -117,7 +117,7 @@ static ml_log_state_t *ml_log_state(int Count) {
 		State->Base.run = (ml_state_fn)ml_log_state_run;
 		return State;
 	}
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_log_state_t *Next = LogStateCache, *CacheNext;
 	do {
 		if (!Next) {

@@ -42,7 +42,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 #endif
 
 static const char *ml_console_terminal_read(ml_console_t *Console) {
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	ml_scheduler_t *Scheduler = ml_context_get_static(Console->Base.Context, ML_SCHEDULER_INDEX);
 	if (Scheduler) ml_scheduler_split(Scheduler);
 #endif
@@ -54,7 +54,7 @@ static const char *ml_console_terminal_read(ml_console_t *Console) {
 	char *Line = NULL;
 	if (!ml_read_line(stdin, 0, &Line)) return NULL;
 #endif
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	if (Scheduler) ml_scheduler_join(Scheduler);
 #endif
 	if (!Line) return NULL;
@@ -70,7 +70,7 @@ static const char *ml_console_terminal_read(ml_console_t *Console) {
 }
 
 static const char *ml_console_file_read(ml_console_t *Console) {
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	ml_scheduler_t *Scheduler = ml_context_get_static(Console->Base.Context, ML_SCHEDULER_INDEX);
 	if (Scheduler) ml_scheduler_split(Scheduler);
 #endif
@@ -80,7 +80,7 @@ static const char *ml_console_file_read(ml_console_t *Console) {
 	ssize_t Size = getline(&Console->InputLine, &Console->InputSize, Console->Input);
 	if (Size < 0) fprintf(stderr, "Error reading: %s\n", strerror(errno));
 	//fprintf(stderr, "Read input length %ld\n", Size);
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	if (Scheduler) ml_scheduler_join(Scheduler);
 #endif
 	//fprintf(stderr, "Acquired scheduler\n");

@@ -71,7 +71,7 @@ static void *weakmap_value(weakmap_node_t *Node) {
 }
 
 int weakmap_check(weakmap_t *Map) {
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Map->Lock);
 #endif
 	int Corrupted = 0;
@@ -86,7 +86,7 @@ int weakmap_check(weakmap_t *Map) {
 			}
 		}
 	}
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Map->Lock);
 #endif
 	return Corrupted;
@@ -97,7 +97,7 @@ int weakmap_check(weakmap_t *Map) {
 
 void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *, int)) {
 	size_t Hash = weakmap_hash(Key, Length);
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Map->Lock);
 #endif
 	if (!Map->Nodes) {
@@ -111,7 +111,7 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 		Node->Hash = Hash;
 		void *Result = Node->Value = missing(Node->Key, Length);
 		GC_general_register_disappearing_link(&Node->Value, Result);
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 		pthread_mutex_unlock(Map->Lock);
 #endif
 		return Result;
@@ -124,7 +124,7 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	while (Offset <= Node->Offset) {
 		if (Node->Hash == Hash) {
 			if (Node->Value && !strncmp(Node->Key, Key, Length)) {
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 				pthread_mutex_unlock(Map->Lock);
 #endif
 				return Node->Value;
@@ -165,7 +165,7 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	*Node = Insert;
 	GC_general_register_disappearing_link(&Node->Value, Node->Value);
 	//fprintf(stderr, "%ld\n", Map->Space);
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Map->Lock);
 #endif
 	return Result;

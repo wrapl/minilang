@@ -51,7 +51,7 @@ struct ml_parser_coro_t {
 	ml_parser_coro_t *Next;
 };
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 
 static ml_parser_coro_t * _Atomic CoroutineCache = NULL;
 
