@@ -551,7 +551,7 @@ ML_METHOD(MinijsEncode, MLAnyT) {
 //<Value
 //>any
 	ML_CHECK_ARG_COUNT(1);
-	ml_minijs_encoder_t Encoder[1] = {MLExternals, NULL, {INTHASH_INIT}, 0};
+	ml_minijs_encoder_t Encoder[1] = {{MLExternals, NULL, {INTHASH_INIT}, 0}};
 	return ml_minijs_encode(Encoder, Args[0]);
 }
 
@@ -561,7 +561,7 @@ ML_METHOD(MinijsEncode, MLAnyT, MLExternalSetT) {
 //<Externals
 //>any
 	ML_CHECK_ARG_COUNT(1);
-	ml_minijs_encoder_t Encoder[1] = {(ml_externals_t *)Args[1], NULL, {INTHASH_INIT}, 0};
+	ml_minijs_encoder_t Encoder[1] = {{(ml_externals_t *)Args[1], NULL, {INTHASH_INIT}, 0}};
 	return ml_minijs_encode(Encoder, Args[0]);
 }
 
@@ -582,7 +582,7 @@ ml_value_t *ml_minijs_decode(ml_minijs_decoder_t *Decoder, ml_value_t *Json) {
 	if (!ml_is(Json, MLListT)) return ml_error("MinijsError", "Unsupported JSON value");
 	ml_list_node_t *Node = ((ml_list_t *)Json)->Head;
 	if (!Node) return ml_error("MinijsError", "Unsupported JSON value");
-	int Count = ((ml_list_t *)Json)->Length - 1;
+	//int Count = ((ml_list_t *)Json)->Length - 1;
 	ml_value_t *First = Node->Value;
 	Node = Node->Next;
 	intptr_t Index = -1;
@@ -591,7 +591,7 @@ ml_value_t *ml_minijs_decode(ml_minijs_decoder_t *Decoder, ml_value_t *Json) {
 		if (Node) {
 			First = Node->Value;
 			Node = Node->Next;
-			--Count;
+			//--Count;
 		} else {
 			ml_value_t *Value = inthash_search(Decoder->Cached, Index);
 			if (Value) return Value;
@@ -1015,7 +1015,7 @@ ML_METHOD(MinijsDecode, MLAnyT) {
 //@minijs::decode
 //<Json
 //>any|error
-	ml_minijs_decoder_t Decoder[1] = {MLExternals, {INTHASH_INIT}};
+	ml_minijs_decoder_t Decoder[1] = {{MLExternals, {INTHASH_INIT}}};
 	return ml_minijs_decode(Decoder, Args[0]);
 }
 
@@ -1024,7 +1024,7 @@ ML_METHOD(MinijsDecode, MLAnyT, MLExternalSetT) {
 //<Json
 //<Externals
 //>any|error
-	ml_minijs_decoder_t Decoder[1] = {(ml_externals_t *)Args[1], {INTHASH_INIT}};
+	ml_minijs_decoder_t Decoder[1] = {{(ml_externals_t *)Args[1], {INTHASH_INIT}}};
 	return ml_minijs_decode(Decoder, Args[0]);
 }
 
@@ -1033,7 +1033,7 @@ ML_FUNCTION(MLMinijs) {
 //<Value:any
 //>minijs
 	ML_CHECK_ARG_COUNT(1);
-	ml_minijs_encoder_t Encoder[1] = {MLExternals, NULL, {INTHASH_INIT}, 0};
+	ml_minijs_encoder_t Encoder[1] = {{MLExternals, NULL, {INTHASH_INIT}, 0}};
 	ml_value_t *Value = ml_minijs_encode(Encoder, Args[0]);
 	if (ml_is_error(Value)) return Value;
 	ml_minijs_t *Minijs = new(ml_minijs_t);
