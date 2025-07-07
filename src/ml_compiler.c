@@ -3868,7 +3868,9 @@ ML_METHOD("end", MLExprBuilderT) {
 }
 
 void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
-	//long Hash = ml_ident_hash(Expr->Ident);
+#ifndef ML_STRINGCACHE
+	long Hash = ml_ident_hash(Expr->Ident);
+#endif
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (mlc_define_t *Define = UpFunction->Defines; Define; Define = Define->Next) {
 #ifdef ML_STRINGCACHE

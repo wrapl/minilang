@@ -274,6 +274,9 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 		MINILANG_MMAP := 1
 	end
+	if PLATFORM = "Android" then
+		MINILANG_NANBOXING := not defined("NONANBOXING")
+	end
 end
 
 var GC
