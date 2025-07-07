@@ -3580,6 +3580,10 @@ ML_METHOD("scale", MLDecimalT) {
 	return ml_integer(Decimal->Scale);
 }
 
+#ifdef Android
+#define exp10(X) pow(10, X)
+#endif
+
 static int64_t ML_TYPED_FN(ml_integer_value, MLDecimalT, ml_decimal_t *Decimal) {
 #ifdef ML_BIGINT
 	if (Decimal->Scale > 0) {
