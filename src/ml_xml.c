@@ -1817,63 +1817,32 @@ static ml_value_t *ml_xml_node_append_to(ml_stringbuffer_t *Buffer, ml_xml_eleme
 }
 
 static ml_value_t *ml_xml_node_append_from_to(ml_stringbuffer_t *Buffer, ml_xml_element_t *Node, ml_xml_node_t *Start, ml_xml_node_t *End) {
-	const char *Tag = ml_string_value((ml_value_t *)Node->Base.Base.Value);
-	if ((ml_xml_node_t *)Node == Start) {
-		ml_stringbuffer_printf(Buffer, "<%s", Tag);
-		ML_MAP_FOREACH(Node->Attributes, Iter) {
-			if (!ml_is(Iter->Key, MLStringT)) {
-				return ml_error("XMLError", "Attribute keys must be strings");
-			}
-			if (!ml_is(Iter->Value, MLStringT)) {
-				return ml_error("XMLError", "Attribute values must be strings");
-			}
-			ml_stringbuffer_printf(Buffer, " %s=\"", ml_string_value(Iter->Key));
-			ml_xml_escape_string(Buffer, ml_string_value(Iter->Value), ml_string_length(Iter->Value));
-			ml_stringbuffer_put(Buffer, '\"');
+	if ((ml_xml_node_t *)Node == Start) return (ml_value_t *)MLTrue;
+	ml_xml_node_t *Child = Node->Head;
+	while (Child) {
+		if (Child == Start) goto do_print_next;
+		if (Child->Base.Type == MLXmlElementT) {
+			ml_value_t *Error = ml_xml_node_append_from_to(Buffer, (ml_xml_element_t *)Child, Start, End);
+			if (Error == (ml_value_t *)MLTrue) goto do_print_next;
+			if (Error) return Error;
 		}
-		ml_xml_node_t *Child = Node->Head;
-		if (Child) {
-			ml_stringbuffer_put(Buffer, '>');
-			do {
-				if (Child->Base.Type == MLXmlTextT) {
-					ml_xml_escape_string(Buffer, Child->Base.Value, Child->Base.Length);
-				} else if (Child->Base.Type == MLXmlElementT) {
-					ml_value_t *Error = ml_xml_node_append_to(Buffer, (ml_xml_element_t *)Child, End);
-					if (Error) return Error;
-				}
-			} while ((Child = Child->Next));
-			ml_stringbuffer_printf(Buffer, "</%s>", Tag);
-		} else {
-			ml_stringbuffer_write(Buffer, "/>", 2);
-		}
-		return (ml_value_t *)MLTrue;
-	} else {
-		ml_xml_node_t *Child = Node->Head;
-		while (Child) {
-			if (Child == Start) goto do_print;
-			if (Child->Base.Type == MLXmlElementT) {
-				ml_value_t *Error = ml_xml_node_append_from_to(Buffer, (ml_xml_element_t *)Child, Start, End);
-				if (Error == (ml_value_t *)MLTrue) goto do_print_next;
-				if (Error) return Error;
-			}
-			Child = Child->Next;
-		}
-		return NULL;
-	do_print_next:
 		Child = Child->Next;
-	do_print:
-		while (Child) {
-			if (Child->Base.Type == MLXmlTextT) {
-				ml_xml_escape_string(Buffer, Child->Base.Value, Child->Base.Length);
-			} else if (Child->Base.Type == MLXmlElementT) {
-				ml_value_t *Error = ml_xml_node_append_to(Buffer, (ml_xml_element_t *)Child, End);
-				if (Error) return Error;
-			}
-			Child = Child->Next;
-		}
-		ml_stringbuffer_printf(Buffer, "</%s>", Tag);
-		return (ml_value_t *)MLTrue;
 	}
+	return NULL;
+do_print_next:
+	Child = Child->Next;
+	while (Child) {
+		if (Child->Base.Type == MLXmlTextT) {
+			ml_xml_escape_string(Buffer, Child->Base.Value, Child->Base.Length);
+		} else if (Child->Base.Type == MLXmlElementT) {
+			ml_value_t *Error = ml_xml_node_append_to(Buffer, (ml_xml_element_t *)Child, End);
+			if (Error) return Error;
+		}
+		Child = Child->Next;
+	}
+	const char *Tag = ml_string_value((ml_value_t *)Node->Base.Base.Value);
+	ml_stringbuffer_printf(Buffer, "</%s>", Tag);
+	return (ml_value_t *)MLTrue;
 }
 
 ML_METHOD("append", MLStringBufferT, MLXmlElementT, MLXmlT, MLXmlT) {
