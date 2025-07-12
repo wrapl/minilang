@@ -16,9 +16,15 @@
       </node>
     </incdepgraph>
     <invincdepgraph>
+      <node id="3">
+        <label>src/ml_cbor.h</label>
+        <link refid="ml__cbor_8h_source"/>
+      </node>
       <node id="2">
         <label>src/ml_object.h</label>
         <link refid="ml__object_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
       </node>
       <node id="1">
         <label>src/uuidmap.h</label>

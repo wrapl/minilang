@@ -123,11 +123,9 @@
         </childnode>
         <childnode refid="27" relation="include">
         </childnode>
-        <childnode refid="28" relation="include">
+        <childnode refid="29" relation="include">
         </childnode>
         <childnode refid="30" relation="include">
-        </childnode>
-        <childnode refid="31" relation="include">
         </childnode>
       </node>
       <node id="7">
@@ -178,7 +176,7 @@
         <label>src/ml_console.h</label>
         <link refid="ml__console_8h_source"/>
       </node>
-      <node id="32">
+      <node id="31">
         <label>src/ml_debugger.h</label>
         <link refid="ml__debugger_8h_source"/>
       </node>
@@ -218,9 +216,11 @@
         <label>src/ml_module.h</label>
         <link refid="ml__module_8h_source"/>
       </node>
-      <node id="29">
+      <node id="28">
         <label>src/ml_object.h</label>
         <link refid="ml__object_8h_source"/>
+        <childnode refid="11" relation="include">
+        </childnode>
       </node>
       <node id="1">
         <label>src/ml_runtime.h</label>
@@ -229,7 +229,7 @@
         </childnode>
         <childnode refid="5" relation="include">
         </childnode>
-        <childnode refid="32" relation="include">
+        <childnode refid="31" relation="include">
         </childnode>
       </node>
       <node id="22">
@@ -241,32 +241,28 @@
         <link refid="ml__stream_8h_source"/>
       </node>
       <node id="24">
-        <label>src/ml_struct.h</label>
-        <link refid="ml__struct_8h_source"/>
-      </node>
-      <node id="25">
         <label>src/ml_table.h</label>
         <link refid="ml__table_8h_source"/>
       </node>
-      <node id="26">
+      <node id="25">
         <label>src/ml_thread.h</label>
         <link refid="ml__thread_8h_source"/>
       </node>
-      <node id="27">
+      <node id="26">
         <label>src/ml_time.h</label>
         <link refid="ml__time_8h_source"/>
       </node>
-      <node id="28">
+      <node id="27">
         <label>src/ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
-        <childnode refid="29" relation="include">
+        <childnode refid="28" relation="include">
         </childnode>
       </node>
-      <node id="30">
+      <node id="29">
         <label>src/ml_xe.h</label>
         <link refid="ml__xe_8h_source"/>
       </node>
-      <node id="31">
+      <node id="30">
         <label>src/ml_xml.h</label>
         <link refid="ml__xml_8h_source"/>
       </node>
@@ -429,7 +425,7 @@
 <codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_ARG_CACHE_SIZE<sp/>64</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="20"><highlight class="normal"></highlight></codeline>
 <codeline lineno="21"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_THREADSAFE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_HOSTTHREADS</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="23"><highlight class="normal">__thread</highlight></codeline>
 <codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="25"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*MLArgCache[ML_ARG_CACHE_SIZE];</highlight></codeline>
@@ -694,7 +690,7 @@
 <codeline lineno="291"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(<ref refid="structml__scheduler__t" kindref="compound">ml_scheduler_t</ref><sp/>*)ml_context_get_static(Context,<sp/>ML_SCHEDULER_INDEX);</highlight></codeline>
 <codeline lineno="292"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="293"><highlight class="normal"></highlight></codeline>
-<codeline lineno="294"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_THREADS</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="294"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_HOSTTHREADS</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="295"><highlight class="normal"></highlight></codeline>
 <codeline lineno="296"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ml_scheduler_block_t<sp/>ml_scheduler_block_t;</highlight></codeline>
 <codeline lineno="297"><highlight class="normal"></highlight></codeline>
@@ -705,7 +701,7 @@
 <codeline lineno="302"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_scheduler_run_fn<sp/>run;</highlight></codeline>
 <codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_scheduler_fill_fn<sp/>fill;</highlight></codeline>
 <codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_scheduler_sleep_fn<sp/>sleep;</highlight></codeline>
-<codeline lineno="305"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_THREADS</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="305"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_HOSTTHREADS</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_scheduler_block_t<sp/>*Resume;</highlight></codeline>
 <codeline lineno="307"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="308"><highlight class="normal">};</highlight></codeline>
@@ -751,7 +747,7 @@
 <codeline lineno="348"><highlight class="normal"></highlight></codeline>
 <codeline lineno="349"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_STATE_FN(NAME)<sp/>ML_STATE_FN2(NAME,<sp/>CONCAT3(ml_state_fn_,<sp/>__LINE__,<sp/>__COUNTER__))</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="350"><highlight class="normal"></highlight></codeline>
-<codeline lineno="351"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_THREADS</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="351"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_HOSTTHREADS</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="352"><highlight class="normal"></highlight></codeline>
 <codeline lineno="353"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_threads_set_max_count(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Max);</highlight></codeline>
 <codeline lineno="354"><highlight class="normal"></highlight></codeline>

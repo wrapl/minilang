@@ -6,6 +6,7 @@
     <includes refid="ml__uuid_8h" local="yes">ml_uuid.h</includes>
     <includes refid="stringmap_8h" local="yes">stringmap.h</includes>
     <includes refid="uuidmap_8h" local="yes">uuidmap.h</includes>
+    <includedby refid="ml__cbor_8h" local="yes">src/ml_cbor.h</includedby>
     <incdepgraph>
       <node id="8">
         <label>inthash.h</label>
@@ -126,6 +127,18 @@
         <label>uuid/uuid.h</label>
       </node>
     </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>src/ml_cbor.h</label>
+        <link refid="ml__cbor_8h_source"/>
+      </node>
+      <node id="1">
+        <label>src/ml_object.h</label>
+        <link refid="ml__object_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
     <innerclass refid="structml__field__info__t" prot="public">ml_field_info_t</innerclass>
     <innerclass refid="structml__class__t" prot="public">ml_class_t</innerclass>
     <innerclass refid="structml__field__t" prot="public">ml_field_t</innerclass>

@@ -6,7 +6,7 @@ Conditional Evaluation
 
 .. note::
 
-	For the purposes of conditional evaluation, Minilang only considers whether a value is :mini:`nil` or not. All other values (including :mini:`false`, :mini:`0`, :mini:`""`, :mini:`[]`, etc) are considered as not :mini:`nil`. 
+	For the purposes of conditional evaluation, Minilang only considers whether a value is :mini:`nil` or not. All other values (including :mini:`false`, :mini:`0`, :mini:`""`, :mini:`[]`, etc) are considered as not :mini:`nil`.
 
 Comparison Operations
 ---------------------
@@ -17,13 +17,13 @@ Like most languages, values in Minilang can be compared using infix comparison o
 
 	1 < 2
 	1 > 2
-	
+
 	3 = 3
 	3 != 3
-	
+
 	4 < 4
 	4 <= 4
-	
+
 	5 >= 4
 	5 >= 6
 
@@ -69,7 +69,62 @@ Finally, nearly all constructs in Minilang are expressions, i.e. they result in 
 	end
 
 
-:mini:`and`, :mini:`or` and :mini:`not`-expressions.
-.................................................... 
+:mini:`and`-expressions and :mini:`or`-expressions
+..................................................
+
+Code can also be evaluated conditionally in Minilang using :mini:`and`, :mini:`or`.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Expression
+     - Result of :mini:`X`
+     - :mini:`Y` evaluated
+     - Result
+
+   * - :mini:`X and Y`
+     - :mini:`nil`
+     - No
+     - :mini:`X` (:mini:`nil`)
+
+   * - :mini:`X and Y`
+     - Not :mini:`nil`
+     - Yes
+     - :mini:`Y`
+
+   * - :mini:`X or Y`
+     - :mini:`nil`
+     - Yes
+     - :mini:`Y`
+
+   * - :mini:`X or Y`
+     - Not :mini:`nil`
+     - No
+     - :mini:`X`
+
+.. tryit::
+
+	fun test(X) do
+		print('X = {X}\n')
+		ret X
+	end
+
+	test(10) and test(nil)
+
+	test(10) and test(20)
+
+	test(nil) and test(nil)
+
+	test(nil) and test(20)
+
+	test(10) or test(nil)
+
+	test(10) or test(20)
+
+	test(nil) or test(nil)
+
+	test(nil) or test(20)
 
 
+:mini:`not`-expressions and :mini:`xor`-expressions
+...................................................
