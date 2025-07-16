@@ -3236,90 +3236,6 @@ static complex double csquare(complex double X) {
 }
 #endif
 
-#define NORM_FUNCTION(CTYPE1, CTYPE2, NORM) \
-\
-static double compute_norm_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimension, void *Address, double P) { \
-	double Sum = 0; \
-	if (Degree > 1) { \
-		int Stride = Dimension->Stride; \
-		if (Dimension->Indices) { \
-			const int *Indices = Dimension->Indices; \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum += compute_norm_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, P); \
-			} \
-		} else { \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum += compute_norm_ ## CTYPE2(Degree - 1, Dimension + 1, Address, P); \
-				Address += Stride; \
-			} \
-		} \
-	} else { \
-		int Stride = Dimension->Stride; \
-		if (Dimension->Indices) { \
-			const int *Indices = Dimension->Indices; \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum += pow(NORM(*(CTYPE2 *)(Address + Indices[I] * Stride)), P); \
-			} \
-		} else { \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum += pow(NORM(*(CTYPE2 *)Address), P); \
-				Address += Stride; \
-			} \
-		} \
-	} \
-	return Sum; \
-} \
-\
-static double compute_norm0_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimension, void *Address, double P) { \
-	double Sum = 1; \
-	if (Degree > 1) { \
-		int Stride = Dimension->Stride; \
-		if (Dimension->Indices) { \
-			const int *Indices = Dimension->Indices; \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum += compute_norm0_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, P); \
-			} \
-		} else { \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum += compute_norm0_ ## CTYPE2(Degree - 1, Dimension + 1, Address, P); \
-				Address += Stride; \
-			} \
-		} \
-	} else { \
-		int Stride = Dimension->Stride; \
-		if (Dimension->Indices) { \
-			const int *Indices = Dimension->Indices; \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum *= pow(NORM(*(CTYPE2 *)(Address + Indices[I] * Stride)), P); \
-			} \
-		} else { \
-			for (int I = 0; I < Dimension->Size; ++I) { \
-				Sum *= pow(NORM(*(CTYPE2 *)Address), P); \
-				Address += Stride; \
-			} \
-		} \
-	} \
-	return Sum; \
-}
-
-NORM_FUNCTION(double, uint8_t, labs);
-NORM_FUNCTION(double, int8_t, labs);
-NORM_FUNCTION(double, uint16_t, labs);
-NORM_FUNCTION(double, int16_t, labs);
-NORM_FUNCTION(double, uint32_t, labs);
-NORM_FUNCTION(double, int32_t, labs);
-NORM_FUNCTION(double, uint64_t, labs);
-NORM_FUNCTION(double, int64_t, labs);
-NORM_FUNCTION(double, float, fabs);
-NORM_FUNCTION(double, double, fabs);
-
-#ifdef ML_COMPLEX
-
-NORM_FUNCTION(double, complex_float, cabs);
-NORM_FUNCTION(double, complex_double, cabs);
-
-#endif
-
 static char *array_flatten_to(char *Target, int Size, int Degree, int FlatDegree, ml_array_dimension_t *Dimension, char *Source) {
 	if (Degree == FlatDegree) {
 		int Total = Dimension->Size * Dimension->Stride;
@@ -4237,54 +4153,104 @@ ML_METHOD("maxidx", MLArrayT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
+#define NORM_FUNCTION(CTYPE1, CTYPE2, NORM) \
+\
+static double compute_norm_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimension, void *Address, double P) { \
+	double Sum = 0; \
+	if (Degree > 1) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			const int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_norm_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, P); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_norm_ ## CTYPE2(Degree - 1, Dimension + 1, Address, P); \
+				Address += Stride; \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			const int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += pow(NORM(*(CTYPE2 *)(Address + Indices[I] * Stride)), P); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += pow(NORM(*(CTYPE2 *)Address), P); \
+				Address += Stride; \
+			} \
+		} \
+	} \
+	return Sum; \
+} \
+\
+static void fill_norms_ ## CTYPE2(int TargetDegree, double *Target, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress, double P) { \
+	if (TargetDegree == 0) { \
+		*(double *)Target = pow(compute_norm_ ## CTYPE2(SourceDegree, SourceDimension, SourceAddress, P), 1 / P); \
+	} else { \
+		int SourceStride = SourceDimension->Stride; \
+		if (SourceDimension->Indices) { \
+			const int *Indices = SourceDimension->Indices; \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				fill_norms_ ## CTYPE2(TargetDegree - 1, Target, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride, P); \
+				++Target; \
+			} \
+		} else { \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				fill_norms_ ## CTYPE2(TargetDegree - 1, Target, SourceDegree - 1, SourceDimension + 1, SourceAddress, P); \
+				++Target; \
+				SourceAddress += SourceStride; \
+			} \
+		} \
+	} \
+}
+
+NORM_FUNCTION(double, uint8_t, labs);
+NORM_FUNCTION(double, int8_t, labs);
+NORM_FUNCTION(double, uint16_t, labs);
+NORM_FUNCTION(double, int16_t, labs);
+NORM_FUNCTION(double, uint32_t, labs);
+NORM_FUNCTION(double, int32_t, labs);
+NORM_FUNCTION(double, uint64_t, labs);
+NORM_FUNCTION(double, int64_t, labs);
+NORM_FUNCTION(double, float, fabs);
+NORM_FUNCTION(double, double, fabs);
+
+#ifdef ML_COMPLEX
+
+NORM_FUNCTION(double, complex_float, cabs);
+NORM_FUNCTION(double, complex_double, cabs);
+
+#endif
+
 ML_METHOD("||", MLArrayT) {
 //<Array
 //>number
 // Returns the norm of the values in :mini:`Array`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	double P = 2, Norm;
+	double P = 2;
+	double (*norm)(int Degree, ml_array_dimension_t *Dimension, void *Address, double P);
 	switch (Source->Format) {
-	case ML_ARRAY_FORMAT_U8:
-		Norm = compute_norm_uint8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I8:
-		Norm = compute_norm_int8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_U16:
-		Norm = compute_norm_uint16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I16:
-		Norm = compute_norm_int16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_U32:
-		Norm = compute_norm_uint32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I32:
-		Norm = compute_norm_int32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_U64:
-		Norm = compute_norm_uint64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I64:
-		Norm = compute_norm_int64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_F32:
-		Norm = compute_norm_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_F64:
-		Norm = compute_norm_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
+	case ML_ARRAY_FORMAT_U8: norm = compute_norm_uint8_t; break;
+	case ML_ARRAY_FORMAT_I8: norm = compute_norm_int8_t; break;
+	case ML_ARRAY_FORMAT_U16: norm = compute_norm_uint16_t; break;
+	case ML_ARRAY_FORMAT_I16: norm = compute_norm_int16_t; break;
+	case ML_ARRAY_FORMAT_U32: norm = compute_norm_uint32_t; break;
+	case ML_ARRAY_FORMAT_I32: norm = compute_norm_int32_t; break;
+	case ML_ARRAY_FORMAT_U64: norm = compute_norm_uint64_t; break;
+	case ML_ARRAY_FORMAT_I64: norm = compute_norm_int64_t; break;
+	case ML_ARRAY_FORMAT_F32: norm = compute_norm_float; break;
+	case ML_ARRAY_FORMAT_F64: norm = compute_norm_double; break;
 #ifdef ML_COMPLEX
-	case ML_ARRAY_FORMAT_C32:
-		Norm = compute_norm_complex_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_C64:
-		Norm = compute_norm_complex_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
+	case ML_ARRAY_FORMAT_C32: norm = compute_norm_complex_float; break;
+	case ML_ARRAY_FORMAT_C64: norm = compute_norm_complex_double; break;
 #endif
-	default:
-		return ml_error("ArrayError", "Invalid array format");
+	default: return ml_error("ArrayError", "Invalid array format");
 	}
+	double Norm = norm(Source->Degree, Source->Dimensions, Source->Base.Value, P);
 	return ml_real(pow(Norm, 1 / P));
 }
 
@@ -4293,51 +4259,67 @@ ML_METHOD("||", MLArrayT, MLRealT) {
 //>number
 // Returns the norm of the values in :mini:`Array`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	double P = ml_real_value(Args[1]), Norm;
+	double P = ml_real_value(Args[1]);
+	double (*norm)(int Degree, ml_array_dimension_t *Dimension, void *Address, double P);
 	if (P < 1) return ml_error("ValueError", "Invalid p-value for norm");
 	switch (Source->Format) {
-	case ML_ARRAY_FORMAT_U8:
-		Norm = compute_norm_uint8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I8:
-		Norm = compute_norm_int8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_U16:
-		Norm = compute_norm_uint16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I16:
-		Norm = compute_norm_int16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_U32:
-		Norm = compute_norm_uint32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I32:
-		Norm = compute_norm_int32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_U64:
-		Norm = compute_norm_uint64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_I64:
-		Norm = compute_norm_int64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_F32:
-		Norm = compute_norm_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_F64:
-		Norm = compute_norm_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
+	case ML_ARRAY_FORMAT_U8: norm = compute_norm_uint8_t; break;
+	case ML_ARRAY_FORMAT_I8: norm = compute_norm_int8_t; break;
+	case ML_ARRAY_FORMAT_U16: norm = compute_norm_uint16_t; break;
+	case ML_ARRAY_FORMAT_I16: norm = compute_norm_int16_t; break;
+	case ML_ARRAY_FORMAT_U32: norm = compute_norm_uint32_t; break;
+	case ML_ARRAY_FORMAT_I32: norm = compute_norm_int32_t; break;
+	case ML_ARRAY_FORMAT_U64: norm = compute_norm_uint64_t; break;
+	case ML_ARRAY_FORMAT_I64: norm = compute_norm_int64_t; break;
+	case ML_ARRAY_FORMAT_F32: norm = compute_norm_float; break;
+	case ML_ARRAY_FORMAT_F64: norm = compute_norm_double; break;
 #ifdef ML_COMPLEX
-	case ML_ARRAY_FORMAT_C32:
-		Norm = compute_norm_complex_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
-	case ML_ARRAY_FORMAT_C64:
-		Norm = compute_norm_complex_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
-		break;
+	case ML_ARRAY_FORMAT_C32: norm = compute_norm_complex_float; break;
+	case ML_ARRAY_FORMAT_C64: norm = compute_norm_complex_double; break;
 #endif
-	default:
-		return ml_error("ArrayError", "Invalid array format");
+	default: return ml_error("ArrayError", "Invalid array format");
 	}
+	double Norm = norm(Source->Degree, Source->Dimensions, Source->Base.Value, P);
 	return ml_real(pow(Norm, 1 / P));
+}
+
+ML_METHOD("||", MLArrayT, MLRealT, MLIntegerT) {
+//<Array
+//>number
+// Returns the norm of the values in :mini:`Array`.
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	double P = ml_real_value(Args[1]);
+	int Slice = ml_integer_value(Args[2]);
+	if (Slice <= 0 || Slice >= Source->Degree) return ml_error("IntervalError", "Invalid axes count for norm");
+	void (*fill)(int TargetDegree, double *Target, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress, double P);
+	if (P < 1) return ml_error("ValueError", "Invalid p-value for norm");
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_U8: fill = fill_norms_uint8_t; break;
+	case ML_ARRAY_FORMAT_I8: fill = fill_norms_int8_t; break;
+	case ML_ARRAY_FORMAT_U16: fill = fill_norms_uint16_t; break;
+	case ML_ARRAY_FORMAT_I16: fill = fill_norms_int16_t; break;
+	case ML_ARRAY_FORMAT_U32: fill = fill_norms_uint32_t; break;
+	case ML_ARRAY_FORMAT_I32: fill = fill_norms_int32_t; break;
+	case ML_ARRAY_FORMAT_U64: fill = fill_norms_uint64_t; break;
+	case ML_ARRAY_FORMAT_I64: fill = fill_norms_int64_t; break;
+	case ML_ARRAY_FORMAT_F32: fill = fill_norms_float; break;
+	case ML_ARRAY_FORMAT_F64: fill = fill_norms_double; break;
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: fill = fill_norms_complex_float; break;
+	case ML_ARRAY_FORMAT_C64: fill = fill_norms_complex_double; break;
+#endif
+	default: return ml_error("ArrayError", "Invalid array format");
+	}
+	ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_F64, Source->Degree - Slice);
+	int DataSize = MLArraySizes[Target->Format];
+	for (int I = Target->Degree; --I >= 0;) {
+		Target->Dimensions[I].Stride = DataSize;
+		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
+		DataSize *= Size;
+	}
+	Target->Base.Value = array_alloc(ML_ARRAY_FORMAT_F64, DataSize);
+	fill(Target->Degree, (double *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, P);
+	return (ml_value_t *)Target;
 }
 
 ML_METHOD("-", MLArrayT) {

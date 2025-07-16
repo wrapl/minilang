@@ -72,7 +72,7 @@ Finally, nearly all constructs in Minilang are expressions, i.e. they result in 
 :mini:`and`-expressions and :mini:`or`-expressions
 ..................................................
 
-Code can also be evaluated conditionally in Minilang using :mini:`and`, :mini:`or`.
+Code can also be evaluated conditionally in Minilang using :mini:`and`, :mini:`or`. An :mini:`and`-expression evaluates to its second argument if both arguments are not :mini:`nil`, and to :mini:`nil` otherwise. An :mini:`or`-expression evaluates to its first argument if it is not :mini:`nil`, otherwise it evaluates to its second argument. Both :mini:`and`-expressions and :mini:`or`-expressions only evaluate their second argument if required.
 
 .. list-table::
    :header-rows: 1
@@ -128,3 +128,4 @@ Code can also be evaluated conditionally in Minilang using :mini:`and`, :mini:`o
 
 :mini:`not`-expressions and :mini:`xor`-expressions
 ...................................................
+
