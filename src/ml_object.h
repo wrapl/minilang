@@ -97,11 +97,27 @@ extern ml_type_t MLPseudoObjectT[];
 ml_class_t *ml_pseudo_class(const char *Name, const uuid_t Id);
 void ml_pseudo_class_add_field(ml_class_t *Class, const char *Name);
 
+typedef struct {
+	ml_type_t *Type;
+	void *Value;
+} ml_struct_instance_t;
+
+ml_value_t *ml_struct_instance(ml_type_t *Type, void *Value);
+
+static inline void *ml_struct_instance_value(ml_value_t *Value) {
+	return ((ml_struct_instance_t *)Value)->Value;
+}
+
 /// @}
 
 /// \defgroup enums
 /// @{
 ///
+
+typedef struct {
+	ml_integer_t Base;
+	ml_value_t *Name;
+} ml_enum_value_t;
 
 extern ml_type_t MLEnumT[];
 extern ml_type_t MLEnumValueT[];
@@ -112,8 +128,14 @@ ml_type_t *ml_enum2(const char *Name, ...);
 ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...);
 
 ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Enum);
-int64_t ml_enum_value_value(ml_value_t *Value);
-const char *ml_enum_value_name(ml_value_t *Value);
+
+static inline int64_t ml_enum_value_value(ml_value_t *Value) {
+	return ml_integer64_value(Value);
+}
+
+static inline const char *ml_enum_value_name(ml_value_t *Value) {
+	return ml_string_value(((ml_enum_value_t *)Value)->Name);
+}
 
 /// @}
 
