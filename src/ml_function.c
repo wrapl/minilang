@@ -524,6 +524,18 @@ ML_FUNCTIONZ(MLFunctionVariable) {
 	ML_RETURN(ml_value_function(Args[0]));
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLFunctionValueT, ml_value_function_t *Function) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("$="));
+	ml_list_put(Result, Function->Value);
+	return Result;
+}
+
+ML_DESERIALIZER("$=") {
+	ML_CHECK_ARG_COUNT(1);
+	return ml_value_function(Args[0]);
+}
+
 ML_METHOD("$!", MLFunctionT, MLListT) {
 //<Function
 //<List
