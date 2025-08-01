@@ -93,22 +93,18 @@ ML_TYPE(MLSocketInetT, (MLSocketT), "socket::inet",
 );
 
 static ml_value_t *host_address(const char *Name, struct in_addr *Address) {
-	struct hostent Host, *Result;
-	size_t BufferSize = 1024;
-	char *Buffer = malloc(BufferSize);
-	int Status, Error;
-	while ((Status = gethostbyname_r(Name, &Host, Buffer, BufferSize, &Result, &Error)) == ERANGE) {
-		BufferSize *= 2;
-		Buffer = realloc(Buffer, BufferSize);
-	}
-	if (Status || !Result) {
-		free(Buffer);
+	struct addrinfo Hints = {0,};
+	Hints.ai_flags = AI_CANONNAME;
+	Hints.ai_family = AF_INET;
+	Hints.ai_socktype = SOCK_RAW;
+	struct addrinfo *Results = NULL;
+	int Error = getaddrinfo(Name, NULL, &Hints, &Results);
+	if (Error || !Results) {
 		return ml_error("HostnameError", "Error looking up hostname %s: %s", Name, strerror(Error));
-	} else {
-		*Address = *(struct in_addr *)Result->h_addr;
-		free(Buffer);
-		return NULL;
 	}
+	*Address = ((const struct sockaddr_in *)Results->ai_addr)->sin_addr;
+	freeaddrinfo(Results);
+	return NULL;
 }
 
 ML_METHOD("bind", MLSocketInetT, MLIntegerT) {
