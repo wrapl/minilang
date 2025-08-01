@@ -34,6 +34,39 @@ static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Va
 	return 0;
 }
 
+void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result) {
+	if (Duration > 0) {
+#ifdef ML_HOSTTHREADS
+		ml_scheduler_split(Scheduler);
+		struct timespec Remainder;
+		double Seconds;
+		Remainder.tv_nsec = modf(Duration, &Seconds) * 1000000000;
+		Remainder.tv_sec = Seconds;
+		while (nanosleep(&Remainder, &Remainder)) {
+			if (errno != EINTR) {
+				Result = ml_error("SleepError", "Failed to sleep");
+				break;
+			}
+		}
+		ml_scheduler_join(Scheduler);
+#endif
+	}
+	Scheduler->add(Scheduler, State, Result);
+}
+
+void ml_sleep(ml_state_t *Caller, double Duration, ml_value_t *Result) {
+	if (Duration <= 0) ML_RETURN(MLNil);
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
+	return Scheduler->sleep(Scheduler, Caller, Duration, Result);
+}
+
+ML_FUNCTIONX(MLSleep) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLRealT);
+	double Duration = ml_real_value(Args[0]);
+	return ml_sleep(Caller, Duration, Count > 1 ? Args[1] : MLNil);
+}
+
 static ml_scheduler_t DefaultScheduler = {
 	.add = default_swap,
 	.sleep = ml_scheduler_default_sleep
@@ -1175,39 +1208,6 @@ int ml_scheduler_queue_add_signal(ml_scheduler_queue_t *Queue, ml_state_t *State
 void ml_scheduler_queue_run(ml_scheduler_queue_t *Queue) {
 	ml_queued_state_t Queued = ml_scheduler_queue_next_wait(Queue);
 	Queued.State->run(Queued.State, Queued.Value);
-}
-
-void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result) {
-	if (Duration > 0) {
-#ifdef ML_HOSTTHREADS
-		ml_scheduler_split(Scheduler);
-		struct timespec Remainder;
-		double Seconds;
-		Remainder.tv_nsec = modf(Duration, &Seconds) * 1000000000;
-		Remainder.tv_sec = Seconds;
-		while (nanosleep(&Remainder, &Remainder)) {
-			if (errno != EINTR) {
-				Result = ml_error("SleepError", "Failed to sleep");
-				break;
-			}
-		}
-		ml_scheduler_join(Scheduler);
-#endif
-	}
-	Scheduler->add(Scheduler, State, Result);
-}
-
-void ml_sleep(ml_state_t *Caller, double Duration, ml_value_t *Result) {
-	if (Duration <= 0) ML_RETURN(MLNil);
-	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
-	return Scheduler->sleep(Scheduler, Caller, Duration, Result);
-}
-
-ML_FUNCTIONX(MLSleep) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLRealT);
-	double Duration = ml_real_value(Args[0]);
-	return ml_sleep(Caller, Duration, Count > 1 ? Args[1] : MLNil);
 }
 
 /*static
