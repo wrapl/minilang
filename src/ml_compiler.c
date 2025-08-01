@@ -101,7 +101,7 @@ struct ml_compiler_t {
 extern ml_value_t *IndexMethod;
 extern ml_value_t *SymbolMethod;
 
-inline long ml_ident_hash(const char *Ident) {
+static inline long ml_ident_hash(const char *Ident) {
 	long Hash = 5381;
 	while (*Ident) Hash = ((Hash << 5) + Hash) + *Ident++;
 	return Hash;
