@@ -243,7 +243,7 @@ ML_METHOD("mtime", MLFileStatT) {
 ML_METHOD("ctime", MLFileStatT) {
 	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
 #ifdef Darwin
-	return ml_time(Stat->Handle->st_ctimepsec.tv_sec, Stat->Handle->st_ctimespec.tv_nsec);
+	return ml_time(Stat->Handle->st_ctimespec.tv_sec, Stat->Handle->st_ctimespec.tv_nsec);
 #else
 	return ml_time(Stat->Handle->st_ctim.tv_sec, Stat->Handle->st_ctim.tv_nsec);
 #endif
