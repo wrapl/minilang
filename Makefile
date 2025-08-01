@@ -101,7 +101,7 @@ endif
 ifeq ($(PLATFORM), Darwin)
 	platform_objects += obj/linenoise.o
 	override CFLAGS += -Wno-initializer-overrides
-	override LDFLAGS += -lgc -luuid
+	override LDFLAGS += -lgc
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \
