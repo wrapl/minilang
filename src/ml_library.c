@@ -1,6 +1,7 @@
 #include "ml_library.h"
 #include "ml_macros.h"
 #include "ml_module.h"
+#include "ml_utils.h"
 #include <string.h>
 #ifdef Mingw
 #else

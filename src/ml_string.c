@@ -2,6 +2,7 @@
 #include "ml_macros.h"
 #include "ml_object.h"
 #include "ml_compiler2.h"
+#include "ml_utils.h"
 #include "sha256.h"
 #include <string.h>
 #include <ctype.h>

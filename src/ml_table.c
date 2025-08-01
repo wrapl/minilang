@@ -1,6 +1,7 @@
 #include "ml_table.h"
 #include "ml_array.h"
 #include "ml_macros.h"
+#include "ml_utils.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
