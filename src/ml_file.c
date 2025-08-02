@@ -224,17 +224,29 @@ ML_METHOD("size", MLFileStatT) {
 
 ML_METHOD("atime", MLFileStatT) {
 	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+#ifdef Darwin
+	return ml_time(Stat->Handle->st_atimespec.tv_sec, Stat->Handle->st_atimespec.tv_nsec);
+#else
 	return ml_time(Stat->Handle->st_atim.tv_sec, Stat->Handle->st_atim.tv_nsec);
+#endif
 }
 
 ML_METHOD("mtime", MLFileStatT) {
 	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+#ifdef Darwin
+	return ml_time(Stat->Handle->st_mtimespec.tv_sec, Stat->Handle->st_mtimespec.tv_nsec);
+#else
 	return ml_time(Stat->Handle->st_mtim.tv_sec, Stat->Handle->st_mtim.tv_nsec);
+#endif
 }
 
 ML_METHOD("ctime", MLFileStatT) {
 	ml_file_stat_t *Stat = (ml_file_stat_t *)Args[0];
+#ifdef Darwin
+	return ml_time(Stat->Handle->st_ctimespec.tv_sec, Stat->Handle->st_ctimespec.tv_nsec);
+#else
 	return ml_time(Stat->Handle->st_ctim.tv_sec, Stat->Handle->st_ctim.tv_nsec);
+#endif
 }
 
 ML_ENUM2(MLFileModeT, "file::mode",

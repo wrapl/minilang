@@ -1,6 +1,7 @@
 #include "ml_json.h"
 #include "ml_macros.h"
 #include "ml_stream.h"
+#include <inttypes.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "json"
@@ -781,7 +782,7 @@ ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 			ml_stringbuffer_write(Buffer, "false", 5);
 		}
 	} else if (ml_is(Value, MLIntegerT)) {
-		ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Value));
+		ml_stringbuffer_printf(Buffer, "%" PRId64, ml_integer_value(Value));
 	} else if (ml_is(Value, MLRealT)) {
 		ml_stringbuffer_printf(Buffer, "%.20g", ml_real_value(Value));
 	} else if (ml_is(Value, MLStringT)) {

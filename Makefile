@@ -84,22 +84,23 @@ endif
 ifeq ($(PLATFORM), Linux)
 	platform_objects += obj/linenoise.o
 	override CFLAGS += -DUSE_LINENOISE
-	override LDFLAGS += -lgc
+	override LDFLAGS += -lgc -luuid
 endif
 
 ifeq ($(PLATFORM), Android)
 	platform_objects += obj/linenoise.o
-	override LDFLAGS += -lgc
+	override LDFLAGS += -lgc -luuid
 endif
 
 ifeq ($(PLATFORM), FreeBSD)
 	platform_objects += obj/linenoise.o
 	override CFLAGS += -I/usr/local/include
-	override LDFLAGS += -L/usr/local/lib -lgc-threaded
+	override LDFLAGS += -L/usr/local/lib -lgc-threaded -luuid
 endif
 
 ifeq ($(PLATFORM), Darwin)
 	platform_objects += obj/linenoise.o
+	override CFLAGS += -Wno-initializer-overrides
 	override LDFLAGS += -lgc
 endif
 

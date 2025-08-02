@@ -1,5 +1,6 @@
 #include "minilang.h"
 #include "ml_macros.h"
+#include "ml_utils.h"
 #include <string.h>
 #include "sha256.h"
 #include "ml_sequence.h"
