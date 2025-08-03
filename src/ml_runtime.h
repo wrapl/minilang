@@ -130,6 +130,8 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
+ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args);
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;

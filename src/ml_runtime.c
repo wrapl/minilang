@@ -1278,6 +1278,8 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 
 #ifdef ML_HOSTTHREADS
 
+#include <semaphore.h>
+
 /*ml_queued_state_t ml_default_queue_next_wait() {
 	return ml_scheduler_queue_next_wait(DefaultQueue);
 }
@@ -1297,8 +1299,7 @@ struct ml_scheduler_thread_t {
 struct ml_scheduler_block_t {
 	ml_state_t Base;
 	ml_scheduler_t *Scheduler;
-	pthread_mutex_t Lock[1];
-	pthread_cond_t Resume[1];
+	sem_t Ready[1];
 };
 
 static ml_scheduler_thread_t *NextThread = NULL;
@@ -1318,9 +1319,8 @@ static void *ml_scheduler_thread_fn(void *Data) {
 		Scheduler->run(Scheduler);
 		if (Scheduler->Resume) {
 			ml_scheduler_block_t *Block = Scheduler->Resume;
-			pthread_mutex_lock(Block->Lock);
-			pthread_cond_signal(Block->Resume);
-			pthread_mutex_unlock(Block->Lock);
+			Scheduler->Resume = NULL;
+			sem_post(Block->Ready);
 
 			pthread_mutex_lock(ThreadLock);
 			if (NumIdle >= MaxIdle) {
@@ -1366,16 +1366,54 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 
 void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 	ml_scheduler_block_t Block = {
-		{NULL, NULL, ml_scheduler_thread_resume},
-		Scheduler,
-		{PTHREAD_MUTEX_INITIALIZER},
-		{PTHREAD_COND_INITIALIZER}
+		{NULL, NULL, ml_scheduler_thread_resume, NULL},
+		Scheduler
 	};
-	pthread_mutex_lock(Block.Lock);
+	sem_init(Block.Ready, 0, 0);
 	Scheduler->add(Scheduler, (ml_state_t *)&Block, MLNil);
-	pthread_cond_wait(Block.Resume, Block.Lock);
-	pthread_mutex_unlock(Block.Lock);
-	Scheduler->Resume = NULL;
+	sem_wait(Block.Ready);
+	sem_destroy(Block.Ready);
+}
+
+typedef struct {
+	ml_scheduler_block_t Block;
+	ml_value_t *Value;
+} ml_call_wait_state_t;
+
+static void ml_call_slow_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
+	State->Value = Value;
+	State->Block.Scheduler->Resume = &State->Block;
+}
+
+static void ml_call_fast_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
+	State->Value = Value;
+}
+
+ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
+	ml_call_wait_state_t State = {{
+		{NULL, NULL, (ml_state_fn)ml_call_fast_fn, Context},
+		NULL
+	}, NULL};
+	ml_call(&State, Fn, Count, Args);
+	if (State.Value) return State.Value;
+	State.Block.Base.run = (ml_state_fn)ml_call_slow_fn;
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
+	State.Block.Scheduler = Scheduler;
+	sem_init(State.Block.Ready, 0, 0);
+	ml_scheduler_split(Scheduler);
+	sem_wait(State.Block.Ready);
+	sem_destroy(State.Block.Ready);
+	return State.Value;
+}
+
+#else
+
+ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
+	ml_result_state_t State = {{NULL, Context, (ml_state_fn)ml_result_state_run}, NULL};
+	ml_call(&State, Fn, Count, Args);
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
+	while (!State->Value) Scheduler->run(Scheduler);
+	return State.Value;
 }
 
 #endif
