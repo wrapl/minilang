@@ -682,7 +682,7 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 extern ml_value_t *IndexMethod;
 
 ML_METHODV("[]", MLChainedT) {
-	ml_value_t *Partial = ml_partial_function(IndexMethod, Count + 1);
+	ml_value_t *Partial = ml_partial_function(IndexMethod, Count);
 	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
