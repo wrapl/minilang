@@ -291,9 +291,9 @@
         </inbodydescription>
         <location file="src/ml_types.h" line="698" column="12" declfile="src/ml_types.h" declline="698" declcolumn="12"/>
       </memberdef>
-      <memberdef kind="function" id="group__numbers_1ga7a0b6740ab3c5243f0d98da96bc62692" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+      <memberdef kind="function" id="group__numbers_1ga4a41713d74d1891956ab7f80f73c21c2" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>int64_t</type>
-        <definition>int64_t ml_integer64_value</definition>
+        <definition>static int64_t ml_integer64_value</definition>
         <argsstring>(const ml_value_t *Value)</argsstring>
         <name>ml_integer64_value</name>
         <param>
@@ -306,11 +306,11 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="700" column="16" bodyfile="src/ml_types.h" bodystart="700" bodyend="706"/>
+        <location file="src/ml_types.h" line="700" column="23" bodyfile="src/ml_types.h" bodystart="700" bodyend="706"/>
       </memberdef>
-      <memberdef kind="function" id="group__numbers_1ga129bf764b37bb7d1ec0ee69caeca9125" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+      <memberdef kind="function" id="group__numbers_1gaf4ae05480a66d97716d99391e50fc2e4" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>double</type>
-        <definition>double ml_double_value</definition>
+        <definition>static double ml_double_value</definition>
         <argsstring>(const ml_value_t *Value)</argsstring>
         <name>ml_double_value</name>
         <param>
@@ -323,7 +323,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="713" column="15" bodyfile="src/ml_types.h" bodystart="713" bodyend="715"/>
+        <location file="src/ml_types.h" line="713" column="22" bodyfile="src/ml_types.h" bodystart="713" bodyend="715"/>
       </memberdef>
       <memberdef kind="function" id="group__numbers_1ga26fdf346e2362e83f1999ad3af9aa007" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>size_t</type>

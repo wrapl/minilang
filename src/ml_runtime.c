@@ -1412,7 +1412,7 @@ ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_va
 	ml_result_state_t State = {{NULL, Context, (ml_state_fn)ml_result_state_run}, NULL};
 	ml_call(&State, Fn, Count, Args);
 	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
-	while (!State->Value) Scheduler->run(Scheduler);
+	while (!State.Value) Scheduler->run(Scheduler);
 	return State.Value;
 }
 

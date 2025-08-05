@@ -742,7 +742,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1701994832>>
+      A:minidx(2) :> <<2 1> <1 1348031583>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -894,6 +894,10 @@ array
 
 
 :mini:`meth (Array: array) || (Arg₂: real): number`
+   Returns the norm of the values in :mini:`Array`.
+
+
+:mini:`meth (Array: array) || (Arg₂: real, Arg₃: integer): number`
    Returns the norm of the values in :mini:`Array`.
 
 

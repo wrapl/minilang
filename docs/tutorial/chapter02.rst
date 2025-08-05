@@ -74,33 +74,35 @@ Finally, nearly all constructs in Minilang are expressions, i.e. they result in 
 
 Code can also be evaluated conditionally in Minilang using :mini:`and`, :mini:`or`. An :mini:`and`-expression evaluates to its second argument if both arguments are not :mini:`nil`, and to :mini:`nil` otherwise. An :mini:`or`-expression evaluates to its first argument if it is not :mini:`nil`, otherwise it evaluates to its second argument. Both :mini:`and`-expressions and :mini:`or`-expressions only evaluate their second argument if required.
 
-.. list-table::
+.. flat-table:: :mini:`X and Y`
    :header-rows: 1
+   :stub-columns: 1
 
-   * - Expression
-     - Result of :mini:`X`
-     - :mini:`Y` evaluated
-     - Result
+   * -
+     - :mini:`Y = nil`
+     - :mini:`Y != nil`
 
-   * - :mini:`X and Y`
+   * - :mini:`X = nil`
+     - :cspan:`2` :mini:`nil` (:mini:`Y` not evaluated)
+
+   * - :mini:`X != nil`
      - :mini:`nil`
-     - No
-     - :mini:`X` (:mini:`nil`)
-
-   * - :mini:`X and Y`
-     - Not :mini:`nil`
-     - Yes
      - :mini:`Y`
 
-   * - :mini:`X or Y`
+.. flat-table:: :mini:`X or Y`
+   :header-rows: 1
+   :stub-columns: 1
+
+   * -
+     - :mini:`Y = nil`
+     - :mini:`Y != nil`
+
+   * - :mini:`X = nil`
      - :mini:`nil`
-     - Yes
      - :mini:`Y`
 
-   * - :mini:`X or Y`
-     - Not :mini:`nil`
-     - No
-     - :mini:`X`
+   * - :mini:`X != nil`
+     - :cspan:`2` :mini:`X` (:mini:`Y` not evaluated)
 
 .. tryit::
 
@@ -129,3 +131,37 @@ Code can also be evaluated conditionally in Minilang using :mini:`and`, :mini:`o
 :mini:`not`-expressions and :mini:`xor`-expressions
 ...................................................
 
+A :mini:`not`-expression returns :mini:`some` if its argument returns :mini:`nil` and return :mini:`nil` otherwise. If exactly one argument of a :mini:`xor`-expression returns a non-:mini:`nil` value, that value is returned, otherwise it returns :mini:`nil`. Both :mini:`not`-expressions and :mini:`xor`-expressions always evaluate their arguments.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Expression
+	 - Result of :mini:`X`
+	 - Result
+
+   * - :mini:`not X`
+	 - :mini:`nil`
+	 - :mini:`some`
+
+   * - :mini:`not X`
+	 - Not :mini:`nil`
+	 - :mini:`nil`
+
+.. list-table::
+   :header-rows: 1
+
+   * - Expression
+     - Result of :mini:`X`
+     - :mini:`Y` evaluated
+     - Result
+
+   * - :mini:`X or Y`
+     - :mini:`nil`
+     - Yes
+     - :mini:`Y`
+
+   * - :mini:`X or Y`
+     - Not :mini:`nil`
+     - No
+     - :mini:`X`

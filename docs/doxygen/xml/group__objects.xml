@@ -9,6 +9,7 @@
     <innerclass refid="structml__object__t" prot="public">ml_object_t</innerclass>
     <innerclass refid="structml__class__table__t" prot="public">ml_class_table_t</innerclass>
     <innerclass refid="structml__default__class__table__t" prot="public">ml_default_class_table_t</innerclass>
+    <innerclass refid="structml__struct__instance__t" prot="public">ml_struct_instance_t</innerclass>
     <sectiondef kind="typedef">
       <memberdef kind="typedef" id="group__objects_1gae70523f3347bde71e77757b6b758fa22" prot="public" static="no">
         <type>struct ml_class_t</type>
@@ -587,6 +588,44 @@
         <inbodydescription>
         </inbodydescription>
         <location file="src/ml_object.h" line="98" column="6" declfile="src/ml_object.h" declline="98" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga48dcf303ce2c0df77b58eb1d433147b1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_struct_instance</definition>
+        <argsstring>(ml_type_t *Type, void *Value)</argsstring>
+        <name>ml_struct_instance</name>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="105" column="12" declfile="src/ml_object.h" declline="105" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__objects_1ga520d42fb92f91e918df9c0d64e75c9c7" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void *</type>
+        <definition>static void * ml_struct_instance_value</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_struct_instance_value</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="107" column="20" bodyfile="src/ml_object.h" bodystart="107" bodyend="109"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

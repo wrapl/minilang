@@ -42,6 +42,7 @@
     <innerfile refid="ml__thread_8h">ml_thread.h</innerfile>
     <innerfile refid="ml__time_8h">ml_time.h</innerfile>
     <innerfile refid="ml__types_8h">ml_types.h</innerfile>
+    <innerfile refid="ml__utils_8h">ml_utils.h</innerfile>
     <innerfile refid="ml__uuid_8h">ml_uuid.h</innerfile>
     <innerfile refid="ml__xe_8h">ml_xe.h</innerfile>
     <innerfile refid="ml__xml_8h">ml_xml.h</innerfile>

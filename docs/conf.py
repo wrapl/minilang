@@ -97,7 +97,8 @@ extensions = [
 	'sphinx.ext.viewcode',
 	'sphinx_toolbox.collapse',
 	'sphinxcontrib.ansi',
-	'breathe'
+	'breathe',
+	'linuxdoc.rstFlatTable'
 	#"sphinxawesome_theme"
 	#'sphinx_design'
 ]

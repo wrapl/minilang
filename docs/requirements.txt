@@ -7,3 +7,4 @@ sphinx-a4doc
 insipid-sphinx-theme
 graphviz
 breathe
+linuxdoc
