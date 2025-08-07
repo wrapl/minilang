@@ -1135,6 +1135,25 @@ int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue) {
 	return Queue->Fill;
 }
 
+void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*Fn)(void *Data, ml_state_t *State)) {
+#ifdef ML_HOSTTHREADS
+	pthread_mutex_lock(Queue->Lock);
+#endif
+	ml_queue_block_t *Block = Queue->ReadBlock;
+	ml_queue_block_t *EndBlock = Queue->WriteBlock;
+	int Index = Queue->ReadIndex;
+	int EndIndex = Queue->WriteIndex;
+	while (Block != EndBlock) {
+		while (Index < QUEUE_BLOCK_SIZE) Fn(Data, Block->States[Index++].State);
+		Index = 0;
+		Block = Block->Next;
+	}
+	while (Index != EndIndex) Fn(Data, Block->States[Index++].State);
+#ifdef ML_HOSTTHREADS
+	pthread_mutex_unlock(Queue->Lock);
+#endif
+}
+
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
 	ml_queued_state_t Next = {NULL, NULL};
 #ifdef ML_HOSTTHREADS
