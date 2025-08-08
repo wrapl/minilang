@@ -343,6 +343,41 @@ ML_METHOD("index", MLXmlT, MLBooleanT) {
 	return ml_integer(Node->Index);
 }
 
+static void ml_xml_element_path(ml_stringbuffer_t *Buffer, ml_xml_node_t *Node, ml_xml_node_t *Top) {
+	if (Node == Top) return;
+	ml_xml_element_t *Parent = Node->Parent;
+	if (Parent) ml_xml_element_path(Buffer, (ml_xml_node_t *)Parent, Top);
+	ml_stringbuffer_put(Buffer, '/');
+	ml_value_t *Tag = (ml_value_t *)Node->Base.Value;
+	ml_stringbuffer_write(Buffer, ml_string_value(Tag), ml_string_length(Tag));
+	if (Parent) {
+		int Index = 0;
+		for (ml_xml_node_t *Child = Parent->Head; Child != Node; Child = Child->Next) {
+			if (Child->Base.Value == Node->Base.Value) ++Index;
+		}
+		if (Index) ml_stringbuffer_printf(Buffer, "[%d]", Index + 1);
+	}
+}
+
+ML_METHOD("path", MLXmlT) {
+//<Node
+//>string
+// Returns the path of :mini:`Node` from its root.
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_xml_element_path(Buffer, (ml_xml_node_t *)Args[0], NULL);
+	return ml_stringbuffer_get_value(Buffer);
+}
+
+ML_METHOD("path", MLXmlT, MLXmlT) {
+//<Parent
+//<Node
+//>string
+// Returns the path of :mini:`Node` from :mini:`Parent`.
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_xml_element_path(Buffer, (ml_xml_node_t *)Args[1], (ml_xml_node_t *)Args[0]);
+	return ml_stringbuffer_get_value(Buffer);
+}
+
 ML_METHOD("tag", MLXmlElementT) {
 //<Xml
 //>string
