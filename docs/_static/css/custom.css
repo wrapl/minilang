@@ -136,6 +136,8 @@ section {
 	font-family: monospace;
 	font-size: 120%;
 	box-sizing: border-box;
+	background: #f2e7fc;
+	padding: 0.5em;
 }
 
 .session .input {
@@ -171,7 +173,7 @@ section {
 }
 
 .session .output {
-	background: #F0F0F0;
+	background: #f2e7fc;
 	box-sizing: border-box;
 	padding: 5px;
 	white-space: pre-wrap;

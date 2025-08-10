@@ -137,4 +137,34 @@ If it necessary to modified the value of a variable itself over its lifetime, th
 	Z := 10
 	Z
 
+Blocks
+------
  
+Every construct in Minilang is an expression, that is they evaluate to a value. This includes :mini:`if`-expressions, :mini:`switch`-expressions and even :mini:`for`-expressions and :mini:`loop`-expressions. These will be covered individually later, in general these expressions use blocks of code in their bodies / branches. A block of code in Minilang is simply a number of declarations and expressions. After evaluating each expression in the block, the result of the last expression is returned as the value of the block.
+
+If required, a block can be introduced whenever a single expression is expected by using :mini:`do ... end`.
+
+.. tryit::
+
+	print(do
+		let X := "Hello"
+		X + " world!"
+	end)
+
+Expressions and declarations within a block can also be separated by semi-colons :mini:`;`. The example above can be rewritten as:
+
+.. tryit::
+
+	print(do let X := "Hello"; X + " world!" end)
+
+Error handling
+..............
+
+When an error occurs in Minilang code, an :mini:`error` value is created. Execution then jumps to the nearest surrounding error handler, passing this error value. If there is no error handler within the current function, the error is returned to the calling function which then jumps to the nearest surrounding error handler and so on. When run from the command line, an unhandled error will cause Minilang to terminate, displaying information about the error in the console. Interactive sessions such as the sample code blocks in this tutorial will display the error but still allow more code to be evaluated.
+
+.. tryit::
+
+	1 + "a"
+	
+	1 / 0
+

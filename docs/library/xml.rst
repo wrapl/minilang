@@ -235,6 +235,14 @@ xml
    Returns the parent of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
 
 
+:mini:`meth (Node: xml):path: string`
+   Returns the path of :mini:`Node` from its root.
+
+
+:mini:`meth (Parent: xml):path(Node: xml): string`
+   Returns the path of :mini:`Node` from :mini:`Parent`.
+
+
 :mini:`meth (Xml: xml):prev: xml | nil`
    Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 

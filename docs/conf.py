@@ -221,4 +221,3 @@ def setup(sphinx):
 	#sphinx.add_domain(minilangDomain)
 	sphinx.add_directive('folders', FoldersDirective)
 	sphinx.add_directive('tryit', TryItDirective)
-	sphinx.add_css_file('css/custom.css')

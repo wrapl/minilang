@@ -727,6 +727,9 @@ if PLATFORM = "Wasm" then
 
 	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sEXIT_RUNTIME=1", "-sALLOW_MEMORY_GROWTH=1", "-gsource-map ", "-sEXIT_RUNTIME=0"] :>, "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""]
 	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
+	
+	(BIN_DIR / "minilang.wasm")[MINIWASM]
+	(BIN_DIR / "minilang.wasm.map")[MINIWASM]
 
 	MINIHTML := (BIN_DIR / "minilang.html")[file("minilang.html"); Target] do
 		file("minilang.html"):copy(Target)
