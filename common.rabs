@@ -83,7 +83,7 @@ c_library := fun(Library, Objects, Libraries) do
 	Library[Objects, Libraries, PREBUILDS] => fun(Executable) do
 		:>execute('ar', 'rcs', Library, Objects)
 		let Script := file('{Library:basename}.ar'):open("w")
-		Script:write('CREATE ', Library, '\n')
+		Script:write('CREATE ', Library - PATH or Library, '\n')
 		each Libraries -> (_ - PATH) -> Script:write('ADDLIB ', _, '\n')
 		each Objects -> (_ - PATH) -> Script:write('ADDMOD ', _, '\n')
 		Script:write('SAVE\nEND\n')
