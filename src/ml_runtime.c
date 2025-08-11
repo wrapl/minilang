@@ -10,6 +10,7 @@
 #include <time.h>
 #include <errno.h>
 #include <math.h>
+#include <signal.h>
 
 #ifdef ML_TIMESCHED
 #include <sys/time.h>
@@ -1331,6 +1332,9 @@ static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 }
 
 static void *ml_scheduler_thread_fn(void *Data) {
+#ifdef Darwin
+	pthread_setname_np("minilang");
+#endif
 	static int NumIdle = 0;
 	ml_scheduler_t *Scheduler = (ml_scheduler_t *)Data;
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
@@ -1378,7 +1382,9 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
 		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Scheduler);
+#ifndef Darwin
 		pthread_setname_np(Thread, "minilang");
+#endif
 	}
 	pthread_mutex_unlock(ThreadLock);
 }
