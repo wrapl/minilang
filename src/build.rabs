@@ -681,7 +681,9 @@ end
 if MINILANG_UUID then
 	Objects:put(file("ml_uuid.o"))
 	CFLAGS := old + ["-DML_UUID"]
-	LDFLAGS := old + ["-luuid"]
+	if PLATFORM != "Darwin" then
+		LDFLAGS := old + ["-luuid"]
+	end
 	InstallHeaders:put("ml_uuid.h")
 end
 
