@@ -3580,7 +3580,7 @@ ML_METHOD("scale", MLDecimalT) {
 	return ml_integer(Decimal->Scale);
 }
 
-#ifdef Android
+#if defined(Android) || defined(Darwin)
 #define exp10(X) pow(10, X)
 #endif
 
