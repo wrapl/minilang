@@ -39,6 +39,15 @@ if PLATFORM != "Wasm" then
 	CFLAGS := old + ["-pthread", "-DGC_THREADS"]
 end
 
+if PLATFORM = "Darwin" then
+	with Info := json::decode(shell("brew info --json icu4c")) do
+		let Name := Info["name"]
+		CFLAGS := old + '-I/opt/homebrew/opt/{Name}/include'
+		CXXFLAGS := old + '-I/opt/homebrew/opt/{Name}/include'
+		LDFLAGS := old + '-L/opt/homebrew/opt/{Name}/lib'
+	end
+end
+
 if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
 end
