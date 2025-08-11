@@ -90,7 +90,7 @@ c_library := fun(Library, Objects, Libraries) do
 		Script:write('SAVE\nEND\n')
 		Script:close
 		execute('ar', '-M < {Library:basename}.ar')
-		Relative or execute('cp', Library, Library:basename)
+		Relative or execute('cp', Library:basename, Library)
 	end
 end
 
