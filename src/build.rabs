@@ -695,7 +695,6 @@ end
 if MINILANG_MINIJS then
 	Objects:put(file("ml_minijs.o"))
 	CFLAGS := old + ["-DML_MINIJS"]
-	LDFLAGS := old + ["-ljansson"]
 	InstallHeaders:put("ml_minijs.h")
 end
 
