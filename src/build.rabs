@@ -41,7 +41,7 @@ end
 
 if PLATFORM = "Darwin" then
 	with Info := json::decode(shell("brew info --json icu4c")) do
-		let Name := Info["name"]
+		let Name := Info[1]["name"]
 		CFLAGS := old + '-I/opt/homebrew/opt/{Name}/include'
 		CXXFLAGS := old + '-I/opt/homebrew/opt/{Name}/include'
 		LDFLAGS := old + '-L/opt/homebrew/opt/{Name}/lib'
