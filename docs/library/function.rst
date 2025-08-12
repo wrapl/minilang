@@ -123,6 +123,10 @@ function
    *TBD*
 
 
+:mini:`meth (Arg₁: function::partial) <> (Arg₂: function::partial)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: function::partial)[...]`
    *TBD*
 
@@ -136,6 +140,10 @@ function
 
 
 :mini:`type function::value < function`
+   *TBD*
+
+
+:mini:`meth (Arg₁: function::value) <> (Arg₂: function::value)`
    *TBD*
 
 

@@ -43,6 +43,10 @@ sequence
       F(10) :> 121
 
 
+:mini:`meth (Arg₁: chained) <> (Arg₂: chained)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: chained)[...]`
    *TBD*
 
