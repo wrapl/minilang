@@ -561,7 +561,7 @@ if MINILANG_BACKTRACE then
 	end
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ['-I{file("libbacktrace")}']
-	LDFLAGS := old + [Lib]
+	Libraries:put(Lib)
 end
 
 if MINILANG_LIBRARY then
