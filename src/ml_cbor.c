@@ -177,6 +177,10 @@ void *ml_cbor_reader_get_setting(ml_cbor_reader_t *Reader, int Setting) {
 	return Setting < Reader->NumSettings ? Reader->Settings[Setting] : NULL;
 }
 
+void ml_cbor_reader_set_classtable(ml_cbor_reader_t *Reader, ml_class_table_t *ClassTable) {
+	Reader->ClassTable = ClassTable;
+}
+
 static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
 	int Index = Reader->NumReused++;
 	if (Index == Reader->MaxReused) {

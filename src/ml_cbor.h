@@ -46,6 +46,7 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 int ml_cbor_reader_done(ml_cbor_reader_t *Reader);
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader);
 int ml_cbor_reader_extra(ml_cbor_reader_t *Reader);
+void ml_cbor_reader_set_classtable(ml_cbor_reader_t *Reader, ml_class_table_t *ClassTable);
 
 typedef struct {
 	union {
