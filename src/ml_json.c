@@ -910,7 +910,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLJsonT, ml_cbor_writer_t *Writer, ml_str
 	ml_cbor_write_raw(Writer, Value->Value, Value->Length);
 }
 
-static ml_value_t *ml_cbor_read_json(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+static ml_value_t *ml_cbor_read_json(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Json requires bytes or string");
 	ml_value_t *Json = ml_string_copy(ml_address_value(Value), ml_address_length(Value));
 	Json->Type = MLJsonT;

@@ -22,11 +22,11 @@
 
 struct ml_cbor_tag_fns_t {
 	uint64_t *Tags;
-	ml_cbor_tag_fn *Fns;
+	ml_cbor_tag_info_t *Infos;
 	int Count, Space;
 };
 
-ml_cbor_tag_fn ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag) {
+ml_cbor_tag_info_t ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag) {
 	uint64_t *Tags = TagFns->Tags;
 	int Lo = 0, Hi = TagFns->Count - 1;
 	while (Lo <= Hi) {
@@ -36,13 +36,13 @@ ml_cbor_tag_fn ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag) {
 		} else if (Tag > Tags[Mid]) {
 			Lo = Mid + 1;
 		} else {
-			return TagFns->Fns[Mid];
+			return TagFns->Infos[Mid];
 		}
 	}
-	return NULL;
+	return (ml_cbor_tag_info_t){NULL, NULL};
 }
 
-void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn) {
+void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn, ml_cbor_tag_data_fn DataFn) {
 	uint64_t *Tags = TagFns->Tags;
 	int Lo = 0, Hi = TagFns->Count - 1;
 	while (Lo <= Hi) {
@@ -52,26 +52,26 @@ void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn 
 		} else if (Tag > Tags[Mid]) {
 			Lo = Mid + 1;
 		} else {
-			TagFns->Fns[Mid] = Fn;
+			TagFns->Infos[Mid] = (ml_cbor_tag_info_t){Fn, DataFn};
 			return;
 		}
 	}
-	ml_cbor_tag_fn *Fns = TagFns->Fns;
+	ml_cbor_tag_info_t *Infos = TagFns->Infos;
 	int Move = TagFns->Count - Lo;
 	if (--TagFns->Space >= 0) {
 		memmove(Tags + Lo + 1, Tags + Lo, Move * sizeof(uint64_t));
 		Tags[Lo] = Tag;
-		memmove(Fns + Lo + 1, Fns + Lo, Move * sizeof(ml_cbor_tag_fn));
-		Fns[Lo] = Fn;
+		memmove(Infos + Lo + 1, Infos + Lo, Move * sizeof(ml_cbor_tag_info_t));
+		Infos[Lo] = (ml_cbor_tag_info_t){Fn, DataFn};
 	} else {
 		uint64_t *Tags2 = TagFns->Tags = anew(uint64_t, TagFns->Count + 8);
 		memcpy(Tags2, Tags, Lo * sizeof(uint64_t));
 		memcpy(Tags2 + Lo + 1, Tags + Lo, Move * sizeof(uint64_t));
 		Tags2[Lo] = Tag;
-		ml_cbor_tag_fn *Fns2 = TagFns->Fns = anew(ml_cbor_tag_fn, TagFns->Count + 8);
-		memcpy(Fns2, Fns, Lo * sizeof(ml_cbor_tag_fn));
-		memcpy(Fns2 + Lo + 1, Fns + Lo, Move * sizeof(ml_cbor_tag_fn));
-		Fns2[Lo] = Fn;
+		ml_cbor_tag_info_t *Infos2 = TagFns->Infos = anew(ml_cbor_tag_info_t, TagFns->Count + 8);
+		memcpy(Infos2, Infos, Lo * sizeof(ml_cbor_tag_info_t));
+		memcpy(Infos2 + Lo + 1, Infos + Lo, Move * sizeof(ml_cbor_tag_info_t));
+		Infos2[Lo] = (ml_cbor_tag_info_t){Fn, DataFn};
 		TagFns->Space += 8;
 	}
 	++TagFns->Count;
@@ -84,15 +84,19 @@ ml_cbor_tag_fns_t *ml_cbor_tag_fns_copy(ml_cbor_tag_fns_t *TagFns) {
 	int Size = Count + Space;
 	uint64_t *Tags = Copy->Tags = anew(uint64_t, Size);
 	memcpy(Tags, TagFns->Tags, Count * sizeof(uint64_t));
-	ml_cbor_tag_fn *Fns = Copy->Fns = anew(ml_cbor_tag_fn, Size);
-	memcpy(Fns, TagFns->Fns, Count * sizeof(ml_cbor_tag_fn));
+	ml_cbor_tag_info_t *Infos = Copy->Infos = anew(ml_cbor_tag_info_t, Size);
+	memcpy(Infos, TagFns->Infos, Count * sizeof(ml_cbor_tag_info_t));
 	return Copy;
 }
 
 static ml_cbor_tag_fns_t DefaultTagFns[1] = {{NULL, NULL, 0, 0}};
 
 void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn Fn) {
-	ml_cbor_tag_fn_set(DefaultTagFns, Tag, Fn);
+	ml_cbor_tag_fn_set(DefaultTagFns, Tag, Fn, NULL);
+}
+
+void ml_cbor_default_tag2(uint64_t Tag, ml_cbor_tag_fn Fn, ml_cbor_tag_data_fn DataFn) {
+	ml_cbor_tag_fn_set(DefaultTagFns, Tag, Fn, DataFn);
 }
 
 ml_cbor_tag_fns_t *ml_cbor_tag_fns(int Default) {
@@ -118,7 +122,7 @@ typedef struct ml_cbor_reader_tag_t ml_cbor_reader_tag_t;
 struct ml_cbor_reader_tag_t {
 	ml_cbor_reader_tag_t *Prev;
 	ml_cbor_tag_fn Handler;
-	int Index;
+	void *Data;
 };
 
 struct ml_cbor_reader_t {
@@ -136,6 +140,11 @@ struct ml_cbor_reader_t {
 	int NumSettings;
 	void *Settings[];
 };
+
+typedef struct {
+	ml_value_t **Reused;
+	int NumReused, MaxReused;
+} sharedref_namespace_t;
 
 static int NumCborSettings = 0;
 
@@ -181,15 +190,6 @@ void ml_cbor_reader_set_classtable(ml_cbor_reader_t *Reader, ml_class_table_t *C
 	Reader->ClassTable = ClassTable;
 }
 
-static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
-	int Index = Reader->NumReused++;
-	if (Index == Reader->MaxReused) {
-		Reader->MaxReused = Reader->MaxReused + 8;
-		Reader->Reused = GC_realloc(Reader->Reused, Reader->MaxReused * sizeof(ml_value_t *));
-	}
-	return Index;
-}
-
 int ml_cbor_reader_done(ml_cbor_reader_t *Reader) {
 	return Reader->Value != NULL;
 }
@@ -203,11 +203,24 @@ int ml_cbor_reader_extra(ml_cbor_reader_t *Reader) {
 	return Reader->Stream->Available;
 }
 
-ml_value_t *ml_cbor_mark_reused(ml_cbor_reader_t *Reader, ml_value_t *Value) {
-	return ml_error("CBORError", "Mark reused should not be called");
+static void *ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
+	int Index = Reader->NumReused++;
+	if (Index == Reader->MaxReused) {
+		Reader->MaxReused = Reader->MaxReused + 8;
+		Reader->Reused = GC_realloc(Reader->Reused, Reader->MaxReused * sizeof(ml_value_t *));
+	}
+	return (void *)(intptr_t)Index;
 }
 
-ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_mark_reused(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
+	int Index = (intptr_t)Data;
+	ml_value_t *Uninitialized = Reader->Reused[Index];
+	if (Uninitialized) ml_uninitialized_set(Uninitialized, Value);
+	Reader->Reused[Index] = Value;
+	return Value;
+}
+
+ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (ml_is(Value, MLIntegerT)) {
 		int Index = ml_integer_value(Value);
 		if (Index < 0 || Index >= Reader->NumReused) {
@@ -225,6 +238,14 @@ ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	} else {
 		return ml_error("CBORError", "Invalid previous index");
 	}
+}
+
+ml_value_t *ml_cbor_sharedref_namespace(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
+	sharedref_namespace_t *Namespace = (sharedref_namespace_t *)Data;
+	Reader->Reused = Namespace->Reused;
+	Reader->MaxReused = Namespace->MaxReused;
+	Reader->NumReused = Namespace->NumReused;
+	return Value;
 }
 
 static ml_cbor_reader_collection_t *collection_push(ml_cbor_reader_t *Reader) {
@@ -263,17 +284,11 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (Tags) {
 		ml_cbor_reader_tag_t *Tag = Tags;
 		for (;;) {
-			if (Tag->Handler == ml_cbor_mark_reused) {
-				ml_value_t *Uninitialized = Reader->Reused[Tag->Index];
-				if (Uninitialized) ml_uninitialized_set(Uninitialized, Value);
-				Reader->Reused[Tag->Index] = Value;
-			} else {
-				Value = Tag->Handler(Reader, Value);
-				if (ml_is_error(Value)) {
-					Reader->Value = Value;
-					Reader->Stream->State = MCS_FINISHED;
-					return;
-				}
+			Value = Tag->Handler(Reader, Value, Tag->Data);
+			if (ml_is_error(Value)) {
+				Reader->Value = Value;
+				Reader->Stream->State = MCS_FINISHED;
+				return;
 			}
 			if (!Tag->Prev) break;
 			Tag = Tag->Prev;
@@ -352,14 +367,30 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 			}
 			break;
 		case MCE_TAG: {
-			ml_cbor_tag_fn Handler = ml_cbor_tag_fn_get(Reader->TagFns, Stream->Tag);
-			if (Handler) {
+			ml_cbor_tag_info_t Info = ml_cbor_tag_fn_get(Reader->TagFns, Stream->Tag);
+			if (Info.Fn) {
 				ml_cbor_reader_tag_t *Tag = Reader->FreeTag;
 				if (Tag) Reader->FreeTag = Tag->Prev; else Tag = new(ml_cbor_reader_tag_t);
 				Tag->Prev = Reader->Tags;
-				Tag->Handler = Handler;
-				// TODO: Reimplement this without hard-coding tag ML_CBOR_TAG_MARK_REUSED
-				if (Stream->Tag == ML_CBOR_TAG_MARK_REUSED) Tag->Index = ml_cbor_reader_next_index(Reader);
+				Tag->Handler = Info.Fn;
+				if (Info.DataFn) Tag->Data = Info.DataFn(Reader);
+				/*switch (Stream->Tag) {
+				case ML_CBOR_TAG_MARK_REUSED:
+					Tag->Data = (void *)(intptr_t)ml_cbor_reader_next_index(Reader);
+					break;
+				case ML_CBOR_TAG_STRINGREF_NAMESPACE:
+					break;
+				case ML_CBOR_TAG_SHAREDREF_NAMESPACE: {
+					sharedref_namespace_t *Namespace = new(sharedref_namespace_t);
+					Namespace->Reused = Reader->Reused;
+					Namespace->MaxReused = Reader->MaxReused;
+					Namespace->NumReused = Reader->NumReused;
+					Reader->Reused = NULL;
+					Reader->MaxReused = Reader->NumReused = 0;
+					Tag->Data = Namespace;
+					break;
+				}
+				}*/
 				Reader->Tags = Tag;
 			}
 			break;
@@ -1072,7 +1103,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLRealIntervalT, ml_cbor_writer_t *Writer
 #include <complex.h>
 #undef I
 
-ml_value_t *ml_cbor_read_complex(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_complex(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Complex requires list");
 	if (ml_list_length(Value) != 2) return ml_error("TagError", "Complex requires 2 values");
 	return ml_complex(ml_real_value(ml_list_get(Value, 1)) + ml_real_value(ml_list_get(Value, 2)) * _Complex_I);
@@ -1120,7 +1151,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLInteger64T, ml_cbor_writer_t *Writer, m
 	}
 }
 
-ml_value_t *ml_cbor_read_unsigned_bigint(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_unsigned_bigint(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Bigint requires bytes");
 	mpz_t Import;
 	mpz_init(Import);
@@ -1128,7 +1159,7 @@ ml_value_t *ml_cbor_read_unsigned_bigint(ml_cbor_reader_t *Reader, ml_value_t *V
 	return ml_integer_mpz(Import);
 }
 
-ml_value_t *ml_cbor_read_negative_bigint(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_negative_bigint(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Bigint requires bytes");
 	mpz_t Import;
 	mpz_init(Import);
@@ -1141,7 +1172,7 @@ ml_value_t *ml_cbor_read_negative_bigint(ml_cbor_reader_t *Reader, ml_value_t *V
 
 #ifdef ML_DECIMAL
 
-ml_value_t *ml_cbor_read_decimal(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_decimal(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Decimal requires list");
 	if (ml_list_length(Value) != 2) return ml_error("TagError", "Decimal requires 2 values");
 	ml_value_t *Unscaled = ml_list_get(Value, 2);
@@ -1453,17 +1484,17 @@ ML_METHODV(CborEncode, MLAnyT) {
 	}
 }
 
-ml_value_t *ml_cbor_read_regex(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_regex(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLStringT)) return ml_error("TagError", "Regex requires string");
 	return ml_regex(ml_string_value(Value), ml_string_length(Value));
 }
 
-ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLStringT)) return ml_error("TagError", "Method requires string");
 	return ml_method(ml_string_value(Value));
 }
 
-ml_value_t *ml_cbor_read_blank(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_blank(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (Value != MLNil) return ml_error("TagError", "Blank requires nil");
 	return MLBlank;
 }
@@ -1504,7 +1535,7 @@ static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml
 
 static stringmap_t CborObjectTypes[1] = {STRINGMAP_INIT};
 
-ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Object requires list");
 	int Count = ml_list_length(Value);
 	if (!Count) return ml_error("CBORError", "Object tag requires type name");
@@ -1556,8 +1587,9 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_IDENTIFIER, ml_cbor_read_method);
 	ml_cbor_default_tag(ML_CBOR_TAG_ABSENT_VALUE, ml_cbor_read_blank);
 	ml_cbor_default_tag(ML_CBOR_TAG_OBJECT, ml_cbor_read_object);
-	ml_cbor_default_tag(ML_CBOR_TAG_MARK_REUSED, ml_cbor_mark_reused);
+	ml_cbor_default_tag2(ML_CBOR_TAG_MARK_REUSED, ml_cbor_mark_reused, ml_cbor_reader_next_index);
 	ml_cbor_default_tag(ML_CBOR_TAG_USE_PREVIOUS, ml_cbor_use_previous);
+	ml_cbor_default_tag(ML_CBOR_TAG_SHAREDREF_NAMESPACE, ml_cbor_sharedref_namespace);
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",

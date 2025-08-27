@@ -8390,7 +8390,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer, ml_ar
 	}
 }
 
-static ml_value_t *ml_cbor_read_multi_array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+static ml_value_t *ml_cbor_read_multi_array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Array requires list");
 	if (ml_list_length(Value) != 2) return ml_error("CborError", "Invalid multi-dimensional array");
 	ml_value_t *Dimensions = ml_list_get(Value, 1);
@@ -8425,7 +8425,7 @@ static ml_value_t *ml_cbor_read_typed_array_fn(ml_value_t *Value, ml_array_forma
 }
 
 #define ML_CBOR_READ_TYPED_ARRAY(TYPE, FORMAT) \
-static ml_value_t *ml_cbor_read_ ## TYPE ## _array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) { \
+static ml_value_t *ml_cbor_read_ ## TYPE ## _array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) { \
 	return ml_cbor_read_typed_array_fn(Value, ML_ARRAY_FORMAT_ ## FORMAT); \
 }
 
@@ -8440,7 +8440,7 @@ ML_CBOR_READ_TYPED_ARRAY(int64, I64)
 ML_CBOR_READ_TYPED_ARRAY(float32, F32)
 ML_CBOR_READ_TYPED_ARRAY(float64, F64)
 
-static ml_value_t *ml_cbor_read_any_array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+static ml_value_t *ml_cbor_read_any_array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Array requires list");
 	size_t Size = ml_list_length(Value);
 	ml_array_t *Array = ml_array_alloc(ML_ARRAY_FORMAT_ANY, 1);

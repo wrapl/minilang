@@ -248,7 +248,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_cbor_writer_t *Writer, ml_uui
 	ml_cbor_write_raw(Writer, UUID->Value, 16);
 }
 
-static ml_value_t *ml_cbor_read_uuid_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+static ml_value_t *ml_cbor_read_uuid_fn(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "UUID requires string");
 	if (ml_string_length(Value) != 16) return ml_error("TagError", "UUID requires 16 bytes");
 	return ml_uuid((unsigned char *)ml_string_value(Value));

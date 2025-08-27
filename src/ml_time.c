@@ -1029,7 +1029,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_tim
 	ml_cbor_write_raw(Writer, (const unsigned char *)Buffer, Length);
 }
 
-static ml_value_t *ml_cbor_read_time_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+static ml_value_t *ml_cbor_read_time_fn(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (ml_is(Value, MLNumberT)) {
 		ml_time_t *Time = new(ml_time_t);
 		Time->Type = MLTimeT;
