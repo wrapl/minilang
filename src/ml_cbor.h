@@ -121,9 +121,10 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, m
 #define ML_CBOR_TAG_UNSIGNED_BIGNUM 2
 #define ML_CBOR_TAG_NEGATIVE_BIGNUM 3
 #define ML_CBOR_TAG_DECIMAL_FRACTION 4
+#define ML_CBOR_TAG_STRINGREF 25
 #define ML_CBOR_TAG_OBJECT 27
-#define ML_CBOR_TAG_MARK_REUSED 28
-#define ML_CBOR_TAG_USE_PREVIOUS 29
+#define ML_CBOR_TAG_SHAREABLE 28
+#define ML_CBOR_TAG_SHAREDREF 29
 #define ML_CBOR_TAG_ABSENT_VALUE 31
 #define ML_CBOR_TAG_REGEX 35
 #define ML_CBOR_TAG_UUID 37

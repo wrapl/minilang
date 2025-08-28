@@ -240,7 +240,17 @@ ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value, vo
 	}
 }
 
-ml_value_t *ml_cbor_sharedref_namespace(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
+void *ml_cbor_sharedref_namespace(ml_cbor_reader_t *Reader) {
+	sharedref_namespace_t *Namespace = new(sharedref_namespace_t);
+	Namespace->Reused = Reader->Reused;
+	Namespace->MaxReused = Reader->MaxReused;
+	Namespace->NumReused = Reader->NumReused;
+	Reader->Reused = NULL;
+	Reader->MaxReused = Reader->NumReused = 0;
+	return Namespace;
+}
+
+ml_value_t *ml_cbor_restore_namespace(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	sharedref_namespace_t *Namespace = (sharedref_namespace_t *)Data;
 	Reader->Reused = Namespace->Reused;
 	Reader->MaxReused = Namespace->MaxReused;
@@ -374,23 +384,6 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 				Tag->Prev = Reader->Tags;
 				Tag->Handler = Info.Fn;
 				if (Info.DataFn) Tag->Data = Info.DataFn(Reader);
-				/*switch (Stream->Tag) {
-				case ML_CBOR_TAG_MARK_REUSED:
-					Tag->Data = (void *)(intptr_t)ml_cbor_reader_next_index(Reader);
-					break;
-				case ML_CBOR_TAG_STRINGREF_NAMESPACE:
-					break;
-				case ML_CBOR_TAG_SHAREDREF_NAMESPACE: {
-					sharedref_namespace_t *Namespace = new(sharedref_namespace_t);
-					Namespace->Reused = Reader->Reused;
-					Namespace->MaxReused = Reader->MaxReused;
-					Namespace->NumReused = Reader->NumReused;
-					Reader->Reused = NULL;
-					Reader->MaxReused = Reader->NumReused = 0;
-					Tag->Data = Namespace;
-					break;
-				}
-				}*/
 				Reader->Tags = Tag;
 			}
 			break;
@@ -835,17 +828,17 @@ void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	if (Result.Present) {
 		if (Result.Value) {
 			int Index = (uintptr_t)Result.Value - 1;
-			minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
+			minicbor_write_tag(Writer, ML_CBOR_TAG_SHAREDREF);
 			minicbor_write_integer(Writer, Index);
 			return;
 		}
 		int Index = ++Writer->Index;
 		inthash_insert(Writer->Reused, (uintptr_t)Value, (void *)(uintptr_t)Index);
-		minicbor_write_tag(Writer, ML_CBOR_TAG_MARK_REUSED);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_SHAREABLE);
 	}
 	const char *Name = ml_externals_get_name(Writer->Externals, Value);
 	if (Name) {
-		minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_SHAREDREF);
 		size_t Length = strlen(Name);
 		minicbor_write_string(Writer, Length);
 		Writer->WriteFn(Writer->Data, (const unsigned char *)Name, Length);
@@ -985,11 +978,11 @@ static void ML_TYPED_FN(ml_cbor_write, MLMapT, ml_cbor_writer_t *Writer, ml_valu
 					uintptr_t *Slot = (uintptr_t *)stringmap_slot(Writer->ReusedKeys, Key);
 					int Index = Slot[0];
 					if (Index) {
-						minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
+						minicbor_write_tag(Writer, ML_CBOR_TAG_SHAREDREF);
 						minicbor_write_integer(Writer, Index - 1);
 					} else {
 						Index = Slot[0] = ++Writer->Index;
-						minicbor_write_tag(Writer, ML_CBOR_TAG_MARK_REUSED);
+						minicbor_write_tag(Writer, ML_CBOR_TAG_SHAREABLE);
 						minicbor_write_string(Writer, Length);
 						Writer->WriteFn(Writer->Data, (unsigned char *)Key, Length);
 					}
@@ -1221,7 +1214,7 @@ static ml_value_t *ml_cbor_object_decimal(ml_cbor_reader_t *Reader, int Count, m
 #endif
 
 static void ML_TYPED_FN(ml_cbor_write, MLExternalT, ml_cbor_writer_t *Writer, ml_external_t *Arg) {
-	minicbor_write_tag(Writer, ML_CBOR_TAG_USE_PREVIOUS);
+	minicbor_write_tag(Writer, ML_CBOR_TAG_SHAREDREF);
 	minicbor_write_string(Writer, Arg->Length);
 	Writer->WriteFn(Writer->Data, (unsigned const char *)Arg->Name, Arg->Length);
 }
@@ -1566,6 +1559,40 @@ void ml_cbor_default_object(const char *Name, ml_cbor_object_fn Fn) {
 	stringmap_insert(CborObjectTypes, Name, Fn);
 }
 
+ML_ENUM2(CborTagsT, "cbor::tags",
+	"TimeString", 0,
+	"TimeEpoch", 1,
+	"UnsignedBignum", 2,
+	"NegativeBignum", 3,
+	"DecimalFraction", 4,
+	"StringRef", 25,
+	"Object", 27,
+	"Shareable", 28,
+	"SharedRef", 29,
+	"AbsentValue", 31,
+	"Regex", 35,
+	"UUID", 37,
+	"Identifier", 39,
+	"MultiArray", 40,
+	"ArrayAny", 41,
+	"ArrayUint8", 64,
+	"ArrayUint16LE", 69,
+	"ArrayUint32LE", 70,
+	"ArrayUint64LE", 71,
+	"ArrayInt8", 72,
+	"ArrayInt16LE", 77,
+	"ArrayInt32LE", 78,
+	"ArrayInt64LE", 79,
+	"ArrayFloat32LE", 85,
+	"ArrayFloat64LE", 86,
+	"StringRefNamespace", 256,
+	"FiniteSet", 258,
+	"EmbeddedJSON", 262,
+	"SharedRefNamespace", 296,
+	"Complex", 43000,
+	"ComplexArray", 43001
+);
+
 void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_object("some", ml_cbor_object_some);
 	ml_cbor_default_object("tuple", ml_cbor_object_tuple);
@@ -1587,9 +1614,9 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(ML_CBOR_TAG_IDENTIFIER, ml_cbor_read_method);
 	ml_cbor_default_tag(ML_CBOR_TAG_ABSENT_VALUE, ml_cbor_read_blank);
 	ml_cbor_default_tag(ML_CBOR_TAG_OBJECT, ml_cbor_read_object);
-	ml_cbor_default_tag2(ML_CBOR_TAG_MARK_REUSED, ml_cbor_mark_reused, ml_cbor_reader_next_index);
-	ml_cbor_default_tag(ML_CBOR_TAG_USE_PREVIOUS, ml_cbor_use_previous);
-	ml_cbor_default_tag(ML_CBOR_TAG_SHAREDREF_NAMESPACE, ml_cbor_sharedref_namespace);
+	ml_cbor_default_tag2(ML_CBOR_TAG_SHAREABLE, ml_cbor_mark_reused, ml_cbor_reader_next_index);
+	ml_cbor_default_tag(ML_CBOR_TAG_SHAREDREF, ml_cbor_use_previous);
+	ml_cbor_default_tag2(ML_CBOR_TAG_SHAREDREF_NAMESPACE, ml_cbor_restore_namespace, ml_cbor_sharedref_namespace);
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
@@ -1598,6 +1625,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 			"decode", CborDecode,
 			"decoder", MLCborDecoderT,
 			"tag", CborTagT,
+			"tags", CborTagsT,
 			"write_integer", CborWriteInteger,
 			"write_positive", CborWritePositive,
 			"write_negative", CborWriteNegative,
