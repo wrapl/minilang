@@ -13,7 +13,15 @@ xml
    Returns :mini:`String` parsed into an XML node.
 
 
+:mini:`meth xml::parse(String: address, Arg₂: xml::flags): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
 :mini:`meth xml::parse(Stream: stream): xml`
+   Returns the contents of :mini:`Stream` parsed into an XML node.
+
+
+:mini:`meth xml::parse(Stream: stream, Arg₂: xml::flags): xml`
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
@@ -47,7 +55,15 @@ xml
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
+:mini:`meth xml(Stream: stream, Arg₂: xml::flags): xml`
+   Returns the contents of :mini:`Stream` parsed into an XML node.
+
+
 :mini:`meth xml(String: string): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
+:mini:`meth xml(String: string, Arg₂: xml::flags): xml`
    Returns :mini:`String` parsed into an XML node.
 
 
@@ -389,6 +405,11 @@ xml
 
 :mini:`meth xml::filter(Tag: string, Attr₁ is Value₁, ...): xml::filter`
    Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attrᵢ = Valueᵢ`.
+
+
+:mini:`type xml::flags < flags`
+   * :mini:`::NoText`
+   * :mini:`::Trim`
 
 
 :mini:`type xml::parser < stream`

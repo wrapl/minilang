@@ -222,6 +222,10 @@ ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array
 	return Array;
 }
 
+ml_array_t *ml_table_insert(ml_value_t *Table, const char *Name, ml_array_t *Source) {
+	return ml_table_insert_column((ml_table_t *)Table, Name, Source);
+}
+
 ml_value_t *ml_table() {
 	ml_table_t *Table = new(ml_table_t);
 	Table->Type = MLTableT;

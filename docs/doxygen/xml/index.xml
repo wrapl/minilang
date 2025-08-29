@@ -68,6 +68,10 @@
     <member refid="structml__cbor__t_1aedf38f1750ca631ccbb311d9868711fa" kind="variable"><name></name></member>
     <member refid="structml__cbor__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" kind="variable"><name>Length</name></member>
   </compound>
+  <compound refid="structml__cbor__tag__info__t" kind="struct"><name>ml_cbor_tag_info_t</name>
+    <member refid="structml__cbor__tag__info__t_1ac99b79d590512f4cab9f406833b39fcc" kind="variable"><name>Fn</name></member>
+    <member refid="structml__cbor__tag__info__t_1a6841f7aec8eb81da18c7cd6a671e5e74" kind="variable"><name>DataFn</name></member>
+  </compound>
   <compound refid="structml__cfunction__t" kind="struct"><name>ml_cfunction_t</name>
     <member refid="structml__cfunction__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
     <member refid="structml__cfunction__t_1a1f66a51f645147e3a2043bc8aa8ff76a" kind="variable"><name>Callback</name></member>
@@ -815,9 +819,10 @@
     <member refid="group__cbor_1ga635f5f01305184c495ebf5e7ac67e7aa" kind="define"><name>ML_CBOR_TAG_UNSIGNED_BIGNUM</name></member>
     <member refid="group__cbor_1ga850f1eaa18dea5bdf8e1ac25819c384b" kind="define"><name>ML_CBOR_TAG_NEGATIVE_BIGNUM</name></member>
     <member refid="group__cbor_1ga732377e678b9adf2bfda87ded5bf301f" kind="define"><name>ML_CBOR_TAG_DECIMAL_FRACTION</name></member>
+    <member refid="group__cbor_1ga56a9a7f0e37a264345e3de0a88c2ed9a" kind="define"><name>ML_CBOR_TAG_STRINGREF</name></member>
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
-    <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
-    <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+    <member refid="group__cbor_1gad0beaea339ee05bc9b785d3ee4fc0bf6" kind="define"><name>ML_CBOR_TAG_SHAREABLE</name></member>
+    <member refid="group__cbor_1ga9fba6c164c0f9e4fb20b1614eb0791f9" kind="define"><name>ML_CBOR_TAG_SHAREDREF</name></member>
     <member refid="group__cbor_1ga466ddd9144af494098c164ea97fa5f56" kind="define"><name>ML_CBOR_TAG_ABSENT_VALUE</name></member>
     <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
     <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
@@ -834,12 +839,15 @@
     <member refid="group__cbor_1ga2dc366c6ae887cb821e7983471486625" kind="define"><name>ML_CBOR_TAG_ARRAY_INT64_LE</name></member>
     <member refid="group__cbor_1gaf98e5c8e177d600bc5928e7c17306952" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT32_LE</name></member>
     <member refid="group__cbor_1gac52cb1c1a502ea091f5e6e3c8ec365bf" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT64_LE</name></member>
+    <member refid="group__cbor_1ga9b8d714547eb4e7d3add2a452a013d7d" kind="define"><name>ML_CBOR_TAG_STRINGREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gac5ec85003926cfc97499d360b355e860" kind="define"><name>ML_CBOR_TAG_FINITE_SET</name></member>
     <member refid="group__cbor_1ga3eceae59d2801f4ac001004e4841edd7" kind="define"><name>ML_CBOR_TAG_EMBEDDED_JSON</name></member>
+    <member refid="group__cbor_1gaefcf25df4ceff2f2d30d5e13f181364d" kind="define"><name>ML_CBOR_TAG_SHAREDREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gabdce4b6c792a8feb77e2564f4a62e435" kind="define"><name>ML_CBOR_TAG_COMPLEX</name></member>
     <member refid="group__cbor_1ga5456f51b3c2664a7618b7e9deb6c8d9d" kind="define"><name>ML_CBOR_TAG_COMPLEX_ARRAY</name></member>
     <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
-    <member refid="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" kind="typedef"><name>ml_cbor_tag_fn</name></member>
+    <member refid="group__cbor_1ga7a2d333954617a3a2e63aae94e38ba52" kind="typedef"><name>ml_cbor_tag_data_fn</name></member>
+    <member refid="group__cbor_1gae8becce2e05c6b5a0fb5523baf8354c2" kind="typedef"><name>ml_cbor_tag_fn</name></member>
     <member refid="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" kind="typedef"><name>ml_cbor_tag_fns_t</name></member>
     <member refid="group__cbor_1gab6177e86c49fa67c1fec09ccf3ec0e6e" kind="typedef"><name>ml_cbor_object_fn</name></member>
     <member refid="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" kind="typedef"><name>ml_external_fn_t</name></member>
@@ -849,9 +857,10 @@
     <member refid="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" kind="function"><name>ml_cbor_setting</name></member>
     <member refid="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" kind="function"><name>ml_cbor_tag_fns</name></member>
     <member refid="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" kind="function"><name>ml_cbor_tag_fns_copy</name></member>
-    <member refid="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" kind="function"><name>ml_cbor_tag_fn_get</name></member>
-    <member refid="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" kind="function"><name>ml_cbor_tag_fn_set</name></member>
+    <member refid="group__cbor_1gaf0966adde0da8ad3882359aa5fe96de5" kind="function"><name>ml_cbor_tag_fn_get</name></member>
+    <member refid="group__cbor_1ga0594dab8da592fc94574ddbdec9e7d5d" kind="function"><name>ml_cbor_tag_fn_set</name></member>
     <member refid="group__cbor_1ga056bac65f9e6d3584cec1b302fe41cc9" kind="function"><name>ml_cbor_default_tag</name></member>
+    <member refid="group__cbor_1ga9cd677f72ea0cfcc6a0c70e363dd12e8" kind="function"><name>ml_cbor_default_tag2</name></member>
     <member refid="group__cbor_1ga0731346fd6ade363da69269de78ea66d" kind="function"><name>ml_cbor_default_global</name></member>
     <member refid="group__cbor_1ga508e4d6e62acb4cfd930962ce683bc06" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" kind="function"><name>ml_cbor_reader</name></member>
@@ -862,6 +871,7 @@
     <member refid="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" kind="function"><name>ml_cbor_reader_done</name></member>
     <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
+    <member refid="group__cbor_1gac671f6253d1521f6a339ad03f8bda0d8" kind="function"><name>ml_cbor_reader_set_classtable</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
     <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
     <member refid="group__cbor_1ga8a2684b2d4d77c018c4f0caaf0365bce" kind="function"><name>ml_cbor_writer_set_flags</name></member>
@@ -1658,7 +1668,7 @@
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
     <member refid="ml__table_8h_1aa512afd5fdc32098418ee5eb16394749" kind="function"><name>ml_table_init</name></member>
     <member refid="ml__table_8h_1a0103ddcc02153f410f646c90dfa8c2ff" kind="function"><name>ml_table</name></member>
-    <member refid="ml__table_8h_1a3476df0fc4189c417c7a87ec43971d74" kind="function"><name>ml_table_insert</name></member>
+    <member refid="ml__table_8h_1a56d29b61ea4603662a8a4bb9745b4879" kind="function"><name>ml_table_insert</name></member>
     <member refid="ml__table_8h_1a2edd7588e6c703f4809ceb8d53c6679f" kind="function"><name>ml_table_columns</name></member>
   </compound>
   <compound refid="ml__tasks_8h" kind="file"><name>ml_tasks.h</name>
@@ -2132,7 +2142,8 @@
   </compound>
   <compound refid="group__cbor" kind="group"><name>cbor</name>
     <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
-    <member refid="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" kind="typedef"><name>ml_cbor_tag_fn</name></member>
+    <member refid="group__cbor_1ga7a2d333954617a3a2e63aae94e38ba52" kind="typedef"><name>ml_cbor_tag_data_fn</name></member>
+    <member refid="group__cbor_1gae8becce2e05c6b5a0fb5523baf8354c2" kind="typedef"><name>ml_cbor_tag_fn</name></member>
     <member refid="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" kind="typedef"><name>ml_cbor_tag_fns_t</name></member>
     <member refid="group__cbor_1gab6177e86c49fa67c1fec09ccf3ec0e6e" kind="typedef"><name>ml_cbor_object_fn</name></member>
     <member refid="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" kind="typedef"><name>ml_external_fn_t</name></member>
@@ -2142,9 +2153,10 @@
     <member refid="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" kind="function"><name>ml_cbor_setting</name></member>
     <member refid="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" kind="function"><name>ml_cbor_tag_fns</name></member>
     <member refid="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" kind="function"><name>ml_cbor_tag_fns_copy</name></member>
-    <member refid="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" kind="function"><name>ml_cbor_tag_fn_get</name></member>
-    <member refid="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" kind="function"><name>ml_cbor_tag_fn_set</name></member>
+    <member refid="group__cbor_1gaf0966adde0da8ad3882359aa5fe96de5" kind="function"><name>ml_cbor_tag_fn_get</name></member>
+    <member refid="group__cbor_1ga0594dab8da592fc94574ddbdec9e7d5d" kind="function"><name>ml_cbor_tag_fn_set</name></member>
     <member refid="group__cbor_1ga056bac65f9e6d3584cec1b302fe41cc9" kind="function"><name>ml_cbor_default_tag</name></member>
+    <member refid="group__cbor_1ga9cd677f72ea0cfcc6a0c70e363dd12e8" kind="function"><name>ml_cbor_default_tag2</name></member>
     <member refid="group__cbor_1ga0731346fd6ade363da69269de78ea66d" kind="function"><name>ml_cbor_default_global</name></member>
     <member refid="group__cbor_1ga508e4d6e62acb4cfd930962ce683bc06" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" kind="function"><name>ml_cbor_reader</name></member>
@@ -2155,6 +2167,7 @@
     <member refid="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" kind="function"><name>ml_cbor_reader_done</name></member>
     <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
+    <member refid="group__cbor_1gac671f6253d1521f6a339ad03f8bda0d8" kind="function"><name>ml_cbor_reader_set_classtable</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
     <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
     <member refid="group__cbor_1ga8a2684b2d4d77c018c4f0caaf0365bce" kind="function"><name>ml_cbor_writer_set_flags</name></member>
@@ -2198,9 +2211,10 @@
     <member refid="group__cbor_1ga635f5f01305184c495ebf5e7ac67e7aa" kind="define"><name>ML_CBOR_TAG_UNSIGNED_BIGNUM</name></member>
     <member refid="group__cbor_1ga850f1eaa18dea5bdf8e1ac25819c384b" kind="define"><name>ML_CBOR_TAG_NEGATIVE_BIGNUM</name></member>
     <member refid="group__cbor_1ga732377e678b9adf2bfda87ded5bf301f" kind="define"><name>ML_CBOR_TAG_DECIMAL_FRACTION</name></member>
+    <member refid="group__cbor_1ga56a9a7f0e37a264345e3de0a88c2ed9a" kind="define"><name>ML_CBOR_TAG_STRINGREF</name></member>
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
-    <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
-    <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+    <member refid="group__cbor_1gad0beaea339ee05bc9b785d3ee4fc0bf6" kind="define"><name>ML_CBOR_TAG_SHAREABLE</name></member>
+    <member refid="group__cbor_1ga9fba6c164c0f9e4fb20b1614eb0791f9" kind="define"><name>ML_CBOR_TAG_SHAREDREF</name></member>
     <member refid="group__cbor_1ga466ddd9144af494098c164ea97fa5f56" kind="define"><name>ML_CBOR_TAG_ABSENT_VALUE</name></member>
     <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
     <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
@@ -2217,8 +2231,10 @@
     <member refid="group__cbor_1ga2dc366c6ae887cb821e7983471486625" kind="define"><name>ML_CBOR_TAG_ARRAY_INT64_LE</name></member>
     <member refid="group__cbor_1gaf98e5c8e177d600bc5928e7c17306952" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT32_LE</name></member>
     <member refid="group__cbor_1gac52cb1c1a502ea091f5e6e3c8ec365bf" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT64_LE</name></member>
+    <member refid="group__cbor_1ga9b8d714547eb4e7d3add2a452a013d7d" kind="define"><name>ML_CBOR_TAG_STRINGREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gac5ec85003926cfc97499d360b355e860" kind="define"><name>ML_CBOR_TAG_FINITE_SET</name></member>
     <member refid="group__cbor_1ga3eceae59d2801f4ac001004e4841edd7" kind="define"><name>ML_CBOR_TAG_EMBEDDED_JSON</name></member>
+    <member refid="group__cbor_1gaefcf25df4ceff2f2d30d5e13f181364d" kind="define"><name>ML_CBOR_TAG_SHAREDREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gabdce4b6c792a8feb77e2564f4a62e435" kind="define"><name>ML_CBOR_TAG_COMPLEX</name></member>
     <member refid="group__cbor_1ga5456f51b3c2664a7618b7e9deb6c8d9d" kind="define"><name>ML_CBOR_TAG_COMPLEX_ARRAY</name></member>
   </compound>
