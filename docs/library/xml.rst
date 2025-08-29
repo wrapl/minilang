@@ -13,7 +13,15 @@ xml
    Returns :mini:`String` parsed into an XML node.
 
 
+:mini:`meth xml::parse(String: address, Arg₂: xml::flags): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
 :mini:`meth xml::parse(Stream: stream): xml`
+   Returns the contents of :mini:`Stream` parsed into an XML node.
+
+
+:mini:`meth xml::parse(Stream: stream, Arg₂: xml::flags): xml`
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
@@ -47,7 +55,15 @@ xml
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
+:mini:`meth xml(Stream: stream, Arg₂: xml::flags): xml`
+   Returns the contents of :mini:`Stream` parsed into an XML node.
+
+
 :mini:`meth xml(String: string): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
+:mini:`meth xml(String: string, Arg₂: xml::flags): xml`
    Returns :mini:`String` parsed into an XML node.
 
 
@@ -235,6 +251,14 @@ xml
    Returns the parent of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.,  if one exists,  otherwise :mini:`nil`.
 
 
+:mini:`meth (Node: xml):path: string`
+   Returns the path of :mini:`Node` from its root.
+
+
+:mini:`meth (Parent: xml):path(Node: xml): string`
+   Returns the path of :mini:`Node` from :mini:`Parent`.
+
+
 :mini:`meth (Xml: xml):prev: xml | nil`
    Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 
@@ -359,6 +383,18 @@ xml
    Appends a string representation of :mini:`Xml` to :mini:`Buffer`.
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element, Arg₃: nil, Arg₄: xml)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element, Arg₃: xml, Arg₄: nil)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element, Arg₃: xml, Arg₄: xml)`
+   *TBD*
+
+
 :mini:`type xml::filter < function`
    An XML filter.
 
@@ -369,6 +405,11 @@ xml
 
 :mini:`meth xml::filter(Tag: string, Attr₁ is Value₁, ...): xml::filter`
    Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attrᵢ = Valueᵢ`.
+
+
+:mini:`type xml::flags < flags`
+   * :mini:`::NoText`
+   * :mini:`::Trim`
 
 
 :mini:`type xml::parser < stream`

@@ -3,7 +3,7 @@
 #include "ml_macros.h"
 #include <string.h>
 
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 #include <stdatomic.h>
 #endif
 
@@ -26,7 +26,7 @@ struct ml_methods_t {
 	inthash_t Cache[1];
 	inthash_t Definitions[1];
 	inthash_t Methods[1];
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 	volatile atomic_flag Lock[1];
 #endif
 };
@@ -105,7 +105,7 @@ static ml_methods_t MLRootMethods[1] = {{
 	{INTHASH_INIT},
 	{INTHASH_INIT},
 	{INTHASH_INIT}
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 	, {ATOMIC_FLAG_INIT}
 #endif
 }};
@@ -114,7 +114,7 @@ ml_methods_t *ml_methods_context(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodContextT;
 	Methods->Parent = ml_context_get_static(Context, ML_METHODS_INDEX);
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 	Methods->Lock[0] = (atomic_flag)ATOMIC_FLAG_INIT;
 #endif
 	ml_context_set_static(Context, ML_METHODS_INDEX, Methods);
@@ -122,13 +122,13 @@ ml_methods_t *ml_methods_context(ml_context_t *Context) {
 }
 
 static inline void ml_methods_lock(ml_methods_t *Methods) {
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 	while (atomic_flag_test_and_set(Methods->Lock));
 #endif
 }
 
 static inline void ml_methods_unlock(ml_methods_t *Methods) {
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 	atomic_flag_clear(Methods->Lock);
 #endif
 }
@@ -459,7 +459,7 @@ ML_METHODV(MLMethodDefault, MLMethodT) {
 	return ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types);
 }
 
-#ifdef ML_THREADSAFE
+#ifdef ML_THREADS
 
 static volatile atomic_flag MLMethodsLock[1] = {ATOMIC_FLAG_INIT};
 

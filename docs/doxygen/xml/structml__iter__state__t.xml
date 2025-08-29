@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="structml__iter__state__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_iter_state_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="134" column="12" bodyfile="src/ml_runtime.h" bodystart="134" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="136" column="12" bodyfile="src/ml_runtime.h" bodystart="136" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__iter__state__t_1ac647277e3354a19a7cb06829de4ec2cb" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="135" column="12" bodyfile="src/ml_runtime.h" bodystart="135" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="137" column="12" bodyfile="src/ml_runtime.h" bodystart="137" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__iter__state__t_1a77ea04ebbd682128002b5b9dcfd96053" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="136" column="12" bodyfile="src/ml_runtime.h" bodystart="136" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="138" column="12" bodyfile="src/ml_runtime.h" bodystart="138" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -117,7 +117,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_runtime.h" line="133" column="1" bodyfile="src/ml_runtime.h" bodystart="133" bodyend="137"/>
+    <location file="src/ml_runtime.h" line="135" column="1" bodyfile="src/ml_runtime.h" bodystart="135" bodyend="139"/>
     <listofallmembers>
       <member refid="structml__iter__state__t_1a5f6302c7483f44fd65e3e86ef35e8a72" prot="public" virt="non-virtual"><scope>ml_iter_state_t</scope><name>Base</name></member>
       <member refid="structml__iter__state__t_1ac647277e3354a19a7cb06829de4ec2cb" prot="public" virt="non-virtual"><scope>ml_iter_state_t</scope><name>Iter</name></member>

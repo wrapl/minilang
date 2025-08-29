@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.13.2" xml:lang="en-US">
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.14.0" xml:lang="en-US">
   <compound refid="structcoro__stack" kind="struct"><name>coro_stack</name>
     <member refid="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" kind="variable"><name>sptr</name></member>
     <member refid="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" kind="variable"><name>ssze</name></member>
@@ -67,6 +67,10 @@
     <member refid="structml__cbor__t_1aa4ac06fe4d51708f71a9d71eef3896ca" kind="variable"><name>Error</name></member>
     <member refid="structml__cbor__t_1aedf38f1750ca631ccbb311d9868711fa" kind="variable"><name></name></member>
     <member refid="structml__cbor__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" kind="variable"><name>Length</name></member>
+  </compound>
+  <compound refid="structml__cbor__tag__info__t" kind="struct"><name>ml_cbor_tag_info_t</name>
+    <member refid="structml__cbor__tag__info__t_1ac99b79d590512f4cab9f406833b39fcc" kind="variable"><name>Fn</name></member>
+    <member refid="structml__cbor__tag__info__t_1a6841f7aec8eb81da18c7cd6a671e5e74" kind="variable"><name>DataFn</name></member>
   </compound>
   <compound refid="structml__cfunction__t" kind="struct"><name>ml_cfunction_t</name>
     <member refid="structml__cfunction__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
@@ -153,6 +157,10 @@
   <compound refid="structml__double__t" kind="struct"><name>ml_double_t</name>
     <member refid="structml__double__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
     <member refid="structml__double__t_1a7b7e5af44fffe84c91c63ba0781ffdb3" kind="variable"><name>Value</name></member>
+  </compound>
+  <compound refid="structml__enum__value__t" kind="struct"><name>ml_enum_value_t</name>
+    <member refid="structml__enum__value__t_1aae90dcabcb30c6a76304f46c80fa1f96" kind="variable"><name>Base</name></member>
+    <member refid="structml__enum__value__t_1a4b06ede621a18728f74f4c69e9e0e207" kind="variable"><name>Name</name></member>
   </compound>
   <compound refid="structml__external__t" kind="struct"><name>ml_external_t</name>
     <member refid="structml__external__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
@@ -274,10 +282,10 @@
     <member refid="structml__map__node__t_1aa8fead3709bf26701767709a42892325" kind="variable"><name>Next</name></member>
     <member refid="structml__map__node__t_1a8f72553bf41023b172df9d88f5a13435" kind="variable"><name>Prev</name></member>
     <member refid="structml__map__node__t_1aa5b69a66d2c1b452ea43ca50ad7b1983" kind="variable"><name>Key</name></member>
+    <member refid="structml__map__node__t_1a87afd663f0a4b73070f1de58a6e47ceb" kind="variable"><name>Value</name></member>
     <member refid="structml__map__node__t_1af7d5d5218b45b5401cbfba8becc67b43" kind="variable"><name>Left</name></member>
     <member refid="structml__map__node__t_1afb96917b11803f04d4ae20e8bde67f04" kind="variable"><name>Right</name></member>
     <member refid="structml__map__node__t_1a8d55a981b360255bb2128cf7d252f6eb" kind="variable"><name>Map</name></member>
-    <member refid="structml__map__node__t_1a022b24deb82c844e73083ad06165b5bd" kind="variable"><name>Value</name></member>
     <member refid="structml__map__node__t_1a295be8ec098a21a7f81d0932be0d327e" kind="variable"><name>Hash</name></member>
     <member refid="structml__map__node__t_1ac66dbe0e082fd3cc29bc1572a4dccc09" kind="variable"><name>Depth</name></member>
   </compound>
@@ -306,6 +314,7 @@
   </compound>
   <compound refid="structml__minijs__encoder__t" kind="struct"><name>ml_minijs_encoder_t</name>
     <member refid="structml__minijs__encoder__t_1a648ddf2d0a9e244bcf220aebce1f235a" kind="variable"><name>Externals</name></member>
+    <member refid="structml__minijs__encoder__t_1aa4ac06fe4d51708f71a9d71eef3896ca" kind="variable"><name>Error</name></member>
     <member refid="structml__minijs__encoder__t_1a9b43dcac24c417556872e8c629b29c67" kind="variable"><name>Cached</name></member>
     <member refid="structml__minijs__encoder__t_1a9da0233db61be933269e71059da27b34" kind="variable"><name>LastIndex</name></member>
   </compound>
@@ -429,6 +438,10 @@
     <member refid="structml__stringbuffer__t_1a9fde862c8bc443d7a6872a487ec265a3" kind="variable"><name>Length</name></member>
     <member refid="structml__stringbuffer__t_1a0b2c355629c0c41a383ab8db641304ee" kind="variable"><name>Start</name></member>
     <member refid="structml__stringbuffer__t_1a075e1e3c9dd399cef584d7338cc37938" kind="variable"><name>Index</name></member>
+  </compound>
+  <compound refid="structml__struct__instance__t" kind="struct"><name>ml_struct_instance_t</name>
+    <member refid="structml__struct__instance__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
+    <member refid="structml__struct__instance__t_1a9a84652401e8c660ac57ed1de60549f3" kind="variable"><name>Value</name></member>
   </compound>
   <compound refid="structml__symbol__interval__t" kind="struct"><name>ml_symbol_interval_t</name>
     <member refid="structml__symbol__interval__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>
@@ -806,9 +819,11 @@
     <member refid="group__cbor_1ga635f5f01305184c495ebf5e7ac67e7aa" kind="define"><name>ML_CBOR_TAG_UNSIGNED_BIGNUM</name></member>
     <member refid="group__cbor_1ga850f1eaa18dea5bdf8e1ac25819c384b" kind="define"><name>ML_CBOR_TAG_NEGATIVE_BIGNUM</name></member>
     <member refid="group__cbor_1ga732377e678b9adf2bfda87ded5bf301f" kind="define"><name>ML_CBOR_TAG_DECIMAL_FRACTION</name></member>
+    <member refid="group__cbor_1ga56a9a7f0e37a264345e3de0a88c2ed9a" kind="define"><name>ML_CBOR_TAG_STRINGREF</name></member>
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
-    <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
-    <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+    <member refid="group__cbor_1gad0beaea339ee05bc9b785d3ee4fc0bf6" kind="define"><name>ML_CBOR_TAG_SHAREABLE</name></member>
+    <member refid="group__cbor_1ga9fba6c164c0f9e4fb20b1614eb0791f9" kind="define"><name>ML_CBOR_TAG_SHAREDREF</name></member>
+    <member refid="group__cbor_1ga466ddd9144af494098c164ea97fa5f56" kind="define"><name>ML_CBOR_TAG_ABSENT_VALUE</name></member>
     <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
     <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
     <member refid="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" kind="define"><name>ML_CBOR_TAG_IDENTIFIER</name></member>
@@ -824,12 +839,15 @@
     <member refid="group__cbor_1ga2dc366c6ae887cb821e7983471486625" kind="define"><name>ML_CBOR_TAG_ARRAY_INT64_LE</name></member>
     <member refid="group__cbor_1gaf98e5c8e177d600bc5928e7c17306952" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT32_LE</name></member>
     <member refid="group__cbor_1gac52cb1c1a502ea091f5e6e3c8ec365bf" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT64_LE</name></member>
+    <member refid="group__cbor_1ga9b8d714547eb4e7d3add2a452a013d7d" kind="define"><name>ML_CBOR_TAG_STRINGREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gac5ec85003926cfc97499d360b355e860" kind="define"><name>ML_CBOR_TAG_FINITE_SET</name></member>
     <member refid="group__cbor_1ga3eceae59d2801f4ac001004e4841edd7" kind="define"><name>ML_CBOR_TAG_EMBEDDED_JSON</name></member>
+    <member refid="group__cbor_1gaefcf25df4ceff2f2d30d5e13f181364d" kind="define"><name>ML_CBOR_TAG_SHAREDREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gabdce4b6c792a8feb77e2564f4a62e435" kind="define"><name>ML_CBOR_TAG_COMPLEX</name></member>
     <member refid="group__cbor_1ga5456f51b3c2664a7618b7e9deb6c8d9d" kind="define"><name>ML_CBOR_TAG_COMPLEX_ARRAY</name></member>
     <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
-    <member refid="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" kind="typedef"><name>ml_cbor_tag_fn</name></member>
+    <member refid="group__cbor_1ga7a2d333954617a3a2e63aae94e38ba52" kind="typedef"><name>ml_cbor_tag_data_fn</name></member>
+    <member refid="group__cbor_1gae8becce2e05c6b5a0fb5523baf8354c2" kind="typedef"><name>ml_cbor_tag_fn</name></member>
     <member refid="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" kind="typedef"><name>ml_cbor_tag_fns_t</name></member>
     <member refid="group__cbor_1gab6177e86c49fa67c1fec09ccf3ec0e6e" kind="typedef"><name>ml_cbor_object_fn</name></member>
     <member refid="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" kind="typedef"><name>ml_external_fn_t</name></member>
@@ -839,9 +857,10 @@
     <member refid="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" kind="function"><name>ml_cbor_setting</name></member>
     <member refid="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" kind="function"><name>ml_cbor_tag_fns</name></member>
     <member refid="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" kind="function"><name>ml_cbor_tag_fns_copy</name></member>
-    <member refid="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" kind="function"><name>ml_cbor_tag_fn_get</name></member>
-    <member refid="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" kind="function"><name>ml_cbor_tag_fn_set</name></member>
+    <member refid="group__cbor_1gaf0966adde0da8ad3882359aa5fe96de5" kind="function"><name>ml_cbor_tag_fn_get</name></member>
+    <member refid="group__cbor_1ga0594dab8da592fc94574ddbdec9e7d5d" kind="function"><name>ml_cbor_tag_fn_set</name></member>
     <member refid="group__cbor_1ga056bac65f9e6d3584cec1b302fe41cc9" kind="function"><name>ml_cbor_default_tag</name></member>
+    <member refid="group__cbor_1ga9cd677f72ea0cfcc6a0c70e363dd12e8" kind="function"><name>ml_cbor_default_tag2</name></member>
     <member refid="group__cbor_1ga0731346fd6ade363da69269de78ea66d" kind="function"><name>ml_cbor_default_global</name></member>
     <member refid="group__cbor_1ga508e4d6e62acb4cfd930962ce683bc06" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" kind="function"><name>ml_cbor_reader</name></member>
@@ -852,6 +871,7 @@
     <member refid="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" kind="function"><name>ml_cbor_reader_done</name></member>
     <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
+    <member refid="group__cbor_1gac671f6253d1521f6a339ad03f8bda0d8" kind="function"><name>ml_cbor_reader_set_classtable</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
     <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
     <member refid="group__cbor_1ga8a2684b2d4d77c018c4f0caaf0365bce" kind="function"><name>ml_cbor_writer_set_flags</name></member>
@@ -882,8 +902,8 @@
     <member refid="group__cbor_1gaf012c0fba7c38ad2e628be0b46d7730b" kind="function"><name>ml_cbor_write_break</name></member>
     <member refid="group__cbor_1ga855a61374e2ed28281b15b09868e100c" kind="function"><name>ml_cbor_write_tag</name></member>
     <member refid="group__cbor_1ga1a9844ccc58fb268ecd9bfb45acac18d" kind="function"><name>ml_to_cbor</name></member>
-    <member refid="group__cbor_1ga875acf4b0085636e0ec8fc2b78cec64c" kind="function"><name>ml_from_cbor</name></member>
-    <member refid="group__cbor_1gab60f5ad34cf7e3f07f2cd211778d5379" kind="function"><name>ml_from_cbor_extra</name></member>
+    <member refid="group__cbor_1ga8a4f8cd94f1ea40cb7e0e46864df94cb" kind="function"><name>ml_from_cbor</name></member>
+    <member refid="group__cbor_1ga11382cdc46d7492f90b32917b32c29a8" kind="function"><name>ml_from_cbor_extra</name></member>
   </compound>
   <compound refid="ml__compiler_8h" kind="file"><name>ml_compiler.h</name>
     <member refid="group__compiler_1ga6761f9e4533e970759d9d7ddc904ab87" kind="define"><name>ML_FUNCTION_INLINE2</name></member>
@@ -935,6 +955,7 @@
     <member refid="group__compiler_1ga076b4ddab4f2553f5971f3bd6c512c44" kind="function"><name>ml_global</name></member>
     <member refid="group__compiler_1ga2a4581401ba4633e895544bd7cdc891c" kind="function"><name>ml_global_get</name></member>
     <member refid="group__compiler_1gad850ad9f0a14a8fffcc01d2115544531" kind="function"><name>ml_global_set</name></member>
+    <member refid="group__compiler_1ga4cbec1ee75ac2fb72c630cf4162f79eb" kind="function"><name>ml_global_name</name></member>
     <member refid="group__compiler_1gafc5b9b3b0ebd1b65fe5ae22188dfee5d" kind="function"><name>ml_macro</name></member>
     <member refid="group__compiler_1ga055bce370b96527c2036d0a3442c6410" kind="function"><name>ml_inline_call_macro</name></member>
     <member refid="group__compiler_1ga37c2bd6ded02705ed136763ef3f7d4e9" kind="function"><name>ml_inline_function</name></member>
@@ -1376,13 +1397,15 @@
     <member refid="group__objects_1gafeb70793f651ebbd28545d33a23ffa69" kind="function"><name>ml_default_class_table_insert</name></member>
     <member refid="group__objects_1ga46486884ec062b4b097472a4e8437a70" kind="function"><name>ml_pseudo_class</name></member>
     <member refid="group__objects_1ga70abfe59115d3725312700a1e52cddd1" kind="function"><name>ml_pseudo_class_add_field</name></member>
+    <member refid="group__objects_1ga48dcf303ce2c0df77b58eb1d433147b1" kind="function"><name>ml_struct_instance</name></member>
+    <member refid="group__objects_1ga520d42fb92f91e918df9c0d64e75c9c7" kind="function"><name>ml_struct_instance_value</name></member>
     <member refid="group__enums_1ga7a389a166525f8c68d3b799602c743a7" kind="function"><name>ml_enum</name></member>
     <member refid="group__enums_1ga5efee1e223a0f1f41d471ab8d21f42eb" kind="function"><name>ml_enum_cyclic</name></member>
     <member refid="group__enums_1gaea1aaa2b592b7adac6cb39555aa03d9d" kind="function"><name>ml_enum2</name></member>
     <member refid="group__enums_1gafdbc55ae9224493cdfca1a201cd264ba" kind="function"><name>ml_sub_enum</name></member>
     <member refid="group__enums_1ga5ee952e00c3e2798f9b27627aa07b6f6" kind="function"><name>ml_enum_value</name></member>
-    <member refid="group__enums_1ga2d0eb331616d6be8f24f342a6df9da64" kind="function"><name>ml_enum_value_value</name></member>
-    <member refid="group__enums_1ga0c31179e840acf0eea0e672ee7e69246" kind="function"><name>ml_enum_value_name</name></member>
+    <member refid="group__enums_1gac87ff1c74fecafacbb010540d5c0b408" kind="function"><name>ml_enum_value_value</name></member>
+    <member refid="group__enums_1gaa7a5587a66946fd2c3e82ae84a8f43e4" kind="function"><name>ml_enum_value_name</name></member>
     <member refid="group__flags_1gac7a0b121ec4b7b961c9e6fbac28390ec" kind="function"><name>ml_flags</name></member>
     <member refid="group__flags_1ga8a6e62bc2f6f4efb6192ea057a894b7b" kind="function"><name>ml_flags2</name></member>
     <member refid="group__flags_1gae73f85be76af86969e688273e18e366f" kind="function"><name>ml_flags_value</name></member>
@@ -1561,6 +1584,7 @@
     <member refid="group__runtime_1gaac161795d2df9af58f3deca0dff384bf" kind="function"><name>ml_call_state</name></member>
     <member refid="group__runtime_1gabbc4d2f9454ddfeffb90419fd2de6428" kind="function"><name>ml_simple_call</name></member>
     <member refid="group__runtime_1ga0d52632f3a3fd7def5aaee9a23f75ec4" kind="function"><name>ml_simple_assign</name></member>
+    <member refid="group__runtime_1ga791e454c8bb09f13c21c6c1ac6e57a62" kind="function"><name>ml_call_wait</name></member>
     <member refid="group__runtime_1gad8fcb3447cd4bc637a8aff5a273aff55" kind="function"><name>ml_sum_optimized</name></member>
     <member refid="group__runtime_1gac9e2caf17e74f9c796094f5b7b98c0dc" kind="function"><name>ml_sum_fallback</name></member>
     <member refid="group__runtime_1ga0fb05fc1f88efb7c780cc10fba3930b7" kind="function"><name>ml_cache_register</name></member>
@@ -1604,6 +1628,7 @@
     <member refid="group__runtime_1gaaf797229254739c2050961b77ca44ab8" kind="function"><name>ml_default_queue_init</name></member>
     <member refid="group__runtime_1ga0632948ec79ffc043157d9463da2c3b1" kind="function"><name>ml_scheduler_queue_size</name></member>
     <member refid="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" kind="function"><name>ml_scheduler_queue_fill</name></member>
+    <member refid="group__runtime_1ga4cb899f7a40ea5198586994d54eac0a9" kind="function"><name>ml_scheduler_queue_inspect</name></member>
     <member refid="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" kind="function"><name>ml_scheduler_queue_next</name></member>
     <member refid="group__runtime_1ga9b45bd192553d70ee559f868029a28af" kind="function"><name>ml_scheduler_queue_add</name></member>
     <member refid="group__runtime_1gad071f1bf1513001c63aab59a854c1b05" kind="function"><name>ml_scheduler_queue_next_wait</name></member>
@@ -1643,7 +1668,7 @@
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
     <member refid="ml__table_8h_1aa512afd5fdc32098418ee5eb16394749" kind="function"><name>ml_table_init</name></member>
     <member refid="ml__table_8h_1a0103ddcc02153f410f646c90dfa8c2ff" kind="function"><name>ml_table</name></member>
-    <member refid="ml__table_8h_1a3476df0fc4189c417c7a87ec43971d74" kind="function"><name>ml_table_insert</name></member>
+    <member refid="ml__table_8h_1a56d29b61ea4603662a8a4bb9745b4879" kind="function"><name>ml_table_insert</name></member>
     <member refid="ml__table_8h_1a2edd7588e6c703f4809ceb8d53c6679f" kind="function"><name>ml_table_columns</name></member>
   </compound>
   <compound refid="ml__tasks_8h" kind="file"><name>ml_tasks.h</name>
@@ -1881,8 +1906,8 @@
     <member refid="group__numbers_1ga082c453c65a095369a4997191d9fec07" kind="function"><name>ml_real_parse</name></member>
     <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
-    <member refid="group__numbers_1ga7a0b6740ab3c5243f0d98da96bc62692" kind="function"><name>ml_integer64_value</name></member>
-    <member refid="group__numbers_1ga129bf764b37bb7d1ec0ee69caeca9125" kind="function"><name>ml_double_value</name></member>
+    <member refid="group__numbers_1ga4a41713d74d1891956ab7f80f73c21c2" kind="function"><name>ml_integer64_value</name></member>
+    <member refid="group__numbers_1gaf4ae05480a66d97716d99391e50fc2e4" kind="function"><name>ml_double_value</name></member>
     <member refid="group__numbers_1ga26fdf346e2362e83f1999ad3af9aa007" kind="function"><name>ml_real_range_count</name></member>
     <member refid="group__numbers_1ga7e74177cc7e9a1682d5e7839b1e6347f" kind="function"><name>ml_real_interval_count</name></member>
     <member refid="group__strings_1ga786e2f2bc4133f0ab328b47f53a04a5f" kind="function"><name>GC_vasprintf</name></member>
@@ -2016,6 +2041,8 @@
     <member refid="group__symbols_1gaf40c21abe6f857df644d104ec5417f90" kind="function"><name>ml_symbol</name></member>
     <member refid="group__init_1ga2b26ef655ee57ffc1302d73a3f32eb51" kind="function"><name>ml_types_init</name></member>
   </compound>
+  <compound refid="ml__utils_8h" kind="file"><name>ml_utils.h</name>
+  </compound>
   <compound refid="ml__uuid_8h" kind="file"><name>ml_uuid.h</name>
     <member refid="ml__uuid_8h_1a6d37dd9ad8391595db1b71ca2103a228" kind="define"><name>UUID_STR_LEN</name></member>
     <member refid="ml__uuid_8h_1abfd403453f448a8c90020d0dd8923e34" kind="define"><name>ml_uuid_value</name></member>
@@ -2092,6 +2119,7 @@
     <member refid="weakmap_8h_1a7429fbd1d4989b2c532e6ab51e14f702" kind="typedef"><name>weakmap_node_t</name></member>
     <member refid="weakmap_8h_1aa879a039d43c8032a588f6797eb4c2c4" kind="function"><name>weakmap_insert</name></member>
     <member refid="weakmap_8h_1a7c69ee9d2e5df48f9527fa0290fbbb10" kind="function"><name>weakmap_foreach</name></member>
+    <member refid="weakmap_8h_1a4e9c54f9bec5c412d12766d9eaf98e0f" kind="function"><name>weakmap_check</name></member>
   </compound>
   <compound refid="whereami_8h" kind="file"><name>whereami.h</name>
     <member refid="whereami_8h_1af4a5433582844c6d1f4e5f48e911fe02" kind="define"><name>WAI_FUNCSPEC</name></member>
@@ -2114,7 +2142,8 @@
   </compound>
   <compound refid="group__cbor" kind="group"><name>cbor</name>
     <member refid="group__cbor_1ga696b52c71cf3156f81839592dcc54dfc" kind="typedef"><name>ml_cbor_reader_t</name></member>
-    <member refid="group__cbor_1gaa01c88d6d2b57b5fc2f5d0e609be4e89" kind="typedef"><name>ml_cbor_tag_fn</name></member>
+    <member refid="group__cbor_1ga7a2d333954617a3a2e63aae94e38ba52" kind="typedef"><name>ml_cbor_tag_data_fn</name></member>
+    <member refid="group__cbor_1gae8becce2e05c6b5a0fb5523baf8354c2" kind="typedef"><name>ml_cbor_tag_fn</name></member>
     <member refid="group__cbor_1ga8c97f9c2bc7ea0a8f355070ac2e0ab8f" kind="typedef"><name>ml_cbor_tag_fns_t</name></member>
     <member refid="group__cbor_1gab6177e86c49fa67c1fec09ccf3ec0e6e" kind="typedef"><name>ml_cbor_object_fn</name></member>
     <member refid="group__cbor_1gaa55a224111cc0382afd197c47a6e2911" kind="typedef"><name>ml_external_fn_t</name></member>
@@ -2124,9 +2153,10 @@
     <member refid="group__cbor_1ga2fc086c38fee73e93ac705726ecf22e2" kind="function"><name>ml_cbor_setting</name></member>
     <member refid="group__cbor_1ga5016ecccf234ad694271fabf0d987e5d" kind="function"><name>ml_cbor_tag_fns</name></member>
     <member refid="group__cbor_1ga0f2b06f6b42b9e10637e36f2814a370b" kind="function"><name>ml_cbor_tag_fns_copy</name></member>
-    <member refid="group__cbor_1ga8a2dbf7af967fae68d17fce62333c961" kind="function"><name>ml_cbor_tag_fn_get</name></member>
-    <member refid="group__cbor_1ga6ad91346aee1eae9ac7f16b8f9d69c26" kind="function"><name>ml_cbor_tag_fn_set</name></member>
+    <member refid="group__cbor_1gaf0966adde0da8ad3882359aa5fe96de5" kind="function"><name>ml_cbor_tag_fn_get</name></member>
+    <member refid="group__cbor_1ga0594dab8da592fc94574ddbdec9e7d5d" kind="function"><name>ml_cbor_tag_fn_set</name></member>
     <member refid="group__cbor_1ga056bac65f9e6d3584cec1b302fe41cc9" kind="function"><name>ml_cbor_default_tag</name></member>
+    <member refid="group__cbor_1ga9cd677f72ea0cfcc6a0c70e363dd12e8" kind="function"><name>ml_cbor_default_tag2</name></member>
     <member refid="group__cbor_1ga0731346fd6ade363da69269de78ea66d" kind="function"><name>ml_cbor_default_global</name></member>
     <member refid="group__cbor_1ga508e4d6e62acb4cfd930962ce683bc06" kind="function"><name>ml_cbor_default_object</name></member>
     <member refid="group__cbor_1ga018b5413eb6f2667e6133589e5ae31b8" kind="function"><name>ml_cbor_reader</name></member>
@@ -2137,6 +2167,7 @@
     <member refid="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" kind="function"><name>ml_cbor_reader_done</name></member>
     <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
     <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
+    <member refid="group__cbor_1gac671f6253d1521f6a339ad03f8bda0d8" kind="function"><name>ml_cbor_reader_set_classtable</name></member>
     <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
     <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
     <member refid="group__cbor_1ga8a2684b2d4d77c018c4f0caaf0365bce" kind="function"><name>ml_cbor_writer_set_flags</name></member>
@@ -2167,8 +2198,8 @@
     <member refid="group__cbor_1gaf012c0fba7c38ad2e628be0b46d7730b" kind="function"><name>ml_cbor_write_break</name></member>
     <member refid="group__cbor_1ga855a61374e2ed28281b15b09868e100c" kind="function"><name>ml_cbor_write_tag</name></member>
     <member refid="group__cbor_1ga1a9844ccc58fb268ecd9bfb45acac18d" kind="function"><name>ml_to_cbor</name></member>
-    <member refid="group__cbor_1ga875acf4b0085636e0ec8fc2b78cec64c" kind="function"><name>ml_from_cbor</name></member>
-    <member refid="group__cbor_1gab60f5ad34cf7e3f07f2cd211778d5379" kind="function"><name>ml_from_cbor_extra</name></member>
+    <member refid="group__cbor_1ga8a4f8cd94f1ea40cb7e0e46864df94cb" kind="function"><name>ml_from_cbor</name></member>
+    <member refid="group__cbor_1ga11382cdc46d7492f90b32917b32c29a8" kind="function"><name>ml_from_cbor_extra</name></member>
     <member refid="group__cbor_1ga41a1421a02c06683c089d2350f3bf9ac" kind="define"><name>ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS</name></member>
     <member refid="group__cbor_1ga42c342cfc94c4315b24a889ae2a41fad" kind="define"><name>ML_CBOR_WRITER_ERROR</name></member>
     <member refid="group__cbor_1gaf2ac6052f01bbc3b128f4001f592d720" kind="define"><name>ML_CBOR_SIMPLE_FALSE</name></member>
@@ -2180,9 +2211,11 @@
     <member refid="group__cbor_1ga635f5f01305184c495ebf5e7ac67e7aa" kind="define"><name>ML_CBOR_TAG_UNSIGNED_BIGNUM</name></member>
     <member refid="group__cbor_1ga850f1eaa18dea5bdf8e1ac25819c384b" kind="define"><name>ML_CBOR_TAG_NEGATIVE_BIGNUM</name></member>
     <member refid="group__cbor_1ga732377e678b9adf2bfda87ded5bf301f" kind="define"><name>ML_CBOR_TAG_DECIMAL_FRACTION</name></member>
+    <member refid="group__cbor_1ga56a9a7f0e37a264345e3de0a88c2ed9a" kind="define"><name>ML_CBOR_TAG_STRINGREF</name></member>
     <member refid="group__cbor_1ga863d9570b5cb07c26de4dbd30bd9d9b6" kind="define"><name>ML_CBOR_TAG_OBJECT</name></member>
-    <member refid="group__cbor_1ga414e0a857e7cb34490db404457eed09d" kind="define"><name>ML_CBOR_TAG_MARK_REUSED</name></member>
-    <member refid="group__cbor_1ga397fcfde6dfeda6b37046a8c361738a9" kind="define"><name>ML_CBOR_TAG_USE_PREVIOUS</name></member>
+    <member refid="group__cbor_1gad0beaea339ee05bc9b785d3ee4fc0bf6" kind="define"><name>ML_CBOR_TAG_SHAREABLE</name></member>
+    <member refid="group__cbor_1ga9fba6c164c0f9e4fb20b1614eb0791f9" kind="define"><name>ML_CBOR_TAG_SHAREDREF</name></member>
+    <member refid="group__cbor_1ga466ddd9144af494098c164ea97fa5f56" kind="define"><name>ML_CBOR_TAG_ABSENT_VALUE</name></member>
     <member refid="group__cbor_1ga7af79107934dd54d6777e27b7ba9b502" kind="define"><name>ML_CBOR_TAG_REGEX</name></member>
     <member refid="group__cbor_1ga20ac0a237c916c18e7197f6c69004153" kind="define"><name>ML_CBOR_TAG_UUID</name></member>
     <member refid="group__cbor_1gad3250e1a36970ed7b78f1a309da5ca77" kind="define"><name>ML_CBOR_TAG_IDENTIFIER</name></member>
@@ -2198,8 +2231,10 @@
     <member refid="group__cbor_1ga2dc366c6ae887cb821e7983471486625" kind="define"><name>ML_CBOR_TAG_ARRAY_INT64_LE</name></member>
     <member refid="group__cbor_1gaf98e5c8e177d600bc5928e7c17306952" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT32_LE</name></member>
     <member refid="group__cbor_1gac52cb1c1a502ea091f5e6e3c8ec365bf" kind="define"><name>ML_CBOR_TAG_ARRAY_FLOAT64_LE</name></member>
+    <member refid="group__cbor_1ga9b8d714547eb4e7d3add2a452a013d7d" kind="define"><name>ML_CBOR_TAG_STRINGREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gac5ec85003926cfc97499d360b355e860" kind="define"><name>ML_CBOR_TAG_FINITE_SET</name></member>
     <member refid="group__cbor_1ga3eceae59d2801f4ac001004e4841edd7" kind="define"><name>ML_CBOR_TAG_EMBEDDED_JSON</name></member>
+    <member refid="group__cbor_1gaefcf25df4ceff2f2d30d5e13f181364d" kind="define"><name>ML_CBOR_TAG_SHAREDREF_NAMESPACE</name></member>
     <member refid="group__cbor_1gabdce4b6c792a8feb77e2564f4a62e435" kind="define"><name>ML_CBOR_TAG_COMPLEX</name></member>
     <member refid="group__cbor_1ga5456f51b3c2664a7618b7e9deb6c8d9d" kind="define"><name>ML_CBOR_TAG_COMPLEX_ARRAY</name></member>
   </compound>
@@ -2250,6 +2285,7 @@
     <member refid="group__compiler_1ga076b4ddab4f2553f5971f3bd6c512c44" kind="function"><name>ml_global</name></member>
     <member refid="group__compiler_1ga2a4581401ba4633e895544bd7cdc891c" kind="function"><name>ml_global_get</name></member>
     <member refid="group__compiler_1gad850ad9f0a14a8fffcc01d2115544531" kind="function"><name>ml_global_set</name></member>
+    <member refid="group__compiler_1ga4cbec1ee75ac2fb72c630cf4162f79eb" kind="function"><name>ml_global_name</name></member>
     <member refid="group__compiler_1gafc5b9b3b0ebd1b65fe5ae22188dfee5d" kind="function"><name>ml_macro</name></member>
     <member refid="group__compiler_1ga055bce370b96527c2036d0a3442c6410" kind="function"><name>ml_inline_call_macro</name></member>
     <member refid="group__compiler_1ga37c2bd6ded02705ed136763ef3f7d4e9" kind="function"><name>ml_inline_function</name></member>
@@ -2353,6 +2389,8 @@
     <member refid="group__objects_1gafeb70793f651ebbd28545d33a23ffa69" kind="function"><name>ml_default_class_table_insert</name></member>
     <member refid="group__objects_1ga46486884ec062b4b097472a4e8437a70" kind="function"><name>ml_pseudo_class</name></member>
     <member refid="group__objects_1ga70abfe59115d3725312700a1e52cddd1" kind="function"><name>ml_pseudo_class_add_field</name></member>
+    <member refid="group__objects_1ga48dcf303ce2c0df77b58eb1d433147b1" kind="function"><name>ml_struct_instance</name></member>
+    <member refid="group__objects_1ga520d42fb92f91e918df9c0d64e75c9c7" kind="function"><name>ml_struct_instance_value</name></member>
   </compound>
   <compound refid="group__enums" kind="group"><name>enums</name>
     <member refid="group__enums_1ga55bf3f6aaa5344af28b9935aadf25e4f" kind="variable"><name>MLEnumT</name></member>
@@ -2362,8 +2400,8 @@
     <member refid="group__enums_1gaea1aaa2b592b7adac6cb39555aa03d9d" kind="function"><name>ml_enum2</name></member>
     <member refid="group__enums_1gafdbc55ae9224493cdfca1a201cd264ba" kind="function"><name>ml_sub_enum</name></member>
     <member refid="group__enums_1ga5ee952e00c3e2798f9b27627aa07b6f6" kind="function"><name>ml_enum_value</name></member>
-    <member refid="group__enums_1ga2d0eb331616d6be8f24f342a6df9da64" kind="function"><name>ml_enum_value_value</name></member>
-    <member refid="group__enums_1ga0c31179e840acf0eea0e672ee7e69246" kind="function"><name>ml_enum_value_name</name></member>
+    <member refid="group__enums_1gac87ff1c74fecafacbb010540d5c0b408" kind="function"><name>ml_enum_value_value</name></member>
+    <member refid="group__enums_1gaa7a5587a66946fd2c3e82ae84a8f43e4" kind="function"><name>ml_enum_value_name</name></member>
   </compound>
   <compound refid="group__flags" kind="group"><name>flags</name>
     <member refid="group__flags_1ga22c1e33d95637b0d82ab55db344c2b81" kind="variable"><name>MLFlagsT</name></member>
@@ -2447,6 +2485,7 @@
     <member refid="group__runtime_1gaac161795d2df9af58f3deca0dff384bf" kind="function"><name>ml_call_state</name></member>
     <member refid="group__runtime_1gabbc4d2f9454ddfeffb90419fd2de6428" kind="function"><name>ml_simple_call</name></member>
     <member refid="group__runtime_1ga0d52632f3a3fd7def5aaee9a23f75ec4" kind="function"><name>ml_simple_assign</name></member>
+    <member refid="group__runtime_1ga791e454c8bb09f13c21c6c1ac6e57a62" kind="function"><name>ml_call_wait</name></member>
     <member refid="group__runtime_1gad8fcb3447cd4bc637a8aff5a273aff55" kind="function"><name>ml_sum_optimized</name></member>
     <member refid="group__runtime_1gac9e2caf17e74f9c796094f5b7b98c0dc" kind="function"><name>ml_sum_fallback</name></member>
     <member refid="group__runtime_1ga0fb05fc1f88efb7c780cc10fba3930b7" kind="function"><name>ml_cache_register</name></member>
@@ -2490,6 +2529,7 @@
     <member refid="group__runtime_1gaaf797229254739c2050961b77ca44ab8" kind="function"><name>ml_default_queue_init</name></member>
     <member refid="group__runtime_1ga0632948ec79ffc043157d9463da2c3b1" kind="function"><name>ml_scheduler_queue_size</name></member>
     <member refid="group__runtime_1ga59682d43126cc5fa001c3b30029962f5" kind="function"><name>ml_scheduler_queue_fill</name></member>
+    <member refid="group__runtime_1ga4cb899f7a40ea5198586994d54eac0a9" kind="function"><name>ml_scheduler_queue_inspect</name></member>
     <member refid="group__runtime_1ga1094e8563d4c6cbdecdee2a730f202ad" kind="function"><name>ml_scheduler_queue_next</name></member>
     <member refid="group__runtime_1ga9b45bd192553d70ee559f868029a28af" kind="function"><name>ml_scheduler_queue_add</name></member>
     <member refid="group__runtime_1gad071f1bf1513001c63aab59a854c1b05" kind="function"><name>ml_scheduler_queue_next_wait</name></member>
@@ -2684,8 +2724,8 @@
     <member refid="group__numbers_1ga082c453c65a095369a4997191d9fec07" kind="function"><name>ml_real_parse</name></member>
     <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
-    <member refid="group__numbers_1ga7a0b6740ab3c5243f0d98da96bc62692" kind="function"><name>ml_integer64_value</name></member>
-    <member refid="group__numbers_1ga129bf764b37bb7d1ec0ee69caeca9125" kind="function"><name>ml_double_value</name></member>
+    <member refid="group__numbers_1ga4a41713d74d1891956ab7f80f73c21c2" kind="function"><name>ml_integer64_value</name></member>
+    <member refid="group__numbers_1gaf4ae05480a66d97716d99391e50fc2e4" kind="function"><name>ml_double_value</name></member>
     <member refid="group__numbers_1ga26fdf346e2362e83f1999ad3af9aa007" kind="function"><name>ml_real_range_count</name></member>
     <member refid="group__numbers_1ga7e74177cc7e9a1682d5e7839b1e6347f" kind="function"><name>ml_real_interval_count</name></member>
   </compound>

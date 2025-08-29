@@ -43,6 +43,10 @@ sequence
       F(10) :> 121
 
 
+:mini:`meth (Arg₁: chained) <> (Arg₂: chained)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: chained)[...]`
    *TBD*
 
@@ -671,7 +675,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "c"
+      random("cake") :> "a"
       random([]) :> nil
 
 

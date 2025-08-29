@@ -247,6 +247,11 @@ ML_FUNCTIONX(MLConsole) {
 	ML_RETURN(MLNil);
 }
 
+static int copy_export(const char *Name, void *Value, void *Data) {
+	stringmap_insert((stringmap_t *)Data, Name, Value);
+	return 0;
+}
+
 int main(int Argc, const char *Argv[]) {
 	ml_init(Argv[0], MLGlobals);
 	ml_sequence_init(MLGlobals);
@@ -376,6 +381,12 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_ENCODINGS
 	ml_base16_init(ENC_EXPORTS);
 	ml_base64_init(ENC_EXPORTS);
+#endif
+#ifdef ML_LIBRARY
+	stringmap_foreach(FMT_EXPORTS, MLGlobals, copy_export);
+	stringmap_foreach(IO_EXPORTS, MLGlobals, copy_export);
+	stringmap_foreach(UTIL_EXPORTS, MLGlobals, copy_export);
+	stringmap_foreach(ENC_EXPORTS, MLGlobals, copy_export);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);

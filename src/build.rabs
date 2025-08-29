@@ -39,6 +39,14 @@ if PLATFORM != "Wasm" then
 	CFLAGS := old + ["-pthread", "-DGC_THREADS"]
 end
 
+if PLATFORM = "Darwin" then
+	with Info := json::decode(shell("brew info --json icu4c")) do
+		let Name := Info[1]["name"]
+		CFLAGS := old + ['-I/opt/homebrew/opt/{Name}/include']
+		LDFLAGS := old + ['-L/opt/homebrew/opt/{Name}/lib']
+	end
+end
+
 if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
 end
@@ -268,11 +276,14 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 		MINILANG_UNWIND := 1
 	end
 	if PLATFORM != "Wasm" then
-		MINILANG_THREADS := not defined("NOTHREADS")
+		MINILANG_HOSTTHREADS := not defined("NOHOSTTHREADS")
 	end
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 		MINILANG_MMAP := 1
+	end
+	if PLATFORM = "Android" then
+		MINILANG_NANBOXING := not defined("NONANBOXING")
 	end
 end
 
@@ -331,10 +342,10 @@ MINILANG_XE := old or defined("XE")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
+MINILANG_HOSTTHREADS := MINILANG_THREADS or old or defined("HOSTTHREADS")
 MINILANG_TRAMPOLINE := old or defined("TRAMPOLINE")
-MINILANG_SCHEDULER := MINILANG_MODULES or MINILANG_THREADS or MINILANG_TRAMPOLINE or old or defined("SCHEDULER")
+MINILANG_SCHEDULER := MINILANG_HOSTTHREADS or MINILANG_MODULES or MINILANG_TRAMPOLINE or old or defined("SCHEDULER")
 MINILANG_TIMESCHED := old or defined("TIMESCHED")
-MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
@@ -397,11 +408,14 @@ file("ml_config.h") => fun(Target) do
 	if MINILANG_MUTABLES then
 		File:write("\n#define ML_MUTABLES\n")
 	end
-	if MINILANG_THREADSAFE then
-		File:write("\n#define ML_THREADSAFE\n")
+	if MINILANG_SPLIT then
+		File:write("\n#define ML_SPLIT\n")
 	end
 	if MINILANG_THREADS then
 		File:write("\n#define ML_THREADS\n")
+	end
+	if MINILANG_HOSTTHREADS then
+		File:write("\n#define ML_HOSTTHREADS\n")
 	end
 	if MINILANG_UNWIND then
 		File:write("\n#define ML_UNWIND\n")
@@ -547,7 +561,7 @@ if MINILANG_BACKTRACE then
 	end
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ['-I{file("libbacktrace")}']
-	LDFLAGS := old + [Lib]
+	Libraries:put(Lib)
 end
 
 if MINILANG_LIBRARY then
@@ -667,7 +681,9 @@ end
 if MINILANG_UUID then
 	Objects:put(file("ml_uuid.o"))
 	CFLAGS := old + ["-DML_UUID"]
-	LDFLAGS := old + ["-luuid"]
+	if PLATFORM != "Darwin" then
+		LDFLAGS := old + ["-luuid"]
+	end
 	InstallHeaders:put("ml_uuid.h")
 end
 
@@ -679,7 +695,6 @@ end
 if MINILANG_MINIJS then
 	Objects:put(file("ml_minijs.o"))
 	CFLAGS := old + ["-DML_MINIJS"]
-	LDFLAGS := old + ["-ljansson"]
 	InstallHeaders:put("ml_minijs.h")
 end
 
@@ -721,6 +736,9 @@ if PLATFORM = "Wasm" then
 
 	LDFLAGS := old + ["-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sEXIT_RUNTIME=1", "-sALLOW_MEMORY_GROWTH=1", "-gsource-map ", "-sEXIT_RUNTIME=0"] :>, "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""]
 	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
+	
+	(BIN_DIR / "minilang.wasm")[MINIWASM]
+	(BIN_DIR / "minilang.wasm.map")[MINIWASM]
 
 	MINIHTML := (BIN_DIR / "minilang.html")[file("minilang.html"); Target] do
 		file("minilang.html"):copy(Target)

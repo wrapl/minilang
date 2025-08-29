@@ -290,7 +290,7 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 #endif
 }
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 
 #include <stdatomic.h>
 
@@ -504,7 +504,7 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 
 #ifdef ML_GENERICS
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 
 static volatile atomic_flag MLGenericsLock[1] = {ATOMIC_FLAG_INIT};
 

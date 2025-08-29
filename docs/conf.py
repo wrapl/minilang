@@ -97,7 +97,8 @@ extensions = [
 	'sphinx.ext.viewcode',
 	'sphinx_toolbox.collapse',
 	'sphinxcontrib.ansi',
-	'breathe'
+	'breathe',
+	'linuxdoc.rstFlatTable'
 	#"sphinxawesome_theme"
 	#'sphinx_design'
 ]
@@ -220,4 +221,3 @@ def setup(sphinx):
 	#sphinx.add_domain(minilangDomain)
 	sphinx.add_directive('folders', FoldersDirective)
 	sphinx.add_directive('tryit', TryItDirective)
-	sphinx.add_css_file('css/custom.css')

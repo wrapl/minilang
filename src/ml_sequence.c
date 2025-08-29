@@ -21,6 +21,9 @@ static ML_METHOD_DECL(WhileDuoMethod, "=>|");
 static ML_METHOD_DECL(CountMethod, "count");
 static ML_METHOD_DECL(PrecountMethod, "precount");
 
+extern ml_value_t *IndexMethod;
+extern ml_value_t *CompareMethod;
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t **Current;
@@ -171,6 +174,32 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLChainedT, ml_chained_function_t *
 
 ML_DESERIALIZER("->") {
 	return ml_chained(Count, Args);
+}
+
+static ml_value_t *ml_chained_function_compare(ml_chained_function_t *A, ml_chained_function_t *B) {
+	// TODO: Replace this with a state to remove ml_simple_call
+	ml_value_t *Args[2];
+	for (int I = 0;; ++I) {
+		if (!A->Entries[I]) {
+			if (!B->Entries[I]) return (ml_value_t *)Zero;
+			return (ml_value_t *)NegOne;
+		} else if (!B->Entries[I]) {
+			return (ml_value_t *)One;
+		} else {
+			Args[0] = A->Entries[I];
+			Args[1] = B->Entries[I];
+			ml_value_t *C = ml_simple_call(CompareMethod, 2, Args);
+			if (ml_is_error(C)) return C;
+			if (ml_integer_value(C)) return C;
+		}
+	}
+	return (ml_value_t *)Zero;
+}
+
+ML_METHOD("<>", MLChainedT, MLChainedT) {
+	ml_chained_function_t *A = (ml_chained_function_t *)Args[0];
+	ml_chained_function_t *B = (ml_chained_function_t *)Args[1];
+	return ml_chained_function_compare(A, B);
 }
 
 typedef struct {
@@ -679,10 +708,8 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-extern ml_value_t *IndexMethod;
-
 ML_METHODV("[]", MLChainedT) {
-	ml_value_t *Partial = ml_partial_function(IndexMethod, Count + 1);
+	ml_value_t *Partial = ml_partial_function(IndexMethod, Count);
 	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
@@ -2103,7 +2130,7 @@ static void append_value(ml_append_state_t *State, ml_value_t *Value) {
 
 static void append_first(ml_append_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (void *)append_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }

@@ -44,7 +44,7 @@ Module.onRuntimeInitialized = function() {
 	
 	function Cell(session, value) {
 		this.session = session;
-		let input = this.input = create("textarea");
+		let input = this.input = create("textarea", {rows: 1});
 		input.oninput = function() {
 			this.parentNode.dataset.replicatedValue = this.value;
 		}

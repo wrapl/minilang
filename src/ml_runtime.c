@@ -10,6 +10,7 @@
 #include <time.h>
 #include <errno.h>
 #include <math.h>
+#include <signal.h>
 
 #ifdef ML_TIMESCHED
 #include <sys/time.h>
@@ -20,7 +21,7 @@
 
 // Runtime //
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
@@ -32,6 +33,39 @@ static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Va
 	MLPreempt = 1;
 	State->run(State, Value);
 	return 0;
+}
+
+void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result) {
+	if (Duration > 0) {
+#ifdef ML_HOSTTHREADS
+		ml_scheduler_split(Scheduler);
+		struct timespec Remainder;
+		double Seconds;
+		Remainder.tv_nsec = modf(Duration, &Seconds) * 1000000000;
+		Remainder.tv_sec = Seconds;
+		while (nanosleep(&Remainder, &Remainder)) {
+			if (errno != EINTR) {
+				Result = ml_error("SleepError", "Failed to sleep");
+				break;
+			}
+		}
+		ml_scheduler_join(Scheduler);
+#endif
+	}
+	Scheduler->add(Scheduler, State, Result);
+}
+
+void ml_sleep(ml_state_t *Caller, double Duration, ml_value_t *Result) {
+	if (Duration <= 0) ML_RETURN(MLNil);
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
+	return Scheduler->sleep(Scheduler, Caller, Duration, Result);
+}
+
+ML_FUNCTIONX(MLSleep) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLRealT);
+	double Duration = ml_real_value(Args[0]);
+	return ml_sleep(Caller, Duration, Count > 1 ? Args[1] : MLNil);
 }
 
 static ml_scheduler_t DefaultScheduler = {
@@ -412,11 +446,11 @@ typedef struct ml_uninitialized_t {
 } ml_uninitialized_t;
 
 static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, int Count, ml_value_t **Args) {
-	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
+	ML_ERROR("ValueError", "%s is uninitialized at %s:%d", Uninitialized->Name, Uninitialized->Source.Name, Uninitialized->Source.Line);
 }
 
 static void ml_unitialized_assign(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
-	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
+	ML_ERROR("ValueError", "%s is uninitialized at %s:%d", Uninitialized->Name, Uninitialized->Source.Name, Uninitialized->Source.Line);
 }
 
 ML_TYPE(MLUninitializedT, (), "uninitialized",
@@ -1065,7 +1099,7 @@ struct ml_queue_block_t {
 struct ml_scheduler_queue_t {
 	ml_scheduler_t Base;
 	ml_queue_block_t *WriteBlock, *ReadBlock;
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_t Lock[1];
 	pthread_cond_t Available[1];
 #endif
@@ -1102,13 +1136,32 @@ int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue) {
 	return Queue->Fill;
 }
 
+void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*Fn)(void *Data, ml_state_t *State)) {
+#ifdef ML_HOSTTHREADS
+	pthread_mutex_lock(Queue->Lock);
+#endif
+	ml_queue_block_t *Block = Queue->ReadBlock;
+	ml_queue_block_t *EndBlock = Queue->WriteBlock;
+	int Index = Queue->ReadIndex;
+	int EndIndex = Queue->WriteIndex;
+	while (Block != EndBlock) {
+		while (Index < QUEUE_BLOCK_SIZE) Fn(Data, Block->States[Index++].State);
+		Index = 0;
+		Block = Block->Next;
+	}
+	while (Index != EndIndex) Fn(Data, Block->States[Index++].State);
+#ifdef ML_HOSTTHREADS
+	pthread_mutex_unlock(Queue->Lock);
+#endif
+}
+
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
 	ml_queued_state_t Next = {NULL, NULL};
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Queue->Lock);
 #endif
 	if (Queue->Fill) Next = ml_scheduler_queue_read(Queue);
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Queue->Lock);
 #endif
 	return Next;
@@ -1139,17 +1192,17 @@ static int ml_scheduler_queue_write(ml_scheduler_queue_t *Queue, ml_state_t *Sta
 }
 
 int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value) {
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Queue->Lock);
 #endif
 	int Fill = ml_scheduler_queue_write(Queue, State, Value);
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Queue->Lock);
 #endif
 	return Fill;
 }
 
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 
 ml_queued_state_t ml_scheduler_queue_next_wait(ml_scheduler_queue_t *Queue) {
 	pthread_mutex_lock(Queue->Lock);
@@ -1177,41 +1230,8 @@ void ml_scheduler_queue_run(ml_scheduler_queue_t *Queue) {
 	Queued.State->run(Queued.State, Queued.Value);
 }
 
-void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result) {
-	if (Duration > 0) {
-#ifdef ML_THREADS
-		ml_scheduler_split(Scheduler);
-		struct timespec Remainder;
-		double Seconds;
-		Remainder.tv_nsec = modf(Duration, &Seconds) * 1000000000;
-		Remainder.tv_sec = Seconds;
-		while (nanosleep(&Remainder, &Remainder)) {
-			if (errno != EINTR) {
-				Result = ml_error("SleepError", "Failed to sleep");
-				break;
-			}
-		}
-		ml_scheduler_join(Scheduler);
-#endif
-	}
-	Scheduler->add(Scheduler, State, Result);
-}
-
-void ml_sleep(ml_state_t *Caller, double Duration, ml_value_t *Result) {
-	if (Duration <= 0) ML_RETURN(MLNil);
-	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
-	return Scheduler->sleep(Scheduler, Caller, Duration, Result);
-}
-
-ML_FUNCTIONX(MLSleep) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLRealT);
-	double Duration = ml_real_value(Args[0]);
-	return ml_sleep(Caller, Duration, Count > 1 ? Args[1] : MLNil);
-}
-
 /*static
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 __thread
 #endif
 ml_scheduler_t *CurrentScheduler = NULL;*/
@@ -1228,7 +1248,7 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	Queue->WriteIndex = Queue->ReadIndex = QUEUE_BLOCK_SIZE - 1;
 	Queue->Space = QUEUE_BLOCK_SIZE;
 	Queue->Fill = 0;
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	pthread_mutex_init(Queue->Lock, NULL);
 	pthread_cond_init(Queue->Available, NULL);
 #endif
@@ -1276,7 +1296,9 @@ int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 	return ml_scheduler_queue_add(DefaultQueue, State, Value);
 }*/
 
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
+
+#include <semaphore.h>
 
 /*ml_queued_state_t ml_default_queue_next_wait() {
 	return ml_scheduler_queue_next_wait(DefaultQueue);
@@ -1297,8 +1319,7 @@ struct ml_scheduler_thread_t {
 struct ml_scheduler_block_t {
 	ml_state_t Base;
 	ml_scheduler_t *Scheduler;
-	pthread_mutex_t Lock[1];
-	pthread_cond_t Resume[1];
+	sem_t Ready[1];
 };
 
 static ml_scheduler_thread_t *NextThread = NULL;
@@ -1311,6 +1332,9 @@ static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 }
 
 static void *ml_scheduler_thread_fn(void *Data) {
+#ifdef Darwin
+	pthread_setname_np("minilang");
+#endif
 	static int NumIdle = 0;
 	ml_scheduler_t *Scheduler = (ml_scheduler_t *)Data;
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
@@ -1318,9 +1342,8 @@ static void *ml_scheduler_thread_fn(void *Data) {
 		Scheduler->run(Scheduler);
 		if (Scheduler->Resume) {
 			ml_scheduler_block_t *Block = Scheduler->Resume;
-			pthread_mutex_lock(Block->Lock);
-			pthread_cond_signal(Block->Resume);
-			pthread_mutex_unlock(Block->Lock);
+			Scheduler->Resume = NULL;
+			sem_post(Block->Ready);
 
 			pthread_mutex_lock(ThreadLock);
 			if (NumIdle >= MaxIdle) {
@@ -1359,23 +1382,63 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
 		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Scheduler);
+#ifndef Darwin
 		pthread_setname_np(Thread, "minilang");
+#endif
 	}
 	pthread_mutex_unlock(ThreadLock);
 }
 
 void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 	ml_scheduler_block_t Block = {
-		{NULL, NULL, ml_scheduler_thread_resume},
-		Scheduler,
-		{PTHREAD_MUTEX_INITIALIZER},
-		{PTHREAD_COND_INITIALIZER}
+		{NULL, NULL, ml_scheduler_thread_resume, NULL},
+		Scheduler
 	};
-	pthread_mutex_lock(Block.Lock);
+	sem_init(Block.Ready, 0, 0);
 	Scheduler->add(Scheduler, (ml_state_t *)&Block, MLNil);
-	pthread_cond_wait(Block.Resume, Block.Lock);
-	pthread_mutex_unlock(Block.Lock);
-	Scheduler->Resume = NULL;
+	sem_wait(Block.Ready);
+	sem_destroy(Block.Ready);
+}
+
+typedef struct {
+	ml_scheduler_block_t Block;
+	ml_value_t *Value;
+} ml_call_wait_state_t;
+
+static void ml_call_slow_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
+	State->Value = Value;
+	State->Block.Scheduler->Resume = &State->Block;
+}
+
+static void ml_call_fast_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
+	State->Value = Value;
+}
+
+ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
+	ml_call_wait_state_t State = {{
+		{NULL, NULL, (ml_state_fn)ml_call_fast_fn, Context},
+		NULL
+	}, NULL};
+	ml_call(&State, Fn, Count, Args);
+	if (State.Value) return State.Value;
+	State.Block.Base.run = (ml_state_fn)ml_call_slow_fn;
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
+	State.Block.Scheduler = Scheduler;
+	sem_init(State.Block.Ready, 0, 0);
+	ml_scheduler_split(Scheduler);
+	sem_wait(State.Block.Ready);
+	sem_destroy(State.Block.Ready);
+	return State.Value;
+}
+
+#else
+
+ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
+	ml_result_state_t State = {{NULL, Context, (ml_state_fn)ml_result_state_run}, NULL};
+	ml_call(&State, Fn, Count, Args);
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
+	while (!State.Value) Scheduler->run(Scheduler);
+	return State.Value;
 }
 
 #endif
@@ -1987,7 +2050,7 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_BACKTRACE
 	BacktraceState = backtrace_create_state(ExecName, 0, NULL, NULL);
 #endif
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	//GC_add_roots(&CurrentScheduler, &CurrentScheduler + 1);
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 #endif

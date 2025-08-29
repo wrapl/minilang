@@ -1833,7 +1833,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLSetT, ml_cbor_writer_t *Writer, ml_set_
 	ML_SET_FOREACH(Set, Iter) ml_cbor_write(Writer, Iter->Key);
 }
 
-static ml_value_t *ml_cbor_read_set(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+static ml_value_t *ml_cbor_read_set(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Set requires list");
 	ml_value_t *Set = ml_set();
 	ML_SET_FOREACH(Value, Iter) ml_set_insert(Set, Iter->Key);

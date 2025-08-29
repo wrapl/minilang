@@ -51,7 +51,7 @@ struct ml_parser_coro_t {
 	ml_parser_coro_t *Next;
 };
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 
 static ml_parser_coro_t * _Atomic CoroutineCache = NULL;
 
@@ -101,7 +101,7 @@ struct ml_compiler_t {
 extern ml_value_t *IndexMethod;
 extern ml_value_t *SymbolMethod;
 
-inline long ml_ident_hash(const char *Ident) {
+static inline long ml_ident_hash(const char *Ident) {
 	long Hash = 5381;
 	while (*Ident) Hash = ((Hash << 5) + Hash) + *Ident++;
 	return Hash;
@@ -3868,7 +3868,9 @@ ML_METHOD("end", MLExprBuilderT) {
 }
 
 void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
+#ifndef ML_STRINGCACHE
 	long Hash = ml_ident_hash(Expr->Ident);
+#endif
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (mlc_define_t *Define = UpFunction->Defines; Define; Define = Define->Next) {
 #ifdef ML_STRINGCACHE
@@ -4411,7 +4413,7 @@ void ml_parser_add_escape(ml_parser_t *Parser, const char *Prefix, ml_parser_esc
 //	stringmap_insert(StringFns, Prefix, Fn);
 //}
 
-static inline char *ml_scan_utf8(char *D, uint32_t Code) {
+static inline void ml_scan_utf8(ml_stringbuffer_t *Buffer, uint32_t Code) {
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
 	int I = 0;
@@ -4421,42 +4423,25 @@ static inline char *ml_scan_utf8(char *D, uint32_t Code) {
 		LeadByteMax >>= (I == 1 ? 2 : 1);
 	}
 	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	while (I--) *D++ = Val[I];
-	return D;
+	while (I--) ml_stringbuffer_put(Buffer, Val[I]);
 }
 
-static int ml_scan_string(ml_parser_t *Parser) {
-	const char *End = Parser->Next;
-	int Closed = 1;
-	while (End[0] != '\"') {
-		if (!End[0]) {
+static void ml_scan_string(ml_stringbuffer_t *Buffer, ml_parser_t *Parser) {
+	for (const char *S = Parser->Next; ; ++S) {
+		if (*S == 0) {
 			ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
-			Closed = 0;
-			break;
-		}
-		if (End[0] == '\\') {
-			++End;
-			if (!End[0]) {
-				ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
-				Closed = 0;
-				break;
-			}
-		}
-		++End;
-	}
-	int Length = End - Parser->Next;
-	char *Quoted = snew(Length + 1), *D = Quoted;
-	for (const char *S = Parser->Next; S < End; ++S) {
-		if (*S == '\\') {
+			Parser->Next = S;
+			return;
+		} else if (*S == '\\') {
 			switch (*++S) {
-			case 'r': *D++ = '\r'; break;
-			case 'n': *D++ = '\n'; break;
-			case 't': *D++ = '\t'; break;
-			case 'e': *D++ = '\e'; break;
+			case 'r': ml_stringbuffer_put(Buffer, '\r'); break;
+			case 'n': ml_stringbuffer_put(Buffer, '\n'); break;
+			case 't': ml_stringbuffer_put(Buffer, '\t'); break;
+			case 'e': ml_stringbuffer_put(Buffer, '\e'); break;
 			case 'x': {
 				char Char = ml_nibble(Parser, *++S) << 4;
 				Char += ml_nibble(Parser, *++S);
-				*D++ = Char;
+				ml_stringbuffer_put(Buffer, Char);
 				break;
 			}
 			case 'u': {
@@ -4464,7 +4449,7 @@ static int ml_scan_string(ml_parser_t *Parser) {
 				Code += ml_nibble(Parser, *++S) << 8;
 				Code += ml_nibble(Parser, *++S) << 4;
 				Code += ml_nibble(Parser, *++S);
-				D = ml_scan_utf8(D, Code);
+				ml_scan_utf8(Buffer, Code);
 				break;
 			}
 			case 'U': {
@@ -4476,26 +4461,30 @@ static int ml_scan_string(ml_parser_t *Parser) {
 				Code += ml_nibble(Parser, *++S) << 8;
 				Code += ml_nibble(Parser, *++S) << 4;
 				Code += ml_nibble(Parser, *++S);
-				D = ml_scan_utf8(D, Code);
+				ml_scan_utf8(Buffer, Code);
 				break;
 			}
-			case '\'': *D++ = '\''; break;
-			case '\"': *D++ = '\"'; break;
-			case '\\': *D++ = '\\'; break;
-			case '0': *D++ = '\0'; break;
-			case 0: goto eoi;
-			default: *D++ = '\\'; *D++ = *S; break;
+			case '\'': ml_stringbuffer_put(Buffer, '\''); break;
+			case '\"': ml_stringbuffer_put(Buffer, '\"'); break;
+			case '\\': ml_stringbuffer_put(Buffer, '\\'); break;
+			case '0': ml_stringbuffer_put(Buffer, '\0'); break;
+			case 0:
+				ml_parse_warn(Parser, "ParseError", "End of input while parsing string");
+				Parser->Next = S;
+				return;
+			default:
+				ml_stringbuffer_put(Buffer, '\\');
+				ml_stringbuffer_put(Buffer, *S);
 				//ml_parse_warn(Parser, "ParseError", "Unknown escape character %c", *S);
+				break;
 			}
+		} else if (*S == '\"') {
+			Parser->Next = S + 1;
+			return;
 		} else {
-			*D++ = *S;
+			ml_stringbuffer_put(Buffer, *S);
 		}
 	}
-eoi:
-	*D = 0;
-	Parser->Ident = Quoted;
-	Parser->Next = End + Closed;
-	return D - Quoted;
 }
 
 #ifdef ML_STRINGCACHE
@@ -4542,7 +4531,9 @@ static const char *ml_ident(const char *Next, int Length) {
 }
 
 int ml_ident_cache_check() {
-#ifndef ML_STRINGCACHE
+#ifdef ML_STRINGCACHE
+	return weakmap_check(IdentCache);
+#else
 	inthash_t Copy = IdentCache[0];
 	for (int I = 0; I < Copy.Size; ++I) {
 		if (Copy.Values[I]) {
@@ -4652,8 +4643,9 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			return ml_accept_string(Parser);
 		DO_CHAR_DQUOTE: {
 			Parser->Next = Next + 1;
-			int Length = ml_scan_string(Parser);
-			Parser->Value = ml_string(Parser->Ident, Length);
+			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+			ml_scan_string(Buffer, Parser);
+			Parser->Value = ml_stringbuffer_to_string(Buffer);
 			Parser->Token = MLT_VALUE;
 			return Parser->Token;
 		}
@@ -4678,7 +4670,9 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 					Parser->Next = End;
 				} else if (Char == '\"') {
 					Parser->Next = Next + 1;
-					ml_scan_string(Parser);
+					ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+					ml_scan_string(Buffer, Parser);
+					Parser->Ident = ml_stringbuffer_get_string(Buffer);
 				} else if (ml_isoperator(Char)) {
 					const char *End = Next + 1;
 					while (ml_isoperator(*End)) ++End;
@@ -4709,7 +4703,9 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				return Parser->Token;
 			} else if (Char == '\"') {
 				Parser->Next = Next + 1;
-				ml_scan_string(Parser);
+				ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+				ml_scan_string(Buffer, Parser);
+				Parser->Ident = ml_stringbuffer_get_string(Buffer);
 				Parser->Token = MLT_METHOD;
 				return Parser->Token;
 			} else if (Char == '-') {
@@ -6987,7 +6983,7 @@ ML_TYPE(MLGlobalT, (), "global",
 
 static void ML_TYPED_FN(ml_value_find_all, MLGlobalT, ml_global_t *Global, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Global, 1)) return;
-	ml_value_find_all(Global->Value, Data, RefFn);
+	if (Global->Value) ml_value_find_all(Global->Value, Data, RefFn);
 }
 
 ml_value_t *ml_global(const char *Name) {
@@ -7003,6 +6999,10 @@ ml_value_t *ml_global_get(ml_value_t *Global) {
 
 ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value) {
 	return ((ml_global_t *)Global)->Value = Value;
+}
+
+const char *ml_global_name(ml_value_t *Global) {
+	return ((ml_global_t *)Global)->Name;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLGlobalT, ml_global_t *Global, int Index) {

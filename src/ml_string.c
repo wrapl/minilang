@@ -2,6 +2,7 @@
 #include "ml_macros.h"
 #include "ml_object.h"
 #include "ml_compiler2.h"
+#include "ml_utils.h"
 #include "sha256.h"
 #include <string.h>
 #include <ctype.h>
@@ -780,6 +781,11 @@ static void *_ml_string(const char *Value, int Length) {
 	String->Value = Value;
 	String->Length = Length;
 	return String;
+}
+
+ML_FUNCTION(MLStringCheckCache) {
+	if (weakmap_check(StringCache)) return ml_error("InternalError", "Cache is corrupted");
+	return MLNil;
 }
 
 #endif
@@ -2276,7 +2282,7 @@ ML_METHOD("[]", MLStringCharsetT, MLIntegerT) {
 	ml_string_charset_t *Charset = (ml_string_charset_t *)Args[0];
 	int Index = ml_integer_value(Args[1]) - 1;
 	if (Index < 0) return ml_error("RangeError", "Invalid index");
-	if (Index >= uset_getItemCount(Charset->Handle)) ;
+	if (Index >= uset_getItemCount(Charset->Handle)) return ml_error("RangeError", "Invalid index");
 	UErrorCode Error = U_ZERO_ERROR;
 	UChar32 Start, End;
 	UChar Dest[256];
@@ -4804,7 +4810,7 @@ ML_TYPE(MLStringBufferT, (), "string::buffer",
 
 static GC_descr StringBufferDesc = 0;
 
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 static size_t _Atomic StringBufferNodeCount = 0;
 #else
@@ -4823,7 +4829,7 @@ static void ml_stringbuffer_cache_clear(void *Data) {
 }
 
 static ml_stringbuffer_node_t *ml_stringbuffer_node() {
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 	do {
 		if (!Next) {
@@ -4846,7 +4852,7 @@ static ml_stringbuffer_node_t *ml_stringbuffer_node() {
 }
 
 static inline void ml_stringbuffer_node_free(ml_stringbuffer_node_t *Node) {
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Node->Next = CacheNext;
@@ -4994,7 +5000,7 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	*P++ = 0;
 
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Tail->Next = CacheNext;
@@ -5010,7 +5016,7 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer) {
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
 	if (!Head) return;
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Tail->Next = CacheNext;
@@ -5211,7 +5217,7 @@ int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)
 	Result = callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 done:;
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Tail->Next = CacheNext;
@@ -5497,4 +5503,7 @@ void ml_string_init() {
 #endif
 	ml_parser_add_escape(NULL, "r", ml_parser_escape_regex);
 	ml_parser_add_escape(NULL, "ri", ml_parser_escape_regexi);
+#ifdef ML_STRINGCACHE
+	stringmap_insert(MLStringT->Exports, "_check_cache", MLStringCheckCache);
+#endif
 }

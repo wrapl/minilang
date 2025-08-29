@@ -18,6 +18,7 @@ typedef struct ml_minijs_encoder_t ml_minijs_encoder_t;
 
 struct ml_minijs_encoder_t {
 	ml_externals_t *Externals;
+	ml_value_t *Error;
 	inthash_t Cached[1];
 	int LastIndex;
 };

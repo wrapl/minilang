@@ -1,8 +1,9 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="ml__array_8h" kind="file" language="C++">
     <compoundname>ml_array.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
+    <includedby refid="ml__table_8h" local="yes">src/ml_table.h</includedby>
     <incdepgraph>
       <node id="13">
         <label>inthash.h</label>
@@ -100,6 +101,18 @@
         <label>unistd.h</label>
       </node>
     </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>src/ml_array.h</label>
+        <link refid="ml__array_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>src/ml_table.h</label>
+        <link refid="ml__table_8h_source"/>
+      </node>
+    </invincdepgraph>
     <innerclass refid="structml__array__dimension__t" prot="public">ml_array_dimension_t</innerclass>
     <innerclass refid="structml__array__t" prot="public">ml_array_t</innerclass>
     <sectiondef kind="define">

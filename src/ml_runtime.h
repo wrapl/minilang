@@ -19,7 +19,7 @@ extern "C" {
 #define ML_ARG_CACHE_SIZE 64
 
 extern
-#ifdef ML_THREADSAFE
+#ifdef ML_HOSTTHREADS
 __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
@@ -129,6 +129,8 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 #define ml_simple_inline(VALUE, COUNT, ARGS ...) ({ \
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
+
+ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args);
 
 typedef struct {
 	ml_state_t Base;
@@ -291,7 +293,7 @@ static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
 }
 
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 
 typedef struct ml_scheduler_block_t ml_scheduler_block_t;
 
@@ -302,7 +304,7 @@ struct ml_scheduler_t {
 	ml_scheduler_run_fn run;
 	ml_scheduler_fill_fn fill;
 	ml_scheduler_sleep_fn sleep;
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 	ml_scheduler_block_t *Resume;
 #endif
 };
@@ -326,6 +328,7 @@ ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice);
 
 int ml_scheduler_queue_size(ml_scheduler_queue_t *Queue);
 int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue);
+void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*Fn)(void *Data, ml_state_t *State));
 
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
 int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
@@ -348,7 +351,7 @@ static void FUNCTION(ml_state_t *State, ml_value_t *Value)
 
 #define ML_STATE_FN(NAME) ML_STATE_FN2(NAME, CONCAT3(ml_state_fn_, __LINE__, __COUNTER__))
 
-#ifdef ML_THREADS
+#ifdef ML_HOSTTHREADS
 
 void ml_threads_set_max_count(int Max);
 

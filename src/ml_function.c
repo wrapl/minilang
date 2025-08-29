@@ -11,6 +11,7 @@
 #define ML_CATEGORY "function"
 
 extern ml_value_t *IndexMethod;
+extern ml_value_t *CompareMethod;
 
 ML_INTERFACE(MLFunctionT, (), "function");
 // The base type of all functions.
@@ -488,6 +489,48 @@ ML_METHODV("[]", MLFunctionPartialT) {
 	return ml_chainedv(2, Args[0], Partial);
 }
 
+static ml_value_t *ml_partial_function_compare(ml_partial_function_t *A, ml_partial_function_t *B) {
+	// TODO: Replace this with a state to remove ml_simple_call
+	ml_value_t *Args[2];
+	ml_value_t *Result;
+	int N;
+	if (A->Count > B->Count) {
+		N = B->Count;
+		Result = (ml_value_t *)One;
+	} else if (A->Count < B->Count) {
+		N = A->Count;
+		Result = (ml_value_t *)NegOne;
+	} else {
+		N = A->Count;
+		Result = (ml_value_t *)Zero;
+	}
+	Args[0] = A->Function;
+	Args[1] = B->Function;
+	ml_value_t *C = ml_simple_call(CompareMethod, 2, Args);
+	if (ml_is_error(C)) return C;
+	if (ml_integer_value(C)) return C;
+	for (int I = 0; I < N; ++I) {
+		Args[0] = A->Args[I];
+		Args[1] = B->Args[I];
+		if (!Args[0]) {
+			if (Args[1]) return (ml_value_t *)NegOne;
+		} else if (!Args[1]) {
+			return (ml_value_t *)One;
+		} else {
+			ml_value_t *C = ml_simple_call(CompareMethod, 2, Args);
+			if (ml_is_error(C)) return C;
+			if (ml_integer_value(C)) return C;
+		}
+	}
+	return Result;
+}
+
+ML_METHOD("<>", MLFunctionPartialT, MLFunctionPartialT) {
+	ml_partial_function_t *A = (ml_partial_function_t *)Args[0];
+	ml_partial_function_t *B = (ml_partial_function_t *)Args[1];
+	return ml_partial_function_compare(A, B);
+}
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value;
@@ -522,6 +565,26 @@ ML_FUNCTIONZ(MLFunctionVariable) {
 //>function::value
 	ML_CHECKX_ARG_COUNT(1);
 	ML_RETURN(ml_value_function(Args[0]));
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLFunctionValueT, ml_value_function_t *Function) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("$="));
+	ml_list_put(Result, Function->Value);
+	return Result;
+}
+
+ML_DESERIALIZER("$=") {
+	ML_CHECK_ARG_COUNT(1);
+	return ml_value_function(Args[0]);
+}
+
+ML_METHOD("<>", MLFunctionValueT, MLFunctionValueT) {
+	ml_value_function_t *A = (ml_value_function_t *)Args[0];
+	ml_value_function_t *B = (ml_value_function_t *)Args[1];
+	Args[0] = A->Value;
+	Args[1] = B->Value;
+	return ml_simple_call(CompareMethod, 2, Args);
 }
 
 ML_METHOD("$!", MLFunctionT, MLListT) {

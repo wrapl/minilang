@@ -697,7 +697,7 @@ extern ml_integer_t Zero[1];
 ml_value_t *ml_integer(int64_t Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
-inline int64_t ml_integer64_value(const ml_value_t *Value) {
+static inline int64_t ml_integer64_value(const ml_value_t *Value) {
 #ifdef ML_BIGINT
 	return mpz_get_s64(((ml_integer_t *)Value)->Value);
 #else
@@ -710,7 +710,7 @@ typedef struct {
 	double Value;
 } ml_double_t;
 
-inline double ml_double_value(const ml_value_t *Value) {
+static inline double ml_double_value(const ml_value_t *Value) {
 	return ((ml_double_t *)Value)->Value;
 }
 
@@ -1248,10 +1248,9 @@ struct ml_map_t {
 struct ml_map_node_t {
 	ml_type_t *Type;
 	ml_map_node_t *Next, *Prev;
-	ml_value_t *Key;
+	ml_value_t *Key, *Value;
 	ml_map_node_t *Left, *Right;
 	ml_map_t *Map;
-	ml_value_t *Value;
 	long Hash;
 	int Depth;
 };

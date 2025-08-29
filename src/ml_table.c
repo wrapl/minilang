@@ -1,6 +1,7 @@
 #include "ml_table.h"
 #include "ml_array.h"
 #include "ml_macros.h"
+#include "ml_utils.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
@@ -219,6 +220,10 @@ ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array
 	Column->Values = Array;
 	ml_table_column_append(Table, Column);
 	return Array;
+}
+
+ml_array_t *ml_table_insert(ml_value_t *Table, const char *Name, ml_array_t *Source) {
+	return ml_table_insert_column((ml_table_t *)Table, Name, Source);
 }
 
 ml_value_t *ml_table() {

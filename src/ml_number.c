@@ -3580,6 +3580,10 @@ ML_METHOD("scale", MLDecimalT) {
 	return ml_integer(Decimal->Scale);
 }
 
+#if defined(Android) || defined(Darwin)
+#define exp10(X) pow(10, X)
+#endif
+
 static int64_t ML_TYPED_FN(ml_integer_value, MLDecimalT, ml_decimal_t *Decimal) {
 #ifdef ML_BIGINT
 	if (Decimal->Scale > 0) {
@@ -3640,6 +3644,32 @@ static double ML_TYPED_FN(ml_real_value, MLDecimalT, ml_decimal_t *Decimal) {
 	return Decimal->Unscaled / exp10(Decimal->Scale);
 #endif
 }
+
+#ifdef ML_COMPLEX
+
+static complex double ML_TYPED_FN(ml_complex_value, MLDecimalT, ml_decimal_t *Decimal) {
+#ifdef ML_BIGINT
+	if (Decimal->Scale > 0) {
+		mpq_t Scaled;
+		mpz_init_set(mpq_numref(Scaled), Decimal->Unscaled);
+		mpz_init(mpq_denref(Scaled));
+		mpz_ui_pow_ui(mpq_denref(Scaled), 10, Decimal->Scale);
+		return mpq_get_d(Scaled);
+	} else if (Decimal->Scale < 0) {
+		mpz_t Scaled;
+		mpz_init(Scaled);
+		mpz_ui_pow_ui(Scaled, 10, -Decimal->Scale);
+		mpz_mul(Scaled, Decimal->Unscaled, Scaled);
+		return mpz_get_d(Scaled);
+	} else {
+		return mpz_get_d(Decimal->Unscaled);
+	}
+#else
+	return Decimal->Unscaled / exp10(Decimal->Scale);
+#endif
+}
+
+#endif
 
 ML_METHOD(MLDecimalT, MLIntegerT, MLIntegerT) {
 	ml_decimal_t *Decimal = new(ml_decimal_t);

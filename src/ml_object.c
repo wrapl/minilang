@@ -876,12 +876,14 @@ ML_METHODX("register", MLPseudoClassT) {
 	ML_RETURN(Class);
 }
 
-//!enum
+ml_value_t *ml_struct_instance(ml_type_t *Type, void *Value) {
+	ml_struct_instance_t *Instance = new(ml_struct_instance_t);
+	Instance->Type = Type;
+	Instance->Value = Value;
+	return (ml_value_t *)Instance;
+}
 
-typedef struct {
-	ml_integer_t Base;
-	ml_value_t *Name;
-} ml_enum_value_t;
+//!enum
 
 typedef struct {
 	ml_type_t Base;
@@ -1240,14 +1242,6 @@ ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Value) {
 		if (ml_integer64_value((ml_value_t *)EnumValue) == Value) return (ml_value_t *)EnumValue;
 	}
 	return ml_error("EnumError", "Invalid enum index");
-}
-
-int64_t ml_enum_value_value(ml_value_t *Value) {
-	return ml_integer64_value(Value);
-}
-
-const char *ml_enum_value_name(ml_value_t *Value) {
-	return ml_string_value(((ml_enum_value_t *)Value)->Name);
 }
 
 int ml_enum_value_index(ml_value_t *Value) {

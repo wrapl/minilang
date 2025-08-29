@@ -1,6 +1,7 @@
 #include "ml_json.h"
 #include "ml_macros.h"
 #include "ml_stream.h"
+#include <inttypes.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "json"
@@ -781,8 +782,8 @@ ml_value_t *ml_json_encode(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 			ml_stringbuffer_write(Buffer, "false", 5);
 		}
 	} else if (ml_is(Value, MLIntegerT)) {
-		ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Value));
-	} else if (ml_is(Value, MLDoubleT)) {
+		ml_stringbuffer_printf(Buffer, "%" PRId64, ml_integer_value(Value));
+	} else if (ml_is(Value, MLRealT)) {
 		ml_stringbuffer_printf(Buffer, "%.20g", ml_real_value(Value));
 	} else if (ml_is(Value, MLStringT)) {
 		ml_json_encode_string(Buffer, Value);
@@ -909,7 +910,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLJsonT, ml_cbor_writer_t *Writer, ml_str
 	ml_cbor_write_raw(Writer, Value->Value, Value->Length);
 }
 
-static ml_value_t *ml_cbor_read_json(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+static ml_value_t *ml_cbor_read_json(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
 	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Json requires bytes or string");
 	ml_value_t *Json = ml_string_copy(ml_address_value(Value), ml_address_length(Value));
 	Json->Type = MLJsonT;

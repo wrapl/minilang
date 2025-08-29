@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="ml__types_8h" kind="file" language="C++">
     <compoundname>ml_types.h</compoundname>
     <includes local="no">stdio.h</includes>
@@ -69,20 +69,18 @@
       </node>
     </incdepgraph>
     <invincdepgraph>
-      <node id="11">
+      <node id="12">
         <label>src/minilang.h</label>
         <link refid="minilang_8h_source"/>
-        <childnode refid="12" relation="include">
-        </childnode>
         <childnode refid="13" relation="include">
-        </childnode>
-        <childnode refid="14" relation="include">
         </childnode>
         <childnode refid="15" relation="include">
         </childnode>
         <childnode refid="16" relation="include">
         </childnode>
         <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
         </childnode>
         <childnode refid="18" relation="include">
         </childnode>
@@ -110,6 +108,8 @@
         </childnode>
         <childnode refid="30" relation="include">
         </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
         <childnode refid="31" relation="include">
         </childnode>
         <childnode refid="32" relation="include">
@@ -121,19 +121,21 @@
         <childnode refid="35" relation="include">
         </childnode>
       </node>
-      <node id="12">
+      <node id="13">
         <label>src/ml_array.h</label>
         <link refid="ml__array_8h_source"/>
+        <childnode refid="14" relation="include">
+        </childnode>
       </node>
-      <node id="13">
+      <node id="15">
         <label>src/ml_ast.h</label>
         <link refid="ml__ast_8h_source"/>
       </node>
-      <node id="14">
+      <node id="16">
         <label>src/ml_base16.h</label>
         <link refid="ml__base16_8h_source"/>
       </node>
-      <node id="15">
+      <node id="17">
         <label>src/ml_base64.h</label>
         <link refid="ml__base64_8h_source"/>
       </node>
@@ -149,14 +151,14 @@
         <label>src/ml_bytecode_jit.h</label>
         <link refid="ml__bytecode__jit_8h_source"/>
       </node>
-      <node id="16">
+      <node id="7">
         <label>src/ml_cbor.h</label>
         <link refid="ml__cbor_8h_source"/>
       </node>
-      <node id="10">
+      <node id="11">
         <label>src/ml_compiler.h</label>
         <link refid="ml__compiler_8h_source"/>
-        <childnode refid="11" relation="include">
+        <childnode refid="12" relation="include">
         </childnode>
         <childnode refid="4" relation="include">
         </childnode>
@@ -165,7 +167,7 @@
         <label>src/ml_compiler2.h</label>
         <link refid="ml__compiler2_8h_source"/>
       </node>
-      <node id="17">
+      <node id="18">
         <label>src/ml_console.h</label>
         <link refid="ml__console_8h_source"/>
       </node>
@@ -177,77 +179,79 @@
         <label>src/ml_debugger.h</label>
         <link refid="ml__debugger_8h_source"/>
       </node>
-      <node id="18">
+      <node id="19">
         <label>src/ml_file.h</label>
         <link refid="ml__file_8h_source"/>
       </node>
-      <node id="19">
+      <node id="20">
         <label>src/ml_json.h</label>
         <link refid="ml__json_8h_source"/>
       </node>
-      <node id="20">
+      <node id="21">
         <label>src/ml_library.h</label>
         <link refid="ml__library_8h_source"/>
       </node>
-      <node id="21">
+      <node id="22">
         <label>src/ml_logging.h</label>
         <link refid="ml__logging_8h_source"/>
       </node>
-      <node id="22">
+      <node id="23">
         <label>src/ml_math.h</label>
         <link refid="ml__math_8h_source"/>
       </node>
-      <node id="23">
+      <node id="24">
         <label>src/ml_method.h</label>
         <link refid="ml__method_8h_source"/>
       </node>
-      <node id="24">
+      <node id="25">
         <label>src/ml_minijs.h</label>
         <link refid="ml__minijs_8h_source"/>
       </node>
-      <node id="25">
+      <node id="26">
         <label>src/ml_mmap.h</label>
         <link refid="ml__mmap_8h_source"/>
       </node>
-      <node id="26">
+      <node id="27">
         <label>src/ml_module.h</label>
         <link refid="ml__module_8h_source"/>
       </node>
       <node id="6">
         <label>src/ml_object.h</label>
         <link refid="ml__object_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
       </node>
-      <node id="7">
+      <node id="8">
         <label>src/ml_polynomial.h</label>
         <link refid="ml__polynomial_8h_source"/>
       </node>
-      <node id="8">
+      <node id="9">
         <label>src/ml_pqueue.h</label>
         <link refid="ml__pqueue_8h_source"/>
       </node>
-      <node id="9">
+      <node id="10">
         <label>src/ml_runtime.h</label>
         <link refid="ml__runtime_8h_source"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="10" relation="include">
+        <childnode refid="11" relation="include">
         </childnode>
         <childnode refid="36" relation="include">
         </childnode>
       </node>
-      <node id="27">
+      <node id="28">
         <label>src/ml_socket.h</label>
         <link refid="ml__socket_8h_source"/>
       </node>
-      <node id="28">
+      <node id="29">
         <label>src/ml_stream.h</label>
         <link refid="ml__stream_8h_source"/>
       </node>
-      <node id="29">
+      <node id="30">
         <label>src/ml_struct.h</label>
         <link refid="ml__struct_8h_source"/>
       </node>
-      <node id="30">
+      <node id="14">
         <label>src/ml_table.h</label>
         <link refid="ml__table_8h_source"/>
       </node>
@@ -268,11 +272,11 @@
         </childnode>
         <childnode refid="6" relation="include">
         </childnode>
-        <childnode refid="7" relation="include">
-        </childnode>
         <childnode refid="8" relation="include">
         </childnode>
         <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
         </childnode>
       </node>
       <node id="33">
@@ -553,8 +557,8 @@
       <member refid="group__numbers_1ga082c453c65a095369a4997191d9fec07" kind="function"><name>ml_real_parse</name></member>
       <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
       <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
-      <member refid="group__numbers_1ga7a0b6740ab3c5243f0d98da96bc62692" kind="function"><name>ml_integer64_value</name></member>
-      <member refid="group__numbers_1ga129bf764b37bb7d1ec0ee69caeca9125" kind="function"><name>ml_double_value</name></member>
+      <member refid="group__numbers_1ga4a41713d74d1891956ab7f80f73c21c2" kind="function"><name>ml_integer64_value</name></member>
+      <member refid="group__numbers_1gaf4ae05480a66d97716d99391e50fc2e4" kind="function"><name>ml_double_value</name></member>
       <member refid="group__numbers_1ga26fdf346e2362e83f1999ad3af9aa007" kind="function"><name>ml_real_range_count</name></member>
       <member refid="group__numbers_1ga7e74177cc7e9a1682d5e7839b1e6347f" kind="function"><name>ml_real_interval_count</name></member>
       <member refid="group__strings_1ga786e2f2bc4133f0ab328b47f53a04a5f" kind="function"><name>GC_vasprintf</name></member>
@@ -1369,7 +1373,7 @@
 <codeline lineno="697"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_integer(int64_t<sp/>Value)<sp/>__attribute__((malloc));</highlight></codeline>
 <codeline lineno="698"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_real(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>Value)<sp/>__attribute__((malloc));</highlight></codeline>
 <codeline lineno="699"><highlight class="normal"></highlight></codeline>
-<codeline lineno="700"><highlight class="normal"></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/>int64_t<sp/>ml_integer64_value(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
+<codeline lineno="700"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/>int64_t<sp/>ml_integer64_value(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
 <codeline lineno="701"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_BIGINT</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="702"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>mpz_get_s64(((<ref refid="structml__integer__t" kindref="compound">ml_integer_t</ref><sp/>*)Value)-&gt;Value);</highlight></codeline>
 <codeline lineno="703"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
@@ -1382,7 +1386,7 @@
 <codeline lineno="710"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>Value;</highlight></codeline>
 <codeline lineno="711"><highlight class="normal">}<sp/><ref refid="structml__double__t" kindref="compound">ml_double_t</ref>;</highlight></codeline>
 <codeline lineno="712"><highlight class="normal"></highlight></codeline>
-<codeline lineno="713"><highlight class="normal"></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>ml_double_value(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
+<codeline lineno="713"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>ml_double_value(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
 <codeline lineno="714"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>((<ref refid="structml__double__t" kindref="compound">ml_double_t</ref><sp/>*)Value)-&gt;Value;</highlight></codeline>
 <codeline lineno="715"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="716"><highlight class="normal"></highlight></codeline>
@@ -1900,350 +1904,349 @@
 <codeline lineno="1248" refid="structml__map__node__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>{</highlight></codeline>
 <codeline lineno="1249"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
 <codeline lineno="1250"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Next,<sp/>*Prev;</highlight></codeline>
-<codeline lineno="1251"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key;</highlight></codeline>
+<codeline lineno="1251"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key,<sp/>*Value;</highlight></codeline>
 <codeline lineno="1252"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Left,<sp/>*Right;</highlight></codeline>
 <codeline lineno="1253"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*Map;</highlight></codeline>
-<codeline lineno="1254"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;</highlight></codeline>
-<codeline lineno="1255"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>Hash;</highlight></codeline>
-<codeline lineno="1256"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Depth;</highlight></codeline>
-<codeline lineno="1257"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="1258"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1259"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map()<sp/>__attribute__((malloc));</highlight></codeline>
-<codeline lineno="1260"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_search(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1261"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_search0(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1262"><highlight class="normal"><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*ml_map_slot(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1263"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_insert(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="1264"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_delete(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1265"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1266"><highlight class="normal">static<sp/>inline<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_size(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map)<sp/>{</highlight></codeline>
-<codeline lineno="1267"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>((<ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*)Map)-&gt;Size;</highlight></codeline>
-<codeline lineno="1268"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1269"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1270"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
-<codeline lineno="1271"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1272" refid="structml__map__iter__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
-<codeline lineno="1273"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node;</highlight></codeline>
-<codeline lineno="1274"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key,<sp/>*Value;</highlight></codeline>
-<codeline lineno="1275"><highlight class="normal">}<sp/><ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref>;</highlight></codeline>
-<codeline lineno="1276"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1277"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_forward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map0,<sp/><ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1278"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*Map<sp/>=<sp/>(<ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*)Map0;</highlight></codeline>
-<codeline lineno="1279"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Map-&gt;Head;</highlight></codeline>
-<codeline lineno="1280"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1281"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1282"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1283"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1284"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
-<codeline lineno="1285"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1286"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1287"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1288"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1289"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_next(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1290"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Next;</highlight></codeline>
-<codeline lineno="1291"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1292"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1293"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1294"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1295"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
-<codeline lineno="1296"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1297"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1298"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1299"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1300"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_backward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map0,<sp/><ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1301"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*Map<sp/>=<sp/>(<ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*)Map0;</highlight></codeline>
-<codeline lineno="1302"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Map-&gt;Tail;</highlight></codeline>
-<codeline lineno="1303"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1304"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1305"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1306"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1307"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
-<codeline lineno="1308"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1309"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1310"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1311"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1312"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_prev(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1313"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Prev;</highlight></codeline>
-<codeline lineno="1314"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1315"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1316"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1317"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
-<codeline lineno="1319"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1320"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1321"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1322"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1323"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_valid(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1324"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Iter-&gt;Node<sp/>!=<sp/>NULL;</highlight></codeline>
-<codeline lineno="1325"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1326"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1327"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_map_iter_update(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
-<codeline lineno="1328"><highlight class="normal"><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Iter-&gt;Node-&gt;Value<sp/>=<sp/>Value;</highlight></codeline>
-<codeline lineno="1329"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1330"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1331"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_MAP_FOREACH(MAP,<sp/>ITER)<sp/>\</highlight></codeline>
-<codeline lineno="1332"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(ml_map_node_t<sp/>*ITER<sp/>=<sp/>((ml_map_t<sp/>*)MAP)-&gt;Head;<sp/>ITER;<sp/>ITER<sp/>=<sp/>ITER-&gt;Next)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1333"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1335"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1339"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1340"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Names<sp/>//</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1341"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1342"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLNamesT[];</highlight></codeline>
-<codeline lineno="1343"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1344"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_names();</highlight></codeline>
-<codeline lineno="1345"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_names_add(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Names,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="1346"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_names_length<sp/>ml_list_length</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1347"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1348"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_NAMES_CHECK_ARG_COUNT(N)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="1349"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Required<sp/>=<sp/>ml_names_length(ml_deref(Args[N]))<sp/>+<sp/>N<sp/>+<sp/>1;<sp/>\</highlight></codeline>
-<codeline lineno="1350"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(Count<sp/>&lt;<sp/>Required)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="1351"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>ml_error(&quot;CallError&quot;,<sp/>&quot;%d<sp/>arguments<sp/>required&quot;,<sp/>Required);<sp/>\</highlight></codeline>
-<codeline lineno="1352"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
-<codeline lineno="1353"><highlight class="preprocessor">}</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1354"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1355"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_NAMES_CHECKX_ARG_COUNT(N)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="1356"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Required<sp/>=<sp/>ml_names_length(ml_deref(Args[N]))<sp/>+<sp/>N<sp/>+<sp/>1;<sp/>\</highlight></codeline>
-<codeline lineno="1357"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(Count<sp/>&lt;<sp/>Required)<sp/>{<sp/>\</highlight></codeline>
-<codeline lineno="1358"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ML_ERROR(&quot;CallError&quot;,<sp/>&quot;%d<sp/>arguments<sp/>required&quot;,<sp/>Required);<sp/>\</highlight></codeline>
-<codeline lineno="1359"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
-<codeline lineno="1360"><highlight class="preprocessor">}</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1361"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1362"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_NAMES_FOREACH(NAMES,<sp/>ITER)<sp/>ML_LIST_FOREACH(ml_deref(NAMES),<sp/>ITER)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1363"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1365"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1369"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1370"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Sets<sp/>//</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1371"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1372"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/><ref refid="structml__set__t" kindref="compound">ml_set_t</ref>;</highlight></codeline>
-<codeline lineno="1373"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref>;</highlight></codeline>
-<codeline lineno="1374"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1375"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_INSERT,</highlight></codeline>
-<codeline lineno="1376"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_LRU,</highlight></codeline>
-<codeline lineno="1377"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_MRU,</highlight></codeline>
-<codeline lineno="1378"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_ASC,</highlight></codeline>
-<codeline lineno="1379"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_DESC</highlight></codeline>
-<codeline lineno="1380"><highlight class="normal">}<sp/>ml_set_order_t;</highlight></codeline>
-<codeline lineno="1381"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1382"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSetT[];</highlight></codeline>
-<codeline lineno="1383"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1384" refid="structml__set__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="1385"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="1386"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Head,<sp/>*Tail,<sp/>*Root;</highlight></codeline>
-<codeline lineno="1387"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__method__cached__t" kindref="compound">ml_method_cached_t</ref><sp/>*Cached;</highlight></codeline>
-<codeline lineno="1388"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size;</highlight></codeline>
-<codeline lineno="1389"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_set_order_t<sp/>Order;</highlight></codeline>
-<codeline lineno="1390"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="1391"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1392" refid="structml__set__node__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="1393"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="1394"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Next,<sp/>*Prev;</highlight></codeline>
-<codeline lineno="1395"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key;</highlight></codeline>
-<codeline lineno="1396"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Left,<sp/>*Right;</highlight></codeline>
-<codeline lineno="1397"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>Hash;</highlight></codeline>
-<codeline lineno="1398"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Depth;</highlight></codeline>
-<codeline lineno="1399"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="1400"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1401"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set()<sp/>__attribute__((malloc));</highlight></codeline>
-<codeline lineno="1402"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_search(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1403"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_search0(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1404"><highlight class="normal"><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*ml_set_slot(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1405"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_insert(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1406"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_delete(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
-<codeline lineno="1407"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1408"><highlight class="normal">static<sp/>inline<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_size(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set)<sp/>{</highlight></codeline>
-<codeline lineno="1409"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>((<ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*)Set)-&gt;Size;</highlight></codeline>
-<codeline lineno="1410"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1411"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1412"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
-<codeline lineno="1413"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1414" refid="structml__set__iter__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
-<codeline lineno="1415"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node;</highlight></codeline>
-<codeline lineno="1416"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key;</highlight></codeline>
-<codeline lineno="1417"><highlight class="normal">}<sp/><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref>;</highlight></codeline>
-<codeline lineno="1418"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1419"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_forward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set0,<sp/><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1420"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*Set<sp/>=<sp/>(<ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*)Set0;</highlight></codeline>
-<codeline lineno="1421"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Set-&gt;Head;</highlight></codeline>
-<codeline lineno="1422"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1423"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1424"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1425"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1426"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1427"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1428"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1429"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1430"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_next(<ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1431"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Next;</highlight></codeline>
-<codeline lineno="1432"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1433"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1434"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1435"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1436"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1437"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1438"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1439"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1440"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_backward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set0,<sp/><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1441"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*Set<sp/>=<sp/>(<ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*)Set0;</highlight></codeline>
-<codeline lineno="1442"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Set-&gt;Tail;</highlight></codeline>
-<codeline lineno="1443"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1444"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1445"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1446"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1447"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1448"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1449"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1450"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1451"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_prev(<ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1452"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Prev;</highlight></codeline>
-<codeline lineno="1453"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
-<codeline lineno="1454"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="1455"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="1456"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
-<codeline lineno="1457"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="1458"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="1459"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1460"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1461"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_valid(<ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
-<codeline lineno="1462"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Iter-&gt;Node<sp/>!=<sp/>NULL;</highlight></codeline>
-<codeline lineno="1463"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1464"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1465"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_SET_FOREACH(SET,<sp/>ITER)<sp/>\</highlight></codeline>
-<codeline lineno="1466"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(ml_set_node_t<sp/>*ITER<sp/>=<sp/>((ml_set_t<sp/>*)SET)-&gt;Head;<sp/>ITER;<sp/>ITER<sp/>=<sp/>ITER-&gt;Next)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1467"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1469"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1473"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1474"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Modules<sp/>//</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1475"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1476"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLModuleT[];</highlight></codeline>
-<codeline lineno="1477"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1478" refid="structml__module__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
-<codeline lineno="1479"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="1480"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path;</highlight></codeline>
-<codeline lineno="1481"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Exports[1];</highlight></codeline>
-<codeline lineno="1482"><highlight class="normal">}<sp/><ref refid="structml__module__t" kindref="compound">ml_module_t</ref>;</highlight></codeline>
-<codeline lineno="1483"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1484"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_module(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/>...)<sp/>__attribute__<sp/>((malloc,<sp/>sentinel));</highlight></codeline>
-<codeline lineno="1485"><highlight class="normal">const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_module_path(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
-<codeline lineno="1486"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_module_import(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
-<codeline lineno="1487"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_module_export(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="1488"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1489"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_callable_module(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Fn,<sp/>...)<sp/>__attribute__<sp/>((malloc,<sp/>sentinel));</highlight></codeline>
-<codeline lineno="1490"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1492"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1496"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1497"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Externals<sp/>//</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1498"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1499"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLExternalT[];</highlight></codeline>
-<codeline lineno="1500"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLExternalSetT[];</highlight></codeline>
-<codeline lineno="1501"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1502" refid="structml__external__t" refkind="compound"><highlight class="normal">typedef<sp/>struct<sp/>{</highlight></codeline>
-<codeline lineno="1503"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="1504"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
-<codeline lineno="1505"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source;</highlight></codeline>
-<codeline lineno="1506"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Exports[1];</highlight></codeline>
-<codeline lineno="1507"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length,<sp/>Line;</highlight></codeline>
-<codeline lineno="1508"><highlight class="normal">}<sp/><ref refid="structml__external__t" kindref="compound">ml_external_t</ref>;</highlight></codeline>
-<codeline lineno="1509"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1510"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_external(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
-<codeline lineno="1511"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1512"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref>;</highlight></codeline>
-<codeline lineno="1513"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1514" refid="structml__externals__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>{</highlight></codeline>
-<codeline lineno="1515"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="1516"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Next;</highlight></codeline>
-<codeline lineno="1517"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>Values[1];</highlight></codeline>
-<codeline lineno="1518"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Names[1];</highlight></codeline>
-<codeline lineno="1519"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="1520"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1521"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>MLExternals[1];</highlight></codeline>
-<codeline lineno="1522"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_externals_get_name(<ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="1523"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_externals_get_value(<ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="1524"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_externals_add(<ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
-<codeline lineno="1525"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1526"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_externals_default_add(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
-<codeline lineno="1527"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1528"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_serialize(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="1529"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1530"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*(*ml_deserializer_t)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Type,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
-<codeline lineno="1531"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1532"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_deserializer_define(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Type,<sp/>ml_deserializer_t<sp/>Deserializer);</highlight></codeline>
-<codeline lineno="1533"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_deserialize(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Type,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
-<codeline lineno="1534"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1535"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>GENERATE_INIT</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1536"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1537"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_DESERIALIZER(TYPE)<sp/>static<sp/>ml_value_t<sp/>*CONCAT3(ml_deserializer_,<sp/>__LINE__,<sp/>__COUNTER__)(const<sp/>char<sp/>*Type,<sp/>int<sp/>Count,<sp/>ml_value_t<sp/>**Args)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1538"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1539"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1540"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1541"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_DESERIALIZER(TYPE)<sp/>INIT_CODE<sp/>ml_deserializer_define(TYPE,<sp/>CONCAT3(ml_deserializer_,<sp/>__LINE__,<sp/>__COUNTER__));</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1542"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1543"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1544"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1546"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1550"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1551"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Symbols<sp/>//</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1552"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1553" refid="structml__symbol__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
-<codeline lineno="1554"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="1555"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
-<codeline lineno="1556"><highlight class="normal">}<sp/><ref refid="structml__symbol__t" kindref="compound">ml_symbol_t</ref>;</highlight></codeline>
-<codeline lineno="1557"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1558"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSymbolT[];</highlight></codeline>
-<codeline lineno="1559"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1560"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_symbol(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
-<codeline lineno="1561"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1562"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_symbol_name(VALUE)<sp/>((ml_symbol_t<sp/>*)VALUE)-&gt;Name</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1563"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1564" refid="structml__symbol__interval__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
-<codeline lineno="1565"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
-<codeline lineno="1566"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*First,<sp/>*Last;</highlight></codeline>
-<codeline lineno="1567"><highlight class="normal">}<sp/><ref refid="structml__symbol__interval__t" kindref="compound">ml_symbol_interval_t</ref>;</highlight></codeline>
-<codeline lineno="1568"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1569"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSymbolIntervalT[];</highlight></codeline>
-<codeline lineno="1570"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1571"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_symbol_interval_first(VALUE)<sp/>((ml_symbol_interval_t<sp/>*)VALUE)-&gt;First</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1572"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_symbol_interval_last(VALUE)<sp/>((ml_symbol_interval_t<sp/>*)VALUE)-&gt;Last</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1573"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1575"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1579"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1580"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Init<sp/>//</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1581"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1582"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_types_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
-<codeline lineno="1583"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1584"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1585"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1586"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1587"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal"><sp/>T&gt;<sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/>T<sp/>*ml_typed_fn_get(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>T<sp/>*Key)<sp/>{</highlight></codeline>
-<codeline lineno="1588"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(T<sp/>*)ml_typed_fn_get(Type,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)Key);</highlight></codeline>
-<codeline lineno="1589"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1590"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1591"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1592"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1593"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1594"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1595"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1596"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Cached,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1597"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1598"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1599"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1600"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Type-&gt;Constructor,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1601"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1602"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1603"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1604"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1605"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1606"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1607"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1608"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Cached,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1609"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1610"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1611"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1612"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Type-&gt;Constructor,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1613"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1614"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1615"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1616"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1618"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1619"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="1254"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>Hash;</highlight></codeline>
+<codeline lineno="1255"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Depth;</highlight></codeline>
+<codeline lineno="1256"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="1257"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1258"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map()<sp/>__attribute__((malloc));</highlight></codeline>
+<codeline lineno="1259"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_search(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1260"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_search0(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1261"><highlight class="normal"><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*ml_map_slot(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1262"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_insert(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="1263"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_map_delete(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1264"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1265"><highlight class="normal">static<sp/>inline<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_size(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map)<sp/>{</highlight></codeline>
+<codeline lineno="1266"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>((<ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*)Map)-&gt;Size;</highlight></codeline>
+<codeline lineno="1267"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1268"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1269"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="1270"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1271" refid="structml__map__iter__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="1272"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node;</highlight></codeline>
+<codeline lineno="1273"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key,<sp/>*Value;</highlight></codeline>
+<codeline lineno="1274"><highlight class="normal">}<sp/><ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref>;</highlight></codeline>
+<codeline lineno="1275"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1276"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_forward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map0,<sp/><ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1277"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*Map<sp/>=<sp/>(<ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*)Map0;</highlight></codeline>
+<codeline lineno="1278"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Map-&gt;Head;</highlight></codeline>
+<codeline lineno="1279"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1280"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1281"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1282"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1283"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
+<codeline lineno="1284"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1285"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1286"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1287"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1288"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_next(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1289"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Next;</highlight></codeline>
+<codeline lineno="1290"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1291"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1292"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1293"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1294"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
+<codeline lineno="1295"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1296"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1297"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1298"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1299"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_backward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Map0,<sp/><ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1300"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*Map<sp/>=<sp/>(<ref refid="structml__map__t" kindref="compound">ml_map_t</ref><sp/>*)Map0;</highlight></codeline>
+<codeline lineno="1301"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Map-&gt;Tail;</highlight></codeline>
+<codeline lineno="1302"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1303"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1304"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1305"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1306"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
+<codeline lineno="1307"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1308"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1309"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1310"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1311"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_prev(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1312"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Prev;</highlight></codeline>
+<codeline lineno="1313"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1314"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1315"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1316"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1317"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Node-&gt;Value;</highlight></codeline>
+<codeline lineno="1318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1319"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1320"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1321"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1322"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_map_iter_valid(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1323"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Iter-&gt;Node<sp/>!=<sp/>NULL;</highlight></codeline>
+<codeline lineno="1324"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1325"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1326"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_map_iter_update(<ref refid="structml__map__iter__t" kindref="compound">ml_map_iter_t</ref><sp/>*Iter,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
+<codeline lineno="1327"><highlight class="normal"><sp/><sp/><sp/><sp/>Iter-&gt;Value<sp/>=<sp/>Iter-&gt;Node-&gt;Value<sp/>=<sp/>Value;</highlight></codeline>
+<codeline lineno="1328"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1329"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1330"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_MAP_FOREACH(MAP,<sp/>ITER)<sp/>\</highlight></codeline>
+<codeline lineno="1331"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(ml_map_node_t<sp/>*ITER<sp/>=<sp/>((ml_map_t<sp/>*)MAP)-&gt;Head;<sp/>ITER;<sp/>ITER<sp/>=<sp/>ITER-&gt;Next)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1332"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1334"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1338"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1339"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Names<sp/>//</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1340"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1341"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLNamesT[];</highlight></codeline>
+<codeline lineno="1342"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1343"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_names();</highlight></codeline>
+<codeline lineno="1344"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_names_add(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Names,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="1345"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_names_length<sp/>ml_list_length</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1346"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1347"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_NAMES_CHECK_ARG_COUNT(N)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="1348"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Required<sp/>=<sp/>ml_names_length(ml_deref(Args[N]))<sp/>+<sp/>N<sp/>+<sp/>1;<sp/>\</highlight></codeline>
+<codeline lineno="1349"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(Count<sp/>&lt;<sp/>Required)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="1350"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>ml_error(&quot;CallError&quot;,<sp/>&quot;%d<sp/>arguments<sp/>required&quot;,<sp/>Required);<sp/>\</highlight></codeline>
+<codeline lineno="1351"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="1352"><highlight class="preprocessor">}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1353"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1354"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_NAMES_CHECKX_ARG_COUNT(N)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="1355"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>Required<sp/>=<sp/>ml_names_length(ml_deref(Args[N]))<sp/>+<sp/>N<sp/>+<sp/>1;<sp/>\</highlight></codeline>
+<codeline lineno="1356"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(Count<sp/>&lt;<sp/>Required)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="1357"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ML_ERROR(&quot;CallError&quot;,<sp/>&quot;%d<sp/>arguments<sp/>required&quot;,<sp/>Required);<sp/>\</highlight></codeline>
+<codeline lineno="1358"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="1359"><highlight class="preprocessor">}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1360"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1361"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_NAMES_FOREACH(NAMES,<sp/>ITER)<sp/>ML_LIST_FOREACH(ml_deref(NAMES),<sp/>ITER)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1362"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1364"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1368"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1369"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Sets<sp/>//</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1370"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1371"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/><ref refid="structml__set__t" kindref="compound">ml_set_t</ref>;</highlight></codeline>
+<codeline lineno="1372"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref>;</highlight></codeline>
+<codeline lineno="1373"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1374"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_INSERT,</highlight></codeline>
+<codeline lineno="1375"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_LRU,</highlight></codeline>
+<codeline lineno="1376"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_MRU,</highlight></codeline>
+<codeline lineno="1377"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_ASC,</highlight></codeline>
+<codeline lineno="1378"><highlight class="normal"><sp/><sp/><sp/><sp/>SET_ORDER_DESC</highlight></codeline>
+<codeline lineno="1379"><highlight class="normal">}<sp/>ml_set_order_t;</highlight></codeline>
+<codeline lineno="1380"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1381"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSetT[];</highlight></codeline>
+<codeline lineno="1382"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1383" refid="structml__set__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="1384"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="1385"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Head,<sp/>*Tail,<sp/>*Root;</highlight></codeline>
+<codeline lineno="1386"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__method__cached__t" kindref="compound">ml_method_cached_t</ref><sp/>*Cached;</highlight></codeline>
+<codeline lineno="1387"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size;</highlight></codeline>
+<codeline lineno="1388"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_set_order_t<sp/>Order;</highlight></codeline>
+<codeline lineno="1389"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="1390"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1391" refid="structml__set__node__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="1392"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="1393"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Next,<sp/>*Prev;</highlight></codeline>
+<codeline lineno="1394"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key;</highlight></codeline>
+<codeline lineno="1395"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Left,<sp/>*Right;</highlight></codeline>
+<codeline lineno="1396"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>Hash;</highlight></codeline>
+<codeline lineno="1397"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Depth;</highlight></codeline>
+<codeline lineno="1398"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="1399"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1400"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set()<sp/>__attribute__((malloc));</highlight></codeline>
+<codeline lineno="1401"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_search(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1402"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_search0(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1403"><highlight class="normal"><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*ml_set_slot(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1404"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_insert(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1405"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_set_delete(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key);</highlight></codeline>
+<codeline lineno="1406"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1407"><highlight class="normal">static<sp/>inline<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_size(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set)<sp/>{</highlight></codeline>
+<codeline lineno="1408"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>((<ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*)Set)-&gt;Size;</highlight></codeline>
+<codeline lineno="1409"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1410"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1411"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="1412"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1413" refid="structml__set__iter__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="1414"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node;</highlight></codeline>
+<codeline lineno="1415"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Key;</highlight></codeline>
+<codeline lineno="1416"><highlight class="normal">}<sp/><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref>;</highlight></codeline>
+<codeline lineno="1417"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1418"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_forward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set0,<sp/><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1419"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*Set<sp/>=<sp/>(<ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*)Set0;</highlight></codeline>
+<codeline lineno="1420"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Set-&gt;Head;</highlight></codeline>
+<codeline lineno="1421"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1422"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1423"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1424"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1425"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1426"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1427"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1428"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1429"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_next(<ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1430"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Next;</highlight></codeline>
+<codeline lineno="1431"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1432"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1433"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1434"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1435"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1436"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1437"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1438"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1439"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_backward(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Set0,<sp/><ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1440"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*Set<sp/>=<sp/>(<ref refid="structml__set__t" kindref="compound">ml_set_t</ref><sp/>*)Set0;</highlight></codeline>
+<codeline lineno="1441"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Set-&gt;Tail;</highlight></codeline>
+<codeline lineno="1442"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1443"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1444"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1445"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1446"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1447"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1448"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1449"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1450"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_prev(<ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1451"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref><sp/>*Node<sp/>=<sp/>Iter-&gt;Node<sp/>=<sp/>Iter-&gt;Node-&gt;Prev;</highlight></codeline>
+<codeline lineno="1452"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Node)<sp/>{</highlight></codeline>
+<codeline lineno="1453"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="1454"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1455"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Iter-&gt;Key<sp/>=<sp/>Node-&gt;Key;</highlight></codeline>
+<codeline lineno="1456"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="1457"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1458"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1459"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1460"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_set_iter_valid(<ref refid="structml__set__iter__t" kindref="compound">ml_set_iter_t</ref><sp/>*Iter)<sp/>{</highlight></codeline>
+<codeline lineno="1461"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Iter-&gt;Node<sp/>!=<sp/>NULL;</highlight></codeline>
+<codeline lineno="1462"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1463"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1464"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_SET_FOREACH(SET,<sp/>ITER)<sp/>\</highlight></codeline>
+<codeline lineno="1465"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>for<sp/>(ml_set_node_t<sp/>*ITER<sp/>=<sp/>((ml_set_t<sp/>*)SET)-&gt;Head;<sp/>ITER;<sp/>ITER<sp/>=<sp/>ITER-&gt;Next)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1466"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1468"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1472"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1473"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Modules<sp/>//</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1474"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1475"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLModuleT[];</highlight></codeline>
+<codeline lineno="1476"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1477" refid="structml__module__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="1478"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="1479"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path;</highlight></codeline>
+<codeline lineno="1480"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Exports[1];</highlight></codeline>
+<codeline lineno="1481"><highlight class="normal">}<sp/><ref refid="structml__module__t" kindref="compound">ml_module_t</ref>;</highlight></codeline>
+<codeline lineno="1482"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1483"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_module(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/>...)<sp/>__attribute__<sp/>((malloc,<sp/>sentinel));</highlight></codeline>
+<codeline lineno="1484"><highlight class="normal">const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_module_path(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="1485"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_module_import(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
+<codeline lineno="1486"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_module_export(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Module,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="1487"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1488"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_callable_module(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Path,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Fn,<sp/>...)<sp/>__attribute__<sp/>((malloc,<sp/>sentinel));</highlight></codeline>
+<codeline lineno="1489"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1491"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1495"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1496"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Externals<sp/>//</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1497"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1498"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLExternalT[];</highlight></codeline>
+<codeline lineno="1499"><highlight class="normal">extern<sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLExternalSetT[];</highlight></codeline>
+<codeline lineno="1500"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1501" refid="structml__external__t" refkind="compound"><highlight class="normal">typedef<sp/>struct<sp/>{</highlight></codeline>
+<codeline lineno="1502"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="1503"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
+<codeline lineno="1504"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source;</highlight></codeline>
+<codeline lineno="1505"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Exports[1];</highlight></codeline>
+<codeline lineno="1506"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length,<sp/>Line;</highlight></codeline>
+<codeline lineno="1507"><highlight class="normal">}<sp/><ref refid="structml__external__t" kindref="compound">ml_external_t</ref>;</highlight></codeline>
+<codeline lineno="1508"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1509"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_external(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Source,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Line)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
+<codeline lineno="1510"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1511"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref>;</highlight></codeline>
+<codeline lineno="1512"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1513" refid="structml__externals__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="1514"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="1515"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Next;</highlight></codeline>
+<codeline lineno="1516"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>Values[1];</highlight></codeline>
+<codeline lineno="1517"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>Names[1];</highlight></codeline>
+<codeline lineno="1518"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="1519"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1520"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>MLExternals[1];</highlight></codeline>
+<codeline lineno="1521"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*ml_externals_get_name(<ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="1522"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_externals_get_value(<ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="1523"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_externals_add(<ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref><sp/>*Externals,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
+<codeline lineno="1524"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1525"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_externals_default_add(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Value);</highlight></codeline>
+<codeline lineno="1526"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1527"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_serialize(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="1528"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1529"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*(*ml_deserializer_t)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Type,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
+<codeline lineno="1530"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1531"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_deserializer_define(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Type,<sp/>ml_deserializer_t<sp/>Deserializer);</highlight></codeline>
+<codeline lineno="1532"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_deserialize(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Type,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Count,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Args);</highlight></codeline>
+<codeline lineno="1533"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1534"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>GENERATE_INIT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1535"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1536"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_DESERIALIZER(TYPE)<sp/>static<sp/>ml_value_t<sp/>*CONCAT3(ml_deserializer_,<sp/>__LINE__,<sp/>__COUNTER__)(const<sp/>char<sp/>*Type,<sp/>int<sp/>Count,<sp/>ml_value_t<sp/>**Args)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1537"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1538"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1539"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1540"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_DESERIALIZER(TYPE)<sp/>INIT_CODE<sp/>ml_deserializer_define(TYPE,<sp/>CONCAT3(ml_deserializer_,<sp/>__LINE__,<sp/>__COUNTER__));</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1541"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1542"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1543"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1545"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1549"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1550"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Symbols<sp/>//</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1551"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1552" refid="structml__symbol__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="1553"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="1554"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name;</highlight></codeline>
+<codeline lineno="1555"><highlight class="normal">}<sp/><ref refid="structml__symbol__t" kindref="compound">ml_symbol_t</ref>;</highlight></codeline>
+<codeline lineno="1556"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1557"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSymbolT[];</highlight></codeline>
+<codeline lineno="1558"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1559"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_symbol(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name);</highlight></codeline>
+<codeline lineno="1560"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1561"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_symbol_name(VALUE)<sp/>((ml_symbol_t<sp/>*)VALUE)-&gt;Name</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1562"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1563" refid="structml__symbol__interval__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="1564"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type;</highlight></codeline>
+<codeline lineno="1565"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*First,<sp/>*Last;</highlight></codeline>
+<codeline lineno="1566"><highlight class="normal">}<sp/><ref refid="structml__symbol__interval__t" kindref="compound">ml_symbol_interval_t</ref>;</highlight></codeline>
+<codeline lineno="1567"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1568"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/><ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>MLSymbolIntervalT[];</highlight></codeline>
+<codeline lineno="1569"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1570"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_symbol_interval_first(VALUE)<sp/>((ml_symbol_interval_t<sp/>*)VALUE)-&gt;First</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1571"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_symbol_interval_last(VALUE)<sp/>((ml_symbol_interval_t<sp/>*)VALUE)-&gt;Last</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1572"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1574"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1578"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1579"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Init<sp/>//</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1580"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1581"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_types_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
+<codeline lineno="1582"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1583"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1584"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1585"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1586"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal"><sp/>T&gt;<sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/>T<sp/>*ml_typed_fn_get(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>T<sp/>*Key)<sp/>{</highlight></codeline>
+<codeline lineno="1587"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(T<sp/>*)ml_typed_fn_get(Type,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)Key);</highlight></codeline>
+<codeline lineno="1588"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1589"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1590"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1591"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1592"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1593"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1594"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1595"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Cached,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1596"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1597"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1598"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1599"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Type-&gt;Constructor,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1600"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1601"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1602"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1603"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1604"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1605"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1606"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1607"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Cached,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1608"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1609"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1610"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1611"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Type-&gt;Constructor,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1612"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1613"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1614"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1615"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1617"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1618"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_types.h"/>
   </compounddef>
