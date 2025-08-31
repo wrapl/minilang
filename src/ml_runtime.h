@@ -307,6 +307,7 @@ struct ml_scheduler_t {
 #ifdef ML_HOSTTHREADS
 	ml_scheduler_block_t *Resume;
 #endif
+	int Fill;
 };
 
 static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {

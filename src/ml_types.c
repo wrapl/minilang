@@ -1475,32 +1475,56 @@ ML_FUNCTION(MLIsConstant) {
 // Iterators //
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
-	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
+	ml_type_t *Type = ml_typeof(Value);
+	typeof(ml_iterate) *function = Type->iterate;
 	if (function) return function(Caller, Value);
+	function = ml_typed_fn_get(Type, ml_iterate);
+	if (function) {
+		Type->iterate = function;
+		return function(Caller, Value);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Value;
 	return ml_call(Caller, IterateMethod, 1, Args);
 }
 
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
-	typeof(ml_iter_value) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_value);
+	ml_type_t *Type = ml_typeof(Iter);
+	typeof(ml_iter_value) *function = Type->iter_value;
 	if (function) return function(Caller, Iter);
+	function = ml_typed_fn_get(Type, ml_iter_value);
+	if (function) {
+		Type->iter_value = function;
+		return function(Caller, Iter);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Iter;
 	return ml_call(Caller, ValueMethod, 1, Args);
 }
 
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
-	typeof(ml_iter_key) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_key);
+	ml_type_t *Type = ml_typeof(Iter);
+	typeof(ml_iter_key) *function = Type->iter_key;
 	if (function) return function(Caller, Iter);
+	function = ml_typed_fn_get(Type, ml_iter_key);
+	if (function) {
+		Type->iter_key = function;
+		return function(Caller, Iter);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Iter;
 	return ml_call(Caller, KeyMethod, 1, Args);
 }
 
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
-	typeof(ml_iter_next) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_next);
+	ml_type_t *Type = ml_typeof(Iter);
+	typeof(ml_iter_next) *function = Type->iter_next;
 	if (function) return function(Caller, Iter);
+	function = ml_typed_fn_get(Type, ml_iter_next);
+	if (function) {
+		Type->iter_next = function;
+		return function(Caller, Iter);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Iter;
 	return ml_call(Caller, NextMethod, 1, Args);

@@ -71,6 +71,10 @@ struct ml_type_t {
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	void (*assign)(ml_state_t *, ml_value_t *, ml_value_t *);
+	void (*iterate)(ml_state_t *Caller, ml_value_t *Value);
+	void (*iter_value)(ml_state_t *Caller, ml_value_t *Iter);
+	void (*iter_key)(ml_state_t *Caller, ml_value_t *Iter);
+	void (*iter_next)(ml_state_t *Caller, ml_value_t *Iter);
 	ml_value_t *Constructor;
 #ifdef ML_GENERICS
 	ml_generic_rule_t *Rules;
