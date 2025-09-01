@@ -5643,11 +5643,13 @@ with_name:
 		ML_EXPR(CaseExpr, parent, switch);
 		mlc_expr_t *Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 		mlc_expr_t **CaseExprs = NULL;
+		mlc_parent_expr_t *Constructor = NULL;
 		if (ml_parse(Parser, MLT_COLON)) {
 			ML_EXPR(ProviderExpr, parent_value, const_call);
 			ProviderExpr->Value = MLCompilerSwitch;
 			ProviderExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 			ML_EXPR(InlineExpr, parent, inline);
+			Constructor = InlineExpr;
 			InlineExpr->Child = ML_EXPR_END(ProviderExpr);
 			CaseExprs = &InlineExpr->Next;
 			ML_EXPR(SwitchExpr, parent, call);
@@ -5666,6 +5668,7 @@ with_name:
 					ListChild = ListChild->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
 				}
 				CaseExprs[0] = ML_EXPR_END(ListExpr);
+				Constructor->EndLine = CaseExprs[0]->EndLine;
 				CaseExprs = &ListExpr->Next;
 				ml_accept(Parser, MLT_DO);
 			}
