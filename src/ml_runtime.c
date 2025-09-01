@@ -1205,7 +1205,6 @@ int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_va
 #ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Queue->Lock);
 #endif
-	Queue->Base.Fill = Fill;
 	return Fill;
 }
 
