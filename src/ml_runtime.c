@@ -275,12 +275,7 @@ void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
 #ifdef ML_TIMESCHED
 	if (MLPreempt < 0) {
 		ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
-		if (Scheduler->Fill) {
-			Scheduler->add(Scheduler, State, Value);
-		} else {
-			MLPreempt = 1;
-			return State->run(State, Value);
-		}
+		Scheduler->add(Scheduler, State, Value);
 	} else {
 		return State->run(State, Value);
 	}
