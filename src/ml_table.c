@@ -675,6 +675,21 @@ ML_METHODV("push", MLTableT, MLNamesT) {
 	return (ml_value_t *)Table;
 }
 
+ML_METHOD("push", MLTableT, MLListT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	int Index = 1;
+	ml_table_insert_row(Table, Index);
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	ml_table_column_t *Column = Table->Columns;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!Column) continue;
+		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), Iter->Value);
+		if (ml_is_error(Value)) return Value;
+		Column = Column->Next;
+	}
+	return (ml_value_t *)Table;
+}
+
 ML_METHODV("put", MLTableT, MLNamesT) {
 	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_table_t *Table = (ml_table_t *)Args[0];
@@ -688,6 +703,21 @@ ML_METHODV("put", MLTableT, MLNamesT) {
 		if (!Column) continue;
 		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), Args[I]);
 		if (ml_is_error(Value)) return Value;
+	}
+	return (ml_value_t *)Table;
+}
+
+ML_METHOD("put", MLTableT, MLListT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	int Index = Table->Length + 1;
+	ml_table_insert_row(Table, Index);
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	ml_table_column_t *Column = Table->Columns;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!Column) continue;
+		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), Iter->Value);
+		if (ml_is_error(Value)) return Value;
+		Column = Column->Next;
 	}
 	return (ml_value_t *)Table;
 }
@@ -707,6 +737,24 @@ ML_METHODV("insert", MLTableT, MLIntegerT, MLNamesT) {
 		if (!Column) continue;
 		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), Args[I]);
 		if (ml_is_error(Value)) return Value;
+	}
+	return (ml_value_t *)Table;
+}
+
+ML_METHOD("insert", MLTableT, MLIntegerT, MLListT) {
+	ML_NAMES_CHECK_ARG_COUNT(2);
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	if (Index <= 0) Index += Table->Length + 1;
+	if (Index <= 0 || Index > Table->Length + 1) return MLNil;
+	ml_table_insert_row(Table, Index);
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	ml_table_column_t *Column = Table->Columns;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!Column) continue;
+		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), Iter->Value);
+		if (ml_is_error(Value)) return Value;
+		Column = Column->Next;
 	}
 	return (ml_value_t *)Table;
 }
