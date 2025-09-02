@@ -281,7 +281,7 @@ ML_METHODV(MLTableT, MLMapT) {
 	ml_table_insert_column(Table, ml_string_value(Node->Key), Source);
 	while ((Node = Node->Next)) {
 		if (!ml_is(Node->Key, MLStringT)) return ml_error("TypeError", "Column name must be a string");
-		ml_array_t *Source = (ml_array_t *)ml_array_of(Node->Value);
+		ml_array_t *Source = (ml_array_t *)(ml_is(Node->Value, MLArrayT) ? Node->Value : ml_array_of(Node->Value));
 		if (Source->Base.Type == MLErrorT) return (ml_value_t *)Source;
 		if (!Source->Degree || Source->Dimensions[0].Size != Length) return ml_error("ShapeError", "Arrays must have same length");
 		ml_table_insert_column(Table, ml_string_value(Node->Key), Source);
@@ -497,9 +497,10 @@ ML_METHOD("columns", MLTableT) {
 	return ml_table_columns(Args[0]);
 }
 
-ML_METHOD("insert", MLTableT, MLStringT, MLArrayT) {
+ML_METHOD("insert", MLTableT, MLStringT, MLAnyT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
-	ml_array_t *Source = (ml_array_t *)Args[2];
+	ml_value_t *Value = Args[2];
+	ml_array_t *Source = (ml_array_t *)(ml_is(Value, MLArrayT) ? Value : ml_array_of(Value));
 	if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
 	if (!Table->ColumnNames->Size) {
 		size_t Length = Source->Dimensions[0].Size;
@@ -518,14 +519,15 @@ ML_METHOD("insert", MLTableT, MLStringT, MLArrayT) {
 	return (ml_value_t *)Table;
 }
 
-ML_METHODV("insert", MLTableT, MLNamesT, MLArrayT) {
+ML_METHODV("insert", MLTableT, MLNamesT, MLAnyT) {
 	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	int I = 1;
 	ML_NAMES_FOREACH(Args[1], Iter) {
 		++I;
 		ML_CHECK_ARG_TYPE(I, MLArrayT);
-		ml_array_t *Source = (ml_array_t *)Args[I];
+		ml_value_t *Value = Args[I];
+		ml_array_t *Source = (ml_array_t *)(ml_is(Value, MLArrayT) ? Value : ml_array_of(Value));
 		if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
 		if (!Table->ColumnNames->Size) {
 			size_t Length = Source->Dimensions[0].Size;

@@ -1,0 +1,18 @@
+let T1 := table()
+
+T1:insert("A", [1, 2, 3, 4])
+T1:insert("B", ["a", "b", "c", "d"])
+
+print(list(T1), "\n")
+
+
+let T2 := table(A is [1, 2, 3, 4], B is ["a", "b", "c", "d"])
+
+T2:put([5, "e"])
+T2:put(A is 6, B is "f")
+T2:push([0, "_"])
+T2:insert(3, A is 99)
+
+for Row in T2 do
+	print(Row, "\n")
+end

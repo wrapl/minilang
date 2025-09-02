@@ -375,6 +375,7 @@
     <member refid="structml__scheduler__t_1a8cf1ae64f4193583dd4167a9e6c7ffec" kind="variable"><name>run</name></member>
     <member refid="structml__scheduler__t_1a997a5317a90d4321c4db1151b26a3f70" kind="variable"><name>fill</name></member>
     <member refid="structml__scheduler__t_1abb70356290265fadb2e3a9019ebf286b" kind="variable"><name>sleep</name></member>
+    <member refid="structml__scheduler__t_1abcd4aae2de1001ed3796c43420645f4f" kind="variable"><name>Fill</name></member>
   </compound>
   <compound refid="structml__set__iter__t" kind="struct"><name>ml_set_iter_t</name>
     <member refid="structml__set__iter__t_1a0e5bda0d3f995088a49430796cad681e" kind="variable"><name>Node</name></member>
@@ -469,6 +470,10 @@
     <member refid="structml__type__t_1ac55a7f03d05b14e59f053df05b03982c" kind="variable"><name>call</name></member>
     <member refid="structml__type__t_1a75b45ec1f3a10396a70cde44303b0b39" kind="variable"><name>deref</name></member>
     <member refid="structml__type__t_1a37934ef806defb15081af02ace0ef935" kind="variable"><name>assign</name></member>
+    <member refid="structml__type__t_1afdd1c8280b5c84f17620832e994d6182" kind="variable"><name>iterate</name></member>
+    <member refid="structml__type__t_1a6c4212e2923a41b20848a619021a5cee" kind="variable"><name>iter_value</name></member>
+    <member refid="structml__type__t_1a49863cf58dd2cc6f15934cb87d15c13b" kind="variable"><name>iter_key</name></member>
+    <member refid="structml__type__t_1aeab4850f8c6d9395b02e48011b8d1cd5" kind="variable"><name>iter_next</name></member>
     <member refid="structml__type__t_1adb8f178033d4eb19849140493e6def8b" kind="variable"><name>Constructor</name></member>
     <member refid="structml__type__t_1ad8542cd012849f2c5e015755e713a09a" kind="variable"><name>Parents</name></member>
     <member refid="structml__type__t_1a0c98e9efeb9a158122d228b099b12caa" kind="variable"><name>TypedFns</name></member>

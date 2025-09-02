@@ -1,0 +1,9 @@
+[<A is 1, B is a>, <A is 2, B is b>, <A is 3, B is c>, <A is 4, B is d>]
+<A is 0, B is _>
+<A is 1, B is a>
+<A is 99, B is nil>
+<A is 2, B is b>
+<A is 3, B is c>
+<A is 4, B is d>
+<A is 5, B is e>
+<A is 6, B is f>

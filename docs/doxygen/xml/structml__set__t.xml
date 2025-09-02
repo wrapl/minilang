@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1384" column="11" bodyfile="src/ml_types.h" bodystart="1384" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1388" column="11" bodyfile="src/ml_types.h" bodystart="1388" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1aab29c9778d2c2d6211fbe1b37d0b0571" prot="public" static="no" mutable="no">
         <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1385" column="15" bodyfile="src/ml_types.h" bodystart="1385" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1389" column="15" bodyfile="src/ml_types.h" bodystart="1389" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1ae61f9825d1926037683c02c1789b45bf" prot="public" static="no" mutable="no">
         <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1385" column="20" bodyfile="src/ml_types.h" bodystart="1385" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1389" column="20" bodyfile="src/ml_types.h" bodystart="1389" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1a698de0e27a79959e0d07ebc3063f9386" prot="public" static="no" mutable="no">
         <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1385" column="25" bodyfile="src/ml_types.h" bodystart="1385" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1389" column="25" bodyfile="src/ml_types.h" bodystart="1389" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1a7c08387c13dd996bac9f9aea2f89aefd" prot="public" static="no" mutable="no">
         <type><ref refid="structml__method__cached__t" kindref="compound">ml_method_cached_t</ref> *</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1386" column="20" bodyfile="src/ml_types.h" bodystart="1386" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1390" column="20" bodyfile="src/ml_types.h" bodystart="1390" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -85,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1387" column="5" bodyfile="src/ml_types.h" bodystart="1387" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1391" column="5" bodyfile="src/ml_types.h" bodystart="1391" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1a8e0c8267c109b3360503553133355dbc" prot="public" static="no" mutable="no">
         <type>ml_set_order_t</type>
@@ -99,7 +99,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1388" column="16" bodyfile="src/ml_types.h" bodystart="1388" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1392" column="16" bodyfile="src/ml_types.h" bodystart="1392" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -196,7 +196,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1383" column="1" bodyfile="src/ml_types.h" bodystart="1383" bodyend="1389"/>
+    <location file="src/ml_types.h" line="1387" column="1" bodyfile="src/ml_types.h" bodystart="1387" bodyend="1393"/>
     <listofallmembers>
       <member refid="structml__set__t_1a7c08387c13dd996bac9f9aea2f89aefd" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Cached</name></member>
       <member refid="structml__set__t_1aab29c9778d2c2d6211fbe1b37d0b0571" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Head</name></member>

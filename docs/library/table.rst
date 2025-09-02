@@ -57,15 +57,19 @@ table
    *TBD*
 
 
+:mini:`meth (Arg₁: table):insert(Arg₂: integer, Arg₃: list)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: table):insert(Arg₂: integer, Arg₃₁ is Value₁, ...)`
    *TBD*
 
 
-:mini:`meth (Arg₁: table):insert(Arg₂₁ is Value₁, Arg₃: array, ...)`
+:mini:`meth (Arg₁: table):insert(Arg₂₁ is Value₁, Arg₃: any, ...)`
    *TBD*
 
 
-:mini:`meth (Arg₁: table):insert(Arg₂: string, Arg₃: array)`
+:mini:`meth (Arg₁: table):insert(Arg₂: string, Arg₃: any)`
    *TBD*
 
 
@@ -77,7 +81,15 @@ table
    *TBD*
 
 
+:mini:`meth (Arg₁: table):push(Arg₂: list)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: table):push(Arg₂₁ is Value₁, ...)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: table):put(Arg₂: list)`
    *TBD*
 
 
