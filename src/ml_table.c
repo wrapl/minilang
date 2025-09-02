@@ -243,7 +243,8 @@ ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array
 	return Array;
 }
 
-ml_array_t *ml_table_insert(ml_value_t *Table, const char *Name, ml_array_t *Source) {
+ml_array_t *ml_table_insert(ml_value_t *Table, const char *Name, ml_value_t *Value) {
+	ml_array_t *Source = (ml_array_t *)(ml_is(Value, MLArrayT) ? Value : ml_array_of(Value));
 	return ml_table_insert_column((ml_table_t *)Table, Name, Source);
 }
 
@@ -264,7 +265,7 @@ ML_METHODV(MLTableT, MLMapT) {
 	ml_map_node_t *Node = ((ml_map_t *)Args[0])->Head;
 	if (!Node) return ml_table();
 	if (!ml_is(Node->Key, MLStringT)) return ml_error("TypeError", "Column name must be a string");
-	ml_array_t *Source = (ml_array_t *)ml_array_of(Node->Value);
+	ml_array_t *Source = (ml_array_t *)(ml_is(Node->Value, MLArrayT) ? Node->Value : ml_array_of(Node->Value));
 	if (Source->Base.Type == MLErrorT) return (ml_value_t *)Source;
 	if (!Source->Degree) return ml_error("ShapeError", "Empty arrays cannot be added to table");
 	size_t Length = Source->Dimensions[0].Size;
