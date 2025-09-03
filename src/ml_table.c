@@ -779,6 +779,104 @@ ML_METHOD("insert", MLTableT, MLIntegerT, MLListT) {
 	return (ml_value_t *)Table;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_table_t *Table;
+	ml_table_row_t *Rows;
+	ml_value_t *Compare;
+	int32_t *Source, *Dest;
+	int32_t *IndexA, *LimitA, *IndexB, *LimitB;
+	int32_t *Target, *Limit;
+	ml_value_t *Args[2];
+	size_t Length, BlockSize;
+} ml_table_sort_state_t;
+
+static void ml_table_sort_run(ml_table_sort_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	int32_t *Target = State->Target;
+	if (Value != MLNil) {
+		int32_t *Index = State->IndexA;
+		*Target++ = *Index++;
+		if (Index < State->LimitA) {
+			State->Target = Target;
+			State->IndexA = Index;
+			State->Args[0] = (ml_value_t *)(State->Rows + *Index);
+			State->Args[1] = (ml_value_t *)(State->Rows + *State->IndexB);
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
+	} else {
+		int32_t *Index = State->IndexB;
+		*Target++ = *Index++;
+		if (Index < State->LimitB) {
+			State->Target = Target;
+			State->IndexB = Index;
+			State->Args[0] = (ml_value_t *)(State->Rows + *State->IndexA);
+			State->Args[1] = (ml_value_t *)(State->Rows + *Index);
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(int32_t));
+	}
+	size_t Remaining = State->Limit - Target;
+	size_t BlockSize = State->BlockSize;
+	int32_t *IndexA = State->LimitB;
+	if (Remaining <= BlockSize) {
+		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
+		BlockSize *= 2;
+		Remaining = State->Length;
+		if (Remaining <= BlockSize) {
+			for (int I = 0; I < Remaining; ++I) ++State->Dest[I];
+			ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+			Permutation->Base.Type = MLPermutationT;
+			Permutation->Base.Value = (char *)State->Dest;
+			Permutation->Base.Length = Remaining * sizeof(int32_t);
+			Permutation->Dimensions[0].Size = Remaining;
+			Permutation->Dimensions[0].Stride = sizeof(int32_t);
+			ML_CONTINUE(State->Base.Caller, Permutation);
+		}
+		State->BlockSize = BlockSize;
+		int32_t *Temp = State->Source;
+		IndexA = State->Source = State->Dest;
+		Target = State->Dest = Temp;
+		State->Limit = Target + State->Length;
+	}
+	State->Target = Target;
+	State->IndexA = IndexA;
+	int32_t *IndexB = IndexA + BlockSize;
+	State->LimitA = State->IndexB = IndexB;
+	Remaining -= BlockSize;
+	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
+	State->Args[0] = (ml_value_t *)(State->Rows + *IndexA);
+	State->Args[1] = (ml_value_t *)(State->Rows + *IndexB);
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("sort", MLTableT, MLFunctionT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	size_t Length = Table->Length;
+	if (Length < 2) ML_RETURN(Table);
+	ml_table_sort_state_t *State = new(ml_table_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_table_sort_run;
+	State->Table = Table;
+	State->Compare = Args[1];
+	int32_t *Source = State->Source = asnew(int32_t, Length);
+	int32_t *Dest = State->Dest = asnew(int32_t, Length);
+	for (int I = 0; I < Length; ++I) Source[I] = I;
+	State->Rows = Table->Rows;
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = (ml_value_t *)(Table->Rows + 0);
+	State->Args[1] = (ml_value_t *)(Table->Rows + 1);
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLTableT, ml_table_t *Table) {
 	ml_value_t *Result = ml_list();
 	ml_list_put(Result, ml_cstring("table"));
