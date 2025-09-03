@@ -1949,6 +1949,14 @@ ML_FUNCTIONZ(MLCompareAndSet) {
 	return ml_assign(Caller, Args[0], New);
 }
 
+ML_MINI_FUNCTION(MLSortAsc, ("Field"),
+	"fun(X, Y) X[Field] < Y[Field]"
+)
+
+ML_MINI_FUNCTION(MLSortDesc, ("Field"),
+	"fun(X, Y) X[Field] > Y[Field]"
+)
+
 static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
 	void **Base = (void **)GC_base(Ptr);
 	if (!Base) return NULL;
@@ -2240,5 +2248,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);
 		stringmap_insert(Globals, "weakref", MLWeakRefT);
+		stringmap_insert(Globals, "sort", ml_module("sort",
+			"asc", MLSortAsc,
+			"desc", MLSortDesc,
+		NULL));
 	}
 }

@@ -16,3 +16,17 @@ T2:insert(3, A is 99)
 for Row in T2 do
 	print(Row, "\n")
 end
+
+
+let T := table(A is list(1 .. 26), B is list(26 .. 1 by -1), C is list(1 .. 26, math::sin), D is list("A" .. "Z"))
+
+fun by(Field) fun(X, Y) X[Field] < Y[Field]
+
+print(T:sort(by("A")), "\n")
+
+print(T:sort(by("B")), "\n")
+
+print(T:sort(by("C")), "\n")
+
+print(T:sort(by("D")), "\n")
+

@@ -779,6 +779,65 @@ ML_METHOD("insert", MLTableT, MLIntegerT, MLListT) {
 	return (ml_value_t *)Table;
 }
 
+typedef ml_value_t *any;
+
+#define ARRAY_REORDER(CTYPE) \
+\
+static void ml_array_reorder_ ## CTYPE(CTYPE *Values, int32_t *Order, size_t Length) { \
+	for (int32_t I = 0; I < Length; ++I) { \
+		int32_t J = Order[I]; \
+		if (J == -1) continue; \
+		CTYPE Value = Values[I]; \
+		while (J != I) { \
+			CTYPE Temp = Values[J]; \
+			Values[J] = Value; \
+			Value = Temp; \
+			int32_t K = Order[J]; \
+			Order[J] = -1; \
+			J = K; \
+		} \
+		Values[I] = Value; \
+		Order[I] = -1; \
+	} \
+}
+
+ARRAY_REORDER(int8_t)
+ARRAY_REORDER(uint8_t)
+ARRAY_REORDER(int16_t)
+ARRAY_REORDER(uint16_t)
+ARRAY_REORDER(int32_t)
+ARRAY_REORDER(uint32_t)
+ARRAY_REORDER(int64_t)
+ARRAY_REORDER(uint64_t)
+ARRAY_REORDER(float)
+ARRAY_REORDER(double)
+#ifdef ML_COMPLEX
+ARRAY_REORDER(complex_float)
+ARRAY_REORDER(complex_double)
+#endif
+ARRAY_REORDER(any)
+
+static void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length) {
+	switch (Values->Format) {
+	case ML_ARRAY_FORMAT_NONE: return;
+	case ML_ARRAY_FORMAT_I8: return ml_array_reorder_int8_t((int8_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_U8: return ml_array_reorder_uint8_t((uint8_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_I16: return ml_array_reorder_int16_t((int16_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_U16: return ml_array_reorder_uint16_t((uint16_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_I32: return ml_array_reorder_int32_t((int32_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_U32: return ml_array_reorder_uint32_t((uint32_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_I64: return ml_array_reorder_int64_t((int64_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_U64: return ml_array_reorder_uint64_t((uint64_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_F32: return ml_array_reorder_float((float *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_F64: return ml_array_reorder_double((double *)Values->Base.Value, Order, Length);
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: return ml_array_reorder_complex_float((complex_float *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_C64: return ml_array_reorder_complex_double((complex_double *)Values->Base.Value, Order, Length);
+#endif
+	case ML_ARRAY_FORMAT_ANY: return ml_array_reorder_any((ml_value_t **)Values->Base.Value, Order, Length);
+	}
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_table_t *Table;
@@ -825,14 +884,14 @@ static void ml_table_sort_run(ml_table_sort_state_t *State, ml_value_t *Value) {
 		BlockSize *= 2;
 		Remaining = State->Length;
 		if (Remaining <= BlockSize) {
-			for (int I = 0; I < Remaining; ++I) ++State->Dest[I];
-			ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
-			Permutation->Base.Type = MLPermutationT;
-			Permutation->Base.Value = (char *)State->Dest;
-			Permutation->Base.Length = Remaining * sizeof(int32_t);
-			Permutation->Dimensions[0].Size = Remaining;
-			Permutation->Dimensions[0].Stride = sizeof(int32_t);
-			ML_CONTINUE(State->Base.Caller, Permutation);
+			int32_t *Source = State->Source;
+			int32_t *Dest = State->Dest;
+			for (int I = 0; I < Remaining; ++I) Source[Dest[I]] = I;
+			for (ml_table_column_t *Column = State->Table->Columns; Column; Column = Column->Next) {
+				memcpy(Dest, Source, Remaining * sizeof(int32_t));
+				ml_array_reorder(Column->Values, Dest, Remaining);
+			}
+			ML_CONTINUE(State->Base.Caller, State->Table);
 		}
 		State->BlockSize = BlockSize;
 		int32_t *Temp = State->Source;
