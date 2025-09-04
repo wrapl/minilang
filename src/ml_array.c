@@ -7725,6 +7725,7 @@ ML_FUNCTION(RandomPermutation) {
 //<Max:number
 //>permutation
 // Returns a random permutation of :mini:`1, ..., Max`.
+	ML_CHECK_ARG_COUNT(1)
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
@@ -7752,6 +7753,7 @@ ML_FUNCTION(RandomCycle) {
 //<Max:number
 //>permutation
 // Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
+	ML_CHECK_ARG_COUNT(1)
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
@@ -8642,6 +8644,9 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLMatrixT->Exports, "complex32", MLMatrixComplex32T);
 	stringmap_insert(MLMatrixT->Exports, "complex64", MLMatrixComplex64T);
 #endif
+
+	stringmap_insert(MLPermutationT->Exports, "random", RandomPermutation);
+	stringmap_insert(MLPermutationT->Exports, "random_cycle", RandomCycle);
 	if (Globals) {
 		stringmap_insert(Globals, "array", MLArrayT);
 		stringmap_insert(Globals, "vector", MLVectorT);

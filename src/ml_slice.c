@@ -2097,19 +2097,19 @@ ML_METHOD("permute", MLSliceMutableT, MLPermutationT) {
 	int32_t *Order = alloca(Length * sizeof(int32_t));
 	memcpy(Order, Permutation->Base.Value, Length * sizeof(int32_t));
 	for (int32_t I = 0; I < Length; ++I) {
-		int32_t J = Order[I];
+		int32_t J = Order[I] - 1;
 		if (J == -1) continue;
 		ml_slice_node_t Node = Nodes[I];
 		while (J != I) {
 			ml_slice_node_t Temp = Nodes[J];
 			Nodes[J] = Node;
 			Node = Temp;
-			int32_t K = Order[J];
-			Order[J] = -1;
+			int32_t K = Order[J] - 1;
+			Order[J] = 0;
 			J = K;
 		}
 		Nodes[I] = Node;
-		Order[I] = -1;
+		Order[I] = 0;
 	}
 	return (ml_value_t *)Slice;
 }
