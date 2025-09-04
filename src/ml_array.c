@@ -7681,6 +7681,44 @@ ML_TYPE(MLPermutationT, (MLVectorUInt32T), "integer::permutation",
 	.call = (void *)ml_permutation_call
 );
 
+static int int32_compare(const void *A, const void *B) {
+	return *(int32_t *)A - *(int32_t *)B;
+}
+
+ML_METHODV(MLPermutationT, MLIntegerT) {
+	int32_t *Indices = anew(int32_t, Count);
+	for (int I = 0; I < Count; ++I) Indices[I] = ml_integer_value(Args[I]);
+	qsort(Indices, Count, sizeof(int32_t), int32_compare);
+	for (int I = 0; I < Count; ++I) if (Indices[I] != I + 1) return ml_error("ValueError", "Invalid permutation");
+	for (int I = 0; I < Count; ++I) Indices[I] = ml_integer_value(Args[I]);
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	Permutation->Base.Type = MLPermutationT;
+	Permutation->Base.Value = (char *)Indices;
+	Permutation->Base.Length = Count * sizeof(int32_t);
+	Permutation->Dimensions[0].Size = Count;
+	Permutation->Dimensions[0].Stride = sizeof(int32_t);
+	return (ml_value_t *)Permutation;
+}
+
+ML_METHOD(MLPermutationT, MLListT) {
+	int Length = ml_list_length(Args[0]);
+	if (Length <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	int32_t *Indices = anew(int32_t, Length);
+	int32_t *P = Indices;
+	ML_LIST_FOREACH(Args[0], Iter) *P++ = ml_integer_value(Iter->Value);
+	qsort(Indices, Length, sizeof(int32_t), int32_compare);
+	for (int I = 0; I < Length; ++I) if (Indices[I] != I + 1) return ml_error("ValueError", "Invalid permutation");
+	P = Indices;
+	ML_LIST_FOREACH(Args[0], Iter) *P++ = ml_integer_value(Iter->Value);
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	Permutation->Base.Type = MLPermutationT;
+	Permutation->Base.Value = (char *)Indices;
+	Permutation->Base.Length = Length * sizeof(int32_t);
+	Permutation->Dimensions[0].Size = Length;
+	Permutation->Dimensions[0].Stride = sizeof(int32_t);
+	return (ml_value_t *)Permutation;
+}
+
 ML_FUNCTION(RandomPermutation) {
 //!number
 //@integer::random_permutation
@@ -8608,6 +8646,7 @@ void ml_array_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "array", MLArrayT);
 		stringmap_insert(Globals, "vector", MLVectorT);
 		stringmap_insert(Globals, "matrix", MLMatrixT);
+		stringmap_insert(Globals, "permutation", MLPermutationT);
 	}
 #ifdef ML_CBOR
 	ml_cbor_default_tag(ML_CBOR_TAG_MULTI_ARRAY, ml_cbor_read_multi_array_fn);

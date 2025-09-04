@@ -2084,6 +2084,38 @@ ML_METHOD("shuffle", MLSliceMutableT) {
 	return (ml_value_t *)Slice;
 }
 
+#ifdef ML_MATH
+
+ML_METHOD("permute", MLSliceMutableT, MLPermutationT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	ml_array_t *Permutation = (ml_array_t *)Args[1];
+	int Length = Slice->Length;
+	if (Permutation->Dimensions[0].Size != Length) {
+		return ml_error("ShapeError", "Permutation length does not match list");
+	}
+	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
+	int32_t *Order = alloca(Length * sizeof(int32_t));
+	memcpy(Order, Permutation->Base.Value, Length * sizeof(int32_t));
+	for (int32_t I = 0; I < Length; ++I) {
+		int32_t J = Order[I];
+		if (J == -1) continue;
+		ml_slice_node_t Node = Nodes[I];
+		while (J != I) {
+			ml_slice_node_t Temp = Nodes[J];
+			Nodes[J] = Node;
+			Node = Temp;
+			int32_t K = Order[J];
+			Order[J] = -1;
+			J = K;
+		}
+		Nodes[I] = Node;
+		Order[I] = -1;
+	}
+	return (ml_value_t *)Slice;
+}
+
+#endif
+
 ML_METHOD("cycle", MLSliceMutableT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	int N = Slice->Length;
