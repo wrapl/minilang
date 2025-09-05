@@ -7790,6 +7790,105 @@ ML_METHOD("->", MLPermutationT, MLPermutationT) {
 	return (ml_value_t *)Permutation;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t  **Values;
+	ml_value_t *Compare;
+	int32_t *Source, *Dest;
+	int32_t *IndexA, *LimitA, *IndexB, *LimitB;
+	int32_t *Target, *Limit;
+	ml_value_t *Args[2];
+	size_t Length, BlockSize;
+} ml_values_order_state_t;
+
+static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	int32_t *Target = State->Target;
+	if (Value != MLNil) {
+		int32_t *Index = State->IndexA;
+		*Target++ = *Index++;
+		if (Index < State->LimitA) {
+			State->Target = Target;
+			State->IndexA = Index;
+			State->Args[0] = State->Values[*Index];
+			State->Args[1] = State->Values[*State->IndexB];
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
+	} else {
+		int32_t *Index = State->IndexB;
+		*Target++ = *Index++;
+		if (Index < State->LimitB) {
+			State->Target = Target;
+			State->IndexB = Index;
+			State->Args[0] = State->Values[*State->IndexA];
+			State->Args[1] = State->Values[*Index];
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(int32_t));
+	}
+	size_t Remaining = State->Limit - Target;
+	size_t BlockSize = State->BlockSize;
+	int32_t *IndexA = State->LimitB;
+	if (Remaining <= BlockSize) {
+		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
+		BlockSize *= 2;
+		Remaining = State->Length;
+		if (Remaining <= BlockSize) {
+			for (int I = 0; I < Remaining; ++I) ++State->Dest[I];
+			ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+			Permutation->Base.Type = MLPermutationT;
+			Permutation->Base.Value = (char *)State->Dest;
+			Permutation->Base.Length = Remaining * sizeof(int32_t);
+			Permutation->Dimensions[0].Size = Remaining;
+			Permutation->Dimensions[0].Stride = sizeof(int32_t);
+			ML_CONTINUE(State->Base.Caller, Permutation);
+		}
+		State->BlockSize = BlockSize;
+		int32_t *Temp = State->Source;
+		IndexA = State->Source = State->Dest;
+		Target = State->Dest = Temp;
+		State->Limit = Target + State->Length;
+	}
+	State->Target = Target;
+	State->IndexA = IndexA;
+	int32_t *IndexB = IndexA + BlockSize;
+	State->LimitA = State->IndexB = IndexB;
+	Remaining -= BlockSize;
+	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
+	State->Args[0] = State->Values[*IndexA];
+	State->Args[1] = State->Values[*IndexB];
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function) {
+	if (Length < 2) {
+		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_U32, 1, Length);
+		Permutation->Base.Type = MLPermutationT;
+		if (Length) *(uint32_t *)Permutation->Base.Value = 1;
+		ML_RETURN(Permutation);
+	}
+	ml_values_order_state_t *State = new(ml_values_order_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_values_order_state_run;
+	State->Compare = Function;
+	int32_t *Source = State->Source = asnew(int32_t, Length);
+	int32_t *Dest = State->Dest = asnew(int32_t, Length);
+	for (int I = 0; I < Length; ++I) Source[I] = I;
+	State->Values = Values;
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = State->Values[Source[0]];
+	State->Args[1] = State->Values[Source[1]];
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
 static int ml_lu_decomp_real(double **A, int *P, int N) {
 	for (int I = 0; I <= N; ++I) P[I] = I;
 	for (int I = 0; I < N; ++I) {

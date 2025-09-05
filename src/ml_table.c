@@ -936,6 +936,26 @@ ML_METHODX("sort", MLTableT, MLFunctionT) {
 	return ml_call(State, State->Compare, 2, State->Args);
 }
 
+#ifdef ML_MATH
+
+ML_METHOD("permute", MLTableT, MLPermutationT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	ml_array_t *Permutation = (ml_array_t *)Args[1];
+	int Length = Table->Length;
+	if (Permutation->Dimensions[0].Size != Length) {
+		return ml_error("ShapeError", "Permutation length does not match list");
+	}
+	int32_t *Dest = (int32_t *)Permutation->Base.Value;
+	int32_t *Order = alloca(Length * sizeof(int32_t));
+	for (ml_table_column_t *Column = Table->Columns; Column; Column = Column->Next) {
+		for (int32_t I = 0; I < Length; ++I) Order[Dest[I] - 1] = I;
+		ml_array_reorder(Column->Values, Order, Length);
+	}
+	return (ml_value_t *)Table;
+}
+
+#endif
+
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLTableT, ml_table_t *Table) {
 	ml_value_t *Result = ml_list();
 	ml_list_put(Result, ml_cstring("table"));

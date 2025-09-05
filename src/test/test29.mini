@@ -30,3 +30,10 @@ print(T:sort(by("C")), "\n")
 
 print(T:sort(by("D")), "\n")
 
+
+let L := ["D", "B", "A", "C"]
+let S := slice(L)
+let O := slice(S):order
+
+print(L:permute(O), "\n")
+print(S:permute(O), "\n")

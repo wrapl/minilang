@@ -112,6 +112,8 @@ ML_ARRAY_ACCESSORS(complex_double);
 
 #endif
 
+void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function);
+
 #ifdef __cplusplus
 }
 #endif
