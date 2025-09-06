@@ -2004,6 +2004,33 @@ ML_METHOD("permute", MLSliceMutableT, MLPermutationT) {
 	return (ml_value_t *)Slice;
 }
 
+ML_METHOD("[]", MLSliceT, MLVectorT) {
+//<Slice
+//<Indices
+//>slice
+// Returns a list containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int Length = Slice->Length;
+	ml_value_t *Result = ml_slice(Length);
+	ml_array_t *Indices = (ml_array_t *)Args[1];
+	ml_array_getter_uint32_t get = ml_array_uint32_t_getter(Indices->Format);
+	void *Next = (void *)Indices->Base.Value;
+	int Stride = Indices->Dimensions[0].Stride;
+	int Size = Indices->Dimensions[0].Size;
+	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
+	while (--Size >= 0) {
+		int Index = get(Next);
+		Next += Stride;
+		if (Index <= 0) Index += Length;
+		if (Index <= 0 || Index > Length) {
+			ml_slice_put(Result, MLNil);
+		} else {
+			ml_slice_put(Result, Nodes[Index - 1].Value);
+		}
+	}
+	return Result;
+}
+
 #endif
 
 ML_METHOD("cycle", MLSliceMutableT) {

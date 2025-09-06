@@ -777,6 +777,7 @@
     <member refid="ml__array_8h_1aa6578a9c9c763f61ece1d4f718d3279a" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1abb7064d6f32e9f21c5a93223e0ccf904" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1a9b33377dee65686a9305fa15b0c72d3e" kind="function"><name>ml_values_order</name></member>
+    <member refid="ml__array_8h_1a8c0c15a64ad62b404a58d501478dda90" kind="function"><name>ml_array_reorder</name></member>
   </compound>
   <compound refid="ml__ast_8h" kind="file"><name>ml_ast.h</name>
     <member refid="ml__ast_8h_1abe80c5dc54dafe96fa3647cfecc3ed35" kind="function"><name>ml_ast_init</name></member>

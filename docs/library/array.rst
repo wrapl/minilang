@@ -742,7 +742,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 1633904698>>
+      A:minidx(2) :> <<2 1> <1 1313234770>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1808,6 +1808,14 @@ array
 
 :mini:`type vector < array`
    Arrays with exactly 1 dimension.
+
+
+:mini:`meth (Arg₁: vector):order`
+   *TBD*
+
+
+:mini:`meth (Arg₁: vector):order(Arg₂: function)`
+   *TBD*
 
 
 :mini:`type vector::any < vector, array::any`

@@ -962,8 +962,9 @@ ML_METHOD("strides", MLArrayT) {
 extern ml_value_t *RangeMethod;
 extern ml_value_t *MulMethod;
 extern ml_value_t *AddMethod;
-ML_METHOD_DECL(SubMethod, "-");
-ML_METHOD_DECL(DivMethod, "/");
+extern ml_value_t *SubMethod;
+extern ml_value_t *DivMethod;
+extern ml_value_t *LessEqualMethod;
 
 static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	typeof(ml_array_value) *function = ml_typed_fn_get(Array->Base.Type, ml_array_value);
@@ -7841,14 +7842,14 @@ ARRAY_REORDER(any)
 void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length) {
 	switch (Values->Format) {
 	case ML_ARRAY_FORMAT_NONE: return;
-	case ML_ARRAY_FORMAT_I8: return ml_array_reorder_int8_t((int8_t *)Values->Base.Value, Order, Length);
 	case ML_ARRAY_FORMAT_U8: return ml_array_reorder_uint8_t((uint8_t *)Values->Base.Value, Order, Length);
-	case ML_ARRAY_FORMAT_I16: return ml_array_reorder_int16_t((int16_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_I8: return ml_array_reorder_int8_t((int8_t *)Values->Base.Value, Order, Length);
 	case ML_ARRAY_FORMAT_U16: return ml_array_reorder_uint16_t((uint16_t *)Values->Base.Value, Order, Length);
-	case ML_ARRAY_FORMAT_I32: return ml_array_reorder_int32_t((int32_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_I16: return ml_array_reorder_int16_t((int16_t *)Values->Base.Value, Order, Length);
 	case ML_ARRAY_FORMAT_U32: return ml_array_reorder_uint32_t((uint32_t *)Values->Base.Value, Order, Length);
-	case ML_ARRAY_FORMAT_I64: return ml_array_reorder_int64_t((int64_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_I32: return ml_array_reorder_int32_t((int32_t *)Values->Base.Value, Order, Length);
 	case ML_ARRAY_FORMAT_U64: return ml_array_reorder_uint64_t((uint64_t *)Values->Base.Value, Order, Length);
+	case ML_ARRAY_FORMAT_I64: return ml_array_reorder_int64_t((int64_t *)Values->Base.Value, Order, Length);
 	case ML_ARRAY_FORMAT_F32: return ml_array_reorder_float((float *)Values->Base.Value, Order, Length);
 	case ML_ARRAY_FORMAT_F64: return ml_array_reorder_double((double *)Values->Base.Value, Order, Length);
 #ifdef ML_COMPLEX
@@ -7859,34 +7860,57 @@ void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length) {
 	}
 }
 
-static int order_compare_int32_t(const void *A, const void *B, void *Arg) {
-	int32_t *Values = Arg;
-	int32_t AX = Values[*(int32_t *)A];
-	int32_t BX = Values[*(int32_t *)B];
-	if (AX < BX) return -1;
-	if (AX > BX) return 1;
-	return 0;
+#define ARRAY_ORDER(CTYPE) \
+\
+static int order_compare_ ## CTYPE(const void *A, const void *B, void *Arg) { \
+	CTYPE *Values = Arg; \
+	CTYPE AX = Values[*(int32_t *)A]; \
+	CTYPE BX = Values[*(int32_t *)B]; \
+	if (AX < BX) return -1; \
+	if (AX > BX) return 1; \
+	return 0; \
+} \
+\
+static int order_compare_indexed_ ## CTYPE(const void *A, const void *B, void *Arg) { \
+	ml_array_t *Array = Arg; \
+	CTYPE *Values = (CTYPE *)Array->Base.Value; \
+	const int *Indices = Array->Dimensions[0].Indices; \
+	CTYPE AX = Values[Indices[*(int32_t *)A]]; \
+	CTYPE BX = Values[Indices[*(int32_t *)B]]; \
+	if (AX < BX) return -1; \
+	if (AX > BX) return 1; \
+	return 0; \
+} \
+\
+ml_value_t *ml_array_order_ ## CTYPE(ml_array_t *Array) { \
+	int Size = Array->Dimensions[0].Size; \
+	int32_t *Order = anew(int32_t, Size); \
+	for (size_t I = 0; I < Size; ++I) Order[I] = I; \
+	if (Array->Dimensions[0].Indices) { \
+		qsort_r(Order, Size, sizeof(int32_t), order_compare_indexed_ ## CTYPE, Array); \
+	} else { \
+		qsort_r(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Array->Base.Value); \
+	} \
+	for (size_t I = 0; I < Size; ++I) ++Order[I]; \
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1); \
+	Permutation->Base.Type = MLPermutationT; \
+	Permutation->Base.Value = (char *)Order; \
+	Permutation->Base.Length = Size * sizeof(int32_t); \
+	Permutation->Dimensions[0].Size = Size; \
+	Permutation->Dimensions[0].Stride = sizeof(int32_t); \
+	return (ml_value_t *)Permutation; \
 }
 
-static int order_compare_indexed_int32_t(const void *A, const void *B, void *Arg) {
-	ml_array_t *Array = Arg;
-	int32_t *Values = (int32_t *)Array->Base.Value;
-	const int *Indices = Array->Dimensions[0].Indices;
-	int32_t AX = Values[Indices[*(int32_t *)A]];
-	int32_t BX = Values[Indices[*(int32_t *)B]];
-	if (AX < BX) return -1;
-	if (AX > BX) return 1;
-	return 0;
-}
-
-int32_t *ml_array_order(ml_array_t *Array) {
-	int Size = Array->Dimensions[0].Size;
-	int32_t *Order = anew(int32_t, Size);
-	for (size_t I = 0; I < Size; ++I) Order[I] = I;
-	qsort_r(Order, Size, sizeof(int32_t), order_compare_int32_t, Array->Base.Value);
-	for (size_t I = 0; I < Size; ++I) ++Order[I];
-	return Order;
-}
+ARRAY_ORDER(uint8_t)
+ARRAY_ORDER(int8_t)
+ARRAY_ORDER(uint16_t)
+ARRAY_ORDER(int16_t)
+ARRAY_ORDER(uint32_t)
+ARRAY_ORDER(int32_t)
+ARRAY_ORDER(uint64_t)
+ARRAY_ORDER(int64_t)
+ARRAY_ORDER(float)
+ARRAY_ORDER(double)
 
 typedef struct {
 	ml_state_t Base;
@@ -7896,6 +7920,7 @@ typedef struct {
 	int32_t *IndexA, *LimitA, *IndexB, *LimitB;
 	int32_t *Target, *Limit;
 	ml_value_t *Args[2];
+	const int *Indices;
 	size_t Length, BlockSize;
 } ml_values_order_state_t;
 
@@ -7985,6 +8010,227 @@ void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_
 	State->Args[0] = State->Values[Source[0]];
 	State->Args[1] = State->Values[Source[1]];
 	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+static void ml_values_order_indexed_state_run(ml_values_order_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	int32_t *Target = State->Target;
+	if (Value != MLNil) {
+		int32_t *Index = State->IndexA;
+		*Target++ = *Index++;
+		if (Index < State->LimitA) {
+			State->Target = Target;
+			State->IndexA = Index;
+			State->Args[0] = State->Values[State->Indices[*Index]];
+			State->Args[1] = State->Values[State->Indices[*State->IndexB]];
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
+	} else {
+		int32_t *Index = State->IndexB;
+		*Target++ = *Index++;
+		if (Index < State->LimitB) {
+			State->Target = Target;
+			State->IndexB = Index;
+			State->Args[0] = State->Values[State->Indices[*State->IndexA]];
+			State->Args[1] = State->Values[State->Indices[*Index]];
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(int32_t));
+	}
+	size_t Remaining = State->Limit - Target;
+	size_t BlockSize = State->BlockSize;
+	int32_t *IndexA = State->LimitB;
+	if (Remaining <= BlockSize) {
+		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
+		BlockSize *= 2;
+		Remaining = State->Length;
+		if (Remaining <= BlockSize) {
+			for (int I = 0; I < Remaining; ++I) ++State->Dest[I];
+			ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+			Permutation->Base.Type = MLPermutationT;
+			Permutation->Base.Value = (char *)State->Dest;
+			Permutation->Base.Length = Remaining * sizeof(int32_t);
+			Permutation->Dimensions[0].Size = Remaining;
+			Permutation->Dimensions[0].Stride = sizeof(int32_t);
+			ML_CONTINUE(State->Base.Caller, Permutation);
+		}
+		State->BlockSize = BlockSize;
+		int32_t *Temp = State->Source;
+		IndexA = State->Source = State->Dest;
+		Target = State->Dest = Temp;
+		State->Limit = Target + State->Length;
+	}
+	State->Target = Target;
+	State->IndexA = IndexA;
+	int32_t *IndexB = IndexA + BlockSize;
+	State->LimitA = State->IndexB = IndexB;
+	Remaining -= BlockSize;
+	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
+	State->Args[0] = State->Values[State->Indices[*IndexA]];
+	State->Args[1] = State->Values[State->Indices[*IndexB]];
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+static void ml_values_order_indexed(ml_state_t *Caller, size_t Length, ml_value_t **Values, const int *Indices, ml_value_t *Function) {
+	if (Length < 2) {
+		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_U32, 1, Length);
+		Permutation->Base.Type = MLPermutationT;
+		if (Length) *(uint32_t *)Permutation->Base.Value = 1;
+		ML_RETURN(Permutation);
+	}
+	ml_values_order_state_t *State = new(ml_values_order_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_values_order_state_run;
+	State->Compare = Function;
+	int32_t *Source = State->Source = asnew(int32_t, Length);
+	int32_t *Dest = State->Dest = asnew(int32_t, Length);
+	for (int I = 0; I < Length; ++I) Source[I] = I;
+	State->Values = Values;
+	State->Indices = Indices;
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = State->Values[Source[0]];
+	State->Args[1] = State->Values[Source[1]];
+	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+ML_METHODX("order", MLVectorT) {
+	ml_array_t *Array = (ml_array_t *)Args[0];
+	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_U8: ML_RETURN(ml_array_order_uint8_t(Array));
+	case ML_ARRAY_FORMAT_I8: ML_RETURN(ml_array_order_int8_t(Array));
+	case ML_ARRAY_FORMAT_U16: ML_RETURN(ml_array_order_uint16_t(Array));
+	case ML_ARRAY_FORMAT_I16: ML_RETURN(ml_array_order_int16_t(Array));
+	case ML_ARRAY_FORMAT_U32: ML_RETURN(ml_array_order_uint32_t(Array));
+	case ML_ARRAY_FORMAT_I32: ML_RETURN(ml_array_order_int32_t(Array));
+	case ML_ARRAY_FORMAT_U64: ML_RETURN(ml_array_order_uint64_t(Array));
+	case ML_ARRAY_FORMAT_I64: ML_RETURN(ml_array_order_int64_t(Array));
+	case ML_ARRAY_FORMAT_F32: ML_RETURN(ml_array_order_float(Array));
+	case ML_ARRAY_FORMAT_F64: ML_RETURN(ml_array_order_double(Array));
+	case ML_ARRAY_FORMAT_ANY: {
+		if (Array->Dimensions[0].Indices) {
+			return ml_values_order_indexed(Caller, Array->Dimensions[0].Size, (ml_value_t **)Array->Base.Value, Array->Dimensions[0].Indices, LessEqualMethod);
+		} else {
+			return ml_values_order(Caller, Array->Dimensions[0].Size, (ml_value_t **)Array->Base.Value, LessEqualMethod);
+		}
+	}
+	default: ML_ERROR("TypeError", "Array can not be sorted");
+	}
+}
+
+ML_METHODX("order", MLVectorT, MLFunctionT) {
+	ml_array_t *Array = (ml_array_t *)Args[0];
+	int Size = Array->Dimensions[0].Size;
+	const int *Indices = Array->Dimensions[0].Indices;
+	if (Array->Format == ML_ARRAY_FORMAT_ANY) {
+		if (Indices) {
+			return ml_values_order_indexed(Caller, Size, (ml_value_t **)Array->Base.Value, Indices, Args[1]);
+		} else {
+			return ml_values_order(Caller, Size, (ml_value_t **)Array->Base.Value, Args[1]);
+		}
+	}
+	ml_value_t **Values = anew(ml_value_t *, Size);
+	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_U8: {
+		uint8_t *Value = (uint8_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I8: {
+		int8_t *Value = (int8_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U16: {
+		uint16_t *Value = (uint16_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I16: {
+		int16_t *Value = (int16_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U32: {
+		uint32_t *Value = (uint32_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I32: {
+		int32_t *Value = (int32_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U64: {
+		uint64_t *Value = (uint64_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		int64_t *Value = (int64_t *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F32: {
+		float *Value = (float *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		double *Value = (double *)Array->Base.Value;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[Indices[I]]);
+		} else {
+			for (int I = 0; I < Size; ++I) Values[I] = ml_integer(Value[I]);
+		}
+		break;
+	}
+	default: ML_ERROR("TypeError", "Array can not be sorted");
+	}
+	return ml_values_order(Caller, Size, Values, Args[1]);
 }
 
 static int ml_lu_decomp_real(double **A, int *P, int N) {

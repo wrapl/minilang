@@ -77,6 +77,10 @@ slice
       L[8] :> nil
 
 
+:mini:`meth (Slice: slice)[Indices: vector]: slice`
+   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
+
+
 :mini:`meth (Arg₁: slice):afind(Arg₂: any, Arg₃: function)`
    *TBD*
 
