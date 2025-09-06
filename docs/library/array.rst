@@ -742,7 +742,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 995962971>>
+      A:minidx(2) :> <<2 1> <1 1633904698>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1457,12 +1457,20 @@ array
       2 min A :> <<1 2> <2 2>>
 
 
+:mini:`meth permutation(Arg₁: integer, ...)`
+   *TBD*
+
+
 :mini:`meth $(List: list): array`
    Returns an array with the contents of :mini:`List`.
 
 
 :mini:`meth ^(List: list): array`
    Returns an array with the contents of :mini:`List`,  transposed.
+
+
+:mini:`meth permutation(Arg₁: list)`
+   *TBD*
 
 
 :mini:`type matrix < array`
@@ -1638,6 +1646,10 @@ array
 
 
 :mini:`meth (Arg₁: permutation) -> (Arg₂: permutation)`
+   *TBD*
+
+
+:mini:`meth \\(Arg₁: permutation)`
    *TBD*
 
 

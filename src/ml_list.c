@@ -1776,7 +1776,7 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLListMutableT) {
 //<List
 //>List
-// Sorts :mini:`List` in-place using :mini:`<` and returns it.
+// Sorts :mini:`List` in-place using :mini:`<=` and returns it.
 	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_method_sort_state_t *State = new(ml_list_method_sort_state_t);
 	State->Base.Caller = Caller;
@@ -1825,6 +1825,9 @@ ML_METHODX("sort", MLListMutableT, MLMethodT) {
 ML_METHODX("order", MLListMutableT) {
 //<List
 //>permutation
+// Returns the ordering of the elements of :mini:`List` as a permutation, index of first element, index of second element, ..., index of last element, when compared by :mini:`<=`.
+//$= let L := ["D", "B", "A", "C"]
+//$= L:order
 	ml_list_t *List = (ml_list_t *)Args[0];
 	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, LessEqualMethod);
 	ml_value_t **Values = anew(ml_value_t *, List->Length), **P = Values;
@@ -1836,6 +1839,9 @@ ML_METHODX("order", MLListMutableT, MLFunctionT) {
 //<List
 //<Compare
 //>permutation
+// Returns the ordering of the elements of :mini:`List` as a permutation, index of first element, index of second element, ..., index of last element, when compared by :mini:`Compare`.
+//$= let L := ["D", "B", "A", "C"]
+//$= L:order(>)
 	ml_list_t *List = (ml_list_t *)Args[0];
 	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, Args[1]);
 	ml_value_t **Values = anew(ml_value_t *, List->Length), **P = Values;

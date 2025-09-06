@@ -1542,11 +1542,22 @@ ML_METHODX("sort", MLSliceT, MLMethodT) {
 #ifdef ML_MATH
 
 ML_METHODX("order", MLSliceMutableT) {
+//<Slice
+//>permutation
+// Returns the ordering of the elements of :mini:`Slice` as a permutation, index of first element, index of second element, ..., index of last element, when compared by :mini:`<=`.
+//$= let S := slice(["D", "B", "A", "C"])
+//$= S:order
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	return ml_values_order(Caller, Slice->Length, (ml_value_t **)Slice->Nodes + Slice->Offset, LessEqualMethod);
 }
 
 ML_METHODX("order", MLSliceMutableT, MLFunctionT) {
+//<Slice
+//<Compare
+//>permutation
+// Returns the ordering of the elements of :mini:`Slice` as a permutation, index of first element, index of second element, ..., index of last element, when compared by :mini:`Compare`.
+//$= let S := slice(["D", "B", "A", "C"])
+//$= S:order(>)
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	return ml_values_order(Caller, Slice->Length, (ml_value_t **)Slice->Nodes + Slice->Offset, Args[1]);
 }

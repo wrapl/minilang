@@ -7758,6 +7758,7 @@ ML_FUNCTION(RandomCycle) {
 	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
 	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
+	Permutation->Base.Type = MLPermutationT;
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
 	if (Limit == 1) {
 		Values[0] = 1;
@@ -7772,7 +7773,6 @@ ML_FUNCTION(RandomCycle) {
 		Values[J] = I + 1;
 		Values[I] = Old;
 	}
-	Permutation->Base.Type = MLPermutationT;
 	return (ml_value_t *)Permutation;
 }
 
@@ -7784,9 +7784,21 @@ ML_METHOD("->", MLPermutationT, MLPermutationT) {
 	uint32_t *ValuesA = (uint32_t *)A->Base.Value;
 	uint32_t *ValuesB = (uint32_t *)B->Base.Value;
 	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Size);
+	Permutation->Base.Type = MLPermutationT;
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
 	for (int I = 0; I < Size; ++I) Values[I] = ValuesA[ValuesB[I] - 1];
+	return (ml_value_t *)Permutation;
+}
+
+ML_METHOD("\\", MLPermutationT) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	int Length = A->Dimensions[0].Size;
+	if (!Length) return (ml_value_t *)A;
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Length);
 	Permutation->Base.Type = MLPermutationT;
+	int32_t *Indices = (int32_t *)A->Base.Value;
+	int32_t *Values = (int32_t *)Permutation->Base.Value;
+	for (int I = 0; I < Length; ++I) Values[Indices[I] - 1] = I + 1;
 	return (ml_value_t *)Permutation;
 }
 

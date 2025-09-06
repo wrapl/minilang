@@ -246,12 +246,22 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice::mutable):order`
-   *TBD*
+:mini:`meth (Slice: slice::mutable):order: permutation`
+   Returns the ordering of the elements of :mini:`Slice` as a permutation,  index of first element,  index of second element,  ...,  index of last element,  when compared by :mini:`<=`.
+
+   .. code-block:: mini
+
+      let S := slice(["D", "B", "A", "C"]) :> [D, B, A, C]
+      S:order :> <3 2 4 1>
 
 
-:mini:`meth (Arg₁: slice::mutable):order(Arg₂: function)`
-   *TBD*
+:mini:`meth (Slice: slice::mutable):order(Compare: function): permutation`
+   Returns the ordering of the elements of :mini:`Slice` as a permutation,  index of first element,  index of second element,  ...,  index of last element,  when compared by :mini:`Compare`.
+
+   .. code-block:: mini
+
+      let S := slice(["D", "B", "A", "C"]) :> [D, B, A, C]
+      S:order(>) :> <1 4 2 3>
 
 
 :mini:`meth (Arg₁: slice::mutable):permutations`
@@ -259,6 +269,10 @@ slice
 
 
 :mini:`meth (Arg₁: slice::mutable):permute`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice::mutable):permute(Arg₂: permutation)`
    *TBD*
 
 

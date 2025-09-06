@@ -81,6 +81,10 @@ table
    *TBD*
 
 
+:mini:`meth (Arg₁: table):permute(Arg₂: permutation)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: table):push(Arg₂: list)`
    *TBD*
 
@@ -94,6 +98,10 @@ table
 
 
 :mini:`meth (Arg₁: table):put(Arg₂₁ is Value₁, ...)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: table):sort(Arg₂: function)`
    *TBD*
 
 

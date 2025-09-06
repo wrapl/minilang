@@ -776,6 +776,7 @@
     <member refid="ml__array_8h_1a96859bcd4239a9723ec4070e23326114" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1aa6578a9c9c763f61ece1d4f718d3279a" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1abb7064d6f32e9f21c5a93223e0ccf904" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
+    <member refid="ml__array_8h_1a9b33377dee65686a9305fa15b0c72d3e" kind="function"><name>ml_values_order</name></member>
   </compound>
   <compound refid="ml__ast_8h" kind="file"><name>ml_ast.h</name>
     <member refid="ml__ast_8h_1abe80c5dc54dafe96fa3647cfecc3ed35" kind="function"><name>ml_ast_init</name></member>
@@ -1673,7 +1674,7 @@
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
     <member refid="ml__table_8h_1aa512afd5fdc32098418ee5eb16394749" kind="function"><name>ml_table_init</name></member>
     <member refid="ml__table_8h_1a0103ddcc02153f410f646c90dfa8c2ff" kind="function"><name>ml_table</name></member>
-    <member refid="ml__table_8h_1a56d29b61ea4603662a8a4bb9745b4879" kind="function"><name>ml_table_insert</name></member>
+    <member refid="ml__table_8h_1aa1e10b1917535e4ff264448e75b360e1" kind="function"><name>ml_table_insert</name></member>
     <member refid="ml__table_8h_1a2edd7588e6c703f4809ceb8d53c6679f" kind="function"><name>ml_table_columns</name></member>
   </compound>
   <compound refid="ml__tasks_8h" kind="file"><name>ml_tasks.h</name>
