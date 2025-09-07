@@ -61,7 +61,7 @@ Minilang provides the usual infix and prefix arithmetic operators.
 
 	1 / 2
 	3 ^ 3
-	
+
 
 Strings
 .......
@@ -97,7 +97,7 @@ Minilang provides operators and methods for working with strings.
 Variables
 ---------
 
-There are 4 ways to declare variables in Minilang using different keywords, :mini:`let`, :mini:`var`, :mini:`def` and :mini:`ref`. The last 2 of these are not commonly used so will be explained in later chapters. In general, the same identifier can not be used to declare more than one variable within the same block / scope, but can be used in nested blocks / scopes. As a special exception to this rule, interactive environments, including the embedded code blocks in this tutorial, often allow the same identifier to be redeclared, overwriting the previous declaration.  
+There are 4 ways to declare variables in Minilang using different keywords, :mini:`let`, :mini:`var`, :mini:`def` and :mini:`ref`. The last 2 of these are not commonly used so will be explained in later chapters. In general, the same identifier can not be used to declare more than one variable within the same block / scope, but can be used in nested blocks / scopes. As a special exception to this rule, interactive environments, including the embedded code blocks in this tutorial, often allow the same identifier to be redeclared, overwriting the previous declaration.
 
 :mini:`let` declarations
 ........................
@@ -106,7 +106,7 @@ A variable declared with :mini:`let Name := <expression>` has the value of :mini
 
 .. note::
 
-	If the result of :mini:`<expression>` has mutable contents like a list, map, etc, the contents can still be modified even if :mini:`let` is used. Is it only the variable that can not be reassigned. 
+	If the result of :mini:`<expression>` has mutable contents like a list, map, etc, the contents can still be modified even if :mini:`let` is used. Is it only the variable that can not be reassigned.
 
 .. tryit::
 
@@ -139,7 +139,7 @@ If it necessary to modified the value of a variable itself over its lifetime, th
 
 Blocks
 ------
- 
+
 Every construct in Minilang is an expression, that is they evaluate to a value. This includes :mini:`if`-expressions, :mini:`switch`-expressions and even :mini:`for`-expressions and :mini:`loop`-expressions. These will be covered individually later, in general these expressions use blocks of code in their bodies / branches. A block of code in Minilang is simply a number of declarations and expressions. After evaluating each expression in the block, the result of the last expression is returned as the value of the block.
 
 If required, a block can be introduced whenever a single expression is expected by using :mini:`do ... end`.
@@ -165,6 +165,47 @@ When an error occurs in Minilang code, an :mini:`error` value is created. Execut
 .. tryit::
 
 	1 + "a"
-	
+
 	1 / 0
 
+Any block of code can contain an error handler using the syntax :mini:`on Variable do`, where :mini:`Variable` is a variable that will receive the error details. Usually, :mini:`Error` is used as the variable name.
+
+.. tryit::
+
+	for X in [1, 0, 2.5, "a", nil, 5] do
+		print(2 / X, "\n")
+	on Error do
+		print('An error occurred: {Error}\n')
+	end
+
+When an error occurs, the value assigned to :mini:`Error` is an *error value*. Details of the error can be extracted from :mini:`Error` using methods;
+
+* :mini:`Error:type` - the type of error, usually something like :mini:`"TypeError"`, :mini:`"RangeError"`, etc.
+* :mini:`Error:message` - a longer, more specific description of the error.
+* :mini:`Error:trace` - a trace of function calls (source names and line numbers) leading to the error
+
+Finally, a given error value can be re-raised after handling using :mini:`Error:raise`.
+
+.. note::
+
+	Since an error can occur in any step of a block, variables declared in a block are *not* visible to the error handler for that block. If it is needed to access a variable within an error handler, the variable must be declared outside the error handler's block. This often requires introducing a new :mini:`do`-block to contain the error handler.
+
+.. tryit::
+
+	fun test() do
+		let X := 1 - 1
+		let Y := 2 / X
+	on Error do
+		print('Could not evaluate {2} / {X}\n')
+	end
+	test()
+
+	fun test() do
+		let X := 1 - 1
+		do
+			let Y := 2 / X
+		on Error do
+			print('Could not evaluate {2} / {X}\n')
+		end
+	end
+	test()

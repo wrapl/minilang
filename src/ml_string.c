@@ -907,7 +907,7 @@ ML_METHOD("append", MLStringBufferT, MLInteger32T, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int Base = ml_integer_value(Args[2]);
 	int64_t Value = ml_integer32_value(Args[1]);
-	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("ValueError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
@@ -951,7 +951,7 @@ ML_METHOD("append", MLStringBufferT, MLInteger64T, MLIntegerT) {
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
 	int64_t Value = ml_integer64_value(Args[1]);
-	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("ValueError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
@@ -996,7 +996,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
 	int64_t Value = ml_integer_value(Args[1]);
-	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("ValueError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
