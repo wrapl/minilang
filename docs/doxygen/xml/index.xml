@@ -658,8 +658,6 @@
     <member refid="coro_8h_1af889af911dcc4afc6014c9402b77b2e5" kind="function"><name>coro_stack_alloc</name></member>
     <member refid="coro_8h_1a2b0db6ba1253ca9fb7753fef48c406f7" kind="function"><name>coro_stack_free</name></member>
   </compound>
-  <compound refid="dap_8h" kind="file"><name>dap.h</name>
-  </compound>
   <compound refid="inthash_8h" kind="file"><name>inthash.h</name>
     <member refid="group__inthash_1ga27d72e87f09dbeafc3d36cc7904db468" kind="define"><name>INTHASH_INDEX_SHIFT</name></member>
     <member refid="group__inthash_1ga815f76b04432c6fb81ad28140a77a6dc" kind="define"><name>INTHASH_INCR_SHIFT</name></member>
