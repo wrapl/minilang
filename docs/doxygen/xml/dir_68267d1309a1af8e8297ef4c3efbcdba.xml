@@ -5,7 +5,6 @@
     <innerfile refid="coro_8h">coro.h</innerfile>
     <innerfile refid="dap_8h">dap.h</innerfile>
     <innerfile refid="inthash_8h">inthash.h</innerfile>
-    <innerfile refid="inthash2_8h">inthash2.h</innerfile>
     <innerfile refid="linenoise_8h">linenoise.h</innerfile>
     <innerfile refid="minilang_8h">minilang.h</innerfile>
     <innerfile refid="ml__array_8h">ml_array.h</innerfile>
