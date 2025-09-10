@@ -31,9 +31,9 @@
         </inbodydescription>
         <location file="src/inthash.h" line="19" column="6" bodyfile="src/inthash.h" bodystart="19" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structinthash__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
-        <type>int</type>
-        <definition>int Size</definition>
+      <memberdef kind="variable" id="structinthash__t_1a1f5ab05b3305a959d954b796c63807c4" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t Size</definition>
         <argsstring></argsstring>
         <name>Size</name>
         <qualifiedname>inthash_t::Size</qualifiedname>
@@ -43,11 +43,11 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/inthash.h" line="20" column="5" bodyfile="src/inthash.h" bodystart="20" bodyend="-1"/>
+        <location file="src/inthash.h" line="20" column="10" bodyfile="src/inthash.h" bodystart="20" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structinthash__t_1adbeb0cbccc7ac4e39443f6cf8049b260" prot="public" static="no" mutable="no">
-        <type>int</type>
-        <definition>int Space</definition>
+      <memberdef kind="variable" id="structinthash__t_1a31c256c3c35eccd6712e00ec4be41f73" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t Space</definition>
         <argsstring></argsstring>
         <name>Space</name>
         <qualifiedname>inthash_t::Space</qualifiedname>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/inthash.h" line="20" column="10" bodyfile="src/inthash.h" bodystart="20" bodyend="-1"/>
+        <location file="src/inthash.h" line="20" column="15" bodyfile="src/inthash.h" bodystart="20" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -67,8 +67,8 @@
     <location file="src/inthash.h" line="17" column="1" bodyfile="src/inthash.h" bodystart="17" bodyend="21"/>
     <listofallmembers>
       <member refid="structinthash__t_1a1d97f35a7a00c7c3cf378a040014c875" prot="public" virt="non-virtual"><scope>inthash_t</scope><name>Keys</name></member>
-      <member refid="structinthash__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>inthash_t</scope><name>Size</name></member>
-      <member refid="structinthash__t_1adbeb0cbccc7ac4e39443f6cf8049b260" prot="public" virt="non-virtual"><scope>inthash_t</scope><name>Space</name></member>
+      <member refid="structinthash__t_1a1f5ab05b3305a959d954b796c63807c4" prot="public" virt="non-virtual"><scope>inthash_t</scope><name>Size</name></member>
+      <member refid="structinthash__t_1a31c256c3c35eccd6712e00ec4be41f73" prot="public" virt="non-virtual"><scope>inthash_t</scope><name>Space</name></member>
       <member refid="structinthash__t_1a93b817b8cb9e5be468df90c8a277e5bc" prot="public" virt="non-virtual"><scope>inthash_t</scope><name>Values</name></member>
     </listofallmembers>
   </compounddef>

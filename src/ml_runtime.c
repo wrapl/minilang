@@ -1090,7 +1090,11 @@ volatile int MLPreempt = 0;
 
 typedef struct ml_queue_block_t ml_queue_block_t;
 
+#ifdef Wasm
+#define QUEUE_BLOCK_SIZE 16
+#else
 #define QUEUE_BLOCK_SIZE 128
+#endif
 
 struct ml_queue_block_t {
 	ml_queued_state_t States[QUEUE_BLOCK_SIZE];

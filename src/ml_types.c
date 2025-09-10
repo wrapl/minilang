@@ -2131,6 +2131,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+#ifdef Wasm
+	GC_disable();
+#endif
 	ml_runtime_init(ExecName, Globals);
 #ifdef ML_BIGINT
 	mp_set_memory_functions(GC_malloc_atomic, GC_realloc2, GC_nop2);

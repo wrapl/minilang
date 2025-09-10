@@ -214,6 +214,10 @@ ML_TYPE(MLTableColumnT, (), "table::column",
 ml_array_t *ml_table_insert_column(ml_table_t *Table, const char *Name, ml_array_t *Source) {
 	// Source->Degree >= 1
 	// Source->Dimensions[0].Size == Table->Length
+	if (!Table->ColumnNames->Size) {
+		Table->Length = Table->Capacity = Source->Dimensions[0].Size;
+		Table->Offset = 0;
+	}
 	ml_table_column_t *Column = stringmap_search(Table->ColumnNames, Name);
 	if (!Column) {
 		Column = new(ml_table_column_t);

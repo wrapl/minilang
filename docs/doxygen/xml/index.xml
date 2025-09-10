@@ -11,8 +11,8 @@
   <compound refid="structinthash__t" kind="struct"><name>inthash_t</name>
     <member refid="structinthash__t_1a1d97f35a7a00c7c3cf378a040014c875" kind="variable"><name>Keys</name></member>
     <member refid="structinthash__t_1a93b817b8cb9e5be468df90c8a277e5bc" kind="variable"><name>Values</name></member>
-    <member refid="structinthash__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
-    <member refid="structinthash__t_1adbeb0cbccc7ac4e39443f6cf8049b260" kind="variable"><name>Space</name></member>
+    <member refid="structinthash__t_1a1f5ab05b3305a959d954b796c63807c4" kind="variable"><name>Size</name></member>
+    <member refid="structinthash__t_1a31c256c3c35eccd6712e00ec4be41f73" kind="variable"><name>Space</name></member>
   </compound>
   <compound refid="structlinenoiseCompletions" kind="struct"><name>linenoiseCompletions</name>
     <member refid="structlinenoiseCompletions_1a7360b55975153b822efc5217b7734e6a" kind="variable"><name>len</name></member>

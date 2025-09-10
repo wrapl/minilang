@@ -110,11 +110,12 @@ void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **A
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
 	.Constructor = CONSTRUCTOR, \
+	.Parents = {INTHASH_INIT}, \
 	.TypedFns = {INTHASH_INIT}, \
 	.Exports = {STRINGMAP_INIT}, \
 	.Rank = 0, \
 	.Interface = 0, \
-	__VA_ARGS__ \
+	##__VA_ARGS__ \
 }
 
 #ifndef GENERATE_INIT

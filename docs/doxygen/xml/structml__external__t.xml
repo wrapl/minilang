@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1506" column="11" bodyfile="src/ml_types.h" bodystart="1506" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1508" column="11" bodyfile="src/ml_types.h" bodystart="1508" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__external__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1507" column="12" bodyfile="src/ml_types.h" bodystart="1507" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1509" column="12" bodyfile="src/ml_types.h" bodystart="1509" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__external__t_1acf4bd6e1b9e491ae82464869f0ea1a0f" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1508" column="12" bodyfile="src/ml_types.h" bodystart="1508" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1510" column="12" bodyfile="src/ml_types.h" bodystart="1510" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__external__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" static="no" mutable="no">
         <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1509" column="13" bodyfile="src/ml_types.h" bodystart="1509" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1511" column="13" bodyfile="src/ml_types.h" bodystart="1511" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__external__t_1a9fde862c8bc443d7a6872a487ec265a3" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1510" column="5" bodyfile="src/ml_types.h" bodystart="1510" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1512" column="5" bodyfile="src/ml_types.h" bodystart="1512" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__external__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -85,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1510" column="12" bodyfile="src/ml_types.h" bodystart="1510" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1512" column="12" bodyfile="src/ml_types.h" bodystart="1512" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -137,7 +137,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1505" column="1" bodyfile="src/ml_types.h" bodystart="1505" bodyend="1511"/>
+    <location file="src/ml_types.h" line="1507" column="1" bodyfile="src/ml_types.h" bodystart="1507" bodyend="1513"/>
     <listofallmembers>
       <member refid="structml__external__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" virt="non-virtual"><scope>ml_external_t</scope><name>Exports</name></member>
       <member refid="structml__external__t_1a9fde862c8bc443d7a6872a487ec265a3" prot="public" virt="non-virtual"><scope>ml_external_t</scope><name>Length</name></member>
