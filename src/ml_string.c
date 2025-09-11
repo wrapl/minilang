@@ -894,7 +894,7 @@ ML_METHOD("append", MLStringBufferT, MLInteger32T) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_printf(Buffer, "%ld", ml_integer32_value(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%" PRId64, ml_integer32_value(Args[1]));
 	return MLSome;
 }
 
@@ -907,7 +907,7 @@ ML_METHOD("append", MLStringBufferT, MLInteger32T, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int Base = ml_integer_value(Args[2]);
 	int64_t Value = ml_integer32_value(Args[1]);
-	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("ValueError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
@@ -933,7 +933,7 @@ ML_METHOD("append", MLStringBufferT, MLInteger64T) {
 	const char *Str = mpz_get_str(NULL, 10, ((ml_integer_t *)Args[1])->Value);
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
-	ml_stringbuffer_printf(Buffer, "%ld", ml_integer64_value(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%" PRId64, ml_integer64_value(Args[1]));
 #endif
 	return MLSome;
 }
@@ -951,7 +951,7 @@ ML_METHOD("append", MLStringBufferT, MLInteger64T, MLIntegerT) {
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
 	int64_t Value = ml_integer64_value(Args[1]);
-	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("ValueError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
@@ -977,7 +977,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 	const char *Str = mpz_get_str(NULL, 10, Value);
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
-	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%" PRId64, ml_integer_value(Args[1]));
 #endif
 	return MLSome;
 }
@@ -996,7 +996,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
 	int64_t Value = ml_integer_value(Args[1]);
-	if (Base < 2 || Base > 36) return ml_error("IntervalError", "Invalid base");
+	if (Base < 2 || Base > 36) return ml_error("ValueError", "Invalid base");
 	int Max = 65;
 	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
@@ -1280,7 +1280,7 @@ ML_METHOD("append", MLStringBufferT, MLDecimalT) {
 	int Length = strlen(Temp);
 #else
 	char Temp[24];
-	int Length = sprintf(Temp, "%ld", Decimal->Unscaled);
+	int Length = sprintf(Temp, "%" PRId64, Decimal->Unscaled);
 #endif
 	int Scale = Decimal->Scale;
 	if (Scale > 0) {

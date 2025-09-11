@@ -1547,7 +1547,7 @@ typedef struct {
 	ml_value_t *Args[2];
 	ml_list_node_t *Head, *Tail;
 	ml_list_node_t *P, *Q;
-	int Length, ReturnOrder;
+	int Length;
 	int InSize, NMerges;
 	int PSize, QSize;
 } ml_list_sort_state_t;
@@ -1634,15 +1634,6 @@ finished:
 	State->List->CachedIndex = 1;
 	State->List->CachedNode = State->Head;
 	State->List->Length = State->Length;
-#ifdef ML_MATH
-	if (State->ReturnOrder) {
-		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, State->Length);
-		uint32_t *Indices = (uint32_t *)Permutation->Base.Value;
-		ML_LIST_FOREACH(State->List, Iter) *Indices++ = Iter->Index;
-		Permutation->Base.Type = MLPermutationT;
-		Result = (ml_value_t *)Permutation;
-	}
-#endif
 	ML_CONTINUE(State->Base.Caller, Result);
 }
 
@@ -1785,7 +1776,7 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLListMutableT) {
 //<List
 //>List
-// Sorts :mini:`List` in-place using :mini:`<` and returns it.
+// Sorts :mini:`List` in-place using :mini:`<=` and returns it.
 	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_method_sort_state_t *State = new(ml_list_method_sort_state_t);
 	State->Base.Caller = Caller;
@@ -1793,7 +1784,7 @@ ML_METHODX("sort", MLListMutableT) {
 	State->Base.run = (ml_state_fn)ml_list_method_sort_state_run;
 	ml_list_t *List = (ml_list_t *)Args[0];
 	State->List = List;
-	State->Compare = (ml_method_t *)LessMethod;
+	State->Compare = (ml_method_t *)LessEqualMethod;
 	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	State->Head = State->List->Head;
 	State->Length = List->Length;
@@ -1833,53 +1824,29 @@ ML_METHODX("sort", MLListMutableT, MLMethodT) {
 
 ML_METHODX("order", MLListMutableT) {
 //<List
-//>List
-// Sorts :mini:`List` in-place using :mini:`<` and returns the ordered indices.
-	if (!ml_list_length(Args[0])) ML_RETURN(ml_array(ML_ARRAY_FORMAT_I32, 1, 0));
-	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_sort_state_run;
+//>permutation
+// Returns the ordering of the elements of :mini:`List` as a permutation, index of first element, index of second element, ..., index of last element, when compared by :mini:`<=`.
+//$= let L := ["D", "B", "A", "C"]
+//$= L:order
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Index = 0;
-	ML_LIST_FOREACH(List, Iter) Iter->Index = ++Index;
-	State->List = List;
-	State->Compare = LessMethod;
-	State->Head = State->List->Head;
-	State->Length = List->Length;
-	State->InSize = 1;
-	State->ReturnOrder = 1;
-	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
-	List->CachedNode = NULL;
-	List->Head = List->Tail = NULL;
-	List->Length = 0;
-	return ml_list_sort_state_run(State, NULL);
+	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, LessEqualMethod);
+	ml_value_t **Values = anew(ml_value_t *, List->Length), **P = Values;
+	ML_LIST_FOREACH(List, Iter) *P++ = Iter->Value;
+	return ml_values_order(Caller, List->Length, Values, LessEqualMethod);
 }
 
 ML_METHODX("order", MLListMutableT, MLFunctionT) {
 //<List
 //<Compare
-//>List
-// Sorts :mini:`List` in-place using :mini:`Compare` and returns the ordered indices.
-	if (!ml_list_length(Args[0])) ML_RETURN(ml_array(ML_ARRAY_FORMAT_I32, 1, 0));
-	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_list_sort_state_run;
+//>permutation
+// Returns the ordering of the elements of :mini:`List` as a permutation, index of first element, index of second element, ..., index of last element, when compared by :mini:`Compare`.
+//$= let L := ["D", "B", "A", "C"]
+//$= L:order(>)
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Index = 0;
-	ML_LIST_FOREACH(List, Iter) Iter->Index = ++Index;
-	State->List = List;
-	State->Compare = Args[1];
-	State->Head = List->Head;
-	State->Length = List->Length;
-	State->InSize = 1;
-	State->ReturnOrder = 1;
-	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
-	List->CachedNode = NULL;
-	List->Head = List->Tail = NULL;
-	List->Length = 0;
-	return ml_list_sort_state_run(State, NULL);
+	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, Args[1]);
+	ml_value_t **Values = anew(ml_value_t *, List->Length), **P = Values;
+	ML_LIST_FOREACH(List, Iter) *P++ = Iter->Value;
+	return ml_values_order(Caller, List->Length, Values, Args[1]);
 }
 
 #endif

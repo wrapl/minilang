@@ -17,7 +17,7 @@ typedef struct inthash_t inthash_t;
 struct inthash_t {
 	uintptr_t *Keys;
 	void **Values;
-	int Size, Space;
+	uint32_t Size, Space;
 };
 
 #define INTHASH_INDEX_SHIFT 6

@@ -87,6 +87,62 @@
         </inbodydescription>
         <location file="src/ml_types.h" line="73" column="1" bodyfile="src/ml_types.h" bodystart="73" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1afdd1c8280b5c84f17620832e994d6182" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* iterate) (ml_state_t *Caller, ml_value_t *Value)</definition>
+        <argsstring>)(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>iterate</name>
+        <qualifiedname>ml_type_t::iterate</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="74" column="1" bodyfile="src/ml_types.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a6c4212e2923a41b20848a619021a5cee" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* iter_value) (ml_state_t *Caller, ml_value_t *Iter)</definition>
+        <argsstring>)(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>iter_value</name>
+        <qualifiedname>ml_type_t::iter_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="75" column="1" bodyfile="src/ml_types.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1a49863cf58dd2cc6f15934cb87d15c13b" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* iter_key) (ml_state_t *Caller, ml_value_t *Iter)</definition>
+        <argsstring>)(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>iter_key</name>
+        <qualifiedname>ml_type_t::iter_key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="76" column="1" bodyfile="src/ml_types.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__type__t_1aeab4850f8c6d9395b02e48011b8d1cd5" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* iter_next) (ml_state_t *Caller, ml_value_t *Iter)</definition>
+        <argsstring>)(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>iter_next</name>
+        <qualifiedname>ml_type_t::iter_next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="77" column="1" bodyfile="src/ml_types.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
       <memberdef kind="variable" id="structml__type__t_1adb8f178033d4eb19849140493e6def8b" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
         <definition>ml_value_t* Constructor</definition>
@@ -99,7 +155,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="74" column="12" bodyfile="src/ml_types.h" bodystart="74" bodyend="-1"/>
+        <location file="src/ml_types.h" line="78" column="12" bodyfile="src/ml_types.h" bodystart="78" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__type__t_1ad8542cd012849f2c5e015755e713a09a" prot="public" static="no" mutable="no">
         <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
@@ -113,7 +169,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="78" column="11" bodyfile="src/ml_types.h" bodystart="78" bodyend="-1"/>
+        <location file="src/ml_types.h" line="82" column="11" bodyfile="src/ml_types.h" bodystart="82" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__type__t_1a0c98e9efeb9a158122d228b099b12caa" prot="public" static="no" mutable="no">
         <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
@@ -127,7 +183,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="79" column="11" bodyfile="src/ml_types.h" bodystart="79" bodyend="-1"/>
+        <location file="src/ml_types.h" line="83" column="11" bodyfile="src/ml_types.h" bodystart="83" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__type__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" static="no" mutable="no">
         <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
@@ -141,7 +197,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="80" column="13" bodyfile="src/ml_types.h" bodystart="80" bodyend="-1"/>
+        <location file="src/ml_types.h" line="84" column="13" bodyfile="src/ml_types.h" bodystart="84" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__type__t_1a79e07e026556b6915384a651a631a135" prot="public" static="no" mutable="no">
         <type>unsigned int</type>
@@ -156,7 +212,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="81" column="14" bodyfile="src/ml_types.h" bodystart="81" bodyend="-1"/>
+        <location file="src/ml_types.h" line="85" column="14" bodyfile="src/ml_types.h" bodystart="85" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__type__t_1a5769d1fb0dc1cf1b46517128ee2aefb3" prot="public" static="no" mutable="no">
         <type>unsigned int</type>
@@ -171,7 +227,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="82" column="14" bodyfile="src/ml_types.h" bodystart="82" bodyend="-1"/>
+        <location file="src/ml_types.h" line="86" column="14" bodyfile="src/ml_types.h" bodystart="86" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__type__t_1a6669fabceb525a8013b200a10ab44b26" prot="public" static="no" mutable="no">
         <type>unsigned int</type>
@@ -186,7 +242,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="83" column="14" bodyfile="src/ml_types.h" bodystart="83" bodyend="-1"/>
+        <location file="src/ml_types.h" line="87" column="14" bodyfile="src/ml_types.h" bodystart="87" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -228,7 +284,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="67" column="1" bodyfile="src/ml_types.h" bodystart="67" bodyend="84"/>
+    <location file="src/ml_types.h" line="67" column="1" bodyfile="src/ml_types.h" bodystart="67" bodyend="88"/>
     <listofallmembers>
       <member refid="structml__type__t_1a37934ef806defb15081af02ace0ef935" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>assign</name></member>
       <member refid="structml__type__t_1ac55a7f03d05b14e59f053df05b03982c" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>call</name></member>
@@ -237,6 +293,10 @@
       <member refid="structml__type__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Exports</name></member>
       <member refid="structml__type__t_1afca1884a023d3d5c139c3cb189a03ac8" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>hash</name></member>
       <member refid="structml__type__t_1a5769d1fb0dc1cf1b46517128ee2aefb3" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Interface</name></member>
+      <member refid="structml__type__t_1a49863cf58dd2cc6f15934cb87d15c13b" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>iter_key</name></member>
+      <member refid="structml__type__t_1aeab4850f8c6d9395b02e48011b8d1cd5" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>iter_next</name></member>
+      <member refid="structml__type__t_1a6c4212e2923a41b20848a619021a5cee" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>iter_value</name></member>
+      <member refid="structml__type__t_1afdd1c8280b5c84f17620832e994d6182" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>iterate</name></member>
       <member refid="structml__type__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Name</name></member>
       <member refid="structml__type__t_1a6669fabceb525a8013b200a10ab44b26" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>NoInherit</name></member>
       <member refid="structml__type__t_1ad8542cd012849f2c5e015755e713a09a" prot="public" virt="non-virtual"><scope>ml_type_t</scope><name>Parents</name></member>

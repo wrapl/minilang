@@ -39,6 +39,8 @@ ML_METHOD_DECL(LessEqualMethod, "<=");
 ML_METHOD_DECL(GreaterEqualMethod, ">=");
 ML_METHOD_DECL(AddMethod, "+");
 ML_METHOD_DECL(MulMethod, "*");
+ML_METHOD_DECL(SubMethod, "-");
+ML_METHOD_DECL(DivMethod, "/");
 ML_METHOD_DECL(AndMethod, "/\\");
 ML_METHOD_DECL(OrMethod, "\\/");
 ML_METHOD_DECL(XorMethod, "><");
@@ -1475,32 +1477,56 @@ ML_FUNCTION(MLIsConstant) {
 // Iterators //
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
-	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
+	ml_type_t *Type = ml_typeof(Value);
+	typeof(ml_iterate) *function = Type->iterate;
 	if (function) return function(Caller, Value);
+	function = ml_typed_fn_get(Type, ml_iterate);
+	if (function) {
+		Type->iterate = function;
+		return function(Caller, Value);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Value;
 	return ml_call(Caller, IterateMethod, 1, Args);
 }
 
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
-	typeof(ml_iter_value) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_value);
+	ml_type_t *Type = ml_typeof(Iter);
+	typeof(ml_iter_value) *function = Type->iter_value;
 	if (function) return function(Caller, Iter);
+	function = ml_typed_fn_get(Type, ml_iter_value);
+	if (function) {
+		Type->iter_value = function;
+		return function(Caller, Iter);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Iter;
 	return ml_call(Caller, ValueMethod, 1, Args);
 }
 
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
-	typeof(ml_iter_key) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_key);
+	ml_type_t *Type = ml_typeof(Iter);
+	typeof(ml_iter_key) *function = Type->iter_key;
 	if (function) return function(Caller, Iter);
+	function = ml_typed_fn_get(Type, ml_iter_key);
+	if (function) {
+		Type->iter_key = function;
+		return function(Caller, Iter);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Iter;
 	return ml_call(Caller, KeyMethod, 1, Args);
 }
 
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
-	typeof(ml_iter_next) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_next);
+	ml_type_t *Type = ml_typeof(Iter);
+	typeof(ml_iter_next) *function = Type->iter_next;
 	if (function) return function(Caller, Iter);
+	function = ml_typed_fn_get(Type, ml_iter_next);
+	if (function) {
+		Type->iter_next = function;
+		return function(Caller, Iter);
+	}
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Iter;
 	return ml_call(Caller, NextMethod, 1, Args);
@@ -1925,6 +1951,14 @@ ML_FUNCTIONZ(MLCompareAndSet) {
 	return ml_assign(Caller, Args[0], New);
 }
 
+ML_MINI_FUNCTION(MLSortAsc, ("Field"),
+	"fun(X, Y) X[Field] < Y[Field]"
+)
+
+ML_MINI_FUNCTION(MLSortDesc, ("Field"),
+	"fun(X, Y) X[Field] > Y[Field]"
+)
+
 static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
 	void **Base = (void **)GC_base(Ptr);
 	if (!Base) return NULL;
@@ -2097,6 +2131,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+#ifdef Wasm
+	GC_disable();
+#endif
 	ml_runtime_init(ExecName, Globals);
 #ifdef ML_BIGINT
 	mp_set_memory_functions(GC_malloc_atomic, GC_realloc2, GC_nop2);
@@ -2216,5 +2253,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);
 		stringmap_insert(Globals, "weakref", MLWeakRefT);
+		stringmap_insert(Globals, "sort", ml_module("sort",
+			"asc", MLSortAsc,
+			"desc", MLSortDesc,
+		NULL));
 	}
 }

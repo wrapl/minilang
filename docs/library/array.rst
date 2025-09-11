@@ -1457,12 +1457,20 @@ array
       2 min A :> <<1 2> <2 2>>
 
 
+:mini:`meth permutation(Arg₁: integer, ...)`
+   *TBD*
+
+
 :mini:`meth $(List: list): array`
    Returns an array with the contents of :mini:`List`.
 
 
 :mini:`meth ^(List: list): array`
    Returns an array with the contents of :mini:`List`,  transposed.
+
+
+:mini:`meth permutation(Arg₁: list)`
+   *TBD*
 
 
 :mini:`type matrix < array`
@@ -1641,6 +1649,10 @@ array
    *TBD*
 
 
+:mini:`meth \\(Arg₁: permutation)`
+   *TBD*
+
+
 :mini:`meth (A: real) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
@@ -1796,6 +1808,14 @@ array
 
 :mini:`type vector < array`
    Arrays with exactly 1 dimension.
+
+
+:mini:`meth (Arg₁: vector):order`
+   *TBD*
+
+
+:mini:`meth (Arg₁: vector):order(Arg₂: function)`
+   *TBD*
 
 
 :mini:`type vector::any < vector, array::any`

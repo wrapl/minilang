@@ -2201,7 +2201,7 @@ finished:
 	ML_CONTINUE(State->Base.Caller, Result);
 }
 
-extern ml_value_t *LessMethod;
+extern ml_value_t *LessEqualMethod;
 
 ML_METHODX("sort", MLMapMutableT) {
 //<Map
@@ -2217,7 +2217,7 @@ ML_METHODX("sort", MLMapMutableT) {
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	State->Map = Map;
 	State->Count = 2;
-	State->Compare = (ml_method_t *)LessMethod;
+	State->Compare = (ml_method_t *)LessEqualMethod;
 	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	State->Head = State->Map->Head;
 	State->Size = Map->Size;

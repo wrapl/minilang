@@ -225,7 +225,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
+      L:random :> "a"
       L:random :> "k"
 
 
@@ -317,12 +317,22 @@ list
       L :> ["c", "b", "a", "f", "k", "e"]
 
 
-:mini:`meth (List: list::mutable):order: List`
-   Sorts :mini:`List` in-place using :mini:`<` and returns the ordered indices.
+:mini:`meth (List: list::mutable):order: permutation`
+   Returns the ordering of the elements of :mini:`List` as a permutation,  index of first element,  index of second element,  ...,  index of last element,  when compared by :mini:`<=`.
+
+   .. code-block:: mini
+
+      let L := ["D", "B", "A", "C"] :> ["D", "B", "A", "C"]
+      L:order :> <3 2 4 1>
 
 
-:mini:`meth (List: list::mutable):order(Compare: function): List`
-   Sorts :mini:`List` in-place using :mini:`Compare` and returns the ordered indices.
+:mini:`meth (List: list::mutable):order(Compare: function): permutation`
+   Returns the ordering of the elements of :mini:`List` as a permutation,  index of first element,  index of second element,  ...,  index of last element,  when compared by :mini:`Compare`.
+
+   .. code-block:: mini
+
+      let L := ["D", "B", "A", "C"] :> ["D", "B", "A", "C"]
+      L:order(>) :> <1 4 2 3>
 
 
 :mini:`meth (List: list::mutable):permutations: sequence`
@@ -400,7 +410,7 @@ list
 
 
 :mini:`meth (List: list::mutable):sort: List`
-   Sorts :mini:`List` in-place using :mini:`<` and returns it.
+   Sorts :mini:`List` in-place using :mini:`<=` and returns it.
 
 
 :mini:`meth (List: list::mutable):sort(Compare: function): List`

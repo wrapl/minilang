@@ -61,13 +61,20 @@ Finally, nearly all constructs in Minilang are expressions, i.e. they result in 
 .. tryit::
 
 	for X in [1, nil] do
-		print("Choosing the ", if X then "non-nil" else "nil" end, " branch.\n")
+		print("Choosing the ", if X then "then" else "else" end, " branch.\n")
 	end
 
 	for X in [1, nil] do
-		print("Choosing the ", if X then "non-nil" end, " branch.\n")
+		print("Choosing the ", if X then "then" end, " branch.\n")
 	end
 
+Sometimes we want to use the value of the condition expression if it is not :mini:`nil`. In Minilang, the condition of an  :mini:`if`-expression can be assigned to a variable with :mini:`let` or :mini:`var`.
+
+.. tryit::
+
+	if let X := 2 + 2 then
+		print('{X} is not nil\n')
+	end
 
 :mini:`and`-expressions and :mini:`or`-expressions
 ..................................................
@@ -137,9 +144,9 @@ A :mini:`not`-expression returns :mini:`some` if its argument returns :mini:`nil
 	:header-rows: 1
 
 	* - :mini:`X = nil`
-	  - :mini:`some`
+	  - :mini:`X != nil`
 
-	* - Not :mini:`X != nil`
+	* - :mini:`some`
 	  - :mini:`nil`
 
 .. flat-table:: :mini:`X xor Y`

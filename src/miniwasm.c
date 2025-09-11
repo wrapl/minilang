@@ -447,7 +447,6 @@ static ml_value_t *ml_library_wasm_load0(const char *FileName, ml_value_t **Slot
 void initialize(const char *BaseUrl) {
 	ml_context_reserve(ML_SESSION_INDEX);
 	ml_init("minilang", MLGlobals);
-	GC_disable();
 	ml_sequence_init(MLGlobals);
 	ml_object_init(MLGlobals);
 	ml_time_init(MLGlobals);

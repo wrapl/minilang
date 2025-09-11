@@ -30,7 +30,6 @@ written in *C*. Although initially developed for *Rabs* `<https://rabs.readthedo
    Functions in *Minilang* automatically capture their environment, creating
    closures at runtime. Closures can be passed around as first-class values.
 
-
 Sample
 ------
 
@@ -49,7 +48,6 @@ Details
 =======
 
 .. toctree::
-   :hidden:
    :maxdepth: 2
 
    /start

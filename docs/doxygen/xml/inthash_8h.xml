@@ -293,7 +293,7 @@
 <codeline lineno="17" refid="structinthash__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structinthash__t" kindref="compound">inthash_t</ref><sp/>{</highlight></codeline>
 <codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>uintptr_t<sp/>*Keys;</highlight></codeline>
 <codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**Values;</highlight></codeline>
-<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Size,<sp/>Space;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>uint32_t<sp/>Size,<sp/>Space;</highlight></codeline>
 <codeline lineno="21"><highlight class="normal">};</highlight></codeline>
 <codeline lineno="22"><highlight class="normal"></highlight></codeline>
 <codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>INTHASH_INDEX_SHIFT<sp/>6</highlight><highlight class="normal"></highlight></codeline>
