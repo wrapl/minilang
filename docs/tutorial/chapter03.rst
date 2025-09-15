@@ -139,7 +139,7 @@ As mentioned before, nearly every construct in Minilang is an expression with a 
 .. tryit::
 
 	let X := for I in 1 .. 1000000 do
-		if I * I > 50 do
+		if I * I > 50 then
 			exit I
 		end
 	end
