@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1484" column="17" bodyfile="src/ml_types.h" bodystart="1484" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1483" column="17" bodyfile="src/ml_types.h" bodystart="1483" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__module__t_1a92f2f53f10cb856d51b9852cb572a227" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1485" column="12" bodyfile="src/ml_types.h" bodystart="1485" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1484" column="12" bodyfile="src/ml_types.h" bodystart="1484" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__module__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" static="no" mutable="no">
         <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1486" column="13" bodyfile="src/ml_types.h" bodystart="1486" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1485" column="13" bodyfile="src/ml_types.h" bodystart="1485" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -95,7 +95,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1483" column="1" bodyfile="src/ml_types.h" bodystart="1483" bodyend="1487"/>
+    <location file="src/ml_types.h" line="1482" column="1" bodyfile="src/ml_types.h" bodystart="1482" bodyend="1486"/>
     <listofallmembers>
       <member refid="structml__module__t_1a1f2cca9f8df48967f0cfa89fde567553" prot="public" virt="non-virtual"><scope>ml_module_t</scope><name>Exports</name></member>
       <member refid="structml__module__t_1a92f2f53f10cb856d51b9852cb572a227" prot="public" virt="non-virtual"><scope>ml_module_t</scope><name>Path</name></member>

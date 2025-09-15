@@ -103,12 +103,6 @@ static ml_value_t *global_get(void *Data, const char *Name, const char *Source, 
 	return stringmap_search(MLGlobals, Name);
 }
 
-#ifdef ML_CONTEXT_SECTION
-
-__attribute__ ((section("ml_context_section"))) void *MLContextTest[1] = {NULL};
-
-#endif
-
 ML_FUNCTION(MLNow) {
 //@now
 	return ml_integer(time(NULL));

@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1071" column="26" bodyfile="src/ml_types.h" bodystart="1071" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1070" column="26" bodyfile="src/ml_types.h" bodystart="1070" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -64,7 +64,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1071" column="1" bodyfile="src/ml_types.h" bodystart="1071" bodyend="1071"/>
+    <location file="src/ml_types.h" line="1070" column="1" bodyfile="src/ml_types.h" bodystart="1070" bodyend="1070"/>
     <listofallmembers>
       <member refid="structml__slice__node__t_1a022b24deb82c844e73083ad06165b5bd" prot="public" virt="non-virtual"><scope>ml_slice_node_t</scope><name>Value</name></member>
     </listofallmembers>

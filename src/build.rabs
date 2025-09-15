@@ -276,7 +276,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
 	MINILANG_STATICGC := not defined("NOSTATICGC")
 	MINILANG_BACKTRACE := not defined("NOBACKTRACE")
-	if PLATFORM = "Linux" then
+	if PLATFORM = "Linux" and not MINILANG_BACKTRACE then
 		MINILANG_UNWIND := 1
 	end
 	if PLATFORM != "Wasm" then
@@ -738,7 +738,7 @@ elseif PLATFORM = "Android" then
 end
 
 if PLATFORM = "Wasm" then
-	LDFLAGS := old + ["-g3", "-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sEXIT_RUNTIME=1", "-sALLOW_MEMORY_GROWTH=1", "-gsource-map ", "-sEXIT_RUNTIME=0", "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\"", "-sASYNCIFY"]
+	LDFLAGS := old + ["-g3", "-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sALLOW_MEMORY_GROWTH=1", "-gsource-map ", "-sEXIT_RUNTIME=0", "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""] :>, "-sASYNCIFY"]
 	LIBMINILANG := c_library(LIB_DIR / "libminilang.wasm", Objects, Libraries)
 	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
 	

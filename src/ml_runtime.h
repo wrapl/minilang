@@ -102,7 +102,17 @@ extern ml_state_t MLEndState[];
 
 ml_state_t *ml_state(ml_state_t *Caller) __attribute__ ((malloc));
 
+#ifdef ML_TIMESCHED
+
 void ml_state_continue(ml_state_t *State, ml_value_t *Value);
+
+#else
+
+static inline void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
+	return State->run(State, Value);
+}
+
+#endif
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
 
@@ -276,7 +286,11 @@ extern ml_cfunctionx_t MLTrace[];
 
 // Preemption //
 
+#ifdef ML_TIMESCHED
+
 extern volatile int MLPreempt;
+
+#endif
 
 typedef struct ml_scheduler_t ml_scheduler_t;
 

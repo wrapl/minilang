@@ -586,7 +586,6 @@ int EMSCRIPTEN_KEEPALIVE ml_session(const char *BaseUrl) {
 	int Index = NumSessions++;
 	ml_session_t *Session = Sessions + Index;
 	ml_context_t *Context = Session->Base.Context = ml_context(MLRootContext);
-	ml_default_queue_init(Context, 250);
 	ml_context_set_static(Context, ML_SESSION_INDEX, Session);
 	Session->Base.run = (ml_state_fn)ml_session_run;
 	Session->Compiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, MLGlobals);
