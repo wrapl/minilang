@@ -755,9 +755,9 @@
         </inbodydescription>
         <location file="src/ml_runtime.h" line="103" column="12" declfile="src/ml_runtime.h" declline="103" declcolumn="12"/>
       </memberdef>
-      <memberdef kind="function" id="group__runtime_1gafa428a2e39648cf81397c36524ef4ae7" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+      <memberdef kind="function" id="group__runtime_1gaaeb9a49a594c2a0105fd58396325e157" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
-        <definition>static void ml_state_continue</definition>
+        <definition>void ml_state_continue</definition>
         <argsstring>(ml_state_t *State, ml_value_t *Value)</argsstring>
         <name>ml_state_continue</name>
         <param>
@@ -774,7 +774,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="111" column="20" bodyfile="src/ml_runtime.h" bodystart="111" bodyend="113"/>
+        <location file="src/ml_runtime.h" line="111" column="6" declfile="src/ml_runtime.h" declline="111" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__runtime_1ga41748b84e0dff33483013c5f26970c51" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -1923,6 +1923,19 @@
         <inbodydescription>
         </inbodydescription>
         <location file="src/ml_runtime.h" line="27" column="9" bodyfile="src/ml_runtime.h" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__runtime_1ga443ffa134273c6e68e7c3619aa33854d" prot="public" static="no">
+        <name>ml_state_continue</name>
+        <param><defname>State</defname></param>
+        <param><defname>Value</defname></param>
+        <initializer>(State)-&gt;run(State, Value)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_runtime.h" line="113" column="9" bodyfile="src/ml_runtime.h" bodystart="113" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" prot="public" static="no">
         <name>ml_simple_inline</name>

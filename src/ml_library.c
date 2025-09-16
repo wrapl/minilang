@@ -294,8 +294,24 @@ static void ml_library_path_add_default(void) {
 	}
 }
 
+#ifdef ML_TIMESCHED
+
+static sigset_t Signals;
+
+#define BLOCK_PREEMPT sigprocmask(SIG_BLOCK, &Signals, NULL);
+#define UNBLOCK_PREEMPT sigprocmask(SIG_UNBLOCK, &Signals, NULL);
+
+#else
+
+#define BLOCK_PREEMPT
+#define UNBLOCK_PREEMPT
+
+#endif
+
 static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
+	BLOCK_PREEMPT
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
+	UNBLOCK_PREEMPT
 	if (Handle) {
 		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
@@ -316,7 +332,9 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 }
 
 static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) {
+	BLOCK_PREEMPT
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
+	UNBLOCK_PREEMPT
 	if (Handle) {
 		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
@@ -423,6 +441,10 @@ ML_FUNCTION(Unload) {
 static ml_importer_t Importer[1] = {{MLImporterT, NULL}};
 
 void ml_library_init(stringmap_t *_Globals) {
+#ifdef ML_TIMESCHED
+	sigemptyset(&Signals);
+	sigaddset(&Signals, SIGALRM);
+#endif
 	Globals = _Globals;
 	LibraryPath = ml_list();
 #ifndef Wasm

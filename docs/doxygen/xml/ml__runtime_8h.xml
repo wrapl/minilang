@@ -290,6 +290,7 @@
     <sectiondef kind="define">
       <member refid="group__runtime_1gacb4dbc9c60321a197cb4e383665d732b" kind="define"><name>ML_ARG_CACHE_SIZE</name></member>
       <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
+      <member refid="group__runtime_1ga443ffa134273c6e68e7c3619aa33854d" kind="define"><name>ml_state_continue</name></member>
       <member refid="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" kind="define"><name>ml_simple_inline</name></member>
       <member refid="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" kind="define"><name>SIZE_BITS</name></member>
       <member refid="group__runtime_1ga1c4e727662d91855584cc5f105ead657" kind="define"><name>MLC_DECL_CONSTANT</name></member>
@@ -354,7 +355,7 @@
       <member refid="group__runtime_1ga35e789ee30e220733088c39ae4194b18" kind="function"><name>ml_config_lookup</name></member>
       <member refid="group__runtime_1ga8a326e4182500333ff91407b63277867" kind="function"><name>ml_config_name</name></member>
       <member refid="group__runtime_1ga29f2c7a7d6b4d11a0ea8ecc66828bc59" kind="function"><name>ml_state</name></member>
-      <member refid="group__runtime_1gafa428a2e39648cf81397c36524ef4ae7" kind="function"><name>ml_state_continue</name></member>
+      <member refid="group__runtime_1gaaeb9a49a594c2a0105fd58396325e157" kind="function"><name>ml_state_continue</name></member>
       <member refid="group__runtime_1ga41748b84e0dff33483013c5f26970c51" kind="function"><name>ml_default_state_run</name></member>
       <member refid="group__runtime_1ga2be6e789393b900e951136eea2cb5336" kind="function"><name>ml_result_state_run</name></member>
       <member refid="group__runtime_1gaa283c72d35952c7b569b4d9c18b97ba9" kind="function"><name>ml_result_state</name></member>
@@ -510,15 +511,15 @@
 <codeline lineno="102"><highlight class="normal"></highlight></codeline>
 <codeline lineno="103"><highlight class="normal"><ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*ml_state(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller)<sp/>__attribute__<sp/>((malloc));</highlight></codeline>
 <codeline lineno="104"><highlight class="normal"></highlight></codeline>
-<codeline lineno="105"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>ML_TIMESCHED</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(ML_TIMESCHED)<sp/>||<sp/>defined(ML_TRAMPOLINE)</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="106"><highlight class="normal"></highlight></codeline>
 <codeline lineno="107"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_state_continue(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
 <codeline lineno="108"><highlight class="normal"></highlight></codeline>
 <codeline lineno="109"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="110"><highlight class="normal"></highlight></codeline>
-<codeline lineno="111"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_state_continue(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value)<sp/>{</highlight></codeline>
-<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>State-&gt;<ref refid="structml__state__t_1acee6e015e491f33a94bfa59cac2775a2" kindref="member">run</ref>(State,<sp/>Value);</highlight></codeline>
-<codeline lineno="113"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_state_continue(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*State,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ml_state_continue(State,<sp/>Value)<sp/>(State)-&gt;run(State,<sp/>Value)</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="114"><highlight class="normal"></highlight></codeline>
 <codeline lineno="115"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="116"><highlight class="normal"></highlight></codeline>

@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <float.h>
+#include <inttypes.h>
 
 #ifdef ML_COMPLEX
 #include <complex.h>
@@ -2719,8 +2720,8 @@ ARRAY_DECL(IntegerT, uint16, UInt16T, uint16_t, ml_stringbuffer_printf, "%u", ml
 ARRAY_DECL(IntegerT, int16, Int16T, int16_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
 ARRAY_DECL(IntegerT, uint32, UInt32T, uint32_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
 ARRAY_DECL(IntegerT, int32, Int32T, int32_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
-ARRAY_DECL(IntegerT, uint64, UInt64T, uint64_t, ml_stringbuffer_printf, "%lu", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
-ARRAY_DECL(IntegerT, int64, Int64T, int64_t, ml_stringbuffer_printf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
+ARRAY_DECL(IntegerT, uint64, UInt64T, uint64_t, ml_stringbuffer_printf, "%" PRIu64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
+ARRAY_DECL(IntegerT, int64, Int64T, int64_t, ml_stringbuffer_printf, "%" PRId64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
 ARRAY_DECL(RealT, float32, Float32T, float, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
 ARRAY_DECL(RealT, float64, Float64T, double, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
 
@@ -4207,14 +4208,14 @@ static void fill_norms_ ## CTYPE2(int TargetDegree, double *Target, int SourceDe
 	} \
 }
 
-NORM_FUNCTION(double, uint8_t, labs);
+NORM_FUNCTION(double, uint8_t, );
 NORM_FUNCTION(double, int8_t, labs);
-NORM_FUNCTION(double, uint16_t, labs);
+NORM_FUNCTION(double, uint16_t, );
 NORM_FUNCTION(double, int16_t, labs);
-NORM_FUNCTION(double, uint32_t, labs);
+NORM_FUNCTION(double, uint32_t, );
 NORM_FUNCTION(double, int32_t, labs);
-NORM_FUNCTION(double, uint64_t, labs);
-NORM_FUNCTION(double, int64_t, labs);
+NORM_FUNCTION(double, uint64_t, );
+NORM_FUNCTION(double, int64_t, llabs);
 NORM_FUNCTION(double, float, fabs);
 NORM_FUNCTION(double, double, fabs);
 

@@ -102,15 +102,15 @@ extern ml_state_t MLEndState[];
 
 ml_state_t *ml_state(ml_state_t *Caller) __attribute__ ((malloc));
 
-#ifdef ML_TIMESCHED
+#if defined(ML_TIMESCHED) || defined(ML_TRAMPOLINE)
 
 void ml_state_continue(ml_state_t *State, ml_value_t *Value);
 
 #else
 
-static inline void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
-	return State->run(State, Value);
-}
+void ml_state_continue(ml_state_t *State, ml_value_t *Value);
+
+#define ml_state_continue(State, Value) (State)->run(State, Value)
 
 #endif
 

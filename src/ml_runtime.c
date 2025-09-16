@@ -272,15 +272,22 @@ ml_state_t *ml_state(ml_state_t *Caller) {
 	return (ml_state_t *)State;
 }
 
-#ifdef ML_TIMESCHED
+#if defined(ML_TIMESCHED) || defined(ML_TRAMPOLINE)
+
 void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
+#ifdef ML_TIMESCHED
 	if (MLPreempt < 0) {
 		ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
 		Scheduler->add(Scheduler, State, Value);
 	} else {
 		return State->run(State, Value);
 	}
+#else
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
+	Scheduler->add(Scheduler, State, Value);
+#endif
 }
+
 #endif
 
 typedef struct ml_resumable_state_t {
@@ -2047,3 +2054,13 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "sleep", MLSleep);
 	}
 }
+
+#if !defined(ML_TIMESCHED) && !defined(ML_TRAMPOLINE)
+
+#undef ml_state_continue
+
+void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
+	return State->run(State, Value);
+}
+
+#endif
