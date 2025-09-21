@@ -116,8 +116,8 @@ typedef ml_value_t *any;
 
 ML_ARRAY_ACCESSORS(any);
 
-void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function);
 void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length);
+void ml_order_permutation(ml_state_t *Caller, size_t Length, int32_t *Order);
 
 #ifdef __cplusplus
 }

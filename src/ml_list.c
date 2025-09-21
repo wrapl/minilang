@@ -1663,6 +1663,59 @@ ML_METHODX("sort", MLListMutableT, MLFunctionT) {
 typedef struct {
 	ml_state_t Base;
 	ml_list_t *List;
+	ml_value_t **Slot;
+	ml_list_node_t *Node;
+	ml_value_t *ValueFn, *Compare;
+	ml_value_t *Values[];
+} ml_list_sort2_state_t;
+
+static void ml_list_sort2_finish(ml_list_sort2_state_t *State, size_t Length, int32_t *Order) {
+	ml_list_t *List = State->List;
+	ml_list_node_t *Nodes[Length], *Node = List->Head;
+	for (int I = 0; I < Length; ++I, Node = Node->Next) Nodes[I] = Node;
+	ml_list_node_t **Next = &List->Head, *Prev = NULL;
+	for (int I = 0; I < Length; ++I) {
+		ml_list_node_t *Node = Nodes[*Order++];
+		Node->Prev = Prev;
+		*Next = Prev = Node;
+		Next = &Node->Next;
+	}
+	*Next = NULL;
+	List->Tail = Prev;
+	List->CachedIndex = 1;
+	List->CachedNode = List->Head;
+	ML_CONTINUE(State->Base.Caller, List);
+}
+
+static void ml_list_sort2_value_fn(ml_list_sort2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	*(State->Slot++) = Value;
+	ml_list_node_t *Node = State->Node->Next;
+	if (Node) {
+		State->Node = Node;
+		return ml_call(State, State->ValueFn, 1, &Node->Value);
+	}
+	ml_values_order((ml_state_t *)State, State->List->Length, State->Values, State->Compare, (void *)ml_list_sort2_finish);
+}
+
+ML_METHODX("sort", MLListMutableT, MLFunctionT, MLFunctionT) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	if (List->Length < 2) ML_RETURN(List);
+	ml_list_sort2_state_t *State = xnew(ml_list_sort2_state_t, List->Length, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_sort2_value_fn;
+	State->List = List;
+	State->Slot = State->Values;
+	ml_list_node_t *Node = State->Node = List->Head;
+	State->ValueFn = Args[1];
+	State->Compare = Args[2];
+	return ml_call(State, State->ValueFn, 1, &Node->Value);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_list_t *List;
 	ml_method_t *Compare;
 	ml_methods_t *Methods;
 	ml_method_cached_t *Cached;
@@ -1829,10 +1882,10 @@ ML_METHODX("order", MLListMutableT) {
 //$= let L := ["D", "B", "A", "C"]
 //$= L:order
 	ml_list_t *List = (ml_list_t *)Args[0];
-	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, LessEqualMethod);
+	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, LessEqualMethod, ml_order_permutation);
 	ml_value_t **Values = anew(ml_value_t *, List->Length), **P = Values;
 	ML_LIST_FOREACH(List, Iter) *P++ = Iter->Value;
-	return ml_values_order(Caller, List->Length, Values, LessEqualMethod);
+	return ml_values_order(Caller, List->Length, Values, LessEqualMethod, ml_order_permutation);
 }
 
 ML_METHODX("order", MLListMutableT, MLFunctionT) {
@@ -1843,10 +1896,10 @@ ML_METHODX("order", MLListMutableT, MLFunctionT) {
 //$= let L := ["D", "B", "A", "C"]
 //$= L:order(>)
 	ml_list_t *List = (ml_list_t *)Args[0];
-	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, Args[1]);
+	if (!List->Length) return ml_values_order(Caller, List->Length, NULL, Args[1], ml_order_permutation);
 	ml_value_t **Values = anew(ml_value_t *, List->Length), **P = Values;
 	ML_LIST_FOREACH(List, Iter) *P++ = Iter->Value;
-	return ml_values_order(Caller, List->Length, Values, Args[1]);
+	return ml_values_order(Caller, List->Length, Values, Args[1], ml_order_permutation);
 }
 
 #endif

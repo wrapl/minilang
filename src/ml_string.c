@@ -4415,10 +4415,45 @@ ML_TYPE(MLRegexT, (MLFunctionT), "regex",
 	.Constructor = (ml_value_t *)MLRegex
 );
 
-ml_value_t *ml_regex(const char *Pattern, int Length) {
+#ifdef ML_STRINGCACHE
+
+static weakmap_t RegexCache[1] = {WEAKMAP_INIT};
+
+static void *_ml_regex(const char *Pattern, int Length) {
 	ml_regex_t *Regex = new(ml_regex_t);
 	Regex->Type = MLRegexT;
-	Regex->Pattern = Pattern;
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Pattern, Length);
+	Copy[Length] = 0;
+	Regex->Pattern = Copy;
+#ifdef ML_TRE
+	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
+#else
+	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
+#endif
+	if (Error) {
+		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "%s", ErrorMessage);
+	}
+	return (ml_value_t *)Regex;
+}
+
+#endif
+
+ml_value_t *ml_regex(const char *Pattern, int Length) {
+#ifdef ML_STRINGCACHE
+	if (Length < ML_STRINGCACHE_MAX) {
+		return weakmap_insert(RegexCache, Pattern, Length, _ml_regex);
+	}
+#endif
+	ml_regex_t *Regex = new(ml_regex_t);
+	Regex->Type = MLRegexT;
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Pattern, Length);
+	Copy[Length] = 0;
+	Regex->Pattern = Copy;
 #ifdef ML_TRE
 	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
 #else

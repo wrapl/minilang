@@ -326,6 +326,8 @@ void ml_value_find_all(ml_value_t *Value, void *Data, ml_value_find_fn RefFn);
 
 int ml_value_is_constant(ml_value_t *Value);
 
+void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function, void (*finish)(ml_state_t *, size_t, int32_t *));
+
 /// @}
 
 /// \defgroup iterators
