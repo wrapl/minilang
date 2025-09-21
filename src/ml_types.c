@@ -2069,6 +2069,8 @@ typedef struct {
 	ml_state_t Base;
 	ml_value_t **Values;
 	ml_value_t *Compare;
+	ml_methods_t *Methods;
+	ml_method_cached_t *Cached;
 	int32_t *Source, *Dest;
 	int32_t *IndexA, *LimitA, *IndexB, *LimitB;
 	int32_t *Target, *Limit;
@@ -2130,6 +2132,61 @@ static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t
 	return ml_call(State, State->Compare, 2, State->Args);
 }
 
+static void ml_values_order_method_state_run(ml_values_order_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	int32_t *Target = State->Target;
+	if (Value != MLNil) {
+		int32_t *Index = State->IndexA;
+		*Target++ = *Index++;
+		if (Index < State->LimitA) {
+			State->Target = Target;
+			State->IndexA = Index;
+			State->Args[0] = State->Values[*Index];
+			State->Args[1] = State->Values[*State->IndexB];
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
+	} else {
+		int32_t *Index = State->IndexB;
+		*Target++ = *Index++;
+		if (Index < State->LimitB) {
+			State->Target = Target;
+			State->IndexB = Index;
+			State->Args[0] = State->Values[*State->IndexA];
+			State->Args[1] = State->Values[*Index];
+			return ml_call(State, State->Compare, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(int32_t));
+	}
+	size_t Remaining = State->Limit - Target;
+	size_t BlockSize = State->BlockSize;
+	int32_t *IndexA = State->LimitB;
+	if (Remaining <= BlockSize) {
+		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
+		BlockSize *= 2;
+		Remaining = State->Length;
+		if (Remaining <= BlockSize) {
+			return State->finish(State->Base.Caller, Remaining, State->Dest);
+		}
+		State->BlockSize = BlockSize;
+		int32_t *Temp = State->Source;
+		IndexA = State->Source = State->Dest;
+		Target = State->Dest = Temp;
+		State->Limit = Target + State->Length;
+	}
+	State->Target = Target;
+	State->IndexA = IndexA;
+	int32_t *IndexB = IndexA + BlockSize;
+	State->LimitA = State->IndexB = IndexB;
+	Remaining -= BlockSize;
+	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
+	State->Args[0] = State->Values[*IndexA];
+	State->Args[1] = State->Values[*IndexB];
+	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)State->Compare, State->Cached, 2, State->Args);
+	State->Cached = Cached;
+	return ml_call(State, Cached ? Cached->Callback : State->Compare, 2, State->Args);
+}
+
 void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function, void (*finish)(ml_state_t *, size_t, int32_t *)) {
 	if (Length < 2) {
 		int32_t *Order = anew(int32_t, Length);
@@ -2141,6 +2198,7 @@ void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_values_order_state_run;
 	State->Compare = Function;
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	int32_t *Source = State->Source = asnew(int32_t, Length);
 	int32_t *Dest = State->Dest = asnew(int32_t, Length);
 	for (int I = 0; I < Length; ++I) Source[I] = I;
@@ -2155,6 +2213,14 @@ void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_
 	State->Args[0] = State->Values[Source[0]];
 	State->Args[1] = State->Values[Source[1]];
 	State->finish = finish;
+	if (ml_is(State->Compare, MLMethodT)) {
+		ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)State->Compare, State->Cached, 2, State->Args);
+		if (Cached) {
+			State->Cached = Cached;
+			State->Base.run = (ml_state_fn)ml_values_order_method_state_run;
+			return ml_call(State, Cached->Callback, 2, State->Args);
+		}
+	}
 	return ml_call(State, State->Compare, 2, State->Args);
 }
 

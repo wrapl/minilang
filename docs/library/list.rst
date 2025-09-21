@@ -417,6 +417,17 @@ list
    Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 
 
+:mini:`meth (List: list::mutable):sort(By: function, Order: function): List`
+   Sorts :mini:`List` in-place using :mini:`Order(By(Vᵢ),  By(Vⱼ))` as the comparison function (evaluating :mini:`By(Vᵢ)` only once for each :mini:`i`).
+
+   .. code-block:: mini
+
+      let L := ["The", "capital", "of", "Ireland", "is", "Dublin"]
+      :> ["The", "capital", "of", "Ireland", "is", "Dublin"]
+      L:sort(:upper, <)
+      :> ["capital", "Dublin", "Ireland", "is", "of", "The"]
+
+
 :mini:`meth (List: list::mutable):sort(Compare: method): List`
    Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 

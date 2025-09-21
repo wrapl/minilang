@@ -800,6 +800,39 @@
         </inbodydescription>
         <location file="src/ml_types.h" line="327" column="5" declfile="src/ml_types.h" declline="327" declcolumn="5"/>
       </memberdef>
+      <memberdef kind="function" id="group__types_1gaffe60b8247cf67e5336e2a3dbcbab182" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_values_order</definition>
+        <argsstring>(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function, void(*finish)(ml_state_t *, size_t, int32_t *))</argsstring>
+        <name>ml_values_order</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Values</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Function</declname>
+        </param>
+        <param>
+          <type>void(*)(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *, size_t, int32_t *)</type>
+          <declname>finish</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="329" column="6" declfile="src/ml_types.h" declline="329" declcolumn="6"/>
+      </memberdef>
     </sectiondef>
     <sectiondef kind="define">
       <memberdef kind="define" id="group__types_1ga4a95025b22fbe37ef6fbf37cf178537f" prot="public" static="no">

@@ -856,6 +856,10 @@ static void ml_table_sort_run(ml_table_sort_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("sort", MLTableT, MLFunctionT) {
+//<Table
+//<Compare
+//>Table
+// Sorts :mini:`Table` in-place using :mini:`Compare` and returns it.
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	size_t Length = Table->Length;
 	if (Length < 2) ML_RETURN(Table);
@@ -879,6 +883,56 @@ ML_METHODX("sort", MLTableT, MLFunctionT) {
 	State->Args[0] = (ml_value_t *)(Table->Rows + 0);
 	State->Args[1] = (ml_value_t *)(Table->Rows + 1);
 	return ml_call(State, State->Compare, 2, State->Args);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_table_t *Table;
+	ml_value_t **Slot;
+	ml_table_row_t *Row;
+	ml_value_t *ValueFn, *Compare;
+	ml_value_t *Values[];
+} ml_table_sort2_state_t;
+
+static void ml_table_sort2_finish(ml_table_sort2_state_t *State, size_t Length, int32_t *Indices) {
+	ml_table_t *Table = State->Table;
+	int32_t *Order = alloca(Length * sizeof(int32_t));
+	for (ml_table_column_t *Column = Table->Columns; Column; Column = Column->Next) {
+		for (int32_t I = 0; I < Length; ++I) Order[Indices[I]] = I;
+		ml_array_reorder(Column->Values, Order, Length);
+	}
+	ML_CONTINUE(State->Base.Caller, Table);
+}
+
+static void ml_table_sort2_value_fn(ml_table_sort2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	*(State->Slot++) = Value;
+	ml_table_row_t *Row = State->Row + 1;
+	if (Row->Type) {
+		State->Row = Row;
+		return ml_call(State, State->ValueFn, 1, (ml_value_t **)&State->Row);
+	}
+	ml_values_order((ml_state_t *)State, State->Table->Length, State->Values, State->Compare, (void *)ml_table_sort2_finish);
+}
+
+ML_METHODX("sort", MLTableT, MLFunctionT, MLFunctionT) {
+//<Table
+//<By
+//<Order
+//>Table
+// Sorts :mini:`Table` in-place using :mini:`Order(By(Row/i), By(Row/j))` as the comparison function (evaluating :mini:`By(Row/i)` only once for each :mini:`i`).
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Length < 2) ML_RETURN(Table);
+	ml_table_sort2_state_t *State = xnew(ml_table_sort2_state_t, Table->Length, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_table_sort2_value_fn;
+	State->Table = Table;
+	State->Slot = State->Values;
+	State->Row = Table->Rows;
+	State->ValueFn = Args[1];
+	State->Compare = Args[2];
+	return ml_call(State, State->ValueFn, 1, (ml_value_t **)&State->Row);
 }
 
 #ifdef ML_MATH

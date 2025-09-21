@@ -101,8 +101,12 @@ table
    *TBD*
 
 
-:mini:`meth (Arg₁: table):sort(Arg₂: function)`
-   *TBD*
+:mini:`meth (Table: table):sort(Compare: function): Table`
+   Sorts :mini:`Table` in-place using :mini:`Compare` and returns it.
+
+
+:mini:`meth (Table: table):sort(By: function, Order: function): Table`
+   Sorts :mini:`Table` in-place using :mini:`Order(By(Rowᵢ),  By(Rowⱼ))` as the comparison function (evaluating :mini:`By(Rowᵢ)` only once for each :mini:`i`).
 
 
 :mini:`type table::column`

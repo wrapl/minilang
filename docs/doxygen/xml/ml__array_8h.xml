@@ -910,35 +910,6 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </inbodydescription>
         <location file="src/ml_array.h" line="117" column="1" declfile="src/ml_array.h" declline="117" declcolumn="1"/>
       </memberdef>
-      <memberdef kind="function" id="ml__array_8h_1a9b33377dee65686a9305fa15b0c72d3e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ml_values_order</definition>
-        <argsstring>(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function)</argsstring>
-        <name>ml_values_order</name>
-        <param>
-          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
-          <declname>Caller</declname>
-        </param>
-        <param>
-          <type>size_t</type>
-          <declname>Length</declname>
-        </param>
-        <param>
-          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
-          <declname>Values</declname>
-        </param>
-        <param>
-          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-          <declname>Function</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_array.h" line="119" column="6" declfile="src/ml_array.h" declline="119" declcolumn="6"/>
-      </memberdef>
       <memberdef kind="function" id="ml__array_8h_1a8c0c15a64ad62b404a58d501478dda90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ml_array_reorder</definition>
@@ -955,6 +926,31 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         <param>
           <type>size_t</type>
           <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="119" column="6" declfile="src/ml_array.h" declline="119" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a6a0b7dcab4c01baf2fb58e87c13a169f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_order_permutation</definition>
+        <argsstring>(ml_state_t *Caller, size_t Length, int32_t *Order)</argsstring>
+        <name>ml_order_permutation</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <param>
+          <type>int32_t *</type>
+          <declname>Order</declname>
         </param>
         <briefdescription>
         </briefdescription>
@@ -1088,8 +1084,8 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
 <codeline lineno="116"><highlight class="normal"></highlight></codeline>
 <codeline lineno="117"><highlight class="normal">ML_ARRAY_ACCESSORS(any);</highlight></codeline>
 <codeline lineno="118"><highlight class="normal"></highlight></codeline>
-<codeline lineno="119"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_values_order(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Values,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Function);</highlight></codeline>
-<codeline lineno="120"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_reorder(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Values,<sp/>int32_t<sp/>*Order,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_reorder(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Values,<sp/>int32_t<sp/>*Order,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_order_permutation(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length,<sp/>int32_t<sp/>*Order);</highlight></codeline>
 <codeline lineno="121"><highlight class="normal"></highlight></codeline>
 <codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="123"><highlight class="normal">}</highlight></codeline>

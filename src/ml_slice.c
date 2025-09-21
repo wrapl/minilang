@@ -1373,6 +1373,10 @@ static void ml_slice_sort_state_run(ml_slice_sort_state_t *State, ml_value_t *Va
 }
 
 ML_METHODX("sort", MLSliceT, MLFunctionT) {
+//<Slice
+//<Compare
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`Compare` and returns it.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Length = Slice->Length;
 	if (Length < 2) ML_RETURN(Slice);
@@ -1469,14 +1473,17 @@ static void ml_slice_method_sort_state_run(ml_slice_method_sort_state_t *State, 
 	State->Args[0] = IndexA->Value;
 	State->Args[1] = IndexB->Value;
 	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
-	if (!Cached) return ml_slice_method_sort_state_run(State, ml_no_method_error(State->Compare, 2, State->Args));
 	State->Cached = Cached;
-	return ml_call(State, Cached->Callback, 2, State->Args);
+	return ml_call(State, Cached ? Cached->Callback : (ml_value_t *)State->Compare, 2, State->Args);
 }
 
 extern ml_value_t *LessEqualMethod;
 
 ML_METHODX("sort", MLSliceT) {
+//<Slice
+//<Compare
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`<` and returns it.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Length = Slice->Length;
 	if (Length < 2) ML_RETURN(Slice);
@@ -1487,6 +1494,43 @@ ML_METHODX("sort", MLSliceT) {
 	State->Base.run = (ml_state_fn)ml_slice_method_sort_state_run;
 	State->Slice = Slice;
 	State->Compare = (ml_method_t *)LessEqualMethod;
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
+	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
+	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
+	State->IndexA = Source;
+	State->IndexB = State->LimitA = Source + 1;
+	State->LimitB = Source + 2;
+	State->Target = Dest;
+	State->Limit = Dest + Length;
+	State->Length = Length;
+	State->BlockSize = 1;
+	State->Args[0] = Source[0].Value;
+	State->Args[1] = Source[1].Value;
+	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
+	if (Cached) {
+		State->Cached = Cached;
+		return ml_call(State, Cached->Callback, 2, State->Args);
+	} else {
+		return ml_call(State, (ml_value_t *)State->Compare, 2, State->Args);
+	}
+}
+
+ML_METHODX("sort", MLSliceT, MLMethodT) {
+//<Slice
+//<Compare
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`Compare` and returns it.
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Length = Slice->Length;
+	if (Length < 2) ML_RETURN(Slice);
+	ml_slice_method_sort_state_t *State = new(ml_slice_method_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_method_sort_state_run;
+	State->Slice = Slice;
+	State->Compare = (ml_method_t *)Args[1];
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
 	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
 	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
@@ -1552,6 +1596,13 @@ static void ml_slice_sort2_value_fn(ml_slice_sort2_state_t *State, ml_value_t *V
 }
 
 ML_METHODX("sort", MLSliceMutableT, MLFunctionT, MLFunctionT) {
+//<Slice
+//<By
+//<Order
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`Order(By(V/i), By(V/j))` as the comparison function (evaluating :mini:`By(V/i)` only once for each :mini:`i`).
+//$= let S := slice(["The", "capital", "of", "Ireland", "is", "Dublin"])
+//$= S:sort(:upper, <)
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	if (Slice->Length < 2) ML_RETURN(Slice);
 	ml_slice_sort2_state_t *State = xnew(ml_slice_sort2_state_t, Slice->Length, ml_value_t *);
@@ -1564,37 +1615,6 @@ ML_METHODX("sort", MLSliceMutableT, MLFunctionT, MLFunctionT) {
 	State->ValueFn = Args[1];
 	State->Compare = Args[2];
 	return ml_call(State, State->ValueFn, 1, &Node->Value);
-}
-
-ML_METHODX("sort", MLSliceT, MLMethodT) {
-	ml_slice_t *Slice = (ml_slice_t *)Args[0];
-	size_t Length = Slice->Length;
-	if (Length < 2) ML_RETURN(Slice);
-	ml_slice_method_sort_state_t *State = new(ml_slice_method_sort_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_slice_method_sort_state_run;
-	State->Slice = Slice;
-	State->Compare = (ml_method_t *)Args[1];
-	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
-	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
-	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
-	State->IndexA = Source;
-	State->IndexB = State->LimitA = Source + 1;
-	State->LimitB = Source + 2;
-	State->Target = Dest;
-	State->Limit = Dest + Length;
-	State->Length = Length;
-	State->BlockSize = 1;
-	State->Args[0] = Source[0].Value;
-	State->Args[1] = Source[1].Value;
-	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
-	if (Cached) {
-		State->Cached = Cached;
-		return ml_call(State, Cached->Callback, 2, State->Args);
-	} else {
-		return ml_call(State, (ml_value_t *)State->Compare, 2, State->Args);
-	}
 }
 
 #ifdef ML_MATH

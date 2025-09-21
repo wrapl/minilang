@@ -169,16 +169,16 @@ slice
    *TBD*
 
 
-:mini:`meth (Arg₁: slice):sort`
-   *TBD*
+:mini:`meth (Slice: slice):sort(Compare: any): Slice`
+   Sorts :mini:`Slice` in-place using :mini:`<` and returns it.
 
 
-:mini:`meth (Arg₁: slice):sort(Arg₂: function)`
-   *TBD*
+:mini:`meth (Slice: slice):sort(Compare: function): Slice`
+   Sorts :mini:`Slice` in-place using :mini:`Compare` and returns it.
 
 
-:mini:`meth (Arg₁: slice):sort(Arg₂: method)`
-   *TBD*
+:mini:`meth (Slice: slice):sort(Compare: method): Slice`
+   Sorts :mini:`Slice` in-place using :mini:`Compare` and returns it.
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: slice)`
@@ -320,6 +320,17 @@ slice
 
 :mini:`meth (Arg₁: slice::mutable):shuffle`
    *TBD*
+
+
+:mini:`meth (Slice: slice::mutable):sort(By: function, Order: function): Slice`
+   Sorts :mini:`Slice` in-place using :mini:`Order(By(Vᵢ),  By(Vⱼ))` as the comparison function (evaluating :mini:`By(Vᵢ)` only once for each :mini:`i`).
+
+   .. code-block:: mini
+
+      let S := slice(["The", "capital", "of", "Ireland", "is", "Dublin"])
+      :> [The, capital, of, Ireland, is, Dublin]
+      S:sort(:upper, <)
+      :> [capital, Dublin, Ireland, is, of, The]
 
 
 :mini:`meth (Arg₁: slice::mutable):splice`
