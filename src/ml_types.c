@@ -10,6 +10,9 @@
 #include "ml_compiler2.h"
 #include "ml_runtime.h"
 #include "ml_method.h"
+#include "ml_sequence.h"
+#include "ml_object.h"
+#include "ml_pqueue.h"
 
 #ifdef ML_TRE
 #include <tre/regex.h>
@@ -2321,7 +2324,10 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_slice_init();
 	ml_map_init();
 	ml_set_init();
+	ml_sequence_init(Globals);
+	ml_object_init(Globals);
 	ml_compiler_init(Globals);
+	ml_pqueue_init(Globals);
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);

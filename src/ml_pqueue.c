@@ -486,7 +486,46 @@ static void ML_TYPED_FN(ml_iter_value, MLPQueueIterT, ml_state_t *Caller, ml_pqu
 	ML_RETURN(Iter->Queue->Entries[Iter->Index]);
 }
 
+ML_MINI_FUNCTION(MLTop, ("N", "Sequence", "Fn"),
+//@top
+//<N:integer
+//<Sequence:sequence
+//<Fn:function
+//>list
+// Returns the top :mini:`N` values of :mini:`Sequence` based on :mini:`Fn(Value/i)`.
+	"let PQueue := pqueue(<)\n"
+	"for Value in Sequence do\n"
+		"PQueue:keep(N, Value, Fn(Value))\n"
+	"end\n"
+	"let List := []\n"
+	"loop\n"
+		"let Next := while PQueue:next\n"
+		"List:push(Next:value)\n"
+	"end\n"
+	"ret List"
+)
+
+ML_MINI_FUNCTION(MLTop2, ("N", "Sequence", "Fn"),
+//@top2
+//<N:integer
+//<Sequence:sequence
+//<Fn:function
+//>sequence
+// Returns the top :mini:`N` values and priorities of :mini:`Sequence` based on :mini:`Fn(Value/i)`.
+	"let PQueue := pqueue(<)\n"
+	"for Key, Value in Sequence do\n"
+		"PQueue:keep(N, Value, Fn(Value))\n"
+	"end\n"
+	"let List := []\n"
+	"loop\n"
+		"List:push(while PQueue:next)\n"
+	"end\n"
+	"ret unpack(List)"
+)
+
 void ml_pqueue_init(stringmap_t *Globals) {
-#include "ml_pqueue_init.c"
 	stringmap_insert(Globals, "pqueue", MLPQueueT);
+#include "ml_pqueue_init.c"
+	stringmap_insert(Globals, "top", MLTop);
+	stringmap_insert(Globals, "top2", MLTop2);
 }

@@ -72,10 +72,6 @@
 #include "ml_table.h"
 #endif
 
-#ifdef ML_PQUEUES
-#include "ml_pqueue.h"
-#endif
-
 #ifdef ML_UUID
 #include "ml_uuid.h"
 #endif
@@ -447,8 +443,6 @@ static ml_value_t *ml_library_wasm_load0(const char *FileName, ml_value_t **Slot
 void initialize(const char *BaseUrl) {
 	ml_context_reserve(ML_SESSION_INDEX);
 	ml_init("minilang", MLGlobals);
-	ml_sequence_init(MLGlobals);
-	ml_object_init(MLGlobals);
 	ml_time_init(MLGlobals);
 #ifdef ML_STRUCT
 	ml_struct_init(MLGlobals);
@@ -547,9 +541,6 @@ void initialize(const char *BaseUrl) {
 #endif
 #ifdef ML_TABLES
 	ml_table_init(MLGlobals);
-#endif
-#ifdef ML_PQUEUES
-	ml_pqueue_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_UUID
 	ml_uuid_init(UTIL_EXPORTS);
