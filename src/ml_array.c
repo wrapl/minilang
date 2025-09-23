@@ -8988,6 +8988,7 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLVectorT->Exports, "int64", MLVectorInt64T);
 	stringmap_insert(MLVectorT->Exports, "float32", MLVectorFloat32T);
 	stringmap_insert(MLVectorT->Exports, "float64", MLVectorFloat64T);
+	stringmap_insert(MLVectorT->Exports, "real", MLVectorRealT);
 
 	stringmap_insert(MLMatrixT->Exports, "any", MLMatrixAnyT);
 	stringmap_insert(MLMatrixT->Exports, "uint8", MLMatrixUInt8T);
