@@ -8976,6 +8976,8 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLArrayT->Exports, "int64", MLArrayInt64T);
 	stringmap_insert(MLArrayT->Exports, "float32", MLArrayFloat32T);
 	stringmap_insert(MLArrayT->Exports, "float64", MLArrayFloat64T);
+	stringmap_insert(MLArrayT->Exports, "integer", MLArrayIntegerT);
+	stringmap_insert(MLArrayT->Exports, "real", MLArrayRealT);
 
 	stringmap_insert(MLVectorT->Exports, "any", MLVectorAnyT);
 	stringmap_insert(MLVectorT->Exports, "uint8", MLVectorUInt8T);
@@ -8988,6 +8990,8 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLVectorT->Exports, "int64", MLVectorInt64T);
 	stringmap_insert(MLVectorT->Exports, "float32", MLVectorFloat32T);
 	stringmap_insert(MLVectorT->Exports, "float64", MLVectorFloat64T);
+	stringmap_insert(MLVectorT->Exports, "integer", MLVectorIntegerT);
+	stringmap_insert(MLVectorT->Exports, "real", MLVectorRealT);
 
 	stringmap_insert(MLMatrixT->Exports, "any", MLMatrixAnyT);
 	stringmap_insert(MLMatrixT->Exports, "uint8", MLMatrixUInt8T);
@@ -9000,14 +9004,19 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLMatrixT->Exports, "int64", MLMatrixInt64T);
 	stringmap_insert(MLMatrixT->Exports, "float32", MLMatrixFloat32T);
 	stringmap_insert(MLMatrixT->Exports, "float64", MLMatrixFloat64T);
+	stringmap_insert(MLMatrixT->Exports, "integer", MLArrayIntegerT);
+	stringmap_insert(MLMatrixT->Exports, "real", MLMatrixRealT);
 
 #ifdef ML_COMPLEX
 	stringmap_insert(MLArrayT->Exports, "complex32", MLArrayComplex32T);
 	stringmap_insert(MLArrayT->Exports, "complex64", MLArrayComplex64T);
+	stringmap_insert(MLArrayT->Exports, "complex", MLArrayComplexT);
 	stringmap_insert(MLVectorT->Exports, "complex32", MLVectorComplex32T);
 	stringmap_insert(MLVectorT->Exports, "complex64", MLVectorComplex64T);
+	stringmap_insert(MLVectorT->Exports, "complex", MLVectorComplexT);
 	stringmap_insert(MLMatrixT->Exports, "complex32", MLMatrixComplex32T);
 	stringmap_insert(MLMatrixT->Exports, "complex64", MLMatrixComplex64T);
+	stringmap_insert(MLMatrixT->Exports, "complex", MLMatrixComplexT);
 #endif
 
 	stringmap_insert(MLPermutationT->Exports, "random", RandomPermutation);
