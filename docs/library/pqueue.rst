@@ -9,6 +9,14 @@ pqueue
 
 .. rst-class:: mini-api
 
+:mini:`fun top(N: integer, Sequence: sequence, Fn: function): list`
+   Returns the top :mini:`N` values of :mini:`Sequence` based on :mini:`Fn(Valueᵢ)`.
+
+
+:mini:`fun top2(N: integer, Sequence: sequence, Fn: function): sequence`
+   Returns the top :mini:`N` values and priorities of :mini:`Sequence` based on :mini:`Fn(Valueᵢ)`.
+
+
 :mini:`type pqueue < sequence`
    A priority queue with values and associated priorities.
 

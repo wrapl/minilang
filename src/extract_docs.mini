@@ -19,7 +19,7 @@ enum: item("Category", "Type", "Export", "Constructor", "Function", "Method", "A
 let Categories := {}
 
 fun emit(Category, Key, Node) do
-	Categories[Category, fun util::pqueue(<)]:insert(Node, Key)
+	Categories[Category, fun pqueue(<)]:insert(Node, Key)
 end
 
 fun write_overview(Category, Description) do
@@ -482,6 +482,69 @@ fun process(FileName) do
 					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Examples, Location])
 				else
 					write_function(Category, Kind, Name, Params, Return, Description, Examples, Location)
+				end
+			elseif Line % r"^ML_MINI_FUNCTION" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(",")
+				var Name := Line[I + 1, J]:lower
+				var Category := DefaultCategory
+				let Params := []
+				var Return := []
+				let Description := []
+				let Examples := []
+				let Example := string::buffer()
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]<" then
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							])
+						else
+							let J := Line:find(" ", 4) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								"MLAnyT",
+								Line[J, 0]:trim
+							])
+						end
+					elseif Line % r"^/[/*]>" then
+						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write(Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("\n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write(Line[6, -1])
+						Examples:put(Example:rest)
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
+						let Count := integer(Match[3])
+						for I in (Params:length + 1) .. Count do
+							Params:put(['Arg/{I}':replace(Subscripts), "any", ""])
+						end
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_TYPE\(([0-9]+), (\w+)\)" then
+						let Index := integer(Match[3]) + 1
+						Params[Index][2] := type_name(Match[4])
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_function, [Category, "", Name, Params, Return, Description, Examples, Location])
+				else
+					write_function(Category, "", Name, Params, Return, Description, Examples, Location)
 				end
 			elseif Line % r"^ML_CONSTRUCTOR" then
 				let Location := (FileName, LineNo)

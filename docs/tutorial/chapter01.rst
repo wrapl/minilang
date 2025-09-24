@@ -57,7 +57,7 @@ Minilang provides the usual infix and prefix arithmetic operators.
 	4 * 7
 
 	2 + 3 * 4 :> evaluates as (2 + 3) * 4 = 20
-	2 + (3 * 4) :> evalutes as 2 + (3 * 4) = 14
+	2 + (3 * 4) :> evaluates as 2 + (3 * 4) = 14
 
 	1 / 2
 	3 ^ 3

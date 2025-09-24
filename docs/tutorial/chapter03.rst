@@ -4,7 +4,7 @@ Chapter 3
 Sequences
 ---------
 
-Given a *sequence* of values, we can evaluate a block of code for each value in the sequence. There are a number of different sequence types in Minilang including lists, maps, sets, are more. Minilang also provides methods for forming new sequences from existing sequences by transforming or filtering values. This will described in more detail later, for now we will consider ranges, lists and maps.
+Given a *sequence* of values, we can evaluate a block of code for each value in the sequence. There are a number of different sequence types in Minilang including lists, maps, sets, and more. Minilang also provides methods for forming new sequences from existing sequences by transforming or filtering values. This will described in more detail later, for now we will consider ranges, lists and maps.
 
 Ranges
 ......
@@ -139,7 +139,7 @@ As mentioned before, nearly every construct in Minilang is an expression with a 
 .. tryit::
 
 	let X := for I in 1 .. 1000000 do
-		if I * I > 50 do
+		if I * I > 50 then
 			exit I
 		end
 	end

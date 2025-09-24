@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <float.h>
+#include <inttypes.h>
 
 #ifdef ML_COMPLEX
 #include <complex.h>
@@ -22,8 +23,6 @@ complex double clog10(complex double Z);
 
 #define MIN(X, Y) ((X < Y) ? X : Y)
 #define MAX(X, Y) ((X > Y) ? X : Y)
-
-typedef ml_value_t *any;
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
@@ -2721,8 +2720,8 @@ ARRAY_DECL(IntegerT, uint16, UInt16T, uint16_t, ml_stringbuffer_printf, "%u", ml
 ARRAY_DECL(IntegerT, int16, Int16T, int16_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
 ARRAY_DECL(IntegerT, uint32, UInt32T, uint32_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
 ARRAY_DECL(IntegerT, int32, Int32T, int32_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
-ARRAY_DECL(IntegerT, uint64, UInt64T, uint64_t, ml_stringbuffer_printf, "%lu", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
-ARRAY_DECL(IntegerT, int64, Int64T, int64_t, ml_stringbuffer_printf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
+ARRAY_DECL(IntegerT, uint64, UInt64T, uint64_t, ml_stringbuffer_printf, "%" PRIu64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
+ARRAY_DECL(IntegerT, int64, Int64T, int64_t, ml_stringbuffer_printf, "%" PRId64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
 ARRAY_DECL(RealT, float32, Float32T, float, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
 ARRAY_DECL(RealT, float64, Float64T, double, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
 
@@ -4209,14 +4208,14 @@ static void fill_norms_ ## CTYPE2(int TargetDegree, double *Target, int SourceDe
 	} \
 }
 
-NORM_FUNCTION(double, uint8_t, labs);
+NORM_FUNCTION(double, uint8_t, );
 NORM_FUNCTION(double, int8_t, labs);
-NORM_FUNCTION(double, uint16_t, labs);
+NORM_FUNCTION(double, uint16_t, );
 NORM_FUNCTION(double, int16_t, labs);
-NORM_FUNCTION(double, uint32_t, labs);
+NORM_FUNCTION(double, uint32_t, );
 NORM_FUNCTION(double, int32_t, labs);
-NORM_FUNCTION(double, uint64_t, labs);
-NORM_FUNCTION(double, int64_t, labs);
+NORM_FUNCTION(double, uint64_t, );
+NORM_FUNCTION(double, int64_t, llabs);
 NORM_FUNCTION(double, float, fabs);
 NORM_FUNCTION(double, double, fabs);
 
@@ -7912,9 +7911,20 @@ ARRAY_ORDER(int64_t)
 ARRAY_ORDER(float)
 ARRAY_ORDER(double)
 
+void ml_order_permutation(ml_state_t *Caller, size_t Length, int32_t *Order) {
+	for (int I = 0; I < Length; ++I) ++Order[I];
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	Permutation->Base.Type = MLPermutationT;
+	Permutation->Base.Value = (char *)Order;
+	Permutation->Base.Length = Length * sizeof(int32_t);
+	Permutation->Dimensions[0].Size = Length;
+	Permutation->Dimensions[0].Stride = sizeof(int32_t);
+	ML_CONTINUE(Caller, Permutation);
+}
+
 typedef struct {
 	ml_state_t Base;
-	ml_value_t  **Values;
+	ml_value_t **Values;
 	ml_value_t *Compare;
 	int32_t *Source, *Dest;
 	int32_t *IndexA, *LimitA, *IndexB, *LimitB;
@@ -7923,94 +7933,6 @@ typedef struct {
 	const int *Indices;
 	size_t Length, BlockSize;
 } ml_values_order_state_t;
-
-static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	int32_t *Target = State->Target;
-	if (Value != MLNil) {
-		int32_t *Index = State->IndexA;
-		*Target++ = *Index++;
-		if (Index < State->LimitA) {
-			State->Target = Target;
-			State->IndexA = Index;
-			State->Args[0] = State->Values[*Index];
-			State->Args[1] = State->Values[*State->IndexB];
-			return ml_call(State, State->Compare, 2, State->Args);
-		}
-		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
-	} else {
-		int32_t *Index = State->IndexB;
-		*Target++ = *Index++;
-		if (Index < State->LimitB) {
-			State->Target = Target;
-			State->IndexB = Index;
-			State->Args[0] = State->Values[*State->IndexA];
-			State->Args[1] = State->Values[*Index];
-			return ml_call(State, State->Compare, 2, State->Args);
-		}
-		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(int32_t));
-	}
-	size_t Remaining = State->Limit - Target;
-	size_t BlockSize = State->BlockSize;
-	int32_t *IndexA = State->LimitB;
-	if (Remaining <= BlockSize) {
-		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
-		BlockSize *= 2;
-		Remaining = State->Length;
-		if (Remaining <= BlockSize) {
-			for (int I = 0; I < Remaining; ++I) ++State->Dest[I];
-			ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
-			Permutation->Base.Type = MLPermutationT;
-			Permutation->Base.Value = (char *)State->Dest;
-			Permutation->Base.Length = Remaining * sizeof(int32_t);
-			Permutation->Dimensions[0].Size = Remaining;
-			Permutation->Dimensions[0].Stride = sizeof(int32_t);
-			ML_CONTINUE(State->Base.Caller, Permutation);
-		}
-		State->BlockSize = BlockSize;
-		int32_t *Temp = State->Source;
-		IndexA = State->Source = State->Dest;
-		Target = State->Dest = Temp;
-		State->Limit = Target + State->Length;
-	}
-	State->Target = Target;
-	State->IndexA = IndexA;
-	int32_t *IndexB = IndexA + BlockSize;
-	State->LimitA = State->IndexB = IndexB;
-	Remaining -= BlockSize;
-	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
-	State->Args[0] = State->Values[*IndexA];
-	State->Args[1] = State->Values[*IndexB];
-	return ml_call(State, State->Compare, 2, State->Args);
-}
-
-void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function) {
-	if (Length < 2) {
-		ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_U32, 1, Length);
-		Permutation->Base.Type = MLPermutationT;
-		if (Length) *(uint32_t *)Permutation->Base.Value = 1;
-		ML_RETURN(Permutation);
-	}
-	ml_values_order_state_t *State = new(ml_values_order_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_values_order_state_run;
-	State->Compare = Function;
-	int32_t *Source = State->Source = asnew(int32_t, Length);
-	int32_t *Dest = State->Dest = asnew(int32_t, Length);
-	for (int I = 0; I < Length; ++I) Source[I] = I;
-	State->Values = Values;
-	State->IndexA = Source;
-	State->IndexB = State->LimitA = Source + 1;
-	State->LimitB = Source + 2;
-	State->Target = Dest;
-	State->Limit = Dest + Length;
-	State->Length = Length;
-	State->BlockSize = 1;
-	State->Args[0] = State->Values[Source[0]];
-	State->Args[1] = State->Values[Source[1]];
-	return ml_call(State, State->Compare, 2, State->Args);
-}
 
 static void ml_values_order_indexed_state_run(ml_values_order_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -8082,7 +8004,7 @@ static void ml_values_order_indexed(ml_state_t *Caller, size_t Length, ml_value_
 	ml_values_order_state_t *State = new(ml_values_order_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_values_order_state_run;
+	State->Base.run = (ml_state_fn)ml_values_order_indexed_state_run;
 	State->Compare = Function;
 	int32_t *Source = State->Source = asnew(int32_t, Length);
 	int32_t *Dest = State->Dest = asnew(int32_t, Length);
@@ -8118,7 +8040,7 @@ ML_METHODX("order", MLVectorT) {
 		if (Array->Dimensions[0].Indices) {
 			return ml_values_order_indexed(Caller, Array->Dimensions[0].Size, (ml_value_t **)Array->Base.Value, Array->Dimensions[0].Indices, LessEqualMethod);
 		} else {
-			return ml_values_order(Caller, Array->Dimensions[0].Size, (ml_value_t **)Array->Base.Value, LessEqualMethod);
+			return ml_values_order(Caller, Array->Dimensions[0].Size, (ml_value_t **)Array->Base.Value, LessEqualMethod, ml_order_permutation);
 		}
 	}
 	default: ML_ERROR("TypeError", "Array can not be sorted");
@@ -8133,7 +8055,7 @@ ML_METHODX("order", MLVectorT, MLFunctionT) {
 		if (Indices) {
 			return ml_values_order_indexed(Caller, Size, (ml_value_t **)Array->Base.Value, Indices, Args[1]);
 		} else {
-			return ml_values_order(Caller, Size, (ml_value_t **)Array->Base.Value, Args[1]);
+			return ml_values_order(Caller, Size, (ml_value_t **)Array->Base.Value, Args[1], ml_order_permutation);
 		}
 	}
 	ml_value_t **Values = anew(ml_value_t *, Size);
@@ -8230,7 +8152,7 @@ ML_METHODX("order", MLVectorT, MLFunctionT) {
 	}
 	default: ML_ERROR("TypeError", "Array can not be sorted");
 	}
-	return ml_values_order(Caller, Size, Values, Args[1]);
+	return ml_values_order(Caller, Size, Values, Args[1], ml_order_permutation);
 }
 
 static int ml_lu_decomp_real(double **A, int *P, int N) {
@@ -9054,6 +8976,8 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLArrayT->Exports, "int64", MLArrayInt64T);
 	stringmap_insert(MLArrayT->Exports, "float32", MLArrayFloat32T);
 	stringmap_insert(MLArrayT->Exports, "float64", MLArrayFloat64T);
+	stringmap_insert(MLArrayT->Exports, "integer", MLArrayIntegerT);
+	stringmap_insert(MLArrayT->Exports, "real", MLArrayRealT);
 
 	stringmap_insert(MLVectorT->Exports, "any", MLVectorAnyT);
 	stringmap_insert(MLVectorT->Exports, "uint8", MLVectorUInt8T);
@@ -9066,6 +8990,8 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLVectorT->Exports, "int64", MLVectorInt64T);
 	stringmap_insert(MLVectorT->Exports, "float32", MLVectorFloat32T);
 	stringmap_insert(MLVectorT->Exports, "float64", MLVectorFloat64T);
+	stringmap_insert(MLVectorT->Exports, "integer", MLVectorIntegerT);
+	stringmap_insert(MLVectorT->Exports, "real", MLVectorRealT);
 
 	stringmap_insert(MLMatrixT->Exports, "any", MLMatrixAnyT);
 	stringmap_insert(MLMatrixT->Exports, "uint8", MLMatrixUInt8T);
@@ -9078,14 +9004,19 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLMatrixT->Exports, "int64", MLMatrixInt64T);
 	stringmap_insert(MLMatrixT->Exports, "float32", MLMatrixFloat32T);
 	stringmap_insert(MLMatrixT->Exports, "float64", MLMatrixFloat64T);
+	stringmap_insert(MLMatrixT->Exports, "integer", MLArrayIntegerT);
+	stringmap_insert(MLMatrixT->Exports, "real", MLMatrixRealT);
 
 #ifdef ML_COMPLEX
 	stringmap_insert(MLArrayT->Exports, "complex32", MLArrayComplex32T);
 	stringmap_insert(MLArrayT->Exports, "complex64", MLArrayComplex64T);
+	stringmap_insert(MLArrayT->Exports, "complex", MLArrayComplexT);
 	stringmap_insert(MLVectorT->Exports, "complex32", MLVectorComplex32T);
 	stringmap_insert(MLVectorT->Exports, "complex64", MLVectorComplex64T);
+	stringmap_insert(MLVectorT->Exports, "complex", MLVectorComplexT);
 	stringmap_insert(MLMatrixT->Exports, "complex32", MLMatrixComplex32T);
 	stringmap_insert(MLMatrixT->Exports, "complex64", MLMatrixComplex64T);
+	stringmap_insert(MLMatrixT->Exports, "complex", MLMatrixComplexT);
 #endif
 
 	stringmap_insert(MLPermutationT->Exports, "random", RandomPermutation);

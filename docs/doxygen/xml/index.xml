@@ -714,6 +714,7 @@
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a7a0ee18f67079ebbf8650c67f484f48e" kind="enumvalue"><name>ML_ARRAY_FORMAT_F32</name></member>
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a5b15653be2f238b9ce98001479054f10" kind="enumvalue"><name>ML_ARRAY_FORMAT_F64</name></member>
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a1ad15a65cb9778594c1a03dc6ec573b4" kind="enumvalue"><name>ML_ARRAY_FORMAT_ANY</name></member>
+    <member refid="ml__array_8h_1a47bc6d6abc8aa7ef6bd0cc83b3101636" kind="typedef"><name>any</name></member>
     <member refid="ml__array_8h_1a52cca795aefbeae57b03bb83d7d2c924" kind="variable"><name>MLArraySizes</name></member>
     <member refid="ml__array_8h_1ab9332866ef51f2ee1e89af4b99659a3f" kind="variable"><name>MLArrayT</name></member>
     <member refid="ml__array_8h_1a60875085ff385b5cdf85ac1dde9dc940" kind="variable"><name>MLVectorT</name></member>
@@ -747,8 +748,9 @@
     <member refid="ml__array_8h_1a96859bcd4239a9723ec4070e23326114" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1aa6578a9c9c763f61ece1d4f718d3279a" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1abb7064d6f32e9f21c5a93223e0ccf904" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
-    <member refid="ml__array_8h_1a9b33377dee65686a9305fa15b0c72d3e" kind="function"><name>ml_values_order</name></member>
+    <member refid="ml__array_8h_1ab2a97273b90ef4c7e96568927c6f20ed" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1a8c0c15a64ad62b404a58d501478dda90" kind="function"><name>ml_array_reorder</name></member>
+    <member refid="ml__array_8h_1a6a0b7dcab4c01baf2fb58e87c13a169f" kind="function"><name>ml_order_permutation</name></member>
   </compound>
   <compound refid="ml__ast_8h" kind="file"><name>ml_ast.h</name>
     <member refid="ml__ast_8h_1abe80c5dc54dafe96fa3647cfecc3ed35" kind="function"><name>ml_ast_init</name></member>
@@ -1498,6 +1500,7 @@
   <compound refid="ml__runtime_8h" kind="file"><name>ml_runtime.h</name>
     <member refid="group__runtime_1gacb4dbc9c60321a197cb4e383665d732b" kind="define"><name>ML_ARG_CACHE_SIZE</name></member>
     <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
+    <member refid="group__runtime_1ga443ffa134273c6e68e7c3619aa33854d" kind="define"><name>ml_state_continue</name></member>
     <member refid="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" kind="define"><name>ml_simple_inline</name></member>
     <member refid="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" kind="define"><name>SIZE_BITS</name></member>
     <member refid="group__runtime_1ga1c4e727662d91855584cc5f105ead657" kind="define"><name>MLC_DECL_CONSTANT</name></member>
@@ -1538,7 +1541,6 @@
     <member refid="group__runtime_1ga16993d79f433ea0ed22112f642d760a7" kind="variable"><name>MLBreak</name></member>
     <member refid="group__runtime_1ga1469287b038effd0be7808b4a280ac84" kind="variable"><name>MLDebugger</name></member>
     <member refid="group__runtime_1ga5a6fb7f85d840ea54b9354edd6582bd4" kind="variable"><name>MLTrace</name></member>
-    <member refid="group__runtime_1gab9461a8bafcc66cb62b4f16bd39f2e60" kind="variable"><name>MLPreempt</name></member>
     <member refid="group__runtime_1gab8ee5ad682037d14be38199f6aa7f853" kind="variable"><name>MLFinalizer</name></member>
     <member refid="group__runtime_1ga08a8099ffaf70d61df6e251d359e2f1b" kind="variable"><name>MLSemaphoreT</name></member>
     <member refid="group__runtime_1gae0f4fd68326b1c45a0264f7804668ae0" kind="variable"><name>MLConditionT</name></member>
@@ -1846,6 +1848,7 @@
     <member refid="group__types_1gacf7fee9f8e7e1c4d7564eb22e66f9530" kind="function"><name>ml_value_set_name</name></member>
     <member refid="group__types_1ga8cb204adc3a8e2d5dd02afb6a3b48f98" kind="function"><name>ml_value_find_all</name></member>
     <member refid="group__types_1ga3f176cd90c96418ab1c256d8bb380f64" kind="function"><name>ml_value_is_constant</name></member>
+    <member refid="group__types_1gaffe60b8247cf67e5336e2a3dbcbab182" kind="function"><name>ml_values_order</name></member>
     <member refid="group__iterators_1gad04a6e6975ecb220982d335f4d2d9ce9" kind="function"><name>ml_count</name></member>
     <member refid="group__iterators_1gae73f12ecd8e7e2808051e632a4a4be06" kind="function"><name>ml_iterate</name></member>
     <member refid="group__iterators_1gac43acf7cb1f818d158117bde4fd04970" kind="function"><name>ml_iter_value</name></member>
@@ -2439,7 +2442,6 @@
     <member refid="group__runtime_1ga16993d79f433ea0ed22112f642d760a7" kind="variable"><name>MLBreak</name></member>
     <member refid="group__runtime_1ga1469287b038effd0be7808b4a280ac84" kind="variable"><name>MLDebugger</name></member>
     <member refid="group__runtime_1ga5a6fb7f85d840ea54b9354edd6582bd4" kind="variable"><name>MLTrace</name></member>
-    <member refid="group__runtime_1gab9461a8bafcc66cb62b4f16bd39f2e60" kind="variable"><name>MLPreempt</name></member>
     <member refid="group__runtime_1gab8ee5ad682037d14be38199f6aa7f853" kind="variable"><name>MLFinalizer</name></member>
     <member refid="group__runtime_1ga08a8099ffaf70d61df6e251d359e2f1b" kind="variable"><name>MLSemaphoreT</name></member>
     <member refid="group__runtime_1gae0f4fd68326b1c45a0264f7804668ae0" kind="variable"><name>MLConditionT</name></member>
@@ -2514,6 +2516,7 @@
     <member refid="group__runtime_1ga65a6bbf10f06668af40d245980e4a673" kind="function"><name>ml_scheduler_queue_add_signal</name></member>
     <member refid="group__runtime_1gacb4dbc9c60321a197cb4e383665d732b" kind="define"><name>ML_ARG_CACHE_SIZE</name></member>
     <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
+    <member refid="group__runtime_1ga443ffa134273c6e68e7c3619aa33854d" kind="define"><name>ml_state_continue</name></member>
     <member refid="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" kind="define"><name>ml_simple_inline</name></member>
     <member refid="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" kind="define"><name>SIZE_BITS</name></member>
     <member refid="group__runtime_1ga1c4e727662d91855584cc5f105ead657" kind="define"><name>MLC_DECL_CONSTANT</name></member>
@@ -2589,6 +2592,7 @@
     <member refid="group__types_1gacf7fee9f8e7e1c4d7564eb22e66f9530" kind="function"><name>ml_value_set_name</name></member>
     <member refid="group__types_1ga8cb204adc3a8e2d5dd02afb6a3b48f98" kind="function"><name>ml_value_find_all</name></member>
     <member refid="group__types_1ga3f176cd90c96418ab1c256d8bb380f64" kind="function"><name>ml_value_is_constant</name></member>
+    <member refid="group__types_1gaffe60b8247cf67e5336e2a3dbcbab182" kind="function"><name>ml_values_order</name></member>
     <member refid="group__types_1ga4a95025b22fbe37ef6fbf37cf178537f" kind="define"><name>_CONCAT2</name></member>
     <member refid="group__types_1ga54e717c978bb45793c9d9da1318d719e" kind="define"><name>CONCAT2</name></member>
     <member refid="group__types_1gaf4ddcba2ce2eb54447a204777b24e54c" kind="define"><name>_CONCAT3</name></member>

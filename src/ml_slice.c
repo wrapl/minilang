@@ -1373,6 +1373,10 @@ static void ml_slice_sort_state_run(ml_slice_sort_state_t *State, ml_value_t *Va
 }
 
 ML_METHODX("sort", MLSliceT, MLFunctionT) {
+//<Slice
+//<Compare
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`Compare` and returns it.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Length = Slice->Length;
 	if (Length < 2) ML_RETURN(Slice);
@@ -1469,14 +1473,17 @@ static void ml_slice_method_sort_state_run(ml_slice_method_sort_state_t *State, 
 	State->Args[0] = IndexA->Value;
 	State->Args[1] = IndexB->Value;
 	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, State->Compare, State->Cached, 2, State->Args);
-	if (!Cached) return ml_slice_method_sort_state_run(State, ml_no_method_error(State->Compare, 2, State->Args));
 	State->Cached = Cached;
-	return ml_call(State, Cached->Callback, 2, State->Args);
+	return ml_call(State, Cached ? Cached->Callback : (ml_value_t *)State->Compare, 2, State->Args);
 }
 
 extern ml_value_t *LessEqualMethod;
 
 ML_METHODX("sort", MLSliceT) {
+//<Slice
+//<Compare
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`<` and returns it.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Length = Slice->Length;
 	if (Length < 2) ML_RETURN(Slice);
@@ -1487,6 +1494,7 @@ ML_METHODX("sort", MLSliceT) {
 	State->Base.run = (ml_state_fn)ml_slice_method_sort_state_run;
 	State->Slice = Slice;
 	State->Compare = (ml_method_t *)LessEqualMethod;
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
 	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
 	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
@@ -1509,6 +1517,10 @@ ML_METHODX("sort", MLSliceT) {
 }
 
 ML_METHODX("sort", MLSliceT, MLMethodT) {
+//<Slice
+//<Compare
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`Compare` and returns it.
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Length = Slice->Length;
 	if (Length < 2) ML_RETURN(Slice);
@@ -1518,6 +1530,7 @@ ML_METHODX("sort", MLSliceT, MLMethodT) {
 	State->Base.run = (ml_state_fn)ml_slice_method_sort_state_run;
 	State->Slice = Slice;
 	State->Compare = (ml_method_t *)Args[1];
+	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
 	ml_slice_node_t *Source = State->Source = anew(ml_slice_node_t, Length);
 	ml_slice_node_t *Dest = State->Dest = anew(ml_slice_node_t, Length);
 	memcpy(Source, Slice->Nodes + Slice->Offset, Length * sizeof(ml_slice_node_t));
@@ -1539,6 +1552,71 @@ ML_METHODX("sort", MLSliceT, MLMethodT) {
 	}
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_slice_t *Slice;
+	ml_value_t **Slot;
+	ml_slice_node_t *Node;
+	ml_value_t *ValueFn, *Compare;
+	ml_value_t *Values[];
+} ml_slice_sort2_state_t;
+
+static void ml_slice_sort2_finish(ml_slice_sort2_state_t *State, size_t Length, int32_t *Indices) {
+	ml_slice_t *Slice = State->Slice;
+	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
+	int32_t *Order = alloca(Length * sizeof(int32_t));
+	for (int32_t I = 0; I < Length; ++I) Order[Indices[I]] = I;
+	for (int32_t I = 0; I < Length; ++I) {
+		int32_t J = Order[I];
+		if (J == -1) continue;
+		ml_slice_node_t Node = Nodes[I];
+		while (J != I) {
+			ml_slice_node_t Temp = Nodes[J];
+			Nodes[J] = Node;
+			Node = Temp;
+			int32_t K = Order[J];
+			Order[J] = -1;
+			J = K;
+		}
+		Nodes[I] = Node;
+		Order[I] = -1;
+	}
+	ML_CONTINUE(State->Base.Caller, Slice);
+}
+
+static void ml_slice_sort2_value_fn(ml_slice_sort2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	*(State->Slot++) = Value;
+	ml_slice_node_t *Node = State->Node + 1;
+	if (Node->Value) {
+		State->Node = Node;
+		return ml_call(State, State->ValueFn, 1, &Node->Value);
+	}
+	ml_values_order((ml_state_t *)State, State->Slice->Length, State->Values, State->Compare, (void *)ml_slice_sort2_finish);
+}
+
+ML_METHODX("sort", MLSliceMutableT, MLFunctionT, MLFunctionT) {
+//<Slice
+//<By
+//<Order
+//>Slice
+// Sorts :mini:`Slice` in-place using :mini:`Order(By(V/i), By(V/j))` as the comparison function (evaluating :mini:`By(V/i)` only once for each :mini:`i`).
+//$= let S := slice(["The", "capital", "of", "Ireland", "is", "Dublin"])
+//$= S:sort(:upper, <)
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	if (Slice->Length < 2) ML_RETURN(Slice);
+	ml_slice_sort2_state_t *State = xnew(ml_slice_sort2_state_t, Slice->Length, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_slice_sort2_value_fn;
+	State->Slice = Slice;
+	State->Slot = State->Values;
+	ml_slice_node_t *Node = State->Node = Slice->Nodes + Slice->Offset;
+	State->ValueFn = Args[1];
+	State->Compare = Args[2];
+	return ml_call(State, State->ValueFn, 1, &Node->Value);
+}
+
 #ifdef ML_MATH
 
 ML_METHODX("order", MLSliceMutableT) {
@@ -1548,7 +1626,7 @@ ML_METHODX("order", MLSliceMutableT) {
 //$= let S := slice(["D", "B", "A", "C"])
 //$= S:order
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
-	return ml_values_order(Caller, Slice->Length, (ml_value_t **)Slice->Nodes + Slice->Offset, LessEqualMethod);
+	return ml_values_order(Caller, Slice->Length, (ml_value_t **)Slice->Nodes + Slice->Offset, LessEqualMethod, ml_order_permutation);
 }
 
 ML_METHODX("order", MLSliceMutableT, MLFunctionT) {
@@ -1559,7 +1637,7 @@ ML_METHODX("order", MLSliceMutableT, MLFunctionT) {
 //$= let S := slice(["D", "B", "A", "C"])
 //$= S:order(>)
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
-	return ml_values_order(Caller, Slice->Length, (ml_value_t **)Slice->Nodes + Slice->Offset, Args[1]);
+	return ml_values_order(Caller, Slice->Length, (ml_value_t **)Slice->Nodes + Slice->Offset, Args[1], ml_order_permutation);
 }
 
 #endif

@@ -69,10 +69,6 @@
 #include "ml_table.h"
 #endif
 
-#ifdef ML_PQUEUES
-#include "ml_pqueue.h"
-#endif
-
 #ifdef ML_UUID
 #include "ml_uuid.h"
 #endif
@@ -102,12 +98,6 @@ stringmap_t MLGlobals[1] = {STRINGMAP_INIT};
 static ml_value_t *global_get(void *Data, const char *Name, const char *Source, int Line, int Mode) {
 	return stringmap_search(MLGlobals, Name);
 }
-
-#ifdef ML_CONTEXT_SECTION
-
-__attribute__ ((section("ml_context_section"))) void *MLContextTest[1] = {NULL};
-
-#endif
 
 ML_FUNCTION(MLNow) {
 //@now
@@ -254,8 +244,6 @@ static int copy_export(const char *Name, void *Value, void *Data) {
 
 int main(int Argc, const char *Argv[]) {
 	ml_init(Argv[0], MLGlobals);
-	ml_sequence_init(MLGlobals);
-	ml_object_init(MLGlobals);
 	ml_time_init(MLGlobals);
 #ifdef ML_STRUCT
 	ml_struct_init(MLGlobals);
@@ -368,9 +356,6 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_TABLES
 	ml_table_init(MLGlobals);
-#endif
-#ifdef ML_PQUEUES
-	ml_pqueue_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_UUID
 	ml_uuid_init(UTIL_EXPORTS);

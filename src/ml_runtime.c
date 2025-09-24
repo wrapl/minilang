@@ -30,7 +30,9 @@ static uint64_t DefaultCounter = UINT_MAX;
 
 static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Value) {
 	DefaultCounter = UINT_MAX;
+#ifdef ML_TIMESCHED
 	MLPreempt = 1;
+#endif
 	State->run(State, Value);
 	return 0;
 }
@@ -227,7 +229,6 @@ ml_result_state_t *ml_result_state(ml_context_t *Context) {
 #ifdef ML_TRAMPOLINE
 static ml_scheduler_queue_t *MLRootQueue;
 #endif
-
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, NULL};
 	ml_call(&State, Value, Count, Args);
@@ -271,6 +272,8 @@ ml_state_t *ml_state(ml_state_t *Caller) {
 	return (ml_state_t *)State;
 }
 
+#if defined(ML_TIMESCHED) || defined(ML_TRAMPOLINE)
+
 void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
 #ifdef ML_TIMESCHED
 	if (MLPreempt < 0) {
@@ -280,9 +283,12 @@ void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
 		return State->run(State, Value);
 	}
 #else
-	return State->run(State, Value);
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
+	Scheduler->add(Scheduler, State, Value);
 #endif
 }
+
+#endif
 
 typedef struct ml_resumable_state_t {
 	ml_state_t Base;
@@ -1084,9 +1090,13 @@ static int ml_config_debugger(ml_context_t *Context) {
 
 // Schedulers //
 
+#ifdef ML_SCHEDULER
+
+#ifdef ML_TIMESCHED
+
 volatile int MLPreempt = 0;
 
-#ifdef ML_SCHEDULER
+#endif
 
 typedef struct ml_queue_block_t ml_queue_block_t;
 
@@ -1281,37 +1291,12 @@ ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice) {
 #ifndef ML_TIMESCHED
 	ml_context_set_static(Context, ML_COUNTER_INDEX, &Queue->Counter);
 #endif
-	//CurrentScheduler = (ml_scheduler_t *)Queue;
 	return Queue;
 }
-
-/*static ml_queued_state_t ml_default_queue_read() {
-	return ml_scheduler_queue_read(DefaultQueue);
-}
-
-ml_queued_state_t ml_default_queue_next() {
-	return ml_scheduler_queue_next(DefaultQueue);
-}
-
-static int ml_default_queue_write(ml_state_t *State, ml_value_t *Value) {
-	return ml_scheduler_queue_write(DefaultQueue, State, Value);
-}
-
-int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
-	return ml_scheduler_queue_add(DefaultQueue, State, Value);
-}*/
 
 #ifdef ML_HOSTTHREADS
 
 #include <semaphore.h>
-
-/*ml_queued_state_t ml_default_queue_next_wait() {
-	return ml_scheduler_queue_next_wait(DefaultQueue);
-}
-
-int ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
-	return ml_scheduler_queue_add_signal(DefaultQueue, State, Value);
-}*/
 
 typedef struct ml_scheduler_thread_t ml_scheduler_thread_t;
 
@@ -1439,7 +1424,7 @@ ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_va
 #else
 
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
-	ml_result_state_t State = {{NULL, Context, (ml_state_fn)ml_result_state_run}, NULL};
+	ml_result_state_t State = {{NULL, NULL, (ml_state_fn)ml_result_state_run, Context}, NULL};
 	ml_call(&State, Fn, Count, Args);
 	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
 	while (!State.Value) Scheduler->run(Scheduler);
@@ -1972,6 +1957,11 @@ static void error_handler(int Signal) {
 
 struct backtrace_state *BacktraceState = NULL;
 
+static void error_handler(int Signal) {
+	backtrace_print(BacktraceState, 0, stderr);
+	exit(0);
+}
+
 static int ml_backtrace_write(void *Data, uintptr_t PC, const char *Filename, int Lineno, const char *Function) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Data;
 	ml_stringbuffer_printf(Buffer, "%08x: %s: %s:%d\n", (unsigned int)PC, Function, Filename, Lineno);
@@ -2021,16 +2011,15 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 	ml_log(MLLoggerDefault, ML_LOG_LEVEL_WARN, NULL, "", 0, Format, Arg);
 }
 
+#ifdef ML_TIMESCHED
+
 static void ml_preempt(int Signal) {
 	--MLPreempt;
 }
 
-void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
-#ifdef ML_CONTEXT_SECTION
-	MLContextSize = __stop_ml_context_section - __start_ml_context_section;
-	MLContextReserved = (1 << MLContextSize) - 1;
-	//fprintf(stderr, "Context section size = %d\n", MLContextSize);
 #endif
+
+void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 	MLRootContext = xnew(ml_context_t, MLContextSize, void *);
 	MLRootContext->Parent = MLRootContext;
 	MLRootContext->Size = MLContextSize;
@@ -2047,7 +2036,7 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 	Action.sa_flags = SA_RESTART;
 	sigaction(SIGALRM, &Action, NULL);
 #endif
-#ifdef ML_UNWIND
+#if defined(ML_UNWIND) || defined(ML_BACKTRACE)
 	signal(SIGSEGV, error_handler);
 	signal(SIGABRT, error_handler);
 #endif
@@ -2065,3 +2054,13 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "sleep", MLSleep);
 	}
 }
+
+#if !defined(ML_TIMESCHED) && !defined(ML_TRAMPOLINE)
+
+#undef ml_state_continue
+
+void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
+	return State->run(State, Value);
+}
+
+#endif
