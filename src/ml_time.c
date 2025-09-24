@@ -136,6 +136,40 @@ static void ML_TYPED_FN(ml_value_sha256, MLTimeT, ml_time_t *Value, ml_hash_chai
 	}
 }
 
+ML_METHOD(MLTimeT, MLIntegerT) {
+//<Seconds
+//>time
+// Returns a time from the epoch (1970-01-01).
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = ml_integer_value(Args[0]);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT) {
+//<Seconds
+//<Nanoseconds
+//>time
+// Returns a time from the epoch (1970-01-01).
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = ml_integer_value(Args[0]);
+	Time->Value->tv_nsec = ml_integer_value(Args[1]);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLRealT) {
+//<Seconds
+//>time
+// Returns a time from the epoch (1970-01-01).
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	double Seconds = ml_real_value(Args[0]);
+	Time->Value->tv_sec = floor(Seconds);
+	Time->Value->tv_nsec = (Seconds - Time->Value->tv_sec) * 1e9;
+	return (ml_value_t *)Time;
+}
+
 ML_METHOD(MLTimeT, MLStringT) {
 //<String
 //>time
@@ -326,6 +360,14 @@ ML_METHODV("with", MLTimeT, MLNilT, MLNamesT) {
 	Time->Type = MLTimeT;
 	Time->Value->tv_sec = timegm(&TM);
 	return (ml_value_t *)Time;
+}
+
+ML_METHOD("epoch", MLTimeT) {
+//<Time
+//>integer
+// Returns the seconds component of :mini:`Time`.
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	return ml_integer(Time->Value->tv_sec);
 }
 
 ML_METHOD("nsec", MLTimeT) {
