@@ -36,7 +36,8 @@ obj/%.o: src/%.c | obj obj/%_init.c src/*.h obj/ml_config.h
 
 #.PRECIOUS: obj/%_init.c
 
-obj/%_init.c: src/%.c | obj src/*.h obj/ml_config.h 
+obj/%_init.c: src/%.c | obj src/*.h obj/ml_config.h
+	touch $@
 	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
 sources = \
