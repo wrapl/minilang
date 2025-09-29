@@ -333,6 +333,9 @@ ML_METHODVX("grow", MLMapMutableT, MLSequenceT) {
 }
 
 ML_METHODV("grow", MLMapMutableT, MLNamesT) {
+// .. deprecated:: 2.15.0
+//
+//    Use :mini:`:insert` instead.
 	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_value_t *Map = Args[0];
 	int I = 1;
@@ -1376,6 +1379,14 @@ ML_METHOD("insert", MLMapMutableT, MLAnyT, MLAnyT) {
 //$= M:insert("D", 20)
 //$= M
 	return ml_map_insert(Args[0], Args[1], Args[2]);
+}
+
+ML_METHODV("insert", MLMapMutableT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	ml_value_t *Map = Args[0];
+	int I = 1;
+	ML_NAMES_FOREACH(Args[1], Iter) ml_map_insert(Map, Iter->Value, Args[++I]);
+	return Map;
 }
 
 ML_METHOD("splice", MLMapMutableT, MLAnyT) {

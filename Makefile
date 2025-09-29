@@ -56,6 +56,7 @@ sources = \
 	number \
 	object \
 	opcodes \
+	pqueue \
 	runtime \
 	sequence \
 	set \
