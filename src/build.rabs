@@ -683,23 +683,6 @@ if MINILANG_UUID then
 	CFLAGS := old + ["-DML_UUID"]
 	if PLATFORM = "Darwin" then
 	elseif PLATFORM = "Mingw" then
-		let Dir := file("uuid")
-		let Lib := file("uuid/lib/.libs/libuuid.a"; Lib) do
-			Dir:rmdir:mkdir:chdir
-			execute("wget https://downloads.sourceforge.net/project/libuuid/libuuid-1.0.3.tar.gz -O- | tar xvzP --strip-components=1")
-			execute("patch < ../../src/uuid-mingw.patch")
-			execute('CC={CC} ./configure', {
-				"--prefix" is PATH,
-				"--enable-static",
-				"--disable-shared",
-				"--host=x86_64-w64-mingw32"
-			})
-			execute("make clean")
-			execute("make -j4")
-		end
-		PREBUILDS := old + [Lib]
-		CFLAGS := old + ['-I{Dir / "lib"}']
-		LDFLAGS := old + [Lib]
 	else
 		LDFLAGS := old + ["-luuid"]
 	end
