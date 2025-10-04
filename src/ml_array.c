@@ -501,94 +501,125 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 int ml_array_copy(ml_array_t *Target, ml_array_t *Source);
 static void ml_array_init_from(ml_state_t *Caller, ml_array_format_t Format, ml_array_t *Source, ml_value_t *Function);
 
+static void ml_array_typed_new_fnx_list(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_array_format_t Format = (intptr_t)Data;
+	int Degree = ml_list_length(Args[0]);
+	ml_array_t *Array = ml_array_alloc(Format, Degree);
+	int I = 0;
+	ML_LIST_FOREACH(Args[0], Iter) {
+		if (!ml_is(Iter->Value, MLIntegerT)) ML_ERROR("TypeError", "Dimension is not an integer");
+		Array->Dimensions[I++].Size = ml_integer_value(Iter->Value);
+	}
+	int DataSize = MLArraySizes[Format];
+	for (int I = Array->Degree; --I >= 0;) {
+		Array->Dimensions[I].Stride = DataSize;
+		DataSize *= Array->Dimensions[I].Size;
+	}
+	Array->Base.Value = array_alloc(Format, DataSize);
+	Array->Base.Length = DataSize;
+	if (Count == 1) {
+		if (Format == ML_ARRAY_FORMAT_ANY) {
+			ml_value_t **Values = (ml_value_t **)Array->Base.Value;
+			for (int I = DataSize / sizeof(ml_value_t *); --I >= 0;) {
+				*Values++ = MLNil;
+			}
+		} else {
+			memset(Array->Base.Value, 0, DataSize);
+		}
+		ML_RETURN(Array);
+	}
+	ml_array_init_state_t *State = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_array_init_run;
+	State->Base.Context = Caller->Context;
+	State->Address = Array->Base.Value;
+	State->Array = Array;
+	ml_value_t *Function = State->Function = Args[1];
+	for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
+	return ml_call(State, Function, Array->Degree, State->Args);
+}
+
+static void ml_array_typed_new_fnx_array(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_array_format_t Format = (intptr_t)Data;
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	if (Count > 1) {
+		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+		return ml_array_init_from(Caller, Format, Source, Args[1]);
+	} else {
+		ml_array_t *Target = ml_array_alloc(Format, Source->Degree);
+		ml_array_copy(Target, Source);
+		ML_RETURN(Target);
+	}
+}
+
+static void ml_array_typed_new_fnx_integers(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_array_format_t Format = (intptr_t)Data;
+	for (int I = 1; I < Count - 1; ++I) ML_CHECKX_ARG_TYPE(I, MLIntegerT);
+	int Degree = ml_is(Args[Count - 1], MLIntegerT) ? Count : (Count - 1);
+	ml_array_t *Array = ml_array_alloc(Format, Degree);
+	int DataSize = MLArraySizes[Format];
+	for (int I = Array->Degree; --I >= 0;) {
+		Array->Dimensions[I].Stride = DataSize;
+		size_t Size = Array->Dimensions[I].Size = ml_integer_value(Args[I]);
+		DataSize *= Size;
+	}
+	Array->Base.Value = array_alloc(Format, DataSize);
+	Array->Base.Length = DataSize;
+	if (Count == Degree) {
+		if (Format == ML_ARRAY_FORMAT_ANY) {
+			ml_value_t **Values = (ml_value_t **)Array->Base.Value;
+			for (int I = DataSize / sizeof(ml_value_t *); --I >= 0;) {
+				*Values++ = MLNil;
+			}
+		} else {
+			memset(Array->Base.Value, 0, DataSize);
+		}
+		ML_RETURN(Array);
+	}
+	ml_array_init_state_t *State = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_array_init_run;
+	State->Base.Context = Caller->Context;
+	State->Address = Array->Base.Value;
+	State->Array = Array;
+	ml_value_t *Function = State->Function = Args[Count - 1];
+	for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
+	return ml_call(State, Function, Array->Degree, State->Args);
+}
+
+static void ml_array_typed_new_fnx_buffer(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_array_format_t Format = (intptr_t)Data;
+	ml_array_t *Array = ml_array_alloc(Format, 1);
+	size_t Size = Array->Dimensions[0].Size = ml_address_length(Args[0]) / MLArraySizes[Format];
+	size_t Stride = Array->Dimensions[0].Stride = MLArraySizes[Format];
+	Array->Base.Value = (void *)ml_address_value(Args[0]);
+	Array->Base.Length = Size * Stride;
+	ML_RETURN(Array);
+}
+
+static void ml_array_typed_new_fnx_address(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_array_format_t Format = (intptr_t)Data;
+	ml_array_t *Array = ml_array_alloc(Format, 1);
+	Array->Base.Type = MLVectorTypes[Format];
+	size_t Size = Array->Dimensions[0].Size = ml_address_length(Args[0]) / MLArraySizes[Format];
+	size_t Stride = Array->Dimensions[0].Stride = MLArraySizes[Format];
+	Array->Base.Value = (void *)ml_address_value(Args[0]);
+	Array->Base.Length = Size * Stride;
+	ML_RETURN(Array);
+}
+
 static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ml_array_format_t Format = (intptr_t)Data;
 	if (ml_is(Args[0], MLListT)) {
-		int Degree = ml_list_length(Args[0]);
-		ml_array_t *Array = ml_array_alloc(Format, Degree);
-		int I = 0;
-		ML_LIST_FOREACH(Args[0], Iter) {
-			if (!ml_is(Iter->Value, MLIntegerT)) ML_ERROR("TypeError", "Dimension is not an integer");
-			Array->Dimensions[I++].Size = ml_integer_value(Iter->Value);
-		}
-		int DataSize = MLArraySizes[Format];
-		for (int I = Array->Degree; --I >= 0;) {
-			Array->Dimensions[I].Stride = DataSize;
-			DataSize *= Array->Dimensions[I].Size;
-		}
-		Array->Base.Value = array_alloc(Format, DataSize);
-		Array->Base.Length = DataSize;
-		if (Count == 1) {
-			if (Format == ML_ARRAY_FORMAT_ANY) {
-				ml_value_t **Values = (ml_value_t **)Array->Base.Value;
-				for (int I = DataSize / sizeof(ml_value_t *); --I >= 0;) {
-					*Values++ = MLNil;
-				}
-			} else {
-				memset(Array->Base.Value, 0, DataSize);
-			}
-			ML_RETURN(Array);
-		}
-		ml_array_init_state_t *State = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
-		State->Base.Caller = Caller;
-		State->Base.run = (void *)ml_array_init_run;
-		State->Base.Context = Caller->Context;
-		State->Address = Array->Base.Value;
-		State->Array = Array;
-		ml_value_t *Function = State->Function = Args[1];
-		for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
-		return ml_call(State, Function, Array->Degree, State->Args);
+		return ml_array_typed_new_fnx_list(Caller, Data, Count, Args);
 	} else if (ml_is(Args[0], MLArrayT)) {
-		ml_array_t *Source = (ml_array_t *)Args[0];
-		if (Count > 1) {
-			ML_CHECKX_ARG_TYPE(1, MLFunctionT);
-			return ml_array_init_from(Caller, Format, Source, Args[1]);
-		} else {
-			ml_array_t *Target = ml_array_alloc(Format, Source->Degree);
-			ml_array_copy(Target, Source);
-			ML_RETURN(Target);
-		}
+		return ml_array_typed_new_fnx_array(Caller, Data, Count, Args);
 	} else if (ml_is(Args[0], MLIntegerT)) {
-		for (int I = 1; I < Count - 1; ++I) ML_CHECKX_ARG_TYPE(I, MLIntegerT);
-		int Degree = ml_is(Args[Count - 1], MLIntegerT) ? Count : (Count - 1);
-		ml_array_t *Array = ml_array_alloc(Format, Degree);
-		int DataSize = MLArraySizes[Format];
-		for (int I = Array->Degree; --I >= 0;) {
-			Array->Dimensions[I].Stride = DataSize;
-			size_t Size = Array->Dimensions[I].Size = ml_integer_value(Args[I]);
-			DataSize *= Size;
-		}
-		Array->Base.Value = array_alloc(Format, DataSize);
-		Array->Base.Length = DataSize;
-		if (Count == Degree) {
-			if (Format == ML_ARRAY_FORMAT_ANY) {
-				ml_value_t **Values = (ml_value_t **)Array->Base.Value;
-				for (int I = DataSize / sizeof(ml_value_t *); --I >= 0;) {
-					*Values++ = MLNil;
-				}
-			} else {
-				memset(Array->Base.Value, 0, DataSize);
-			}
-			ML_RETURN(Array);
-		}
-		ml_array_init_state_t *State = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
-		State->Base.Caller = Caller;
-		State->Base.run = (void *)ml_array_init_run;
-		State->Base.Context = Caller->Context;
-		State->Address = Array->Base.Value;
-		State->Array = Array;
-		ml_value_t *Function = State->Function = Args[Count - 1];
-		for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
-		return ml_call(State, Function, Array->Degree, State->Args);
+		return ml_array_typed_new_fnx_integers(Caller, Data, Count, Args);
+	} else if (ml_is(Args[0], MLBufferT)) {
+		return ml_array_typed_new_fnx_buffer(Caller, Data, Count, Args);
 	} else if (ml_is(Args[0], MLAddressT)) {
-		ml_array_t *Array = ml_array_alloc(Format, 1);
-		if (!ml_is(Args[0], MLBufferT)) Array->Base.Type = MLVectorTypes[Format];
-		size_t Size = Array->Dimensions[0].Size = ml_address_length(Args[0]) / MLArraySizes[Format];
-		size_t Stride = Array->Dimensions[0].Stride = MLArraySizes[Format];
-		Array->Base.Value = (void *)ml_address_value(Args[0]);
-		Array->Base.Length = Size * Stride;
-		ML_RETURN(Array);
+		return ml_array_typed_new_fnx_address(Caller, Data, Count, Args);
 	} else {
 		ML_ERROR("TypeError", "expected list or array for argument 1");
 	}
@@ -598,7 +629,6 @@ ML_FUNCTIONX(MLArrayNew) {
 //@array::new
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLTypeT);
-	ML_CHECKX_ARG_TYPE(1, MLListT);
 	ml_array_format_t Format = ml_array_format((ml_type_t *)Args[0]);
 	if (Format == ML_ARRAY_FORMAT_NONE) ML_ERROR("TypeError", "Unknown type for array");
 	return ml_array_typed_new_fnx(Caller, (void *)Format, Count - 1, Args + 1);
@@ -2396,18 +2426,17 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 	} \
 } \
 \
-ML_CFUNCTIONX(MLArray ## SUFFIX ## New, (void *)FORMAT, ml_array_typed_new_fnx); \
-/*@array::PREFIX
-//<Sizes:list[integer]
-//>array::PREFIX
-//  Returns a new array of PREFIX values with the specified dimensions.
-*/\
 ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 /*@array::PREFIX
 */ \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
+\
+ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT), "array::mutable::" #PREFIX, \
 /*@array::mutable::PREFIX
@@ -2419,41 +2448,71 @@ ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT),
 //    Sets the values in :mini:`A` to those in :mini:`B`, broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
+\
+ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX, \
 /*@vector::PREFIX
 */ \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
+\
+ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLVectorMutable ## SUFFIX, (MLVector ## SUFFIX, MLVectorMutable ## PARENT, MLArrayMutable ## SUFFIX), "vector::mutable::" #PREFIX, \
 /*@vector::mutable::PREFIX
 // A vector of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
+\
+ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
+\
 ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX, \
 /*@matrix::PREFIX
 */ \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
+\
+ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLMatrixMutable ## SUFFIX, (MLMatrix ## SUFFIX, MLMatrixMutable ## PARENT, MLArrayMutable ## SUFFIX), "matrix::mutable::" #PREFIX, \
 /*@matrix::mutable::PREFIX
 // A matrix of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
+\
+ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 static ml_value_t *ML_TYPED_FN(ml_array_value, MLArray ## SUFFIX, ml_array_t *Array, char *Address) { \
 	return TO_VAL(*(CTYPE *)Array->Base.Value); \
-}
+} \
+\
+ML_INIT(stringmap_insert(MLArrayT->Exports, #PREFIX, MLArray ## SUFFIX)) \
+ML_INIT(stringmap_insert(MLVectorT->Exports, #PREFIX, MLVector ## SUFFIX)) \
+ML_INIT(stringmap_insert(MLMatrixT->Exports, #PREFIX, MLMatrix ## SUFFIX))
 
 #define NOP_VAL(T, X) X
 
@@ -4916,57 +4975,16 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLArrayT->Exports, "new", MLArrayNew);
 	stringmap_insert(MLArrayT->Exports, "wrap", MLArrayWrap);
 	stringmap_insert(MLArrayT->Exports, "nil", MLArrayNil);
-	stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
-	stringmap_insert(MLArrayT->Exports, "uint8", MLArrayUInt8T);
-	stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);
-	stringmap_insert(MLArrayT->Exports, "uint16", MLArrayUInt16T);
-	stringmap_insert(MLArrayT->Exports, "int16", MLArrayInt16T);
-	stringmap_insert(MLArrayT->Exports, "uint32", MLArrayUInt32T);
-	stringmap_insert(MLArrayT->Exports, "int32", MLArrayInt32T);
-	stringmap_insert(MLArrayT->Exports, "uint64", MLArrayUInt64T);
-	stringmap_insert(MLArrayT->Exports, "int64", MLArrayInt64T);
-	stringmap_insert(MLArrayT->Exports, "float32", MLArrayFloat32T);
-	stringmap_insert(MLArrayT->Exports, "float64", MLArrayFloat64T);
 	stringmap_insert(MLArrayT->Exports, "integer", MLArrayIntegerT);
 	stringmap_insert(MLArrayT->Exports, "real", MLArrayRealT);
-
-	stringmap_insert(MLVectorT->Exports, "any", MLVectorAnyT);
-	stringmap_insert(MLVectorT->Exports, "uint8", MLVectorUInt8T);
-	stringmap_insert(MLVectorT->Exports, "int8", MLVectorInt8T);
-	stringmap_insert(MLVectorT->Exports, "uint16", MLVectorUInt16T);
-	stringmap_insert(MLVectorT->Exports, "int16", MLVectorInt16T);
-	stringmap_insert(MLVectorT->Exports, "uint32", MLVectorUInt32T);
-	stringmap_insert(MLVectorT->Exports, "int32", MLVectorInt32T);
-	stringmap_insert(MLVectorT->Exports, "uint64", MLVectorUInt64T);
-	stringmap_insert(MLVectorT->Exports, "int64", MLVectorInt64T);
-	stringmap_insert(MLVectorT->Exports, "float32", MLVectorFloat32T);
-	stringmap_insert(MLVectorT->Exports, "float64", MLVectorFloat64T);
 	stringmap_insert(MLVectorT->Exports, "integer", MLVectorIntegerT);
 	stringmap_insert(MLVectorT->Exports, "real", MLVectorRealT);
-
-	stringmap_insert(MLMatrixT->Exports, "any", MLMatrixAnyT);
-	stringmap_insert(MLMatrixT->Exports, "uint8", MLMatrixUInt8T);
-	stringmap_insert(MLMatrixT->Exports, "int8", MLMatrixInt8T);
-	stringmap_insert(MLMatrixT->Exports, "uint16", MLMatrixUInt16T);
-	stringmap_insert(MLMatrixT->Exports, "int16", MLMatrixInt16T);
-	stringmap_insert(MLMatrixT->Exports, "uint32", MLMatrixUInt32T);
-	stringmap_insert(MLMatrixT->Exports, "int32", MLMatrixInt32T);
-	stringmap_insert(MLMatrixT->Exports, "uint64", MLMatrixUInt64T);
-	stringmap_insert(MLMatrixT->Exports, "int64", MLMatrixInt64T);
-	stringmap_insert(MLMatrixT->Exports, "float32", MLMatrixFloat32T);
-	stringmap_insert(MLMatrixT->Exports, "float64", MLMatrixFloat64T);
 	stringmap_insert(MLMatrixT->Exports, "integer", MLArrayIntegerT);
 	stringmap_insert(MLMatrixT->Exports, "real", MLMatrixRealT);
 
 #ifdef ML_COMPLEX
-	stringmap_insert(MLArrayT->Exports, "complex32", MLArrayComplex32T);
-	stringmap_insert(MLArrayT->Exports, "complex64", MLArrayComplex64T);
 	stringmap_insert(MLArrayT->Exports, "complex", MLArrayComplexT);
-	stringmap_insert(MLVectorT->Exports, "complex32", MLVectorComplex32T);
-	stringmap_insert(MLVectorT->Exports, "complex64", MLVectorComplex64T);
 	stringmap_insert(MLVectorT->Exports, "complex", MLVectorComplexT);
-	stringmap_insert(MLMatrixT->Exports, "complex32", MLMatrixComplex32T);
-	stringmap_insert(MLMatrixT->Exports, "complex64", MLMatrixComplex64T);
 	stringmap_insert(MLMatrixT->Exports, "complex", MLMatrixComplexT);
 #endif
 
