@@ -1587,6 +1587,16 @@ extern ml_type_t MLSymbolIntervalT[];
 
 void ml_types_init(stringmap_t *Globals);
 
+#ifndef GENERATE_INIT
+
+#define ML_INIT(CODE)
+
+#else
+
+#define ML_INIT(CODE) INIT_CODE CODE;
+
+#endif
+
 #ifdef __cplusplus
 }
 
