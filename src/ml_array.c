@@ -1,4 +1,5 @@
 #include "ml_array.h"
+#include "ml_utils.h"
 #include "ml_macros.h"
 #include "ml_math.h"
 #include <stdint.h>
@@ -4354,7 +4355,7 @@ ML_FUNCTION(RandomPermutation) {
 	Values[0] = 1;
 	for (int I = 2; I <= Limit; ++I) {
 		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J >= I);
+		do J = rand() / Divisor; while (J >= I);
 		if (J + 1 == I) {
 			Values[I - 1] = I;
 		} else {
@@ -4388,7 +4389,7 @@ ML_FUNCTION(RandomCycle) {
 	Values[1] = 1;
 	for (int I = 2; I < Limit; ++I) {
 		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J >= I);
+		do J = rand() / Divisor; while (J >= I);
 		int Old = Values[J];
 		Values[J] = I + 1;
 		Values[I] = Old;
@@ -4479,6 +4480,51 @@ void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length) {
 	}
 }
 
+#ifdef Mingw
+
+#define ARRAY_ORDER(CTYPE) \
+\
+static int order_compare_ ## CTYPE(void *Arg, const void *A, const void *B) { \
+	CTYPE *Values = Arg; \
+	CTYPE AX = Values[*(int32_t *)A]; \
+	CTYPE BX = Values[*(int32_t *)B]; \
+	if (AX < BX) return -1; \
+	if (AX > BX) return 1; \
+	return 0; \
+} \
+\
+static int order_compare_indexed_ ## CTYPE(void *Arg, const void *A, const void *B) { \
+	ml_array_t *Array = Arg; \
+	CTYPE *Values = (CTYPE *)Array->Base.Value; \
+	const int *Indices = Array->Dimensions[0].Indices; \
+	CTYPE AX = Values[Indices[*(int32_t *)A]]; \
+	CTYPE BX = Values[Indices[*(int32_t *)B]]; \
+	if (AX < BX) return -1; \
+	if (AX > BX) return 1; \
+	return 0; \
+} \
+\
+ml_value_t *ml_array_order_ ## CTYPE(ml_array_t *Array) { \
+	int Size = Array->Dimensions[0].Size; \
+	int32_t *Order = anew(int32_t, Size); \
+	for (size_t I = 0; I < Size; ++I) Order[I] = I; \
+	if (Array->Dimensions[0].Indices) { \
+		qsort_s(Order, Size, sizeof(int32_t), order_compare_indexed_ ## CTYPE, Array); \
+	} else { \
+		qsort_s(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Array->Base.Value); \
+	} \
+	for (size_t I = 0; I < Size; ++I) ++Order[I]; \
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1); \
+	Permutation->Base.Type = MLPermutationT; \
+	Permutation->Base.Value = (char *)Order; \
+	Permutation->Base.Length = Size * sizeof(int32_t); \
+	Permutation->Dimensions[0].Size = Size; \
+	Permutation->Dimensions[0].Stride = sizeof(int32_t); \
+	return (ml_value_t *)Permutation; \
+}
+
+#else
+
 #define ARRAY_ORDER(CTYPE) \
 \
 static int order_compare_ ## CTYPE(const void *A, const void *B, void *Arg) { \
@@ -4519,6 +4565,8 @@ ml_value_t *ml_array_order_ ## CTYPE(ml_array_t *Array) { \
 	Permutation->Dimensions[0].Stride = sizeof(int32_t); \
 	return (ml_value_t *)Permutation; \
 }
+
+#endif
 
 ARRAY_ORDER(uint8_t)
 ARRAY_ORDER(int8_t)

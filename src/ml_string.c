@@ -1,8 +1,8 @@
 #include "minilang.h"
+#include "ml_utils.h"
 #include "ml_macros.h"
 #include "ml_object.h"
 #include "ml_compiler2.h"
-#include "ml_utils.h"
 #include "sha256.h"
 #include <string.h>
 #include <ctype.h>
@@ -1991,7 +1991,7 @@ ML_METHOD("random", MLStringIntervalT) {
 	int Limit = Diff + 1;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	uint32_t Code = Interval->Start + Random;
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;

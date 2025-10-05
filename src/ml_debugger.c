@@ -10,10 +10,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <errno.h>
 
 #undef ML_CATEGORY
@@ -408,6 +404,11 @@ ml_value_t *ml_interactive_debugger(
 }
 
 #ifdef Linux
+
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 #ifdef ML_JSON
 

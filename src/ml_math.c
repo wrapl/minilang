@@ -546,7 +546,7 @@ ML_FUNCTION(MLRandomSeed) {
 //@random::seed
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	srandom(ml_integer_value(Args[0]));
+	srand(ml_integer_value(Args[0]));
 	return MLNil;
 }
 

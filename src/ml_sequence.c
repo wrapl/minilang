@@ -1395,7 +1395,7 @@ static void random_iterate(ml_random_state_t *State, ml_value_t *Value) {
 	int Index = ++State->Index;
 	int Divisor = RAND_MAX / Index;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Index);
+	do Random = rand() / Divisor; while (Random >= Index);
 	if (!Random) {
 		State->Base.run = (void *)random_value;
 		return ml_iter_value((ml_state_t *)State, State->Iter = Value);

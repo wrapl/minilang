@@ -1,4 +1,5 @@
 #include "uuidmap.h"
+#include "ml_uuid.h"
 #include "ml_macros.h"
 #include <string.h>
 

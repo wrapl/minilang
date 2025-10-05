@@ -2247,7 +2247,7 @@ ML_METHOD("shuffle", MLListMutableT) {
 	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
 	for (int I = N; --I > 0;) {
 		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J > I);
+		do J = rand() / Divisor; while (J > I);
 		if (J != I) {
 			ml_list_node_t *Old = Nodes[J];
 			Nodes[J] = Nodes[I];
@@ -2284,7 +2284,7 @@ ML_METHOD("permute", MLListMutableT) {
 	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
 	for (int I = N; --I > 0;) {
 		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J > I);
+		do J = rand() / Divisor; while (J > I);
 		if (J != I) {
 			ml_list_node_t *Old = Nodes[J];
 			Nodes[J] = Nodes[I];
@@ -2413,7 +2413,7 @@ ML_METHOD("cycle", MLListMutableT) {
 	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
 	for (int I = N; --I > 0;) {
 		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J >= I);
+		do J = rand() / Divisor; while (J >= I);
 		ml_list_node_t *Old = Nodes[J];
 		Nodes[J] = Nodes[I];
 		Nodes[I] = Old;
@@ -2520,7 +2520,7 @@ ML_METHOD("random", MLListT) {
 	if (Limit <= 0) return MLNil;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	return (ml_value_t *)ml_list_index(List, Random + 1);
 }
 

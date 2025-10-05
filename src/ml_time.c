@@ -1,10 +1,19 @@
 #include "ml_time.h"
+#include "ml_utils.h"
 #include "ml_macros.h"
 #include "ml_object.h"
 #include "ml_compiler2.h"
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+
+#ifdef Mingw
+
+extern char *strptime(const char *buf, const char *fmt, struct tm *tm);
+
+#define timegm _mkgmtime
+
+#endif
 
 #ifdef ML_TIMEZONES
 #include "timelib/timelib.h"

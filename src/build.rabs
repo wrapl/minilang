@@ -51,6 +51,10 @@ if PLATFORM = "Darwin" then
 	end
 end
 
+if PLATFORM = "Mingw" then
+	CFLAGS := old + ['-D_POSIX_C_SOURCE']
+end
+
 if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
 end
@@ -166,12 +170,12 @@ let Objects := [
 	file("ml_sequence.o"),
 	file("ml_set.o"),
 	file("ml_slice.o"),
-	file("ml_socket.o"),
 	file("ml_stream.o"),
 	file("ml_string.o"),
 	file("ml_time.o"),
 	file("ml_tuple.o"),
 	file("ml_types.o"),
+	file("ml_utils.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("uuidmap.o"),
@@ -239,7 +243,8 @@ let Options := [
 	"STRUCTS",
 	"MMAP",
 	"STRINGCACHE",
-	"STATICGC"
+	"STATICGC",
+	"SOCKETS"
 ]
 
 if MACHINE = "x86" then
@@ -273,6 +278,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_ENCODINGS := 1
 	MINILANG_TIMEZONES := 1
 	MINILANG_XE := 1
+	MINILANG_SOCKETS := 1
 	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
 	MINILANG_STATICGC := not defined("NOSTATICGC")
 	MINILANG_BACKTRACE := not defined("NOBACKTRACE")
@@ -310,8 +316,11 @@ if MINILANG_STATICGC or defined("STATICGC") then
 		}
 		if PLATFORM = "Wasm" then
 			:>Configuration["--enable-emscripten-asyncify"] := some
+		elseif PLATFORM = "Mingw" then
+			Configuration["--host"] = "x86_64-w64-mingw32"
+			Configuration["--enable-threads"] := "win32"
 		else
-			Configuration["--enable-threads=pthreads"] := some
+			Configuration["--enable-threads"] := "pthreads" 
 		end
 		if NOPARALLELMARK then
 			Configuration["--disable-parallel-mark"] := some
@@ -345,6 +354,7 @@ MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
 MINILANG_XE := old or defined("XE")
+MINILANG_SOCKETS := old or defined("SOCKETS")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
@@ -514,7 +524,7 @@ if MINILANG_XML then
 	CFLAGS := old + ['-DML_XML']
 	Objects:put(file("ml_xml.o"))
 	InstallHeaders:put("ml_xml.h")
-	if PLATFORM = "Wasm" then
+	if PLATFORM = "Wasm" or PLATFORM = "Mingw" then
 		let Dir := file("expat")
 		let Lib := file("expat/lib/.libs/libexpat.a"; Lib) do
 			Dir:rmdir:mkdir:chdir
@@ -539,6 +549,12 @@ if MINILANG_XE then
 	CFLAGS := old + ['-DML_XE']
 	Objects:put(file("ml_xe.o"))
 	InstallHeaders:put("ml_xe.h")
+end
+
+if MINILANG_SOCKETS then
+	CFLAGS := old + ["-DML_SOCKETS"]
+	Objects:put(file("ml_socket.o"))
+	InstallHeaders:put("ml_socket.h")
 end
 
 if MINILANG_MMAP then
@@ -728,6 +744,7 @@ elseif PLATFORM = "Darwin" then
 	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
+	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Android" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-DUSE_LINENOISE"]

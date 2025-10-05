@@ -1582,7 +1582,7 @@ ML_METHOD("random", MLSetT) {
 	if (Limit <= 0) return MLNil;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	ml_set_node_t *Node = Set->Head;
 	while (--Random >= 0) Node = Node->Next;
 	return Node->Key;

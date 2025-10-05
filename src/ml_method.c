@@ -1,5 +1,6 @@
 #include "ml_method.h"
 #include "minilang.h"
+#include "ml_utils.h"
 #include "ml_macros.h"
 #include <string.h>
 
@@ -369,19 +370,10 @@ __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, i
 	char *Types = snew(Length);
 	Types[0] = 0;
 	char *P = Types;
-#ifdef __MINGW32__
-	for (int I = 0; I < Count; ++I) {
-		strcpy(P, Args[I]->Type->Path);
-		P += strlen(Args[I]->Type->Path);
-		strcpy(P, ", ");
-		P += 2;
-	}
-#else
 	for (int I = 0; I < Count; ++I) {
 		ml_type_t *Type = ml_typeof_deref(Args[I]);
 		P = stpcpy(stpcpy(P, Type->Name), ", ");
 	}
-#endif
 	P[-2] = 0;
 	return ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types);
 }
@@ -442,19 +434,10 @@ ML_METHODV(MLMethodDefault, MLMethodT) {
 	char *Types = snew(Length);
 	Types[0] = 0;
 	char *P = Types;
-#ifdef __MINGW32__
-	for (int I = 0; I < Count; ++I) {
-		strcpy(P, Args[I]->Type->Path);
-		P += strlen(Args[I]->Type->Path);
-		strcpy(P, ", ");
-		P += 2;
-	}
-#else
 	for (int I = 1; I < Count; ++I) {
 		ml_type_t *Type = ml_typeof_deref(Args[I]);
 		P = stpcpy(stpcpy(P, Type->Name), ", ");
 	}
-#endif
 	P[-2] = 0;
 	return ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types);
 }
@@ -818,16 +801,7 @@ ML_METHODVX("[]", MLMethodT) {
 		char *Types = snew(Length);
 		Types[0] = 0;
 		char *P = Types;
-#ifdef __MINGW32__
-		for (int I = 0; I < Count; ++I) {
-			strcpy(P, Args[I]->Type->Path);
-			P += strlen(Args[I]->Type->Path);
-			strcpy(P, ", ");
-			P += 2;
-		}
-#else
 		for (int I = 0; I < Count; ++I) P = stpcpy(stpcpy(P, ((ml_type_t *)Args[I])->Name), ", ");
-#endif
 		P[-2] = 0;
 		ML_ERROR("MethodError", "no method found for %s(%s)", Method->Name, Types);
 	}

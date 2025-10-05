@@ -1908,7 +1908,7 @@ ML_FUNCTION(RandomInteger) {
 		if (Limit <= 0) return Args[0];
 		int Divisor = RAND_MAX / Limit;
 		int Random;
-		do Random = random() / Divisor; while (Random >= Limit);
+		do Random = rand() / Divisor; while (Random >= Limit);
 		return ml_integer(Base + Random);
 	} else if (Count == 1) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
@@ -1916,10 +1916,10 @@ ML_FUNCTION(RandomInteger) {
 		if (Limit <= 0) return Args[0];
 		int Divisor = RAND_MAX / Limit;
 		int Random;
-		do Random = random() / Divisor; while (Random >= Limit);
+		do Random = rand() / Divisor; while (Random >= Limit);
 		return ml_integer(Random + 1);
 	} else {
-		return ml_integer(random());
+		return ml_integer(rand());
 	}
 }
 
@@ -1940,7 +1940,7 @@ ML_FUNCTION(RandomPermutation) {
 	Values[0] = 1;
 	for (int I = 2; I <= Limit; ++I) {
 		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J >= I);
+		do J = rand() / Divisor; while (J >= I);
 		if (J + 1 == I) {
 			Values[I - 1] = I;
 		} else {
@@ -1972,7 +1972,7 @@ ML_FUNCTION(RandomCycle) {
 	Values[1] = 1;
 	for (int I = 2; I < Limit; ++I) {
 		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J >= I);
+		do J = rand() / Divisor; while (J >= I);
 		int Old = Values[J];
 		Values[J] = I + 1;
 		Values[I] = Old;
@@ -1998,14 +1998,14 @@ ML_FUNCTION(RandomReal) {
 		double Limit = ml_real_value(Args[1]) - Base;
 		if (Limit <= 0) return Args[0];
 		double Scale = Limit / (double)RAND_MAX;
-		return ml_real(Base + random() * Scale);
+		return ml_real(Base + rand() * Scale);
 	} else if (Count == 1) {
 		double Limit = ml_real_value(Args[0]);
 		if (Limit <= 0) return Args[0];
 		double Scale = Limit / (double)RAND_MAX;
-		return ml_real(random() * Scale);
+		return ml_real(rand() * Scale);
 	} else {
-		return ml_real(random() / (double)RAND_MAX);
+		return ml_real(rand() / (double)RAND_MAX);
 	}
 }
 
@@ -2490,7 +2490,7 @@ ML_METHOD("random", MLIntegerRangeT) {
 	int Limit = Diff / Range->Step + 1;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	return ml_integer(Range->Start + Random * Range->Step);
 }
 
@@ -2686,7 +2686,7 @@ ML_METHOD("random", MLIntegerIntervalT) {
 	int Limit = Diff + 1;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	return ml_integer(Interval->Start + Random);
 }
 
@@ -3265,7 +3265,7 @@ ML_METHOD("random", MLRealRangeT) {
 	}
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	return ml_real(Range->Start + Random * Range->Step);
 }
 
@@ -3280,7 +3280,7 @@ ML_METHOD("random", MLRealIntervalT) {
 	Limit = floor(Diff);
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	return ml_real(Interval->Start + Random);
 }
 

@@ -2,7 +2,25 @@
 #define ML_UUID_H
 
 #include "minilang.h"
+
+#ifdef Mingw
+
+typedef unsigned char uuid_t[16];
+
+extern int uuid_compare(const uuid_t uu1, const uuid_t uu2);
+extern void uuid_generate(uuid_t out);
+extern int uuid_parse(const char *in, uuid_t uu);
+extern void uuid_unparse_lower(const uuid_t uu, char *out);
+
+#ifndef uuid_t
+#define uuid_t uuid_t
+#endif
+
+#else
+
 #include <uuid/uuid.h>
+
+#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -2024,7 +2024,7 @@ ML_METHOD("permute", MLSliceMutableT) {
 	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
 	for (int I = N; --I > 0;) {
 		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J > I);
+		do J = rand() / Divisor; while (J > I);
 		if (J != I) {
 			ml_value_t *Old = Nodes[J].Value;
 			Nodes[J].Value = Nodes[I].Value;
@@ -2041,7 +2041,7 @@ ML_METHOD("shuffle", MLSliceMutableT) {
 	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
 	for (int I = N; --I > 0;) {
 		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J > I);
+		do J = rand() / Divisor; while (J > I);
 		if (J != I) {
 			ml_value_t *Old = Nodes[J].Value;
 			Nodes[J].Value = Nodes[I].Value;
@@ -2118,7 +2118,7 @@ ML_METHOD("cycle", MLSliceMutableT) {
 	ml_slice_node_t *Nodes = Slice->Nodes + Slice->Offset;
 	for (int I = N; --I > 0;) {
 		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J >= I);
+		do J = rand() / Divisor; while (J >= I);
 		if (J != I) {
 			ml_value_t *Old = Nodes[J].Value;
 			Nodes[J].Value = Nodes[I].Value;
@@ -2190,7 +2190,7 @@ ML_METHOD("random", MLSliceT) {
 	if (Limit <= 0) return MLNil;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	ml_slice_index_t *Iter = new(ml_slice_index_t);
 	Iter->Type = MLSliceIndexT;
 	Iter->Slice = Slice;

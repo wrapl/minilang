@@ -2301,7 +2301,7 @@ ML_METHOD("random", MLMapT) {
 	if (Limit <= 0) return MLNil;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	ml_map_node_t *Node = Map->Head;
 	while (--Random >= 0) Node = Node->Next;
 	return (ml_value_t *)Node;

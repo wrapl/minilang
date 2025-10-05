@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_uuid.h"
 #include "ml_macros.h"
 #include "ml_object.h"
 #include <string.h>
@@ -1267,7 +1268,7 @@ ML_METHOD("random", MLEnumT) {
 	int Limit = Enum->Base.Exports->Size;
 	int Divisor = RAND_MAX / Limit;
 	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	do Random = rand() / Divisor; while (Random >= Limit);
 	return (ml_value_t *)(Enum->Values + Random);
 }
 

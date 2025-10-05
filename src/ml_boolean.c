@@ -148,7 +148,7 @@ ML_FUNCTION(RandomBoolean) {
 	} else {
 		Threshold = RAND_MAX / 2;
 	}
-	return (ml_value_t *)(random() > Threshold ? MLFalse : MLTrue);
+	return (ml_value_t *)(rand() > Threshold ? MLFalse : MLTrue);
 }
 
 void ml_boolean_init() {
