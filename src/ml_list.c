@@ -1364,6 +1364,7 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT, MLListMutableT) {
 			if (End == List->Length) {
 				*Removed = *List;
 				*List = *Source;
+				return (ml_value_t *)Removed;
 			} else {
 				ml_list_node_t *EndNode = ml_list_index(List, End);
 				ml_list_node_t *NextNode = EndNode->Next;
