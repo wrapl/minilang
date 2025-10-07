@@ -3462,17 +3462,38 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealIntervalT, ml_array_forma
 	return NULL;
 }
 
+ml_value_t *ml_array_any_of(ml_value_t *Source) {
+	typeof(ml_array_any_of) *function = ml_typed_fn_get(ml_typeof(Source), ml_array_any_of);
+	if (function) return function(Source);
+	return ml_error("ValueError", "Could not convert source to an array");
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_any_of, MLListT, ml_value_t *List) {
+	ml_array_t *Array = ml_array(ML_ARRAY_FORMAT_ANY, 1, ml_list_length(List));
+	ml_value_t **Slot = (ml_value_t **)Array->Base.Value;
+	ML_LIST_FOREACH(List, Iter) *Slot++ = Iter->Value;
+	return (ml_value_t *)Array;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_any_of, MLSliceT, ml_value_t *Slice) {
+	ml_array_t *Array = ml_array(ML_ARRAY_FORMAT_ANY, 1, ml_slice_length(Slice));
+	ml_value_t **Slot = (ml_value_t **)Array->Base.Value;
+	ML_SLICE_FOREACH(Slice, Iter) *Slot++ = Iter->Value;
+	return (ml_value_t *)Array;
+}
+
 ml_value_t *ml_array_of(ml_value_t *Source) {
 	ml_array_format_t Format = ml_array_of_type_guess(Source, ML_ARRAY_FORMAT_NONE);
 	ml_array_t *Array = ml_array_of_create(Source, 0, Format);
-	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
+	if (Array->Base.Type == MLErrorT) return ml_array_any_of(Source);
 	int Degree = Array->Degree;
 	ml_array_dimension_t *Dimensions = Array->Dimensions;
 	size_t Size = Dimensions->Size * Dimensions->Stride;
 	char *Address = Array->Base.Value = array_alloc(Format, Size);
 	Array->Base.Length = Size;
 	ml_value_t *Error = ml_array_of_fill(Array->Format, Dimensions, Address, Degree, Source);
-	return Error ?: (ml_value_t *)Array;
+	if (Error) return ml_array_any_of(Source);
+	return (ml_value_t *)Array;
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
