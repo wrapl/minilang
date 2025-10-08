@@ -37,8 +37,6 @@ struct ml_table_row_t {
 ML_TYPE(MLTableT, (MLSequenceT), "table");
 // A table is a set of named arrays. The arrays must have the same length.
 
-
-
 extern ml_type_t MLTableRowT[];
 
 static int ml_table_row_assign_same(const char *Name, ml_table_column_t *Column, int *Indices) {
@@ -351,6 +349,14 @@ ml_value_t *ml_table_columns(ml_value_t *Table) {
 		ml_map_insert(Columns, Column->Name, (ml_value_t *)Column->Values);
 	}
 	return Columns;
+}
+
+int ml_table_column_foreach(ml_value_t *Table, void *Data, int (*fn)(ml_value_t *Name, ml_value_t *Values, void *Data)) {
+	for (ml_table_column_t *Column = ((ml_table_t *)Table)->Columns; Column; Column = Column->Next) {
+		int Result = fn(Column->Name, (ml_value_t *)Column->Values, Data);
+		if (Result) return Result;
+	}
+	return 0;
 }
 
 typedef struct {
@@ -681,6 +687,23 @@ ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 	stringmap_foreach(Table->ColumnNames, Append, (void *)ml_table_row_append_column);
 	ml_stringbuffer_put(Append->Buffer, '>');
 	return MLSome;
+}
+
+ml_value_t *ml_table_row_table(ml_value_t *TableRow) {
+	return (ml_value_t *)((ml_table_row_t *)TableRow)->Table;
+}
+
+int ml_table_row_foreach(ml_value_t *TableRow, void *Data, int (*fn)(ml_value_t *, ml_value_t *, void *)) {
+	ml_table_row_t *Row = (ml_table_row_t *)TableRow;
+	ml_table_t *Table = Row->Table;int Index = (Row - Table->Rows) + 1;
+	if (Index <= 0 || Index > Table->Length) return 1;
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	for (ml_table_column_t *Column = ((ml_table_t *)Table)->Columns; Column; Column = Column->Next) {
+		ml_value_t *Value = ml_array_index(Column->Values, 1, Indices);
+		int Result = fn(Column->Name, Value, Data);
+		if (Result) return Result;
+	}
+	return 0;
 }
 
 ML_METHODV("push", MLTableT, MLNamesT) {
