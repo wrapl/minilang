@@ -931,9 +931,30 @@ ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
 	.call = (void *)ml_enum_call
 );
 
+static void ml_enum_cyclic_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (ml_is(Arg, MLStringT)) {
+		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Arg));
+		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
+		ML_RETURN(Value);
+	} else if (ml_is(Arg, MLIntegerT)) {
+		ml_enum_value_t *Value = Enum->Values;
+		int Size = Enum->Base.Exports->Size;
+		int64_t Index = ml_integer_value(Arg) % Size;
+		if (Index <= 0) Index += Size;
+		for (int I = 0; I < Enum->Base.Exports->Size; ++I, ++Value) {
+			if (ml_integer64_value((ml_value_t *)Value) == Index) ML_RETURN(Value);
+		}
+		ML_ERROR("EnumError", "Invalid enum index");
+	} else {
+		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
+	}
+}
+
 ML_TYPE(MLEnumCyclicT, (MLEnumT), "enum::cyclic",
 //@enum::cyclic
-	.call = (void *)ml_enum_call
+	.call = (void *)ml_enum_cyclic_call
 );
 
 static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char *Name) {
@@ -1493,69 +1514,44 @@ ML_METHOD("<>", MLIntegerT, MLEnumValueT) {
 	return ml_integer(0);
 }
 
-ML_METHOD("+", MLEnumValueT, MLIntegerT) {
+ML_METHODX("+", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 	int64_t Value = ml_integer64_value(Args[0]) + ml_integer_value(Args[1]);
-	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
-	if (Enum->Base.Type == MLEnumCyclicT) {
-		int Index = (Value - 1) % Enum->Base.Exports->Size;
-		if (Index < 0) Index += Enum->Base.Exports->Size;
-		return (ml_value_t *)(Enum->Values + Index);
-	} else {
-		return ml_enum_value((ml_type_t *)Enum, Value);
-	}
+	ml_value_t **Args2 = ml_alloc_args(1);
+	Args2[0] = ml_integer(Value);
+	return ml_call(Caller, (ml_value_t *)A->Base.Type, 1, Args2);
 }
 
-ML_METHOD("+", MLIntegerT, MLEnumValueT) {
+ML_METHODX("+", MLIntegerT, MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[1];
 	int64_t Value = ml_integer64_value(Args[1]) + ml_integer_value(Args[0]);
-	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
-	if (Enum->Base.Type == MLEnumCyclicT) {
-		int Index = (Value - 1) % Enum->Base.Exports->Size;
-		if (Index < 0) Index += Enum->Base.Exports->Size;
-		return (ml_value_t *)(Enum->Values + Index);
-	} else {
-		return ml_enum_value((ml_type_t *)Enum, Value);
-	}
+	ml_value_t **Args2 = ml_alloc_args(1);
+	Args2[0] = ml_integer(Value);
+	return ml_call(Caller, (ml_value_t *)A->Base.Type, 1, Args2);
 }
 
-ML_METHOD("-", MLEnumValueT, MLIntegerT) {
+ML_METHODX("-", MLEnumValueT, MLIntegerT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 	int64_t Value = ml_integer64_value(Args[0]) - ml_integer_value(Args[1]);
-	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
-	if (Enum->Base.Type == MLEnumCyclicT) {
-		int Index = (Value - 1) % Enum->Base.Exports->Size;
-		if (Index < 0) Index += Enum->Base.Exports->Size;
-		return (ml_value_t *)(Enum->Values + Index);
-	} else {
-		return ml_enum_value((ml_type_t *)Enum, Value);
-	}
+	ml_value_t **Args2 = ml_alloc_args(1);
+	Args2[0] = ml_integer(Value);
+	return ml_call(Caller, (ml_value_t *)A->Base.Type, 1, Args2);
 }
 
-ML_METHOD("next", MLEnumValueT) {
+ML_METHODX("next", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 	int64_t Value = ml_integer64_value(Args[0]) + 1;
-	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
-	if (Enum->Base.Type == MLEnumCyclicT) {
-		int Index = (Value - 1) % Enum->Base.Exports->Size;
-		if (Index < 0) Index += Enum->Base.Exports->Size;
-		return (ml_value_t *)(Enum->Values + Index);
-	} else {
-		return ml_enum_value((ml_type_t *)Enum, Value);
-	}
+	ml_value_t **Args2 = ml_alloc_args(1);
+	Args2[0] = ml_integer(Value);
+	return ml_call(Caller, (ml_value_t *)A->Base.Type, 1, Args2);
 }
 
-ML_METHOD("prev", MLEnumValueT) {
+ML_METHODX("prev", MLEnumValueT) {
 	ml_enum_value_t *A = (ml_enum_value_t *)Args[0];
 	int64_t Value = ml_integer64_value(Args[0]) - 1;
-	ml_enum_t *Enum = (ml_enum_t *)A->Base.Type;
-	if (Enum->Base.Type == MLEnumCyclicT) {
-		int Index = (Value - 1) % Enum->Base.Exports->Size;
-		if (Index < 0) Index += Enum->Base.Exports->Size;
-		return (ml_value_t *)(Enum->Values + Index);
-	} else {
-		return ml_enum_value((ml_type_t *)Enum, Value);
-	}
+	ml_value_t **Args2 = ml_alloc_args(1);
+	Args2[0] = ml_integer(Value);
+	return ml_call(Caller, (ml_value_t *)A->Base.Type, 1, Args2);
 }
 
 //!flags
