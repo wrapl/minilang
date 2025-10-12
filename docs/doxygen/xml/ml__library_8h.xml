@@ -199,7 +199,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="54" column="9" bodyfile="src/ml_library.h" bodystart="54" bodyend="55"/>
+        <location file="src/ml_library.h" line="52" column="9" bodyfile="src/ml_library.h" bodystart="52" bodyend="53"/>
       </memberdef>
       <memberdef kind="define" id="ml__library_8h_1a0970aa160bcb264fb1296eecb52a274f" prot="public" static="no">
         <name>ML_LIBRARY_LOGGER</name>
@@ -211,7 +211,7 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_library.h" line="57" column="9" bodyfile="src/ml_library.h" bodystart="57" bodyend="58"/>
+        <location file="src/ml_library.h" line="55" column="9" bodyfile="src/ml_library.h" bodystart="55" bodyend="56"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="typedef">
@@ -240,19 +240,6 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
         <inbodydescription>
         </inbodydescription>
         <location file="src/ml_library.h" line="28" column="9" bodyfile="src/ml_library.h" bodystart="28" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="typedef" id="ml__library_8h_1a42f2ac9fff6125e708ddc1b86b90acee" prot="public" static="no">
-        <type>void(*</type>
-        <definition>typedef void(* ml_main_loop_t) ()</definition>
-        <argsstring>)()</argsstring>
-        <name>ml_main_loop_t</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_library.h" line="52" column="9" bodyfile="src/ml_library.h" bodystart="52" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -477,19 +464,17 @@ void CONCAT3(ml_, NAME, entry0)(<ref refid="structml__value__t" kindref="compoun
 <codeline lineno="49"><highlight class="preprocessor">ML_EXTERN<sp/>void<sp/>ml_library_entry0(ml_value_t<sp/>**Slot)<sp/>__attribute__<sp/>((weak,<sp/>alias(LIBRARY_ENTRY0(NAME))));<sp/>\</highlight></codeline>
 <codeline lineno="50"><highlight class="preprocessor">void<sp/>CONCAT3(ml_,<sp/>NAME,<sp/>entry0)(ml_value_t<sp/>**Slot)</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="51"><highlight class="normal"></highlight></codeline>
-<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*ml_main_loop_t)();</highlight></codeline>
-<codeline lineno="53"><highlight class="normal"></highlight></codeline>
-<codeline lineno="54"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_SCHEDULER(NAME)<sp/>\</highlight></codeline>
-<codeline lineno="55"><highlight class="preprocessor">ml_main_loop_t<sp/>ml_library_scheduler_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="56"><highlight class="normal"></highlight></codeline>
-<codeline lineno="57"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_LOGGER(NAME)<sp/>\</highlight></codeline>
-<codeline lineno="58"><highlight class="preprocessor">void<sp/>ml_library_logger_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="59"><highlight class="normal"></highlight></codeline>
-<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="61"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="63"><highlight class="normal"></highlight></codeline>
-<codeline lineno="64"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_SCHEDULER(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="53"><highlight class="preprocessor">ml_main_loop_t<sp/>ml_library_scheduler_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_LIBRARY_LOGGER(NAME)<sp/>\</highlight></codeline>
+<codeline lineno="56"><highlight class="preprocessor">void<sp/>ml_library_logger_init(ml_context_t<sp/>*Context)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_library.h"/>
   </compounddef>

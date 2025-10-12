@@ -116,9 +116,9 @@
         </childnode>
         <childnode refid="33" relation="include">
         </childnode>
-        <childnode refid="34" relation="include">
-        </childnode>
         <childnode refid="35" relation="include">
+        </childnode>
+        <childnode refid="36" relation="include">
         </childnode>
       </node>
       <node id="13">
@@ -175,7 +175,7 @@
         <label>src/ml_coroutine.h</label>
         <link refid="ml__coroutine_8h_source"/>
       </node>
-      <node id="36">
+      <node id="37">
         <label>src/ml_debugger.h</label>
         <link refid="ml__debugger_8h_source"/>
       </node>
@@ -236,7 +236,7 @@
         </childnode>
         <childnode refid="11" relation="include">
         </childnode>
-        <childnode refid="36" relation="include">
+        <childnode refid="37" relation="include">
         </childnode>
       </node>
       <node id="28">
@@ -284,14 +284,22 @@
         <link refid="ml__uuid_8h_source"/>
         <childnode refid="6" relation="include">
         </childnode>
+        <childnode refid="34" relation="include">
+        </childnode>
       </node>
-      <node id="34">
+      <node id="35">
         <label>src/ml_xe.h</label>
         <link refid="ml__xe_8h_source"/>
       </node>
-      <node id="35">
+      <node id="36">
         <label>src/ml_xml.h</label>
         <link refid="ml__xml_8h_source"/>
+      </node>
+      <node id="34">
+        <label>src/uuidmap.h</label>
+        <link refid="uuidmap_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
       </node>
     </invincdepgraph>
     <innerclass refid="structml__value__t" prot="public">ml_value_t</innerclass>
@@ -398,6 +406,7 @@
       <member refid="group__symbols_1gac0d196c2db80f2c9104e0e36946fd94c" kind="define"><name>ml_symbol_name</name></member>
       <member refid="group__symbols_1ga147785770a3d8d8f93e266dd57acee36" kind="define"><name>ml_symbol_interval_first</name></member>
       <member refid="group__symbols_1ga6006cd404d12e02ed29d82c1bf33272c" kind="define"><name>ml_symbol_interval_last</name></member>
+      <member refid="group__init_1ga758fd33abfffbfe460a63ee6a8acbefb" kind="define"><name>ML_INIT</name></member>
     </sectiondef>
     <sectiondef kind="enum">
       <member refid="group__maps_1gad5edeaa21792576b6bc1ba21c2c9277d" kind="enum"><name>ml_map_order_t</name></member>
@@ -2220,41 +2229,51 @@
 <codeline lineno="1587"><highlight class="normal"></highlight></codeline>
 <codeline lineno="1588"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_types_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="1589"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1590"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="1591"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1592"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1593"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal"><sp/>T&gt;<sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/>T<sp/>*ml_typed_fn_get(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>T<sp/>*Key)<sp/>{</highlight></codeline>
-<codeline lineno="1594"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(T<sp/>*)ml_typed_fn_get(Type,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)Key);</highlight></codeline>
-<codeline lineno="1595"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1596"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1597"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1598"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1599"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1600"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1601"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1602"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Cached,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1603"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1604"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1605"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1606"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Type-&gt;Constructor,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1607"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1608"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1609"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1610"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1611"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1612"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1613"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1614"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Cached,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1615"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1616"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1617"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
-<codeline lineno="1618"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Type-&gt;Constructor,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
-<codeline lineno="1619"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="1620"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1621"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1590"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>GENERATE_INIT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1591"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1592"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_INIT(CODE)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1593"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1594"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1595"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1596"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_INIT(CODE)<sp/>INIT_CODE<sp/>CODE;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1597"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1598"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1599"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1600"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1601"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1602"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1603"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal"><sp/>T&gt;<sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/>T<sp/>*ml_typed_fn_get(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/>T<sp/>*Key)<sp/>{</highlight></codeline>
+<codeline lineno="1604"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(T<sp/>*)ml_typed_fn_get(Type,<sp/>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*)Key);</highlight></codeline>
+<codeline lineno="1605"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1606"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1607"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1608"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1609"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1610"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1611"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1612"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Cached,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1613"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1614"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1615"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_method_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callback_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1616"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(Type-&gt;Constructor,<sp/>ml_cfunction(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1617"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1618"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1619"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1620"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_method_definev(ml_method(Cached),<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1621"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="1622"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1624"><highlight class="normal"></highlight></codeline>
-<codeline lineno="1625"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="1623"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Cached,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1624"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Cached,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1625"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1626"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1627"><highlight class="normal"></highlight><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal">...<sp/>args&gt;<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_methodx_by_auto(<ref refid="structml__type__t" kindref="compound">ml_type_t</ref><sp/>*Type,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/>ml_callbackx_t<sp/>Function,<sp/>args...<sp/>Args)<sp/>{</highlight></codeline>
+<codeline lineno="1628"><highlight class="normal"><sp/><sp/><sp/><sp/>ml_methodx_define(Type-&gt;Constructor,<sp/>ml_cfunctionx(Data,<sp/>Function),<sp/>NULL,<sp/>Args...);</highlight></codeline>
+<codeline lineno="1629"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1630"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1631"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1632"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1634"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1635"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_types.h"/>
   </compounddef>

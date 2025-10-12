@@ -629,7 +629,8 @@ end
 
 if MINILANG_TRE then
 	file("tre"):mkdir
-	let Lib := file("lib/libtre.a")[GC] => fun(Lib) do
+	let Sources := file("tre/lib"):ls(r".*\.[ch]")
+	let Lib := file("lib/libtre.a")[GC, Sources] => fun(Lib) do
 		file("tre"):chdir
 		let Options := {
 			"--prefix" is PATH,

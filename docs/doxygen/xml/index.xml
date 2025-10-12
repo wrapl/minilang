@@ -715,6 +715,7 @@
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a5b15653be2f238b9ce98001479054f10" kind="enumvalue"><name>ML_ARRAY_FORMAT_F64</name></member>
     <member refid="ml__array_8h_1ae166f46e3356bc2b00b1492ba879e373a1ad15a65cb9778594c1a03dc6ec573b4" kind="enumvalue"><name>ML_ARRAY_FORMAT_ANY</name></member>
     <member refid="ml__array_8h_1a47bc6d6abc8aa7ef6bd0cc83b3101636" kind="typedef"><name>any</name></member>
+    <member refid="ml__array_8h_1afff5df2795a83cd6de48f8ad0a1dfe80" kind="typedef"><name>update_row_fn_t</name></member>
     <member refid="ml__array_8h_1a52cca795aefbeae57b03bb83d7d2c924" kind="variable"><name>MLArraySizes</name></member>
     <member refid="ml__array_8h_1ab9332866ef51f2ee1e89af4b99659a3f" kind="variable"><name>MLArrayT</name></member>
     <member refid="ml__array_8h_1a60875085ff385b5cdf85ac1dde9dc940" kind="variable"><name>MLVectorT</name></member>
@@ -1234,7 +1235,6 @@
     <member refid="ml__library_8h_1a0970aa160bcb264fb1296eecb52a274f" kind="define"><name>ML_LIBRARY_LOGGER</name></member>
     <member refid="ml__library_8h_1a20e5f8a02e7294d23434e10d9d166464" kind="typedef"><name>ml_library_entry_t</name></member>
     <member refid="ml__library_8h_1a53f62e2d1fc2464446281858802292c6" kind="typedef"><name>ml_library_entry0_t</name></member>
-    <member refid="ml__library_8h_1a42f2ac9fff6125e708ddc1b86b90acee" kind="typedef"><name>ml_main_loop_t</name></member>
     <member refid="ml__library_8h_1ac82c21aae6bc9bd995f9e5da2fa156ea" kind="function"><name>ml_library_init</name></member>
     <member refid="ml__library_8h_1a2050dc4fec3a0f33dd7967bc33c59bad" kind="function"><name>ml_library_path_add</name></member>
     <member refid="ml__library_8h_1a914ac3d4b79184d0330af57d0ac4bae9" kind="function"><name>ml_library_loader_add</name></member>
@@ -1646,10 +1646,14 @@
   </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
+    <member refid="ml__table_8h_1a9653f1d3aed3da41af6ea923da3ce8ef" kind="variable"><name>MLTableRowT</name></member>
     <member refid="ml__table_8h_1aa512afd5fdc32098418ee5eb16394749" kind="function"><name>ml_table_init</name></member>
     <member refid="ml__table_8h_1a0103ddcc02153f410f646c90dfa8c2ff" kind="function"><name>ml_table</name></member>
     <member refid="ml__table_8h_1aa1e10b1917535e4ff264448e75b360e1" kind="function"><name>ml_table_insert</name></member>
     <member refid="ml__table_8h_1a2edd7588e6c703f4809ceb8d53c6679f" kind="function"><name>ml_table_columns</name></member>
+    <member refid="ml__table_8h_1aaa6b2b2a60299c996d9df5c52313ba85" kind="function"><name>ml_table_column_foreach</name></member>
+    <member refid="ml__table_8h_1a0975197b32ba6df200f02d5eb251dd4a" kind="function"><name>ml_table_row_table</name></member>
+    <member refid="ml__table_8h_1a3555337a84eb00e58e032a951daf134a" kind="function"><name>ml_table_row_foreach</name></member>
   </compound>
   <compound refid="ml__tasks_8h" kind="file"><name>ml_tasks.h</name>
     <member refid="ml__tasks_8h_1a0b92609e805d89b71b1a3bc053ccaf55" kind="function"><name>ml_tasks_init</name></member>
@@ -1735,6 +1739,7 @@
     <member refid="group__symbols_1gac0d196c2db80f2c9104e0e36946fd94c" kind="define"><name>ml_symbol_name</name></member>
     <member refid="group__symbols_1ga147785770a3d8d8f93e266dd57acee36" kind="define"><name>ml_symbol_interval_first</name></member>
     <member refid="group__symbols_1ga6006cd404d12e02ed29d82c1bf33272c" kind="define"><name>ml_symbol_interval_last</name></member>
+    <member refid="group__init_1ga758fd33abfffbfe460a63ee6a8acbefb" kind="define"><name>ML_INIT</name></member>
     <member refid="group__maps_1gad5edeaa21792576b6bc1ba21c2c9277d" kind="enum"><name>ml_map_order_t</name></member>
     <member refid="group__sets_1gaa2cac66264dd0aa81c32904fb861e0f0" kind="enum"><name>ml_set_order_t</name></member>
     <member refid="group__types_1ga5d1583b78bcbb3d035efb58c8bcad3ab" kind="typedef"><name>ml_value_t</name></member>
@@ -2943,6 +2948,7 @@
   </compound>
   <compound refid="group__init" kind="group"><name>init</name>
     <member refid="group__init_1ga2b26ef655ee57ffc1302d73a3f32eb51" kind="function"><name>ml_types_init</name></member>
+    <member refid="group__init_1ga758fd33abfffbfe460a63ee6a8acbefb" kind="define"><name>ML_INIT</name></member>
   </compound>
   <compound refid="group__stringmap" kind="group"><name>stringmap</name>
     <member refid="group__stringmap_1ga4db75414a24fd822287a7c96bf705566" kind="typedef"><name>stringmap_t</name></member>

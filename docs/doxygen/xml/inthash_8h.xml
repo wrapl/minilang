@@ -75,9 +75,9 @@
         </childnode>
         <childnode refid="34" relation="include">
         </childnode>
-        <childnode refid="35" relation="include">
-        </childnode>
         <childnode refid="36" relation="include">
+        </childnode>
+        <childnode refid="37" relation="include">
         </childnode>
       </node>
       <node id="14">
@@ -134,7 +134,7 @@
         <label>src/ml_coroutine.h</label>
         <link refid="ml__coroutine_8h_source"/>
       </node>
-      <node id="37">
+      <node id="38">
         <label>src/ml_debugger.h</label>
         <link refid="ml__debugger_8h_source"/>
       </node>
@@ -195,7 +195,7 @@
         </childnode>
         <childnode refid="12" relation="include">
         </childnode>
-        <childnode refid="37" relation="include">
+        <childnode refid="38" relation="include">
         </childnode>
       </node>
       <node id="29">
@@ -243,14 +243,22 @@
         <link refid="ml__uuid_8h_source"/>
         <childnode refid="7" relation="include">
         </childnode>
+        <childnode refid="35" relation="include">
+        </childnode>
       </node>
-      <node id="35">
+      <node id="36">
         <label>src/ml_xe.h</label>
         <link refid="ml__xe_8h_source"/>
       </node>
-      <node id="36">
+      <node id="37">
         <label>src/ml_xml.h</label>
         <link refid="ml__xml_8h_source"/>
+      </node>
+      <node id="35">
+        <label>src/uuidmap.h</label>
+        <link refid="uuidmap_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
       </node>
     </invincdepgraph>
     <innerclass refid="structinthash__t" prot="public">inthash_t</innerclass>

@@ -22,6 +22,19 @@
         <location file="src/ml_types.h" line="1588" column="6" declfile="src/ml_types.h" declline="1588" declcolumn="6"/>
       </memberdef>
     </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__init_1ga758fd33abfffbfe460a63ee6a8acbefb" prot="public" static="no">
+        <name>ML_INIT</name>
+        <param><defname>CODE</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1592" column="9" bodyfile="src/ml_types.h" bodystart="1592" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>

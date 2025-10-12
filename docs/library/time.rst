@@ -48,7 +48,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2025-09-24T10:14:14.443027
+      time() :> 2025-10-10T09:03:14.534537
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer): time`
@@ -93,12 +93,20 @@ Provides time and date operations.
       :> 2023-02-10T03:19:33.196413
 
 
+:mini:`meth (Time: time) + (Component₁ is Value₁, Arg₃: integer, ...): time`
+   Returns :mini:`Time` with the the specified components updated.
+
+
 :mini:`meth (Start: time) + (Duration: number): time`
    Returns the time :mini:`Duration` seconds after :mini:`Start`.
 
    .. code-block:: mini
 
       time("2022-04-01 12:00:00") + 3600 :> 2022-04-01T13:00:00
+
+
+:mini:`meth (Time: time) - (Component₁ is Value₁, Arg₃: integer, ...): time`
+   Returns :mini:`Time` with the the specified components updated.
 
 
 :mini:`meth (Start: time) - (Duration: number): time`

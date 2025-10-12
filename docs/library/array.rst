@@ -742,7 +742,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 32684>>
+      A:minidx(2) :> <<2 1> <1 1699883562>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -905,10 +905,6 @@ array
    *TBD*
 
 
-:mini:`fun array::any(Sizes: list[integer]): array::any`
-    Returns a new array of any values with the specified dimensions.
-
-
 :mini:`type array::complex < array`
    *TBD*
 
@@ -957,64 +953,32 @@ array
    *TBD*
 
 
-:mini:`fun array::complex32(Sizes: list[integer]): array::complex32`
-    Returns a new array of complex32 values with the specified dimensions.
-
-
 :mini:`type array::complex64 < array::complex`
    *TBD*
-
-
-:mini:`fun array::complex64(Sizes: list[integer]): array::complex64`
-    Returns a new array of complex64 values with the specified dimensions.
 
 
 :mini:`type array::float32 < array::real`
    *TBD*
 
 
-:mini:`fun array::float32(Sizes: list[integer]): array::float32`
-    Returns a new array of float32 values with the specified dimensions.
-
-
 :mini:`type array::float64 < array::real`
    *TBD*
-
-
-:mini:`fun array::float64(Sizes: list[integer]): array::float64`
-    Returns a new array of float64 values with the specified dimensions.
 
 
 :mini:`type array::int16 < array::integer`
    *TBD*
 
 
-:mini:`fun array::int16(Sizes: list[integer]): array::int16`
-    Returns a new array of int16 values with the specified dimensions.
-
-
 :mini:`type array::int32 < array::integer`
    *TBD*
-
-
-:mini:`fun array::int32(Sizes: list[integer]): array::int32`
-    Returns a new array of int32 values with the specified dimensions.
 
 
 :mini:`type array::int64 < array::integer`
    *TBD*
 
 
-:mini:`fun array::int64(Sizes: list[integer]): array::int64`
-    Returns a new array of int64 values with the specified dimensions.
-
-
 :mini:`type array::int8 < array::integer`
    *TBD*
-
-
-:mini:`fun array::int8(Sizes: list[integer]): array::int8`
-    Returns a new array of int8 values with the specified dimensions.
 
 
 :mini:`type array::integer < array::real`
@@ -1250,32 +1214,16 @@ array
    *TBD*
 
 
-:mini:`fun array::uint16(Sizes: list[integer]): array::uint16`
-    Returns a new array of uint16 values with the specified dimensions.
-
-
 :mini:`type array::uint32 < array::integer`
    *TBD*
-
-
-:mini:`fun array::uint32(Sizes: list[integer]): array::uint32`
-    Returns a new array of uint32 values with the specified dimensions.
 
 
 :mini:`type array::uint64 < array::integer`
    *TBD*
 
 
-:mini:`fun array::uint64(Sizes: list[integer]): array::uint64`
-    Returns a new array of uint64 values with the specified dimensions.
-
-
 :mini:`type array::uint8 < array::integer`
    *TBD*
-
-
-:mini:`fun array::uint8(Sizes: list[integer]): array::uint8`
-    Returns a new array of uint8 values with the specified dimensions.
 
 
 :mini:`meth (A: complex) !== (B: array): array`
@@ -1791,7 +1739,7 @@ array
    Returns an array with the contents of :mini:`Slice`,  transposed.
 
 
-:mini:`fun array::new(Arg₁: type, Arg₂: list)`
+:mini:`fun array::new(Arg₁: type, Arg₂: any)`
    *TBD*
 
 
