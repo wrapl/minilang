@@ -4825,23 +4825,25 @@ ml_value_t *ml_stringbuffer() {
 	return (ml_value_t *)Buffer;
 }
 
-ML_FUNCTION(MLStringBuffer) {
+ML_TYPE(MLStringBufferT, (), "string::buffer");
+//@string::buffer
+// A string buffer that automatically grows and shrinks as required.
+
+ML_METHOD(MLStringBufferT) {
 //@string::buffer
 //>string::buffer
 // Returns a new :mini:`string::buffer`
 	return ml_stringbuffer();
 }
 
-/*
-ML_TYPE(MLStringBufferT, (MLStreamT), "string::buffer");
-// A string buffer that automatically grows and shrinks as required.
-*/
-
-ML_TYPE(MLStringBufferT, (), "string::buffer",
+ML_METHOD(MLStringBufferT, MLAddressT) {
 //@string::buffer
-// A string buffer that automatically grows and shrinks as required.
-	.Constructor = (ml_value_t *)MLStringBuffer
-);
+//>string::buffer
+// Returns a new :mini:`string::buffer`
+	ml_value_t *Buffer = ml_stringbuffer();
+	ml_stringbuffer_write((ml_stringbuffer_t *)Buffer, ml_address_value(Args[0]), ml_address_length(Args[0]));
+	return Buffer;
+}
 
 static GC_descr StringBufferDesc = 0;
 
