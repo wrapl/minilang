@@ -3509,6 +3509,74 @@ ML_METHOD("lu", MLMatrixT) {
 	}
 }
 
+ML_METHOD("qr", MLMatrixT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int R = Source->Dimensions[0].Size;
+	int C = Source->Dimensions[1].Size;
+	if (R < C) return ml_error("ArrayError", "Invalid array shape for operation");
+	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+		ml_array_t *Tmp = ml_array_alloc(ML_ARRAY_FORMAT_F64, 2);
+		ml_array_copy(Tmp, Source);
+		double *Temp = (double *)Tmp->Base.Value;
+		double RDiag[C];
+		for (int I = 0; I < C; ++I) {
+			double Norm = 0.0;
+			for (int J = I; J < R; ++J) Norm = hypot(Norm, Temp[J * C + I]);
+			if (Norm != 0.0) {
+				if (Temp[I * C + I] < 0.0) Norm = -Norm;
+				for (int J = I; J < R; ++J) Temp[J * C + I] /= Norm;
+				Temp[I * C + I] += 1.0;
+				for (int K = I + 1; K < C; ++K) {
+					double S = 0.0;
+					for (int J = I; J < R; ++J) {
+						S += Temp[J * C + I] * Temp[J * C + K];
+					}
+					S /= -Temp[I * C + I];
+					for (int J = I; J < R; ++J) {
+						Temp[J * C + K] += S * Temp[J * C + I];
+					}
+				}
+			}
+			RDiag[I] = -Norm;
+		}
+		double *Q = anew(double, R * C);
+		for (int I = 0; I < R * C; ++I) Q[I] = 0.0;
+		for (int I = C - 1; I >= 0; --I) {
+			Q[I * C + I] = 1.0;
+			for (int II = I; II < C; ++II) {
+				double T = Temp[I * C + I];
+				if (T != 0.0) {
+					double S = 0.0;
+					for (int J = I; J < R; ++J) {
+						S += Temp[J * C + I] * Q[J * C + II];
+					}
+					S /= -T;
+					for (int J = I; J < R; ++J) {
+						Q[J * C + II] += S * Temp[J * C + I];
+					}
+				}
+			}
+		}
+		Tmp->Base.Value = (char *)Q;
+		ml_array_t *R = ml_array(ML_ARRAY_FORMAT_F64, 2, C, C);
+		double *RValues = (double *)R->Base.Value;
+		for (int I = 0; I < C; ++I) {
+			for (int J = 0; J < C; ++J) {
+				if (I < J) {
+					RValues[I * C + J] = Temp[I + C + J];
+				} else if (I == J) {
+					RValues[I * C + J] = RDiag[I];
+				} else {
+					RValues[I * C + J] = 0.0;
+				}
+			}
+		}
+		return ml_tuplev(2, Tmp, R);
+	} else {
+		return ml_error("ArrayError", "Invalid array type for operation");
+	}
+}
+
 ML_METHOD("\\", MLMatrixT) {
 //<A
 //>matrix
