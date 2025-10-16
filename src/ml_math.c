@@ -502,6 +502,24 @@ ML_METHOD(ConjMethod, MLRealT) {
 	return Args[0];
 }
 
+ML_METHOD_DECL(DeltaMethod, "math::delta");
+
+ML_METHOD(DeltaMethod, MLIntegerT, MLIntegerT) {
+	if (ml_integer_value(Args[0]) == ml_integer_value(Args[1])) {
+		return ml_integer(1);
+	} else {
+		return ml_integer(0);
+	}
+}
+
+ML_METHOD(DeltaMethod, MLRealT, MLRealT) {
+	if (ml_real_value(Args[0]) == ml_real_value(Args[1])) {
+		return ml_integer(1);
+	} else {
+		return ml_integer(0);
+	}
+}
+
 #ifdef ML_COMPLEX
 
 ML_METHOD(AbsMethod, MLComplexT) {
@@ -526,6 +544,14 @@ ML_METHOD(ConjMethod, MLComplexT) {
 //>real
 // Returns the complex conjugate of :mini:`Z`.
 	return ml_complex(conj(ml_complex_value(Args[0])));
+}
+
+ML_METHOD(DeltaMethod, MLComplexT, MLComplexT) {
+	if (ml_complex_value(Args[0]) == ml_complex_value(Args[1])) {
+		return ml_integer(1);
+	} else {
+		return ml_integer(0);
+	}
 }
 
 #endif
@@ -631,6 +657,7 @@ void ml_math_init(stringmap_t *Globals) {
 			"round", RoundMethod,
 			"arg", ArgMethod,
 			"conj", ConjMethod,
+			"delta", DeltaMethod,
 			"pi", ml_real(M_PI),
 			"π", ml_real(M_PI),
 			"e", ml_real(M_E),

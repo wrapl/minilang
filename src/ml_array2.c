@@ -3509,73 +3509,33 @@ ML_METHOD("lu", MLMatrixT) {
 	}
 }
 
-ML_METHOD("qr", MLMatrixT) {
-	ml_array_t *Source = (ml_array_t *)Args[0];
-	int R = Source->Dimensions[0].Size;
-	int C = Source->Dimensions[1].Size;
-	if (R < C) return ml_error("ArrayError", "Invalid array shape for operation");
-	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
-		ml_array_t *Tmp = ml_array_alloc(ML_ARRAY_FORMAT_F64, 2);
-		ml_array_copy(Tmp, Source);
-		double *Temp = (double *)Tmp->Base.Value;
-		double RDiag[C];
-		for (int I = 0; I < C; ++I) {
-			double Norm = 0.0;
-			for (int J = I; J < R; ++J) Norm = hypot(Norm, Temp[J * C + I]);
-			if (Norm != 0.0) {
-				if (Temp[I * C + I] < 0.0) Norm = -Norm;
-				for (int J = I; J < R; ++J) Temp[J * C + I] /= Norm;
-				Temp[I * C + I] += 1.0;
-				for (int K = I + 1; K < C; ++K) {
-					double S = 0.0;
-					for (int J = I; J < R; ++J) {
-						S += Temp[J * C + I] * Temp[J * C + K];
-					}
-					S /= -Temp[I * C + I];
-					for (int J = I; J < R; ++J) {
-						Temp[J * C + K] += S * Temp[J * C + I];
-					}
-				}
-			}
-			RDiag[I] = -Norm;
-		}
-		double *Q = anew(double, R * C);
-		for (int I = 0; I < R * C; ++I) Q[I] = 0.0;
-		for (int I = C - 1; I >= 0; --I) {
-			Q[I * C + I] = 1.0;
-			for (int II = I; II < C; ++II) {
-				double T = Temp[I * C + I];
-				if (T != 0.0) {
-					double S = 0.0;
-					for (int J = I; J < R; ++J) {
-						S += Temp[J * C + I] * Q[J * C + II];
-					}
-					S /= -T;
-					for (int J = I; J < R; ++J) {
-						Q[J * C + II] += S * Temp[J * C + I];
-					}
-				}
-			}
-		}
-		Tmp->Base.Value = (char *)Q;
-		ml_array_t *R = ml_array(ML_ARRAY_FORMAT_F64, 2, C, C);
-		double *RValues = (double *)R->Base.Value;
-		for (int I = 0; I < C; ++I) {
-			for (int J = 0; J < C; ++J) {
-				if (I < J) {
-					RValues[I * C + J] = Temp[I + C + J];
-				} else if (I == J) {
-					RValues[I * C + J] = RDiag[I];
-				} else {
-					RValues[I * C + J] = 0.0;
-				}
-			}
-		}
-		return ml_tuplev(2, Tmp, R);
-	} else {
-		return ml_error("ArrayError", "Invalid array type for operation");
-	}
-}
+ML_MINI_FUNCTION(MatrixQR, ("A"),
+	"fun householder(A: vector) do\n"
+	"	let V := A / (A[1] + ||A)\n"
+	"	V[1] := 1\n"
+	"	let N := A:shape[1]\n"
+	"	let H := ((-2 / (V . V)) * (V ** V))\n"
+	"	for J in 1 .. N do\n"
+	"		H[J, J] := old + 1\n"
+	"	end\n"
+	"	ret H\n"
+	"end\n"
+	"let (M, N) := A:shape\n"
+	"var Q := array::float64(M, M)\n"
+	"for J in 1 .. M do Q[J, J] := 1 end\n"
+	"var R := matrix(A)\n"
+	"let K := if M = N then N - 1 else N end\n"
+	"let H := array::float64(M, M)\n"
+	"for I in 1 .. K do\n"
+	"	H[I .. M, I .. M] := householder(R[I .. M, I])\n"
+	"	Q := Q . H\n"
+	"	R := H . R\n"
+	"	H[I + 1 .. M, I] := 0\n"
+	"	H[I, I + 1 .. M] := 0\n"
+	"	H[I, I] := 1\n"
+	"end\n"
+	"ret (Q, R)\n"
+);
 
 ML_METHOD("\\", MLMatrixT) {
 //<A
@@ -4091,6 +4051,8 @@ void ml_array2_init(stringmap_t *Globals) {
 	ml_method_by_name("**", MLArrayInfixMulFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("//", MLArrayInfixDivFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+
+	ml_method_define(ml_method("qr"), MatrixQR, 1, NULL, (ml_type_t *[]){MLMatrixT});
 
 	ml_method_by_value(AbsMethod, labs, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
 	ml_method_by_value(SquareMethod, isquare, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
