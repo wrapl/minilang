@@ -1169,22 +1169,7 @@ ML_METHODX("flush", MLStreamBufferedT) {
 }
 
 static void ML_TYPED_FN(ml_stream_read, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Stream, void *Address, int Count) {
-	size_t Total = 0, Length = ml_stringbuffer_reader(Stream, 0);
-	while (Count) {
-		if (!Length) break;
-		if (Length >= Count) {
-			memcpy(Address, Stream->Head->Chars + Stream->Start, Count);
-			ml_stringbuffer_reader(Stream, Count);
-			Total += Count;
-			break;
-		}
-		memcpy(Address, Stream->Head->Chars + Stream->Start, Length);
-		Total += Length;
-		Count -= Length;
-		Address += Length;
-		Length = ml_stringbuffer_reader(Stream, Length);
-	}
-	ML_RETURN(ml_integer(Total));
+	ML_RETURN(ml_stringbuffer_read(Stream, Address, Count));
 }
 
 ML_METHOD("read", MLStringBufferT, MLBufferT) {
@@ -1192,22 +1177,7 @@ ML_METHOD("read", MLStringBufferT, MLBufferT) {
 	ml_stringbuffer_t *Stream = (ml_stringbuffer_t *)Args[0];
 	void *Address = ml_buffer_value(Args[1]);
 	Count = ml_buffer_length(Args[1]);
-	size_t Length = 0, Total = 0;
-	while (Count) {
-		Length = ml_stringbuffer_reader(Stream, Length);
-		if (!Length) break;
-		if (Length > Count) {
-			memcpy(Address, Stream->Head->Chars + Stream->Start, Count);
-			ml_stringbuffer_reader(Stream, Count);
-			Total += Count;
-			break;
-		}
-		memcpy(Address, Stream->Head->Chars + Stream->Start, Length);
-		Total += Length;
-		Count -= Length;
-		Address += Length;
-	}
-	return ml_integer(Total);
+	return ml_integer(ml_stringbuffer_read(Stream, Address, Count));
 }
 
 ML_METHOD("_start", MLStringBufferT) {

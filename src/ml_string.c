@@ -234,30 +234,6 @@ ml_comp_method_address_address(>, >)
 ml_comp_method_address_address(<=, <=)
 ml_comp_method_address_address(>=, >=)
 
-ML_METHOD("get8", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the signed 8-bit value at :mini:`Address`.
-//$= let A := address("Hello world!\n")
-//$= A:get8
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(int8_t *)Address->Value);
-}
-
-ML_METHOD("getu8", MLAddressT) {
-//!address
-//<Address
-//>integer
-// Returns the unsigned 8-bit value at :mini:`Address`.
-//$= let A := address("Hello world!\n")
-//$= A:getu8
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
-	return ml_integer(*(uint8_t *)Address->Value);
-}
-
 ML_METHOD("gets", MLAddressT) {
 //!address
 //<Address
@@ -401,6 +377,30 @@ ML_METHOD("const", MLVisitorT, MLBufferT) {
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);
 	return ml_address(Value, Size);
+}
+
+ML_METHOD("get8", MLAddressT) {
+//!address
+//<Address
+//>integer
+// Returns the signed 8-bit value at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:get8
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
+	return ml_integer(*(int8_t *)Address->Value);
+}
+
+ML_METHOD("getu8", MLAddressT) {
+//!address
+//<Address
+//>integer
+// Returns the unsigned 8-bit value at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:getu8
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
+	return ml_integer(*(uint8_t *)Address->Value);
 }
 
 ML_METHOD("put8", MLBufferT, MLIntegerT) {
@@ -5234,6 +5234,60 @@ ML_METHOD("length", MLStringBufferT) {
 	return ml_integer(Buffer->Length);
 }
 
+size_t ml_stringbuffer_read(ml_stringbuffer_t *Buffer, void *Address, size_t Count) {
+	if (!Buffer->Length) return 0;
+	if (Count > Buffer->Length) Count = Buffer->Length;
+	ml_stringbuffer_node_t *Node = Buffer->Head;
+	size_t Available = ML_STRINGBUFFER_NODE_SIZE - Buffer->Start;
+	if (Count < Available) {
+		memcpy(Address, Node->Chars + Buffer->Start, Count);
+		if (Buffer->Length == Count) {
+			ml_stringbuffer_node_free(Node);
+			Buffer->Head = Buffer->Tail = NULL;
+			Buffer->Length = Buffer->Space = Buffer->Start = 0;
+		} else {
+			Buffer->Start += Count;
+			Buffer->Length -= Count;
+		}
+		return Count;
+	}
+	size_t Remaining = Count;
+	memcpy(Address, Node->Chars + Buffer->Start, Available);
+	ml_stringbuffer_node_t *Next = Node->Next;
+	ml_stringbuffer_node_free(Node);
+	Node = Next;
+	Address += Available;
+	Remaining -= Available;
+	while (Remaining > ML_STRINGBUFFER_NODE_SIZE) {
+		memcpy(Address, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
+		ml_stringbuffer_node_t *Next = Node->Next;
+		ml_stringbuffer_node_free(Node);
+		Node = Next;
+		Address += ML_STRINGBUFFER_NODE_SIZE;
+		Remaining -= ML_STRINGBUFFER_NODE_SIZE;
+	}
+	if (Remaining > 0) {
+		memcpy(Address, Node->Chars, Remaining);
+		if (Count == Buffer->Length) {
+			ml_stringbuffer_node_free(Node);
+			Buffer->Head = Buffer->Tail = NULL;
+			Buffer->Length = Buffer->Space = Buffer->Start = 0;
+		} else {
+			Buffer->Start = Remaining;
+			Buffer->Head = Node;
+			Buffer->Length -= Count;
+		}
+	} else if (Node) {
+		Buffer->Start = 0;
+		Buffer->Head = Node;
+		Buffer->Length -= Count;
+	} else {
+		Buffer->Head = Buffer->Tail = NULL;
+		Buffer->Length = Buffer->Space = Buffer->Start = 0;
+	}
+	return Count;
+}
+
 int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	if (!Node) return 0;
@@ -5312,6 +5366,286 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 	for (int I = 1; I < Count; ++I) State->Args[I - 1] = Args[I];
 	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, State->Args[0]);
 }
+
+ML_METHOD("read8", MLStringBufferT) {
+//<Buffer
+//>integer
+// Reads a signed 8-bit value from :mini:`Buffer`.
+//$= let B := string::buffer("\xCC")
+//$= B:read8
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	if (Buffer->Length < 1) return MLNil;
+	int8_t Value;
+	ml_stringbuffer_read(Buffer, &Value, 1);
+	return ml_integer(Value);
+}
+
+ML_METHOD("readu8", MLStringBufferT) {
+//<Buffer
+//>integer
+// Reads a signed 8-bit value from :mini:`Buffer`.
+//$= let B := string::buffer("\xCC")
+//$= B:readu8
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	if (Buffer->Length < 1) return MLNil;
+	uint8_t Value;
+	ml_stringbuffer_read(Buffer, &Value, 1);
+	return ml_integer(Value);
+}
+
+ML_METHOD("write8", MLStringBufferT, MLIntegerT) {
+//<Buffer
+//<Value
+//>buffer
+// Write :mini:`Value` to :mini:`Buffer` as an 8-bit signed value.
+//$= let B := string::buffer()
+//$= B:write8(120)
+//$= B:rest
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	int8_t Value = ml_integer_value(Args[1]);
+	ml_stringbuffer_write(Buffer, (const char *)&Value, 1);
+	return Args[0];
+}
+
+ML_METHOD("writeu8", MLStringBufferT, MLIntegerT) {
+//<Buffer
+//<Value
+//>buffer
+// Write :mini:`Value` to :mini:`Buffer` as an 8-bit signed value.
+//$= let B := string::buffer()
+//$= B:writeu8(120)
+//$= B:rest
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	uint8_t Value = ml_integer_value(Args[1]);
+	ml_stringbuffer_write(Buffer, (const char *)&Value, 1);
+	return Args[0];
+}
+
+#define ML_STRINGBUFFER_INT_METHODS(WIDTH, SIZE) \
+\
+ML_METHOD("read" #WIDTH, MLStringBufferT) { \
+/*<Buffer
+//>integer
+// Reads a signed WIDTH-bit value from :mini:`Buffer`.
+//$= let B := string::buffer("Hello world!\n")
+//$= B:readWIDTH
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return MLNil; \
+	int ## WIDTH ## _t Value; \
+	ml_stringbuffer_read(Buffer, &Value, SIZE); \
+	return ml_integer(Value); \
+} \
+\
+ML_METHOD("read" #WIDTH, MLStringBufferT, MLByteOrderT) { \
+/*<Buffer
+//>integer
+// Reads a signed WIDTH-bit value from :mini:`Buffer`.
+//$= let B := string::buffer("Hello world!\n")
+//$= B:readWIDTH(address::LE)
+//$= B:readWIDTH(address::BE)
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return MLNil; \
+	int ## WIDTH ## _t Value; \
+	ml_stringbuffer_read(Buffer, &Value, SIZE); \
+	if (ml_enum_value_value(Args[1]) == 2) { \
+		return ml_integer(ML_BIG_ENDIAN(WIDTH)(Value)); \
+	} else { \
+		return ml_integer(ML_LITTLE_ENDIAN(WIDTH)(Value)); \
+	} \
+} \
+\
+ML_METHOD("readu" #WIDTH, MLStringBufferT) { \
+/*<Buffer
+//>integer
+// Reads a signed WIDTH-bit value from :mini:`Buffer`.
+//$= let B := string::buffer("Hello world!\n")
+//$= B:readuWIDTH
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return MLNil; \
+	uint ## WIDTH ## _t Value; \
+	ml_stringbuffer_read(Buffer, &Value, SIZE); \
+	return ml_integer(Value); \
+} \
+\
+ML_METHOD("read" #WIDTH, MLStringBufferT, MLByteOrderT) { \
+/*<Buffer
+//>integer
+// Reads a signed WIDTH-bit value from :mini:`Buffer`.
+//$= let B := string::buffer("Hello world!\n")
+//$= B:readuWIDTH(address::LE)
+//$= B:readuWIDTH(address::BE)
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return MLNil; \
+	uint ## WIDTH ## _t Value; \
+	ml_stringbuffer_read(Buffer, &Value, SIZE); \
+	if (ml_enum_value_value(Args[1]) == 2) { \
+		return ml_integer(ML_BIG_ENDIAN(WIDTH)(Value)); \
+	} else { \
+		return ml_integer(ML_LITTLE_ENDIAN(WIDTH)(Value)); \
+	} \
+} \
+\
+ML_METHOD("write" #WIDTH, MLStringBufferT, MLIntegerT) { \
+/*<Buffer
+//<Value
+//>buffer
+// Writes :mini:`Value` to :mini:`Buffer` as an WIDTH-bit signed value. Uses the platform byte order.
+//$= let B := string::buffer()
+//$= B:writeWIDTH(12345)
+//$= B:rest
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	int ## WIDTH ## _t Value = ml_integer_value(Args[1]); \
+	ml_stringbuffer_write(Buffer, (const char *)&Value, SIZE); \
+	return Args[0]; \
+} \
+\
+ML_METHOD("write" #WIDTH, MLStringBufferT, MLIntegerT, MLByteOrderT) { \
+/*<Buffer
+//<Value
+//>buffer
+// Writes :mini:`Value` to :mini:`Buffer` as an WIDTH-bit signed value. Uses the given byte order.
+//$= let B := string::buffer()
+//$= B:writeWIDTH(12345, address::LE)
+//$= B:rest
+//$= B:writeWIDTH(12345, address::BE)
+//$= B:rest
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	int ## WIDTH ## _t Value; \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		Value = ML_BIG_ENDIAN(WIDTH)(ml_integer_value(Args[1])); \
+	} else { \
+		Value = ML_LITTLE_ENDIAN(WIDTH)(ml_integer_value(Args[1])); \
+	} \
+	ml_stringbuffer_write(Buffer, (const char *)&Value, SIZE); \
+	return Args[0]; \
+} \
+\
+ML_METHOD("writeu" #WIDTH, MLStringBufferT, MLIntegerT) { \
+/*<Buffer
+//<Value
+//>buffer
+// Writes :mini:`Value` to :mini:`Buffer` as an WIDTH-bit unsigned value. Uses the platform byte order.
+//$= let B := string::buffer()
+//$= B:writeuWIDTH(12345)
+//$= B:rest
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	uint ## WIDTH ## _t Value = ml_integer_value(Args[1]); \
+	ml_stringbuffer_write(Buffer, (const char *)&Value, SIZE); \
+	return Args[0]; \
+} \
+\
+ML_METHOD("writeu" #WIDTH, MLStringBufferT, MLIntegerT, MLByteOrderT) { \
+/*<Buffer
+//<Value
+//>buffer
+// Writes :mini:`Value` to :mini:`Buffer` as an WIDTH-bit unsigned value. Uses the given byte order.
+//$= let B := string::buffer()
+//$= B:writeuWIDTH(12345, address::LE)
+//$= B:rest
+//$= B:writeuWIDTH(12345, address::BE)
+//$= B:rest
+*/ \
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
+	uint ## WIDTH ## _t Value; \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		Value = ML_BIG_ENDIAN(WIDTH)(ml_integer_value(Args[1])); \
+	} else { \
+		Value = ML_LITTLE_ENDIAN(WIDTH)(ml_integer_value(Args[1])); \
+	} \
+	ml_stringbuffer_write(Buffer, (const char *)&Value, SIZE); \
+	return Args[0]; \
+}
+
+ML_STRINGBUFFER_INT_METHODS(16, 2)
+ML_STRINGBUFFER_INT_METHODS(32, 4)
+ML_STRINGBUFFER_INT_METHODS(64, 8)
+
+#define ML_BUFFER_REAL_METHODS(WIDTH, SIZE, CTYPE) \
+\
+ML_METHOD("getf" #WIDTH, MLAddressT) { \
+/*!address
+//@getfWIDTH
+//<Address
+//>real
+// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses the platform byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getfWIDTH
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	return ml_real(*(CTYPE *)Address->Value); \
+} \
+\
+ML_METHOD("getf" #WIDTH, MLAddressT, MLByteOrderT) { \
+/*!address
+//@getfWIDTH
+//<Address
+//<Order
+//>real
+// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getfWIDTH(address::LE)
+//$= A:getfWIDTH(address::BE)
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	if (ml_enum_value_value(Args[1]) == 2) { \
+		X.I = ML_BIG_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)Address->Value); \
+	} else { \
+		X.I = ML_LITTLE_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)Address->Value); \
+	} \
+	return ml_real(X.R); \
+} \
+\
+ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT) { \
+/*!buffer
+//@putfWIDTH
+//<Buffer
+//<Value
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses the platform byte order.
+//$= buffer(SIZE):putfWIDTH(1.23456789)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	*(CTYPE *)Buffer->Value = ml_real_value(Args[1]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT, MLByteOrderT) { \
+/*!buffer
+//@putfWIDTH
+//<Buffer
+//<Value
+//<Order
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses little endian byte order.
+//$= buffer(SIZE):putfWIDTH(1.23456789, address::LE)
+//$= buffer(SIZE):putfWIDTH(1.23456789, address::BE)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	X.R = ml_real_value(Args[1]); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		*(uint ## WIDTH ## _t *)Buffer->Value = ML_BIG_ENDIAN(WIDTH)(X.I);  \
+	} else { \
+		*(uint ## WIDTH ## _t *)Buffer->Value = ML_LITTLE_ENDIAN(WIDTH)(X.I);  \
+	} \
+	return Args[0]; \
+}
+
+ML_BUFFER_REAL_METHODS(32, 4, float)
+ML_BUFFER_REAL_METHODS(64, 8, double)
+
 
 typedef struct {
 	const char *Chars;

@@ -921,6 +921,8 @@ static inline ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const cha
 	return Length;
 }
 
+size_t ml_stringbuffer_read(ml_stringbuffer_t *Buffer, void *Address, size_t Count);
+
 static inline void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
