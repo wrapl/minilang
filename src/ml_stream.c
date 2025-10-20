@@ -1169,7 +1169,7 @@ ML_METHODX("flush", MLStreamBufferedT) {
 }
 
 static void ML_TYPED_FN(ml_stream_read, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Stream, void *Address, int Count) {
-	ML_RETURN(ml_stringbuffer_read(Stream, Address, Count));
+	ML_RETURN(ml_integer(ml_stringbuffer_read(Stream, Address, Count)));
 }
 
 ML_METHOD("read", MLStringBufferT, MLBufferT) {
