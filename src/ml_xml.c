@@ -2048,7 +2048,10 @@ static ml_value_t *ml_xml_from_string(const char *Text, size_t Length, int Flags
 	XML_SetDefaultHandler(Handle, (void *)xml_default);
 	if (XML_Parse(Handle, Text, Length, 1) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Handle);
-		return ml_error("XMLError", "%s", XML_ErrorString(Error));
+		size_t Line = XML_GetCurrentLineNumber(Handle);
+		size_t Column = XML_GetCurrentColumnNumber(Handle);
+		size_t Index = XML_GetCurrentByteIndex(Handle);
+		return ml_error("XMLError", "[%ld,%ld] (%ld) %s", Line, Column, Index, XML_ErrorString(Error));
 	}
 	return Result ?: ml_error("XMLError", "Incomplete XML");
 }
@@ -2083,12 +2086,18 @@ static void ml_xml_stream_state_run(ml_xml_stream_state_t *State, ml_value_t *Re
 	size_t Length = ml_integer_value(Result);
 	if (XML_Parse(State->Handle, State->Text, Length, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(State->Handle);
-		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
+		size_t Line = XML_GetCurrentLineNumber(State->Handle);
+		size_t Column = XML_GetCurrentColumnNumber(State->Handle);
+		size_t Index = XML_GetCurrentByteIndex(State->Handle);
+		ML_ERROR("XMLError", "[%ld,%ld] (%ld) %s", Line, Column, Index, XML_ErrorString(Error));
 	}
 	if (!Length) {
 		if (XML_Parse(State->Handle, "", 0, 1) == XML_STATUS_ERROR) {
 			enum XML_Error Error = XML_GetErrorCode(State->Handle);
-			ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
+			size_t Line = XML_GetCurrentLineNumber(State->Handle);
+			size_t Column = XML_GetCurrentColumnNumber(State->Handle);
+			size_t Index = XML_GetCurrentByteIndex(State->Handle);
+			ML_ERROR("XMLError", "[%ld,%ld] (%ld) %s", Line, Column, Index, XML_ErrorString(Error));
 		}
 		ML_RETURN(State->Result ?: ml_error("XMLError", "Incomplete XML"));
 	}
@@ -2255,7 +2264,10 @@ ML_TYPE(MLXmlParserT, (MLStreamT), "xml::parser",
 static void ML_TYPED_FN(ml_stream_write, MLXmlParserT, ml_state_t *Caller, ml_xml_parser_t *Parser, const void *Address, int Count) {
 	if (XML_Parse(Parser->Handle, Address, Count, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Parser->Handle);
-		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
+		size_t Line = XML_GetCurrentLineNumber(Parser->Handle);
+		size_t Column = XML_GetCurrentColumnNumber(Parser->Handle);
+		size_t Index = XML_GetCurrentByteIndex(Parser->Handle);
+		ML_ERROR("XMLError", "[%ld,%ld] (%ld) %s", Line, Column, Index, XML_ErrorString(Error));
 	}
 	ML_RETURN(ml_integer(Count));
 }
@@ -2263,7 +2275,10 @@ static void ML_TYPED_FN(ml_stream_write, MLXmlParserT, ml_state_t *Caller, ml_xm
 static void ML_TYPED_FN(ml_stream_flush, MLXmlParserT, ml_state_t *Caller, ml_xml_parser_t *Parser) {
 	if (XML_Parse(Parser->Handle, "", 0, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Parser->Handle);
-		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
+		size_t Line = XML_GetCurrentLineNumber(Parser->Handle);
+		size_t Column = XML_GetCurrentColumnNumber(Parser->Handle);
+		size_t Index = XML_GetCurrentByteIndex(Parser->Handle);
+		ML_ERROR("XMLError", "[%ld,%ld] (%ld) %s", Line, Column, Index, XML_ErrorString(Error));
 	}
 	ML_RETURN(Parser);
 }
