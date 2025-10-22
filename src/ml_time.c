@@ -395,9 +395,9 @@ ML_METHODV("+", MLTimeT, MLNamesT, MLIntegerT) {
 	ML_NAMES_FOREACH(Args[1], Iter) {
 		const char *Part = ml_string_value(Iter->Value);
 		if (!strcmp(Part, "year")) {
-			TM.tm_year += ml_integer_value(*Arg++) - 1900;
+			TM.tm_year += ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "month")) {
-			TM.tm_mon += ml_integer_value(*Arg++) - 1;
+			TM.tm_mon += ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "day")) {
 			TM.tm_mday += ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "hour")) {
@@ -430,9 +430,9 @@ ML_METHODV("-", MLTimeT, MLNamesT, MLIntegerT) {
 	ML_NAMES_FOREACH(Args[1], Iter) {
 		const char *Part = ml_string_value(Iter->Value);
 		if (!strcmp(Part, "year")) {
-			TM.tm_year -= ml_integer_value(*Arg++) - 1900;
+			TM.tm_year -= ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "month")) {
-			TM.tm_mon -= ml_integer_value(*Arg++) - 1;
+			TM.tm_mon -= ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "day")) {
 			TM.tm_mday -= ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "hour")) {
