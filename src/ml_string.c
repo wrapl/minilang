@@ -4908,24 +4908,41 @@ ML_FUNCTION(MLStringBufferCount) {
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
-	Buffer->Length -= Length;
-	Buffer->Start += Length;
-	while (Node) {
-		size_t Limit = ML_STRINGBUFFER_NODE_SIZE;
-		if (Node == Buffer->Tail) Limit -= Buffer->Space;
-		if (Buffer->Start < Limit) return Limit - Buffer->Start;
-		ml_stringbuffer_node_t *Next = Node->Next;
-		ml_stringbuffer_node_free(Node);
-		Buffer->Start = 0;
-		if (Next) {
-			Node = Buffer->Head = Next;
-		} else {
-			Buffer->Head = Buffer->Tail = NULL;
-			Buffer->Space = 0;
-			break;
-		}
+	if (!Length) {
+		if (Node == Buffer->Tail) return (ML_STRINGBUFFER_NODE_SIZE - Buffer->Start) - Buffer->Space;
+		return ML_STRINGBUFFER_NODE_SIZE - Buffer->Start;
 	}
-	return 0;
+	Buffer->Length -= Length;
+	size_t Start = Buffer->Start + Length;
+	if (Node == Buffer->Tail) {
+		size_t Limit = ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+		if (Start == Limit) {
+			ml_stringbuffer_node_free(Node);
+			Buffer->Start = Buffer->Space = 0;
+			Buffer->Head = Buffer->Tail = NULL;
+			return 0;
+		}
+		Buffer->Start = Start;
+		return Limit - Start;
+	}
+	if (Start < ML_STRINGBUFFER_NODE_SIZE) {
+		Buffer->Start = Start;
+		return ML_STRINGBUFFER_NODE_SIZE - Start;
+	}
+	ml_stringbuffer_node_t *Next = Node->Next;
+	ml_stringbuffer_node_free(Node);
+	Buffer->Start = 0;
+	if (!Next) {
+		Buffer->Space = 0;
+		Buffer->Head = Buffer->Tail = NULL;
+		return 0;
+	}
+	Buffer->Head = Next;
+	if (Next == Buffer->Tail) {
+		return ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+	} else {
+		return ML_STRINGBUFFER_NODE_SIZE;
+	}
 }
 
 char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
