@@ -4,10 +4,11 @@ DEBUG := defined("DEBUG")
 
 CC := defined("CC") or "cc"
 AS := defined("AS") or CC
-CFLAGS := ["-pipe"]
-LDFLAGS := []
+CFLAGS := old or []
+LDFLAGS := old or []
 PREBUILDS := []
 
+CFLAGS:put("-pipe")
 if defined("CFLAGS") then
 	CFLAGS:grow(defined("CFLAGS") / " ")
 end
