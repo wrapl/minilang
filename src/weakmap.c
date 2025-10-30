@@ -35,7 +35,7 @@ static void *weakmap_grow(weakmap_t *Map, size_t Size) {
 		Insert.Key = Old->Key;
 		Insert.Hash = Old->Hash;
 		Insert.Value = Old->Value;
-		Insert.Offset = 0;
+		Insert.Offset = 1;
 		size_t Index = Insert.Hash & Mask;
 		weakmap_node_t *Node = Nodes + Index;
 		while (Node->Value) {
@@ -119,7 +119,7 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	weakmap_node_t *Nodes = Map->Nodes;
 	size_t Mask = Map->Mask;
 	size_t Index = Hash & Mask;
-	size_t Offset = 0;
+	size_t Offset = 1;
 	weakmap_node_t *Node = Nodes + Index;
 	while (Offset <= Node->Offset) {
 		if (Node->Hash == Hash) {
