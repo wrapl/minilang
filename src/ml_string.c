@@ -795,6 +795,11 @@ static ml_string_t MLEmptyString[1] = {{MLStringT, "", 0, 0}};
 ml_value_t *ml_string(const char *Value, int Length) {
 	if (!Length || !Value) return (ml_value_t *)MLEmptyString;
 	if (Length > 0 && Value[Length]) {
+#ifdef ML_STRINGCACHE
+		if (Length < ML_STRINGCACHE_MAX) {
+			return weakmap_insert(StringCache, Value, Length, _ml_string);
+		}
+#endif
 		char *Copy = snew(Length + 1);
 		memcpy(Copy, Value, Length);
 		Copy[Length] = 0;
