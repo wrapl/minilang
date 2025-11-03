@@ -686,14 +686,37 @@ ML_METHOD("put", MLBufferT, MLAddressT) {
 }
 
 static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
-	long Hash = String->Hash;
+	uint64_t Hash = String->Hash;
+	if (Hash) return Hash;
 	if (!Hash) {
-		Hash = 5381;
+		/*Hash = 5381;
 		int Length = String->Length;
 		for (const unsigned char *P = (const unsigned char *)String->Value; --Length >= 0; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+		String->Hash = Hash;*/
+		size_t Hash = 5381;
+		int32_t *P = (int32_t *)String->Value;
+		int I = String->Length;
+		while (I > 4) {
+			uint64_t K = *P++ + I;
+			uint64_t K2 = (K * 0xcc9e2d51bc45a917);
+			Hash = (Hash << 29) | (Hash >> 35);
+			Hash ^= K2;
+			I -= 4;
+		}
+		const unsigned char *P2 = (const unsigned char *)P;
+		uint64_t K = 0;
+		while (I > 0) {
+			K <<= 8;
+			K |= *P2++;
+			--I;
+		}
+		K += String->Length;
+		uint64_t K2 = (K * 0xcc9e2d51bc45a917);
+		Hash = (Hash << 29) | (Hash >> 35);
+		Hash ^= K2;
 		String->Hash = Hash;
+		return Hash;
 	}
-	return Hash;
 }
 
 ML_METHOD_DECL(AppendMethod, "append");

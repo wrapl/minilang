@@ -7,7 +7,7 @@
 struct weakmap_node_t {
 	const char *Key;
 	void *Value;
-	size_t Hash, Offset;
+	uint32_t Hash, Offset, Length;
 };
 
 static inline uint32_t murmur3_scramble(uint32_t K) {
@@ -17,7 +17,7 @@ static inline uint32_t murmur3_scramble(uint32_t K) {
 	return K;
 }
 
-static inline size_t weakmap_hash(const char *Key, int Length) {
+static inline uint32_t weakmap_hash(const char *Key, int Length) {
 	/*size_t Hash = 5381;
 	for (const unsigned char *P = (const unsigned char *)Key; --Length >= 0; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;*/
@@ -46,7 +46,7 @@ static inline size_t weakmap_hash(const char *Key, int Length) {
 	Hash *= 0xc2b2ae35;
 	Hash ^= Hash >> 16;
 	return Hash;*/
-	size_t Hash = 5381;
+	uint32_t Hash = 5381;
 	int32_t *P = (int32_t *)Key;
 	int I = Length;
 	while (I > 4) {
@@ -88,6 +88,7 @@ static __attribute__ ((noinline)) void *weakmap_grow(weakmap_t *Map, size_t Size
 		weakmap_node_t Insert;
 		Insert.Key = Old->Key;
 		Insert.Hash = Old->Hash;
+		Insert.Length = Old->Length;
 		Insert.Value = Old->Value;
 		Insert.Offset = 1;
 		GC_unregister_disappearing_link(&Old->Value);
@@ -172,6 +173,7 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 		weakmap_node_t *Node = Nodes + Index;
 		Node->Key = weakmap_copy_key(Key, Length);
 		Node->Hash = Hash;
+		Node->Length = Length;
 		Node->Offset = 1;
 		void *Result = Node->Value = missing(Node->Key, Length);
 		GC_general_register_disappearing_link(&Node->Value, Result);
@@ -189,11 +191,11 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	weakmap_node_t *Node = Nodes + Index;
 	while (Offset <= Node->Offset) {
 		//if (Node->Key) fprintf(stderr, "[%d] -> %s +%d\n", Index, Node->Key, Node->Offset);
-		if (Node->Hash == Hash) {
+		if (Node->Hash == Hash && Node->Length == Length) {
 			//void *Value = Node->Value;
 			void *Value = GC_call_with_alloc_lock(weakmap_node_value, Node);
 			//if (!Value) fprintf(stderr, "Value was deleted: (%s)\n", Key);
-			if (Value && !strncmp(Node->Key, Key, Length)) {
+			if (Value && !memcmp(Node->Key, Key, Length)) {
 #ifdef ML_HOSTTHREADS
 				pthread_mutex_unlock(Map->Lock);
 				//GC_alloc_unlock();
@@ -235,8 +237,9 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	}
 	//fprintf(stderr, "Nodes = %ld\n", Nodes);
 	weakmap_node_t Insert;
-	Insert.Hash = Hash;
 	Insert.Key = weakmap_copy_key(Key, Length);
+	Insert.Hash = Hash;
+	Insert.Length = Length;
 	Insert.Offset = Offset;
 	void *Result = Insert.Value = missing(Insert.Key, Length);
 	//fprintf(stderr, "Creating missing value for key %s: space %ld ->", Insert.Key, Map->Space);
