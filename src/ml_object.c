@@ -1287,10 +1287,7 @@ ML_METHOD("random", MLEnumT) {
 //>enum::value
 	ml_enum_t *Enum = (ml_enum_t *)Args[0];
 	int Limit = Enum->Base.Exports->Size;
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = rand() / Divisor; while (Random >= Limit);
-	return (ml_value_t *)(Enum->Values + Random);
+	return (ml_value_t *)(Enum->Values + ml_random_integer(Limit));
 }
 
 ML_METHOD(MLIntegerT, MLEnumValueT) {

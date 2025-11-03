@@ -571,6 +571,7 @@ extern ml_type_t MLDoubleT[];
 extern ml_type_t MLInteger64T[];
 
 uint64_t ml_gcd(uint64_t A, uint64_t B);
+uint64_t ml_random_integer(uint64_t Limit);
 
 #ifdef ML_RATIONAL
 

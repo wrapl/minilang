@@ -769,7 +769,7 @@ int GC_asprintf(char **Ptr, const char *Format, ...) {
 
 #ifdef ML_STRINGCACHE
 
-#define ML_STRINGCACHE_MAX 64
+#define ML_STRINGCACHE_MAX 32
 
 #include "weakmap.h"
 
@@ -1994,9 +1994,7 @@ ML_METHOD("random", MLStringIntervalT) {
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
 	int64_t Diff = Interval->Limit - Interval->Start;
 	int Limit = Diff + 1;
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = rand() / Divisor; while (Random >= Limit);
+	int Random = ml_random_integer(Limit);
 	uint32_t Code = Interval->Start + Random;
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;

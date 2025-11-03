@@ -4375,8 +4375,7 @@ ML_FUNCTION(RandomPermutation) {
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
 	Values[0] = 1;
 	for (int I = 2; I <= Limit; ++I) {
-		int Divisor = RAND_MAX / I, J;
-		do J = rand() / Divisor; while (J >= I);
+		int J = ml_random_integer(I);
 		if (J + 1 == I) {
 			Values[I - 1] = I;
 		} else {
@@ -4409,8 +4408,7 @@ ML_FUNCTION(RandomCycle) {
 	Values[0] = 2;
 	Values[1] = 1;
 	for (int I = 2; I < Limit; ++I) {
-		int Divisor = RAND_MAX / I, J;
-		do J = rand() / Divisor; while (J >= I);
+		int J = ml_random_integer(I);
 		int Old = Values[J];
 		Values[J] = I + 1;
 		Values[I] = Old;

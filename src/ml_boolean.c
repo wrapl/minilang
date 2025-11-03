@@ -141,14 +141,14 @@ ML_FUNCTION(RandomBoolean) {
 //<P?:number
 //>boolean
 // Returns a random boolean that has probability :mini:`P` of being :mini:`true`. If omitted, :mini:`P` defaults to :mini:`0.5`.
-	int Threshold;
+	uint32_t Threshold;
 	if (Count == 1) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
-		Threshold = RAND_MAX * ml_real_value(Args[0]);
+		Threshold = UINT32_MAX * ml_real_value(Args[0]);
 	} else {
-		Threshold = RAND_MAX / 2;
+		Threshold = UINT32_MAX / 2;
 	}
-	return (ml_value_t *)(rand() > Threshold ? MLFalse : MLTrue);
+	return (ml_value_t *)(arc4random() > Threshold ? MLFalse : MLTrue);
 }
 
 void ml_boolean_init() {

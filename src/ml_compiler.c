@@ -3462,6 +3462,7 @@ void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int
 		if (Function->Compiler->UseGlobals) {
 			Value = (ml_value_t *)ml_command_global(Function->Compiler->Vars, Expr->Ident);
 		} else {
+			//fprintf(stderr, "Could not find identifier: %s -> %ld\n", Expr->Ident, Expr->Ident);
 			MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Identifier %s not declared", Expr->Ident));
 		}
 	}
@@ -4494,6 +4495,7 @@ static void ml_scan_string(ml_stringbuffer_t *Buffer, ml_parser_t *Parser) {
 static weakmap_t IdentCache[1] = {WEAKMAP_INIT};
 
 static void *ident_id(const char *Ident, int Length) {
+	//fprintf(stderr, "Creating identifier: %s -> %ld\n", Ident, Ident);
 	return (void *)Ident;
 }
 

@@ -1893,6 +1893,20 @@ ML_METHOD("isnan", MLDoubleT) {
 	return Args[0];
 }
 
+uint64_t ml_random_integer(uint64_t Limit) {
+	if (Limit <= UINT32_MAX) {
+		uint64_t Divisor = UINT32_MAX / Limit;
+		uint64_t Random;
+		do Random = arc4random() / Divisor; while (Random >= Limit);
+		return Random;
+	} else {
+		uint64_t Divisor = UINT64_MAX / Limit;
+		uint64_t Random;
+		do { arc4random_buf(&Random, 8); Random /= Divisor; } while (Random >= Limit);
+		return Random;
+	}
+}
+
 ML_FUNCTION(RandomInteger) {
 //@integer::random
 //<Min?:number
@@ -1903,23 +1917,19 @@ ML_FUNCTION(RandomInteger) {
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
 		ML_CHECK_ARG_TYPE(1, MLRealT);
-		int Base = ml_integer_value(Args[0]);
-		int Limit = ml_integer_value(Args[1]) + 1 - Base;
+		int64_t Base = ml_integer_value(Args[0]);
+		int64_t Limit = ml_integer_value(Args[1]) + 1 - Base;
 		if (Limit <= 0) return Args[0];
-		int Divisor = RAND_MAX / Limit;
-		int Random;
-		do Random = rand() / Divisor; while (Random >= Limit);
-		return ml_integer(Base + Random);
+		return ml_integer(Base + ml_random_integer(Limit));
 	} else if (Count == 1) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
-		int Limit = ml_integer_value(Args[0]);
+		int64_t Limit = ml_integer_value(Args[0]);
 		if (Limit <= 0) return Args[0];
-		int Divisor = RAND_MAX / Limit;
-		int Random;
-		do Random = rand() / Divisor; while (Random >= Limit);
-		return ml_integer(Random + 1);
+		return ml_integer(1 + ml_random_integer(Limit));
 	} else {
-		return ml_integer(rand());
+		uint64_t Random;
+		arc4random_buf(&Random, 8);
+		return ml_integer(Random);
 	}
 }
 
@@ -1939,8 +1949,8 @@ ML_FUNCTION(RandomPermutation) {
 	int *Values = asnew(int, Limit);
 	Values[0] = 1;
 	for (int I = 2; I <= Limit; ++I) {
-		int Divisor = RAND_MAX / I, J;
-		do J = rand() / Divisor; while (J >= I);
+		int Divisor = UINT32_MAX / I, J;
+		do J = arc4random() / Divisor; while (J >= I);
 		if (J + 1 == I) {
 			Values[I - 1] = I;
 		} else {
@@ -1971,8 +1981,8 @@ ML_FUNCTION(RandomCycle) {
 	Values[0] = 2;
 	Values[1] = 1;
 	for (int I = 2; I < Limit; ++I) {
-		int Divisor = RAND_MAX / I, J;
-		do J = rand() / Divisor; while (J >= I);
+		int Divisor = UINT32_MAX / I, J;
+		do J = arc4random() / Divisor; while (J >= I);
 		int Old = Values[J];
 		Values[J] = I + 1;
 		Values[I] = Old;
@@ -1997,15 +2007,15 @@ ML_FUNCTION(RandomReal) {
 		double Base = ml_real_value(Args[0]);
 		double Limit = ml_real_value(Args[1]) - Base;
 		if (Limit <= 0) return Args[0];
-		double Scale = Limit / (double)RAND_MAX;
-		return ml_real(Base + rand() * Scale);
+		double Scale = Limit / (double)UINT32_MAX;
+		return ml_real(Base + arc4random() * Scale);
 	} else if (Count == 1) {
 		double Limit = ml_real_value(Args[0]);
 		if (Limit <= 0) return Args[0];
-		double Scale = Limit / (double)RAND_MAX;
-		return ml_real(rand() * Scale);
+		double Scale = Limit / (double)UINT32_MAX;
+		return ml_real(arc4random() * Scale);
 	} else {
-		return ml_real(rand() / (double)RAND_MAX);
+		return ml_real(arc4random() / (double)UINT32_MAX);
 	}
 }
 
@@ -2487,11 +2497,8 @@ ML_METHOD("random", MLIntegerRangeT) {
 	int64_t Diff = Range->Limit - Range->Start;
 	if (Diff < 0 && Range->Step > 0) return ml_integer(Range->Start);
 	if (Diff > 0 && Range->Step < 0) return ml_integer(Range->Start);
-	int Limit = Diff / Range->Step + 1;
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = rand() / Divisor; while (Random >= Limit);
-	return ml_integer(Range->Start + Random * Range->Step);
+	uint64_t Limit = Diff / Range->Step + 1;
+	return ml_integer(Range->Start + ml_random_integer(Limit) * Range->Step);
 }
 
 ML_METHOD("+", MLIntegerIntervalT, MLIntegerT) {
@@ -2682,12 +2689,8 @@ ML_METHOD("random", MLIntegerIntervalT) {
 //<Interval
 //>integer
 	ml_integer_interval_t *Interval = (ml_integer_interval_t *)Args[0];
-	int64_t Diff = Interval->Limit - Interval->Start;
-	int Limit = Diff + 1;
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = rand() / Divisor; while (Random >= Limit);
-	return ml_integer(Interval->Start + Random);
+	uint64_t Limit = (Interval->Limit - Interval->Start) + 1;
+	return ml_integer(Interval->Start + ml_random_integer(Limit));
 }
 
 typedef struct {
@@ -3251,7 +3254,7 @@ ML_METHOD("random", MLRealRangeT) {
 //<Range
 //>real
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	int Limit;
+	uint64_t Limit;
 	if (Range->Step > 0) {
 		if (Range->Start > Range->Limit) return MLNil;
 		double Diff = Range->Limit - Range->Start;
@@ -3263,10 +3266,7 @@ ML_METHOD("random", MLRealRangeT) {
 	} else {
 		return ml_real(Range->Start);
 	}
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = rand() / Divisor; while (Random >= Limit);
-	return ml_real(Range->Start + Random * Range->Step);
+	return ml_real(Range->Start + ml_random_integer(Limit) * Range->Step);
 }
 
 ML_METHOD("random", MLRealIntervalT) {
@@ -3274,14 +3274,11 @@ ML_METHOD("random", MLRealIntervalT) {
 //<Interval
 //>real
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[0];
-	int Limit;
+	uint64_t Limit;
 	if (Interval->Start > Interval->Limit) return MLNil;
 	double Diff = Interval->Limit - Interval->Start;
 	Limit = floor(Diff);
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = rand() / Divisor; while (Random >= Limit);
-	return ml_real(Interval->Start + Random);
+	return ml_real(Interval->Start + ml_random_integer(Limit));
 }
 
 ML_METHOD("bin", MLRealRangeT, MLIntegerT) {

@@ -582,7 +582,7 @@ typedef struct {
 } ml_random_switch_t;
 
 static void ml_random_switch(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
-	int X = rand();
+	int X = arc4random();
 	for (int *Case = Switch->Cases;; ++Case) {
 		if (X <= *Case) ML_RETURN(ml_integer(Case - Switch->Cases));
 	}
@@ -605,13 +605,13 @@ ML_FUNCTION_INLINE(MLRandomSwitch) {
 	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, int);
 	Switch->Type = MLRandomSwitchT;
 	int *Case = Switch->Cases;
-	double M = RAND_MAX / Total;
+	double M = UINT32_MAX / Total;
 	Total = 0;
 	for (int I = 0; I < Count; ++I) {
 		Total += ml_real_value(ml_list_get(Args[I], 1));
 		*Case++ = M * Total;
 	}
-	Case[-1] = RAND_MAX;
+	Case[-1] = UINT32_MAX;
 	return (ml_value_t *)Switch;
 }
 
