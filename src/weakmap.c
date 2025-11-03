@@ -153,6 +153,13 @@ int weakmap_check(weakmap_t *Map) {
 #define INIT_SIZE 64
 #define MIN_SPACE 8
 
+void weakmap_alloc(weakmap_t *Map) {
+	weakmap_node_t *Nodes = Map->Nodes = GC_malloc_atomic(INIT_SIZE * sizeof(weakmap_node_t));
+	memset(Nodes, 0, INIT_SIZE * sizeof(weakmap_node_t));
+	Map->Mask = INIT_SIZE - 1;
+	Map->Space = INIT_SIZE;
+}
+
 static void *weakmap_node_value(void *Node) {
 	return ((weakmap_node_t *)Node)->Value;
 }
@@ -163,26 +170,6 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 	pthread_mutex_lock(Map->Lock);
 	//GC_alloc_lock();
 #endif
-	if (!Map->Nodes) {
-		weakmap_node_t *Nodes = Map->Nodes = GC_malloc_atomic(INIT_SIZE * sizeof(weakmap_node_t));
-		memset(Nodes, 0, INIT_SIZE * sizeof(weakmap_node_t));
-		size_t Index = Hash % INIT_SIZE;
-		Map->Mask = Map->Space = INIT_SIZE - 1;
-		//fprintf(stderr, "Looking for key %.*s @ %d into weakmap\n", Length, Key, Index);
-		//Map->Deleted = 0;
-		weakmap_node_t *Node = Nodes + Index;
-		Node->Key = weakmap_copy_key(Key, Length);
-		Node->Hash = Hash;
-		Node->Length = Length;
-		Node->Offset = 1;
-		void *Result = Node->Value = missing(Node->Key, Length);
-		GC_general_register_disappearing_link(&Node->Value, Result);
-#ifdef ML_HOSTTHREADS
-		pthread_mutex_unlock(Map->Lock);
-		//GC_alloc_unlock();
-#endif
-		return Result;
-	}
 	weakmap_node_t *Nodes = Map->Nodes;
 	size_t Mask = Map->Mask;
 	size_t Index = Hash & Mask;
