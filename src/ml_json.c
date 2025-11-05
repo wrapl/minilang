@@ -857,8 +857,10 @@ ML_FUNCTION(MLJson) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_value_t *Error = ml_json_encode(Buffer, Args[0]);
 	if (Error) return Error;
-	ml_value_t *Json = ml_stringbuffer_to_string(Buffer);
+	ml_string_t *Json = new(ml_string_t);
 	Json->Type = MLJsonT;
+	Json->Length = Buffer->Length;
+	Json->Value = ml_stringbuffer_get_string(Buffer);
 	return (ml_value_t *)Json;
 }
 
