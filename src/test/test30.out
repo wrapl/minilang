@@ -1,0 +1,14 @@
+Hello world 1
+Goodbye world 1
+Loop iteration = 1
+Hello world 2
+Goodbye world 2
+Loop iteration = 2
+Hello world 3
+Loop iteration = 3
+Hello world 4
+Error 1: no method found for +(integer32, nil)
+Goodbye world 4
+Loop iteration = 4
+Hello world 5
+Loop iteration = 5

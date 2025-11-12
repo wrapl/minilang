@@ -718,6 +718,16 @@ static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 		}
 		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Exit not in loop named %s", Expr->Name));
 	}
+	if (Function->Try != Loop->Try) {
+		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
+		if (Loop->Try) {
+			TryInst[1].Inst = Loop->Try->Retries;
+			Loop->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
+	}
 	if (Function->Top > Loop->NextTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
 		ExitInst[1].Count = Function->Top - Loop->NextTop;
@@ -740,6 +750,11 @@ void ml_next_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int
 		}
 		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Exit not in loop named %s", Expr->Name));
 	}
+	if (Function->Must != Loop->Must) {
+		MLC_FRAME(mlc_parent_expr_t *, ml_next_expr_compile2);
+		Frame[0] = Expr;
+		return ml_must_compile(Function, Function->Must, Loop->Must);
+	}
 	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
 		if (Loop->Try) {
@@ -749,11 +764,6 @@ void ml_next_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int
 			TryInst[1].Inst = Function->Returns;
 			Function->Returns = TryInst + 1;
 		}
-	}
-	if (Function->Must != Loop->Must) {
-		MLC_FRAME(mlc_parent_expr_t *, ml_next_expr_compile2);
-		Frame[0] = Expr;
-		return ml_must_compile(Function, Function->Must, Loop->Must);
 	}
 	if (Function->Top > Loop->NextTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
@@ -769,7 +779,7 @@ void ml_next_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int
 typedef struct {
 	mlc_parent_expr_t *Expr;
 	mlc_loop_t *OldLoop, *Target;
-	mlc_try_t *OldTry;
+	//mlc_try_t *OldTry;
 	int Flags;
 } mlc_exit_expr_frame_t;
 
@@ -777,7 +787,17 @@ static void ml_exit_expr_compile3(mlc_function_t *Function, ml_value_t *Value, m
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	mlc_loop_t *Target = Frame->Target;
 	Function->Loop = Frame->OldLoop;
-	Function->Try = Frame->OldTry;
+	//Function->Try = Frame->OldTry;
+	if (Function->Try != Target->Try) {
+		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
+		if (Target->Try) {
+			TryInst[1].Inst = Target->Try->Retries;
+			Target->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
+	}
 	if (Function->Top > Target->ExitTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
 		ExitInst[1].Count = Function->Top - Target->ExitTop;
@@ -798,10 +818,13 @@ static void ml_exit_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 	mlc_loop_t *Target = Frame->Target;
 	if (Value == MLExprGoto) {
 		Function->Loop = Frame->OldLoop;
-		Function->Try = Frame->OldTry;
+		//Function->Try = Frame->OldTry;
 		MLC_POP();
 		MLC_RETURN(Value);
 	}
+
+
+
 	if (Function->Must != Target->Must) {
 		Function->Frame->run = (mlc_frame_fn)ml_exit_expr_compile3;
 		return ml_must_compile(Function, Function->Must, Target->Must);
@@ -823,7 +846,7 @@ void ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int
 		}
 		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "Exit not in loop named %s", Expr->Name));
 	}
-	if (Function->Try != Loop->Try) {
+	/*if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
 		if (Loop->Try) {
 			TryInst[1].Inst = Loop->Try->Retries;
@@ -832,12 +855,12 @@ void ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int
 			TryInst[1].Inst = Function->Returns;
 			Function->Returns = TryInst + 1;
 		}
-	}
+	}*/
 	Frame->Target = Loop;
 	Frame->OldLoop = Function->Loop;
-	Frame->OldTry = Function->Try;
+	//Frame->OldTry = Function->Try;
 	Function->Loop = Loop->Up;
-	Function->Try = Loop->Try;
+	//Function->Try = Loop->Try;
 	if (Expr->Child) {
 		return mlc_compile(Function, Expr->Child, 0);
 	} else {

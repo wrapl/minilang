@@ -1,0 +1,14 @@
+for I in 1 .. 7 do
+	must print('Loop iteration = {I}\n')
+	do
+		must print('Hello world {I}\n')
+		if I = 3 then next end
+		if I = 4 then exit 1 + nil end
+		if I = 5 then exit 'Done!' end
+	on Error do
+		print('Error 1: {Error:message}\n')
+	end
+	print('Goodbye world {I}\n')
+on Error do
+	print('Error 2: {Error:message}\n')
+end
