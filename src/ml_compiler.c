@@ -236,7 +236,7 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 	return ml_call(Caller, ml_closure(Info), 0, NULL);
 }
 
-static void mlc_expr_call(mlc_function_t *Parent, const mlc_expr_t *Expr) {
+static __attribute__ ((noinline)) void mlc_expr_call(mlc_function_t *Parent, const mlc_expr_t *Expr) {
 	Parent->Frame->Line = Expr->EndLine;
 	mlc_function_t *Function = new(mlc_function_t);
 	Function->Base.Type = MLCompilerFunctionT;
@@ -7325,7 +7325,7 @@ static void ml_command_evaluate_fun(mlc_function_t *Function, ml_parser_t *Parse
 	}
 }
 
-static void ml_command_evaluate_expr(mlc_function_t *Function, ml_parser_t *Parser) {
+static __attribute__ ((noinline)) void ml_command_evaluate_expr(mlc_function_t *Function, ml_parser_t *Parser) {
 	ml_compiler_t *Compiler = Function->Compiler;
 	mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
 	if (ml_parse(Parser, MLT_COLON)) {

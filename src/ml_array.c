@@ -1356,7 +1356,7 @@ ARRAY_OFFSETS_NONZERO(complex_double, 0);
 
 ARRAY_OFFSETS_NONZERO(any, MLNil);
 
-static int ml_array_count_nonzero(ml_array_t *A) {
+int ml_array_count_nonzero(ml_array_t *A) {
 	switch (A->Format) {
 	case ML_ARRAY_FORMAT_U8:
 		return ml_array_count_nonzero_uint8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
@@ -1391,7 +1391,7 @@ static int ml_array_count_nonzero(ml_array_t *A) {
 	}
 }
 
-static int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimension_t *Source) {
+int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimension_t *Source) {
 	switch (A->Format) {
 	case ML_ARRAY_FORMAT_U8:
 		return ml_array_offsets_nonzero_uint8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);

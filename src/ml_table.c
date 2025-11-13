@@ -17,6 +17,7 @@ struct ml_table_t {
 	ml_type_t *Type;
 	ml_table_row_t *Rows;
 	ml_table_column_t *Columns;
+	int *Indices;
 	stringmap_t ColumnNames[1];
 	size_t Capacity, Offset, Length;
 };
@@ -352,6 +353,19 @@ typedef struct {
 static void ml_table_append_next_iter(ml_table_appender_t *State, ml_value_t *Value);
 void ml_table_insert_row(ml_table_t *Table, size_t Index);
 
+static __attribute__ ((noinline)) ml_value_t * ml_table_append_row(ml_table_t *Table, ml_value_t *Value) {
+	int Index = Table->Length + 1;
+	ml_table_insert_row(Table, Index);
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	ml_table_column_t *Column = Table->Columns;
+	ML_LIST_FOREACH(Value, Iter) {
+		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), Iter->Value);
+		if (ml_is_error(Value)) return Value;
+		Column = Column->Next;
+	}
+	return NULL;
+}
+
 static void ml_table_append_next_row(ml_table_appender_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	Value = ml_deref(Value);
@@ -359,22 +373,17 @@ static void ml_table_append_next_row(ml_table_appender_t *State, ml_value_t *Val
 	if (!ml_is(Value, MLListT)) ML_ERROR("TypeError", "Row must be list");
 	ml_table_t *Table = State->Table;
 	if (ml_list_length(Value) != Table->ColumnNames->Size) ML_ERROR("ValueError", "Rows must have same length");
-	int Index = Table->Length + 1;
-	ml_table_insert_row(Table, Index);
-	ml_value_t *Indices[1] = {ml_integer(Index)};
-	ml_table_column_t *Column = Table->Columns;
-	ML_LIST_FOREACH(Value, Iter) {
-		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), Iter->Value);
-		if (ml_is_error(Value)) ML_RETURN(Value);
-		Column = Column->Next;
-	}
+	ml_value_t *Error = ml_table_append_row(Table, Value);
+	if (Error) ML_RETURN(Error);
 	State->Base.run = (ml_state_fn)ml_table_append_next_iter;
-	return ml_iter_value((ml_state_t *)State, State->Iter);
+	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
 static void ml_table_append_next_iter(ml_table_appender_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Table);
+	if (Value == MLNil) {
+		ML_CONTINUE(State->Base.Caller, State->Table);
+	}
 	State->Base.run = (ml_state_fn)ml_table_append_next_row;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
@@ -389,7 +398,7 @@ static void ml_table_append_first_row(ml_table_appender_t *State, ml_value_t *Va
 	ml_table_column_t *Column = Table->Columns;
 	ML_LIST_FOREACH(Value, Iter) {
 		ml_array_format_t Format = ml_array_format(ml_typeof(Iter->Value));
-		if (Format == ML_ARRAY_FORMAT_NONE) ML_ERROR("ValueError", "Invalid array type");
+		if (Format == ML_ARRAY_FORMAT_NONE) Format = ML_ARRAY_FORMAT_ANY;
 		ml_array_t *Source = ml_array(Format, 1, 4);
 		Source->Dimensions[0].Size = 0;
 		Source->Base.Length = 0;
@@ -520,7 +529,7 @@ void ml_table_insert_row(ml_table_t *Table, size_t Index) {
 			Row->Type = MLTableRowT;
 			Row->Table = Table;
 		}
-	} else if (!Info->Offset || (Index > Info->Length / 2)) {
+	} else if (!Info->Offset) {
 		stringmap_foreach(Table->ColumnNames, Info, (void *)ml_table_column_shift_up);
 	} else {
 		Table->Offset = --Info->Offset;
