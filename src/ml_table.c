@@ -415,7 +415,7 @@ static void ml_table_append_first_iter(ml_table_appender_t *State, ml_value_t *V
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODX(MLTableT, MLListT, MLSequenceT) {
+ML_METHODVX(MLTableT, MLListT, MLSequenceT) {
 	ml_table_t *Table = (ml_table_t *)ml_table();
 	ML_LIST_FOREACH(Args[0], Iter) {
 		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Column names must be strings");
@@ -430,7 +430,7 @@ ML_METHODX(MLTableT, MLListT, MLSequenceT) {
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_table_append_first_iter;
 	State->Table = Table;
-	return ml_iterate((ml_state_t *)State, Args[1]);
+	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
 }
 
 ml_value_t *ml_table_columns(ml_value_t *Table) {
