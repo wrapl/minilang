@@ -1285,7 +1285,8 @@ static int ml_array_count_nonzero_ ## CTYPE(void *Address, int Degree, ml_array_
 			} \
 		} else { \
 			for (int I = 0; I < Size; ++I) { \
-				if (*(CTYPE *)(Address + I * Stride) != ZERO) ++Count; \
+				if (*(CTYPE *)Address != ZERO) ++Count; \
+				Address += Stride; \
 			} \
 		} \
 	} else { \
@@ -1298,7 +1299,8 @@ static int ml_array_count_nonzero_ ## CTYPE(void *Address, int Degree, ml_array_
 			} \
 		} else { \
 			for (int I = 0; I < Size; ++I) { \
-				Count += ml_array_count_nonzero_ ## CTYPE(Address + I * Stride, Degree - 1, Dimension + 1); \
+				Count += ml_array_count_nonzero_ ## CTYPE(Address, Degree - 1, Dimension + 1); \
+				Address += Stride; \
 			} \
 		} \
 	} \
@@ -1316,7 +1318,8 @@ static int *ml_array_offsets_nonzero_ ## CTYPE(int *Offsets, void *Address, int 
 			} \
 		} else { \
 			for (int I = 0; I < Size; ++I) { \
-				if (*(CTYPE *)(Address + I * Stride) != ZERO) *Offsets++ = Offset + Source->Stride * I; \
+				if (*(CTYPE *)Address != ZERO) *Offsets++ = Offset + Source->Stride * I; \
+				Address += Stride; \
 			} \
 		} \
 	} else { \
@@ -1329,7 +1332,8 @@ static int *ml_array_offsets_nonzero_ ## CTYPE(int *Offsets, void *Address, int 
 			} \
 		} else { \
 			for (int I = 0; I < Size; ++I) { \
-				Offsets = ml_array_offsets_nonzero_ ## CTYPE(Offsets, Address + I * Stride, Degree - 1, Dimension + 1, Offset + I * Source->Stride, Source + 1); \
+				Offsets = ml_array_offsets_nonzero_ ## CTYPE(Offsets, Address, Degree - 1, Dimension + 1, Offset + I * Source->Stride, Source + 1); \
+				Address += Stride; \
 			} \
 		} \
 	} \

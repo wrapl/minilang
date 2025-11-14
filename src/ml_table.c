@@ -576,7 +576,6 @@ void ml_table_delete_row(ml_table_t *Table, size_t Index) {
 	}
 	Table->Length = Info->Length - 1;
 	Table->Rows[Table->Length] = (ml_table_row_t){NULL, NULL};
-
 }
 
 ML_METHOD("length", MLTableT) {
@@ -680,6 +679,81 @@ ML_METHOD("::", MLTableT, MLStringT) {
 		Column->Name = Args[1];
 	}
 	return (ml_value_t *)Column;
+}
+
+extern ml_type_t MLVectorUInt8T[];
+extern ml_type_t MLVectorInt8T[];
+
+static ml_value_t *ml_sub_table(ml_table_t *Table, ml_array_t *Array) {
+	int Size = Array->Dimensions->Size;
+	if (Size > Table->Length) return ml_error("RangeError", "Index array out of range");
+	int Stride = Array->Dimensions->Stride;
+	const int *Indices = Array->Dimensions->Indices;
+	void *Address = Array->Base.Value;
+	int Length = 0;
+	if (Indices) {
+		for (int I = 0; I < Size; ++I) if (*(uint8_t *)(Address + Indices[I] * Stride)) ++Length;
+	} else {
+		for (int I = 0; I < Size; ++I) if (*(uint8_t *)(Address + I * Stride)) ++Length;
+	}
+	ml_table_t *SubTable = new(ml_table_t);
+	SubTable->Type = MLTableT;
+	SubTable->Length = Length;
+	SubTable->Capacity = Length;
+	SubTable->Offset = 0;
+	ml_table_row_t *Row = SubTable->Rows = anew(ml_table_row_t, Length + 1);
+	for (int I = Length; --I >= 0; ++Row) {
+		Row->Type = MLTableRowT;
+		Row->Table = SubTable;
+	}
+	if (Length) {
+		int *SubIndices = SubTable->Indices = anew(int, Length), *SubIndex = SubIndices;
+		if (Indices) {
+			for (int I = 0; I < Size; ++I) if (*(uint8_t *)(Address + Indices[I] * Stride)) *SubIndex++ = I;
+		} else {
+			for (int I = 0; I < Size; ++I) if (*(uint8_t *)(Address + I * Stride)) *SubIndex++ = I;
+		}
+		ml_table_column_t **Slot = &SubTable->Columns;
+		for (ml_table_column_t *Column = Table->Columns; Column; Column = Column->Next) {
+			ml_table_column_t *SubColumn = new(ml_table_column_t);
+			SubColumn->Type = MLTableColumnT;
+			SubColumn->Table = SubTable;
+			SubColumn->Name = Column->Name;
+			ml_array_t *Values = Column->Values;
+			ml_array_t *SubValues = ml_array_alloc(Values->Format, Values->Degree);
+			SubValues->Base = Values->Base;
+			memcpy(SubValues->Dimensions, Values->Dimensions, Values->Degree * sizeof(ml_array_dimension_t));
+			SubValues->Dimensions->Size = Length;
+			SubValues->Dimensions->Indices = SubIndices;
+			SubColumn->Values = SubValues;
+			stringmap_insert(SubTable->ColumnNames, ml_string_value(SubColumn->Name), SubColumn);
+			*Slot = SubColumn;
+			Slot = &SubColumn->Next;
+		}
+	} else {
+		SubTable->Indices = (void *)(intptr_t)-1;
+		ml_table_column_t **Slot = &SubTable->Columns;
+		for (ml_table_column_t *Column = Table->Columns; Column; Column = Column->Next) {
+			ml_table_column_t *SubColumn = new(ml_table_column_t);
+			SubColumn->Type = MLTableColumnT;
+			SubColumn->Table = SubTable;
+			SubColumn->Name = Column->Name;
+			ml_array_t *Values = Column->Values;
+			ml_array_t *SubValues = ml_array_alloc(Values->Format, Values->Degree);
+			SubValues->Base = Values->Base;
+			memcpy(SubValues->Dimensions, Values->Dimensions, Values->Degree * sizeof(ml_array_dimension_t));
+			SubValues->Dimensions->Size = 0;
+			SubColumn->Values = SubValues;
+			stringmap_insert(SubTable->ColumnNames, ml_string_value(SubColumn->Name), SubColumn);
+			*Slot = SubColumn;
+			Slot = &SubColumn->Next;
+		}
+	}
+	return (ml_value_t *)SubTable;
+}
+
+ML_METHOD("[]", MLTableT, MLVectorInt8T) {
+	return ml_sub_table((ml_table_t *)Args[0], (ml_array_t *)Args[1]);
 }
 
 extern ml_value_t *AppendMethod;
@@ -799,6 +873,7 @@ int ml_table_row_foreach(ml_value_t *TableRow, void *Data, int (*fn)(ml_value_t 
 ML_METHODV("push", MLTableT, MLNamesT) {
 	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Indices) return ml_error("ValueError", "Sub-tables can not be modified");
 	int Index = 1;
 	ml_table_insert_row(Table, Index);
 	ml_value_t *Indices[1] = {ml_integer(Index)};
@@ -815,6 +890,7 @@ ML_METHODV("push", MLTableT, MLNamesT) {
 
 ML_METHOD("push", MLTableT, MLListT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Indices) return ml_error("ValueError", "Sub-tables can not be modified");
 	int Index = 1;
 	ml_table_insert_row(Table, Index);
 	ml_value_t *Indices[1] = {ml_integer(Index)};
@@ -831,6 +907,7 @@ ML_METHOD("push", MLTableT, MLListT) {
 ML_METHODV("put", MLTableT, MLNamesT) {
 	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Indices) return ml_error("ValueError", "Sub-tables can not be modified");
 	int Index = Table->Length + 1;
 	ml_table_insert_row(Table, Index);
 	ml_value_t *Indices[1] = {ml_integer(Index)};
@@ -847,6 +924,7 @@ ML_METHODV("put", MLTableT, MLNamesT) {
 
 ML_METHOD("put", MLTableT, MLListT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Indices) return ml_error("ValueError", "Sub-tables can not be modified");
 	int Index = Table->Length + 1;
 	ml_table_insert_row(Table, Index);
 	ml_value_t *Indices[1] = {ml_integer(Index)};
@@ -863,6 +941,7 @@ ML_METHOD("put", MLTableT, MLListT) {
 ML_METHODV("insert", MLTableT, MLIntegerT, MLNamesT) {
 	ML_NAMES_CHECK_ARG_COUNT(2);
 	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Indices) return ml_error("ValueError", "Sub-tables can not be modified");
 	int Index = ml_integer_value(Args[1]);
 	if (Index <= 0) Index += Table->Length + 1;
 	if (Index <= 0 || Index > Table->Length + 1) return MLNil;
@@ -881,6 +960,7 @@ ML_METHODV("insert", MLTableT, MLIntegerT, MLNamesT) {
 
 ML_METHOD("insert", MLTableT, MLIntegerT, MLListT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Indices) return ml_error("ValueError", "Sub-tables can not be modified");
 	int Index = ml_integer_value(Args[1]);
 	if (Index <= 0) Index += Table->Length + 1;
 	if (Index <= 0 || Index > Table->Length + 1) return MLNil;
@@ -893,6 +973,16 @@ ML_METHOD("insert", MLTableT, MLIntegerT, MLListT) {
 		if (ml_is_error(Value)) return Value;
 		Column = Column->Next;
 	}
+	return (ml_value_t *)Table;
+}
+
+ML_METHOD("delete", MLTableT, MLIntegerT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	if (Table->Indices) return ml_error("ValueError", "Sub-tables can not be modified");
+	int Index = ml_integer_value(Args[1]);
+	if (Index <= 0) Index += Table->Length + 1;
+	if (Index <= 0 || Index > Table->Length + 1) return MLNil;
+	ml_table_delete_row(Table, Index);
 	return (ml_value_t *)Table;
 }
 
