@@ -320,7 +320,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			Configuration["--host"] = "x86_64-w64-mingw32"
 			Configuration["--enable-threads"] := "win32"
 		else
-			Configuration["--enable-threads"] := "pthreads" 
+			Configuration["--enable-threads"] := "pthreads"
 		end
 		if NOPARALLELMARK then
 			Configuration["--disable-parallel-mark"] := some
@@ -467,6 +467,7 @@ if MINILANG_MATH then
 		file("array/update_div.o"),
 		file("array/update_max.o"),
 		file("array/update_min.o"),
+		file("array/update_mod.o"),
 		file("array/update_mul.o"),
 		file("array/update_or.o"),
 		file("array/update_set.o"),
