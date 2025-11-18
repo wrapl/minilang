@@ -4307,7 +4307,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			}
 		} else if (C == '\n') {
 			++Parser->Line;
-			ml_stringbuffer_write(Buffer, End - 1, 1);
+			ml_stringbuffer_put(Buffer, '\n');
 		} else {
 			ml_stringbuffer_write(Buffer, End - 1, 1);
 		}
@@ -4505,6 +4505,9 @@ static void ml_scan_string(ml_stringbuffer_t *Buffer, ml_parser_t *Parser) {
 		} else if (*S == '\"') {
 			Parser->Next = S + 1;
 			return;
+		} else if (*S == '\n') {
+			++Parser->Line;
+			ml_stringbuffer_put(Buffer, '\n');
 		} else {
 			ml_stringbuffer_put(Buffer, *S);
 		}
