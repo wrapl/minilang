@@ -4531,7 +4531,10 @@ ml_value_t *ml_array_order_ ## CTYPE(ml_array_t *Array) { \
 	int Size = Array->Dimensions[0].Size; \
 	int32_t *Order = anew(int32_t, Size); \
 	for (size_t I = 0; I < Size; ++I) Order[I] = I; \
-	if (Array->Dimensions[0].Indices) { \
+	if (Array->Dimensions[0].Stride != sizeof(CTYPE)) { \
+		char *Values = ml_array_flatten(Array); \
+		qsort_s(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Values); \
+	} else if (Array->Dimensions[0].Indices) { \
 		qsort_s(Order, Size, sizeof(int32_t), order_compare_indexed_ ## CTYPE, Array); \
 	} else { \
 		qsort_s(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Array->Base.Value); \
@@ -4574,7 +4577,10 @@ ml_value_t *ml_array_order_ ## CTYPE(ml_array_t *Array) { \
 	int Size = Array->Dimensions[0].Size; \
 	int32_t *Order = anew(int32_t, Size); \
 	for (size_t I = 0; I < Size; ++I) Order[I] = I; \
-	if (Array->Dimensions[0].Indices) { \
+	if (Array->Dimensions[0].Stride != sizeof(CTYPE)) { \
+		char *Values = ml_array_flatten(Array); \
+		qsort_r(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Values); \
+	} else if (Array->Dimensions[0].Indices) { \
 		qsort_r(Order, Size, sizeof(int32_t), order_compare_indexed_ ## CTYPE, Array); \
 	} else { \
 		qsort_r(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Array->Base.Value); \
@@ -4728,10 +4734,14 @@ ML_METHODX("order", MLVectorT) {
 	case ML_ARRAY_FORMAT_F32: ML_RETURN(ml_array_order_float(Array));
 	case ML_ARRAY_FORMAT_F64: ML_RETURN(ml_array_order_double(Array));
 	case ML_ARRAY_FORMAT_ANY: {
-		if (Array->Dimensions[0].Indices) {
-			return ml_values_order_indexed(Caller, Array->Dimensions[0].Size, (ml_value_t **)Array->Base.Value, Array->Dimensions[0].Indices, LessEqualMethod);
+		ml_value_t **Values = (ml_value_t **)Array->Base.Value;
+		if (Array->Dimensions[0].Stride != sizeof(ml_value_t *)) {
+			Values = (ml_value_t **)ml_array_flatten(Array);
+			return ml_values_order(Caller, Array->Dimensions[0].Size, Values, LessEqualMethod, ml_order_permutation);
+		} else if (Array->Dimensions[0].Indices) {
+			return ml_values_order_indexed(Caller, Array->Dimensions[0].Size, Values, Array->Dimensions[0].Indices, LessEqualMethod);
 		} else {
-			return ml_values_order(Caller, Array->Dimensions[0].Size, (ml_value_t **)Array->Base.Value, LessEqualMethod, ml_order_permutation);
+			return ml_values_order(Caller, Array->Dimensions[0].Size, Values, LessEqualMethod, ml_order_permutation);
 		}
 	}
 	default: ML_ERROR("TypeError", "Array can not be sorted");
@@ -4844,6 +4854,114 @@ ML_METHODX("order", MLVectorT, MLFunctionT) {
 	default: ML_ERROR("TypeError", "Array can not be sorted");
 	}
 	return ml_values_order(Caller, Size, Values, Args[1], ml_order_permutation);
+}
+
+#define ML_ARRAY_BFIND(CTYPE) \
+\
+ml_value_t *ml_array_bfind_## CTYPE(ml_array_t *Array, CTYPE Value) { \
+	int Min = 0, Max = Array->Dimensions->Size - 1; \
+	const int *Indices = Array->Dimensions->Indices; \
+	int Stride = Array->Dimensions->Stride; \
+	if (Indices) { \
+		if (Stride != sizeof(CTYPE)) { \
+			const void *Values = Array->Base.Value; \
+			for (;;) { \
+				int Index = Min + (Max - Min) / 2; \
+				if (Value < *(CTYPE *)(Values + Indices[Index] * Stride)) { \
+					if (Index == Min) return ml_tuplev(2, MLNil, ml_integer(Index + 1)); \
+					Max = Index - 1; \
+				} else if (Value > *(CTYPE *)(Values + Indices[Index] * Stride)) { \
+					if (Index == Max) return ml_tuplev(2, MLNil, ml_integer(Index + 2)); \
+					Min = Index + 1; \
+				} else { \
+					return ml_tuplev(2, ml_integer(Index + 1), ml_integer(Index + 1)); \
+				} \
+			} \
+		} else { \
+			const CTYPE *Values = (const CTYPE *)Array->Base.Value; \
+			for (;;) { \
+				int Index = Min + (Max - Min) / 2; \
+				if (Value < Values[Indices[Index]]) { \
+					if (Index == Min) return ml_tuplev(2, MLNil, ml_integer(Index + 1)); \
+					Max = Index - 1; \
+				} else if (Value > Values[Indices[Index]]) { \
+					if (Index == Max) return ml_tuplev(2, MLNil, ml_integer(Index + 2)); \
+					Min = Index + 1; \
+				} else { \
+					return ml_tuplev(2, ml_integer(Index + 1), ml_integer(Index + 1)); \
+				} \
+			} \
+		} \
+	} else { \
+		if (Stride != sizeof(CTYPE)) { \
+			const void *Values = Array->Base.Value; \
+			for (;;) { \
+				int Index = Min + (Max - Min) / 2; \
+				if (Value < *(CTYPE *)(Values + Index * Stride)) { \
+					if (Index == Min) return ml_tuplev(2, MLNil, ml_integer(Index + 1)); \
+					Max = Index - 1; \
+				} else if (Value > *(CTYPE *)(Values + Index * Stride)) { \
+					if (Index == Max) return ml_tuplev(2, MLNil, ml_integer(Index + 2)); \
+					Min = Index + 1; \
+				} else { \
+					return ml_tuplev(2, ml_integer(Index + 1), ml_integer(Index + 1)); \
+				} \
+			} \
+		} else { \
+			const CTYPE *Values = (const CTYPE *)Array->Base.Value; \
+			for (;;) { \
+				int Index = Min + (Max - Min) / 2; \
+				if (Value < Values[Index]) { \
+					if (Index == Min) return ml_tuplev(2, MLNil, ml_integer(Index + 1)); \
+					Max = Index - 1; \
+				} else if (Value > Values[Index]) { \
+					if (Index == Max) return ml_tuplev(2, MLNil, ml_integer(Index + 2)); \
+					Min = Index + 1; \
+				} else { \
+					return ml_tuplev(2, ml_integer(Index + 1), ml_integer(Index + 1)); \
+				} \
+			} \
+		} \
+	} \
+}
+
+ML_ARRAY_BFIND(int8_t)
+ML_ARRAY_BFIND(uint8_t)
+ML_ARRAY_BFIND(int16_t)
+ML_ARRAY_BFIND(uint16_t)
+ML_ARRAY_BFIND(int32_t)
+ML_ARRAY_BFIND(uint32_t)
+ML_ARRAY_BFIND(int64_t)
+ML_ARRAY_BFIND(uint64_t)
+ML_ARRAY_BFIND(float)
+ML_ARRAY_BFIND(double)
+
+ML_METHODX("bfind", MLVectorT, MLAnyT) {
+	ml_array_t *Array = (ml_array_t *)Args[0];
+	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_U8: ML_RETURN(ml_array_bfind_uint8_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_I8: ML_RETURN(ml_array_bfind_int8_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_U16: ML_RETURN(ml_array_bfind_uint16_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_I16: ML_RETURN(ml_array_bfind_int16_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_U32: ML_RETURN(ml_array_bfind_uint32_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_I32: ML_RETURN(ml_array_bfind_int32_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_U64: ML_RETURN(ml_array_bfind_uint64_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_I64: ML_RETURN(ml_array_bfind_int64_t(Array, ml_integer_value(Args[1])));
+	case ML_ARRAY_FORMAT_F32: ML_RETURN(ml_array_bfind_float(Array, ml_real_value(Args[1])));
+	case ML_ARRAY_FORMAT_F64: ML_RETURN(ml_array_bfind_double(Array, ml_real_value(Args[1])));
+	/*case ML_ARRAY_FORMAT_ANY: {
+		ml_value_t **Values = (ml_value_t **)Array->Base.Value;
+		if (Array->Dimensions[0].Stride != sizeof(ml_value_t *)) {
+			Values = (ml_value_t **)ml_array_flatten(Array);
+			return ml_array_bfind_any(Caller, Array->Dimensions[0].Size, Values, LessEqualMethod, ml_order_permutation);
+		} else if (Array->Dimensions[0].Indices) {
+			return ml_array_bfind_indexed_any(Caller, Array->Dimensions[0].Size, Values, Array->Dimensions[0].Indices, LessEqualMethod);
+		} else {
+			return ml_array_bfind_any(Caller, Array->Dimensions[0].Size, Values, LessEqualMethod, ml_order_permutation);
+		}
+	}*/
+	default: ML_ERROR("TypeError", "Array can not be sorted");
+	}
 }
 
 #ifdef ML_CBOR
