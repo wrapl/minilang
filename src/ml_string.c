@@ -3527,6 +3527,23 @@ int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 	}
 }
 
+int ml_regex_find(ml_value_t *Value, const char *Subject, int Length, int *Start, int *End) {
+	regex_t *Regex = ml_regex_value(Value);
+	regmatch_t Matches[1];
+#ifdef ML_TRE
+	switch (regnexec(Regex, Subject, Length, 1, Matches, 0)) {
+#else
+	switch (regexec(Regex, Subject, 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH: return 0;
+	case REG_ESPACE: return 0;
+	default:
+		*Start = Matches->rm_so;
+		*End = Matches->rm_eo;
+		return 1;
+	}
+}
+
 ML_METHOD("?", MLStringT, MLRegexT) {
 //<String
 //<Pattern
