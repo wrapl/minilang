@@ -45,6 +45,7 @@ ML_METHOD_DECL(AddMethod, "+");
 ML_METHOD_DECL(MulMethod, "*");
 ML_METHOD_DECL(SubMethod, "-");
 ML_METHOD_DECL(DivMethod, "/");
+ML_METHOD_DECL(ModMethod, "%");
 ML_METHOD_DECL(AndMethod, "/\\");
 ML_METHOD_DECL(OrMethod, "\\/");
 ML_METHOD_DECL(XorMethod, "><");

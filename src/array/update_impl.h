@@ -8,7 +8,7 @@
 
 #define UPDATE_ROW_IMPL(NAME, OP, TARGET, SOURCE) \
 \
-void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
+static void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
 		const int *TargetIndices = TargetDimension->Indices; \
@@ -47,7 +47,7 @@ void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimensio
 
 #define UPDATE_ROW_VALUE_IMPL(NAME, OP, SOURCE) \
 \
-void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
+static void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
 		const int *TargetIndices = TargetDimension->Indices; \
@@ -94,7 +94,7 @@ void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *Ta
 
 #define UPDATE_ROW_IMPL_VALUE(NAME, OP, TARGET) \
 \
-void NAME ## _row_ ## TARGET ## _any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
+static void NAME ## _row_ ## TARGET ## _any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
 		const int *TargetIndices = TargetDimension->Indices; \
@@ -135,7 +135,7 @@ void NAME ## _row_ ## TARGET ## _any(ml_array_dimension_t *TargetDimension, char
 
 #define UPDATE_ROW_VALUE_IMPL_VALUE(NAME, OP) \
 \
-void NAME ## _row_any_any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
+static void NAME ## _row_any_any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
 	int Size = TargetDimension->Size; \
 	if (TargetDimension->Indices) { \
 		const int *TargetIndices = TargetDimension->Indices; \

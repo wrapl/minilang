@@ -2197,6 +2197,7 @@ UPDATE_FNS(Add);
 UPDATE_FNS(Mul);
 UPDATE_FNS(Sub);
 UPDATE_FNS(Div);
+UPDATE_FNS(Mod);
 
 void update_prefix(update_row_fn_t Update, int PrefixDegree, ml_array_dimension_t *TargetDimension, char *TargetData, int SourceDegree, ml_array_dimension_t *SourceDimension, char *SourceData);
 
@@ -2221,7 +2222,8 @@ UPDATE_METHOD(Set, set, ATYPE, CTYPE, FROM_VAL, FORMAT); \
 UPDATE_METHOD(Add, add, ATYPE, CTYPE, FROM_VAL, FORMAT); \
 UPDATE_METHOD(Sub, sub, ATYPE, CTYPE, FROM_VAL, FORMAT); \
 UPDATE_METHOD(Mul, mul, ATYPE, CTYPE, FROM_VAL, FORMAT); \
-UPDATE_METHOD(Div, div, ATYPE, CTYPE, FROM_VAL, FORMAT);
+UPDATE_METHOD(Div, div, ATYPE, CTYPE, FROM_VAL, FORMAT); \
+UPDATE_METHOD(Mod, mod, ATYPE, CTYPE, FROM_VAL, FORMAT);
 
 #define ARRAY_DECL(PARENT, PREFIX, SUFFIX, CTYPE, APPEND, PRINTF, FROM_VAL, TO_VAL, FROM_NUM, TO_NUM, FORMAT, HASH) \
 \

@@ -455,6 +455,7 @@ end
 if MINILANG_MATH then
 	file("array"):mkdir
 	Objects:put(
+		:>file("array/infix_add.o"),
 		file("array/compare_cmp.o"),
 		file("array/compare_eq.o"),
 		file("array/compare_ge.o"),
@@ -467,6 +468,7 @@ if MINILANG_MATH then
 		file("array/update_div.o"),
 		file("array/update_max.o"),
 		file("array/update_min.o"),
+		file("array/update_mod.o"),
 		file("array/update_mul.o"),
 		file("array/update_or.o"),
 		file("array/update_set.o"),

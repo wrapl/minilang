@@ -87,7 +87,7 @@ INFIX_ROW_OPS_IMPL_BASE(NAME, OP, CTYPE, METH, FN)
 #endif
 
 #define INFIX_ROW_ENTRY(INDEX, NAME, LEFT, RIGHT) \
-	[INDEX] = NAME ## _row_ ## LEFT ## _ ## RIGHT
+	[INDEX] = (infix_row_fn_t)NAME ## _row_ ## LEFT ## _ ## RIGHT
 
 #define INFIX_ROW_LEFT_ENTRIES_BASE(INDEX, NAME, LEFT) \
 INFIX_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U8, NAME, LEFT, uint8_t), \
@@ -148,6 +148,6 @@ typedef void (*infix_row_fn_t)(void *Target, ml_array_dimension_t *LeftDimension
 #define INFIX_FNS(TITLE, NAME, OP, CTYPE, METH, FN) \
 	INFIX_ROW_OPS_IMPL(NAME, OP, CTYPE, METH, FN) \
 \
-infix_row_fn_t Compare ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
+infix_row_fn_t Infix ## TITLE ## RowFns[MAX_FORMATS * MAX_FORMATS] = { \
 	INFIX_ROW_OPS_ENTRIES(NAME) \
 }

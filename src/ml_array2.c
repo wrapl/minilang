@@ -1533,6 +1533,8 @@ UPDATE_FNS(Sub);
 UPDATE_FNS(RSub);
 UPDATE_FNS(Div);
 UPDATE_FNS(RDiv);
+UPDATE_FNS(Mod);
+UPDATE_FNS(RMod);
 UPDATE_FNS(And);
 UPDATE_FNS(Or);
 UPDATE_FNS(Xor);
@@ -1636,6 +1638,8 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 			Updates = UpdateRSubRowFns;
 		} else if (Updates == UpdateDivRowFns) {
 			Updates = UpdateRDivRowFns;
+		} else if (Updates == UpdateModRowFns) {
+			Updates = UpdateRModRowFns;
 		}
 	}
 	int Degree = A->Degree;
@@ -1681,6 +1685,7 @@ INFIX_METHOD(+)
 INFIX_METHOD(-)
 INFIX_METHOD(*)
 INFIX_METHOD(/)
+INFIX_METHOD(%)
 INFIX_METHOD(/\\)
 INFIX_METHOD(\\/)
 INFIX_METHOD(><)
@@ -1960,11 +1965,182 @@ extern ml_value_t *MulMethod;
 extern ml_value_t *AddMethod;
 extern ml_value_t *SubMethod;
 extern ml_value_t *DivMethod;
+extern ml_value_t *ModMethod;
 
 ML_ARITH_METHOD(+, ML_ARRAY_FORMAT_I64, AddMethod);
 ML_ARITH_METHOD(*, ML_ARRAY_FORMAT_I64, MulMethod);
 ML_ARITH_METHOD(-, ML_ARRAY_FORMAT_I64, SubMethod);
 ML_ARITH_METHOD(/, ML_ARRAY_FORMAT_F64, DivMethod);
+
+ML_METHOD("%", MLArrayT, MLAnyT) {
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A NAME 2
+*/
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	ml_value_t *B = Args[1];
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_ANY, Degree);
+	int DataSize = ml_array_copy(C, A);
+	ml_value_t **Values = (ml_value_t **)C->Base.Value;
+	for (int I = DataSize / sizeof(ml_value_t *); --I >= 0; ++Values) {
+		*Values = ml_simple_call((ml_value_t *)ModMethod, 2, (ml_value_t **)(void *[]){*Values, B});
+	}
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("%", MLAnyT, MLArrayT) {
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
+//$= let B := array([[1, 2], [3, 4]])
+//$= 2 NAME B
+*/
+	ml_array_t *A = (ml_array_t *)Args[1];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	ml_value_t *B = Args[0];
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_ANY, Degree);
+	int DataSize = ml_array_copy(C, A);
+	ml_value_t **Values = (ml_value_t **)C->Base.Value;
+	for (int I = DataSize / sizeof(ml_value_t *); --I >= 0; ++Values) {
+		*Values = ml_simple_call((ml_value_t *)ModMethod, 2, (ml_value_t **)(void *[]){B, *Values});
+	}
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("%", MLArrayIntegerT, MLIntegerT) {
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A NAME 2
+*/
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	int64_t B = ml_integer_value(Args[1]);
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(A->Format, Degree);
+	int DataSize = ml_array_copy(C, A);
+	switch (C->Format) {
+	case ML_ARRAY_FORMAT_U64: {
+		uint64_t *Values = (uint64_t *)C->Base.Value;
+		for (int I = DataSize / sizeof(uint64_t); --I >= 0; ++Values) *Values = *Values % B;
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		int64_t *Values = (int64_t *)C->Base.Value;
+		for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = *Values % B;
+		break;
+	}
+	default: {
+		return ml_error("TypeError", "Invalid types for array operation");
+	}
+	}
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("%", MLIntegerT, MLArrayIntegerT) {
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= 2 NAME A
+*/
+	ml_array_t *A = (ml_array_t *)Args[1];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	int64_t B = ml_integer_value(Args[0]);
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(A->Format, Degree);
+	int DataSize = ml_array_copy(C, A);
+	switch (C->Format) {
+	case ML_ARRAY_FORMAT_U64: {
+		uint64_t *Values = (uint64_t *)C->Base.Value;
+		for (int I = DataSize / sizeof(uint64_t); --I >= 0; ++Values) *Values = B % *Values;
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		int64_t *Values = (int64_t *)C->Base.Value;
+		for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = B % *Values;
+		break;
+	}
+	default: {
+		return ml_error("TypeError", "Invalid types for array operation");
+	}
+	}
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("%", MLArrayRealT, MLRealT) {
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A NAME 2.5
+*/
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	double B = ml_real_value(Args[1]);
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(A->Format, Degree);
+	int DataSize = ml_array_copy(C, A);
+	switch (C->Format) {
+	case ML_ARRAY_FORMAT_F32: {
+		float *Values = (float *)C->Base.Value;
+		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = fmod(*Values, B);
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		double *Values = (double *)C->Base.Value;
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = fmod(*Values, B);
+		break;
+	}
+	default: {
+		return ml_error("TypeError", "Invalid types for array operation");
+	}
+	}
+	return (ml_value_t *)C;
+}
+
+ML_METHOD("%", MLRealT, MLArrayRealT) {
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= 2.5 NAME A
+*/
+	ml_array_t *A = (ml_array_t *)Args[1];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	double B = ml_real_value(Args[0]);
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(A->Format, Degree);
+	int DataSize = ml_array_copy(C, A);
+	switch (C->Format) {
+	case ML_ARRAY_FORMAT_F32: {
+		float *Values = (float *)C->Base.Value;
+		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = fmod(B, *Values);
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		double *Values = (double *)C->Base.Value;
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = fmod(B, *Values);
+		break;
+	}
+	default: {
+		return ml_error("TypeError", "Invalid types for array operation");
+	}
+	}
+	return (ml_value_t *)C;
+}
 
 #define ML_ARITH_METHOD_BITWISE(NAME, SYMBOL, OP) \
 \
@@ -2732,6 +2908,7 @@ ML_ARRAY_INFIX_SETTERS(add, +, AddMethod)
 ML_ARRAY_INFIX_SETTERS(sub, -, SubMethod)
 ML_ARRAY_INFIX_SETTERS(mul, *, MulMethod)
 ML_ARRAY_INFIX_SETTERS(div, /, DivMethod)
+ML_ARRAY_INFIX_SETTERS(mod, /, ModMethod)
 
 typedef void (*ml_array_infix_set_fn)(void *DataA, void *GetterA, void *DataB, void *GetterB, void *DataC);
 
@@ -2835,6 +3012,7 @@ ML_ARRAY_INFIX_FNS(Add, add)
 ML_ARRAY_INFIX_FNS(Sub, sub)
 ML_ARRAY_INFIX_FNS(Mul, mul)
 ML_ARRAY_INFIX_FNS(Div, div)
+ML_ARRAY_INFIX_FNS(Mod, mod)
 
 #define ML_ARRAY_ACCESSOR_IMPL(CTYPE, ATYPE) \
 static CTYPE ml_array_getter_ ## CTYPE ## _ ## ATYPE(void *Data) { \
@@ -4032,10 +4210,12 @@ void ml_array2_init(stringmap_t *Globals) {
 	ml_method_by_name("mul", UpdateMulRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("sub", UpdateSubRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("div", UpdateDivRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("mod", UpdateModRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("+", UpdateAddRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("*", UpdateMulRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("-", UpdateSubRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("/", UpdateDivRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
+	ml_method_by_name("%", UpdateModRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("/\\", UpdateAndRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("\\/", UpdateOrRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayMutableT, MLArrayT, NULL);
@@ -4051,6 +4231,7 @@ void ml_array2_init(stringmap_t *Globals) {
 	ml_method_by_name("**", MLArrayInfixMulFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("//", MLArrayInfixDivFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("%%", MLArrayInfixModFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 
 	ml_method_define(ml_method("qr"), MatrixQR, 1, NULL, (ml_type_t *[]){MLMatrixT});
 
