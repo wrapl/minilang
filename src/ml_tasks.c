@@ -471,7 +471,9 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	if (Parallel->Iter) {
 		if (Parallel->NumRunning > Parallel->MaxRunning) return;
 		++Parallel->NumRunning;
-		return ml_iter_next(Parallel->NextState, Parallel->Iter);
+		ml_value_t *Iter = Parallel->Iter;
+		Parallel->Iter = NULL;
+		return ml_iter_next(Parallel->NextState, Iter);
 	}
 }
 
@@ -485,7 +487,9 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 	if (Parallel->Iter) {
 		if (Parallel->NumRunning > Parallel->Burst) return;
 		++Parallel->NumRunning;
-		return ml_iter_next(Parallel->NextState, Parallel->Iter);
+		ml_value_t *Iter = Parallel->Iter;
+		Parallel->Iter = NULL;
+		return ml_iter_next(Parallel->NextState, Iter);
 	}
 	if (Parallel->NumRunning == 0) ML_CONTINUE(Parallel->Base.Caller, MLNil);
 }
