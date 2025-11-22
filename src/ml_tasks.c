@@ -439,7 +439,7 @@ typedef struct {
 	ml_state_t ValueState[1];
 	ml_value_t *Iter, *Fn, *Error;
 	ml_value_t *Args[2];
-	size_t NumRunning, MaxRunning, Burst;
+	size_t NumRunning, MaxRunning, Burst, Iterating;
 } ml_parallel_t;
 
 static void parallel_iter_next(ml_state_t *State, ml_value_t *Iter) {
@@ -467,14 +467,13 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	ml_parallel_t *Parallel = (ml_parallel_t *)((char *)State - offsetof(ml_parallel_t, ValueState));
 	if (Parallel->Error) return;
 	Parallel->Args[1] = Value;
+	++Parallel->NumRunning;
 	ml_call(Parallel, Parallel->Fn, 2, Parallel->Args);
-	if (Parallel->Iter) {
-		if (Parallel->NumRunning > Parallel->MaxRunning) return;
-		++Parallel->NumRunning;
-		ml_value_t *Iter = Parallel->Iter;
-		Parallel->Iter = NULL;
-		return ml_iter_next(Parallel->NextState, Iter);
+	if (Parallel->NumRunning > Parallel->MaxRunning) {
+		Parallel->Iterating = 0;
+		return;
 	}
+	return ml_iter_next(Parallel->NextState, Parallel->Iter);
 }
 
 static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
@@ -484,12 +483,11 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 		ML_CONTINUE(Parallel->Base.Caller, Value);
 	}
 	--Parallel->NumRunning;
+	if (Parallel->NumRunning > Parallel->Burst) return;
 	if (Parallel->Iter) {
-		if (Parallel->NumRunning > Parallel->Burst) return;
-		++Parallel->NumRunning;
-		ml_value_t *Iter = Parallel->Iter;
-		Parallel->Iter = NULL;
-		return ml_iter_next(Parallel->NextState, Iter);
+		if (Parallel->Iterating) return;
+		Parallel->Iterating = 1;
+		return ml_iter_next(Parallel->NextState, Parallel->Iter);
 	}
 	if (Parallel->NumRunning == 0) ML_CONTINUE(Parallel->Base.Caller, MLNil);
 }
@@ -511,6 +509,7 @@ ML_FUNCTIONX(Parallel) {
 	Parallel->Base.run = (void *)parallel_continue;
 	Parallel->Base.Context = Caller->Context;
 	Parallel->NumRunning = 1;
+	Parallel->Iterating = 1;
 	Parallel->NextState->run = parallel_iter_next;
 	Parallel->NextState->Context = Caller->Context;
 	Parallel->KeyState->run = parallel_iter_key;
@@ -537,7 +536,6 @@ ML_FUNCTIONX(Parallel) {
 		Parallel->Burst = SIZE_MAX;
 		Parallel->Fn = Args[1];
 	}
-
 	return ml_iterate(Parallel->NextState, Args[0]);
 }
 
