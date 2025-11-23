@@ -600,25 +600,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "λ:😀 → 😺":size :> 16
 
 
-:mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   Only the :mini:`Index` subgroup matches are removed from the output substrings.
-
-   .. code-block:: mini
-
-      "<A>-<B>-<C>" / (r">(-)<", 1) :> ["<A>", "<B>", "<C>"]
-
-
-:mini:`meth (String: string) / (Pattern: regex): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
-
-   .. code-block:: mini
-
-      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
-      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
-
-
 :mini:`meth (String: string):limit(Length: integer): string`
    Returns the prefix of :mini:`String` limited to :mini:`Length`.
 
@@ -866,6 +847,25 @@ When creating a substring,  the first index is inclusive and second index is exc
       " \t Hello \n":trim :> "Hello"
 
 
+:mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+   Only the :mini:`Index` subgroup matches are removed from the output substrings.
+
+   .. code-block:: mini
+
+      "<A>-<B>-<C>" / (r">(-)<", 1) :> ["<A>", "<B>", "<C>"]
+
+
+:mini:`meth (String: string) / (Pattern: regex): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
+
+   .. code-block:: mini
+
+      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
+      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
+
+
 :mini:`meth (String: string):trim(Chars: string): string`
    Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
 
@@ -914,10 +914,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`def MLStringProperties: string::properties`
-   *TBD*
-
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: string, Arg₃: string)`
    *TBD*
 
@@ -926,11 +922,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    A string buffer that automatically grows and shrinks as required.
 
 
-:mini:`type string::buffer < stream`
-   A string buffer that automatically grows and shrinks as required.
+:mini:`meth string::buffer(): string::buffer`
+   Returns a new :mini:`string::buffer`
 
 
-:mini:`fun string::buffer(): string::buffer`
+:mini:`meth string::buffer(Arg₁: address): string::buffer`
    Returns a new :mini:`string::buffer`
 
 
@@ -962,6 +958,156 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:length :> 11
 
 
+:mini:`meth (Buffer: string::buffer):read" #1: integer`
+   Reads a signed 16-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:read16 :> 25928
+
+
+:mini:`meth (Buffer: string::buffer):read" #1(Arg₂: byte::order): integer`
+   Reads a signed 16-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:read16(address::LE) :> 25928
+      B:read16(address::BE) :> 27756
+
+
+:mini:`meth (Buffer: string::buffer):read" #1(Arg₂: byte::order): integer`
+   Reads a signed 16-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:readu16(address::LE)
+      :> error("MethodError", "no method found for readu16(string::buffer, address::byteorder)")
+      B:readu16(address::BE)
+      :> error("MethodError", "no method found for readu16(string::buffer, address::byteorder)")
+
+
+:mini:`meth (Buffer: string::buffer):read" #3: integer`
+   Reads a signed 32-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:read32 :> 1819043144
+
+
+:mini:`meth (Buffer: string::buffer):read" #3(Arg₂: byte::order): integer`
+   Reads a signed 32-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:read32(address::LE) :> 1819043144
+      B:read32(address::BE) :> 1864398703
+
+
+:mini:`meth (Buffer: string::buffer):read" #3(Arg₂: byte::order): integer`
+   Reads a signed 32-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:readu32(address::LE)
+      :> error("MethodError", "no method found for readu32(string::buffer, address::byteorder)")
+      B:readu32(address::BE)
+      :> error("MethodError", "no method found for readu32(string::buffer, address::byteorder)")
+
+
+:mini:`meth (Buffer: string::buffer):read" #6: integer`
+   Reads a signed 64-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:read64 :> 8031924123371070792
+
+
+:mini:`meth (Buffer: string::buffer):read" #6(Arg₂: byte::order): integer`
+   Reads a signed 64-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:read64(address::LE) :> 8031924123371070792
+      B:read64(address::BE) :> nil
+
+
+:mini:`meth (Buffer: string::buffer):read" #6(Arg₂: byte::order): integer`
+   Reads a signed 64-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:readu64(address::LE)
+      :> error("MethodError", "no method found for readu64(string::buffer, address::byteorder)")
+      B:readu64(address::BE)
+      :> error("MethodError", "no method found for readu64(string::buffer, address::byteorder)")
+
+
+:mini:`meth (Buffer: string::buffer):read8: integer`
+   Reads a signed 8-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("\xCC") :> <string::buffer>
+      B:read8 :> -52
+
+
+:mini:`meth (Buffer: string::buffer):readu" #1: integer`
+   Reads a signed 16-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:readu16 :> 25928
+
+
+:mini:`meth (Buffer: string::buffer):readu" #3: integer`
+   Reads a signed 32-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:readu32 :> 1819043144
+
+
+:mini:`meth (Buffer: string::buffer):readu" #6: integer`
+   Reads a signed 64-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("Hello world!\n")
+      :> <string::buffer>
+      B:readu64 :> 8031924123371070792
+
+
+:mini:`meth (Buffer: string::buffer):readu8: integer`
+   Reads a signed 8-bit value from :mini:`Buffer`.
+
+   .. code-block:: mini
+
+      let B := string::buffer("\xCC") :> <string::buffer>
+      B:readu8 :> 204
+
+
 :mini:`meth (Buffer: string::buffer):rest: string`
    Returns the contents of :mini:`Buffer` as a string and clears :mini:`Buffer`.
 
@@ -985,6 +1131,162 @@ When creating a substring,  the first index is inclusive and second index is exc
       let B := string::buffer()
       B:write("1 + 1 = ", 1 + 1)
       B:rest :> "1 + 1 = 2"
+
+
+:mini:`meth (Buffer: string::buffer):write" #1(Value: integer): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 16-bit signed value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:write16(12345) :> <string::buffer>
+      B:rest :> "90"
+
+
+:mini:`meth (Buffer: string::buffer):write" #1(Value: integer, Arg₃: byte::order): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 16-bit signed value. Uses the given byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:write16(12345, address::LE) :> <string::buffer>
+      B:rest :> "90"
+      B:write16(12345, address::BE) :> <string::buffer>
+      B:rest :> "09"
+
+
+:mini:`meth (Buffer: string::buffer):write" #3(Value: integer): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 32-bit signed value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:write32(12345) :> <string::buffer>
+      B:rest :> "90\0\0"
+
+
+:mini:`meth (Buffer: string::buffer):write" #3(Value: integer, Arg₃: byte::order): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 32-bit signed value. Uses the given byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:write32(12345, address::LE) :> <string::buffer>
+      B:rest :> "90\0\0"
+      B:write32(12345, address::BE) :> <string::buffer>
+      B:rest :> "\0\009"
+
+
+:mini:`def MLStringProperties: string::properties`
+   *TBD*
+
+
+:mini:`meth (Buffer: string::buffer):write" #6(Value: integer): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 64-bit signed value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:write64(12345) :> <string::buffer>
+      B:rest :> "90\0\0\0\0\0\0"
+
+
+:mini:`meth (Buffer: string::buffer):write" #6(Value: integer, Arg₃: byte::order): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 64-bit signed value. Uses the given byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:write64(12345, address::LE) :> <string::buffer>
+      B:rest :> "90\0\0\0\0\0\0"
+      B:write64(12345, address::BE) :> <string::buffer>
+      B:rest :> "\0\0\0\0\0\009"
+
+
+:mini:`meth (Buffer: string::buffer):write8(Value: integer): buffer`
+   Write :mini:`Value` to :mini:`Buffer` as an 8-bit signed value.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:write8(120) :> <string::buffer>
+      B:rest :> "x"
+
+
+:mini:`meth (Buffer: string::buffer):writeu" #1(Value: integer): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 16-bit unsigned value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu16(12345) :> <string::buffer>
+      B:rest :> "90"
+
+
+:mini:`meth (Buffer: string::buffer):writeu" #1(Value: integer, Arg₃: byte::order): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 16-bit unsigned value. Uses the given byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu16(12345, address::LE) :> <string::buffer>
+      B:rest :> "90"
+      B:writeu16(12345, address::BE) :> <string::buffer>
+      B:rest :> "09"
+
+
+:mini:`meth (Buffer: string::buffer):writeu" #3(Value: integer): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 32-bit unsigned value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu32(12345) :> <string::buffer>
+      B:rest :> "90\0\0"
+
+
+:mini:`meth (Buffer: string::buffer):writeu" #3(Value: integer, Arg₃: byte::order): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 32-bit unsigned value. Uses the given byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu32(12345, address::LE) :> <string::buffer>
+      B:rest :> "90\0\0"
+      B:writeu32(12345, address::BE) :> <string::buffer>
+      B:rest :> "\0\009"
+
+
+:mini:`meth (Buffer: string::buffer):writeu" #6(Value: integer): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 64-bit unsigned value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu64(12345) :> <string::buffer>
+      B:rest :> "90\0\0\0\0\0\0"
+
+
+:mini:`meth (Buffer: string::buffer):writeu" #6(Value: integer, Arg₃: byte::order): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 64-bit unsigned value. Uses the given byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu64(12345, address::LE) :> <string::buffer>
+      B:rest :> "90\0\0\0\0\0\0"
+      B:writeu64(12345, address::BE) :> <string::buffer>
+      B:rest :> "\0\0\0\0\0\009"
+
+
+:mini:`meth (Buffer: string::buffer):writeu8(Value: integer): buffer`
+   Write :mini:`Value` to :mini:`Buffer` as an 8-bit signed value.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu8(120) :> <string::buffer>
+      B:rest :> "x"
 
 
 :mini:`type string::charset < sequence`

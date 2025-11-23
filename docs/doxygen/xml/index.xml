@@ -752,6 +752,8 @@
     <member refid="ml__array_8h_1ab2a97273b90ef4c7e96568927c6f20ed" kind="function"><name>ML_ARRAY_ACCESSORS</name></member>
     <member refid="ml__array_8h_1a8c0c15a64ad62b404a58d501478dda90" kind="function"><name>ml_array_reorder</name></member>
     <member refid="ml__array_8h_1a6a0b7dcab4c01baf2fb58e87c13a169f" kind="function"><name>ml_order_permutation</name></member>
+    <member refid="ml__array_8h_1a3d393fd8daf80dc926019bfcac99e567" kind="function"><name>ml_array_count_nonzero</name></member>
+    <member refid="ml__array_8h_1adce5141c1b18981731e1bd739d49f991" kind="function"><name>ml_array_offsets_nonzero</name></member>
   </compound>
   <compound refid="ml__ast_8h" kind="file"><name>ml_ast.h</name>
     <member refid="ml__ast_8h_1abe80c5dc54dafe96fa3647cfecc3ed35" kind="function"><name>ml_ast_init</name></member>
@@ -1623,6 +1625,7 @@
   </compound>
   <compound refid="ml__stream_8h" kind="file"><name>ml_stream.h</name>
     <member refid="group__streams_1ga206579eb6453064f0b112505224890c2" kind="variable"><name>MLStreamT</name></member>
+    <member refid="group__streams_1gae83786fa26a6546bae728224c2a8bea7" kind="variable"><name>MLStreamSeekT</name></member>
     <member refid="group__streams_1ga2ef17055aaff824267bc3c728ca1e354" kind="variable"><name>MLStreamFdT</name></member>
     <member refid="group__streams_1ga4202d8e8a2dc2115e288d5cb2c1b9924" kind="function"><name>ml_stream_init</name></member>
     <member refid="group__streams_1ga48fb874e1b08e92bed3348ee8208d486" kind="function"><name>ml_stream_read</name></member>
@@ -1886,6 +1889,7 @@
     <member refid="group__booleans_1gaf2917c1df458f0cf9475a531af368362" kind="function"><name>ml_boolean</name></member>
     <member refid="group__booleans_1gae68130990e046a964dcb7ad9d61c78fd" kind="function"><name>ml_boolean_value</name></member>
     <member refid="group__numbers_1gaf2ce1a9d7884b519b1c0328b5d174a3d" kind="function"><name>ml_gcd</name></member>
+    <member refid="group__numbers_1ga6f104296916608ae981c052751aca6aa" kind="function"><name>ml_random_integer</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
     <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>
@@ -1914,6 +1918,7 @@
     <member refid="group__strings_1gaa383bf26cf453db6f3cdc5a2a542c131" kind="function"><name>ml_regexi</name></member>
     <member refid="group__strings_1ga164105119905996003a097f8864a333d" kind="function"><name>ml_regex_pattern</name></member>
     <member refid="group__strings_1ga3d67945bae6d7411d5ef1e0b82371407" kind="function"><name>ml_regex_match</name></member>
+    <member refid="group__strings_1ga151106b5271c7eb4aca9ae5ea0920589" kind="function"><name>ml_regex_find</name></member>
     <member refid="group__strings_1ga9eaad83d27d77c00d4c3f0b2ae1fbdd3" kind="function"><name>ml_stringbuffer</name></member>
     <member refid="group__strings_1ga895958502be6d350fdb5e2463953b94d" kind="function"><name>ml_stringbuffer_length</name></member>
     <member refid="group__strings_1ga32ac71924bcbc14387fe015970e812a6" kind="function"><name>ml_stringbuffer_writer</name></member>
@@ -1926,6 +1931,7 @@
     <member refid="group__strings_1gafcef2e64b71dbd44defa8f8f254c6c07" kind="function"><name>ml_stringbuffer_put</name></member>
     <member refid="group__strings_1ga6d6e21d0d3591a97edd65c0c77bcf851" kind="function"><name>ml_stringbuffer_write_actual</name></member>
     <member refid="group__strings_1ga049b8ad5df446b3fc76a1d082a2dee3e" kind="function"><name>ml_stringbuffer_write</name></member>
+    <member refid="group__strings_1gaae23d3c10cf66b7a4544d81510e8d756" kind="function"><name>ml_stringbuffer_read</name></member>
     <member refid="group__strings_1gaef9c2804dcfb1400cdc6c518acb98dd4" kind="function"><name>ml_stringbuffer_put32</name></member>
     <member refid="group__strings_1ga7f8281b09ed06b5c88db0b178eb2967b" kind="function"><name>ml_stringbuffer_simple_append</name></member>
     <member refid="group__strings_1ga43340f5bb19474b6e841313078519c8f" kind="function"><name>ml_stringbuffer_get_string</name></member>
@@ -2103,6 +2109,7 @@
   <compound refid="weakmap_8h" kind="file"><name>weakmap.h</name>
     <member refid="weakmap_8h_1a49bc5df3d133fbffb650adee512a33b4" kind="define"><name>WEAKMAP_INIT</name></member>
     <member refid="weakmap_8h_1a7429fbd1d4989b2c532e6ab51e14f702" kind="typedef"><name>weakmap_node_t</name></member>
+    <member refid="weakmap_8h_1a333e09c86ef55f836132c2c871b0ab2d" kind="function"><name>weakmap_alloc</name></member>
     <member refid="weakmap_8h_1aa879a039d43c8032a588f6797eb4c2c4" kind="function"><name>weakmap_insert</name></member>
     <member refid="weakmap_8h_1a7c69ee9d2e5df48f9527fa0290fbbb10" kind="function"><name>weakmap_foreach</name></member>
     <member refid="weakmap_8h_1a4e9c54f9bec5c412d12766d9eaf98e0f" kind="function"><name>weakmap_check</name></member>
@@ -2534,6 +2541,7 @@
   </compound>
   <compound refid="group__streams" kind="group"><name>streams</name>
     <member refid="group__streams_1ga206579eb6453064f0b112505224890c2" kind="variable"><name>MLStreamT</name></member>
+    <member refid="group__streams_1gae83786fa26a6546bae728224c2a8bea7" kind="variable"><name>MLStreamSeekT</name></member>
     <member refid="group__streams_1ga2ef17055aaff824267bc3c728ca1e354" kind="variable"><name>MLStreamFdT</name></member>
     <member refid="group__streams_1ga4202d8e8a2dc2115e288d5cb2c1b9924" kind="function"><name>ml_stream_init</name></member>
     <member refid="group__streams_1ga48fb874e1b08e92bed3348ee8208d486" kind="function"><name>ml_stream_read</name></member>
@@ -2705,6 +2713,7 @@
     <member refid="group__numbers_1ga4375c307ffeb47f4fbd0099b21838ad5" kind="variable"><name>MLRealRangeT</name></member>
     <member refid="group__numbers_1ga60567984e82fce3c83d3a5bfc81fe7c3" kind="variable"><name>MLRealIntervalT</name></member>
     <member refid="group__numbers_1gaf2ce1a9d7884b519b1c0328b5d174a3d" kind="function"><name>ml_gcd</name></member>
+    <member refid="group__numbers_1ga6f104296916608ae981c052751aca6aa" kind="function"><name>ml_random_integer</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
     <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>
@@ -2744,6 +2753,7 @@
     <member refid="group__strings_1gaa383bf26cf453db6f3cdc5a2a542c131" kind="function"><name>ml_regexi</name></member>
     <member refid="group__strings_1ga164105119905996003a097f8864a333d" kind="function"><name>ml_regex_pattern</name></member>
     <member refid="group__strings_1ga3d67945bae6d7411d5ef1e0b82371407" kind="function"><name>ml_regex_match</name></member>
+    <member refid="group__strings_1ga151106b5271c7eb4aca9ae5ea0920589" kind="function"><name>ml_regex_find</name></member>
     <member refid="group__strings_1ga9eaad83d27d77c00d4c3f0b2ae1fbdd3" kind="function"><name>ml_stringbuffer</name></member>
     <member refid="group__strings_1ga895958502be6d350fdb5e2463953b94d" kind="function"><name>ml_stringbuffer_length</name></member>
     <member refid="group__strings_1ga32ac71924bcbc14387fe015970e812a6" kind="function"><name>ml_stringbuffer_writer</name></member>
@@ -2756,6 +2766,7 @@
     <member refid="group__strings_1gafcef2e64b71dbd44defa8f8f254c6c07" kind="function"><name>ml_stringbuffer_put</name></member>
     <member refid="group__strings_1ga6d6e21d0d3591a97edd65c0c77bcf851" kind="function"><name>ml_stringbuffer_write_actual</name></member>
     <member refid="group__strings_1ga049b8ad5df446b3fc76a1d082a2dee3e" kind="function"><name>ml_stringbuffer_write</name></member>
+    <member refid="group__strings_1gaae23d3c10cf66b7a4544d81510e8d756" kind="function"><name>ml_stringbuffer_read</name></member>
     <member refid="group__strings_1gaef9c2804dcfb1400cdc6c518acb98dd4" kind="function"><name>ml_stringbuffer_put32</name></member>
     <member refid="group__strings_1ga7f8281b09ed06b5c88db0b178eb2967b" kind="function"><name>ml_stringbuffer_simple_append</name></member>
     <member refid="group__strings_1ga43340f5bb19474b6e841313078519c8f" kind="function"><name>ml_stringbuffer_get_string</name></member>

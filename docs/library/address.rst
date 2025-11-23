@@ -253,6 +253,27 @@ address
       A:getf32 :> 1.14313912243758e+27
 
 
+:mini:`meth (Address: address):getf32: real`
+   Returns the 32-bit floating point value at :mini:`Address`. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getf32 :> 1.14313912243758e+27
+
+
+:mini:`meth (Address: address):getf32(Order: byte::order): real`
+   Returns the 32-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getf32(address::LE) :> 1.14313912243758e+27
+      A:getf32(address::BE) :> 234929.6875
+
+
 :mini:`meth (Address: address):getf32(Order: byte::order): real`
    Returns the 32-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
 
@@ -272,6 +293,27 @@ address
       let A := address("Hello world!\n")
       :> <13:48656C6C6F20776F726C64210A>
       A:getf64 :> 8.76577647882785e+228
+
+
+:mini:`meth (Address: address):getf64: real`
+   Returns the 64-bit floating point value at :mini:`Address`. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getf64 :> 8.76577647882785e+228
+
+
+:mini:`meth (Address: address):getf64(Order: byte::order): real`
+   Returns the 64-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A:getf64(address::LE) :> 8.76577647882785e+228
+      A:getf64(address::BE) :> 5.83203948069194e+40
 
 
 :mini:`meth (Address: address):getf64(Order: byte::order): real`
