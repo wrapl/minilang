@@ -40,7 +40,7 @@ if PLATFORM != "Wasm" then
 end
 
 if PLATFORM = "Wasm" then
-	CFLAGS := old + ["-g3"]	
+	CFLAGS := old + ["-g3"]
 end
 
 if PLATFORM = "Darwin" then
@@ -49,6 +49,10 @@ if PLATFORM = "Darwin" then
 		CFLAGS := old + ['-I/opt/homebrew/opt/{Name}/include']
 		LDFLAGS := old + ['-L/opt/homebrew/opt/{Name}/lib']
 	end
+end
+
+if PLATFORM = "Mingw" then
+	CFLAGS := old + ['-D_POSIX_C_SOURCE']
 end
 
 if defined("ANALYZER") then
@@ -166,12 +170,12 @@ let Objects := [
 	file("ml_sequence.o"),
 	file("ml_set.o"),
 	file("ml_slice.o"),
-	file("ml_socket.o"),
 	file("ml_stream.o"),
 	file("ml_string.o"),
 	file("ml_time.o"),
 	file("ml_tuple.o"),
 	file("ml_types.o"),
+	file("ml_utils.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("uuidmap.o"),
@@ -239,7 +243,8 @@ let Options := [
 	"STRUCTS",
 	"MMAP",
 	"STRINGCACHE",
-	"STATICGC"
+	"STATICGC",
+	"SOCKETS"
 ]
 
 if MACHINE = "x86" then
@@ -273,6 +278,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_ENCODINGS := 1
 	MINILANG_TIMEZONES := 1
 	MINILANG_XE := 1
+	MINILANG_SOCKETS := 1
 	MINILANG_STRINGCACHE := not defined("NOSTRINGCACHE")
 	MINILANG_STATICGC := not defined("NOSTATICGC")
 	MINILANG_BACKTRACE := not defined("NOBACKTRACE")
@@ -310,8 +316,11 @@ if MINILANG_STATICGC or defined("STATICGC") then
 		}
 		if PLATFORM = "Wasm" then
 			:>Configuration["--enable-emscripten-asyncify"] := some
+		elseif PLATFORM = "Mingw" then
+			Configuration["--host"] = "x86_64-w64-mingw32"
+			Configuration["--enable-threads"] := "win32"
 		else
-			Configuration["--enable-threads=pthreads"] := some
+			Configuration["--enable-threads"] := "pthreads"
 		end
 		if NOPARALLELMARK then
 			Configuration["--disable-parallel-mark"] := some
@@ -345,6 +354,7 @@ MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
 MINILANG_XE := old or defined("XE")
+MINILANG_SOCKETS := old or defined("SOCKETS")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_THREADS := old or defined("THREADS")
@@ -445,6 +455,7 @@ end
 if MINILANG_MATH then
 	file("array"):mkdir
 	Objects:put(
+		:>file("array/infix_add.o"),
 		file("array/compare_cmp.o"),
 		file("array/compare_eq.o"),
 		file("array/compare_ge.o"),
@@ -457,12 +468,14 @@ if MINILANG_MATH then
 		file("array/update_div.o"),
 		file("array/update_max.o"),
 		file("array/update_min.o"),
+		file("array/update_mod.o"),
 		file("array/update_mul.o"),
 		file("array/update_or.o"),
 		file("array/update_set.o"),
 		file("array/update_sub.o"),
 		file("array/update_xor.o"),
 		file("ml_array.o"),
+		file("ml_array2.o"),
 		file("ml_math.o"),
 		file("ml_polynomial.o")
 	)
@@ -513,7 +526,7 @@ if MINILANG_XML then
 	CFLAGS := old + ['-DML_XML']
 	Objects:put(file("ml_xml.o"))
 	InstallHeaders:put("ml_xml.h")
-	if PLATFORM = "Wasm" then
+	if PLATFORM = "Wasm" or PLATFORM = "Mingw" then
 		let Dir := file("expat")
 		let Lib := file("expat/lib/.libs/libexpat.a"; Lib) do
 			Dir:rmdir:mkdir:chdir
@@ -538,6 +551,12 @@ if MINILANG_XE then
 	CFLAGS := old + ['-DML_XE']
 	Objects:put(file("ml_xe.o"))
 	InstallHeaders:put("ml_xe.h")
+end
+
+if MINILANG_SOCKETS then
+	CFLAGS := old + ["-DML_SOCKETS"]
+	Objects:put(file("ml_socket.o"))
+	InstallHeaders:put("ml_socket.h")
 end
 
 if MINILANG_MMAP then
@@ -612,7 +631,8 @@ end
 
 if MINILANG_TRE then
 	file("tre"):mkdir
-	let Lib := file("lib/libtre.a")[GC] => fun(Lib) do
+	let Sources := file("tre/lib"):ls(r".*\.[ch]")
+	let Lib := file("lib/libtre.a")[GC, Sources] => fun(Lib) do
 		file("tre"):chdir
 		let Options := {
 			"--prefix" is PATH,
@@ -681,7 +701,9 @@ end
 if MINILANG_UUID then
 	Objects:put(file("ml_uuid.o"))
 	CFLAGS := old + ["-DML_UUID"]
-	if PLATFORM != "Darwin" then
+	if PLATFORM = "Darwin" then
+	elseif PLATFORM = "Mingw" then
+	else
 		LDFLAGS := old + ["-luuid"]
 	end
 	InstallHeaders:put("ml_uuid.h")
@@ -725,6 +747,7 @@ elseif PLATFORM = "Darwin" then
 	CFLAGS := old + ["-DUSE_LINENOISE"]
 	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
+	GC or LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Android" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-DUSE_LINENOISE"]
@@ -735,7 +758,7 @@ if PLATFORM = "Wasm" then
 	LDFLAGS := old + ["-g3", "-sEXPORTED_FUNCTIONS=_ml_session,_ml_session_evaluate", "-sEXPORTED_RUNTIME_METHODS=cwrap,stringToNewUTF8", "-sALLOW_MEMORY_GROWTH=1", "-gsource-map ", "-sEXIT_RUNTIME=0", "-sBINARYEN_EXTRA_PASSES=\"--spill-pointers\""] :>, "-sASYNCIFY"]
 	LIBMINILANG := c_library(LIB_DIR / "libminilang.wasm", Objects, Libraries)
 	MINIWASM := c_program(BIN_DIR / "minilang.js", [file("miniwasm.o")], [LIBMINILANG])
-	
+
 	(BIN_DIR / "minilang.wasm")[MINIWASM]
 	(BIN_DIR / "minilang.wasm.map")[MINIWASM]
 

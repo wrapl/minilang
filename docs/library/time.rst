@@ -19,12 +19,40 @@ Provides time and date operations.
    An instant in time with nanosecond resolution.
 
 
-:mini:`meth time(Year: integer, Month: integer, Day: integer): time`
+:mini:`meth time(Seconds: integer): time`
+   Returns a time from the epoch (1970-01-01).
+
+
+:mini:`meth time(Seconds: integer, Nanoseconds: integer): time`
+   Returns a time from the epoch (1970-01-01).
+
+
+:mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
    Returns the time specified by the provided components in the local time.
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer, TimeZone: nil): time`
    Returns the time specified by the provided components in UTC.
+
+
+:mini:`meth time(String: string, Format: string): time`
+   Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time.
+
+
+:mini:`meth time(String: string, Format: string, TimeZone: nil): time`
+   Parses the :mini:`String` as a time according to specified format. The time is assumed to be in UTC.
+
+
+:mini:`meth time(): time`
+   Returns the current time.
+
+   .. code-block:: mini
+
+      time() :> 2025-11-23T17:33:49.249353
+
+
+:mini:`meth time(Year: integer, Month: integer, Day: integer): time`
+   Returns the time specified by the provided components in the local time.
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer, TimeZone: time::zone): time`
@@ -35,6 +63,14 @@ Provides time and date operations.
    Returns the time specified by the provided components in UTC.
 
 
+:mini:`meth time(Year: integer, Month: integer, Day: integer, TimeZone: time::zone): time`
+   Returns the time specified by the provided components in the specified time zone.
+
+
+:mini:`meth time(Seconds: real): time`
+   Returns a time from the epoch (1970-01-01).
+
+
 :mini:`meth time(String: string): time`
    Parses the :mini:`String` as a time according to ISO 8601.
 
@@ -42,10 +78,6 @@ Provides time and date operations.
 
       time("2023-02-09T21:19:33.196413266")
       :> 2023-02-09T20:19:33.196413
-
-
-:mini:`meth time(String: string, Format: string): time`
-   Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time.
 
 
 :mini:`meth time(String: string, Format: string, TimeZone: time::zone): time`
@@ -61,24 +93,8 @@ Provides time and date operations.
       :> 2023-02-10T03:19:33.196413
 
 
-:mini:`meth time(): time`
-   Returns the current time.
-
-   .. code-block:: mini
-
-      time() :> 2025-09-22T10:00:26.851598
-
-
-:mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
-   Returns the time specified by the provided components in the local time.
-
-
-:mini:`meth time(Year: integer, Month: integer, Day: integer, TimeZone: time::zone): time`
-   Returns the time specified by the provided components in the specified time zone.
-
-
-:mini:`meth time(String: string, Format: string, TimeZone: nil): time`
-   Parses the :mini:`String` as a time according to specified format. The time is assumed to be in UTC.
+:mini:`meth (Time: time) + (Component₁ is Value₁, Arg₃: integer, ...): time`
+   Returns :mini:`Time` with the the specified components updated.
 
 
 :mini:`meth (Start: time) + (Duration: number): time`
@@ -87,6 +103,10 @@ Provides time and date operations.
    .. code-block:: mini
 
       time("2022-04-01 12:00:00") + 3600 :> 2022-04-01T13:00:00
+
+
+:mini:`meth (Time: time) - (Component₁ is Value₁, Arg₃: integer, ...): time`
+   Returns :mini:`Time` with the the specified components updated.
 
 
 :mini:`meth (Start: time) - (Duration: number): time`
@@ -120,6 +140,10 @@ Provides time and date operations.
 
 :mini:`meth (Time: time):day(TimeZone: time::zone): integer`
    Returns the date from :mini:`Time` in :mini:`TimeZone`.
+
+
+:mini:`meth (Time: time):epoch: integer`
+   Returns the seconds component of :mini:`Time`.
 
 
 :mini:`meth (Time: time):hour: integer`

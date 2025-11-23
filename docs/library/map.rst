@@ -33,14 +33,6 @@ map
    By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
 
 
-:mini:`meth map(): map`
-   Returns a new map.
-
-   .. code-block:: mini
-
-      map() :> {}
-
-
 :mini:`meth map(Key₁ is Value₁, ...): map`
    Returns a new map with the specified keys and values.
 
@@ -48,6 +40,14 @@ map
 
       map(A is 1, B is 2, C is 3)
       :> {"A" is 1, "B" is 2, "C" is 3}
+
+
+:mini:`meth map(): map`
+   Returns a new map.
+
+   .. code-block:: mini
+
+      map() :> {}
 
 
 :mini:`meth map(Sequence: sequence, ...): map`
@@ -137,8 +137,16 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "e"
-      M:random :> "e"
+      M:random :> "c"
+      M:random :> "a"
+
+
+:mini:`meth (Map: map):size: integer`
+   Returns the number of entries in :mini:`Map`.
+
+   .. code-block:: mini
+
+      {"A" is 1, "B" is 2, "C" is 3}:size :> 3
 
 
 :mini:`meth (Map: map)[Key: any]: any | nil`
@@ -151,24 +159,12 @@ map
       M["D"] :> nil
 
 
-:mini:`meth (Map: map):size: integer`
-   Returns the number of entries in :mini:`Map`.
-
-   .. code-block:: mini
-
-      {"A" is 1, "B" is 2, "C" is 3}:size :> 3
-
-
 :mini:`type map::labeller < function, map`
    *TBD*
 
 
 :mini:`type map::mutable < map`
    *TBD*
-
-
-:mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
-   Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
 
 
 :mini:`meth (Map: map::mutable) :: (Key: string): map::node`
@@ -184,8 +180,21 @@ map
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
 
 
-:mini:`meth (Buffer: string::buffer):append(Map: map)`
-   Appends a representation of :mini:`Map` to :mini:`Buffer`.
+:mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
+   Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+
+
+:mini:`meth (Map: map::mutable)[Key: any]: map::node`
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M["A"] :> 1
+      M["D"] :> nil
+      M["A"] := 10 :> 10
+      M["D"] := 20 :> 20
+      M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
 
 
 :mini:`meth (Map: map::mutable)[Key: any, Fn: function]: map::node`
@@ -197,17 +206,6 @@ map
       M["A", fun(Key) Key:code] :> 1
       M["D", fun(Key) Key:code] :> 68
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
-
-
-:mini:`meth (Map: map::mutable):delete(Key: any): any | nil`
-   Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any,  otherwise :mini:`nil`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M:delete("A") :> 1
-      M:delete("D") :> nil
-      M :> {"B" is 2, "C" is 3}
 
 
 :mini:`meth (Map: map::mutable):empty: map`
@@ -232,7 +230,9 @@ map
 
 
 :mini:`meth (Arg₁: map::mutable):grow(Arg₂₁ is Value₁, ...)`
-   *TBD*
+   .. deprecated:: 2.15.0
+   
+      Use :mini:`:insert` instead.
 
 
 :mini:`meth (Map: map::mutable):grow(Sequence: sequence, ...): map`
@@ -254,6 +254,21 @@ map
       M:insert("A", 10) :> 1
       M:insert("D", 20) :> nil
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
+
+
+:mini:`meth (Arg₁: map::mutable):insert(Arg₂₁ is Value₁, ...)`
+   *TBD*
+
+
+:mini:`meth (Map: map::mutable):missing(Key: any): some | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`some` and returns :mini:`some`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M:missing("A") :> nil
+      M:missing("D") :> some
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D"}
 
 
 :mini:`meth (Map: map::mutable):missing(Key: any, Fn: function): any | nil`
@@ -462,17 +477,17 @@ map
       M:sort(>) :> {"k" is 3, "e" is 4, "c" is 1, "a" is 2}
 
 
-:mini:`meth (Map: map::mutable)[Key: any]: map::node`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
+:mini:`meth (Map₁: map) <=> (Map₂: map): map`
+   Returns a tuple of :mini:`(Map₁ / Map₂,  Map₁ * Map₂,  Map₂ / Map₁)`.
 
    .. code-block:: mini
 
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M["A"] :> 1
-      M["D"] :> nil
-      M["A"] := 10 :> 10
-      M["D"] := 20 :> 20
-      M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A <=> B
+      :> ({n is 5}, {b is 1, a is 6}, {r is 2, e is 3, d is 5})
 
 
 :mini:`meth (Map₁: map) >< (Map₂: map): map`
@@ -513,18 +528,23 @@ map
       :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
-:mini:`meth (Map: map):from(Key: any): sequence | nil`
-   Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
-      map(M:from("C")) :> {"C" is 3, "D" is 4, "E" is 5}
-      map(M:from("F")) :> {}
+:mini:`meth (Buffer: string::buffer):append(Map: map)`
+   Appends a representation of :mini:`Map` to :mini:`Buffer`.
 
 
 :mini:`meth (Map: map):order: map::order`
    Returns the current ordering of :mini:`Map`.
+
+
+:mini:`meth (Map: map::mutable):exists(Key: any, Fn: function): any | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M:exists("A", fun(Key) Key:code) :> 1
+      M:exists("D", fun(Key) Key:code) :> nil
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
 :mini:`meth (Map: map::mutable):filter2(Filter: function): map`
@@ -536,17 +556,6 @@ map
       M:filter2(fun(K, V) K = "c" or V = 7)
       :> {"a" is 1, "b" is 2, "d" is 4, "e" is 5, "f" is 6, "h" is 8, "i" is 9, "j" is 10}
       M :> {"c" is 3, "g" is 7}
-
-
-:mini:`meth (Map: map::mutable):missing(Key: any): some | nil`
-   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`some` and returns :mini:`some`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M:missing("A") :> nil
-      M:missing("D") :> some
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D"}
 
 
 :mini:`meth (Map: map::mutable):sort2(Cmp: function): Map`
@@ -602,19 +611,6 @@ map
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-:mini:`meth (Map₁: map) <=> (Map₂: map): map`
-   Returns a tuple of :mini:`(Map₁ / Map₂,  Map₁ * Map₂,  Map₂ / Map₁)`.
-
-   .. code-block:: mini
-
-      let A := map(swap("banana"))
-      :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread"))
-      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A <=> B
-      :> ({n is 5}, {b is 1, a is 6}, {r is 2, e is 3, d is 5})
-
-
 :mini:`meth (Map₁: map) / (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` which are not in :mini:`Map₂`.
 
@@ -641,15 +637,25 @@ map
       :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
-:mini:`meth (Map: map::mutable):exists(Key: any, Fn: function): any | nil`
-   If :mini:`Key` is present in :mini:`Map` then returns the corresponding value. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`nil`.
+:mini:`meth (Map: map):from(Key: any): sequence | nil`
+   Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
+      map(M:from("C")) :> {"C" is 3, "D" is 4, "E" is 5}
+      map(M:from("F")) :> {}
+
+
+:mini:`meth (Map: map::mutable):delete(Key: any): any | nil`
+   Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any,  otherwise :mini:`nil`.
 
    .. code-block:: mini
 
       let M := {"A" is 1, "B" is 2, "C" is 3}
-      M:exists("A", fun(Key) Key:code) :> 1
-      M:exists("D", fun(Key) Key:code) :> nil
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+      M:delete("A") :> 1
+      M:delete("D") :> nil
+      M :> {"B" is 2, "C" is 3}
 
 
 :mini:`type map::node::mutable < map::node`

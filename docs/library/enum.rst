@@ -115,7 +115,8 @@ enum
       let colour := enum::cyclic(Red is 10, Green is 20, Blue is 30)
       :> <<colour>>
       colour::Red :> Red
-      list(colour, _ + 0) :> [Red, Green, Blue]
+      list(colour, _ + 0)
+      :> error("EnumError", "Invalid enum index")
 
 
 :mini:`meth enum::cyclic(Names: string, ...): enum`

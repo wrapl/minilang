@@ -2,7 +2,7 @@
 
 #define COMPARE_ROW_IMPL(NAME, OP, METH, LEFT, RIGHT) \
 \
-void NAME ## _row_ ## LEFT ## _ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
+static void NAME ## _row_ ## LEFT ## _ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
 		const int *LeftIndices = LeftDimension->Indices; \
@@ -49,7 +49,7 @@ void NAME ## _row_ ## LEFT ## _ ## RIGHT(char *Target, ml_array_dimension_t *Lef
 
 #define COMPARE_ROW_VALUE_IMPL(NAME, OP, METH, RIGHT) \
 \
-void NAME ## _row_any_ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
+static void NAME ## _row_any_ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
 		const int *LeftIndices = LeftDimension->Indices; \
@@ -96,7 +96,7 @@ void NAME ## _row_any_ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimensio
 
 #define COMPARE_ROW_IMPL_VALUE(NAME, OP, METH, LEFT) \
 \
-void NAME ## _row_ ## LEFT ## _any(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
+static void NAME ## _row_ ## LEFT ## _any(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
 		const int *LeftIndices = LeftDimension->Indices; \
@@ -141,7 +141,7 @@ void NAME ## _row_ ## LEFT ## _any(char *Target, ml_array_dimension_t *LeftDimen
 
 #define COMPARE_ROW_VALUE_IMPL_VALUE(NAME, OP, METH) \
 \
-void NAME ## _row_any_any(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
+static void NAME ## _row_any_any(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
 	int Size = LeftDimension->Size; \
 	if (LeftDimension->Indices) { \
 		const int *LeftIndices = LeftDimension->Indices; \

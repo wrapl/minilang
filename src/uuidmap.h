@@ -5,7 +5,7 @@
 /// @{
 ///
 
-#include <uuid/uuid.h>
+#include "ml_uuid.h"
 
 #ifdef __cplusplus
 extern "C" {

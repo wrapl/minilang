@@ -502,6 +502,24 @@ ML_METHOD(ConjMethod, MLRealT) {
 	return Args[0];
 }
 
+ML_METHOD_DECL(DeltaMethod, "math::delta");
+
+ML_METHOD(DeltaMethod, MLIntegerT, MLIntegerT) {
+	if (ml_integer_value(Args[0]) == ml_integer_value(Args[1])) {
+		return ml_integer(1);
+	} else {
+		return ml_integer(0);
+	}
+}
+
+ML_METHOD(DeltaMethod, MLRealT, MLRealT) {
+	if (ml_real_value(Args[0]) == ml_real_value(Args[1])) {
+		return ml_integer(1);
+	} else {
+		return ml_integer(0);
+	}
+}
+
 #ifdef ML_COMPLEX
 
 ML_METHOD(AbsMethod, MLComplexT) {
@@ -528,6 +546,14 @@ ML_METHOD(ConjMethod, MLComplexT) {
 	return ml_complex(conj(ml_complex_value(Args[0])));
 }
 
+ML_METHOD(DeltaMethod, MLComplexT, MLComplexT) {
+	if (ml_complex_value(Args[0]) == ml_complex_value(Args[1])) {
+		return ml_integer(1);
+	} else {
+		return ml_integer(0);
+	}
+}
+
 #endif
 
 /*
@@ -546,7 +572,7 @@ ML_FUNCTION(MLRandomSeed) {
 //@random::seed
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	srandom(ml_integer_value(Args[0]));
+	srand(ml_integer_value(Args[0]));
 	return MLNil;
 }
 
@@ -556,7 +582,7 @@ typedef struct {
 } ml_random_switch_t;
 
 static void ml_random_switch(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
-	int X = rand();
+	int X = arc4random();
 	for (int *Case = Switch->Cases;; ++Case) {
 		if (X <= *Case) ML_RETURN(ml_integer(Case - Switch->Cases));
 	}
@@ -579,13 +605,13 @@ ML_FUNCTION_INLINE(MLRandomSwitch) {
 	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, int);
 	Switch->Type = MLRandomSwitchT;
 	int *Case = Switch->Cases;
-	double M = RAND_MAX / Total;
+	double M = UINT32_MAX / Total;
 	Total = 0;
 	for (int I = 0; I < Count; ++I) {
 		Total += ml_real_value(ml_list_get(Args[I], 1));
 		*Case++ = M * Total;
 	}
-	Case[-1] = RAND_MAX;
+	Case[-1] = UINT32_MAX;
 	return (ml_value_t *)Switch;
 }
 
@@ -631,6 +657,7 @@ void ml_math_init(stringmap_t *Globals) {
 			"round", RoundMethod,
 			"arg", ArgMethod,
 			"conj", ConjMethod,
+			"delta", DeltaMethod,
 			"pi", ml_real(M_PI),
 			"π", ml_real(M_PI),
 			"e", ml_real(M_E),

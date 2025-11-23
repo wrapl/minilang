@@ -99,6 +99,23 @@ buffer
       buffer(4):putf32(1.23456789) :> <4:52069E3F>
 
 
+:mini:`meth (Buffer: buffer):putf32(Value: real): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a 32-bit floating point value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      buffer(4):putf32(1.23456789) :> <4:52069E3F>
+
+
+:mini:`meth (Buffer: buffer):putf32(Value: real, Order: byte::order): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a 32-bit floating point value. Uses little endian byte order.
+
+   .. code-block:: mini
+
+      buffer(4):putf32(1.23456789, address::LE) :> <4:52069E3F>
+      buffer(4):putf32(1.23456789, address::BE) :> <4:3F9E0652>
+
+
 :mini:`meth (Buffer: buffer):putf32(Value: real, Order: byte::order): buffer`
    Puts :mini:`Value` in :mini:`Buffer` as a 32-bit floating point value. Uses little endian byte order.
 
@@ -114,6 +131,25 @@ buffer
    .. code-block:: mini
 
       buffer(8):putf64(1.23456789) :> <8:1BDE8342CAC0F33F>
+
+
+:mini:`meth (Buffer: buffer):putf64(Value: real): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a 64-bit floating point value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      buffer(8):putf64(1.23456789) :> <8:1BDE8342CAC0F33F>
+
+
+:mini:`meth (Buffer: buffer):putf64(Value: real, Order: byte::order): buffer`
+   Puts :mini:`Value` in :mini:`Buffer` as a 64-bit floating point value. Uses little endian byte order.
+
+   .. code-block:: mini
+
+      buffer(8):putf64(1.23456789, address::LE)
+      :> <8:1BDE8342CAC0F33F>
+      buffer(8):putf64(1.23456789, address::BE)
+      :> <8:3FF3C0CA4283DE1B>
 
 
 :mini:`meth (Buffer: buffer):putf64(Value: real, Order: byte::order): buffer`

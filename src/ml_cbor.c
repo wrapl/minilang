@@ -346,15 +346,26 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 			if (!Stream->Required) value_handler(Reader, ml_address(NULL, 0));
 			break;
 		case MCE_BYTES_PIECE:
-			ml_stringbuffer_write(Reader->Buffer, (const char *)Stream->Bytes, Stream->Size);
-			if (!Stream->Required) value_handler(Reader, ml_stringbuffer_to_address(Reader->Buffer));
+			if (!Stream->Required && !Reader->Buffer->Length) {
+				char *Copy = snew(Stream->Size + 1);
+				memcpy(Copy, Stream->Bytes, Stream->Size);
+				Copy[Stream->Size] = 0;
+				value_handler(Reader, ml_address(Copy, Stream->Size));
+			} else {
+				ml_stringbuffer_write(Reader->Buffer, (const char *)Stream->Bytes, Stream->Size);
+				if (!Stream->Required) value_handler(Reader, ml_stringbuffer_to_address(Reader->Buffer));
+			}
 			break;
 		case MCE_STRING:
 			if (!Stream->Required) value_handler(Reader, ml_cstring(""));
 			break;
 		case MCE_STRING_PIECE:
-			ml_stringbuffer_write(Reader->Buffer, (const char *)Stream->Bytes, Stream->Size);
-			if (!Stream->Required) value_handler(Reader, ml_stringbuffer_to_string(Reader->Buffer));
+			if (!Stream->Required && !Reader->Buffer->Length) {
+				value_handler(Reader, ml_string_copy((const char *)Stream->Bytes, Stream->Size));
+			} else {
+				ml_stringbuffer_write(Reader->Buffer, (const char *)Stream->Bytes, Stream->Size);
+				if (!Stream->Required) value_handler(Reader, ml_stringbuffer_to_string(Reader->Buffer));
+			}
 			break;
 		case MCE_ARRAY:
 			if (Stream->Required) {

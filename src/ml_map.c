@@ -333,6 +333,9 @@ ML_METHODVX("grow", MLMapMutableT, MLSequenceT) {
 }
 
 ML_METHODV("grow", MLMapMutableT, MLNamesT) {
+// .. deprecated:: 2.15.0
+//
+//    Use :mini:`:insert` instead.
 	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_value_t *Map = Args[0];
 	int I = 1;
@@ -1378,6 +1381,14 @@ ML_METHOD("insert", MLMapMutableT, MLAnyT, MLAnyT) {
 	return ml_map_insert(Args[0], Args[1], Args[2]);
 }
 
+ML_METHODV("insert", MLMapMutableT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	ml_value_t *Map = Args[0];
+	int I = 1;
+	ML_NAMES_FOREACH(Args[1], Iter) ml_map_insert(Map, Iter->Value, Args[++I]);
+	return Map;
+}
+
 ML_METHOD("splice", MLMapMutableT, MLAnyT) {
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_t *Removed = (ml_map_t *)ml_map();
@@ -2288,9 +2299,7 @@ ML_METHOD("random", MLMapT) {
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	int Limit = Map->Size;
 	if (Limit <= 0) return MLNil;
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
+	int Random = ml_random_integer(Limit);
 	ml_map_node_t *Node = Map->Head;
 	while (--Random >= 0) Node = Node->Next;
 	return (ml_value_t *)Node;

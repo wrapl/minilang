@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_utils.h"
 #include "ml_macros.h"
 #include "sha256.h"
 #include <stdio.h>
@@ -44,6 +45,7 @@ ML_METHOD_DECL(AddMethod, "+");
 ML_METHOD_DECL(MulMethod, "*");
 ML_METHOD_DECL(SubMethod, "-");
 ML_METHOD_DECL(DivMethod, "/");
+ML_METHOD_DECL(ModMethod, "%");
 ML_METHOD_DECL(AndMethod, "/\\");
 ML_METHOD_DECL(OrMethod, "\\/");
 ML_METHOD_DECL(XorMethod, "><");

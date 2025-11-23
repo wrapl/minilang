@@ -69,6 +69,30 @@ static const char *ml_console_terminal_read(ml_console_t *Console) {
 	return Buffer;
 }
 
+#ifdef Mingw
+
+ssize_t getline(char **Line, size_t *Length, FILE *File) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (;;) {
+		int Char = fgetc(File);
+		if (Char == EOF) {
+			if (!Buffer->Length) return -1;
+			size_t NewLength = Buffer->Length;
+			*Line = ml_stringbuffer_get_string(Buffer);
+			return (*Length = NewLength);
+		} else if (Char == '\n') {
+			ml_stringbuffer_put(Buffer, Char);
+			size_t NewLength = Buffer->Length;
+			*Line = ml_stringbuffer_get_string(Buffer);
+			return (*Length = NewLength);
+		} else {
+			ml_stringbuffer_put(Buffer, Char);
+		}
+	}
+}
+
+#endif
+
 static const char *ml_console_file_read(ml_console_t *Console) {
 #ifdef ML_HOSTTHREADS
 	ml_scheduler_t *Scheduler = ml_context_get_static(Console->Base.Context, ML_SCHEDULER_INDEX);

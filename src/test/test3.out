@@ -2,7 +2,8 @@
 2 * 2 = 4
 Correct! An error has occurred 1: MethodError
 4 * 2 = 8
-Correct! An error has occurred 2: MethodError
+Correct! An error has occurred 1: MethodError
+5 * 2 = 10
 Before X loop
 Before Y loop
 X = 1, Y = 11

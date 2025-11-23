@@ -571,6 +571,7 @@ extern ml_type_t MLDoubleT[];
 extern ml_type_t MLInteger64T[];
 
 uint64_t ml_gcd(uint64_t A, uint64_t B);
+uint64_t ml_random_integer(uint64_t Limit);
 
 #ifdef ML_RATIONAL
 
@@ -869,6 +870,7 @@ ml_value_t *ml_regexi(const char *Value, int Length) __attribute__((malloc));
 const char *ml_regex_pattern(const ml_value_t *Value) __attribute__((pure));
 
 int ml_regex_match(ml_value_t *Value, const char *Subject, int Length);
+int ml_regex_find(ml_value_t *Value, const char *Subject, int Length, int *Start, int *End);
 
 typedef struct ml_stringbuffer_t ml_stringbuffer_t;
 typedef struct ml_stringbuffer_node_t ml_stringbuffer_node_t;
@@ -920,6 +922,8 @@ static inline ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const cha
 	Buffer->Length += Length;
 	return Length;
 }
+
+size_t ml_stringbuffer_read(ml_stringbuffer_t *Buffer, void *Address, size_t Count);
 
 static inline void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
 	char Val[8];
@@ -1586,6 +1590,16 @@ extern ml_type_t MLSymbolIntervalT[];
 // Init //
 
 void ml_types_init(stringmap_t *Globals);
+
+#ifndef GENERATE_INIT
+
+#define ML_INIT(CODE)
+
+#else
+
+#define ML_INIT(CODE) INIT_CODE CODE;
+
+#endif
 
 #ifdef __cplusplus
 }

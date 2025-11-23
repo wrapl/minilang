@@ -97,6 +97,30 @@ static ml_value_t *ml_preprocessor_input(ml_preprocessor_t *Preprocessor, int Co
 	return MLNil;
 }
 
+#ifdef Mingw
+
+ssize_t getline(char **Line, size_t *Length, FILE *File) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (;;) {
+		int Char = fgetc(File);
+		if (Char == EOF) {
+			if (!Buffer->Length) return -1;
+			size_t NewLength = Buffer->Length;
+			*Line = ml_stringbuffer_get_string(Buffer);
+			return (*Length = NewLength);
+		} else if (Char == '\n') {
+			ml_stringbuffer_put(Buffer, Char);
+			size_t NewLength = Buffer->Length;
+			*Line = ml_stringbuffer_get_string(Buffer);
+			return (*Length = NewLength);
+		} else {
+			ml_stringbuffer_put(Buffer, Char);
+		}
+	}
+}
+
+#endif
+
 static ml_value_t *ml_preprocessor_file_read(FILE *File, int Count, ml_value_t **Args) {
 	char *Line = NULL;
 	size_t Length = 0;

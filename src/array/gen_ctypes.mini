@@ -1,0 +1,7 @@
+let Types := list(grid([8, 16, 32, 64], ["u", ""], fun(X, Y) '{Y}int{X}_t')):put("float", "double", "complex_float", "complex_double", "any")
+
+for I, T in Types do
+	for J, U in Types do
+		print('#define CTYPE_ARITH_{T}_{U} {Types[I max J]}\n')
+	end
+end

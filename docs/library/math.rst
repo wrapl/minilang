@@ -9,6 +9,10 @@ math
 
 .. rst-class:: mini-api
 
+:mini:`meth (Arg₁: complex):DeltaMethod(Arg₂: complex)`
+   *TBD*
+
+
 :mini:`meth (X: complex) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -238,6 +242,10 @@ math
    Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
 
 
+:mini:`meth (Arg₁: integer):DeltaMethod(Arg₂: integer)`
+   *TBD*
+
+
 :mini:`meth (X: integer) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -273,12 +281,12 @@ math
       math::square(10) :> 100
 
 
-:mini:`def math::pi: real`
-   Pi.
-
-
 :mini:`def math::e: real`
    Euler's constant.
+
+
+:mini:`def math::pi: real`
+   Pi.
 
 
 :mini:`meth (X: number) ^ (Y: complex): number`
@@ -295,6 +303,10 @@ math
 
 :mini:`meth (X: real) % (Y: real): real`
    Returns the remainder of :mini:`X` on division by :mini:`Y`.
+
+
+:mini:`meth (Arg₁: real):DeltaMethod(Arg₂: real)`
+   *TBD*
 
 
 :mini:`meth (X: real) ^ (Y: integer): number`

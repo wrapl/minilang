@@ -1,10 +1,19 @@
 #include "ml_time.h"
+#include "ml_utils.h"
 #include "ml_macros.h"
 #include "ml_object.h"
 #include "ml_compiler2.h"
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+
+#ifdef Mingw
+
+extern char *strptime(const char *buf, const char *fmt, struct tm *tm);
+
+#define timegm _mkgmtime
+
+#endif
 
 #ifdef ML_TIMEZONES
 #include "timelib/timelib.h"
@@ -134,6 +143,40 @@ static void ML_TYPED_FN(ml_value_sha256, MLTimeT, ml_time_t *Value, ml_hash_chai
 	} else {
 		memcpy(Hash, Value->Value, SHA256_BLOCK_SIZE);
 	}
+}
+
+ML_METHOD(MLTimeT, MLIntegerT) {
+//<Seconds
+//>time
+// Returns a time from the epoch (1970-01-01).
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = ml_integer_value(Args[0]);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT) {
+//<Seconds
+//<Nanoseconds
+//>time
+// Returns a time from the epoch (1970-01-01).
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = ml_integer_value(Args[0]);
+	Time->Value->tv_nsec = ml_integer_value(Args[1]);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLRealT) {
+//<Seconds
+//>time
+// Returns a time from the epoch (1970-01-01).
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	double Seconds = ml_real_value(Args[0]);
+	Time->Value->tv_sec = floor(Seconds);
+	Time->Value->tv_nsec = (Seconds - Time->Value->tv_sec) * 1e9;
+	return (ml_value_t *)Time;
 }
 
 ML_METHOD(MLTimeT, MLStringT) {
@@ -282,6 +325,11 @@ ML_METHODV("with", MLTimeT, MLNamesT) {
 			TM.tm_min = ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "second")) {
 			TM.tm_sec = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "time")) {
+			int Minute = ml_integer_value(*Arg++);
+			TM.tm_hour = Minute / 60;
+			TM.tm_min = Minute % 60;
+			TM.tm_sec = 0;
 		} else {
 			return ml_error("ValueError", "Unknown time component %s", Part);
 		}
@@ -318,6 +366,11 @@ ML_METHODV("with", MLTimeT, MLNilT, MLNamesT) {
 			TM.tm_min = ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "second")) {
 			TM.tm_sec = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "time")) {
+			int Minute = ml_integer_value(*Arg++);
+			TM.tm_hour = Minute / 60;
+			TM.tm_min = Minute % 60;
+			TM.tm_sec = 0;
 		} else {
 			return ml_error("ValueError", "Unknown time component %s", Part);
 		}
@@ -326,6 +379,84 @@ ML_METHODV("with", MLTimeT, MLNilT, MLNamesT) {
 	Time->Type = MLTimeT;
 	Time->Value->tv_sec = timegm(&TM);
 	return (ml_value_t *)Time;
+}
+
+ML_METHODV("+", MLTimeT, MLNamesT, MLIntegerT) {
+//<Time
+//<Component,Value
+//>time
+// Returns :mini:`Time` with the the specified components updated.
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	for (int I = 2; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	struct tm TM = {0,};
+	localtime_r(&Time->Value->tv_sec, &TM);
+	ml_value_t **Arg = Args + 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		const char *Part = ml_string_value(Iter->Value);
+		if (!strcmp(Part, "year")) {
+			TM.tm_year += ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "month")) {
+			TM.tm_mon += ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "day")) {
+			TM.tm_mday += ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "hour")) {
+			TM.tm_hour += ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "minute")) {
+			TM.tm_min += ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "second")) {
+			TM.tm_sec += ml_integer_value(*Arg++);
+		} else {
+			return ml_error("ValueError", "Unknown time component %s", Part);
+		}
+	}
+	Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = mktime(&TM);
+	return (ml_value_t *)Time;
+}
+
+ML_METHODV("-", MLTimeT, MLNamesT, MLIntegerT) {
+//<Time
+//<Component,Value
+//>time
+// Returns :mini:`Time` with the the specified components updated.
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	for (int I = 2; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	struct tm TM = {0,};
+	localtime_r(&Time->Value->tv_sec, &TM);
+	ml_value_t **Arg = Args + 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		const char *Part = ml_string_value(Iter->Value);
+		if (!strcmp(Part, "year")) {
+			TM.tm_year -= ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "month")) {
+			TM.tm_mon -= ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "day")) {
+			TM.tm_mday -= ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "hour")) {
+			TM.tm_hour -= ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "minute")) {
+			TM.tm_min -= ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "second")) {
+			TM.tm_sec -= ml_integer_value(*Arg++);
+		} else {
+			return ml_error("ValueError", "Unknown time component %s", Part);
+		}
+	}
+	Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = mktime(&TM);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD("epoch", MLTimeT) {
+//<Time
+//>integer
+// Returns the seconds component of :mini:`Time`.
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	return ml_integer(Time->Value->tv_sec);
 }
 
 ML_METHOD("nsec", MLTimeT) {
@@ -897,6 +1028,11 @@ ML_METHODV("with", MLTimeT, MLTimeZoneT, MLNamesT) {
 			TL.i = ml_integer_value(*Arg++);
 		} else if (!strcmp(Part, "second")) {
 			TL.s = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "time")) {
+			int Minute = ml_integer_value(*Arg++);
+			TL.h = Minute / 60;
+			TL.i = Minute % 60;
+			TL.s = 0;
 		} else {
 			return ml_error("ValueError", "Unknown time component %s", Part);
 		}

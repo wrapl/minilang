@@ -1393,10 +1393,7 @@ static void random_iterate(ml_random_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Value);
 	int Index = ++State->Index;
-	int Divisor = RAND_MAX / Index;
-	int Random;
-	do Random = random() / Divisor; while (Random >= Index);
-	if (!Random) {
+	if (!ml_random_integer(Index)) {
 		State->Base.run = (void *)random_value;
 		return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 	} else {

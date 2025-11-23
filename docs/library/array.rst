@@ -9,8 +9,22 @@ array
 
 .. rst-class:: mini-api
 
+:mini:`fun matrixqr()`
+   *TBD*
+
+
 :mini:`meth (A: any) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: any) % (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A NAME Bᵥ`.
+
+   .. code-block:: mini
+
+      let B := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 NAME B
+      :> error("MethodError", "no method found for NAME(integer32, matrix::mutable::int64)")
 
 
 :mini:`meth (A: any) * (B: array): array`
@@ -118,6 +132,40 @@ array
 
 :mini:`meth (A: array) !== (B: real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) % (B: any): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ NAME B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A NAME 2
+      :> error("MethodError", "no method found for NAME(matrix::mutable::int64, integer32)")
+
+
+:mini:`meth (A: array) % (B: array): array`
+   Returns :mini:`A % B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
+   
+   * :mini:`A:shape = B:shape` or
+   * :mini:`A:shape` is a prefix of :mini:`B:shape` or
+   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
+   
+   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A % B :> <<1 2 3> <4 5 6>>
+      B % A :> <<0 0 0> <2 1 0>>
+      A % C :> <<1 2 3> <4 5 6>>
+      C % A :> <<0 0 0> <1 0 3>>
+      B % C :> <<2 8 9> <0 1 12>>
+      C % B :> <<5 2 6> <5 10 3>>
 
 
 :mini:`meth (A: array) * (B: any): array`
@@ -742,7 +790,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 0>>
+      A:minidx(2) :> <<2 1> <1 171669605>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -905,10 +953,6 @@ array
    *TBD*
 
 
-:mini:`fun array::any(Sizes: list[integer]): array::any`
-    Returns a new array of any values with the specified dimensions.
-
-
 :mini:`type array::complex < array`
    *TBD*
 
@@ -957,68 +1001,46 @@ array
    *TBD*
 
 
-:mini:`fun array::complex32(Sizes: list[integer]): array::complex32`
-    Returns a new array of complex32 values with the specified dimensions.
-
-
 :mini:`type array::complex64 < array::complex`
    *TBD*
-
-
-:mini:`fun array::complex64(Sizes: list[integer]): array::complex64`
-    Returns a new array of complex64 values with the specified dimensions.
 
 
 :mini:`type array::float32 < array::real`
    *TBD*
 
 
-:mini:`fun array::float32(Sizes: list[integer]): array::float32`
-    Returns a new array of float32 values with the specified dimensions.
-
-
 :mini:`type array::float64 < array::real`
    *TBD*
-
-
-:mini:`fun array::float64(Sizes: list[integer]): array::float64`
-    Returns a new array of float64 values with the specified dimensions.
 
 
 :mini:`type array::int16 < array::integer`
    *TBD*
 
 
-:mini:`fun array::int16(Sizes: list[integer]): array::int16`
-    Returns a new array of int16 values with the specified dimensions.
-
-
 :mini:`type array::int32 < array::integer`
    *TBD*
-
-
-:mini:`fun array::int32(Sizes: list[integer]): array::int32`
-    Returns a new array of int32 values with the specified dimensions.
 
 
 :mini:`type array::int64 < array::integer`
    *TBD*
 
 
-:mini:`fun array::int64(Sizes: list[integer]): array::int64`
-    Returns a new array of int64 values with the specified dimensions.
-
-
 :mini:`type array::int8 < array::integer`
    *TBD*
 
 
-:mini:`fun array::int8(Sizes: list[integer]): array::int8`
-    Returns a new array of int8 values with the specified dimensions.
-
-
 :mini:`type array::integer < array::real`
    *TBD*
+
+
+:mini:`meth (A: array::integer) % (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ NAME B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A NAME 2
+      :> error("MethodError", "no method found for NAME(matrix::mutable::int64, integer32)")
 
 
 :mini:`meth (A: array::integer) * (B: integer): array`
@@ -1206,6 +1228,16 @@ array
    *TBD*
 
 
+:mini:`meth (A: array::real) % (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ NAME B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A NAME 2.5
+      :> error("MethodError", "no method found for NAME(matrix::mutable::int64, double)")
+
+
 :mini:`meth (A: array::real) * (B: real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
 
@@ -1250,32 +1282,16 @@ array
    *TBD*
 
 
-:mini:`fun array::uint16(Sizes: list[integer]): array::uint16`
-    Returns a new array of uint16 values with the specified dimensions.
-
-
 :mini:`type array::uint32 < array::integer`
    *TBD*
-
-
-:mini:`fun array::uint32(Sizes: list[integer]): array::uint32`
-    Returns a new array of uint32 values with the specified dimensions.
 
 
 :mini:`type array::uint64 < array::integer`
    *TBD*
 
 
-:mini:`fun array::uint64(Sizes: list[integer]): array::uint64`
-    Returns a new array of uint64 values with the specified dimensions.
-
-
 :mini:`type array::uint8 < array::integer`
    *TBD*
-
-
-:mini:`fun array::uint8(Sizes: list[integer]): array::uint8`
-    Returns a new array of uint8 values with the specified dimensions.
 
 
 :mini:`meth (A: complex) !== (B: array): array`
@@ -1354,6 +1370,16 @@ array
 
 :mini:`meth (A: integer) !== (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: integer) % (B: array::integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A NAME Bᵥ`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 NAME A
+      :> error("MethodError", "no method found for NAME(integer32, matrix::mutable::int64)")
 
 
 :mini:`meth (A: integer) * (B: array::integer): array`
@@ -1657,6 +1683,16 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
+:mini:`meth (A: real) % (B: array::real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A NAME Bᵥ`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 NAME A
+      :> error("MethodError", "no method found for NAME(double, matrix::mutable::int64)")
+
+
 :mini:`meth (A: real) * (B: array::real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := A * Bᵥ`.
 
@@ -1791,7 +1827,7 @@ array
    Returns an array with the contents of :mini:`Slice`,  transposed.
 
 
-:mini:`fun array::new(Arg₁: type, Arg₂: list)`
+:mini:`fun array::new(Arg₁: type, Arg₂: any)`
    *TBD*
 
 
@@ -1808,6 +1844,10 @@ array
 
 :mini:`type vector < array`
    Arrays with exactly 1 dimension.
+
+
+:mini:`meth (Arg₁: vector):bfind(Arg₂: any)`
+   *TBD*
 
 
 :mini:`meth (Arg₁: vector):order`

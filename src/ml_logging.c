@@ -2,6 +2,7 @@
 #include "ml_object.h"
 #include "ml_macros.h"
 #include "ml_compiler2.h"
+#include "ml_utils.h"
 #include <time.h>
 #include <stdatomic.h>
 #include <math.h>

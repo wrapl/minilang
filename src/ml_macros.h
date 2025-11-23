@@ -1,6 +1,12 @@
 #ifndef ML_MACROS_H
 #define ML_MACROS_H
 
+#ifdef Mingw
+#ifndef uuid_t
+#define uuid_t uuid_t
+#endif
+#endif
+
 #include <gc/gc.h>
 
 #define new(T) ((T *)GC_MALLOC(sizeof(T)))

@@ -9,6 +9,10 @@ table
 
 .. rst-class:: mini-api
 
+:mini:`meth table(Arg₁: list, Arg₂: sequence, ...)`
+   *TBD*
+
+
 :mini:`meth table(Arg₁: map, ...)`
    *TBD*
 
@@ -45,11 +49,19 @@ table
    *TBD*
 
 
+:mini:`meth (Arg₁: table)[Arg₂: vector::int8]`
+   *TBD*
+
+
 :mini:`meth (Arg₁: table):capacity`
    *TBD*
 
 
 :mini:`meth (Arg₁: table):columns`
+   *TBD*
+
+
+:mini:`meth (Arg₁: table):delete(Arg₂: integer)`
    *TBD*
 
 

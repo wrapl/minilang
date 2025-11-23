@@ -284,6 +284,19 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </inbodydescription>
         <location file="src/ml_array.h" line="115" column="20" bodyfile="src/ml_array.h" bodystart="115" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="typedef" id="ml__array_8h_1afff5df2795a83cd6de48f8ad0a1dfe80" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* update_row_fn_t) (ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData)</definition>
+        <argsstring>)(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData)</argsstring>
+        <name>update_row_fn_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="122" column="9" bodyfile="src/ml_array.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
     </sectiondef>
     <sectiondef kind="var">
       <memberdef kind="variable" id="ml__array_8h_1a52cca795aefbeae57b03bb83d7d2c924" prot="public" static="no" extern="yes" mutable="no">
@@ -960,6 +973,48 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
         </inbodydescription>
         <location file="src/ml_array.h" line="120" column="6" declfile="src/ml_array.h" declline="120" declcolumn="6"/>
       </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1a3d393fd8daf80dc926019bfcac99e567" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ml_array_count_nonzero</definition>
+        <argsstring>(ml_array_t *A)</argsstring>
+        <name>ml_array_count_nonzero</name>
+        <param>
+          <type><ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *</type>
+          <declname>A</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="125" column="5" declfile="src/ml_array.h" declline="125" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__array_8h_1adce5141c1b18981731e1bd739d49f991" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int *</type>
+        <definition>int * ml_array_offsets_nonzero</definition>
+        <argsstring>(ml_array_t *A, int *Offsets, ml_array_dimension_t *Source)</argsstring>
+        <name>ml_array_offsets_nonzero</name>
+        <param>
+          <type><ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *</type>
+          <declname>A</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>Offsets</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref> *</type>
+          <declname>Source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_array.h" line="126" column="5" declfile="src/ml_array.h" declline="126" declcolumn="5"/>
+      </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -1087,11 +1142,17 @@ ml_array_setter_ ## CTYPE ml_array_ ## CTYPE ## _setter(ml_array_format_t Format
 <codeline lineno="119"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_array_reorder(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*Values,<sp/>int32_t<sp/>*Order,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
 <codeline lineno="120"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_order_permutation(<ref refid="structml__state__t" kindref="compound">ml_state_t</ref><sp/>*Caller,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length,<sp/>int32_t<sp/>*Order);</highlight></codeline>
 <codeline lineno="121"><highlight class="normal"></highlight></codeline>
-<codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="123"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="124"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="125"><highlight class="normal"></highlight></codeline>
-<codeline lineno="126"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*update_row_fn_t)(<ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*TargetDimension,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*TargetData,<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*SourceDimension,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*SourceData);</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_array_count_nonzero(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*A);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*ml_array_offsets_nonzero(<ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*A,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*Offsets,<sp/><ref refid="structml__array__dimension__t" kindref="compound">ml_array_dimension_t</ref><sp/>*Source);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_array.h"/>
   </compounddef>

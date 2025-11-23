@@ -7,12 +7,66 @@
 struct weakmap_node_t {
 	const char *Key;
 	void *Value;
-	size_t Hash, Offset;
+	uint32_t Hash, Offset, Length;
 };
 
-static inline size_t weakmap_hash(const char *Key, int Length) {
-	size_t Hash = 5381;
+static inline uint32_t murmur3_scramble(uint32_t K) {
+	K *= 0xcc9e2d51;
+	K = (K << 15) | (K >> 17);
+	K *= 0x1b873593;
+	return K;
+}
+
+static inline uint32_t weakmap_hash(const char *Key, int Length) {
+	/*size_t Hash = 5381;
 	for (const unsigned char *P = (const unsigned char *)Key; --Length >= 0; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	return Hash;*/
+	/*size_t Hash = 5381;
+	int32_t *P = (int32_t *)Key;
+	int I = Length;
+	while (I > 4) {
+		uint32_t K = *P++ + 4;
+		Hash ^= murmur3_scramble(K);
+		Hash = (Hash << 13) | (Hash >> 19);
+		Hash = Hash * 5 + 0xe6546b64;
+		I -= 4;
+	}
+	const unsigned char *P2 = (const unsigned char *)P;
+	uint32_t K = 0;
+	while (I > 0) {
+		K <<= 8;
+		K |= *P2++;
+		--I;
+	}
+	Hash ^= murmur3_scramble(K);
+	Hash ^= Length;
+	Hash ^= Hash >> 16;
+	Hash *= 0x85ebca6b;
+	Hash ^= Hash >> 13;
+	Hash *= 0xc2b2ae35;
+	Hash ^= Hash >> 16;
+	return Hash;*/
+	uint32_t Hash = 5381;
+	int32_t *P = (int32_t *)Key;
+	int I = Length;
+	while (I > 4) {
+		uint32_t K = *P++ + 4;
+		uint64_t K2 = (K * 0xcc9e2d51);
+		uint32_t K3 = (K2 & 0xFFFFFFFF) ^ (K2 >> 32);
+		Hash ^= K3;
+		Hash = (Hash << 13) | (Hash >> 19);
+		I -= 4;
+	}
+	const unsigned char *P2 = (const unsigned char *)P;
+	uint32_t K = 0;
+	while (I > 0) {
+		K <<= 8;
+		K |= *P2++;
+		--I;
+	}
+	uint64_t K2 = (K * 0xcc9e2d51);
+	uint32_t K3 = (K2 & 0xFFFFFFFF) ^ (K2 >> 32);
+	Hash ^= K3;
 	return Hash;
 }
 
@@ -23,7 +77,7 @@ static inline const char *weakmap_copy_key(const char *Key, int Length) {
 	return Copy;
 }
 
-static void *weakmap_grow(weakmap_t *Map, size_t Size) {
+static __attribute__ ((noinline)) void *weakmap_grow(weakmap_t *Map, size_t Size) {
 	//fprintf(stderr, "Growing map from %ld -> %ld\n", Map->Mask + 1, Size);
 	weakmap_node_t *Nodes = GC_malloc_atomic(Size * sizeof(weakmap_node_t));
 	memset(Nodes, 0, Size * sizeof(weakmap_node_t));
@@ -34,13 +88,16 @@ static void *weakmap_grow(weakmap_t *Map, size_t Size) {
 		weakmap_node_t Insert;
 		Insert.Key = Old->Key;
 		Insert.Hash = Old->Hash;
+		Insert.Length = Old->Length;
 		Insert.Value = Old->Value;
-		Insert.Offset = 0;
+		Insert.Offset = 1;
+		GC_unregister_disappearing_link(&Old->Value);
 		size_t Index = Insert.Hash & Mask;
 		weakmap_node_t *Node = Nodes + Index;
 		while (Node->Value) {
 			if (Node->Offset < Insert.Offset) {
 				weakmap_node_t Next = *Node;
+				GC_unregister_disappearing_link(&Node->Value);
 				*Node = Insert;
 				GC_general_register_disappearing_link(&Node->Value, Node->Value);
 				Insert = Next;
@@ -49,7 +106,8 @@ static void *weakmap_grow(weakmap_t *Map, size_t Size) {
 			Node = Nodes + Index;
 			Insert.Offset++;
 		}
-		if (!Node->Key) --Space;
+		//if (!Node->Key)
+		--Space;
 		*Node = Insert;
 		GC_general_register_disappearing_link(&Node->Value, Node->Value);
 	}
@@ -95,46 +153,48 @@ int weakmap_check(weakmap_t *Map) {
 #define INIT_SIZE 64
 #define MIN_SPACE 8
 
+void weakmap_alloc(weakmap_t *Map) {
+	weakmap_node_t *Nodes = Map->Nodes = GC_malloc_atomic(INIT_SIZE * sizeof(weakmap_node_t));
+	memset(Nodes, 0, INIT_SIZE * sizeof(weakmap_node_t));
+	Map->Mask = INIT_SIZE - 1;
+	Map->Space = INIT_SIZE;
+}
+
+static void *weakmap_node_value(void *Node) {
+	return ((weakmap_node_t *)Node)->Value;
+}
+
 void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missing)(const char *, int)) {
 	size_t Hash = weakmap_hash(Key, Length);
 #ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Map->Lock);
+	//GC_alloc_lock();
 #endif
-	if (!Map->Nodes) {
-		weakmap_node_t *Nodes = Map->Nodes = GC_malloc_atomic(INIT_SIZE * sizeof(weakmap_node_t));
-		memset(Nodes, 0, INIT_SIZE * sizeof(weakmap_node_t));
-		size_t Index = Hash % INIT_SIZE;
-		Map->Mask = Map->Space = INIT_SIZE - 1;
-		//Map->Deleted = 0;
-		weakmap_node_t *Node = Nodes + Index;
-		Node->Key = weakmap_copy_key(Key, Length);
-		Node->Hash = Hash;
-		void *Result = Node->Value = missing(Node->Key, Length);
-		GC_general_register_disappearing_link(&Node->Value, Result);
-#ifdef ML_HOSTTHREADS
-		pthread_mutex_unlock(Map->Lock);
-#endif
-		return Result;
-	}
 	weakmap_node_t *Nodes = Map->Nodes;
 	size_t Mask = Map->Mask;
 	size_t Index = Hash & Mask;
-	size_t Offset = 0;
+	//fprintf(stderr, "Looking for key %.*s @ %d into weakmap\n", Length, Key, Index);
+	size_t Offset = 1;
 	weakmap_node_t *Node = Nodes + Index;
 	while (Offset <= Node->Offset) {
-		if (Node->Hash == Hash) {
-			if (Node->Value && !strncmp(Node->Key, Key, Length)) {
+		//if (Node->Key) fprintf(stderr, "[%d] -> %s +%d\n", Index, Node->Key, Node->Offset);
+		if (Node->Hash == Hash && Node->Length == Length) {
+			//void *Value = Node->Value;
+			void *Value = GC_call_with_alloc_lock(weakmap_node_value, Node);
+			//if (!Value) fprintf(stderr, "Value was deleted: (%s)\n", Key);
+			if (Value && !memcmp(Node->Key, Key, Length)) {
 #ifdef ML_HOSTTHREADS
 				pthread_mutex_unlock(Map->Lock);
+				//GC_alloc_unlock();
 #endif
-				return Node->Value;
+				return Value;
 			}
 		}
 		Index = (Index + 1) & Mask;
 		Node = Nodes + Index;
 		Offset++;
 	}
-	if (Map->Space <= MIN_SPACE) {
+	/*if (Map->Space <= MIN_SPACE) {
 		size_t Size = Mask + 1;
 		//weakmap_grow(Map, Map->Deleted > MIN_SPACE ? Size : (Size * 2));
 		weakmap_grow(Map, Size * 2);
@@ -142,17 +202,41 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 		Mask = Map->Mask;
 		Index = Hash & Mask;
 		Node = Nodes + Index;
+	}*/
+
+
+	size_t Size = Mask + 1;
+	size_t MinSpace = Size >> 2;
+	//fprintf(stderr, "Space = %d, MinSpace = %d\n", Map->Space, MinSpace);
+	//fprintf(stderr, "Nodes = %ld\n", Nodes);
+	if (Map->Space <= MinSpace) {
+		size_t ActualSpace = 0;
+		for (weakmap_node_t *Node = Map->Nodes, *Limit = Node + Size; Node < Limit; ++Node) {
+			if (!Node->Value) ++ActualSpace;
+		}
+		weakmap_grow(Map, ActualSpace > MinSpace ? Size : (Size * 2));
+		//weakmap_grow(Map, Size * 2);
+		Nodes = Map->Nodes;
+		Mask = Map->Mask;
+		Index = Hash & Mask;
+		Node = Nodes + Index;
+		Offset = 1;
 	}
+	//fprintf(stderr, "Nodes = %ld\n", Nodes);
 	weakmap_node_t Insert;
-	Insert.Hash = Hash;
 	Insert.Key = weakmap_copy_key(Key, Length);
+	Insert.Hash = Hash;
+	Insert.Length = Length;
 	Insert.Offset = Offset;
 	void *Result = Insert.Value = missing(Insert.Key, Length);
 	//fprintf(stderr, "Creating missing value for key %s: space %ld ->", Insert.Key, Map->Space);
 	//GC_register_finalizer(Result, (GC_finalization_proc)weakmap_delete, Map, NULL, NULL);
+	//fprintf(stderr, "Inserting key %s @ %d +%d into weakmap\n", Insert.Key, Index, Insert.Offset);
 	while (Node->Value) {
 		if (Node->Offset < Insert.Offset) {
+			//fprintf(stderr, "Moving key %s @ %d +%d into weakmap\n", Node->Key, Index, Node->Offset);
 			weakmap_node_t Next = *Node;
+			GC_unregister_disappearing_link(&Node->Value);
 			*Node = Insert;
 			GC_general_register_disappearing_link(&Node->Value, Node->Value);
 			Insert = Next;
@@ -161,12 +245,14 @@ void *weakmap_insert(weakmap_t *Map, const char *Key, int Length, void *(*missin
 		Node = Nodes + Index;
 		Insert.Offset++;
 	}
-	if (!Node->Key) --Map->Space;
+	//if (!Node->Key)
+	--Map->Space;
 	*Node = Insert;
 	GC_general_register_disappearing_link(&Node->Value, Node->Value);
 	//fprintf(stderr, "%ld\n", Map->Space);
 #ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Map->Lock);
+	//GC_alloc_unlock();
 #endif
 	return Result;
 }

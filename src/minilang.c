@@ -4,7 +4,6 @@
 #include "ml_bytecode.h"
 #include "ml_macros.h"
 #include "ml_file.h"
-#include "ml_socket.h"
 #include "ml_object.h"
 #include "ml_time.h"
 #include "ml_debugger.h"
@@ -50,6 +49,10 @@
 
 #ifdef ML_XE
 #include "ml_xe.h"
+#endif
+
+#ifdef ML_SOCKETS
+#include "ml_socket.h"
 #endif
 
 #ifdef ML_MODULES
@@ -327,7 +330,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	ml_stream_init(IO_EXPORTS);
 	ml_file_init(MLGlobals);
+#ifdef ML_SOCKETS
 	ml_socket_init(MLGlobals);
+#endif
 #ifdef ML_MMAP
 	ml_mmap_init(MLGlobals);
 #endif

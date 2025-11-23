@@ -1364,6 +1364,7 @@ ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT, MLListMutableT) {
 			if (End == List->Length) {
 				*Removed = *List;
 				*List = *Source;
+				return (ml_value_t *)Removed;
 			} else {
 				ml_list_node_t *EndNode = ml_list_index(List, End);
 				ml_list_node_t *NextNode = EndNode->Next;
@@ -2246,8 +2247,7 @@ ML_METHOD("shuffle", MLListMutableT) {
 	ml_list_node_t *Nodes[N], *Node = List->Head;
 	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
 	for (int I = N; --I > 0;) {
-		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J > I);
+		int J = ml_random_integer(I + 1);
 		if (J != I) {
 			ml_list_node_t *Old = Nodes[J];
 			Nodes[J] = Nodes[I];
@@ -2283,8 +2283,7 @@ ML_METHOD("permute", MLListMutableT) {
 	ml_list_node_t *Nodes[N], *Node = List->Head;
 	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
 	for (int I = N; --I > 0;) {
-		int Divisor = RAND_MAX / (I + 1), J;
-		do J = random() / Divisor; while (J > I);
+		int J = ml_random_integer(I + 1);
 		if (J != I) {
 			ml_list_node_t *Old = Nodes[J];
 			Nodes[J] = Nodes[I];
@@ -2412,8 +2411,7 @@ ML_METHOD("cycle", MLListMutableT) {
 	ml_list_node_t *Nodes[N], *Node = List->Head;
 	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
 	for (int I = N; --I > 0;) {
-		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J >= I);
+		int J = ml_random_integer(I);
 		ml_list_node_t *Old = Nodes[J];
 		Nodes[J] = Nodes[I];
 		Nodes[I] = Old;
@@ -2518,10 +2516,7 @@ ML_METHOD("random", MLListT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	int Limit = List->Length;
 	if (Limit <= 0) return MLNil;
-	int Divisor = RAND_MAX / Limit;
-	int Random;
-	do Random = random() / Divisor; while (Random >= Limit);
-	return (ml_value_t *)ml_list_index(List, Random + 1);
+	return (ml_value_t *)ml_list_index(List, ml_random_integer(Limit) + 1);
 }
 
 typedef struct {

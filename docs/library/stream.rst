@@ -49,6 +49,58 @@ stream
    Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
+:mini:`meth (Arg₁: stream):read" #1`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #1`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #1(Arg₂: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #1(Arg₂: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #3`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #3`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #3(Arg₂: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #3(Arg₂: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #6`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #6`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #6(Arg₂: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read" #6(Arg₂: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):read8`
+   *TBD*
+
+
 :mini:`meth (Stream: stream):readi(Delimiters: string): string | nil`
    Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters`. Returns :mini:`nil` if :mini:`Stream` is empty.
 
@@ -67,6 +119,10 @@ stream
 
 :mini:`meth (Stream: stream):reads(Count: integer): string | nil`
    Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Arg₁: stream):readu8`
+   *TBD*
 
 
 :mini:`meth (Stream: stream):readx(Delimiters: string): string | nil`
@@ -107,6 +163,62 @@ stream
 
 :mini:`meth (Stream: stream):write(Value₁, : any, ...): integer`
    Writes each :mini:`Valueᵢ` in turn to :mini:`Stream`.
+
+
+:mini:`meth (Arg₁: stream):write" #1(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):write" #1(Arg₂: integer, Arg₃: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):write" #3(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):write" #3(Arg₂: integer, Arg₃: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):write" #6(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):write" #6(Arg₂: integer, Arg₃: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):write8(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):writeu" #1(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):writeu" #1(Arg₂: integer, Arg₃: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):writeu" #3(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):writeu" #3(Arg₂: integer, Arg₃: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):writeu" #6(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):writeu" #6(Arg₂: integer, Arg₃: byte::order)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream):writeu8(Arg₂: integer)`
+   *TBD*
 
 
 :mini:`type stream::buffered < stream`

@@ -716,6 +716,202 @@ ML_METHODVX("write", MLStreamT, MLAnyT) {
 
 typedef struct {
 	ml_state_t Base;
+	ml_value_t *Stream;
+	typeof(ml_stream_read) *read;
+	int Required, Endian;
+	char Data[];
+} ml_read_number_state_t;
+
+static void ml_read8_state_run(ml_read_number_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	int Actual = ml_integer_value(Value);
+	if (!Actual) ML_ERROR("ReadError", "No bytes read");
+	if (Actual == State->Required) ML_RETURN(ml_integer(*(int8_t *)State->Data));
+	int Required = (State->Required -= Actual);
+	return State->read((ml_state_t *)State, State->Stream, State->Data + (sizeof(int8_t) - Required), Required);
+}
+
+ML_METHODX("read8", MLStreamT) {
+	ml_value_t *Stream = Args[0];
+	ml_read_number_state_t *State = xnew(ml_read_number_state_t, sizeof(int8_t), char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_read8_state_run;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Required = sizeof(int8_t);
+	return State->read((ml_state_t *)State, Stream, State->Data, sizeof(int8_t));
+}
+
+static void ml_readu8_state_run(ml_read_number_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	int Actual = ml_integer_value(Value);
+	if (!Actual) ML_ERROR("ReadError", "No bytes read");
+	if (Actual == State->Required) ML_RETURN(ml_integer(*(uint8_t *)State->Data));
+	int Required = (State->Required -= Actual);
+	return State->read((ml_state_t *)State, State->Stream, State->Data + (sizeof(uint8_t) - Required), Required);
+}
+
+ML_METHODX("readu8", MLStreamT) {
+	ml_value_t *Stream = Args[0];
+	ml_read_number_state_t *State = xnew(ml_read_number_state_t, sizeof(uint8_t), char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_readu8_state_run;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Required = sizeof(uint8_t);
+	return State->read((ml_state_t *)State, Stream, State->Data, sizeof(uint8_t));
+}
+
+ML_METHODX("write8", MLStreamT, MLIntegerT) {
+	char *Buffer = snew(sizeof(int8_t));
+	*(int8_t *)Buffer = ml_integer_value(Args[1]);
+	return ml_stream_write(Caller, Args[0], Buffer, sizeof(int8_t));
+}
+
+ML_METHODX("writeu8", MLStreamT, MLIntegerT) {
+	char *Buffer = snew(sizeof(uint8_t));
+	*(uint8_t *)Buffer = ml_integer_value(Args[1]);
+	return ml_stream_write(Caller, Args[0], Buffer, sizeof(uint8_t));
+}
+
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+#define ML_BIG_ENDIAN(WIDTH)
+#define ML_LITTLE_ENDIAN(WIDTH) __builtin_bswap ## WIDTH
+
+#else
+
+#define ML_BIG_ENDIAN(WIDTH) __builtin_bswap ## WIDTH
+#define ML_LITTLE_ENDIAN(WIDTH)
+
+#endif
+
+extern ml_type_t MLByteOrderT[];
+
+#define ML_STREAM_INT_METHODS(WIDTH, SIZE) \
+\
+static void ml_read ## WIDTH ## _state_run(ml_read_number_state_t *State, ml_value_t *Value) { \
+	ml_state_t *Caller = State->Base.Caller; \
+	if (ml_is_error(Value)) ML_RETURN(Value); \
+	int Actual = ml_integer_value(Value); \
+	if (!Actual) ML_ERROR("ReadError", "No bytes read"); \
+	if (Actual == State->Required) { \
+		int ## WIDTH ## _t Result = *(int ## WIDTH ## _t *)State->Data; \
+		switch (State->Endian) { \
+		case 1: ML_RETURN(ml_integer(ML_LITTLE_ENDIAN(WIDTH)(Result))); \
+		case 2: ML_RETURN(ml_integer(ML_BIG_ENDIAN(WIDTH)(Result))); \
+		default: ML_RETURN(ml_integer(Result)); \
+		} \
+	} \
+	int Required = (State->Required -= Actual); \
+	return State->read((ml_state_t *)State, State->Stream, State->Data + (SIZE - Required), Required); \
+} \
+ \
+ML_METHODX("read" #WIDTH, MLStreamT) { \
+	ml_value_t *Stream = Args[0]; \
+	ml_read_number_state_t *State = xnew(ml_read_number_state_t, SIZE, char); \
+	State->Base.Caller = Caller; \
+	State->Base.Context = Caller->Context; \
+	State->Base.run = (ml_state_fn)ml_read ## WIDTH ## _state_run; \
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method; \
+	State->Required = sizeof(int ## WIDTH ## _t); \
+	State->Endian = 0; \
+	return State->read((ml_state_t *)State, Stream, State->Data, SIZE); \
+} \
+\
+ML_METHODX("read" #WIDTH, MLStreamT, MLByteOrderT) { \
+	ml_value_t *Stream = Args[0]; \
+	ml_read_number_state_t *State = xnew(ml_read_number_state_t, SIZE, char); \
+	State->Base.Caller = Caller; \
+	State->Base.Context = Caller->Context; \
+	State->Base.run = (ml_state_fn)ml_read ## WIDTH ## _state_run; \
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method; \
+	State->Required = sizeof(int ## WIDTH ## _t); \
+	State->Endian = ml_enum_value_value(Args[1]); \
+	return State->read((ml_state_t *)State, Stream, State->Data, SIZE); \
+} \
+\
+static void ml_readu ## WIDTH ## _state_run(ml_read_number_state_t *State, ml_value_t *Value) { \
+	ml_state_t *Caller = State->Base.Caller; \
+	if (ml_is_error(Value)) ML_RETURN(Value); \
+	int Actual = ml_integer_value(Value); \
+	if (!Actual) ML_ERROR("ReadError", "No bytes read"); \
+	if (Actual == State->Required) { \
+		uint ## WIDTH ## _t Result = *(uint ## WIDTH ## _t *)State->Data; \
+		switch (State->Endian) { \
+		case 1: ML_RETURN(ml_integer(ML_LITTLE_ENDIAN(WIDTH)(Result))); \
+		case 2: ML_RETURN(ml_integer(ML_BIG_ENDIAN(WIDTH)(Result))); \
+		default: ML_RETURN(ml_integer(Result)); \
+		} \
+	} \
+	int Required = (State->Required -= Actual); \
+	return State->read((ml_state_t *)State, State->Stream, State->Data + (SIZE - Required), Required); \
+} \
+\
+ML_METHODX("read" #WIDTH, MLStreamT) { \
+	ml_value_t *Stream = Args[0]; \
+	ml_read_number_state_t *State = xnew(ml_read_number_state_t, SIZE, char); \
+	State->Base.Caller = Caller; \
+	State->Base.Context = Caller->Context; \
+	State->Base.run = (ml_state_fn)ml_read ## WIDTH ## _state_run; \
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method; \
+	State->Required = sizeof(int ## WIDTH ## _t); \
+	State->Endian = 0; \
+	return State->read((ml_state_t *)State, Stream, State->Data, SIZE); \
+} \
+\
+ML_METHODX("read" #WIDTH, MLStreamT, MLByteOrderT) { \
+	ml_value_t *Stream = Args[0]; \
+	ml_read_number_state_t *State = xnew(ml_read_number_state_t, SIZE, char); \
+	State->Base.Caller = Caller; \
+	State->Base.Context = Caller->Context; \
+	State->Base.run = (ml_state_fn)ml_read ## WIDTH ## _state_run; \
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method; \
+	State->Required = sizeof(int ## WIDTH ## _t); \
+	State->Endian = ml_enum_value_value(Args[1]); \
+	return State->read((ml_state_t *)State, Stream, State->Data, SIZE); \
+} \
+\
+ML_METHODX("write" #WIDTH, MLStreamT, MLIntegerT) { \
+	char *Buffer = snew(SIZE); \
+	*(int ## WIDTH ## _t *)Buffer = ml_integer_value(Args[1]); \
+	return ml_stream_write(Caller, Args[0], Buffer, sizeof(int ## WIDTH ## _t)); \
+} \
+\
+ML_METHODX("write" #WIDTH, MLStreamT, MLIntegerT, MLByteOrderT) { \
+	char *Buffer = snew(SIZE); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		*(int ## WIDTH ## _t *)Buffer = ML_BIG_ENDIAN(WIDTH)((int ## WIDTH ## _t)ml_integer_value(Args[1])); \
+	} else { \
+		*(int ## WIDTH ## _t *)Buffer = ML_LITTLE_ENDIAN(WIDTH)((int ## WIDTH ## _t)ml_integer_value(Args[1])); \
+	} \
+	return ml_stream_write(Caller, Args[0], Buffer, sizeof(int ## WIDTH ## _t)); \
+} \
+\
+ML_METHODX("writeu" #WIDTH, MLStreamT, MLIntegerT) { \
+	char *Buffer = snew(SIZE); \
+	*(uint ## WIDTH ## _t *)Buffer = ml_integer_value(Args[1]); \
+	return ml_stream_write(Caller, Args[0], Buffer, sizeof(uint ## WIDTH ## _t)); \
+} \
+\
+ML_METHODX("writeu" #WIDTH, MLStreamT, MLIntegerT, MLByteOrderT) { \
+	char *Buffer = snew(SIZE); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		*(uint ## WIDTH ## _t *)Buffer = ML_BIG_ENDIAN(WIDTH)((uint ## WIDTH ## _t)ml_integer_value(Args[1])); \
+	} else { \
+		*(uint ## WIDTH ## _t *)Buffer = ML_LITTLE_ENDIAN(WIDTH)((uint ## WIDTH ## _t)ml_integer_value(Args[1])); \
+	} \
+	return ml_stream_write(Caller, Args[0], Buffer, sizeof(uint ## WIDTH ## _t)); \
+}
+
+ML_STREAM_INT_METHODS(16, 2)
+ML_STREAM_INT_METHODS(32, 4)
+ML_STREAM_INT_METHODS(64, 8)
+
+typedef struct {
+	ml_state_t Base;
 	ml_value_t *Source, *Destination;
 	typeof(ml_stream_read) *read;
 	typeof(ml_stream_write) *write;
@@ -1169,22 +1365,7 @@ ML_METHODX("flush", MLStreamBufferedT) {
 }
 
 static void ML_TYPED_FN(ml_stream_read, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Stream, void *Address, int Count) {
-	size_t Total = 0, Length = ml_stringbuffer_reader(Stream, 0);
-	while (Count) {
-		if (!Length) break;
-		if (Length >= Count) {
-			memcpy(Address, Stream->Head->Chars + Stream->Start, Count);
-			ml_stringbuffer_reader(Stream, Count);
-			Total += Count;
-			break;
-		}
-		memcpy(Address, Stream->Head->Chars + Stream->Start, Length);
-		Total += Length;
-		Count -= Length;
-		Address += Length;
-		Length = ml_stringbuffer_reader(Stream, Length);
-	}
-	ML_RETURN(ml_integer(Total));
+	ML_RETURN(ml_integer(ml_stringbuffer_read(Stream, Address, Count)));
 }
 
 ML_METHOD("read", MLStringBufferT, MLBufferT) {
@@ -1192,22 +1373,7 @@ ML_METHOD("read", MLStringBufferT, MLBufferT) {
 	ml_stringbuffer_t *Stream = (ml_stringbuffer_t *)Args[0];
 	void *Address = ml_buffer_value(Args[1]);
 	Count = ml_buffer_length(Args[1]);
-	size_t Length = 0, Total = 0;
-	while (Count) {
-		Length = ml_stringbuffer_reader(Stream, Length);
-		if (!Length) break;
-		if (Length > Count) {
-			memcpy(Address, Stream->Head->Chars + Stream->Start, Count);
-			ml_stringbuffer_reader(Stream, Count);
-			Total += Count;
-			break;
-		}
-		memcpy(Address, Stream->Head->Chars + Stream->Start, Length);
-		Total += Length;
-		Count -= Length;
-		Address += Length;
-	}
-	return ml_integer(Total);
+	return ml_integer(ml_stringbuffer_read(Stream, Address, Count));
 }
 
 ML_METHOD("_start", MLStringBufferT) {

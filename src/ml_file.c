@@ -67,7 +67,7 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLFileT, ml_value_t *Value) {
 }
 #endif
 
-#ifdef __MINGW32__
+#ifdef Mingw
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 	char Buffer[129];
 	if (fgets(Buffer, 129, File) == NULL) return -1;
@@ -360,9 +360,18 @@ ML_FUNCTION(MLDirCreate) {
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	const char *Name = ml_string_value(Args[0]);
 	int Mode = ml_integer_value(Args[1]);
+#ifdef Mingw
+	if (mkdir(Name)) {
+		return ml_error("FileError", "failed to create directory %s: %s", Name, strerror(errno));
+	}
+	if (chmod(Name, Mode)) {
+		return ml_error("FileError", "failed to create directory %s: %s", Name, strerror(errno));
+	}
+#else
 	if (mkdir(Name, Mode)) {
 		return ml_error("FileError", "failed to create directory %s: %s", Name, strerror(errno));
 	}
+#endif
 	return MLNil;
 }
 
@@ -429,7 +438,9 @@ ML_METHOD("close", MLPOpenT) {
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
 	stringmap_insert(MLFileT->Exports, "stat", MLFileStat);
+#ifndef Mingw
 	stringmap_insert(MLFileT->Exports, "mode", MLFileModeT);
+#endif
 	stringmap_insert(MLFileT->Exports, "exists", MLFileExists);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
