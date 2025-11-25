@@ -150,8 +150,7 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 
 #ifdef ML_GENERICS
 
-ML_TYPE(MLTypeGenericT, (MLTypeT), "generic-type");
-//!internal
+ML_TYPE(MLTypeGenericT, (MLTypeT), "type::generic");
 
 struct ml_generic_rule_t {
 	ml_generic_rule_t *Next;
@@ -197,6 +196,11 @@ ML_METHOD("parents", MLTypeGenericT) {
 	ml_value_t *Parents = ml_list();
 	ml_generic_parents(Parents, Type->NumArgs, Type->Args);
 	return Parents;
+}
+
+ML_METHOD("args", MLTypeGenericT) {
+	ml_generic_type_t *Type = (ml_generic_type_t *)Args[0];
+	return ml_tuplen(Type->NumArgs, (ml_value_t **)Type->Args);
 }
 
 #endif
@@ -359,7 +363,6 @@ typedef struct {
 } ml_union_type_t;
 
 ML_TYPE(MLTypeUnionT, (MLTypeT), "type::union");
-//!internal
 
 ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]) {
 	ml_union_type_t *Type = xnew(ml_union_type_t, NumTypes, ml_type_t *);
@@ -2296,6 +2299,8 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	ml_method_init();
 #include "ml_types_init.c"
+	stringmap_insert(MLTypeT->Exports, "generic", MLTypeGenericT);
+	stringmap_insert(MLTypeT->Exports, "union", MLTypeUnionT);
 	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
 	stringmap_insert(MLAnyT->Exports, "switch", MLAnySwitch);
 #ifdef ML_COMPLEX
