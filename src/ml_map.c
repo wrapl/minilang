@@ -21,7 +21,7 @@ ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable");
 #define MLMapMutableT MLMapT
 #endif
 
-ML_VALUE(MLAny, MLAnyT);
+static ML_VALUE(MLAny, MLAnyT);
 
 #ifdef ML_GENERICS
 
@@ -234,10 +234,12 @@ static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Cou
 }
 
 ML_TYPE(MLMapTemplateT, (MLFunctionT), "map::template",
+//!internal
 	.call = (void *)ml_map_template_call
 );
 
 ML_FUNCTION(MLMapTemplate) {
+//!internal
 	ml_value_t *Template = ml_map();
 	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
 	Template->Type = MLMapTemplateT;
@@ -1973,6 +1975,53 @@ ML_METHOD("<=>", MLMapT, MLMapT) {
 	return ml_tuplev(3, Map1, Map2, Map3);
 }
 
+ML_METHOD("*", MLMapT, MLSetT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/2`.
+//$= let A := map(swap("banana"))
+//$= let B := set("bread")
+//$= A * B
+	ml_value_t *Map = ml_map();
+	ML_SET_FOREACH(Args[1], Node) {
+		ml_value_t *Value = ml_map_search0(Args[0], Node->Key);
+		if (Value) ml_map_insert(Map, Node->Key, Value);
+	}
+	return Map;
+}
+
+ML_METHOD("/\\", MLMapT, MLSetT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/2`.
+//$= let A := map(swap("banana"))
+//$= let B := set("bread")
+//$= A /\ B
+	ml_value_t *Map = ml_map();
+	ML_SET_FOREACH(Args[1], Node) {
+		ml_value_t *Value = ml_map_search0(Args[0], Node->Key);
+		if (Value) ml_map_insert(Map, Node->Key, Value);
+	}
+	return Map;
+}
+
+ML_METHOD("/", MLMapT, MLSetT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` which are not in :mini:`Map/2`.
+//$= let A := map(swap("banana"))
+//$= let B := set("bread")
+//$= A / B
+	ml_value_t *Map = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) {
+		if (!ml_set_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	return Map;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_map_t *Map;
@@ -2454,11 +2503,31 @@ static int ML_TYPED_FN(ml_value_is_constant, MLMapT, ml_value_t *Map) {
 ML_FUNCTIONX(MLMapBy) {
 //@map::by
 //<Sequence
+//<Fn/1,...,Fn/n:function
 //>map
+// Returns a map with keys :mini:`Fn/n(...(Fn/1(V/i)))` and values :mini:`V/i` where :mini:`V/i` are the values produced by :mini:`Sequence`.
+//$= map::by("ABCDEFGH", :code)
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Sequence = Args[0];
 	Args[0] = ml_dup(Sequence);
 	ml_value_t *Swapped = ml_swap(ml_chained(Count, Args));
+	Args[0] = Sequence;
+	ml_value_t **Args2 = ml_alloc_args(1);
+	Args2[0] = Swapped;
+	return ml_call(Caller, (ml_value_t *)MLMapT, 1, Args2);
+}
+
+ML_FUNCTIONX(MLMapTo) {
+//@map::to
+//<Sequence
+//<Fn/1,...,Fn/n:function
+//>map
+// Returns a map with keys :mini:`V/i` and values :mini:`Fn/n(...(Fn/1(V/i)))` where :mini:`V/i` are the values produced by :mini:`Sequence`.
+//$= map::to("ABCDEFGH", :code)
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Sequence = Args[0];
+	Args[0] = ml_dup(Sequence);
+	ml_value_t *Swapped = ml_chained(Count, Args);
 	Args[0] = Sequence;
 	ml_value_t **Args2 = ml_alloc_args(1);
 	Args2[0] = Swapped;
@@ -2639,10 +2708,19 @@ static void ml_map_labeller_call(ml_state_t *Caller, ml_value_t *Labeller, int C
 }
 
 ML_TYPE(MLMapLabellerT, (MLFunctionT, MLMapT), "labeller",
+//@map::labeller
+// A labeller is a function which returns an incrementing integer for each new unique argument, but returns the previous integer for previously seen arguments.
+//$= let Labels := map::labeller()
+//$= Labels("A")
+//$= Labels("B")
+//$= Labels("C")
+//$= Labels("B")
 	.call = (void *)ml_map_labeller_call
 );
 
 ML_FUNCTION(MLMapLabeller) {
+//@map::labeller
+//>map::labeller
 	ml_value_t *Labeller = ml_map();
 	Labeller->Type = MLMapLabellerT;
 	return Labeller;
@@ -2659,6 +2737,7 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "labeller", MLMapLabeller);
 	stringmap_insert(MLMapT->Exports, "template", MLMapTemplate);
 	stringmap_insert(MLMapT->Exports, "by", MLMapBy);
+	stringmap_insert(MLMapT->Exports, "to", MLMapTo);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #ifdef ML_MUTABLES
