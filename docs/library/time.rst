@@ -48,7 +48,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2025-11-26T07:51:01.642157
+      time() :> 2025-11-26T08:30:19.57522
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer): time`

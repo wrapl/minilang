@@ -1976,10 +1976,10 @@ ML_METHOD("<=>", MLMapT, MLMapT) {
 }
 
 ML_METHOD("*", MLMapT, MLSetT) {
-//<Map/1
-//<Map/2
+//<Map
+//<Set
 //>map
-// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/2`.
+// Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
 //$= let A := map(swap("banana"))
 //$= let B := set("bread")
 //$= A * B
@@ -1992,10 +1992,10 @@ ML_METHOD("*", MLMapT, MLSetT) {
 }
 
 ML_METHOD("/\\", MLMapT, MLSetT) {
-//<Map/1
-//<Map/2
+//<Map
+//<Set
 //>map
-// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/2`.
+// Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
 //$= let A := map(swap("banana"))
 //$= let B := set("bread")
 //$= A /\ B
@@ -2007,11 +2007,43 @@ ML_METHOD("/\\", MLMapT, MLSetT) {
 	return Map;
 }
 
-ML_METHOD("/", MLMapT, MLSetT) {
-//<Map/1
-//<Map/2
+ML_METHOD("*", MLSetT, MLMapT) {
+//<Set
+//<Map
 //>map
-// Returns a new map containing the entries of :mini:`Map/1` which are not in :mini:`Map/2`.
+// Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
+//$= let A := set("bread")
+//$= let B := map(swap("banana"))
+//$= A * B
+	ml_value_t *Map = ml_map();
+	ML_SET_FOREACH(Args[0], Node) {
+		ml_value_t *Value = ml_map_search0(Args[1], Node->Key);
+		if (Value) ml_map_insert(Map, Node->Key, Value);
+	}
+	return Map;
+}
+
+ML_METHOD("/\\", MLSetT, MLMapT) {
+//<Set
+//<Map
+//>map
+// Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
+//$= let A := set("bread")
+//$= let B := map(swap("banana"))
+//$= A /\ B
+	ml_value_t *Map = ml_map();
+	ML_SET_FOREACH(Args[0], Node) {
+		ml_value_t *Value = ml_map_search0(Args[1], Node->Key);
+		if (Value) ml_map_insert(Map, Node->Key, Value);
+	}
+	return Map;
+}
+
+ML_METHOD("/", MLMapT, MLSetT) {
+//<Map
+//<Set
+//>map
+// Returns a new map containing the entries of :mini:`Map` whose keys are not in :mini:`Set`.
 //$= let A := map(swap("banana"))
 //$= let B := set("bread")
 //$= A / B

@@ -120,8 +120,8 @@ map
       A * B :> {"b" is 1, "a" is 4}
 
 
-:mini:`meth (Map₁: map) * (Map₂: set): map`
-   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
+:mini:`meth (Map: map) * (Set: set): map`
+   Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
 
    .. code-block:: mini
 
@@ -157,8 +157,8 @@ map
       A / B :> {"n" is 5}
 
 
-:mini:`meth (Map₁: map) / (Map₂: set): map`
-   Returns a new map containing the entries of :mini:`Map₁` which are not in :mini:`Map₂`.
+:mini:`meth (Map: map) / (Set: set): map`
+   Returns a new map containing the entries of :mini:`Map` whose keys are not in :mini:`Set`.
 
    .. code-block:: mini
 
@@ -180,8 +180,8 @@ map
       A /\ B :> {"b" is 1, "a" is 4}
 
 
-:mini:`meth (Map₁: map) /\\ (Map₂: set): map`
-   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
+:mini:`meth (Map: map) /\\ (Set: set): map`
+   Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
 
    .. code-block:: mini
 
@@ -293,8 +293,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M:random :> "e"
       M:random :> "c"
-      M:random :> "a"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -746,6 +746,28 @@ map
 
       map::reduce(swap("banana"); L := [], I) L:put(I)
       :> {"b" is [1], "a" is [2, 4, 6], "n" is [3, 5]}
+
+
+:mini:`meth (Set: set) * (Map: map): map`
+   Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
+
+   .. code-block:: mini
+
+      let A := set("bread") :> {b, r, e, a, d}
+      let B := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      A * B :> {"b" is 1, "a" is 6}
+
+
+:mini:`meth (Set: set) /\\ (Map: map): map`
+   Returns a new map containing the entries of :mini:`Map` whose keys are also in :mini:`Set`.
+
+   .. code-block:: mini
+
+      let A := set("bread") :> {b, r, e, a, d}
+      let B := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      A /\ B :> {"b" is 1, "a" is 6}
 
 
 :mini:`meth (Copy: visitor):const(Map: map): map::const`
