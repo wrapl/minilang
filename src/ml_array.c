@@ -589,6 +589,7 @@ static void ml_array_typed_new_fnx_integers(ml_state_t *Caller, void *Data, int 
 }
 
 static void ml_array_typed_new_fnx_buffer(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	if (ml_is(Args[0], MLArrayT)) return ml_array_typed_new_fnx_array(Caller, Data, Count, Args);
 	ml_array_format_t Format = (intptr_t)Data;
 	ml_array_t *Array = ml_array_alloc(Format, 1);
 	size_t Size = Array->Dimensions[0].Size = ml_address_length(Args[0]) / MLArraySizes[Format];
