@@ -382,6 +382,7 @@ MINILANG_RATIONAL := old or defined("RATIONAL")
 MINILANG_BIGINT := old or defined("BIGINT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_STRINGBUFFER_NODE_SIZE := old or defined("STRINGBUFFER_NODE_SIZE")
+MINILANG_NULLCHECKS := old or defined("NULLCHECKS")
 
 file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -437,6 +438,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_BACKTRACE then
 		File:write("\n#define ML_BACKTRACE\n")
+	end
+	if MINILANG_NULLCHECKS then
+		File:write("\n#define ML_NULLCHECKS\n")
 	end
 	File:write("\n#endif")
 	File:close

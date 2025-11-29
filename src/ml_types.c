@@ -284,6 +284,10 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	Type->call = Parent->call;
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
+	Type->iterate = ml_iterate;
+	Type->iter_value = ml_iter_value;
+	Type->iter_key = ml_iter_key;
+	Type->iter_next = ml_iter_next;
 	Type->Constructor = ml_method_anon(Name);
 	return Type;
 }
@@ -381,6 +385,10 @@ ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]) {
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
+	Type->Base.iterate = ml_iterate;
+	Type->Base.iter_value = ml_iter_value;
+	Type->Base.iter_key = ml_iter_key;
+	Type->Base.iter_next = ml_iter_next;
 	Type->Base.Rank = 1;
 	Type->NumTypes = NumTypes;
 	for (int I = 0; I < NumTypes; ++I) Type->Types[I] = Types[I];
@@ -401,6 +409,10 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
+	Type->Base.iterate = ml_iterate;
+	Type->Base.iter_value = ml_iter_value;
+	Type->Base.iter_key = ml_iter_key;
+	Type->Base.iter_next = ml_iter_next;
 	Type->Base.Rank = 1;
 	Type->NumTypes = 2;
 	Type->Types[0] = Type1;
@@ -422,6 +434,10 @@ ML_METHOD("|", MLTypeUnionT, MLTypeT) {
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
+	Type->Base.iterate = ml_iterate;
+	Type->Base.iter_value = ml_iter_value;
+	Type->Base.iter_key = ml_iter_key;
+	Type->Base.iter_next = ml_iter_next;
 	Type->Base.Rank = 1;
 	Type->NumTypes = Type1->NumTypes + 1;
 	for (int I = 0; I < Type1->NumTypes; ++I) Type->Types[I] = Type1->Types[I];
@@ -443,6 +459,10 @@ ML_METHOD("|", MLTypeT, MLTypeUnionT) {
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
+	Type->Base.iterate = ml_iterate;
+	Type->Base.iter_value = ml_iter_value;
+	Type->Base.iter_key = ml_iter_key;
+	Type->Base.iter_next = ml_iter_next;
 	Type->Base.Rank = 1;
 	Type->NumTypes = Type2->NumTypes + 1;
 	Type->Types[0] = Type1;
@@ -462,6 +482,10 @@ ML_METHOD("?", MLTypeT) {
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
+	Type->Base.iterate = ml_iterate;
+	Type->Base.iter_value = ml_iter_value;
+	Type->Base.iter_key = ml_iter_key;
+	Type->Base.iter_next = ml_iter_next;
 	Type->Base.Rank = 1;
 	Type->NumTypes = 2;
 	Type->Types[0] = Type1;
@@ -481,6 +505,10 @@ ML_METHOD("?", MLTypeUnionT) {
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
+	Type->Base.iterate = ml_iterate;
+	Type->Base.iter_value = ml_iter_value;
+	Type->Base.iter_key = ml_iter_key;
+	Type->Base.iter_next = ml_iter_next;
 	Type->Base.Rank = 1;
 	Type->NumTypes = Type1->NumTypes + 1;
 	for (int I = 0; I < Type1->NumTypes; ++I) Type->Types[I] = Type1->Types[I];
@@ -573,6 +601,10 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.call = Base->call;
 	Type->Base.deref = Base->deref;
 	Type->Base.assign = Base->assign;
+	Type->Base.iterate = Base->iterate;
+	Type->Base.iter_value = Base->iter_value;
+	Type->Base.iter_key = Base->iter_key;
+	Type->Base.iter_next = Base->iter_next;
 	Type->Base.Rank = Rank + 1;
 	Type->Base.Interface = Args[0]->Interface;
 	Type->NumArgs = NumArgs;
@@ -609,6 +641,10 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 #endif
 
 // Values //
+
+ML_TYPE(MLNullT, (), "null");
+
+ML_VALUE(MLNull, MLNullT);
 
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
@@ -1484,61 +1520,67 @@ ML_FUNCTION(MLIsConstant) {
 
 // Iterators //
 
-void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
-	ml_type_t *Type = ml_typeof(Value);
-	typeof(ml_iterate) *function = Type->iterate;
-	if (function) return function(Caller, Value);
-	function = ml_typed_fn_get(Type, ml_iterate);
-	if (function) {
-		Type->iterate = function;
-		return function(Caller, Value);
-	}
+#undef ml_iterate
+#undef ml_iter_value
+#undef ml_iter_key
+#undef ml_iter_next
+
+void ml_method_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Value;
 	return ml_call(Caller, IterateMethod, 1, Args);
 }
 
-void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
-	ml_type_t *Type = ml_typeof(Iter);
-	typeof(ml_iter_value) *function = Type->iter_value;
-	if (function) return function(Caller, Iter);
-	function = ml_typed_fn_get(Type, ml_iter_value);
-	if (function) {
-		Type->iter_value = function;
-		return function(Caller, Iter);
-	}
+void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
+	ml_type_t *Type = ml_typeof(Value);
+	typeof(ml_iterate) *function = ml_typed_fn_get(Type, ml_iterate) ?: ml_method_iterate;
+	Type->iterate = function;
+	return function(Caller, Value);
+}
+
+void ml_method_iter_value(ml_state_t *Caller, ml_value_t *Value) {
 	ml_value_t **Args = ml_alloc_args(1);
-	Args[0] = Iter;
+	Args[0] = Value;
 	return ml_call(Caller, ValueMethod, 1, Args);
 }
 
-void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
-	ml_type_t *Type = ml_typeof(Iter);
-	typeof(ml_iter_key) *function = Type->iter_key;
-	if (function) return function(Caller, Iter);
-	function = ml_typed_fn_get(Type, ml_iter_key);
-	if (function) {
-		Type->iter_key = function;
-		return function(Caller, Iter);
-	}
+void ml_iter_value(ml_state_t *Caller, ml_value_t *Value) {
+	ml_type_t *Type = ml_typeof(Value);
+	typeof(ml_iter_value) *function = ml_typed_fn_get(Type, ml_iter_value) ?: ml_method_iter_value;
+	Type->iter_value = function;
+	return function(Caller, Value);
+}
+
+void ml_method_iter_key(ml_state_t *Caller, ml_value_t *Value) {
 	ml_value_t **Args = ml_alloc_args(1);
-	Args[0] = Iter;
+	Args[0] = Value;
 	return ml_call(Caller, KeyMethod, 1, Args);
 }
 
-void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
-	ml_type_t *Type = ml_typeof(Iter);
-	typeof(ml_iter_next) *function = Type->iter_next;
-	if (function) return function(Caller, Iter);
-	function = ml_typed_fn_get(Type, ml_iter_next);
-	if (function) {
-		Type->iter_next = function;
-		return function(Caller, Iter);
-	}
+void ml_iter_key(ml_state_t *Caller, ml_value_t *Value) {
+	ml_type_t *Type = ml_typeof(Value);
+	typeof(ml_iter_key) *function = ml_typed_fn_get(Type, ml_iter_key) ?: ml_method_iter_key;
+	Type->iter_key = function;
+	return function(Caller, Value);
+}
+
+void ml_method_iter_next(ml_state_t *Caller, ml_value_t *Value) {
 	ml_value_t **Args = ml_alloc_args(1);
-	Args[0] = Iter;
+	Args[0] = Value;
 	return ml_call(Caller, NextMethod, 1, Args);
 }
+
+void ml_iter_next(ml_state_t *Caller, ml_value_t *Value) {
+	ml_type_t *Type = ml_typeof(Value);
+	typeof(ml_iter_next) *function = ml_typed_fn_get(Type, ml_iter_next) ?: ml_method_iter_next;
+	Type->iter_next = function;
+	return function(Caller, Value);
+}
+
+#define ml_iterate(CALLER, VALUE) ml_iterate_inline(CALLER, VALUE)
+#define ml_iter_value(CALLER, VALUE) ml_iter_value_inline(CALLER, VALUE)
+#define ml_iter_key(CALLER, VALUE) ml_iter_key_inline(CALLER, VALUE)
+#define ml_iter_next(CALLER, VALUE) ml_iter_next_inline(CALLER, VALUE)
 
 // Modules //
 //!module

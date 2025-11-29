@@ -146,13 +146,26 @@ static __attribute__ ((noinline)) void ml_cfunction_call_deref(ml_state_t *Calle
 }
 
 static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
-	for (int I = Count; --I >= 0;) {
+	/*for (int I = Count; --I >= 0;) {
 #ifdef ML_NANBOXING
 		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
 #else
 		if (Args[I]->Type->deref != ml_default_deref) {
 #endif
 			return ml_cfunction_call_deref(Caller, Function, Count, Args, I);
+		}
+	}*/
+	for (int I = Count; --I >= 0;) {
+		ml_value_t *Value = Args[I];
+		unsigned Tag = ml_tag(Value);
+#ifdef ML_NULLCHECKS
+		if (__builtin_expect(!Value, 0)) continue;
+#endif
+		if (__builtin_expect(Tag == 0, 1)) {
+			ml_value_t *(*Deref)(ml_value_t *) = Value->Type->deref;
+			if (__builtin_expect(Deref != ml_default_deref, 0)) {
+				Args[I] = Deref(Value);
+			}
 		}
 	}
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
@@ -213,7 +226,7 @@ static __attribute__ ((noinline)) void ml_cfunctionx_call_deref(ml_state_t *Call
 }
 
 static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = Count; --I >= 0;) {
+	/*for (int I = Count; --I >= 0;) {
 #ifdef ML_NANBOXING
 		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
 #else
@@ -221,8 +234,21 @@ static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 #endif
 			return ml_cfunctionx_call_deref(Caller, Function, Count, Args, I);
 		}
-	}
+	}*/
 	//for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+	for (int I = Count; --I >= 0;) {
+		ml_value_t *Value = Args[I];
+		unsigned Tag = ml_tag(Value);
+#ifdef ML_NULLCHECKS
+		if (__builtin_expect(!Value, 0)) continue;
+#endif
+		if (__builtin_expect(Tag == 0, 1)) {
+			ml_value_t *(*Deref)(ml_value_t *) = Value->Type->deref;
+			if (__builtin_expect(Deref != ml_default_deref, 0)) {
+				Args[I] = Deref(Value);
+			}
+		}
+	}
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 

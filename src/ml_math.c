@@ -582,7 +582,7 @@ typedef struct {
 } ml_random_switch_t;
 
 static void ml_random_switch(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
-	int X = arc4random();
+	uint32_t X = arc4random();
 	for (int *Case = Switch->Cases;; ++Case) {
 		if (X <= *Case) ML_RETURN(ml_integer(Case - Switch->Cases));
 	}
