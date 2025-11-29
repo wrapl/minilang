@@ -39,7 +39,7 @@ ML_TYPE(MLArrayT, (MLAddressT, MLSequenceT), "array",
 	.Constructor = (ml_value_t *)MLArray
 );
 
-ML_TYPE(MLArrayMutableT, (MLArrayT, MLBufferT), "array::mutable",
+ML_TYPE(MLArrayMutableT, (MLArrayT), "array::mutable",
 	.Constructor = (ml_value_t *)MLArray
 );
 
@@ -589,7 +589,6 @@ static void ml_array_typed_new_fnx_integers(ml_state_t *Caller, void *Data, int 
 }
 
 static void ml_array_typed_new_fnx_buffer(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	if (ml_is(Args[0], MLArrayT)) return ml_array_typed_new_fnx_array(Caller, Data, Count, Args);
 	ml_array_format_t Format = (intptr_t)Data;
 	ml_array_t *Array = ml_array_alloc(Format, 1);
 	size_t Size = Array->Dimensions[0].Size = ml_address_length(Args[0]) / MLArraySizes[Format];
@@ -653,6 +652,7 @@ ML_FUNCTION(MLArrayWrap) {
 	ML_CHECK_ARG_TYPE(3, MLListT);
 	ml_array_format_t Format = ml_array_format((ml_type_t *)Args[0]);
 	if (Format == ML_ARRAY_FORMAT_NONE) return ml_error("TypeError", "Unknown type for array");
+	if (Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid type for operation");
 	int Degree = ml_list_length(Args[2]);
 	if (!Degree) return ml_error("ValueError", "Dimensions must not be empty");
 	if (Degree != ml_list_length(Args[3])) return ml_error("ValueError", "Dimensions and strides must have same length");
@@ -2443,8 +2443,6 @@ ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT), "array::mutable::" #PREFIX, \
 /*@array::mutable::PREFIX
@@ -2461,8 +2459,6 @@ ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT),
 ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX, \
 /*@vector::PREFIX
@@ -2473,8 +2469,6 @@ ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" 
 ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLVectorMutable ## SUFFIX, (MLVector ## SUFFIX, MLVectorMutable ## PARENT, MLArrayMutable ## SUFFIX), "vector::mutable::" #PREFIX, \
 /*@vector::mutable::PREFIX
@@ -2486,8 +2480,6 @@ ML_TYPE(MLVectorMutable ## SUFFIX, (MLVector ## SUFFIX, MLVectorMutable ## PAREN
 ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX, \
 /*@matrix::PREFIX
@@ -2498,8 +2490,6 @@ ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" 
 ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 ML_TYPE(MLMatrixMutable ## SUFFIX, (MLMatrix ## SUFFIX, MLMatrixMutable ## PARENT, MLArrayMutable ## SUFFIX), "matrix::mutable::" #PREFIX, \
 /*@matrix::mutable::PREFIX
@@ -2511,8 +2501,6 @@ ML_TYPE(MLMatrixMutable ## SUFFIX, (MLMatrix ## SUFFIX, MLMatrixMutable ## PAREN
 ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_array, MLArrayT, NULL)) \
 ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_integers, MLIntegerT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
-ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
 \
 static ml_value_t *ML_TYPED_FN(ml_array_value, MLArray ## SUFFIX, ml_array_t *Array, char *Address) { \
 	return TO_VAL(*(CTYPE *)Array->Base.Value); \
@@ -2522,27 +2510,44 @@ ML_INIT(stringmap_insert(MLArrayT->Exports, #PREFIX, MLArray ## SUFFIX)) \
 ML_INIT(stringmap_insert(MLVectorT->Exports, #PREFIX, MLVector ## SUFFIX)) \
 ML_INIT(stringmap_insert(MLMatrixT->Exports, #PREFIX, MLMatrix ## SUFFIX))
 
+ARRAY_DECL(T, any, AnyT, any, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
+
+#define ARRAY_NUMERIC_DECL(PARENT, PREFIX, SUFFIX, CTYPE, APPEND, PRINTF, FROM_VAL, TO_VAL, FROM_NUM, TO_NUM, FORMAT, HASH) \
+\
+ARRAY_DECL(PARENT, PREFIX, SUFFIX, CTYPE, APPEND, PRINTF, FROM_VAL, TO_VAL, FROM_NUM, TO_NUM, FORMAT, HASH) \
+\
+ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_buffer, MLBufferT, NULL)) \
+ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_address, MLAddressT, NULL))
+
 #define NOP_VAL(T, X) X
 
-ARRAY_DECL(IntegerT, uint8, UInt8T, uint8_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
-ARRAY_DECL(IntegerT, int8, Int8T, int8_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
-ARRAY_DECL(IntegerT, uint16, UInt16T, uint16_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
-ARRAY_DECL(IntegerT, int16, Int16T, int16_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
-ARRAY_DECL(IntegerT, uint32, UInt32T, uint32_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
-ARRAY_DECL(IntegerT, int32, Int32T, int32_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
-ARRAY_DECL(IntegerT, uint64, UInt64T, uint64_t, ml_stringbuffer_printf, "%" PRIu64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
-ARRAY_DECL(IntegerT, int64, Int64T, int64_t, ml_stringbuffer_printf, "%" PRId64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
-ARRAY_DECL(RealT, float32, Float32T, float, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
-ARRAY_DECL(RealT, float64, Float64T, double, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
+ARRAY_NUMERIC_DECL(IntegerT, uint8, UInt8T, uint8_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
+ARRAY_NUMERIC_DECL(IntegerT, int8, Int8T, int8_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
+ARRAY_NUMERIC_DECL(IntegerT, uint16, UInt16T, uint16_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
+ARRAY_NUMERIC_DECL(IntegerT, int16, Int16T, int16_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
+ARRAY_NUMERIC_DECL(IntegerT, uint32, UInt32T, uint32_t, ml_stringbuffer_printf, "%u", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
+ARRAY_NUMERIC_DECL(IntegerT, int32, Int32T, int32_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
+ARRAY_NUMERIC_DECL(IntegerT, uint64, UInt64T, uint64_t, ml_stringbuffer_printf, "%" PRIu64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
+ARRAY_NUMERIC_DECL(IntegerT, int64, Int64T, int64_t, ml_stringbuffer_printf, "%" PRId64, ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
+ARRAY_NUMERIC_DECL(RealT, float32, Float32T, float, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
+ARRAY_NUMERIC_DECL(RealT, float64, Float64T, double, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
 
 #ifdef ML_COMPLEX
 
-ARRAY_DECL(ComplexT, complex32, Complex32T, complex_float, COMPLEX_APPEND, "%g", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
-ARRAY_DECL(ComplexT, complex64, Complex64T, complex_double, COMPLEX_APPEND, "%g", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
+ARRAY_NUMERIC_DECL(ComplexT, complex32, Complex32T, complex_float, COMPLEX_APPEND, "%g", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
+ARRAY_NUMERIC_DECL(ComplexT, complex64, Complex64T, complex_double, COMPLEX_APPEND, "%g", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
 
 #endif
-
-ARRAY_DECL(T, any, AnyT, any, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
 
 static ml_value_t *ml_array_ref_deref(ml_array_ref_t *Ref) {
 	switch (Ref->Array->Format) {
