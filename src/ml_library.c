@@ -313,6 +313,10 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
 	UNBLOCK_PREEMPT
 	if (Handle) {
+		const char *ConfigHash = dlsym(Handle, "ml_config_hash");
+		if (!ConfigHash || strcmp(ConfigHash, ML_CONFIG_HASH)) {
+			ML_ERROR("LibraryError", "config hash missing or different %s", FileName);
+		}
 		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
 			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
