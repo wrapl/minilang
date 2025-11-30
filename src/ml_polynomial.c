@@ -864,6 +864,48 @@ ML_METHOD(MLPolynomialT, MLStringT) {
 	return (ml_value_t *)Poly;
 }
 
+static ml_polynomial_t *ml_polynomial_from_coeffs(int Variable, ml_value_t **Coeffs, int Degree, int Index) {
+	ml_coeff_t C = ml_coeff_value(Coeffs[0]);
+	if (C) {
+		if (Degree) {
+			ml_factors_t *Factors = xnew(ml_factors_t, 1, ml_factor_t);
+			Factors->Degree = Degree;
+			Factors->Count = 1;
+			Factors->Factors->Variable = Variable;
+			Factors->Factors->Degree = Degree;
+			ml_polynomial_t *Poly = ml_polynomial_from_coeffs(Variable, Coeffs + 1, Degree - 1, Index + 1);
+			Poly->Terms[Index].Factors = Factors;
+			Poly->Terms[Index].Coeff = C;
+			return Poly;
+		} else if (Index) {
+			ml_polynomial_t *Poly = xnew(ml_polynomial_t, Index + 1, ml_term_t);
+			Poly->Type = MLPolynomialT;
+			Poly->Count = Index + 1;
+			Poly->Terms[Index].Factors = Constant;
+			Poly->Terms[Index].Coeff = C;
+			return Poly;
+		} else {
+			return (ml_polynomial_t *)Coeffs[0];
+		}
+	} else {
+		if (Degree) {
+			return ml_polynomial_from_coeffs(Variable, Coeffs + 1, Degree - 1, Index);
+		} else if (Index) {
+			ml_polynomial_t *Poly = xnew(ml_polynomial_t, Index, ml_term_t);
+			Poly->Type = MLPolynomialT;
+			Poly->Count = Index;
+			return Poly;
+		} else {
+			return (ml_polynomial_t *)ml_real(0);
+		}
+	}
+}
+
+ML_METHODV(MLPolynomialT, MLStringT, MLNumberT) {
+	int Variable = variable_id(ml_string_value(Args[0]));
+	return (ml_value_t *)ml_polynomial_from_coeffs(Variable, Args + 1, Count - 2, 0);
+}
+
 ML_METHOD("degree", MLPolynomialT, MLStringT) {
 //<Poly
 //<Var
