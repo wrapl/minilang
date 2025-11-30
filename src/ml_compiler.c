@@ -7638,7 +7638,9 @@ ML_FUNCTION(MLIdentCacheCheck) {
 }
 
 void ml_compiler_init(stringmap_t *Globals) {
+#ifdef ML_STRINGCACHE
 	weakmap_alloc(IdentCache);
+#endif
 #include "ml_compiler_init.c"
 	if (Globals) StaticCompiler = ml_compiler((ml_getter_t)ml_stringmap_global_get, Globals);
 	stringmap_insert(MLParserT->Exports, "expr", MLExprT);

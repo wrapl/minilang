@@ -2298,6 +2298,8 @@ ml_value_t *ml_return_second(void *Data, int Count, ml_value_t **Args) {
 	return Args[1];
 }
 
+#ifdef ML_BIGINT
+
 static void *GC_realloc2(void *Ptr, size_t Old, size_t New) {
 	return GC_realloc(Ptr, New);
 }
@@ -2311,6 +2313,8 @@ static void GC_nop(void *Ptr) {
 
 static void GC_nop2(void *Ptr, size_t Old) {
 }
+
+#endif
 
 extern void ml_function_init();
 
@@ -2341,8 +2345,10 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	ml_method_init();
 #include "ml_types_init.c"
+#ifdef ML_GENERICS
 	stringmap_insert(MLTypeT->Exports, "generic", MLTypeGenericT);
 	stringmap_insert(MLTypeT->Exports, "union", MLTypeUnionT);
+#endif
 	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
 	stringmap_insert(MLAnyT->Exports, "switch", MLAnySwitch);
 #ifdef ML_COMPLEX
