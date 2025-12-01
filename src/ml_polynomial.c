@@ -2007,6 +2007,16 @@ ML_FUNCTION(MLPolynomialRoots) {
 
 #endif
 
+ML_METHOD_ANON(MLPolynomialEval, "polynomial::eval");
+
+ML_METHODVX(MLPolynomialEval, MLPolynomialT) {
+	return ml_polynomial_call(Caller, (ml_polynomial_t *)Args[0], Count - 1, Args + 1);
+}
+
+ML_METHODV(MLPolynomialEval, MLNumberT) {
+	return Args[0];
+}
+
 static ml_value_t *ML_TYPED_FN(ml_serialize, MLPolynomialT, ml_polynomial_t *Polynomial) {
 	ml_value_t *Result = ml_list();
 	ml_list_put(Result, ml_cstring("polynomial"));
@@ -2117,6 +2127,7 @@ void ml_polynomial_init(stringmap_t *Globals) {
 #ifdef ML_COMPLEX
 	stringmap_insert(MLPolynomialT->Exports, "roots", MLPolynomialRoots);
 #endif
+	stringmap_insert(MLPolynomialT->Exports, "eval", MLPolynomialEval);
 	if (Globals) {
 		stringmap_insert(Globals, "polynomial", MLPolynomialT);
 	}
