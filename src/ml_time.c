@@ -27,7 +27,7 @@ extern char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #define ML_CATEGORY "time"
 
 #ifdef __GLIBC__
-#define DATE_FORMAT "%010F"
+#define DATE_FORMAT "%04Y-%m-%d"
 #else
 #define DATE_FORMAT "%F"
 #endif
