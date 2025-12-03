@@ -110,7 +110,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 				Field->Value = Value;
 			}
 			break;
-		} else if (I > Class->NumFields) {
+		} else if (I >= Class->NumFields) {
 			break;
 		} else {
 			if (ml_typeof(Arg) == MLUninitializedT) ml_uninitialized_use(Arg, &Object->Fields[I + 1].Value);
