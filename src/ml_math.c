@@ -578,12 +578,12 @@ ML_FUNCTION(MLRandomSeed) {
 
 typedef struct {
 	ml_type_t *Type;
-	int Cases[];
+	uint32_t Cases[];
 } ml_random_switch_t;
 
 static void ml_random_switch(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
 	uint32_t X = arc4random();
-	for (int *Case = Switch->Cases;; ++Case) {
+	for (uint32_t *Case = Switch->Cases;; ++Case) {
 		if (X <= *Case) ML_RETURN(ml_integer(Case - Switch->Cases));
 	}
 	ML_RETURN(MLNil);
@@ -604,7 +604,7 @@ ML_FUNCTION_INLINE(MLRandomSwitch) {
 	}
 	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, int);
 	Switch->Type = MLRandomSwitchT;
-	int *Case = Switch->Cases;
+	uint32_t *Case = Switch->Cases;
 	double M = UINT32_MAX / Total;
 	Total = 0;
 	for (int I = 0; I < Count; ++I) {
