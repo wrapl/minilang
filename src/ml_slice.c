@@ -1734,7 +1734,7 @@ extern ml_value_t *CompareMethod;
 
 ML_METHODX("bfind", MLSliceT, MLAnyT) {
 	int Length = ml_slice_length(Args[0]);
-	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	if (!Length) ML_RETURN(ml_tuplev(2, MLNil, ml_integer(1)));
 	ml_slice_bfind_state_t *State = new(ml_slice_bfind_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -1752,7 +1752,7 @@ ML_METHODX("bfind", MLSliceT, MLAnyT) {
 
 ML_METHODX("bfind", MLSliceT, MLAnyT, MLFunctionT) {
 	int Length = ml_slice_length(Args[0]);
-	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	if (!Length) ML_RETURN(ml_tuplev(2, MLNil, ml_integer(1)));
 	ml_slice_bfind_state_t *State = new(ml_slice_bfind_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
