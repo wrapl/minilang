@@ -209,6 +209,7 @@ void ml_slice_put(ml_value_t *Slice0, ml_value_t *Value) {
 	} else if (Offset) {
 		memmove(Slice->Nodes, Slice->Nodes + Offset, Length * sizeof(ml_slice_node_t));
 		Slice->Nodes[Length].Value = Value;
+		Slice->Offset = 0;
 	} else {
 		Capacity += (Capacity >> 2) + 4;
 		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);

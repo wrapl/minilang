@@ -2388,47 +2388,47 @@ static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target) { \
 	return (ml_value_t *)Target; \
 } \
 \
-static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target, ml_value_t *Value) { \
+static __attribute__ ((noinline)) ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
 	for (;;) if (FORMAT == ML_ARRAY_FORMAT_ANY && !Target->Degree) { \
 		*(ml_value_t **)Target->Base.Value = Value; \
-		ML_RETURN(Value); \
+		return Value; \
 	} else if (ml_is(Value, MLArrayT)) { \
 		ml_array_t *Source = (ml_array_t *)Value; \
-		if (Source->Degree > Target->Degree) ML_ERROR("ArrayError", "Incompatible assignment (%d)", __LINE__); \
+		if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
 		int PrefixDegree = Target->Degree - Source->Degree; \
 		for (int I = 0; I < Source->Degree; ++I) { \
-			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) ML_ERROR("ArrayError", "Incompatible assignment (%d)", __LINE__); \
+			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
 		} \
 		update_row_fn_t Update = UpdateSetRowFns[Target->Format * MAX_FORMATS + Source->Format]; \
-		if (!Update) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name); \
+		if (!Update) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name); \
 		if (Target->Degree) { \
 			update_prefix(Update, PrefixDegree, Target->Dimensions, Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value); \
 		} else { \
 			ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 			Update(ValueDimension, Target->Base.Value, ValueDimension, Source->Base.Value); \
 		} \
-		ML_RETURN(Value); \
+		return Value; \
 	} else if (FORMAT == ML_ARRAY_FORMAT_ANY) { \
 		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 		update_row_fn_t Update = UpdateSetRowFns[Target->Format * MAX_FORMATS + Target->Format]; \
-		if (!Update) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
+		if (!Update) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
 		if (Target->Degree == 0) { \
 			Update(ValueDimension, Target->Base.Value, ValueDimension, (char *)&Value); \
 		} else { \
 			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, NULL, (char *)&Value); \
 		} \
-		ML_RETURN(Value); \
+		return Value; \
 	} else if (ml_is(Value, MLNumberT)) { \
 		CTYPE CValue = FROM_VAL(Value); \
 		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 		update_row_fn_t Update = UpdateSetRowFns[Target->Format * MAX_FORMATS + Target->Format]; \
-		if (!Update) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
+		if (!Update) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
 		if (Target->Degree == 0) { \
 			Update(ValueDimension, Target->Base.Value, ValueDimension, (char *)&CValue); \
 		} else { \
 			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, NULL, (char *)&CValue); \
 		} \
-		ML_RETURN(Value); \
+		return Value; \
 	} else { \
 		Value = ml_array_of_fn(NULL, 1, &Value); \
 	} \
@@ -2572,21 +2572,21 @@ static ml_value_t *ml_array_ref_deref(ml_array_ref_t *Ref) {
 
 static void ml_array_ref_assign(ml_state_t *Caller, ml_array_ref_t *Ref, ml_value_t *Value) {
 	switch (Ref->Array->Format) {
-	case ML_ARRAY_FORMAT_U8: return ml_array_uint8_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_I8: return ml_array_int8_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_U16: return ml_array_uint16_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_I16: return ml_array_int16_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_U32: return ml_array_uint32_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_I32: return ml_array_int32_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_U64: return ml_array_uint64_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_I64: return ml_array_int64_t_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_F32: return ml_array_float_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_F64: return ml_array_double_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_U8: ML_RETURN(ml_array_uint8_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_I8: ML_RETURN(ml_array_int8_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_U16: ML_RETURN(ml_array_uint16_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_I16: ML_RETURN(ml_array_int16_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_U32: ML_RETURN(ml_array_uint32_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_I32: ML_RETURN(ml_array_int32_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_U64: ML_RETURN(ml_array_uint64_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_I64: ML_RETURN(ml_array_int64_t_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_F32: ML_RETURN(ml_array_float_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_F64: ML_RETURN(ml_array_double_assign(Ref->Array, Value));
 #ifdef ML_COMPLEX
-	case ML_ARRAY_FORMAT_C32: return ml_array_complex_float_assign(Caller, Ref->Array, Value);
-	case ML_ARRAY_FORMAT_C64: return ml_array_complex_double_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_C32: ML_RETURN(ml_array_complex_float_assign(Ref->Array, Value));
+	case ML_ARRAY_FORMAT_C64: ML_RETURN(ml_array_complex_double_assign(Ref->Array, Value));
 #endif
-	case ML_ARRAY_FORMAT_ANY: return ml_array_any_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_ANY: ML_RETURN(ml_array_any_assign(Ref->Array, Value));
 	default: __builtin_unreachable();
 	}
 }
