@@ -1156,7 +1156,6 @@ struct mlc_block_t {
 	mlc_block_expr_t *Expr;
 	mlc_expr_t *Child;
 	ml_inst_t *Exits;
-	inthash_t DeclHashes;
 	mlc_try_t Try;
 	mlc_must_t Must, *OldMust;
 	int Flags, Size, Top;
@@ -1720,8 +1719,7 @@ void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, int
 	}
 	int Top = Function->Top;
 	ml_decl_t *Last = Function->Decls, *Decls = Last;
-	Frame->DeclHashes = (inthash_t)INTHASH_INIT;
-	inthash_t *DeclHashes = &Frame->DeclHashes;
+	inthash_t DeclHashes[1] = {INTHASH_INIT};
 	Frame->Up = Function->Block;
 	Function->Block = Frame;
 	for (mlc_local_t *Local = Expr->Vars; Local; Local = Local->Next) {
@@ -1734,7 +1732,11 @@ void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, int
 		Frame->Decls[Local->Index] = Decl;
 		if (Local->Ident[0] && inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
 			for (ml_decl_t *Prev = Decls; Prev != Last; Prev = Prev->Next) {
+#ifdef ML_STRINGCACHE
+				if (Prev->Ident == Decl->Ident) {
+#else
 				if (!strcmp(Prev->Ident, Decl->Ident)) {
+#endif
 					MLC_EXPR_ERROR(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Prev->Source.Line));
 				}
 			}
@@ -1753,7 +1755,11 @@ void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, int
 		Frame->Decls[Local->Index] = Decl;
 		if (Local->Ident[0] && inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
 			for (ml_decl_t *Prev = Decls; Prev != Last; Prev = Prev->Next) {
+#ifdef ML_STRINGCACHE
+				if (Prev->Ident == Decl->Ident) {
+#else
 				if (!strcmp(Prev->Ident, Decl->Ident)) {
+#endif
 					MLC_EXPR_ERROR(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Prev->Source.Line));
 				}
 			}
@@ -1771,7 +1777,11 @@ void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, int
 		Frame->Decls[Local->Index] = Decl;
 		if (Local->Ident[0] && inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
 			for (ml_decl_t *Prev = Decls; Prev != Last; Prev = Prev->Next) {
+#ifdef ML_STRINGCACHE
+				if (Prev->Ident == Decl->Ident) {
+#else
 				if (!strcmp(Prev->Ident, Decl->Ident)) {
+#endif
 					MLC_EXPR_ERROR(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Prev->Source.Line));
 				}
 			}
@@ -3320,6 +3330,7 @@ void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Fla
 		GC_asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
 	}
 	int NumParams = 0, HasParamTypes = 0;
+	inthash_t DeclHashes[1] = {INTHASH_INIT};
 	ml_decl_t **DeclSlot = &SubFunction->Decls;
 	for (mlc_param_t *Param = Expr->Params; Param; Param = Param->Next) {
 		ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
@@ -3328,6 +3339,17 @@ void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Fla
 		Decl->Ident = Param->Ident;
 		Decl->Hash = ml_ident_hash(Param->Ident);
 		Decl->Index = NumParams++;
+		if (inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
+			for (ml_decl_t *Prev = SubFunction->Decls; Prev; Prev = Prev->Next) {
+#ifdef ML_STRINGCACHE
+				if (Prev->Ident == Decl->Ident) {
+#else
+				if (!strcmp(Prev->Ident, Decl->Ident)) {
+#endif
+					MLC_EXPR_ERROR(Expr, ml_error("NameError", "Parameter %s redefined in position %d, previously declared in position %d", Decl->Ident, Decl->Index + 1, Prev->Index + 1));
+				}
+			}
+		}
 		switch (Param->Kind) {
 		case ML_PARAM_EXTRA:
 			Info->Flags |= ML_CLOSURE_EXTRA_ARGS;

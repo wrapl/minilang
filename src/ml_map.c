@@ -1953,6 +1953,85 @@ ML_METHOD("><", MLMapT, MLMapT) {
 	return Map;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Map1, *Map2, *Map3;
+	ml_map_node_t **Nodes1, **Nodes2;
+	ml_methods_t *Methods;
+	ml_method_cached_t *Cached;
+	ml_map_node_t **Source, **Dest;
+	ml_map_node_t **IndexA, **LimitA, **IndexB, **LimitB;
+	ml_map_node_t **Target, **Limit;
+	ml_value_t *Args[2];
+	size_t Count1, Count2;
+	size_t Index1, Index2;
+	size_t Length, BlockSize;
+} ml_map_split_state_t;
+
+static void ml_map_split_sort1_run(ml_map_split_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_map_node_t **Target = State->Target;
+	if (Value != MLNil) {
+		ml_map_node_t **Index = State->IndexA;
+		*Target++ = *Index++;
+		if (Index < State->LimitA) {
+			State->Target = Target;
+			State->IndexA = Index;
+			State->Args[0] = Index[0]->Key;
+			State->Args[1] = State->IndexB[0]->Key;
+			ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)CompareMethod, State->Cached, 2, State->Args);
+			if (!Cached) ML_CONTINUE(State->Base.Caller, ml_no_method_error((ml_method_t *)CompareMethod, 2, State->Args));
+			State->Cached = Cached;
+			return ml_call(State, Cached->Callback, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(ml_slice_node_t));
+	} else {
+		ml_map_node_t **Index = State->IndexB;
+		*Target++ = *Index++;
+		if (Index < State->LimitB) {
+			State->Target = Target;
+			State->IndexB = Index;
+			State->Args[0] = State->IndexA[0]->Key;
+			State->Args[1] = Index[0]->Key;
+			ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)CompareMethod, State->Cached, 2, State->Args);
+			if (!Cached) ML_CONTINUE(State->Base.Caller, ml_no_method_error((ml_method_t *)CompareMethod, 2, State->Args));
+			State->Cached = Cached;
+			return ml_call(State, Cached->Callback, 2, State->Args);
+		}
+		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(ml_slice_node_t));
+	}
+	size_t Remaining = State->Limit - Target;
+	size_t BlockSize = State->BlockSize;
+	ml_map_node_t **IndexA = State->LimitB;
+	if (Remaining <= BlockSize) {
+		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
+		BlockSize *= 2;
+		Remaining = State->Length;
+		if (Remaining <= BlockSize) {
+			State->Nodes1 = State->Dest;
+			// Sort 2nd map nodes
+
+		}
+		State->BlockSize = BlockSize;
+		ml_map_node_t **Temp = State->Source;
+		IndexA = State->Source = State->Dest;
+		Target = State->Dest = Temp;
+		State->Limit = Target + State->Length;
+	}
+	State->Target = Target;
+	State->IndexA = IndexA;
+	ml_map_node_t **IndexB = IndexA + BlockSize;
+	State->LimitA = State->IndexB = IndexB;
+	Remaining -= BlockSize;
+	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
+	State->Args[0] = IndexA[0]->Key;
+	State->Args[1] = IndexB[0]->Key;
+	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)CompareMethod, State->Cached, 2, State->Args);
+	if (!Cached) ML_CONTINUE(State->Base.Caller, ml_no_method_error((ml_method_t *)CompareMethod, 2, State->Args));
+	State->Cached = Cached;
+	return ml_call(State, Cached ? Cached->Callback : CompareMethod, 2, State->Args);
+}
+
 ML_METHOD("<=>", MLMapT, MLMapT) {
 //<Map/1
 //<Map/2
@@ -1961,6 +2040,13 @@ ML_METHOD("<=>", MLMapT, MLMapT) {
 //$= let A := map(swap("banana"))
 //$= let B := map(swap("bread"))
 //$= A <=> B
+	/*ml_map_split_state_t *State = new(ml_map_split_state_t);
+	size_t Count1 = State->Count1 = ml_map_size(Args[0]);
+	ml_map_node_t **Nodes1 = State->Nodes1 = anew(ml_map_node_t *, Count1);
+	ML_MAP_FOREACH(Args[0], Iter) *Nodes1++ = Iter;
+	size_t Count2 = State->Count2 = ml_map_size(Args[1]);
+	ml_map_node_t **Nodes2 = State->Nodes2 = anew(ml_map_node_t *, Count2);
+	ML_MAP_FOREACH(Args[1], Iter) *Nodes2++ = Iter;*/
 	ml_value_t *Map1 = ml_map(), *Map2 = ml_map(), *Map3 = ml_map();
 	ML_MAP_FOREACH(Args[0], Node) {
 		if (!ml_map_search0(Args[1], Node->Key)) {
