@@ -1160,11 +1160,11 @@ void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*
 	int Index = Queue->ReadIndex;
 	int EndIndex = Queue->WriteIndex;
 	while (Block != EndBlock) {
-		while (Index < QUEUE_BLOCK_SIZE) Fn(Data, Block->States[Index++].State);
-		Index = 0;
+		while (Index >= 0) Fn(Data, Block->States[Index--].State);
+		Index = QUEUE_BLOCK_SIZE - 1;
 		Block = Block->Next;
 	}
-	while (Index != EndIndex) Fn(Data, Block->States[Index++].State);
+	while (Index > EndIndex) Fn(Data, Block->States[Index--].State);
 #ifdef ML_HOSTTHREADS
 	pthread_mutex_unlock(Queue->Lock);
 #endif
