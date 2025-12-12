@@ -237,9 +237,22 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	}
 }
 
+static ml_value_t *parse_output(ml_parser_t *Parser) {
+	ml_source_t Position = ml_parser_position();
+	const char *Line = ml_parser_clear(Parser);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	mlc_block_expr_t *Block = new(mlc_block_expr_t);
+	Block->compile = ml_block_expr_compile;
+	Block->StartLine = Position.Line;
+	mlc_expr_t **Slot = &Block->Child;
+
+	return ml_expr_value((mlc_expr_t *)Block);
+}
+
 int main(int Argc, const char **Argv) {
 	ml_init(Argv[0], Globals);
 	ml_file_init(Globals);
+	ml_parser_add_escape(NULL, "", parse_output);
 	const char *InputName = "stdin";
 	FILE *Input = stdin;
 	FILE *Output = stdout;
