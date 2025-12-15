@@ -192,7 +192,7 @@ ml_value_t *ml_reference(ml_value_t **Address) __attribute__((malloc));
 
 typedef struct ml_source_t {
 	const char *Name;
-	int Line;
+	int Line, Pos;
 } ml_source_t;
 
 ml_value_t *ml_uninitialized(const char *Name, ml_source_t Source) __attribute__((malloc));

@@ -14,7 +14,7 @@ extern stringmap_t MLGlobals[];
 
 void ml_init(const char *ExecName, stringmap_t *Globals);
 
-#define MINILANG_VERSION 2, 16, 0
+#define MINILANG_VERSION 2, 17, 0
 
 #ifdef __cplusplus
 }
