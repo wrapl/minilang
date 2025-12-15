@@ -9,7 +9,7 @@ array
 
 .. rst-class:: mini-api
 
-:mini:`fun matrixqr()`
+:mini:`fun matrix::qr()`
    *TBD*
 
 
@@ -18,13 +18,12 @@ array
 
 
 :mini:`meth (A: any) % (B: array): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := A NAME Bᵥ`.
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A % Bᵥ`.
 
    .. code-block:: mini
 
       let B := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      2 NAME B
-      :> error("MethodError", "no method found for NAME(integer32, matrix::mutable::int64)")
+      2 % B :> <<0 0> <2 2>>
 
 
 :mini:`meth (A: any) * (B: array): array`
@@ -135,13 +134,12 @@ array
 
 
 :mini:`meth (A: array) % (B: any): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ NAME B`.
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ % B`.
 
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A NAME 2
-      :> error("MethodError", "no method found for NAME(matrix::mutable::int64, integer32)")
+      A % 2 :> <<1 0> <1 0>>
 
 
 :mini:`meth (A: array) % (B: array): array`
@@ -790,7 +788,7 @@ array
 
       let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
       A:minidx(1) :> <<<3> <1>> <<1> <2>>>
-      A:minidx(2) :> <<2 1> <1 171669605>>
+      A:minidx(2) :> <<2 1> <1 676480346>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1034,13 +1032,12 @@ array
 
 
 :mini:`meth (A: array::integer) % (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ NAME B`.
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ % B`.
 
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A NAME 2
-      :> error("MethodError", "no method found for NAME(matrix::mutable::int64, integer32)")
+      A % 2 :> <<1 0> <1 0>>
 
 
 :mini:`meth (A: array::integer) * (B: integer): array`
@@ -1083,7 +1080,7 @@ array
    *TBD*
 
 
-:mini:`type array::mutable < array, buffer`
+:mini:`type array::mutable < array`
    *TBD*
 
 
@@ -1229,13 +1226,13 @@ array
 
 
 :mini:`meth (A: array::real) % (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ NAME B`.
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ % B`.
 
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A NAME 2.5
-      :> error("MethodError", "no method found for NAME(matrix::mutable::int64, double)")
+      A % 2.5
+      :> error("TypeError", "Invalid types for array operation")
 
 
 :mini:`meth (A: array::real) * (B: real): array`
@@ -1373,13 +1370,12 @@ array
 
 
 :mini:`meth (A: integer) % (B: array::integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := A NAME Bᵥ`.
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A % Bᵥ`.
 
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      2 NAME A
-      :> error("MethodError", "no method found for NAME(integer32, matrix::mutable::int64)")
+      2 % A :> <<0 0> <2 2>>
 
 
 :mini:`meth (A: integer) * (B: array::integer): array`
@@ -1684,13 +1680,13 @@ array
 
 
 :mini:`meth (A: real) % (B: array::real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := A NAME Bᵥ`.
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A % Bᵥ`.
 
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      2.5 NAME A
-      :> error("MethodError", "no method found for NAME(double, matrix::mutable::int64)")
+      2.5 % A
+      :> error("TypeError", "Invalid types for array operation")
 
 
 :mini:`meth (A: real) * (B: array::real): array`

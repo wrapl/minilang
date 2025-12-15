@@ -2178,6 +2178,21 @@ ML_METHODV(MLXmlT, MLSymbolT) {
 	return (ml_value_t *)Element;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLXmlElementT, ml_xml_element_t *Node) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("xml"));
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_xml_node_append(Buffer, Node);
+	ml_list_put(Result, ml_stringbuffer_get_value(Buffer));
+	return Result;
+}
+
+ML_DESERIALIZER("xml") {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_xml_from_string(ml_string_value(Args[0]), ml_string_length(Args[0]), 0);
+}
+
 ML_METHOD_ANON(MLXmlParse, "xml::parse");
 
 ML_METHOD(MLXmlParse, MLAddressT) {

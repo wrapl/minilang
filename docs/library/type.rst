@@ -84,6 +84,18 @@ type
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
+:mini:`type type::generic < type`
+   *TBD*
+
+
+:mini:`meth (Arg₁: type::generic):args`
+   *TBD*
+
+
+:mini:`type type::union < type`
+   *TBD*
+
+
 :mini:`meth ?(Type: type::union): type`
    Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
 

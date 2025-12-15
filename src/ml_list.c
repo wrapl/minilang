@@ -2026,7 +2026,7 @@ ML_METHODX("bfind", MLListT, MLAnyT) {
 //$= L:bfind("c")
 //$= L:bfind("z")
 	int Length = ml_list_length(Args[0]);
-	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	if (!Length) ML_RETURN(ml_tuplev(2, MLNil, ml_integer(1)));
 	ml_list_bfind_state_t *State = new(ml_list_bfind_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -2055,7 +2055,7 @@ ML_METHODX("bfind", MLListT, MLAnyT, MLFunctionT) {
 //$= L:bfind("c", <>)
 //$= L:bfind("z", <>)
 	int Length = ml_list_length(Args[0]);
-	if (!Length) ML_RETURN(ml_tuplev(2, ml_integer(0), ml_integer(1)));
+	if (!Length) ML_RETURN(ml_tuplev(2, MLNil, ml_integer(1)));
 	ml_list_bfind_state_t *State = new(ml_list_bfind_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

@@ -110,7 +110,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 				Field->Value = Value;
 			}
 			break;
-		} else if (I > Class->NumFields) {
+		} else if (I >= Class->NumFields) {
 			break;
 		} else {
 			if (ml_typeof(Arg) == MLUninitializedT) ml_uninitialized_use(Arg, &Object->Fields[I + 1].Value);
@@ -361,6 +361,10 @@ ml_type_t *ml_class(const char *Name) {
 	Class->Base.call = ml_default_call;
 	Class->Base.deref = ml_default_deref;
 	Class->Base.assign = ml_default_assign;
+	Class->Base.iterate = ml_iterate;
+	Class->Base.iter_value = ml_iter_value;
+	Class->Base.iter_key = ml_iter_key;
+	Class->Base.iter_next = ml_iter_next;
 	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 	Class->Base.Constructor = Constructor;
 	ml_type_add_parent((ml_type_t *)Class, MLObjectT);
@@ -470,6 +474,10 @@ ML_FUNCTIONZ(MLClass) {
 		Class->Base.call = NativeType->call;
 		Class->Base.deref = NativeType->deref;
 		Class->Base.assign = NativeType->assign;
+		Class->Base.iterate = NativeType->iterate;
+		Class->Base.iter_value = NativeType->iter_value;
+		Class->Base.iter_key = NativeType->iter_key;
+		Class->Base.iter_next = NativeType->iter_next;
 		Class->Native = NativeType;
 		ml_value_t *Constructor = ml_cfunctionz(Class, (void *)ml_named_constructor_fn);
 		Class->Base.Constructor = Constructor;
@@ -523,6 +531,10 @@ ML_FUNCTIONZ(MLClass) {
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
+		Class->Base.iterate = ml_iterate;
+		Class->Base.iter_value = ml_iter_value;
+		Class->Base.iter_key = ml_iter_key;
+		Class->Base.iter_next = ml_iter_next;
 		ml_value_t *Constructor = ml_cfunctionz(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		for (int I = 0; I < Count; ++I) {
@@ -656,6 +668,10 @@ ml_value_t *ml_watched_field(ml_value_t *Callback) {
 	GC_asprintf((char **)&Watcher->Base.Name, "watcher:%lx", (uintptr_t)Watcher);
 	Watcher->Base.deref = (void *)ml_watched_field_deref;
 	Watcher->Base.assign = (void *)ml_watched_field_assign;
+	Watcher->Base.iterate = ml_iterate;
+	Watcher->Base.iter_value = ml_iter_value;
+	Watcher->Base.iter_key = ml_iter_key;
+	Watcher->Base.iter_next = ml_iter_next;
 	Watcher->Base.hash = ml_default_hash;
 	ml_type_init((ml_type_t *)Watcher, MLFieldMutableT, NULL);
 	Watcher->Callback = Callback;
@@ -833,6 +849,10 @@ ml_class_t *ml_pseudo_class(const char *Name, const uuid_t Id) {
 	Class->Base.call = ml_default_call;
 	Class->Base.deref = ml_default_deref;
 	Class->Base.assign = ml_default_assign;
+	Class->Base.iterate = ml_iterate;
+	Class->Base.iter_value = ml_iter_value;
+	Class->Base.iter_key = ml_iter_key;
+	Class->Base.iter_next = ml_iter_next;
 	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 	Class->Base.Constructor = Constructor;
 	ml_type_add_parent((ml_type_t *)Class, MLPseudoObjectT);
@@ -968,6 +988,10 @@ static ml_value_t *ml_enum_string_fn(void *Type, int Count, ml_value_t **Args) {
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -994,6 +1018,10 @@ static ml_value_t *ml_enum_names_fn(void *Type, int Count, ml_value_t **Args) {
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1028,6 +1056,10 @@ ML_METHODV(MLEnumT, MLStringT) {
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1056,6 +1088,10 @@ ML_METHODV(MLEnumT, MLNamesT) {
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1086,6 +1122,10 @@ ML_METHODV(MLEnumCyclicT, MLStringT) {
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1115,6 +1155,10 @@ ML_METHODV(MLEnumCyclicT, MLNamesT) {
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1143,6 +1187,10 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 	Enum->Base.Name = TypeName;
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1178,6 +1226,10 @@ ml_type_t *ml_enum_cyclic(const char *TypeName, ...) {
 	Enum->Base.Name = TypeName;
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1216,6 +1268,10 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 	Enum->Base.Name = TypeName;
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
+	Enum->Base.iterate = ml_iterate;
+	Enum->Base.iter_value = ml_iter_value;
+	Enum->Base.iter_key = ml_iter_key;
+	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
@@ -1661,6 +1717,10 @@ ML_METHODV(MLFlagsT, MLStringT) {
 	GC_asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
+	Flags->Base.iterate = ml_iterate;
+	Flags->Base.iter_value = ml_iter_value;
+	Flags->Base.iter_key = ml_iter_key;
+	Flags->Base.iter_next = ml_iter_next;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
@@ -1692,6 +1752,10 @@ ML_METHODV(MLFlagsT, MLNamesT) {
 	GC_asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
+	Flags->Base.iterate = ml_iterate;
+	Flags->Base.iter_value = ml_iter_value;
+	Flags->Base.iter_key = ml_iter_key;
+	Flags->Base.iter_next = ml_iter_next;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
@@ -1718,6 +1782,10 @@ ml_type_t *ml_flags(const char *TypeName, ...) {
 	Flags->Base.Name = TypeName;
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
+	Flags->Base.iterate = ml_iterate;
+	Flags->Base.iter_value = ml_iter_value;
+	Flags->Base.iter_key = ml_iter_key;
+	Flags->Base.iter_next = ml_iter_next;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
@@ -1753,6 +1821,10 @@ ml_type_t *ml_flags2(const char *TypeName, ...) {
 	Flags->Base.Name = TypeName;
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
+	Flags->Base.iterate = ml_iterate;
+	Flags->Base.iter_value = ml_iter_value;
+	Flags->Base.iter_key = ml_iter_key;
+	Flags->Base.iter_next = ml_iter_next;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
 	Flags->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);

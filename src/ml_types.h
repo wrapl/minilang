@@ -109,6 +109,10 @@ void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **A
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
+	.iterate = ml_iterate, \
+	.iter_value = ml_iter_value, \
+	.iter_key = ml_iter_key, \
+	.iter_next = ml_iter_next, \
 	.Constructor = CONSTRUCTOR, \
 	.Parents = {INTHASH_INIT}, \
 	.TypedFns = {INTHASH_INIT}, \
@@ -224,6 +228,9 @@ __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 
 static inline ml_value_t *ml_deref(ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
+#ifdef ML_NULLCHECKS
+	if (__builtin_expect(!Value, 0)) return NULL;
+#endif
 	if (__builtin_expect(Tag == 0, 1)) {
 		ml_value_t *(*Deref)(ml_value_t *) = Value->Type->deref;
 		if (__builtin_expect(Deref != ml_default_deref, 0)) {
@@ -233,8 +240,13 @@ static inline ml_value_t *ml_deref(ml_value_t *Value) {
 	return Value;
 }
 
+extern ml_type_t MLNullT[];
+
 __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
+#ifdef ML_NULLCHECKS
+	if (__builtin_expect(!Value, 0)) return MLNullT;
+#endif
 	if (__builtin_expect(Tag == 0, 1)) {
 		return Value->Type;
 	} else if (Tag == 1) {
@@ -343,6 +355,24 @@ void ml_iterate(ml_state_t *Caller, ml_value_t *Value);
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
+
+static inline void ml_iterate_inline(ml_state_t *Caller, ml_value_t *Value) {
+	return ml_typeof(Value)->iterate(Caller, Value);
+}
+static inline void ml_iter_value_inline(ml_state_t *Caller, ml_value_t *Iter) {
+	return ml_typeof(Iter)->iter_value(Caller, Iter);
+}
+static inline void ml_iter_key_inline(ml_state_t *Caller, ml_value_t *Iter) {
+	return ml_typeof(Iter)->iter_key(Caller, Iter);
+}
+static inline void ml_iter_next_inline(ml_state_t *Caller, ml_value_t *Iter) {
+	return ml_typeof(Iter)->iter_next(Caller, Iter);
+}
+
+#define ml_iterate(CALLER, VALUE) ml_iterate_inline(CALLER, VALUE)
+#define ml_iter_value(CALLER, VALUE) ml_iter_value_inline(CALLER, VALUE)
+#define ml_iter_key(CALLER, VALUE) ml_iter_key_inline(CALLER, VALUE)
+#define ml_iter_next(CALLER, VALUE) ml_iter_next_inline(CALLER, VALUE)
 
 ml_value_t *ml_chained(int Count, ml_value_t **Functions);
 ml_value_t *ml_chainedv(int Count, ...);

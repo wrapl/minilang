@@ -382,62 +382,72 @@ MINILANG_RATIONAL := old or defined("RATIONAL")
 MINILANG_BIGINT := old or defined("BIGINT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_STRINGBUFFER_NODE_SIZE := old or defined("STRINGBUFFER_NODE_SIZE")
+MINILANG_NULLCHECKS := old or defined("NULLCHECKS")
 
 file("ml_config.h") => fun(Target) do
+	let Buffer := string::buffer()
+	if MINILANG_STRINGBUFFER_NODE_SIZE then
+		Buffer:write('\n#define ML_STRINGBUFFER_NODE_SIZE {MINILANG_STRINGBUFFER_NODE_SIZE}\n')
+	else
+		Buffer:write('\n#define ML_STRINGBUFFER_NODE_SIZE 248\n')
+	end
+	if MINILANG_MODULES then
+		Buffer:write("\n#define ML_MODULES\n")
+	end
+	if MINILANG_SCHEDULER then
+		Buffer:write("\n#define ML_SCHEDULER\n")
+	end
+	if MINILANG_TRAMPOLINE then
+		Buffer:write("\n#define ML_TRAMPOLINE\n")
+	end
+	if MINILANG_TIMESCHED then
+		Buffer:write("\n#define ML_TIMESCHED\n")
+	end
+	if MINILANG_NANBOXING then
+		Buffer:write("\n#define ML_NANBOXING\n")
+	end
+	if MINILANG_RATIONAL then
+		Buffer:write("\n#define ML_RATIONAL\n")
+	end
+	if MINILANG_BIGINT then
+		Buffer:write("\n#define ML_BIGINT\n")
+	end
+	if MINILANG_DECIMAL then
+		Buffer:write("\n#define ML_DECIMAL\n")
+	end
+	if MINILANG_COMPLEX then
+		Buffer:write("\n#define ML_COMPLEX\n")
+	end
+	if MINILANG_GENERICS then
+		Buffer:write("\n#define ML_GENERICS\n")
+	end
+	if MINILANG_MUTABLES then
+		Buffer:write("\n#define ML_MUTABLES\n")
+	end
+	if MINILANG_SPLIT then
+		Buffer:write("\n#define ML_SPLIT\n")
+	end
+	if MINILANG_THREADS then
+		Buffer:write("\n#define ML_THREADS\n")
+	end
+	if MINILANG_HOSTTHREADS then
+		Buffer:write("\n#define ML_HOSTTHREADS\n")
+	end
+	if MINILANG_UNWIND then
+		Buffer:write("\n#define ML_UNWIND\n")
+	end
+	if MINILANG_BACKTRACE then
+		Buffer:write("\n#define ML_BACKTRACE\n")
+	end
+	if MINILANG_NULLCHECKS then
+		Buffer:write("\n#define ML_NULLCHECKS\n")
+	end
 	let File := Target:open("w")
 	File:write("#ifndef ML_CONFIG_H\n")
 	File:write("#define ML_CONFIG_H\n")
-	if MINILANG_STRINGBUFFER_NODE_SIZE then
-		File:write('\n#define ML_STRINGBUFFER_NODE_SIZE {MINILANG_STRINGBUFFER_NODE_SIZE}\n')
-	end
-	if MINILANG_MODULES then
-		File:write("\n#define ML_MODULES\n")
-	end
-	if MINILANG_SCHEDULER then
-		File:write("\n#define ML_SCHEDULER\n")
-	end
-	if MINILANG_TRAMPOLINE then
-		File:write("\n#define ML_TRAMPOLINE\n")
-	end
-	if MINILANG_TIMESCHED then
-		File:write("\n#define ML_TIMESCHED\n")
-	end
-	if MINILANG_NANBOXING then
-		File:write("\n#define ML_NANBOXING\n")
-	end
-	if MINILANG_RATIONAL then
-		File:write("\n#define ML_RATIONAL\n")
-	end
-	if MINILANG_BIGINT then
-		File:write("\n#define ML_BIGINT\n")
-	end
-	if MINILANG_DECIMAL then
-		File:write("\n#define ML_DECIMAL\n")
-	end
-	if MINILANG_COMPLEX then
-		File:write("\n#define ML_COMPLEX\n")
-	end
-	if MINILANG_GENERICS then
-		File:write("\n#define ML_GENERICS\n")
-	end
-	if MINILANG_MUTABLES then
-		File:write("\n#define ML_MUTABLES\n")
-	end
-	if MINILANG_SPLIT then
-		File:write("\n#define ML_SPLIT\n")
-	end
-	if MINILANG_THREADS then
-		File:write("\n#define ML_THREADS\n")
-	end
-	if MINILANG_HOSTTHREADS then
-		File:write("\n#define ML_HOSTTHREADS\n")
-	end
-	if MINILANG_UNWIND then
-		File:write("\n#define ML_UNWIND\n")
-	end
-	if MINILANG_BACKTRACE then
-		File:write("\n#define ML_BACKTRACE\n")
-	end
+	let Config := Buffer:rest
+	File:write(Config)
+	File:write('\n#define ML_CONFIG_HASH \"{#Config, 16}\"\n')
 	File:write("\n#endif")
 	File:close
 end

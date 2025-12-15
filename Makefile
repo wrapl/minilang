@@ -41,6 +41,8 @@ obj/%_init.c: src/%.c | obj src/*.h obj/ml_config.h
 	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
 sources = \
+	base16 \
+	base64 \
 	boolean \
 	bytecode \
 	cbor \

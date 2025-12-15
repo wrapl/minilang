@@ -26,6 +26,12 @@ extern char *strptime(const char *buf, const char *fmt, struct tm *tm);
 #undef ML_CATEGORY
 #define ML_CATEGORY "time"
 
+#ifdef __GLIBC__
+#define DATE_FORMAT "%04Y-%m-%d"
+#else
+#define DATE_FORMAT "%F"
+#endif
+
 // Overview
 // Provides time and date operations.
 
@@ -485,10 +491,10 @@ ML_METHOD("append", MLStringBufferT, MLTimeT) {
 			--Width;
 			NSec /= 10;
 		}
-		Length = strftime(Temp, 40, "%FT%T", &TM);
+		Length = strftime(Temp, 40, DATE_FORMAT "T%T", &TM);
 		Length += sprintf(Temp + Length, ".%0*lu", Width, NSec);
 	} else {
-		Length = strftime(Temp, 60, "%FT%T", &TM);
+		Length = strftime(Temp, 60, DATE_FORMAT "T%T", &TM);
 	}
 	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
@@ -513,10 +519,10 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLNilT) {
 			--Width;
 			NSec /= 10;
 		}
-		Length = strftime(Temp, 40, "%FT%T", &TM);
+		Length = strftime(Temp, 40, DATE_FORMAT "T%T", &TM);
 		Length += sprintf(Temp + Length, ".%0*luZ", Width, NSec);
 	} else {
-		Length = strftime(Temp, 60, "%FT%TZ", &TM);
+		Length = strftime(Temp, 60, DATE_FORMAT "T%TZ", &TM);
 	}
 	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
@@ -1074,10 +1080,10 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLTimeZoneT) {
 			--Width;
 			NSec /= 10;
 		}
-		Length = strftime(Temp, 40, "%FT%T", &TM);
+		Length = strftime(Temp, 40, DATE_FORMAT "T%T", &TM);
 		Length += sprintf(Temp + Length, ".%0*lu", Width, NSec);
 	} else {
-		Length = strftime(Temp, 60, "%FT%T", &TM);
+		Length = strftime(Temp, 60, DATE_FORMAT "T%T", &TM);
 	}
 	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
@@ -1148,7 +1154,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_tim
 	gmtime_r(&Time->Value->tv_sec, &TM);
 	if (TM.tm_year < -1900 || TM.tm_year > 8099) ml_cbor_writer_error(Writer, ml_error("RangeError", "Year is outside range"));
 	char Buffer[60];
-	char *End = Buffer + strftime(Buffer, 50, "%FT%T", &TM);
+	char *End = Buffer + strftime(Buffer, 50, DATE_FORMAT "T%T", &TM);
 	unsigned long NSec = Time->Value->tv_nsec;
 	*End++ = '.';
 	*End++ = '0' + (NSec / 100000000) % 10;

@@ -139,14 +139,8 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 	return ml_call(Caller, Function, Count2, Args2);
 }
 
-static __attribute__ ((noinline)) void ml_cfunction_call_deref(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args, int I) {
-	Args[I] = Args[I]->Type->deref(Args[I]);
-	while (--I >= 0) Args[I] = ml_deref(Args[I]);
-	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
-}
-
 static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
-	for (int I = Count; --I >= 0;) {
+	/*for (int I = Count; --I >= 0;) {
 #ifdef ML_NANBOXING
 		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
 #else
@@ -154,6 +148,25 @@ static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int 
 #endif
 			return ml_cfunction_call_deref(Caller, Function, Count, Args, I);
 		}
+	}*/
+	for (int I = Count; --I >= 0;) {
+		ml_value_t *Value = Args[I];
+#ifdef ML_NULLCHECKS
+		if (__builtin_expect(!Value, 0)) continue;
+#endif
+#ifdef ML_NANBOXING
+		unsigned Tag = ml_tag(Value);
+		if (__builtin_expect(Tag == 0, 1)) {
+			ml_value_t *(*Deref)(ml_value_t *) = Value->Type->deref;
+			if (__builtin_expect(Deref != ml_default_deref, 0)) {
+				Args[I] = Deref(Value);
+			}
+		}
+#else
+		if (Value->Type->deref != ml_default_deref) {
+			Args[I] = Value->Type->deref(Value);
+		}
+#endif
 	}
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
@@ -206,14 +219,8 @@ static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfuncti
 	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
 }
 
-static __attribute__ ((noinline)) void ml_cfunctionx_call_deref(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args, int I) {
-	Args[I] = Args[I]->Type->deref(Args[I]);
-	while (--I >= 0) Args[I] = ml_deref(Args[I]);
-	return (Function->Callback)(Caller, Function->Data, Count, Args);
-}
-
 static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = Count; --I >= 0;) {
+	/*for (int I = Count; --I >= 0;) {
 #ifdef ML_NANBOXING
 		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
 #else
@@ -221,8 +228,27 @@ static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 #endif
 			return ml_cfunctionx_call_deref(Caller, Function, Count, Args, I);
 		}
-	}
+	}*/
 	//for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+	for (int I = Count; --I >= 0;) {
+		ml_value_t *Value = Args[I];
+#ifdef ML_NULLCHECKS
+		if (__builtin_expect(!Value, 0)) continue;
+#endif
+#ifdef ML_NANBOXING
+		unsigned Tag = ml_tag(Value);
+		if (__builtin_expect(Tag == 0, 1)) {
+			ml_value_t *(*Deref)(ml_value_t *) = Value->Type->deref;
+			if (__builtin_expect(Deref != ml_default_deref, 0)) {
+				Args[I] = Deref(Value);
+			}
+		}
+#else
+		if (Value->Type->deref != ml_default_deref) {
+			Args[I] = Value->Type->deref(Value);
+		}
+#endif
+	}
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 

@@ -192,7 +192,7 @@ ml_value_t *ml_reference(ml_value_t **Address) __attribute__((malloc));
 
 typedef struct ml_source_t {
 	const char *Name;
-	int Line;
+	int Line, Pos;
 } ml_source_t;
 
 ml_value_t *ml_uninitialized(const char *Name, ml_source_t Source) __attribute__((malloc));
@@ -220,6 +220,9 @@ extern ml_type_t MLErrorValueT[];
 extern ml_cfunction_t MLRaise[];
 
 static inline int ml_is_error(ml_value_t *Value) {
+#ifdef ML_NULLCHECKS
+	if (!Value) return 0;
+#endif
 #ifdef ML_NANBOXING
 	return (!ml_tag(Value)) && (Value->Type == MLErrorT);
 #else

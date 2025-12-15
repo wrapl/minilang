@@ -1976,9 +1976,9 @@ ML_METHOD("%", MLArrayT, MLAnyT) {
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v % B`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= A NAME 2
+//$= A % 2
 */
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -1997,9 +1997,9 @@ ML_METHOD("%", MLAnyT, MLArrayT) {
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A % B/v`.
 //$= let B := array([[1, 2], [3, 4]])
-//$= 2 NAME B
+//$= 2 % B
 */
 	ml_array_t *A = (ml_array_t *)Args[1];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -2018,9 +2018,9 @@ ML_METHOD("%", MLArrayIntegerT, MLIntegerT) {
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v % B`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= A NAME 2
+//$= A % 2
 */
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -2050,9 +2050,9 @@ ML_METHOD("%", MLIntegerT, MLArrayIntegerT) {
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A % B/v`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= 2 NAME A
+//$= 2 % A
 */
 	ml_array_t *A = (ml_array_t *)Args[1];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -2082,9 +2082,9 @@ ML_METHOD("%", MLArrayRealT, MLRealT) {
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v % B`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= A NAME 2.5
+//$= A % 2.5
 */
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -2114,9 +2114,9 @@ ML_METHOD("%", MLRealT, MLArrayRealT) {
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A % B/v`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= 2.5 NAME A
+//$= 2.5 % A
 */
 	ml_array_t *A = (ml_array_t *)Args[1];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -3688,6 +3688,7 @@ ML_METHOD("lu", MLMatrixT) {
 }
 
 ML_MINI_FUNCTION(MatrixQR, ("A"),
+//@matrix::qr
 	"fun householder(A: vector) do\n"
 	"	let V := A / (A[1] + ||A)\n"
 	"	V[1] := 1\n"
