@@ -6157,13 +6157,6 @@ mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level) {
 	return Expr;
 }
 
-typedef struct {
-	mlc_expr_t **ExprSlot;
-	mlc_local_t **VarsSlot;
-	mlc_local_t **LetsSlot;
-	mlc_local_t **DefsSlot;
-} ml_accept_block_t;
-
 static void ml_accept_block_var(ml_parser_t *Parser, ml_accept_block_t *Accept) {
 	do {
 		if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
@@ -6493,6 +6486,73 @@ static mlc_expr_t *ml_parse_block_expr(ml_parser_t *Parser, ml_accept_block_t *A
 	return Expr;
 }
 
+static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser);
+
+int ml_accept_block_child(ml_parser_t *Parser, ml_accept_block_t *Accept) {
+	ml_skip_eol(Parser);
+	switch (ml_current(Parser)) {
+	case MLT_VAR: {
+		ml_next(Parser);
+		ml_accept_block_var(Parser, Accept);
+		return 1;
+	}
+	case MLT_LET: {
+		ml_next(Parser);
+		ml_accept_block_let(Parser, Accept);
+		return 1;
+	}
+	case MLT_REF: {
+		ml_next(Parser);
+		ml_accept_block_ref(Parser, Accept);
+		return 1;
+	}
+	case MLT_DEF: {
+		ml_next(Parser);
+		ml_accept_block_def(Parser, Accept);
+		return 1;
+	}
+	case MLT_FUN: {
+		ml_next(Parser);
+		ml_accept_block_fun(Parser, Accept);
+		return 1;
+	}
+	case MLT_MUST: {
+		ml_next(Parser);
+		mlc_expr_t *Must = ml_accept_expression(Parser, EXPR_DEFAULT);
+		mlc_block_expr_t *MustExpr = ml_accept_block_body(Parser);
+		MustExpr->Must = Must;
+		Accept->ExprSlot[0] = ML_EXPR_END(MustExpr);
+		Accept->ExprSlot = &MustExpr->Next;
+		return 0;
+	}
+	default: {
+		mlc_expr_t *Expr = ml_parse_block_expr(Parser, Accept);
+		if (!Expr) return 0;
+		Accept->ExprSlot[0] = Expr;
+		Accept->ExprSlot = &Expr->Next;
+		return 1;
+	}
+	}
+}
+
+void mlc_block_expr_finish(mlc_block_expr_t *BlockExpr) {
+	int Index = 0, First = 0;
+	for (mlc_local_t *Local = BlockExpr->Vars; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	BlockExpr->NumVars = Index;
+	First = Index;
+	for (mlc_local_t *Local = BlockExpr->Lets; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	BlockExpr->NumLets = Index - First;
+	First = Index;
+	for (mlc_local_t *Local = BlockExpr->Defs; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	BlockExpr->NumDefs = Index - First;
+}
+
 static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 	ML_EXPR(BlockExpr, block, block);
 	ml_accept_block_t Accept[1];
@@ -6501,68 +6561,9 @@ static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 	Accept->LetsSlot = &BlockExpr->Lets;
 	Accept->DefsSlot = &BlockExpr->Defs;
 	do {
-		ml_skip_eol(Parser);
-		switch (ml_current(Parser)) {
-		case MLT_VAR: {
-			ml_next(Parser);
-			ml_accept_block_var(Parser, Accept);
-			break;
-		}
-		case MLT_LET: {
-			ml_next(Parser);
-			ml_accept_block_let(Parser, Accept);
-			break;
-		}
-		case MLT_REF: {
-			ml_next(Parser);
-			ml_accept_block_ref(Parser, Accept);
-			break;
-		}
-		case MLT_DEF: {
-			ml_next(Parser);
-			ml_accept_block_def(Parser, Accept);
-			break;
-		}
-		case MLT_FUN: {
-			ml_next(Parser);
-			ml_accept_block_fun(Parser, Accept);
-			break;
-		}
-		case MLT_MUST: {
-			ml_next(Parser);
-			mlc_expr_t *Must = ml_accept_expression(Parser, EXPR_DEFAULT);
-			mlc_block_expr_t *MustExpr = ml_accept_block_body(Parser);
-			MustExpr->Must = Must;
-			Accept->ExprSlot[0] = ML_EXPR_END(MustExpr);
-			Accept->ExprSlot = &MustExpr->Next;
-			goto finish;
-		}
-		default: {
-			mlc_expr_t *Expr = ml_parse_block_expr(Parser, Accept);
-			if (!Expr) goto finish;
-			Accept->ExprSlot[0] = Expr;
-			Accept->ExprSlot = &Expr->Next;
-			break;
-		}
-		}
+		if (!ml_accept_block_child(Parser, Accept)) break;
 	} while (ml_parse(Parser, MLT_SEMICOLON) || ml_parse(Parser, MLT_EOL));
-	finish: {
-		int Index = 0, First = 0;
-		for (mlc_local_t *Local = BlockExpr->Vars; Local; Local = Local->Next) {
-			Local->Index = Index++;
-		}
-		BlockExpr->NumVars = Index;
-		First = Index;
-		for (mlc_local_t *Local = BlockExpr->Lets; Local; Local = Local->Next) {
-			Local->Index = Index++;
-		}
-		BlockExpr->NumLets = Index - First;
-		First = Index;
-		for (mlc_local_t *Local = BlockExpr->Defs; Local; Local = Local->Next) {
-			Local->Index = Index++;
-		}
-		BlockExpr->NumDefs = Index - First;
-	}
+	mlc_block_expr_finish(BlockExpr);
 	return BlockExpr;
 }
 

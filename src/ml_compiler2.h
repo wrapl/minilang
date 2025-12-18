@@ -236,6 +236,13 @@ struct mlc_block_expr_t {
 	int NumDefs;
 };
 
+typedef struct {
+	mlc_expr_t **ExprSlot;
+	mlc_local_t **VarsSlot;
+	mlc_local_t **LetsSlot;
+	mlc_local_t **DefsSlot;
+} ml_accept_block_t;
+
 typedef struct mlc_string_expr_t mlc_string_expr_t;
 typedef struct mlc_string_part_t mlc_string_part_t;
 
@@ -447,5 +454,8 @@ struct ml_parser_t {
 	jmp_buf OnError;
 	ml_token_t Token;
 };
+
+int ml_accept_block_child(ml_parser_t *Parser, ml_accept_block_t *Accept);
+void mlc_block_expr_finish(mlc_block_expr_t *BlockExpr);
 
 #endif

@@ -22,6 +22,7 @@ struct ml_preprocessor_input_t {
 	ml_preprocessor_input_t *Prev;
 	ml_value_t *Reader;
 	const char *Line;
+	ml_source_t Position;
 };
 
 struct ml_preprocessor_output_t {
@@ -129,12 +130,14 @@ static ml_value_t *ml_preprocessor_file_read(FILE *File, int Count, ml_value_t *
 		fclose(File);
 		return MLNil;
 	}
+	//fprintf(stderr, "Read line = %s", Line);
 	return ml_string_unchecked(Line, Length);
 }
 
 static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
+		if (Result == MLNil) continue;
 		if (!ml_is(Result, MLStringT)) {
 			Result = ml_simple_call((ml_value_t *)MLStringT, 1, &Result);
 			if (ml_is(Result, MLErrorT)) return Result;
@@ -176,9 +179,20 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	ml_parser_t *Parser = ml_parser((void *)ml_preprocessor_line_read, Preprocessor);
 	stringmap_insert(Parser->Extras, "preprocessor_output", Writer);
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_preprocessor_global_get, Preprocessor);
-	ml_parser_source(Parser, (ml_source_t){InputName, 1});
+	Input0->Position = (ml_source_t){InputName, 1};
+	ml_parser_source(Parser, Input0->Position);
 	ml_value_t *BackSlash = ml_cstring("\\");
 	for (;;) {
+		if (setjmp(Parser->OnError)) {
+			ml_value_t *Value = Parser->Value;
+			fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+			ml_source_t Source;
+			int Level = 0;
+			while (ml_error_source(Value, Level++, &Source)) {
+				fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+			}
+			return;
+		}
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
 		const char *Line = NULL;
 		while (!Line) {
@@ -206,19 +220,25 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				}
 			}
 		}
+		//fprintf(stderr, "At %d, line = %s", Input->Position.Line, Line);
 		const char *Escape = strchr(Line, '\\');
 		if (Escape) {
-			if (Line < Escape) ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string_unchecked(Line, Escape - Line));
+			if (Line < Escape) {
+				for (const char *P = Line; P < Escape; ++P) if (*P == '\n') ++Input->Position.Line;
+				ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string_unchecked(Line, Escape - Line));
+			}
 			switch (Escape[1]) {
 			case '\\':
 				ml_simple_inline(Preprocessor->Output->Writer, 1, BackSlash);
 				Input->Line = Escape + 2;
 				break;
 			case '\n':
+				++Input->Position.Line;
 				Input->Line = Escape + 2;
 				break;
 			case '{':
 				Input->Line = Escape + 2;
+				ml_parser_source(Parser, Input->Position);
 				ml_result_state_t *State = ml_result_state(MLRootContext);
 				ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 				if (ml_is(State->Value, MLErrorT)) {
@@ -231,16 +251,99 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 					exit(0);
 				}
 				ml_accept(Parser, MLT_RIGHT_BRACE);
+				Input->Position = ml_parser_position(Parser);
 				Input->Line = ml_parser_clear(Parser);
 				break;
 			default:
-				ml_parse_warn(Parser, "ParseError", "Unknown escape sequence %c", Escape[1]);
+				ml_parse_warn(Parser, "ParseError", "Unknown escape sequence %c in %s", Escape[1], Line);
 				break;
 			}
 		} else {
+			for (const char *P = Line; *P; ++P) if (*P == '\n') ++Input->Position.Line;
 			if (Line[0] && Line[0] != '\n') ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string_unchecked(Line, strlen(Line)));
 		}
 	}
+}
+
+static ml_value_t *parse_output2(ml_parser_t *Parser) {
+	ml_source_t Position = ml_parser_position(Parser);
+	const char *Line = ml_parser_clear(Parser);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ML_EXPR(BlockExpr, block, block);
+	ml_accept_block_t Accept[1];
+	Accept->ExprSlot = &BlockExpr->Child;
+	Accept->VarsSlot = &BlockExpr->Vars;
+	Accept->LetsSlot = &BlockExpr->Lets;
+	Accept->DefsSlot = &BlockExpr->Defs;
+	for (;;) {
+		const char *Escape = strchr(Line, '\\');
+		if (Escape) {
+			if (Line < Escape) {
+				for (const char *P = Line; P < Escape; ++P) if (*P == '\n') ++Position.Line;
+				ml_stringbuffer_write(Buffer, Line, Escape - Line);
+			}
+			switch (Escape[1]) {
+			case '\\':
+				ml_stringbuffer_put(Buffer, '\\');
+				Line = Escape + 2;
+				break;
+			case '\n':
+				++Position.Line;
+				Line = Escape + 2;
+				break;
+			case '{':
+				if (Buffer->Length) {
+					ML_EXPR(CallExpr, parent_value, const_call);
+					CallExpr->Value = stringmap_search(Parser->Extras, "preprocessor_output");
+					ML_EXPR(ValueExpr, value, value);
+					ValueExpr->Value = ml_stringbuffer_value(Buffer);
+					CallExpr->Child = ML_EXPR_END(ValueExpr);
+					Accept->ExprSlot[0] = ML_EXPR_END(CallExpr);
+					Accept->ExprSlot= &CallExpr->Next;
+				}
+				ml_parser_input(Parser, Escape + 2, 0);
+				ml_parser_source(Parser, Position);
+				if (!ml_accept_block_child(Parser, Accept)) {
+					ml_parse_warn(Parser, "ParseError", "Error parsing expression");
+					break;
+				}
+				ml_accept(Parser, MLT_RIGHT_BRACE);
+				Position = ml_parser_position(Parser);
+				Line = ml_parser_clear(Parser);
+				break;
+			case ';':
+				if (Buffer->Length) {
+					ML_EXPR(CallExpr, parent_value, const_call);
+					CallExpr->Value = stringmap_search(Parser->Extras, "preprocessor_output");
+					ML_EXPR(ValueExpr, value, value);
+					ValueExpr->Value = ml_stringbuffer_value(Buffer);
+					CallExpr->Child = ML_EXPR_END(ValueExpr);
+					Accept->ExprSlot[0] = ML_EXPR_END(CallExpr);
+					Accept->ExprSlot = &CallExpr->Next;
+				}
+				ml_parser_input(Parser, Escape + 2, 0);
+				ml_parser_source(Parser, Position);
+				return ml_expr_value(ML_EXPR_END(BlockExpr));
+			default:
+				ml_parse_warn(Parser, "ParseError", "Unknown escape sequence %c in %s", Escape[1], Line);
+				break;
+			}
+		} else {
+			const char *End = Line;
+			while (*End++) if (*End == '\n') ++Position.Line;
+			ml_stringbuffer_write(Buffer, Line, End - Line);
+			Line = End;
+		}
+		if (!Line[0]) {
+			Line = ml_parser_read(Parser);
+			if (!Line) {
+				ml_parse_warn(Parser, "ParseError", "Unexpected end of input");
+				break;
+			}
+		}
+	}
+	mlc_block_expr_finish(BlockExpr);
+	return ml_expr_value(ML_EXPR_END(BlockExpr));
 }
 
 static ml_value_t *parse_output(ml_parser_t *Parser) {
@@ -275,15 +378,17 @@ static ml_value_t *parse_output(ml_parser_t *Parser) {
 					Slot[0] = ML_EXPR_END(CallExpr);
 					Slot = &CallExpr->Next;
 				}
-				ml_parser_input(Parser, Line + 2, 0);
+				ml_parser_input(Parser, Escape + 2, 0);
 				ml_parser_source(Parser, Position);
-				mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
-				if (!Expr) return ml_parser_value(Parser);
+				ML_EXPR(CallExpr, parent_value, const_call);
+				CallExpr->Value = stringmap_search(Parser->Extras, "preprocessor_output");
+				CallExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+				if (!CallExpr) return ml_parser_value(Parser);
 				ml_accept(Parser, MLT_RIGHT_BRACE);
 				Position = ml_parser_position(Parser);
 				Line = ml_parser_clear(Parser);
-				Slot[0] = Expr;
-				Slot = &Expr->Next;
+				Slot[0] = ML_EXPR_END(CallExpr);
+				Slot = &CallExpr->Next;
 				break;
 			case ';':
 				if (Buffer->Length) {
@@ -295,13 +400,18 @@ static ml_value_t *parse_output(ml_parser_t *Parser) {
 					Slot[0] = ML_EXPR_END(CallExpr);
 					Slot = &CallExpr->Next;
 				}
-				ml_parser_input(Parser, Line + 2, 0);
+				ml_parser_input(Parser, Escape + 2, 0);
 				ml_parser_source(Parser, Position);
 				return ml_expr_value(ML_EXPR_END(BlockExpr));
 			default:
-				ml_parse_warn(Parser, "ParseError", "Unknown escape sequence %c", Escape[1]);
+				ml_parse_warn(Parser, "ParseError", "Unknown escape sequence %c in %s", Escape[1], Line);
 				break;
 			}
+		} else {
+			const char *End = Line;
+			for (; *End; ++End) if (*End == '\n') ++Position.Line;
+			ml_stringbuffer_write(Buffer, Line, End - Line);
+			Line = "";
 		}
 		if (!Line[0]) {
 			Line = ml_parser_read(Parser);

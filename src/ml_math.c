@@ -615,11 +615,41 @@ ML_FUNCTION_INLINE(MLRandomSwitch) {
 	return (ml_value_t *)Switch;
 }
 
+static void ml_random_choice(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
+	uint32_t X = arc4random();
+	for (uint32_t *Case = Switch->Cases;; ++Case) {
+		if (X <= *Case) ML_RETURN(ml_integer((Case - Switch->Cases) + 1));
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLRandomChoiceT, (MLFunctionT), "random::choice",
+	.call = (void *)ml_random_choice
+);
+
+ML_FUNCTION(MLRandomChoice) {
+	ML_CHECK_ARG_COUNT(1);
+	double Total = 0;
+	for (int I = 0; I < Count; ++I) Total += ml_real_value(Args[I]);
+	ml_random_switch_t *Choice = xnew(ml_random_switch_t, Count, int);
+	Choice->Type = MLRandomChoiceT;
+	uint32_t *Case = Choice->Cases;
+	double M = UINT32_MAX / Total;
+	Total = 0;
+	for (int I = 0; I < Count; ++I) {
+		Total += ml_real_value(Args[I]);
+		*Case++ = M * Total;
+	}
+	Case[-1] = UINT32_MAX;
+	return (ml_value_t *)Choice;
+}
+
 void ml_math_init(stringmap_t *Globals) {
 #include "ml_math_init.c"
 	MLRandomT->Constructor = ml_method("random");
 	stringmap_insert(MLRandomT->Exports, "seed", MLRandomSeed);
 	stringmap_insert(MLRandomT->Exports, "switch", MLRandomSwitch);
+	stringmap_insert(MLRandomT->Exports, "choice", MLRandomChoice);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"gcd", GCDMethod,

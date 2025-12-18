@@ -296,8 +296,35 @@
       <keyword>weakref</keyword>
       <keyword>xml</keyword>
     </context>
+    <context id="list">
+      <start>\[</start>
+      <end>]</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="operator"/>
+        <context sub-pattern="0" where="end" style-ref="operator"/>
+        <context ref="minilang"/>
+      </include>
+    </context>
+    <context id="map">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="operator"/>
+        <context sub-pattern="0" where="end" style-ref="operator"/>
+        <context ref="minilang"/>
+      </include>
+    </context>
+    <context id="parentheses">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="operator"/>
+        <context sub-pattern="0" where="end" style-ref="operator"/>
+        <context ref="minilang"/>
+      </include>
+    </context>
     <context id="operators" style-ref="operator" extend-parent="false">
-      <match>[-.:#~^@;,/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>
+      <match>[-.#~^@;,/$%|\=\+\*\!\?&amp;&lt;&gt;]</match>
     </context>
     <context id="assignment" style-ref="operator" extend-parent="false">
       <match>:=</match>
@@ -317,10 +344,10 @@
         (?![\w\.])
       </match>
     </context>
-    <context id="embedded-lang-hook">
-      <start>\%{def:never-match}</start>
+    <!--context id="embedded-lang-hook">
+      <start>:\{def:never-match}</start>
       <end></end>
-    </context>
+    </context-->
     <context id="minilang">
       <include>
 <!--
@@ -335,10 +362,13 @@
         <context ref="keywords"/>
         <context ref="functions"/>
         <context ref="types"/>
+        <context ref="list"/>
+        <context ref="map"/>
+        <context ref="parentheses"/>
         <context ref="operators"/>
         <context ref="float"/>
         <context ref="decimal-number"/>
-        <context ref="embedded-lang-hook"/>
+        <!--context ref="embedded-lang-hook"/-->
       </include>
     </context>
   </definitions>
