@@ -411,4 +411,41 @@ extern void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *E
 
 #define ML_EXPR_END(EXPR) (((mlc_expr_t *)EXPR)->EndLine = Parser->Source.Line, (mlc_expr_t *)EXPR)
 
+typedef struct mlc_token_t mlc_token_t;
+
+struct mlc_token_t {
+	mlc_token_t *Next;
+	void *General;
+	ml_source_t Source;
+	ml_token_t Token;
+};
+
+typedef struct mlc_expected_delimiter_t mlc_expected_delimiter_t;
+
+struct mlc_expected_delimiter_t {
+	mlc_expected_delimiter_t *Prev;
+	ml_token_t Token;
+};
+
+struct ml_parser_t {
+	ml_type_t *Type;
+	const char *Next;
+	void *ReadData, *SpecialData;
+	const char *(*Read)(void *);
+	ml_value_t *(*Special)(void *);
+	union {
+		ml_value_t *Value;
+		mlc_expr_t *Expr;
+		const char *Ident;
+	};
+	ml_value_t *Warnings;
+	mlc_expected_delimiter_t *ExpectedDelimiter;
+	stringmap_t *EscapeFns;
+	stringmap_t Extras[1];
+	ml_source_t Source;
+	int Line;
+	jmp_buf OnError;
+	ml_token_t Token;
+};
+
 #endif

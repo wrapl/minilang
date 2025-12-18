@@ -24,69 +24,6 @@ struct mlc_try_t {
 	int Top;
 };
 
-typedef struct mlc_token_t mlc_token_t;
-
-struct mlc_token_t {
-	mlc_token_t *Next;
-	void *General;
-	ml_source_t Source;
-	ml_token_t Token;
-};
-
-typedef struct mlc_expected_delimiter_t mlc_expected_delimiter_t;
-
-struct mlc_expected_delimiter_t {
-	mlc_expected_delimiter_t *Prev;
-	ml_token_t Token;
-};
-
-#ifdef ML_ASYNC_PARSER
-
-#include "coro.h"
-
-typedef struct ml_parser_coro_t ml_parser_coro_t;
-
-struct ml_parser_coro_t {
-	coro_context Context;
-	ml_parser_coro_t *Next;
-};
-
-#ifdef ML_HOSTTHREADS
-
-static ml_parser_coro_t * _Atomic CoroutineCache = NULL;
-
-#else
-
-static ml_parser_coro_t *CoroutineCache = NULL;
-
-#endif
-
-#endif
-
-struct ml_parser_t {
-	ml_type_t *Type;
-	const char *Next;
-	void *ReadData, *SpecialData, *EscapeData;
-	const char *(*Read)(void *);
-	ml_value_t *(*Escape)(void *);
-	ml_value_t *(*Special)(void *);
-	union {
-		ml_value_t *Value;
-		mlc_expr_t *Expr;
-		const char *Ident;
-	};
-	ml_value_t *Warnings;
-	mlc_expected_delimiter_t *ExpectedDelimiter;
-	stringmap_t *EscapeFns;
-	ml_source_t Source;
-	int Line;
-	jmp_buf OnError;
-	ml_token_t Token;
-#ifdef ML_ASYNC_PARSER
-	ml_parser_coro_t *Coroutine;
-#endif
-};
-
 struct ml_compiler_t {
 	ml_type_t *Type;
 	ml_getter_t GlobalGet;
@@ -4117,18 +4054,13 @@ ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	Parser->Line = 1;
 	Parser->ReadData = Data;
 	Parser->Read = Read ?: ml_parser_no_input;
-	Parser->Escape = ml_parser_default_escape;
 	Parser->Special = ml_parser_default_special;
 	Parser->EscapeFns = MLEscapeFns;
 	return Parser;
 }
 
 static inline const char *ml_parser_do_read(ml_parser_t *Parser) {
-#ifdef ML_ASYNC_PARSER
-
-#else
 	return Parser->Read(Parser->ReadData);
-#endif
 }
 
 static mlc_expr_t *ml_accept_block(ml_parser_t *Parser);
@@ -4211,16 +4143,6 @@ void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, .
 		ml_integer(Parser->Line),
 		ml_string(Message, Length)
 	));
-}
-
-static ml_value_t *ml_parser_escape_other(ml_parser_t *Parser) {
-	return Parser->Escape(Parser->EscapeData);
-}
-
-void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data) {
-	Parser->Escape = Escape;
-	Parser->EscapeData = Data;
-	ml_parser_add_escape(Parser, "", ml_parser_escape_other);
 }
 
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data) {
@@ -6816,19 +6738,6 @@ ML_METHOD("input", MLParserT, MLStringT, MLIntegerT) {
 //>compiler
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
 	ml_parser_input(Parser, ml_string_value(Args[1]), ml_integer_value(Args[2]));
-	return Args[0];
-}
-
-static ml_value_t *ml_parser_escape_fn(ml_value_t *Callback) {
-	return ml_simple_call(Callback, 0, NULL);
-}
-
-ML_METHOD("escape", MLParserT, MLFunctionT) {
-//<Parser
-//<Callback
-//>parser
-	ml_parser_t *Parser = (ml_parser_t *)Args[0];
-	ml_parser_escape(Parser, (void *)ml_parser_escape_fn, Args[1]);
 	return Args[0];
 }
 
