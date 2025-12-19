@@ -822,6 +822,7 @@ else
 	let InstallLib := PREFIX / "lib"
 
 	install(MINILANG, InstallBin / "minilang", "+x")
+	install(MINIPP, InstallBin / "minipp", "+x")
 	install(MINIDBG, InstallBin / "minidbg", "+x")
 	install(MINICONSOLE, InstallBin / "miniconsole", "+x")
 	install(MININOTEBOOK, InstallBin / "mininotebook", "+x")

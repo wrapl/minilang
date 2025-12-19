@@ -40,18 +40,18 @@ static const char *ml_preprocessor_read(ml_preprocessor_t *Preprocessor) {
 		Preprocessor->Input = Preprocessor->Input->Prev;
 		return NULL;
 	} else if (ml_is(LineValue, MLErrorT)) {
-		printf("Error: %s\n", ml_error_message(LineValue));
+		fprintf(stderr, "Error: %s\n", ml_error_message(LineValue));
 		ml_source_t Source;
 		int Level = 0;
 		while (ml_error_source(LineValue, Level++, &Source)) {
-			printf("\t%s:%d\n", Source.Name, Source.Line);
+			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
 		}
-		exit(0);
+		exit(1);
 	} else if (ml_is(LineValue, MLStringT)) {
 		return ml_string_value(LineValue);
 	} else {
-		printf("Error: line read function did not return string\n");
-		exit(0);
+		fprintf(stderr, "Error: line read function did not return string\n");
+		exit(1);
 	}
 }
 
@@ -205,18 +205,18 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 					Input = Preprocessor->Input = Preprocessor->Input->Prev;
 					if (!Input) return;
 				} else if (ml_is(LineValue, MLErrorT)) {
-					printf("Error: %s\n", ml_error_message(LineValue));
+					fprintf(stderr, "Error: %s\n", ml_error_message(LineValue));
 					ml_source_t Source;
 					int Level = 0;
 					while (ml_error_source(LineValue, Level++, &Source)) {
-						printf("\t%s:%d\n", Source.Name, Source.Line);
+						fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
 					}
-					exit(0);
+					exit(1);
 				} else if (ml_is(LineValue, MLStringT)) {
 					Line = ml_string_value(LineValue);
 				} else {
-					printf("Error: line read function did not return string\n");
-					exit(0);
+					fprintf(stderr, "Error: line read function did not return string\n");
+					exit(1);
 				}
 			}
 		}
@@ -242,13 +242,13 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				ml_result_state_t *State = ml_result_state(MLRootContext);
 				ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 				if (ml_is(State->Value, MLErrorT)) {
-					printf("Error: %s\n", ml_error_message(State->Value));
+					fprintf(stderr, "Error: %s\n", ml_error_message(State->Value));
 					ml_source_t Source;
 					int Level = 0;
 					while (ml_error_source(State->Value, Level++, &Source)) {
-						printf("\t%s:%d\n", Source.Name, Source.Line);
+						fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
 					}
-					exit(0);
+					exit(1);
 				}
 				ml_accept(Parser, MLT_RIGHT_BRACE);
 				Input->Position = ml_parser_position(Parser);

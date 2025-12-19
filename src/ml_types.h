@@ -153,12 +153,12 @@ ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]);
 
 #ifndef GENERATE_INIT
 
-#define ML_UNION_TYPE(TYPE, ...) ml_value_t *TYPE
+#define ML_UNION_TYPE(TYPE, ...) ml_type_t *TYPE
 
 #else
 
 #define ML_UNION_TYPE(TYPE, ...) \
-INIT_CODE TYPE = (ml_value_t *)ml_union_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
+INIT_CODE TYPE = ml_union_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
 
 #endif
 
@@ -172,6 +172,12 @@ struct ml_generic_type_t {
 	ml_generic_type_t *NextGeneric;
 	ml_type_t *Args[];
 };
+
+typedef struct {
+	ml_type_t Base;
+	int NumTypes;
+	ml_type_t *Types[];
+} ml_union_type_t;
 
 extern ml_type_t MLTypeGenericT[];
 
