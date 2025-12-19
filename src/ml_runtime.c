@@ -1390,10 +1390,10 @@ void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 	sem_destroy(Block.Ready);
 }
 
-typedef struct {
+struct ml_call_wait_state_t {
 	ml_scheduler_block_t Block;
 	ml_value_t *Value;
-} ml_call_wait_state_t;
+};
 
 static void ml_call_slow_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
 	State->Value = Value;
@@ -1402,6 +1402,26 @@ static void ml_call_slow_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
 
 static void ml_call_fast_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
 	State->Value = Value;
+}
+
+ml_call_wait_state_t *ml_call_wait_state(ml_context_t *Context) {
+	ml_call_wait_state_t *State = new(ml_call_wait_state_t);
+	State->Block.Base.Context = Context;
+	State->Block.Base.run = (ml_state_fn)ml_call_fast_fn;
+	return State;
+}
+
+ml_value_t *ml_call_state_wait(ml_call_wait_state_t *State) {
+	if (State->Value) return State->Value;
+	ml_context_t *Context = State->Block.Base.Context;
+	State->Block.Base.run = (ml_state_fn)ml_call_slow_fn;
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
+	State->Block.Scheduler = Scheduler;
+	sem_init(State->Block.Ready, 0, 0);
+	ml_scheduler_split(Scheduler);
+	sem_wait(State->Block.Ready);
+	sem_destroy(State->Block.Ready);
+	return State->Value;
 }
 
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
@@ -1423,12 +1443,31 @@ ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_va
 
 #else
 
+struct ml_call_wait_state_t {
+	ml_state_t Base;
+	ml_value_t *Value;
+};
+
+ml_call_wait_state_t *ml_call_wait_state(ml_context_t *Context) {
+	ml_call_wait_state_t *State = new(ml_call_wait_state_t);
+	State->Base.Context = Context;
+	State->Base.run = (ml_state_fn)ml_call_fast_fn;
+	return State;
+}
+
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
 	ml_result_state_t State = {{NULL, NULL, (ml_state_fn)ml_result_state_run, Context}, NULL};
 	ml_call(&State, Fn, Count, Args);
 	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
 	while (!State.Value) Scheduler->run(Scheduler);
 	return State.Value;
+}
+
+ml_value_t *ml_call_state_wait(ml_call_wait_state_t *State) {
+	ml_context_t *Context = State->Block.Base.Context;
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
+	while (!State->Value) Scheduler->run(Scheduler);
+	return State->Value;
 }
 
 #endif
