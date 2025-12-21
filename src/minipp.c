@@ -260,7 +260,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 			}
 		} else {
 			for (const char *P = Line; *P; ++P) if (*P == '\n') ++Input->Position.Line;
-			if (Line[0] && Line[0] != '\n') ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string_unchecked(Line, strlen(Line)));
+			if (Line[0]) ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string_unchecked(Line, strlen(Line)));
 		}
 	}
 }

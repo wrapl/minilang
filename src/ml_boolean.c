@@ -61,6 +61,14 @@ ML_METHOD("-", MLBooleanT) {
 	return MLBooleans[1 - ml_boolean_value(Args[0])];
 }
 
+ML_METHOD("!", MLBooleanT) {
+//!boolean
+//<Bool
+//>boolean
+// Returns the logical inverse of :mini:`Bool`
+	return MLBooleans[1 - ml_boolean_value(Args[0])];
+}
+
 ML_METHODV("/\\", MLBooleanT, MLBooleanT) {
 //!boolean
 //<Bool/1
