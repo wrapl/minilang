@@ -7,6 +7,7 @@
 #include <string.h>
 #include "ml_object.h"
 #include "ml_sequence.h"
+#include "ml_logging.h"
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
@@ -427,6 +428,7 @@ static ml_value_t *parse_output(ml_parser_t *Parser) {
 int main(int Argc, const char **Argv) {
 	ml_init(Argv[0], Globals);
 	ml_file_init(Globals);
+	ml_logging_init(Globals);
 	ml_parser_add_escape(NULL, "", parse_output);
 	const char *InputName = "stdin";
 	FILE *Input = stdin;

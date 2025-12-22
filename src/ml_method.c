@@ -145,8 +145,9 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	}
 	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
-		if (!ml_is_subtype(Types[I], Type)) return 0;
-		Score += 5 + Type->Rank;
+		int Rank = ml_is_subtype(Types[I], Type);
+		if (!Rank) return 0;
+		Score += 5 + Rank;
 	}
 	return Score;
 }

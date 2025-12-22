@@ -146,6 +146,8 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 		Type = ml_generic_type_args(Type)[0];
 		if (Type == Expected) return 1;
 	}
+#endif
+#ifdef ML_GENERICS
 	if (Expected->Type == MLTypeUnionT) {
 		ml_union_type_t *Union = (ml_union_type_t *)Expected;
 		for (int I = 0; I < Union->NumTypes; ++I) {
@@ -743,25 +745,26 @@ int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args
 }
 
 static int ml_is_generic_subtype1(int TNumArgs, ml_type_t **TArgs, ml_type_t *U) {
-	if (TArgs[0] == U) return 1;
-	if (inthash_search(TArgs[0]->Parents, (uintptr_t)U)) return 1;
+	if (TArgs[0] == U) return U->Rank;
+	if (inthash_search(TArgs[0]->Parents, (uintptr_t)U)) return U->Rank;
 	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
 		ml_generic_fill(Rule, TArgs2, TNumArgs, TArgs);
-		if (ml_is_generic_subtype1(TNumArgs2, TArgs2, U)) return 1;
+		int Rank = ml_is_generic_subtype1(TNumArgs2, TArgs2, U);
+		if (Rank) return Rank;
 	}
 	return 0;
 }
 
 static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, ml_type_t **UArgs) {
 	if (TArgs[0] == UArgs[0]) {
-		if (UNumArgs == 1) return 1;
+		if (UNumArgs == 1) return UArgs[0]->Rank;
 		if (UNumArgs <= TNumArgs) {
 			for (int I = 0; I < UNumArgs; ++I) {
 				if (!ml_is_subtype(TArgs[I], UArgs[I])) goto different;
 			}
-			return 1;
+			return UArgs[0]->Rank;
 		}
 	}
 different:
@@ -769,7 +772,8 @@ different:
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
 		ml_generic_fill(Rule, TArgs2, TNumArgs, TArgs);
-		if (ml_is_generic_subtype(TNumArgs2, TArgs2, UNumArgs, UArgs)) return 1;
+		int Rank = ml_is_generic_subtype(TNumArgs2, TArgs2, UNumArgs, UArgs);
+		if (Rank) return Rank;
 	}
 	return 0;
 }
@@ -777,16 +781,17 @@ different:
 #endif
 
 int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
-	if (T == U) return 1;
-	if (U == MLAnyT) return 1;
+	if (T == U) return U->Rank;
+	if (U == MLAnyT) return U->Rank;
 	if (U->Type == MLTypeUnionT) {
 		ml_union_type_t *Union = (ml_union_type_t *)U;
 		for (int I = 0; I < Union->NumTypes; ++I) {
-			if (ml_is_subtype(T, Union->Types[I])) return 1;
+			ml_type_t *U2 = Union->Types[I];
+			if (ml_is_subtype(T, U2)) return U2->Rank;
 		}
 		return 0;
 	}
-	if (inthash_search(T->Parents, (uintptr_t)U)) return 1;
+	if (inthash_search(T->Parents, (uintptr_t)U)) return U->Rank;
 #ifdef ML_GENERICS
 	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
