@@ -145,9 +145,21 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	}
 	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
-		int Rank = ml_is_subtype(Types[I], Type);
-		if (!Rank) return 0;
-		Score += 5 + Rank;
+		if (Type->Type == MLTypeUnionT) {
+			ml_union_type_t *Union = (ml_union_type_t *)Type;
+			for (int J = 0; J < Union->NumTypes; ++J) {
+				ml_type_t *Type2 = Union->Types[J];
+				if (ml_is_subtype0(Types[I], Type2)) {
+					Score += 4 + Type2->Rank;
+					goto next;
+				}
+			}
+			return 0;
+		} else {
+			if (!ml_is_subtype0(Types[I], Type)) return 0;
+			Score += 5 + Type->Rank;
+		}
+	next:;
 	}
 	return Score;
 }

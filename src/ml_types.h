@@ -206,6 +206,7 @@ void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((s
 #define ML_TYPE_ARG(N) ((N << 1) + 1)
 
 int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
+int ml_is_subtype0(ml_type_t *T, ml_type_t *U) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
 typedef struct {
