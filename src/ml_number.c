@@ -1894,6 +1894,7 @@ ML_METHOD("isnan", MLDoubleT) {
 }
 
 uint64_t ml_random_integer(uint64_t Limit) {
+	if (Limit == 0) return 0;
 	if (Limit <= UINT32_MAX) {
 		uint64_t Divisor = UINT32_MAX / Limit;
 		uint64_t Random;

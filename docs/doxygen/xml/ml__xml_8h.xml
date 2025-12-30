@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
   <compounddef id="ml__xml_8h" kind="file" language="C++">
     <compoundname>ml_xml.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
@@ -371,7 +371,7 @@
         <argsstring>(ml_parser_t *Parser, ml_value_t *Constructor)</argsstring>
         <name>ml_parser_escape_xml_like</name>
         <param>
-          <type>ml_parser_t *</type>
+          <type><ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref> *</type>
           <declname>Parser</declname>
         </param>
         <param>
@@ -423,7 +423,7 @@
 <codeline lineno="29"><highlight class="normal">ml_xml_node_t<sp/>*ml_xml_text(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Content,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
 <codeline lineno="30"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_xml_element_put(ml_xml_element_t<sp/>*Parent,<sp/>ml_xml_node_t<sp/>*Child);</highlight></codeline>
 <codeline lineno="31"><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_parser_escape_xml_like(ml_parser_t<sp/>*Parser,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Constructor);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_parser_escape_xml_like(<ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref><sp/>*Parser,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Constructor);</highlight></codeline>
 <codeline lineno="33"><highlight class="normal"></highlight></codeline>
 <codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="35"><highlight class="normal">}</highlight></codeline>

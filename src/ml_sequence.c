@@ -1425,8 +1425,6 @@ ML_METHODVX("random", MLSequenceT) {
 // Returns a random value produced by :mini:`Sequence`.
 //$= random("cake")
 //$= random([])
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_random_state_t *State = new(ml_random_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

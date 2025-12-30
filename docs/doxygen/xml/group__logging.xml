@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
   <compounddef id="group__logging" kind="group">
     <compoundname>logging</compoundname>
     <title>Logging</title>
@@ -275,9 +275,9 @@
         <param><defname>ERROR</defname></param>
         <param><defname>FORMAT</defname></param>
         <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_FATAL) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_FATAL, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
-	}</initializer>
+        <initializer>    if (MLLogLevel &gt;= ML_LOG_LEVEL_FATAL) { \
+        ml_log(ML_LOGGER, ML_LOG_LEVEL_FATAL, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+    }</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -291,9 +291,9 @@
         <param><defname>ERROR</defname></param>
         <param><defname>FORMAT</defname></param>
         <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_ERROR) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_ERROR, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
-	}</initializer>
+        <initializer>    if (MLLogLevel &gt;= ML_LOG_LEVEL_ERROR) { \
+        ml_log(ML_LOGGER, ML_LOG_LEVEL_ERROR, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+    }</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -307,9 +307,9 @@
         <param><defname>ERROR</defname></param>
         <param><defname>FORMAT</defname></param>
         <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_WARN) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
-	}</initializer>
+        <initializer>    if (MLLogLevel &gt;= ML_LOG_LEVEL_WARN) { \
+        ml_log(ML_LOGGER, ML_LOG_LEVEL_WARN, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+    }</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -323,9 +323,9 @@
         <param><defname>ERROR</defname></param>
         <param><defname>FORMAT</defname></param>
         <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_MESSAGE) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_MESSAGE, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
-	}</initializer>
+        <initializer>    if (MLLogLevel &gt;= ML_LOG_LEVEL_MESSAGE) { \
+        ml_log(ML_LOGGER, ML_LOG_LEVEL_MESSAGE, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+    }</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -339,9 +339,9 @@
         <param><defname>ERROR</defname></param>
         <param><defname>FORMAT</defname></param>
         <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_INFO) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_INFO, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
-	}</initializer>
+        <initializer>    if (MLLogLevel &gt;= ML_LOG_LEVEL_INFO) { \
+        ml_log(ML_LOGGER, ML_LOG_LEVEL_INFO, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+    }</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -355,9 +355,9 @@
         <param><defname>ERROR</defname></param>
         <param><defname>FORMAT</defname></param>
         <param><defname>...</defname></param>
-        <initializer>	if (MLLogLevel &gt;= ML_LOG_LEVEL_DEBUG) { \
-		ml_log(ML_LOGGER, ML_LOG_LEVEL_DEBUG, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
-	}</initializer>
+        <initializer>    if (MLLogLevel &gt;= ML_LOG_LEVEL_DEBUG) { \
+        ml_log(ML_LOGGER, ML_LOG_LEVEL_DEBUG, ERROR, __FILE__, __LINE__, FORMAT, ##__VA_ARGS__); \
+    }</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

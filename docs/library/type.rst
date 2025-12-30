@@ -9,6 +9,10 @@ type
 
 .. rst-class:: mini-api
 
+:mini:`type null`
+   *TBD*
+
+
 :mini:`type type < function`
    Type of all types.
    Every type contains a set of named exports,  which allows them to be used as modules.
@@ -46,6 +50,10 @@ type
 
 :mini:`meth ?(Type: type): type`
    Returns a union interface of :mini:`Type` and :mini:`type(nil)`.
+
+
+:mini:`def MLNull: null`
+   *TBD*
 
 
 :mini:`meth (Base: type)[Type₁, : type, ...]: type`

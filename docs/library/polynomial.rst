@@ -49,6 +49,10 @@ polynomial
    Returns :mini:`A / B`.
 
 
+:mini:`meth (Arg₁: number):MLPolynomialEval(...)`
+   *TBD*
+
+
 :mini:`type polynomial < function`
    A polynomial with numeric (real or complex) coefficients.
    Calling a polynomial with named arguments returns the result of substituting the named variables with the corresponding values.
@@ -118,6 +122,10 @@ polynomial
 
 :mini:`meth (A: polynomial) = (B: polynomial): polynomial`
    Returns :mini:`B` if :mini:`A = B` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: polynomial):MLPolynomialEval(...)`
+   *TBD*
 
 
 :mini:`meth (A: polynomial) ^ (B: integer): polynomial`
@@ -217,5 +225,9 @@ polynomial
 
 :mini:`meth (Buffer: string::buffer):append(Poly: polynomial::rational)`
    Appends a representation of :mini:`Poly` to :mini:`Buffer`.
+
+
+:mini:`meth polynomial(Arg₁: string, Arg₂: number, ...)`
+   *TBD*
 
 

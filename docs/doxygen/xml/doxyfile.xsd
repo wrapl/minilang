@@ -64,6 +64,7 @@
       <xsd:enumeration value="OPTIMIZE_OUTPUT_SLICE"/>
       <xsd:enumeration value="EXTENSION_MAPPING"/>
       <xsd:enumeration value="MARKDOWN_SUPPORT"/>
+      <xsd:enumeration value="MARKDOWN_STRICT"/>
       <xsd:enumeration value="TOC_INCLUDE_HEADINGS"/>
       <xsd:enumeration value="MARKDOWN_ID_STYLE"/>
       <xsd:enumeration value="AUTOLINK_SUPPORT"/>

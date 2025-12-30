@@ -21,6 +21,10 @@ minilang
    *TBD*
 
 
+:mini:`fun mlnullfn()`
+   *TBD*
+
+
 :mini:`fun now()`
    *TBD*
 

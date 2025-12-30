@@ -2078,6 +2078,7 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #if defined(ML_UNWIND) || defined(ML_BACKTRACE)
 	signal(SIGSEGV, error_handler);
 	signal(SIGABRT, error_handler);
+	signal(SIGFPE, error_handler);
 #endif
 	GC_set_warn_proc(ml_gc_warn_fn);
 #ifdef ML_BACKTRACE

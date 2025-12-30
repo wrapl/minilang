@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
   <compounddef id="structml__stringbuffer__node__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_stringbuffer_node_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="890" column="24" bodyfile="src/ml_types.h" bodystart="890" bodyend="-1"/>
+        <location file="src/ml_types.h" line="927" column="24" bodyfile="src/ml_types.h" bodystart="927" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__stringbuffer__node__t_1a96c5959eec1087332b3186152d0943b5" prot="public" static="no" mutable="no">
         <type>char</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="891" column="6" bodyfile="src/ml_types.h" bodystart="891" bodyend="-1"/>
+        <location file="src/ml_types.h" line="928" column="6" bodyfile="src/ml_types.h" bodystart="928" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -45,7 +45,7 @@
         </childnode>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="889" column="1" bodyfile="src/ml_types.h" bodystart="889" bodyend="892"/>
+    <location file="src/ml_types.h" line="926" column="1" bodyfile="src/ml_types.h" bodystart="926" bodyend="929"/>
     <listofallmembers>
       <member refid="structml__stringbuffer__node__t_1a96c5959eec1087332b3186152d0943b5" prot="public" virt="non-virtual"><scope>ml_stringbuffer_node_t</scope><name>Chars</name></member>
       <member refid="structml__stringbuffer__node__t_1aa7bc1e1e4709cd1932f0d75b54ff539d" prot="public" virt="non-virtual"><scope>ml_stringbuffer_node_t</scope><name>Next</name></member>
