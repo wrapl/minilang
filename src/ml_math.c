@@ -644,65 +644,13 @@ ML_FUNCTION(MLRandomChoice) {
 	return (ml_value_t *)Choice;
 }
 
-typedef struct {
-	ml_state_t Base;
-	ml_value_t *Value;
-	ml_value_t *Iter, *Weight;
-	double Total;
-} ml_random_by_state_t;
-
-static void random_by_iterate(ml_random_by_state_t *State, ml_value_t *Value);
-
-static void random_by_key(ml_random_by_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Value = Value;
-	State->Base.run = (ml_state_fn)random_by_iterate;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void random_by_value(ml_random_by_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	double Weight = ml_real_value(Value);
-	if (Weight > 0) {
-		double Total = State->Total + Weight;
-		uint64_t Threshold = (Weight / Total) * UINT32_MAX;
-		State->Total = Total;
-		if (arc4random() <= Threshold) {
-			State->Base.run = (ml_state_fn)random_by_key;
-			return ml_iter_key((ml_state_t *)State, State->Iter);
-		}
-	}
-	State->Base.run = (ml_state_fn)random_by_iterate;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void random_by_iterate(ml_random_by_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Value);
-	State->Base.run = (ml_state_fn)random_by_value;
-	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
-}
-
-ML_FUNCTIONX(MLRandomBy) {
-//<Sequence
-// Returns a random key produced by :mini:`Sequence` weighted by its values.
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
-	ml_random_by_state_t *State = new(ml_random_by_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (void *)random_by_iterate;
-	State->Value = MLNil;
-	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
-}
-
 void ml_math_init(stringmap_t *Globals) {
 #include "ml_math_init.c"
 	MLRandomT->Constructor = ml_method("random");
 	stringmap_insert(MLRandomT->Exports, "seed", MLRandomSeed);
 	stringmap_insert(MLRandomT->Exports, "switch", MLRandomSwitch);
 	stringmap_insert(MLRandomT->Exports, "choice", MLRandomChoice);
-	stringmap_insert(MLRandomT->Exports, "by", MLRandomBy);
+	stringmap_insert(MLRandomT->Exports, "key", ml_method("random::key"));
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"gcd", GCDMethod,

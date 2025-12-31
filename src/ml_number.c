@@ -2000,7 +2000,7 @@ ML_FUNCTION(RandomReal) {
 //<Min?:number
 //<Max?:number
 //>real
-// Returns a random real between :mini:`Min` and :mini:`Max`.
+// Returns a random real in the range :mini:`[Min, Max)`.
 // If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
@@ -2008,15 +2008,13 @@ ML_FUNCTION(RandomReal) {
 		double Base = ml_real_value(Args[0]);
 		double Limit = ml_real_value(Args[1]) - Base;
 		if (Limit <= 0) return Args[0];
-		double Scale = Limit / (double)UINT32_MAX;
-		return ml_real(Base + arc4random() * Scale);
+		return ml_real(Base + Limit * (arc4random() / 4294967296.0));
 	} else if (Count == 1) {
 		double Limit = ml_real_value(Args[0]);
 		if (Limit <= 0) return Args[0];
-		double Scale = Limit / (double)UINT32_MAX;
-		return ml_real(arc4random() * Scale);
+		return ml_real(Limit * (arc4random() / 4294967296.0));
 	} else {
-		return ml_real(arc4random() / (double)UINT32_MAX);
+		return ml_real(arc4random() / 4294967296.0);
 	}
 }
 
