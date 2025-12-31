@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="group__maps" kind="group">
     <compoundname>maps</compoundname>
     <title>Maps</title>
@@ -395,7 +395,7 @@
         <name>ML_MAP_FOREACH</name>
         <param><defname>MAP</defname></param>
         <param><defname>ITER</defname></param>
-        <initializer>    for (<ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref> *ITER = ((<ref refid="structml__map__t" kindref="compound">ml_map_t</ref> *)MAP)-&gt;Head; ITER; ITER = ITER-&gt;Next)</initializer>
+        <initializer>	for (<ref refid="structml__map__node__t" kindref="compound">ml_map_node_t</ref> *ITER = ((<ref refid="structml__map__t" kindref="compound">ml_map_t</ref> *)MAP)-&gt;Head; ITER; ITER = ITER-&gt;Next)</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

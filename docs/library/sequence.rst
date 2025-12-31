@@ -675,8 +675,12 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "k"
       random([]) :> nil
+
+
+:mini:`meth random::key(Sequence: sequence, ...)`
+   Returns a random key produced by :mini:`Sequence` weighted by its values.
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`

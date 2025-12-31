@@ -15,7 +15,7 @@ number
 
 
 :mini:`fun real::random(Min?: number, Max?: number): real`
-   Returns a random real between :mini:`Min` and :mini:`Max`.
+   Returns a random real in the range :mini:`[Min,  Max)`.
    If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
 
 

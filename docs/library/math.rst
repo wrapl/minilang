@@ -621,7 +621,3 @@ math
       math::tanh(-1.2345) :> -0.843879656896602
 
 
-:mini:`fun mlrandomby(Sequence: sequence)`
-   Returns a random key produced by :mini:`Sequence` weighted by its values.
-
-

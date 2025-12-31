@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="group__names" kind="group">
     <compoundname>names</compoundname>
     <title>Names</title>
@@ -69,11 +69,11 @@
       <memberdef kind="define" id="group__names_1gaf9e68a97ed911530e76a3eb562a01d0b" prot="public" static="no">
         <name>ML_NAMES_CHECK_ARG_COUNT</name>
         <param><defname>N</defname></param>
-        <initializer>    { \
-    int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
-    if (Count &lt; Required) { \
-        return ml_error(&quot;CallError&quot;, &quot;%d arguments required&quot;, Required); \
-    } \
+        <initializer>	{ \
+	int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
+	if (Count &lt; Required) { \
+		return ml_error(&quot;CallError&quot;, &quot;%d arguments required&quot;, Required); \
+	} \
 }</initializer>
         <briefdescription>
         </briefdescription>
@@ -86,11 +86,11 @@
       <memberdef kind="define" id="group__names_1ga37dc66bd2e5157f6d5801bb4705ad9d8" prot="public" static="no">
         <name>ML_NAMES_CHECKX_ARG_COUNT</name>
         <param><defname>N</defname></param>
-        <initializer>    { \
-    int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
-    if (Count &lt; Required) { \
-        ML_ERROR(&quot;CallError&quot;, &quot;%d arguments required&quot;, Required); \
-    } \
+        <initializer>	{ \
+	int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
+	if (Count &lt; Required) { \
+		ML_ERROR(&quot;CallError&quot;, &quot;%d arguments required&quot;, Required); \
+	} \
 }</initializer>
         <briefdescription>
         </briefdescription>

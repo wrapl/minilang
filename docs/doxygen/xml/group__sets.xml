@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="group__sets" kind="group">
     <compoundname>sets</compoundname>
     <title>Sets</title>
@@ -357,7 +357,7 @@
         <name>ML_SET_FOREACH</name>
         <param><defname>SET</defname></param>
         <param><defname>ITER</defname></param>
-        <initializer>    for (<ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *ITER = ((<ref refid="structml__set__t" kindref="compound">ml_set_t</ref> *)SET)-&gt;Head; ITER; ITER = ITER-&gt;Next)</initializer>
+        <initializer>	for (<ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *ITER = ((<ref refid="structml__set__t" kindref="compound">ml_set_t</ref> *)SET)-&gt;Head; ITER; ITER = ITER-&gt;Next)</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
