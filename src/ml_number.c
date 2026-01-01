@@ -1896,10 +1896,11 @@ ML_METHOD("isnan", MLDoubleT) {
 uint64_t ml_random_integer(uint64_t Limit) {
 	if (Limit == 0) return 0;
 	if (Limit <= UINT32_MAX) {
-		uint64_t Divisor = UINT32_MAX / Limit;
+		/*uint64_t Divisor = UINT32_MAX / Limit;
 		uint64_t Random;
 		do Random = arc4random() / Divisor; while (Random >= Limit);
-		return Random;
+		return Random;*/
+		return arc4random_uniform(Limit);
 	} else {
 		uint64_t Divisor = UINT64_MAX / Limit;
 		uint64_t Random;
@@ -1908,13 +1909,19 @@ uint64_t ml_random_integer(uint64_t Limit) {
 	}
 }
 
+double ml_random_real() {
+	uint64_t Int;
+	arc4random_buf(&Int, 8);
+	return ldexp(Int, -64);
+}
+
 ML_FUNCTION(RandomInteger) {
 //@integer::random
 //<Min?:number
 //<Max?:number
 //>integer
-// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max` :math:`\leq 2^{32} - 1`).
-// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :math:`2^{32} - 1`.
+// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max` :math:`\leq 2^{64} - 1`).
+// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :math:`2^{64} - 1`.
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
 		ML_CHECK_ARG_TYPE(1, MLRealT);
@@ -2002,19 +2009,20 @@ ML_FUNCTION(RandomReal) {
 //>real
 // Returns a random real in the range :mini:`[Min, Max)`.
 // If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
+	double Real = ml_random_real();
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLRealT);
 		ML_CHECK_ARG_TYPE(1, MLRealT);
 		double Base = ml_real_value(Args[0]);
 		double Limit = ml_real_value(Args[1]) - Base;
 		if (Limit <= 0) return Args[0];
-		return ml_real(Base + Limit * (arc4random() / 4294967296.0));
+		return ml_real(Base + Limit * Real);
 	} else if (Count == 1) {
 		double Limit = ml_real_value(Args[0]);
 		if (Limit <= 0) return Args[0];
-		return ml_real(Limit * (arc4random() / 4294967296.0));
+		return ml_real(Limit * Real);
 	} else {
-		return ml_real(arc4random() / 4294967296.0);
+		return ml_real(Real);
 	}
 }
 
