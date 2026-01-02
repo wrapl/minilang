@@ -618,7 +618,7 @@ ML_TYPE(MLRandomSwitchT, (MLFunctionT), "random-switch",
 
 ML_FUNCTION_INLINE(MLRandomSwitch) {
 //!internal
-	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, int);
+	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, double);
 	Switch->Type = MLRandomSwitchT;
 	double *Case = Switch->Cases;
 	double Total = 0;
@@ -628,8 +628,8 @@ ML_FUNCTION_INLINE(MLRandomSwitch) {
 		Total += ml_real_value(ml_list_get(Args[I], 1));
 		*Case++ = Total;
 	}
-	Case[-1] = 1.0;
-	while (--Count > 0) *Case-- /= Total;
+	*--Case = 1.0;
+	while (--Count > 0) *--Case /= Total;
 	return (ml_value_t *)Switch;
 }
 
@@ -647,7 +647,7 @@ ML_TYPE(MLRandomChoiceT, (MLFunctionT), "random::choice",
 
 ML_FUNCTION(MLRandomChoice) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_random_switch_t *Choice = xnew(ml_random_switch_t, Count, int);
+	ml_random_switch_t *Choice = xnew(ml_random_switch_t, Count, double);
 	Choice->Type = MLRandomChoiceT;
 	double *Case = Choice->Cases;
 	double Total = 0;
@@ -655,8 +655,8 @@ ML_FUNCTION(MLRandomChoice) {
 		Total += ml_real_value(Args[I]);
 		*Case++ = Total;
 	}
-	Case[-1] = 1.0;
-	while (--Count > 0) *Case-- /= Total;
+	*--Case = 1.0;
+	while (--Count > 0) *--Case /= Total;
 	return (ml_value_t *)Choice;
 }
 
