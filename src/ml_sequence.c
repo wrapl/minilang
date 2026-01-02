@@ -1455,9 +1455,9 @@ static void random_by_value(ml_random_by_state_t *State, ml_value_t *Value) {
 	double Weight = ml_real_value(ml_deref(Value));
 	if (Weight > 0) {
 		double Total = State->Total + Weight;
-		uint64_t Threshold = (Weight / Total) * UINT32_MAX;
+		double Threshold = Weight / Total;
 		State->Total = Total;
-		if (arc4random() <= Threshold) {
+		if (ml_random_real() < Threshold) {
 			State->Base.run = (ml_state_fn)random_by_key;
 			return ml_iter_key((ml_state_t *)State, State->Iter);
 		}

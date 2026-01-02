@@ -1901,10 +1901,16 @@ uint64_t ml_random_integer(uint64_t Limit) {
 		do Random = arc4random() / Divisor; while (Random >= Limit);
 		return Random;*/
 		return arc4random_uniform(Limit);
-	} else {
-		uint64_t Divisor = UINT64_MAX / Limit;
+	} else if (Limit == UINT64_MAX) {
 		uint64_t Random;
-		do { arc4random_buf(&Random, 8); Random /= Divisor; } while (Random >= Limit);
+		arc4random_buf(&Random, 8);
+		return Random;
+	} else {
+		int Zeros = __builtin_clzg(Limit);
+		int Bytes = (71 - Zeros) / 8;
+		uint64_t Mask = (uint64_t)0xFFFFFFFFFFFFFFFF >> Zeros;
+		uint64_t Random;
+		do { arc4random_buf(&Random, Bytes); Random &= Mask; } while (Random >= Limit);
 		return Random;
 	}
 }

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.14.0" xml:lang="en-US">
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.15.0" xml:lang="en-US">
   <compound refid="structcoro__stack" kind="struct"><name>coro_stack</name>
     <member refid="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" kind="variable"><name>sptr</name></member>
     <member refid="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" kind="variable"><name>ssze</name></member>
@@ -1687,6 +1687,9 @@
     <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
     <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
   </compound>
+  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
+    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
+  </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
     <member refid="ml__table_8h_1a9653f1d3aed3da41af6ea923da3ce8ef" kind="variable"><name>MLTableRowT</name></member>
@@ -1939,6 +1942,7 @@
     <member refid="group__booleans_1gae68130990e046a964dcb7ad9d61c78fd" kind="function"><name>ml_boolean_value</name></member>
     <member refid="group__numbers_1gaf2ce1a9d7884b519b1c0328b5d174a3d" kind="function"><name>ml_gcd</name></member>
     <member refid="group__numbers_1ga6f104296916608ae981c052751aca6aa" kind="function"><name>ml_random_integer</name></member>
+    <member refid="group__numbers_1ga79b5e9bdea990e79548cb860ae41a4fe" kind="function"><name>ml_random_real</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
     <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>
@@ -2774,6 +2778,7 @@
     <member refid="group__numbers_1ga60567984e82fce3c83d3a5bfc81fe7c3" kind="variable"><name>MLRealIntervalT</name></member>
     <member refid="group__numbers_1gaf2ce1a9d7884b519b1c0328b5d174a3d" kind="function"><name>ml_gcd</name></member>
     <member refid="group__numbers_1ga6f104296916608ae981c052751aca6aa" kind="function"><name>ml_random_integer</name></member>
+    <member refid="group__numbers_1ga79b5e9bdea990e79548cb860ae41a4fe" kind="function"><name>ml_random_real</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
     <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>

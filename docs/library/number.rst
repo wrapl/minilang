@@ -10,8 +10,8 @@ number
 .. rst-class:: mini-api
 
 :mini:`fun integer::random(Min?: number, Max?: number): integer`
-   Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max` :math:`\leq 2^{32} - 1`).
-   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :math:`2^{32} - 1`.
+   Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max` :math:`\leq 2^{64} - 1`).
+   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :math:`2^{64} - 1`.
 
 
 :mini:`fun real::random(Min?: number, Max?: number): real`
