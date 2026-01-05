@@ -666,7 +666,7 @@ void ml_math_init(stringmap_t *Globals) {
 	stringmap_insert(MLRandomT->Exports, "seed", MLRandomSeed);
 	stringmap_insert(MLRandomT->Exports, "switch", MLRandomSwitch);
 	stringmap_insert(MLRandomT->Exports, "choice", MLRandomChoice);
-	stringmap_insert(MLRandomT->Exports, "key", ml_method("random::key"));
+	stringmap_insert(MLRandomT->Exports, "by", ml_method("random::by"));
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"gcd", GCDMethod,

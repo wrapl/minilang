@@ -1402,6 +1402,7 @@ static void random_iterate(ml_random_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODVX("random", MLTypeT) {
+//@random
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Random = stringmap_search(Type->Exports, "random");
 	if (Random) {
@@ -1420,6 +1421,7 @@ ML_METHODVX("random", MLTypeT) {
 }
 
 ML_METHODVX("random", MLSequenceT) {
+//@random
 //<Sequence
 //>any | nil
 // Returns a random value produced by :mini:`Sequence`.
@@ -1473,9 +1475,11 @@ static void random_by_iterate(ml_random_by_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODVX("random::key", MLSequenceT) {
+ML_METHODVX("random::by", MLSequenceT) {
+//@random::by
 //<Sequence
 // Returns a random key produced by :mini:`Sequence` weighted by its values.
+//$= count2(1 .. 60000;) random::by(swap("cat"))
 	ml_random_by_state_t *State = new(ml_random_by_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
