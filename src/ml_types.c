@@ -648,8 +648,10 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 // Values //
 
 ML_TYPE(MLNullT, (), "null");
+//!internal
 
 ML_VALUE(MLNull, MLNullT);
+//!internal
 
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal

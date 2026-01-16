@@ -436,6 +436,17 @@ static void ML_TYPED_FN(ml_value_set_name, MLMethodAnonT, ml_method_t *Method, c
 }
 
 ML_METHODV(MLMethodDefault, MLMethodT) {
+//@method::default
+//<Method
+//>error
+// The default handler for method calls with no matching signature. Returns an error describing the missing signature.
+//
+// This method can be overridden to create remote proxies, custom error method errors, etc.
+//$= "A" *** "B"
+//$= 2 *** "B"
+//$= meth method::default(M: method, X: number, [Y]) 'New default handler! ({M}, {X}, {Y})'
+//$= "A" *** "B"
+//$= 2 *** "B"
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	//printf("Calling default method for %s", Method->Name);
 	int Length = 4;

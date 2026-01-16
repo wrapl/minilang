@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="whereami_8h" kind="file" language="C++">
     <compoundname>whereami.h</compoundname>
     <sectiondef kind="define">
@@ -52,7 +52,7 @@
 <listitem><para>first call <computeroutput>int length = wai_getExecutablePath(NULL, 0, NULL);</computeroutput> to retrieve the length of the path</para>
 </listitem><listitem><para>allocate the destination buffer with <computeroutput>path = (char*)malloc(length + 1);</computeroutput></para>
 </listitem><listitem><para>call <computeroutput>wai_getExecutablePath(path, length, NULL)</computeroutput> again to retrieve the path</para>
-</listitem><listitem><para>add a terminal NUL character with <computeroutput>path[length] = &apos;\0&apos;;</computeroutput></para>
+</listitem><listitem><para>add a terminal NUL character with <lsquo/>path[length] = <rsquo/>\0&apos;;`</para>
 </listitem></itemizedlist>
 </para>
 <para><parameterlist kind="param"><parameteritem>
@@ -113,7 +113,7 @@
 <listitem><para>first call <computeroutput>int length = wai_getModulePath(NULL, 0, NULL);</computeroutput> to retrieve the length of the path</para>
 </listitem><listitem><para>allocate the destination buffer with <computeroutput>path = (char*)malloc(length + 1);</computeroutput></para>
 </listitem><listitem><para>call <computeroutput>wai_getModulePath(path, length, NULL)</computeroutput> again to retrieve the path</para>
-</listitem><listitem><para>add a terminal NUL character with <computeroutput>path[length] = &apos;\0&apos;;</computeroutput></para>
+</listitem><listitem><para>add a terminal NUL character with <lsquo/>path[length] = <rsquo/>\0&apos;;`</para>
 </listitem></itemizedlist>
 </para>
 <para><parameterlist kind="param"><parameteritem>

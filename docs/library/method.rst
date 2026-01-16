@@ -41,16 +41,30 @@ method
    Returns the method with name :mini:`Name`.
 
 
-:mini:`meth (Arg₁: method):MLMethodDefault(...)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: method)[...]`
    *TBD*
 
 
 :mini:`meth (Arg₁: method):list`
    *TBD*
+
+
+:mini:`meth method::default(Method: method, ...): error`
+   The default handler for method calls with no matching signature. Returns an error describing the missing signature.
+   
+   This method can be overridden to create remote proxies,  custom error method errors,  etc.
+
+   .. code-block:: mini
+
+      "A" *** "B"
+      :> error("MethodError", "no method found for ***(string, string)")
+      2 *** "B"
+      :> error("MethodError", "no method found for ***(integer32, string)")
+      meth method::default(M: method, X: number, [Y]) 'New default handler! ({M}, {X}, {Y})'
+      :> @:1
+      "A" *** "B"
+      :> error("MethodError", "no method found for ***(string, string)")
+      2 *** "B" :> "New default handler! (:***, 2, [B])"
 
 
 :mini:`meth method::define(Method: method, Types: type, ..., ..?: any, Function: function): Function`

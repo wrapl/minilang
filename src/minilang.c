@@ -245,9 +245,9 @@ static int copy_export(const char *Name, void *Value, void *Data) {
 	return 0;
 }
 
-ML_FUNCTION(MLNullFn) {
+/*ML_FUNCTION(MLNullFn) {
 	return NULL;
-}
+}*/
 
 int main(int Argc, const char *Argv[]) {
 	ml_init(Argv[0], MLGlobals);
@@ -265,7 +265,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_BACKTRACE
 	stringmap_insert(MLGlobals, "backtrace", MLBacktrace);
 #endif
-	stringmap_insert(MLGlobals, "null", MLNullFn);
+	//stringmap_insert(MLGlobals, "null", MLNullFn);
 	stringmap_insert(MLGlobals, "now", MLNow);
 	stringmap_insert(MLGlobals, "clock", MLClock);
 	stringmap_insert(MLGlobals, "print", MLPrint);
