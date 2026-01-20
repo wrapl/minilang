@@ -1448,6 +1448,10 @@ struct ml_call_wait_state_t {
 	ml_value_t *Value;
 };
 
+static void ml_call_fast_fn(ml_call_wait_state_t *State, ml_value_t *Value) {
+	State->Value = Value;
+}
+
 ml_call_wait_state_t *ml_call_wait_state(ml_context_t *Context) {
 	ml_call_wait_state_t *State = new(ml_call_wait_state_t);
 	State->Base.Context = Context;
