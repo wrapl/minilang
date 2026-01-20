@@ -897,6 +897,10 @@ ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, for
 #define ml_string_value ml_address_value
 #define ml_string_length ml_address_length
 
+size_t ml_string_count(ml_value_t *S);
+void ml_string_codes(ml_value_t *S, uint32_t *P);
+int ml_string_utf8(uint32_t Code, char *Out);
+
 //#define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
 #define ml_cstring(VALUE) ({ \
 	static ml_string_t String ## __COUNTER__ = {MLStringT, VALUE, strlen(VALUE), 0}; \
@@ -963,7 +967,7 @@ static inline ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const cha
 
 size_t ml_stringbuffer_read(ml_stringbuffer_t *Buffer, void *Address, size_t Count);
 
-static inline void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
+static inline ssize_t ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
 	int I = 8;
@@ -973,7 +977,7 @@ static inline void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Cod
 		LeadByteMax >>= (I == 7 ? 2 : 1);
 	}
 	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	ml_stringbuffer_write(Buffer, Val + I, 8 - I);
+	return ml_stringbuffer_write(Buffer, Val + I, 8 - I);
 }
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
