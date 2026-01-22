@@ -522,7 +522,7 @@ end
 
 if MINILANG_CBOR then
 	CFLAGS := old + ["-DML_CBOR"]
-	Objects:put(file("ml_cbor.o"))
+	Objects:put(file("ml_cbor.o"), file("ml_runtime2.o"))
 	InstallHeaders:put("ml_cbor.h")
 end
 
