@@ -1610,6 +1610,28 @@ static void utf8_expand(const char *S, uint32_t *P) {
 	*P++ = 0;
 }
 
+size_t ml_string_count(ml_value_t *S) {
+	return utf8_strlen(S);
+}
+
+void ml_string_codes(ml_value_t *S, uint32_t *P) {
+	return utf8_expand(ml_string_value(S), P);
+}
+
+int ml_string_utf8(uint32_t Code, char *Out) {
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 8;
+	while (Code > LeadByteMax) {
+		Val[--I] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 7 ? 2 : 1);
+	}
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	memcpy(Out, Val + I, 8 - I);
+	return 8 - I;
+}
+
 typedef struct {
 	const char *Chars;
 	size_t Length;
