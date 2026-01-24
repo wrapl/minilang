@@ -1468,7 +1468,7 @@ ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_va
 }
 
 ml_value_t *ml_call_state_wait(ml_call_wait_state_t *State) {
-	ml_context_t *Context = State->Block.Base.Context;
+	ml_context_t *Context = State->Base.Context;
 	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
 	while (!State->Value) Scheduler->run(Scheduler);
 	return State->Value;
