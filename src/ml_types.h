@@ -147,6 +147,12 @@ static inline const char *ml_type_name(const ml_type_t *Value) {
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
 
+typedef struct {
+	ml_type_t Base;
+	int NumTypes;
+	ml_type_t *Types[];
+} ml_union_type_t;
+
 extern ml_type_t MLTypeUnionT[];
 
 ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]);
@@ -172,12 +178,6 @@ struct ml_generic_type_t {
 	ml_generic_type_t *NextGeneric;
 	ml_type_t *Args[];
 };
-
-typedef struct {
-	ml_type_t Base;
-	int NumTypes;
-	ml_type_t *Types[];
-} ml_union_type_t;
 
 extern ml_type_t MLTypeGenericT[];
 
