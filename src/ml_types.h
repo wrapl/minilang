@@ -1571,6 +1571,8 @@ struct ml_externals_t {
 };
 
 extern ml_externals_t MLExternals[1];
+
+ml_externals_t *ml_externals(ml_externals_t *Parent);
 const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value);
 ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name);
 void ml_externals_add(ml_externals_t *Externals, const char *Name, void *Value);

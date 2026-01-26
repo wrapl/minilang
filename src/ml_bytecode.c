@@ -2841,8 +2841,7 @@ static void ML_TYPED_FN(ml_value_find_all, MLContinuationT, ml_frame_t *Frame, v
 	for (ml_state_t *Caller = Frame->Base.Caller; Caller; Caller = Caller->Caller) {
 		if (Caller->Type) ml_value_find_all((ml_value_t *)Caller, Data, RefFn);
 	}
-	ml_closure_info_t *Info = ((ml_closure_t *)Frame->UpValues[0])->Info;
-	ml_value_find_all((ml_value_t *)Info, Data, RefFn);
+	ml_value_find_all(Frame->UpValues[0], Data, RefFn);
 	for (ml_value_t **Slot = Frame->Stack; Slot < Frame->Top; ++Slot) ml_value_find_all(*Slot++, Data, RefFn);
 }
 
@@ -2851,11 +2850,14 @@ static void ML_TYPED_FN(ml_cbor_write, MLContinuationT, ml_cbor_writer_t *Writer
 	ml_cbor_write_indef_array(Writer);
 	ml_cbor_write_string(Writer, strlen("frame"));
 	ml_cbor_write_raw(Writer, "frame", strlen("frame"));
-	/*if (Frame->Base.Caller->Type) {
-		ml_cbor_write(Writer, (ml_value_t *)Frame->Base.Caller);
-	} else {
+	ml_state_t *Caller = Frame->Base.Caller;
+	if (!Caller) {
 		ml_cbor_write_simple(Writer, ML_CBOR_SIMPLE_NULL);
-	}*/
+	} else if (!Caller->Type) {
+		ml_cbor_writer_error(Writer, ml_error("CBORError", "Can not serialize untyped state"));
+	} else {
+		ml_cbor_write(Writer, (ml_value_t *)Caller);
+	}
 	ml_cbor_write(Writer, Frame->UpValues[0]);
 	ml_closure_info_t *Info = ((ml_closure_t *)Frame->UpValues[0])->Info;
 	ml_cbor_write_positive(Writer, ml_inst_offset(Frame->Inst, Info->Entry, Info->Halt));

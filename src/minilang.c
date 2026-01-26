@@ -16,6 +16,7 @@
 #include "ml_stream.h"
 #include "ml_logging.h"
 #include <sys/fcntl.h>
+#include <errno.h>
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -249,6 +250,64 @@ static int copy_export(const char *Name, void *Value, void *Data) {
 	return NULL;
 }*/
 
+#ifdef ML_CBOR
+
+ml_value_t *ml_state_load(FILE *File, ml_state_t *Base) {
+	ml_externals_t *Externals = ml_externals(MLExternals);
+	if (Base) ml_externals_add(Externals, "base-state", Base);
+	ml_cbor_reader_t *Reader = ml_cbor_reader(NULL, (ml_external_fn_t)ml_externals_get_value, Externals);
+	unsigned char Buffer[1024];
+	while (!ml_cbor_reader_done(Reader)) {
+		ssize_t Actual = fread(Buffer, 1, 1024, File);
+		if (Actual < 0) return ml_error("CBORError", "Error reading from file: %s", strerror(errno));
+		ml_cbor_reader_read(Reader, Buffer, Actual);
+	}
+	return ml_cbor_reader_get(Reader);
+}
+
+static int file_write(FILE *File, const unsigned char *Bytes, size_t Size) {
+	return fwrite(Bytes, 1, Size, File);
+}
+
+ml_value_t *ml_state_save(FILE *File, ml_state_t *State, ml_state_t *Base) {
+	if (!State->Type) return ml_error("CBORError", "Can not serialize untyped state");
+	if (Base && !Base->Type) Base->Type = MLStateT;
+	ml_externals_t *Externals = ml_externals(MLExternals);
+	if (Base) ml_externals_add(Externals, "base-state", Base);
+	return ml_cbor_encode_to(File, (ml_cbor_write_fn)file_write, Externals, (ml_value_t *)State);
+}
+
+ML_FUNCTIONX(MLSaveState) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ml_state_t *Base = NULL;
+	if (Count > 1) {
+		ML_CHECKX_ARG_TYPE(1, MLStateT);
+		Base = (ml_state_t *)Args[1];
+	}
+	const char *FileName = ml_string_value(Args[0]);
+	FILE *File = fopen(FileName, "w");
+	if (!File) ML_ERROR("FileError", "Unable to open %s: %s", FileName, strerror(errno));
+	ml_value_t *Error = ml_state_save(File, Caller, Base);
+	fclose(File);
+	if (Base) Caller = Base;
+	if (Error) ML_RETURN(Error);
+	ML_RETURN(MLNil);
+}
+
+ML_FUNCTIONX(MLResumeState) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *FileName = ml_string_value(Args[0]);
+	FILE *File = fopen(FileName, "r");
+	if (!File) ML_ERROR("FileError", "Unable to open %s: %s", FileName, strerror(errno));
+	ml_value_t *State = ml_state_load(File, Caller);
+	if (ml_is_error(State)) ML_RETURN(State);
+	ml_state_schedule((ml_state_t *)State, MLNil);
+}
+
+#endif
+
 int main(int Argc, const char *Argv[]) {
 	ml_init(Argv[0], MLGlobals);
 	ml_time_init(MLGlobals);
@@ -302,7 +361,11 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(MLGlobals, "variable", MLVariableT);
 	stringmap_insert(MLGlobals, "global", ml_stringmap_globals(MLGlobals));
 	stringmap_insert(MLGlobals, "globals", ml_cfunction(MLGlobals, (void *)ml_globals));
-
+#ifdef ML_CBOR
+	stringmap_insert(MLGlobals, "save", MLSaveState);
+	stringmap_insert(MLGlobals, "resume", MLResumeState);
+	ml_externals_default_add("save",  MLSaveState);
+#endif
 	ml_logging_init(MLGlobals);
 
 #ifdef ML_LIBRARY

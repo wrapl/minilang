@@ -1727,6 +1727,13 @@ ml_value_t *ml_callable_module(const char *Path, ml_value_t *Fn, ...) {
 
 ml_externals_t MLExternals[1] = {{MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}}};
 
+ml_externals_t *ml_externals(ml_externals_t *Parent) {
+	ml_externals_t *Externals = new(ml_externals_t);
+	Externals->Type = MLExternalSetT;
+	Externals->Next = Parent;
+	return Externals;
+}
+
 ml_value_t *ml_external(const char *Name, const char *Source, int Line) {
 	ml_external_t *External = new(ml_external_t);
 	External->Type = MLExternalT;

@@ -906,21 +906,6 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 	return ml_cbor_encode(Value);
 }
 
-void ml_cbor_write_state(ml_cbor_writer_t *Writer, ml_state_t *State, ml_state_t *Base) {
-	if (State == Base) {
-		minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
-		minicbor_write_array(Writer, 1);
-		minicbor_write_string(Writer, 10);
-		Writer->WriteFn(Writer->Data, (void *)"base-state", 4);
-		return;
-	}
-	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
-	minicbor_write_array(Writer, 3);
-	minicbor_write_string(Writer, 5);
-	Writer->WriteFn(Writer->Data, (void *)"state", 4);
-
-}
-
 static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Global) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, 1);

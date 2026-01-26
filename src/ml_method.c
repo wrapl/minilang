@@ -145,6 +145,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	}
 	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
+#ifdef ML_GENERICS
 		if (Type->Type == MLTypeUnionT) {
 			ml_union_type_t *Union = (ml_union_type_t *)Type;
 			for (int J = 0; J < Union->NumTypes; ++J) {
@@ -156,10 +157,13 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 			}
 			return 0;
 		} else {
+#endif
 			if (!ml_is_subtype0(Types[I], Type)) return 0;
 			Score += 5 + Type->Rank;
+#ifdef ML_GENERICS
 		}
 	next:;
+#endif
 	}
 	return Score;
 }
