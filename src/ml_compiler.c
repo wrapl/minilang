@@ -7485,6 +7485,30 @@ static void ml_load_file_state_run(ml_load_file_state_t *State, ml_value_t *Valu
 	ML_RETURN(Value);
 }
 
+void ml_load_stdin(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *Parameters[]) {
+	ml_parser_t *Parser = ml_parser(ml_load_file_read, stdin);
+	Parser->Source.Name = "stdin";
+	const char *Line = ml_load_file_read(stdin);
+	if (!Line) ML_RETURN(ml_integer(0));
+	if (Line[0] == '#' && Line[1] == '!') {
+		Parser->Line = 2;
+		Line = ml_load_file_read(stdin);
+		if (!Line) ML_RETURN(ml_integer(0));
+	} else {
+		Parser->Line = 1;
+	}
+	Parser->Next = Line;
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) ML_RETURN(Parser->Value);
+	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
+	ml_load_file_state_t *State = new(ml_load_file_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_load_file_state_run;
+	State->File = stdin;
+	return ml_function_compile((ml_state_t *)State, Expr, Compiler, Parameters);
+}
+
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	static const char *DefaultParameters[] = {"Args", NULL};
 	if (!Parameters) Parameters = DefaultParameters;

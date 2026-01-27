@@ -308,6 +308,71 @@ ML_FUNCTIONX(MLResumeState) {
 
 #endif
 
+static void load_cbor_run(const char *FileName) {
+	FILE *File = stdin;
+	if (FileName) {
+		File = fopen(FileName, "r");
+		if (!File) {
+			fprintf(stderr, "ReadError: error opening %s: %s\n", FileName, strerror(errno));
+			exit(-1);
+		}
+	}
+	ml_cbor_reader_t *Reader = ml_cbor_reader(NULL, NULL, NULL);
+	unsigned char Buffer[256];
+	for (;;) {
+		size_t Actual = fread(Buffer, 1, 256, File);
+		if (!Actual) break;
+		ml_cbor_reader_read(Reader, Buffer, Actual);
+		if (ml_cbor_reader_done(Reader)) break;
+	}
+	ml_value_t *Value = ml_cbor_reader_get(Reader);
+	if (ml_is_error(Value)) goto error;
+	if (!ml_is(Value, MLListT) || ml_list_length(Value) != 2) {
+		Value = ml_error("ProtocolError", "Invalid run config");
+		goto error;
+	}
+	ml_value_t *Script = ml_list_get(Value, 1);
+	ml_value_t *Args = ml_list_get(Value, 2);
+	if (!ml_is(Script, MLStringT) || !ml_is(Args, MLMapT)) {
+		Value = ml_error("ProtocolError", "Invalid run config");
+		goto error;
+	}
+	const char **Params = anew(const char *, ml_map_size(Args));
+	const char **Param = Params;
+	ml_state_t *Main = ml_state(NULL);
+	Main->run = ml_main_state_run;
+	ml_call_state_t *State = ml_call_state(Main, ml_map_size(Args));
+	State->Count = ml_map_size(Args);
+	ml_value_t **Arg = State->Args;
+	ML_MAP_FOREACH(Args, Iter) {
+		if (!ml_is(Iter->Key, MLStringT)) {
+			Value = ml_error("ProtocolError", "Invalid run config");
+			goto error;
+		}
+		*Param++ = ml_string_value(Iter->Key);
+		*Arg++ = Iter->Value;
+	}
+	ml_parser_t *Parser = ml_parser(NULL, NULL);
+	ml_parser_source(Parser, (ml_source_t){FileName, 1});
+	ml_parser_input(Parser, ml_string_value(Script), ml_string_length(Script));
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) {
+		Value = ml_parser_value(Parser);
+		goto error;
+	}
+	ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
+	return ml_function_compile((ml_state_t *)State, Expr, Compiler, Params);
+error: {
+		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+		}
+		exit(-1);
+	}
+}
+
 int main(int Argc, const char *Argv[]) {
 	ml_init(Argv[0], MLGlobals);
 	ml_time_init(MLGlobals);
@@ -451,6 +516,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	ml_value_t *Args = ml_list();
 	const char *MainModule = NULL;
+	int RunCbor = 0;
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
@@ -477,6 +543,9 @@ int main(int Argc, const char *Argv[]) {
 					fprintf(stderr, "Error: command required\n");
 					exit(-1);
 				}
+				break;
+			case 'C':
+				RunCbor = 1;
 				break;
 #ifdef ML_MODULES
 			case 'm':
@@ -577,7 +646,9 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_LIBRARY
 	stringmap_insert(Sys->Exports, "Args", Args);
 #endif
-	if (MainModule) {
+	if (RunCbor) {
+		load_cbor_run(MainModule);
+	} else if (MainModule) {
 #ifdef ML_LIBRARY
 		if (LoadModule) {
 			Main->run = ml_main_state_module;
