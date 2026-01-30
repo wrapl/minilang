@@ -118,8 +118,9 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 		}
 	}
 	if (Class->Defaults) {
-		ml_init_state_t *State = xnew(ml_init_state_t, 1, ml_value_t *);
+		ml_init_state_t *State = xnew(ml_init_state_t, Count + 1, ml_value_t *);
 		State->Args[0] = (ml_value_t *)Object;
+		for (int I = 0; I < Count; ++I) State->Args[I + 1] = Args[I];
 		State->Base.run = (void *)ml_init_state_run;
 		State->Base.Caller = Caller;
 		State->Base.Context = Caller->Context;
