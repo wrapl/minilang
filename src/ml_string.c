@@ -4749,6 +4749,7 @@ typedef struct {
 	ml_value_t *Index;
 	ml_string_t *String;
 	ml_regex_t *Regex;
+	ml_integer_interval_t *Interval;
 } ml_string_case_t;
 
 typedef struct {
@@ -4777,6 +4778,11 @@ static void ml_string_switch(ml_state_t *Caller, ml_string_switch_t *Switch, int
 #else
 			if (!regexec(Case->Regex->Value, Subject, 0, NULL, 0)) {
 #endif
+				ML_RETURN(Case->Index);
+			}
+		} else if (Case->Interval) {
+			uint32_t Code = utf8_code(Subject);
+			if (Case->Interval->Start <= Code && Case->Interval->Limit >= Code) {
 				ML_RETURN(Case->Index);
 			}
 		} else {
@@ -4822,6 +4828,8 @@ ML_FUNCTION_INLINE(MLStringSwitch) {
 				Case->String = (ml_string_t *)Value;
 			} else if (ml_is(Value, MLRegexT)) {
 				Case->Regex = (ml_regex_t *)Value;
+			} else if (ml_is(Value, MLStringIntervalT)) {
+				Case->Interval = (ml_integer_interval_t *)Value;
 			} else {
 				return ml_error("ValueError", "Unsupported value in string case");
 			}
