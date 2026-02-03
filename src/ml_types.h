@@ -719,13 +719,17 @@ static inline int64_t ml_integer32_value(const ml_value_t *Value) {
 	return (int32_t)(intptr_t)Value;
 }
 
-static inline int64_t ml_integer64_value(const ml_value_t *Value) {
 #ifdef ML_BIGINT
-	return mpz_get_s64(((ml_integer_t *)Value)->Value);
+
+int64_t ml_integer64_value(const ml_value_t *Value);
+
 #else
+
+static inline int64_t ml_integer64_value(const ml_value_t *Value) {
 	return ((ml_integer_t *)Value)->Value;
-#endif
 }
+
+#endif
 
 static inline double ml_double_value(const ml_value_t *Value) {
 	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;

@@ -447,6 +447,14 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	return 0;
 }
 
+#ifdef ML_BIGINT
+
+int64_t ml_integer64_value(const ml_value_t *Value) {
+	return mpz_get_s64(((ml_integer_t *)Value)->Value);
+}
+
+#endif
+
 static int64_t ML_TYPED_FN(ml_integer_value, MLInteger64T, const ml_value_t *Value) {
 	return ml_integer64_value(Value);
 }
