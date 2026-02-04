@@ -1260,6 +1260,7 @@ void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Ha
 	if (function) {
 		function(Value, NewChain, Hash);
 	} else {
+		memset(Hash, 0, SHA256_BLOCK_SIZE);
 		*(long *)Hash = ml_typeof(Value)->hash(Value, NewChain);
 	}
 }
