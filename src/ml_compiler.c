@@ -2990,7 +2990,7 @@ void ml_string_expr_compile3(mlc_function_t *Function, mlc_string_expr_t *Expr, 
 	ml_string_create_t *Create = xnew(ml_string_create_t, PartCount + 1, sizeof(int));
 	Create->Strings = snew(StringCount);
 	ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
-	LoadInst[1].Value = ml_cfunctionx(Create, (ml_callbackx_t)ml_string_create_fn);
+	LoadInst[1].Value = ml_cfunctionx2(Create, (ml_callbackx_t)ml_string_create_fn, "ml_compiler.c", __LINE__);
 	ml_inst_t *PartialInst = MLC_EMIT(Expr->StartLine, MLI_PARTIAL_NEW, 1);
 	PartialInst[1].Count = ArgCount;
 	mlc_inc_top(Function);
