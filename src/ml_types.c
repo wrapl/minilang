@@ -150,7 +150,10 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 #ifdef ML_GENERICS
 	if (Expected->Type == MLTypeUnionT) {
 		ml_union_type_t *Union = (ml_union_type_t *)Expected;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 		for (int I = 0; I < Union->NumTypes; ++I) {
+#pragma GCC diagnostic pop
 			if (ml_is(Value, Union->Types[I])) return 1;
 		}
 		return 0;

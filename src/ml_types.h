@@ -150,7 +150,7 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
 typedef struct {
 	ml_type_t Base;
 	int NumTypes;
-	ml_type_t *Types[];
+	ml_type_t *Types[] __attribute__((__counted_by__(NumTypes)));
 } ml_union_type_t;
 
 extern ml_type_t MLTypeUnionT[];
@@ -176,7 +176,7 @@ struct ml_generic_type_t {
 	ml_type_t Base;
 	int NumArgs;
 	ml_generic_type_t *NextGeneric;
-	ml_type_t *Args[];
+	ml_type_t *Args[] __attribute__((__counted_by__(NumArgs)));
 };
 
 extern ml_type_t MLTypeGenericT[];
@@ -542,7 +542,7 @@ extern ml_type_t MLTupleT[];
 struct ml_tuple_t {
 	ml_type_t *Type;
 	int Size, NoRefs;
-	ml_value_t *Values[];
+	ml_value_t *Values[] __attribute__((__counted_by__(Size)));
 };
 
 ml_value_t *ml_tuple(size_t Size) __attribute__((malloc));
@@ -1198,7 +1198,7 @@ struct ml_method_cached_t {
 	ml_method_t *Method;
 	ml_value_t *Callback;
 	int Count, Score;
-	ml_type_t *Types[];
+	ml_type_t *Types[] __attribute__((__counted_by__(Count)));
 };
 
 ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
