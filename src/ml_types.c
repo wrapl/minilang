@@ -77,7 +77,9 @@ ML_FUNCTION(MLType) {
 }
 
 long ml_type_hash(ml_type_t *Type) {
-	return (intptr_t)Type;
+	long Hash = 5361;
+	for (const char *P = Type->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	return Hash;
 }
 
 void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
