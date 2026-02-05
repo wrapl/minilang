@@ -339,6 +339,17 @@ ML_METHOD(AtanMethod, MLRealT, MLRealT) {
 	return ml_real(atan2(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 MATH_REAL(Ceil, ceil, ceil);
+
+ML_METHOD(CeilMethod, MLRealT, MLRealT) {
+//@math::ceil
+//>real
+// Returns :mini:`ceil(Arg/1 * Arg/2) / Arg/2`.
+//$= math::ceil(1.2345, 100)
+//$= math::ceil(-1.2345, 32)
+	double Scale = ml_real_value(Args[1]);
+	return ml_real(ceil(ml_real_value(Args[0]) * Scale) / Scale);
+}
+
 MATH_NUMBER_KEEP_REAL(Cos, cos, cos);
 MATH_NUMBER_KEEP_REAL(Cosh, cosh, cosh);
 MATH_NUMBER_KEEP_REAL(Exp, exp, exp);
@@ -369,6 +380,17 @@ ML_METHOD(FloorMethod, MLIntegerT) {
 // Returns the floor of :mini:`N` (:mini:`= N` for an integer).
 	return Args[0];
 }
+
+ML_METHOD(FloorMethod, MLRealT, MLRealT) {
+//@math::floor
+//>real
+// Returns :mini:`floor(Arg/1 * Arg/2) / Arg/2`.
+//$= math::floor(1.2345, 100)
+//$= math::floor(-1.2345, 32)
+	double Scale = ml_real_value(Args[1]);
+	return ml_real(floor(ml_real_value(Args[0]) * Scale) / Scale);
+}
+
 MATH_NUMBER(Log, log, log);
 MATH_NUMBER(Log10, log10, log10);
 MATH_NUMBER_KEEP_REAL(Sin, sin, sin);
@@ -578,13 +600,13 @@ ML_FUNCTION(MLRandomSeed) {
 
 typedef struct {
 	ml_type_t *Type;
-	uint32_t Cases[];
+	double Cases[];
 } ml_random_switch_t;
 
 static void ml_random_switch(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
-	uint32_t X = arc4random();
-	for (uint32_t *Case = Switch->Cases;; ++Case) {
-		if (X <= *Case) ML_RETURN(ml_integer(Case - Switch->Cases));
+	double X = ml_random_real();
+	for (double *Case = Switch->Cases;; ++Case) {
+		if (X < *Case) ML_RETURN(ml_integer(Case - Switch->Cases));
 	}
 	ML_RETURN(MLNil);
 }
@@ -596,23 +618,46 @@ ML_TYPE(MLRandomSwitchT, (MLFunctionT), "random-switch",
 
 ML_FUNCTION_INLINE(MLRandomSwitch) {
 //!internal
+	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, double);
+	Switch->Type = MLRandomSwitchT;
+	double *Case = Switch->Cases;
 	double Total = 0;
 	for (int I = 0; I < Count; ++I) {
 		ML_CHECK_ARG_TYPE(I, MLListT);
 		if (ml_list_length(Args[I]) != 1) return ml_error("ValueError", "Each random case must be a single value");
 		Total += ml_real_value(ml_list_get(Args[I], 1));
+		*Case++ = Total;
 	}
-	ml_random_switch_t *Switch = xnew(ml_random_switch_t, Count, int);
-	Switch->Type = MLRandomSwitchT;
-	uint32_t *Case = Switch->Cases;
-	double M = UINT32_MAX / Total;
-	Total = 0;
-	for (int I = 0; I < Count; ++I) {
-		Total += ml_real_value(ml_list_get(Args[I], 1));
-		*Case++ = M * Total;
-	}
-	Case[-1] = UINT32_MAX;
+	*--Case = 1.0;
+	while (--Count > 0) *--Case /= Total;
 	return (ml_value_t *)Switch;
+}
+
+static void ml_random_choice(ml_state_t *Caller, ml_random_switch_t *Switch, int Count, ml_value_t **Args) {
+	double X = ml_random_real();
+	for (double *Case = Switch->Cases;; ++Case) {
+		if (X < *Case) ML_RETURN(ml_integer((Case - Switch->Cases) + 1));
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLRandomChoiceT, (MLFunctionT), "random::choice",
+	.call = (void *)ml_random_choice
+);
+
+ML_FUNCTION(MLRandomChoice) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_random_switch_t *Choice = xnew(ml_random_switch_t, Count, double);
+	Choice->Type = MLRandomChoiceT;
+	double *Case = Choice->Cases;
+	double Total = 0;
+	for (int I = 0; I < Count; ++I) {
+		Total += ml_real_value(Args[I]);
+		*Case++ = Total;
+	}
+	*--Case = 1.0;
+	while (--Count > 0) *--Case /= Total;
+	return (ml_value_t *)Choice;
 }
 
 void ml_math_init(stringmap_t *Globals) {
@@ -620,6 +665,8 @@ void ml_math_init(stringmap_t *Globals) {
 	MLRandomT->Constructor = ml_method("random");
 	stringmap_insert(MLRandomT->Exports, "seed", MLRandomSeed);
 	stringmap_insert(MLRandomT->Exports, "switch", MLRandomSwitch);
+	stringmap_insert(MLRandomT->Exports, "choice", MLRandomChoice);
+	stringmap_insert(MLRandomT->Exports, "by", ml_method("random::by"));
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"gcd", GCDMethod,

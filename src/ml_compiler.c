@@ -24,69 +24,6 @@ struct mlc_try_t {
 	int Top;
 };
 
-typedef struct mlc_token_t mlc_token_t;
-
-struct mlc_token_t {
-	mlc_token_t *Next;
-	void *General;
-	ml_source_t Source;
-	ml_token_t Token;
-};
-
-typedef struct mlc_expected_delimiter_t mlc_expected_delimiter_t;
-
-struct mlc_expected_delimiter_t {
-	mlc_expected_delimiter_t *Prev;
-	ml_token_t Token;
-};
-
-#ifdef ML_ASYNC_PARSER
-
-#include "coro.h"
-
-typedef struct ml_parser_coro_t ml_parser_coro_t;
-
-struct ml_parser_coro_t {
-	coro_context Context;
-	ml_parser_coro_t *Next;
-};
-
-#ifdef ML_HOSTTHREADS
-
-static ml_parser_coro_t * _Atomic CoroutineCache = NULL;
-
-#else
-
-static ml_parser_coro_t *CoroutineCache = NULL;
-
-#endif
-
-#endif
-
-struct ml_parser_t {
-	ml_type_t *Type;
-	const char *Next;
-	void *ReadData, *SpecialData, *EscapeData;
-	const char *(*Read)(void *);
-	ml_value_t *(*Escape)(void *);
-	ml_value_t *(*Special)(void *);
-	union {
-		ml_value_t *Value;
-		mlc_expr_t *Expr;
-		const char *Ident;
-	};
-	ml_value_t *Warnings;
-	mlc_expected_delimiter_t *ExpectedDelimiter;
-	stringmap_t *EscapeFns;
-	ml_source_t Source;
-	int Line;
-	jmp_buf OnError;
-	ml_token_t Token;
-#ifdef ML_ASYNC_PARSER
-	ml_parser_coro_t *Coroutine;
-#endif
-};
-
 struct ml_compiler_t {
 	ml_type_t *Type;
 	ml_getter_t GlobalGet;
@@ -3053,7 +2990,7 @@ void ml_string_expr_compile3(mlc_function_t *Function, mlc_string_expr_t *Expr, 
 	ml_string_create_t *Create = xnew(ml_string_create_t, PartCount + 1, sizeof(int));
 	Create->Strings = snew(StringCount);
 	ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
-	LoadInst[1].Value = ml_cfunctionx(Create, (ml_callbackx_t)ml_string_create_fn);
+	LoadInst[1].Value = ml_cfunctionx2(Create, (ml_callbackx_t)ml_string_create_fn, "ml_compiler.c", __LINE__);
 	ml_inst_t *PartialInst = MLC_EMIT(Expr->StartLine, MLI_PARTIAL_NEW, 1);
 	PartialInst[1].Count = ArgCount;
 	mlc_inc_top(Function);
@@ -4117,18 +4054,13 @@ ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
 	Parser->Line = 1;
 	Parser->ReadData = Data;
 	Parser->Read = Read ?: ml_parser_no_input;
-	Parser->Escape = ml_parser_default_escape;
 	Parser->Special = ml_parser_default_special;
 	Parser->EscapeFns = MLEscapeFns;
 	return Parser;
 }
 
 static inline const char *ml_parser_do_read(ml_parser_t *Parser) {
-#ifdef ML_ASYNC_PARSER
-
-#else
 	return Parser->Read(Parser->ReadData);
-#endif
 }
 
 static mlc_expr_t *ml_accept_block(ml_parser_t *Parser);
@@ -4211,16 +4143,6 @@ void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, .
 		ml_integer(Parser->Line),
 		ml_string(Message, Length)
 	));
-}
-
-static ml_value_t *ml_parser_escape_other(ml_parser_t *Parser) {
-	return Parser->Escape(Parser->EscapeData);
-}
-
-void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data) {
-	Parser->Escape = Escape;
-	Parser->EscapeData = Data;
-	ml_parser_add_escape(Parser, "", ml_parser_escape_other);
 }
 
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data) {
@@ -6235,13 +6157,6 @@ mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level) {
 	return Expr;
 }
 
-typedef struct {
-	mlc_expr_t **ExprSlot;
-	mlc_local_t **VarsSlot;
-	mlc_local_t **LetsSlot;
-	mlc_local_t **DefsSlot;
-} ml_accept_block_t;
-
 static void ml_accept_block_var(ml_parser_t *Parser, ml_accept_block_t *Accept) {
 	do {
 		if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
@@ -6571,6 +6486,73 @@ static mlc_expr_t *ml_parse_block_expr(ml_parser_t *Parser, ml_accept_block_t *A
 	return Expr;
 }
 
+static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser);
+
+int ml_accept_block_child(ml_parser_t *Parser, ml_accept_block_t *Accept) {
+	ml_skip_eol(Parser);
+	switch (ml_current(Parser)) {
+	case MLT_VAR: {
+		ml_next(Parser);
+		ml_accept_block_var(Parser, Accept);
+		return 1;
+	}
+	case MLT_LET: {
+		ml_next(Parser);
+		ml_accept_block_let(Parser, Accept);
+		return 1;
+	}
+	case MLT_REF: {
+		ml_next(Parser);
+		ml_accept_block_ref(Parser, Accept);
+		return 1;
+	}
+	case MLT_DEF: {
+		ml_next(Parser);
+		ml_accept_block_def(Parser, Accept);
+		return 1;
+	}
+	case MLT_FUN: {
+		ml_next(Parser);
+		ml_accept_block_fun(Parser, Accept);
+		return 1;
+	}
+	case MLT_MUST: {
+		ml_next(Parser);
+		mlc_expr_t *Must = ml_accept_expression(Parser, EXPR_DEFAULT);
+		mlc_block_expr_t *MustExpr = ml_accept_block_body(Parser);
+		MustExpr->Must = Must;
+		Accept->ExprSlot[0] = ML_EXPR_END(MustExpr);
+		Accept->ExprSlot = &MustExpr->Next;
+		return 0;
+	}
+	default: {
+		mlc_expr_t *Expr = ml_parse_block_expr(Parser, Accept);
+		if (!Expr) return 0;
+		Accept->ExprSlot[0] = Expr;
+		Accept->ExprSlot = &Expr->Next;
+		return 1;
+	}
+	}
+}
+
+void mlc_block_expr_finish(mlc_block_expr_t *BlockExpr) {
+	int Index = 0, First = 0;
+	for (mlc_local_t *Local = BlockExpr->Vars; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	BlockExpr->NumVars = Index;
+	First = Index;
+	for (mlc_local_t *Local = BlockExpr->Lets; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	BlockExpr->NumLets = Index - First;
+	First = Index;
+	for (mlc_local_t *Local = BlockExpr->Defs; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	BlockExpr->NumDefs = Index - First;
+}
+
 static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 	ML_EXPR(BlockExpr, block, block);
 	ml_accept_block_t Accept[1];
@@ -6579,68 +6561,9 @@ static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 	Accept->LetsSlot = &BlockExpr->Lets;
 	Accept->DefsSlot = &BlockExpr->Defs;
 	do {
-		ml_skip_eol(Parser);
-		switch (ml_current(Parser)) {
-		case MLT_VAR: {
-			ml_next(Parser);
-			ml_accept_block_var(Parser, Accept);
-			break;
-		}
-		case MLT_LET: {
-			ml_next(Parser);
-			ml_accept_block_let(Parser, Accept);
-			break;
-		}
-		case MLT_REF: {
-			ml_next(Parser);
-			ml_accept_block_ref(Parser, Accept);
-			break;
-		}
-		case MLT_DEF: {
-			ml_next(Parser);
-			ml_accept_block_def(Parser, Accept);
-			break;
-		}
-		case MLT_FUN: {
-			ml_next(Parser);
-			ml_accept_block_fun(Parser, Accept);
-			break;
-		}
-		case MLT_MUST: {
-			ml_next(Parser);
-			mlc_expr_t *Must = ml_accept_expression(Parser, EXPR_DEFAULT);
-			mlc_block_expr_t *MustExpr = ml_accept_block_body(Parser);
-			MustExpr->Must = Must;
-			Accept->ExprSlot[0] = ML_EXPR_END(MustExpr);
-			Accept->ExprSlot = &MustExpr->Next;
-			goto finish;
-		}
-		default: {
-			mlc_expr_t *Expr = ml_parse_block_expr(Parser, Accept);
-			if (!Expr) goto finish;
-			Accept->ExprSlot[0] = Expr;
-			Accept->ExprSlot = &Expr->Next;
-			break;
-		}
-		}
+		if (!ml_accept_block_child(Parser, Accept)) break;
 	} while (ml_parse(Parser, MLT_SEMICOLON) || ml_parse(Parser, MLT_EOL));
-	finish: {
-		int Index = 0, First = 0;
-		for (mlc_local_t *Local = BlockExpr->Vars; Local; Local = Local->Next) {
-			Local->Index = Index++;
-		}
-		BlockExpr->NumVars = Index;
-		First = Index;
-		for (mlc_local_t *Local = BlockExpr->Lets; Local; Local = Local->Next) {
-			Local->Index = Index++;
-		}
-		BlockExpr->NumLets = Index - First;
-		First = Index;
-		for (mlc_local_t *Local = BlockExpr->Defs; Local; Local = Local->Next) {
-			Local->Index = Index++;
-		}
-		BlockExpr->NumDefs = Index - First;
-	}
+	mlc_block_expr_finish(BlockExpr);
 	return BlockExpr;
 }
 
@@ -6816,19 +6739,6 @@ ML_METHOD("input", MLParserT, MLStringT, MLIntegerT) {
 //>compiler
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
 	ml_parser_input(Parser, ml_string_value(Args[1]), ml_integer_value(Args[2]));
-	return Args[0];
-}
-
-static ml_value_t *ml_parser_escape_fn(ml_value_t *Callback) {
-	return ml_simple_call(Callback, 0, NULL);
-}
-
-ML_METHOD("escape", MLParserT, MLFunctionT) {
-//<Parser
-//<Callback
-//>parser
-	ml_parser_t *Parser = (ml_parser_t *)Args[0];
-	ml_parser_escape(Parser, (void *)ml_parser_escape_fn, Args[1]);
 	return Args[0];
 }
 
@@ -7573,6 +7483,30 @@ static void ml_load_file_state_run(ml_load_file_state_t *State, ml_value_t *Valu
 	fclose(State->File);
 	ml_state_t *Caller = State->Base.Caller;
 	ML_RETURN(Value);
+}
+
+void ml_load_stdin(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *Parameters[]) {
+	ml_parser_t *Parser = ml_parser(ml_load_file_read, stdin);
+	Parser->Source.Name = "stdin";
+	const char *Line = ml_load_file_read(stdin);
+	if (!Line) ML_RETURN(ml_integer(0));
+	if (Line[0] == '#' && Line[1] == '!') {
+		Parser->Line = 2;
+		Line = ml_load_file_read(stdin);
+		if (!Line) ML_RETURN(ml_integer(0));
+	} else {
+		Parser->Line = 1;
+	}
+	Parser->Next = Line;
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) ML_RETURN(Parser->Value);
+	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
+	ml_load_file_state_t *State = new(ml_load_file_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_load_file_state_run;
+	State->File = stdin;
+	return ml_function_compile((ml_state_t *)State, Expr, Compiler, Parameters);
 }
 
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {

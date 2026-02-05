@@ -1024,17 +1024,36 @@ typedef struct {
 } ml_slice_iter_t;
 
 ML_TYPE(MLSliceIterT, (), "slice::iter");
+//!internal
+
+ML_TYPE(MLSliceBackwardsIterT, (MLSliceIterT), "slice::iter::backwards");
+//!internal
 
 #ifdef ML_MUTABLES
+
 ML_TYPE(MLSliceMutableIterT, (MLSliceIterT), "slice::mutable::iter");
+//!internal
+
+ML_TYPE(MLSliceMutableBackwardsIterT, (MLSliceMutableIterT), "slice::mutable::iter::backwards");
+//!internal
+
 #else
+
 #define MLSliceMutableIterT MLSliceIterT
+#define MLSliceMutableBackwardsIterT MLSliceBackwardsIterT
+
 #endif
 
 static void ML_TYPED_FN(ml_iter_next, MLSliceIterT, ml_state_t *Caller, ml_slice_index_t *Iter) {
 	ml_slice_t *Slice = Iter->Slice;
 	if (Iter->Index >= Slice->Length) ML_RETURN(MLNil);
 	++Iter->Index;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLSliceBackwardsIterT, ml_state_t *Caller, ml_slice_index_t *Iter) {
+	if (Iter->Index <= 1) ML_RETURN(MLNil);
+	--Iter->Index;
 	ML_RETURN(Iter);
 }
 
@@ -1046,11 +1065,8 @@ static void ML_TYPED_FN(ml_iter_key, MLSliceIterT, ml_state_t *Caller, ml_slice_
 
 static void ML_TYPED_FN(ml_iter_value, MLSliceIterT, ml_state_t *Caller, ml_slice_index_t *Iter) {
 	ml_slice_t *Slice = Iter->Slice;
-	if (Iter->Index <= Slice->Length) {
-		ML_RETURN(Slice->Nodes[Slice->Offset + Iter->Index - 1].Value);
-	} else {
-		ML_RETURN(MLNil);
-	}
+	if (Iter->Index < 1 || Iter->Index > Slice->Length) ML_RETURN(MLNil);
+	ML_RETURN(Slice->Nodes[Slice->Offset + Iter->Index - 1].Value);
 }
 
 #endif
@@ -1080,6 +1096,60 @@ static void ML_TYPED_FN(ml_iterate, MLSliceMutableT, ml_state_t *Caller, ml_slic
 	Iter->Type = MLSliceMutableIterT;
 	Iter->Slice = Slice;
 	Iter->Index = 1;
+	ML_RETURN(Iter);
+}
+
+#endif
+
+typedef struct {
+	ml_type_t *Type;
+	ml_slice_t *Slice;
+} ml_slice_backwards_t;
+
+ML_TYPE(MLSliceBackwardsT, (MLSequenceT), "slice::backwards");
+//!internal
+
+#ifdef ML_MUTABLES
+
+ML_TYPE(MLSliceMutableBackwardsT, (MLSliceBackwardsT), "slice::mutable::backwards");
+//!internal
+
+#else
+
+#define MLSliceMutableBackwardsT MLSliceBackwardsT
+
+#endif
+
+ML_METHOD("backwards", MLSliceT) {
+//<Slice
+//>Sequence
+// Returns a sequence which will iterate over :mini:`Slice` backwards.
+//$= map(slice("abc"):backwards)
+	ml_slice_backwards_t *Backwards = new(ml_slice_backwards_t);
+	Backwards->Type = MLSliceBackwardsT;
+	Backwards->Slice = (ml_slice_t *)Args[0];
+	return (ml_value_t *)Backwards;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLSliceBackwardsT, ml_state_t *Caller, ml_slice_backwards_t *Backwards) {
+	ml_slice_t *Slice = Backwards->Slice;
+	if (!Slice->Length) ML_RETURN(MLNil);
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceBackwardsIterT;
+	Iter->Slice = Slice;
+	Iter->Index = Slice->Length;
+	ML_RETURN(Iter);
+}
+
+#ifdef ML_MUTABLES
+
+static void ML_TYPED_FN(ml_iterate, MLSliceMutableBackwardsT, ml_state_t *Caller, ml_slice_backwards_t *Backwards) {
+	ml_slice_t *Slice = Backwards->Slice;
+	if (!Slice->Length) ML_RETURN(MLNil);
+	ml_slice_index_t *Iter = new(ml_slice_index_t);
+	Iter->Type = MLSliceMutableBackwardsIterT;
+	Iter->Slice = Slice;
+	Iter->Index = Slice->Length;
 	ML_RETURN(Iter);
 }
 

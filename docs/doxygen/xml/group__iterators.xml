@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="group__iterators" kind="group">
     <compoundname>iterators</compoundname>
     <title>Iterators</title>
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="339" column="18" declfile="src/ml_types.h" declline="339" declcolumn="18"/>
+        <location file="src/ml_types.h" line="358" column="18" declfile="src/ml_types.h" declline="358" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -38,7 +38,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="341" column="6" declfile="src/ml_types.h" declline="341" declcolumn="6"/>
+        <location file="src/ml_types.h" line="360" column="6" declfile="src/ml_types.h" declline="360" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1gae73f12ecd8e7e2808051e632a4a4be06" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -59,7 +59,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="342" column="6" declfile="src/ml_types.h" declline="342" declcolumn="6"/>
+        <location file="src/ml_types.h" line="361" column="6" declfile="src/ml_types.h" declline="361" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1gac43acf7cb1f818d158117bde4fd04970" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -80,7 +80,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="343" column="6" declfile="src/ml_types.h" declline="343" declcolumn="6"/>
+        <location file="src/ml_types.h" line="362" column="6" declfile="src/ml_types.h" declline="362" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1gac5128aa4a2c0a4ceba680d70e99e9ec9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -101,7 +101,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="344" column="6" declfile="src/ml_types.h" declline="344" declcolumn="6"/>
+        <location file="src/ml_types.h" line="363" column="6" declfile="src/ml_types.h" declline="363" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1gad17892853f1c491d8f8f0d1efbeab631" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -122,7 +122,91 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="345" column="6" declfile="src/ml_types.h" declline="345" declcolumn="6"/>
+        <location file="src/ml_types.h" line="364" column="6" declfile="src/ml_types.h" declline="364" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gacfff00207d77f05cbe49383770f81b1f" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_iterate_inline</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Value)</argsstring>
+        <name>ml_iterate_inline</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="366" column="20" bodyfile="src/ml_types.h" bodystart="366" bodyend="368"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1gac5af2bb1a03ef1192335003505b1fa18" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_iter_value_inline</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>ml_iter_value_inline</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="369" column="20" bodyfile="src/ml_types.h" bodystart="369" bodyend="371"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1ga2a3826a7d98225f96b7ddca494e0bb89" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_iter_key_inline</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>ml_iter_key_inline</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="372" column="20" bodyfile="src/ml_types.h" bodystart="372" bodyend="374"/>
+      </memberdef>
+      <memberdef kind="function" id="group__iterators_1ga35c19f4d825b2aa1b60a7a51f25bce9b" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ml_iter_next_inline</definition>
+        <argsstring>(ml_state_t *Caller, ml_value_t *Iter)</argsstring>
+        <name>ml_iter_next_inline</name>
+        <param>
+          <type><ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *</type>
+          <declname>Caller</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Iter</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="375" column="20" bodyfile="src/ml_types.h" bodystart="375" bodyend="377"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1ga4e71d6bf465f811e1ef83213f65876cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -143,7 +227,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="347" column="12" declfile="src/ml_types.h" declline="347" declcolumn="12"/>
+        <location file="src/ml_types.h" line="384" column="12" declfile="src/ml_types.h" declline="384" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1gae8980ea2a51e8e7d9ae571fe08184bdb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -163,7 +247,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="348" column="12" declfile="src/ml_types.h" declline="348" declcolumn="12"/>
+        <location file="src/ml_types.h" line="385" column="12" declfile="src/ml_types.h" declline="385" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1gaec234bd1761198d4c52eaab8bdfddced" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -184,7 +268,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="349" column="12" declfile="src/ml_types.h" declline="349" declcolumn="12"/>
+        <location file="src/ml_types.h" line="386" column="12" declfile="src/ml_types.h" declline="386" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1ga469d52d4441c804bef025e749bd7155d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -201,7 +285,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="351" column="12" declfile="src/ml_types.h" declline="351" declcolumn="12"/>
+        <location file="src/ml_types.h" line="388" column="12" declfile="src/ml_types.h" declline="388" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__iterators_1gab120644a7e278d2f859b3e1875e1433f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -218,7 +302,61 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="352" column="12" declfile="src/ml_types.h" declline="352" declcolumn="12"/>
+        <location file="src/ml_types.h" line="389" column="12" declfile="src/ml_types.h" declline="389" declcolumn="12"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__iterators_1ga13537ae6d186fc205cd12e4d7060685e" prot="public" static="no">
+        <name>ml_iterate</name>
+        <param><defname>CALLER</defname></param>
+        <param><defname>VALUE</defname></param>
+        <initializer>ml_iterate_inline(CALLER, VALUE)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="379" column="9" bodyfile="src/ml_types.h" bodystart="379" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__iterators_1gaa683cbc32f6fd9a92a1170fba3573a9b" prot="public" static="no">
+        <name>ml_iter_value</name>
+        <param><defname>CALLER</defname></param>
+        <param><defname>VALUE</defname></param>
+        <initializer>ml_iter_value_inline(CALLER, VALUE)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="380" column="9" bodyfile="src/ml_types.h" bodystart="380" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__iterators_1ga3f3b0754a679b2332aabb62de42f0761" prot="public" static="no">
+        <name>ml_iter_key</name>
+        <param><defname>CALLER</defname></param>
+        <param><defname>VALUE</defname></param>
+        <initializer>ml_iter_key_inline(CALLER, VALUE)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="381" column="9" bodyfile="src/ml_types.h" bodystart="381" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__iterators_1ga9d6e0f5b42e49dbba3e00776526e9ffb" prot="public" static="no">
+        <name>ml_iter_next</name>
+        <param><defname>CALLER</defname></param>
+        <param><defname>VALUE</defname></param>
+        <initializer>ml_iter_next_inline(CALLER, VALUE)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="382" column="9" bodyfile="src/ml_types.h" bodystart="382" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

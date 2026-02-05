@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="structml__tuple__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_tuple_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="506" column="11" bodyfile="src/ml_types.h" bodystart="506" bodyend="-1"/>
+        <location file="src/ml_types.h" line="543" column="11" bodyfile="src/ml_types.h" bodystart="543" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__tuple__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="507" column="5" bodyfile="src/ml_types.h" bodystart="507" bodyend="-1"/>
+        <location file="src/ml_types.h" line="544" column="5" bodyfile="src/ml_types.h" bodystart="544" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__tuple__t_1a89d568a12750246b9e6ca7798aa9541c" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -43,21 +43,26 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="507" column="10" bodyfile="src/ml_types.h" bodystart="507" bodyend="-1"/>
+        <location file="src/ml_types.h" line="544" column="10" bodyfile="src/ml_types.h" bodystart="544" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structml__tuple__t_1a77ea04ebbd682128002b5b9dcfd96053" prot="public" static="no" mutable="no">
-        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
-        <definition>ml_value_t* Values[]</definition>
-        <argsstring>[]</argsstring>
-        <name>Values</name>
-        <qualifiedname>ml_tuple_t::Values</qualifiedname>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structml__tuple__t_1a30df3a7708e08c88d033df71355c2eb0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *Values[]</type>
+        <definition>ml_value_t *Values[] __attribute__</definition>
+        <argsstring>((__counted_by__(Size)))</argsstring>
+        <name>__attribute__</name>
+        <qualifiedname>ml_tuple_t::__attribute__</qualifiedname>
+        <param>
+          <type>(__counted_by__(Size))</type>
+        </param>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="508" column="12" bodyfile="src/ml_types.h" bodystart="508" bodyend="-1"/>
+        <location file="src/ml_types.h" line="545" column="19"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -74,9 +79,6 @@
         <link refid="structml__tuple__t"/>
         <childnode refid="2" relation="usage">
           <edgelabel>Type</edgelabel>
-        </childnode>
-        <childnode refid="3" relation="usage">
-          <edgelabel>Values</edgelabel>
         </childnode>
       </node>
       <node id="2">
@@ -109,12 +111,12 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="505" column="1" bodyfile="src/ml_types.h" bodystart="505" bodyend="509"/>
+    <location file="src/ml_types.h" line="542" column="1" bodyfile="src/ml_types.h" bodystart="542" bodyend="546"/>
     <listofallmembers>
+      <member refid="structml__tuple__t_1a30df3a7708e08c88d033df71355c2eb0" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>__attribute__</name></member>
       <member refid="structml__tuple__t_1a89d568a12750246b9e6ca7798aa9541c" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>NoRefs</name></member>
       <member refid="structml__tuple__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>Size</name></member>
       <member refid="structml__tuple__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>Type</name></member>
-      <member refid="structml__tuple__t_1a77ea04ebbd682128002b5b9dcfd96053" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>Values</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

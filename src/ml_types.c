@@ -77,7 +77,9 @@ ML_FUNCTION(MLType) {
 }
 
 long ml_type_hash(ml_type_t *Type) {
-	return (intptr_t)Type;
+	long Hash = 5361;
+	for (const char *P = Type->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	return Hash;
 }
 
 void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
@@ -142,8 +144,22 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	const ml_type_t *Type = ml_typeof(Value);
 	if (Type == Expected) return 1;
 #ifdef ML_GENERICS
-	if (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
-	if (Type == Expected) return 1;
+	if (Type->Type == MLTypeGenericT) {
+		Type = ml_generic_type_args(Type)[0];
+		if (Type == Expected) return 1;
+	}
+#endif
+#ifdef ML_GENERICS
+	if (Expected->Type == MLTypeUnionT) {
+		ml_union_type_t *Union = (ml_union_type_t *)Expected;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+		for (int I = 0; I < Union->NumTypes; ++I) {
+#pragma GCC diagnostic pop
+			if (ml_is(Value, Union->Types[I])) return 1;
+		}
+		return 0;
+	}
 #endif
 	return (uintptr_t)inthash_search(Type->Parents, (uintptr_t)Expected);
 }
@@ -227,7 +243,7 @@ void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_
 	ml_value_t *Deref = ml_deref(Value);
 	if (Deref != Value) return ml_call(Caller, Deref, Count, Args);
 	ml_value_t **Args2 = ml_alloc_args(Count + 1);
-	for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
+	memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
 	Args2[0] = Value;
 	return ml_call(Caller, CallMethod, Count + 1, Args2);
 }
@@ -359,12 +375,6 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	Entry->Next = inthash_insert(MLTypedFns, (uintptr_t)TypedFn, Entry);
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
-
-typedef struct {
-	ml_type_t Base;
-	int NumTypes;
-	ml_type_t *Types[];
-} ml_union_type_t;
 
 ML_TYPE(MLTypeUnionT, (MLTypeT), "type::union");
 
@@ -643,8 +653,10 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 // Values //
 
 ML_TYPE(MLNullT, (), "null");
+//!internal
 
 ML_VALUE(MLNull, MLNullT);
+//!internal
 
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
@@ -746,7 +758,8 @@ static int ml_is_generic_subtype1(int TNumArgs, ml_type_t **TArgs, ml_type_t *U)
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
 		ml_generic_fill(Rule, TArgs2, TNumArgs, TArgs);
-		if (ml_is_generic_subtype1(TNumArgs2, TArgs2, U)) return 1;
+		int Rank = ml_is_generic_subtype1(TNumArgs2, TArgs2, U);
+		if (Rank) return Rank;
 	}
 	return 0;
 }
@@ -766,12 +779,38 @@ different:
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
 		ml_generic_fill(Rule, TArgs2, TNumArgs, TArgs);
-		if (ml_is_generic_subtype(TNumArgs2, TArgs2, UNumArgs, UArgs)) return 1;
+		int Rank = ml_is_generic_subtype(TNumArgs2, TArgs2, UNumArgs, UArgs);
+		if (Rank) return Rank;
 	}
 	return 0;
 }
 
 #endif
+
+int ml_is_subtype0(ml_type_t *T, ml_type_t *U) {
+	if (T == U) return 1;
+	if (U == MLAnyT) return 1;
+	if (inthash_search(T->Parents, (uintptr_t)U)) return 1;
+#ifdef ML_GENERICS
+	if (T->Type == MLTypeGenericT) {
+		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
+		/*if (GenericT->Args[0] == U) {
+			return 1;
+		} else*/ if (U->Type == MLTypeGenericT) {
+			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
+			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, GenericU->NumArgs, GenericU->Args);
+		}
+		//if (inthash_search(GenericT->Args[0]->Parents, (uintptr_t)U)) return 1;
+		return ml_is_generic_subtype1(GenericT->NumArgs, GenericT->Args, U);
+	} else if (U->Type == MLTypeGenericT) {
+		ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
+		return ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args);
+	} else {
+		return ml_is_generic_subtype1(1, &T, U);
+	}
+#endif
+	return 0;
+}
 
 int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 	if (T == U) return 1;
@@ -779,7 +818,8 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 	if (U->Type == MLTypeUnionT) {
 		ml_union_type_t *Union = (ml_union_type_t *)U;
 		for (int I = 0; I < Union->NumTypes; ++I) {
-			if (ml_is_subtype(T, Union->Types[I])) return 1;
+			ml_type_t *U2 = Union->Types[I];
+			if (ml_is_subtype0(T, U2)) return 1;
 		}
 		return 0;
 	}
@@ -1223,6 +1263,7 @@ void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Ha
 	if (function) {
 		function(Value, NewChain, Hash);
 	} else {
+		memset(Hash, 0, SHA256_BLOCK_SIZE);
 		*(long *)Hash = ml_typeof(Value)->hash(Value, NewChain);
 	}
 }
@@ -1691,6 +1732,13 @@ ml_value_t *ml_callable_module(const char *Path, ml_value_t *Fn, ...) {
 //!external
 
 ml_externals_t MLExternals[1] = {{MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}}};
+
+ml_externals_t *ml_externals(ml_externals_t *Parent) {
+	ml_externals_t *Externals = new(ml_externals_t);
+	Externals->Type = MLExternalSetT;
+	Externals->Next = Parent;
+	return Externals;
+}
 
 ml_value_t *ml_external(const char *Name, const char *Source, int Line) {
 	ml_external_t *External = new(ml_external_t);

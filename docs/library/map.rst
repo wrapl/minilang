@@ -240,6 +240,15 @@ map
       :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
+:mini:`meth (Map: map):backwards: Sequence`
+   Returns a sequence which will iterate over :mini:`Map` backwards.
+
+   .. code-block:: mini
+
+      map(map("abc"):backwards)
+      :> {3 is "c", 2 is "b", 1 is "a"}
+
+
 :mini:`meth (Map: map):count: integer`
    Returns the number of entries in :mini:`Map`.
 
@@ -293,8 +302,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "a"
-      M:random :> "a"
+      M:random :> "k"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):size: integer`

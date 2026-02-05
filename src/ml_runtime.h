@@ -142,6 +142,12 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args);
 
+typedef struct ml_call_wait_state_t ml_call_wait_state_t;
+
+ml_call_wait_state_t *ml_call_wait_state(ml_context_t *Context);
+
+ml_value_t *ml_call_state_wait(ml_call_wait_state_t *State);
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;

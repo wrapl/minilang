@@ -353,6 +353,27 @@ typedef struct {
 static void ml_table_append_next_iter(ml_table_appender_t *State, ml_value_t *Value);
 void ml_table_insert_row(ml_table_t *Table, size_t Index);
 
+void ml_table_column(ml_value_t *Table0, const char *Name, ml_array_format_t Format) {
+	ml_table_t *Table = (ml_table_t *)Table0;
+	ml_array_t *Source = ml_array(Format, 1, 4);
+	Source->Dimensions[0].Size = 0;
+	Source->Base.Length = 0;
+	ml_table_insert_column(Table, Name, Source);
+}
+
+ml_value_t *ml_table_append(ml_value_t *Table0, ml_value_t **Values) {
+	ml_table_t *Table = (ml_table_t *)Table0;
+	int Index = Table->Length + 1;
+	ml_table_insert_row(Table, Index);
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	for (ml_table_column_t *Column = Table->Columns; Column; Column = Column->Next) {
+		ml_value_t *Value = ml_simple_assign(ml_array_index(Column->Values, 1, Indices), *Values++);
+		if (ml_is_error(Value)) return Value;
+		Column = Column->Next;
+	}
+	return NULL;
+}
+
 static __attribute__ ((noinline)) ml_value_t * ml_table_append_row(ml_table_t *Table, ml_value_t *Value) {
 	int Index = Table->Length + 1;
 	ml_table_insert_row(Table, Index);

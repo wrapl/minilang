@@ -23,6 +23,10 @@ boolean
    Otherwise returns an error.
 
 
+:mini:`meth !(Bool: boolean): boolean`
+   Returns the logical inverse of :mini:`Bool`
+
+
 :mini:`meth (Arg₁: boolean) != (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
 

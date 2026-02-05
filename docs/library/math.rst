@@ -9,6 +9,10 @@ math
 
 .. rst-class:: mini-api
 
+:mini:`fun mlrandomchoice(Arg₁: any)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: complex):DeltaMethod(Arg₂: complex)`
    *TBD*
 
@@ -301,6 +305,10 @@ math
    *TBD*
 
 
+:mini:`type random::choice < function`
+   *TBD*
+
+
 :mini:`meth (X: real) % (Y: real): real`
    Returns the remainder of :mini:`X` on division by :mini:`Y`.
 
@@ -422,6 +430,15 @@ math
       math::ceil(-1.2345) :> -1
 
 
+:mini:`meth math::ceil(Arg₁: real, Arg₂: real): real`
+   Returns :mini:`ceil(Arg₁ * Arg₂) / Arg₂`.
+
+   .. code-block:: mini
+
+      math::ceil(1.2345, 100) :> 1.24
+      math::ceil(-1.2345, 32) :> -1.21875
+
+
 :mini:`meth math::cos(Arg₁: real): real`
    Returns :mini:`cos(Arg₁)`.
 
@@ -483,6 +500,15 @@ math
 
       math::floor(1.2345) :> 1
       math::floor(-1.2345) :> -2
+
+
+:mini:`meth math::floor(Arg₁: real, Arg₂: real): real`
+   Returns :mini:`floor(Arg₁ * Arg₂) / Arg₂`.
+
+   .. code-block:: mini
+
+      math::floor(1.2345, 100) :> 1.23
+      math::floor(-1.2345, 32) :> -1.25
 
 
 :mini:`meth math::hypot(Arg₁: real, Arg₂: real): real`

@@ -13,6 +13,9 @@ extern ml_type_t MLTableRowT[];
 
 void ml_table_init(stringmap_t *Globals);
 ml_value_t *ml_table();
+void ml_table_column(ml_value_t *Table, const char *Name, ml_array_format_t Format);
+ml_value_t *ml_table_append(ml_value_t *Table, ml_value_t **Values);
+
 ml_array_t *ml_table_insert(ml_value_t *Table, const char *Name, ml_value_t *Source);
 ml_value_t *ml_table_columns(ml_value_t *Table);
 int ml_table_column_foreach(ml_value_t *Table, void *Data, int (*fn)(ml_value_t *Name, ml_value_t *Values, void *Data));

@@ -115,7 +115,6 @@ void ml_parse_warn(ml_parser_t *Parser, const char *Error, const char *Format, .
 const mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 mlc_expr_t *ml_accept_expr(ml_parser_t *Parser);
 
-void ml_parser_escape(ml_parser_t *Parser, ml_value_t *(*Escape)(void *), void *Data);
 void ml_parser_special(ml_parser_t *Parser, ml_value_t *(*Special)(void *), void *Data);
 
 typedef ml_value_t *(*ml_parser_escape_t)(ml_parser_t *Parser);

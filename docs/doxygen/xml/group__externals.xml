@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="group__externals" kind="group">
     <compoundname>externals</compoundname>
     <title>Externals</title>
@@ -17,7 +17,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1522" column="29" bodyfile="src/ml_types.h" bodystart="1522" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1568" column="29" bodyfile="src/ml_types.h" bodystart="1568" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="group__externals_1ga27f584e8ed7e733ba66f1ae6c6a7c6bb" prot="public" static="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *(*</type>
@@ -30,7 +30,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1540" column="9" bodyfile="src/ml_types.h" bodystart="1540" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1588" column="9" bodyfile="src/ml_types.h" bodystart="1588" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="var">
@@ -45,7 +45,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1509" column="18" declfile="src/ml_types.h" declline="1509" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1555" column="18" declfile="src/ml_types.h" declline="1555" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__externals_1gacf1fce9ad8267b45c03259f33f2b8678" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -58,7 +58,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1510" column="18" declfile="src/ml_types.h" declline="1510" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1556" column="18" declfile="src/ml_types.h" declline="1556" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__externals_1gacb691b8ab8295533b6548e21857794df" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref></type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1531" column="23" declfile="src/ml_types.h" declline="1531" declcolumn="23"/>
+        <location file="src/ml_types.h" line="1577" column="23" declfile="src/ml_types.h" declline="1577" declcolumn="23"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -98,7 +98,24 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1520" column="12" declfile="src/ml_types.h" declline="1520" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1566" column="12" declfile="src/ml_types.h" declline="1566" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__externals_1ga9ccba433bc73603b1fabb10daaa9ed8b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref> *</type>
+        <definition>ml_externals_t * ml_externals</definition>
+        <argsstring>(ml_externals_t *Parent)</argsstring>
+        <name>ml_externals</name>
+        <param>
+          <type><ref refid="structml__externals__t" kindref="compound">ml_externals_t</ref> *</type>
+          <declname>Parent</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="1579" column="16" declfile="src/ml_types.h" declline="1579" declcolumn="16"/>
       </memberdef>
       <memberdef kind="function" id="group__externals_1ga380b46a551115456d5964f87854170f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char *</type>
@@ -119,7 +136,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1532" column="12" declfile="src/ml_types.h" declline="1532" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1580" column="12" declfile="src/ml_types.h" declline="1580" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__externals_1gafbbd21d0403b4ff590e5ebf1696a42dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -140,7 +157,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1533" column="12" declfile="src/ml_types.h" declline="1533" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1581" column="12" declfile="src/ml_types.h" declline="1581" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__externals_1ga0f673d48564801f5bf41926ceb9d7d1c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -165,7 +182,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1534" column="6" declfile="src/ml_types.h" declline="1534" declcolumn="6"/>
+        <location file="src/ml_types.h" line="1582" column="6" declfile="src/ml_types.h" declline="1582" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__externals_1ga78e180c2c39aaff40016215e9020402b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -186,7 +203,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1536" column="6" declfile="src/ml_types.h" declline="1536" declcolumn="6"/>
+        <location file="src/ml_types.h" line="1584" column="6" declfile="src/ml_types.h" declline="1584" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__externals_1ga06ebdfbc1846b43caef6d3d8ee970f7c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -203,7 +220,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1538" column="12" declfile="src/ml_types.h" declline="1538" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1586" column="12" declfile="src/ml_types.h" declline="1586" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__externals_1ga57aecb5be286c7a71b4b7fb7e355fd15" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -224,7 +241,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1542" column="6" declfile="src/ml_types.h" declline="1542" declcolumn="6"/>
+        <location file="src/ml_types.h" line="1590" column="6" declfile="src/ml_types.h" declline="1590" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="group__externals_1ga532d8b47261157966ec0f0f45db97af3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -249,7 +266,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1543" column="12" declfile="src/ml_types.h" declline="1543" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1591" column="12" declfile="src/ml_types.h" declline="1591" declcolumn="12"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -263,7 +280,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1547" column="9" bodyfile="src/ml_types.h" bodystart="1547" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1595" column="9" bodyfile="src/ml_types.h" bodystart="1595" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

@@ -675,8 +675,17 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "k"
       random([]) :> nil
+
+
+:mini:`meth random::by(Sequence: sequence, ...)`
+   Returns a random key produced by :mini:`Sequence` weighted by its values.
+
+   .. code-block:: mini
+
+      count2(1 .. 60000;) random::by(swap("cat"))
+      :> {"a" is 20128, "t" is 30011, "c" is 9861}
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`

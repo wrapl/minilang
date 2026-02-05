@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structmlc__token__t" kind="struct" language="C++" prot="public">
+    <compoundname>mlc_token_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmlc__token__t_1a399fa1afb8518ed8539efd7e21e1dba8" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__token__t" kindref="compound">mlc_token_t</ref> *</type>
+        <definition>mlc_token_t* Next</definition>
+        <argsstring></argsstring>
+        <name>Next</name>
+        <qualifiedname>mlc_token_t::Next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="424" column="13" bodyfile="src/ml_compiler2.h" bodystart="424" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__token__t_1abd8eff2c91d0ec0945d44181e9954b42" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* General</definition>
+        <argsstring></argsstring>
+        <name>General</name>
+        <qualifiedname>mlc_token_t::General</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="425" column="6" bodyfile="src/ml_compiler2.h" bodystart="425" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__token__t_1ab0dd8704f8a586d7b9e86cb824197481" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
+        <definition>ml_source_t Source</definition>
+        <argsstring></argsstring>
+        <name>Source</name>
+        <qualifiedname>mlc_token_t::Source</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="426" column="13" bodyfile="src/ml_compiler2.h" bodystart="426" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmlc__token__t_1a467f11d902b73ee0102af63ac791ec3b" prot="public" static="no" mutable="no">
+        <type>ml_token_t</type>
+        <definition>ml_token_t Token</definition>
+        <argsstring></argsstring>
+        <name>Token</name>
+        <qualifiedname>mlc_token_t::Token</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="427" column="12" bodyfile="src/ml_compiler2.h" bodystart="427" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>ml_source_t</label>
+        <link refid="structml__source__t"/>
+      </node>
+      <node id="1">
+        <label>mlc_token_t</label>
+        <link refid="structmlc__token__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Source</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="423" column="1" bodyfile="src/ml_compiler2.h" bodystart="423" bodyend="428"/>
+    <listofallmembers>
+      <member refid="structmlc__token__t_1abd8eff2c91d0ec0945d44181e9954b42" prot="public" virt="non-virtual"><scope>mlc_token_t</scope><name>General</name></member>
+      <member refid="structmlc__token__t_1a399fa1afb8518ed8539efd7e21e1dba8" prot="public" virt="non-virtual"><scope>mlc_token_t</scope><name>Next</name></member>
+      <member refid="structmlc__token__t_1ab0dd8704f8a586d7b9e86cb824197481" prot="public" virt="non-virtual"><scope>mlc_token_t</scope><name>Source</name></member>
+      <member refid="structmlc__token__t_1a467f11d902b73ee0102af63ac791ec3b" prot="public" virt="non-virtual"><scope>mlc_token_t</scope><name>Token</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

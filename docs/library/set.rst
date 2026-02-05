@@ -178,6 +178,15 @@ set
       A \/ B :> {b, a, n, r, e, d}
 
 
+:mini:`meth (Set: set):backwards: Sequence`
+   Returns a sequence which will iterate over :mini:`Set` backwards.
+
+   .. code-block:: mini
+
+      map(set("abc"):backwards)
+      :> {"c" is "c", "b" is "b", "a" is "a"}
+
+
 :mini:`meth (Set: set):count: integer`
    Returns the number of values in :mini:`Set`.
 
@@ -230,8 +239,8 @@ set
    .. code-block:: mini
 
       let S := set("cake") :> {c, a, k, e}
+      S:random :> "a"
       S:random :> "e"
-      S:random :> "k"
 
 
 :mini:`meth (Set: set):size: integer`

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="structml__double__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_double_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="717" column="11" bodyfile="src/ml_types.h" bodystart="717" bodyend="-1"/>
+        <location file="src/ml_types.h" line="759" column="11" bodyfile="src/ml_types.h" bodystart="759" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__double__t_1a7b7e5af44fffe84c91c63ba0781ffdb3" prot="public" static="no" mutable="no">
         <type>double</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="718" column="8" bodyfile="src/ml_types.h" bodystart="718" bodyend="-1"/>
+        <location file="src/ml_types.h" line="760" column="8" bodyfile="src/ml_types.h" bodystart="760" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -78,7 +78,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="716" column="1" bodyfile="src/ml_types.h" bodystart="716" bodyend="719"/>
+    <location file="src/ml_types.h" line="758" column="1" bodyfile="src/ml_types.h" bodystart="758" bodyend="761"/>
     <listofallmembers>
       <member refid="structml__double__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_double_t</scope><name>Type</name></member>
       <member refid="structml__double__t_1a7b7e5af44fffe84c91c63ba0781ffdb3" prot="public" virt="non-virtual"><scope>ml_double_t</scope><name>Value</name></member>

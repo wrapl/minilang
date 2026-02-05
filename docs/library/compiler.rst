@@ -149,10 +149,6 @@ compiler
    *TBD*
 
 
-:mini:`meth (Parser: parser):escape(Callback: function): parser`
-   *TBD*
-
-
 :mini:`meth (Parser: parser):evaluate(Compiler: compiler): any`
    *TBD*
 

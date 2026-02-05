@@ -117,6 +117,16 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 			Object->Fields[I + 1].Value = Arg;
 		}
 	}
+	if (Class->Defaults) {
+		ml_init_state_t *State = xnew(ml_init_state_t, Count + 1, ml_value_t *);
+		State->Args[0] = (ml_value_t *)Object;
+		for (int I = 0; I < Count; ++I) State->Args[I + 1] = Args[I];
+		State->Base.run = (void *)ml_init_state_run;
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Object = (ml_value_t *)Object;
+		return ml_call(State, Class->Defaults, 1, State->Args);
+	}
 	ml_field_t *Field = Object->Fields + 1;
 	for (ml_field_info_t *Info = Class->Fields; Info; Info = Info->Next) {
 		(Field++)->Type = Info->Type;
@@ -428,6 +438,11 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLUUIDT, ml_context_t *Context, 
 	return NULL;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_class_modify, MLFunctionT, ml_context_t *Context, ml_class_t *Class, ml_value_t *Function) {
+	Class->Defaults = Function;
+	return NULL;
+}
+
 ML_FUNCTIONZ(MLClass) {
 //!object
 //@class
@@ -549,6 +564,8 @@ ML_FUNCTIONZ(MLClass) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
 						Class->Initializer = Value;
+					} else if (!strcmp(Name, "defaults")) {
+						Class->Defaults = Value;
 					} else if (!strcmp(Name, "()")) {
 						Class->Base.call = (void *)ml_object_call;
 						Class->Call = Value;
@@ -561,6 +578,7 @@ ML_FUNCTIONZ(MLClass) {
 				if (Error) ML_RETURN(Error);
 			}
 		}
+		if (Class->Initializer && Class->Defaults) ML_ERROR("CallError", "Only one of init and defaults can be specified");
 		if (Id) {
 			memcpy(Class->Id, ml_uuid_value(Id), sizeof(uuid_t));
 			ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);

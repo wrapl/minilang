@@ -1610,6 +1610,28 @@ static void utf8_expand(const char *S, uint32_t *P) {
 	*P++ = 0;
 }
 
+size_t ml_string_count(ml_value_t *S) {
+	return utf8_strlen(S);
+}
+
+void ml_string_codes(ml_value_t *S, uint32_t *P) {
+	return utf8_expand(ml_string_value(S), P);
+}
+
+int ml_string_utf8(uint32_t Code, char *Out) {
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 8;
+	while (Code > LeadByteMax) {
+		Val[--I] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 7 ? 2 : 1);
+	}
+	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	memcpy(Out, Val + I, 8 - I);
+	return 8 - I;
+}
+
 typedef struct {
 	const char *Chars;
 	size_t Length;
@@ -4727,6 +4749,7 @@ typedef struct {
 	ml_value_t *Index;
 	ml_string_t *String;
 	ml_regex_t *Regex;
+	ml_integer_interval_t *Interval;
 } ml_string_case_t;
 
 typedef struct {
@@ -4755,6 +4778,11 @@ static void ml_string_switch(ml_state_t *Caller, ml_string_switch_t *Switch, int
 #else
 			if (!regexec(Case->Regex->Value, Subject, 0, NULL, 0)) {
 #endif
+				ML_RETURN(Case->Index);
+			}
+		} else if (Case->Interval) {
+			uint32_t Code = utf8_code(Subject);
+			if (Case->Interval->Start <= Code && Case->Interval->Limit >= Code) {
 				ML_RETURN(Case->Index);
 			}
 		} else {
@@ -4800,6 +4828,8 @@ ML_FUNCTION_INLINE(MLStringSwitch) {
 				Case->String = (ml_string_t *)Value;
 			} else if (ml_is(Value, MLRegexT)) {
 				Case->Regex = (ml_regex_t *)Value;
+			} else if (ml_is(Value, MLStringIntervalT)) {
+				Case->Interval = (ml_integer_interval_t *)Value;
 			} else {
 				return ml_error("ValueError", "Unsupported value in string case");
 			}

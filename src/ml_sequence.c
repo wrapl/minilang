@@ -1402,6 +1402,7 @@ static void random_iterate(ml_random_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODVX("random", MLTypeT) {
+//@random
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Random = stringmap_search(Type->Exports, "random");
 	if (Random) {
@@ -1420,18 +1421,69 @@ ML_METHODVX("random", MLTypeT) {
 }
 
 ML_METHODVX("random", MLSequenceT) {
+//@random
 //<Sequence
 //>any | nil
 // Returns a random value produced by :mini:`Sequence`.
 //$= random("cake")
 //$= random([])
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_random_state_t *State = new(ml_random_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)random_iterate;
 	State->Index = 0;
+	State->Value = MLNil;
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Value;
+	ml_value_t *Iter, *Weight;
+	double Total;
+} ml_random_by_state_t;
+
+static void random_by_iterate(ml_random_by_state_t *State, ml_value_t *Value);
+
+static void random_by_key(ml_random_by_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Value = Value;
+	State->Base.run = (ml_state_fn)random_by_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void random_by_value(ml_random_by_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	double Weight = ml_real_value(ml_deref(Value));
+	if (Weight > 0) {
+		double Total = State->Total + Weight;
+		double Threshold = Weight / Total;
+		State->Total = Total;
+		if (ml_random_real() < Threshold) {
+			State->Base.run = (ml_state_fn)random_by_key;
+			return ml_iter_key((ml_state_t *)State, State->Iter);
+		}
+	}
+	State->Base.run = (ml_state_fn)random_by_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void random_by_iterate(ml_random_by_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Value);
+	State->Base.run = (ml_state_fn)random_by_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODVX("random::by", MLSequenceT) {
+//@random::by
+//<Sequence
+// Returns a random key produced by :mini:`Sequence` weighted by its values.
+//$= count2(1 .. 60000;) random::by(swap("cat"))
+	ml_random_by_state_t *State = new(ml_random_by_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)random_by_iterate;
 	State->Value = MLNil;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -4831,6 +4883,9 @@ void ml_sequence_init(stringmap_t *Globals) {
 	ml_externals_default_add("min", Min);
 	ml_externals_default_add("max", Max);
 	ml_externals_default_add("unique", Unique);
+	ml_externals_default_add("key", Key);
+	ml_externals_default_add("dup", Dup);
+	ml_externals_default_add("swap", Swap);
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);
 		stringmap_insert(Globals, "first", ml_method("first"));

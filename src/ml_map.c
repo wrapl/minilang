@@ -1695,6 +1695,48 @@ ML_METHOD("take", MLMapMutableT, MLMapMutableT) {
 
 typedef struct {
 	ml_type_t *Type;
+	ml_map_t *Map;
+	ml_map_node_t *Node;
+} ml_map_backwards_t;
+
+ML_TYPE(MLMapBackwardsT, (MLSequenceT), "map::backwards");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLMapBackwardsT, ml_state_t *Caller, ml_map_backwards_t *Backwards) {
+	ml_map_node_t *Node = Backwards->Map->Tail;
+	if (!Node) ML_RETURN(MLNil);
+	Backwards->Node = Node;
+	ML_RETURN(Backwards);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLMapBackwardsT, ml_state_t *Caller, ml_map_backwards_t *Backwards) {
+	ml_map_node_t *Node = Backwards->Node->Prev;
+	if (!Node) ML_RETURN(MLNil);
+	Backwards->Node = Node;
+	ML_RETURN(Backwards);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLMapBackwardsT, ml_state_t *Caller, ml_map_backwards_t *Backwards) {
+	ML_RETURN(Backwards->Node->Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLMapBackwardsT, ml_state_t *Caller, ml_map_backwards_t *Backwards) {
+	ML_RETURN(Backwards->Node);
+}
+
+ML_METHOD("backwards", MLMapT) {
+//<Map
+//>Sequence
+// Returns a sequence which will iterate over :mini:`Map` backwards.
+//$= map(map("abc"):backwards)
+	ml_map_backwards_t *Backwards = new(ml_map_backwards_t);
+	Backwards->Type = MLMapBackwardsT;
+	Backwards->Map = (ml_map_t *)Args[0];
+	return (ml_value_t *)Backwards;
+}
+
+typedef struct {
+	ml_type_t *Type;
 	ml_map_node_t *Node;
 } ml_map_from_t;
 

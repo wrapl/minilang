@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="ml__table_8h" kind="file" language="C++">
     <compoundname>ml_table.h</compoundname>
     <includes refid="minilang_8h" local="yes">minilang.h</includes>
@@ -168,6 +168,52 @@
         </inbodydescription>
         <location file="src/ml_table.h" line="15" column="12" declfile="src/ml_table.h" declline="15" declcolumn="12"/>
       </memberdef>
+      <memberdef kind="function" id="ml__table_8h_1a7d5f6058e2e4a159a5ce34c494fb59f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_table_column</definition>
+        <argsstring>(ml_value_t *Table, const char *Name, ml_array_format_t Format)</argsstring>
+        <name>ml_table_column</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Table</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>ml_array_format_t</type>
+          <declname>Format</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_table.h" line="16" column="6" declfile="src/ml_table.h" declline="16" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ml__table_8h_1ad894b5ca13a8914e2fc178517169644d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_table_append</definition>
+        <argsstring>(ml_value_t *Table, ml_value_t **Values)</argsstring>
+        <name>ml_table_append</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Table</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> **</type>
+          <declname>Values</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_table.h" line="17" column="12" declfile="src/ml_table.h" declline="17" declcolumn="12"/>
+      </memberdef>
       <memberdef kind="function" id="ml__table_8h_1aa1e10b1917535e4ff264448e75b360e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__array__t" kindref="compound">ml_array_t</ref> *</type>
         <definition>ml_array_t * ml_table_insert</definition>
@@ -191,7 +237,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_table.h" line="16" column="12" declfile="src/ml_table.h" declline="16" declcolumn="12"/>
+        <location file="src/ml_table.h" line="19" column="12" declfile="src/ml_table.h" declline="19" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="ml__table_8h_1a2edd7588e6c703f4809ceb8d53c6679f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -208,7 +254,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_table.h" line="17" column="12" declfile="src/ml_table.h" declline="17" declcolumn="12"/>
+        <location file="src/ml_table.h" line="20" column="12" declfile="src/ml_table.h" declline="20" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="ml__table_8h_1aaa6b2b2a60299c996d9df5c52313ba85" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -233,7 +279,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_table.h" line="18" column="5" declfile="src/ml_table.h" declline="18" declcolumn="5"/>
+        <location file="src/ml_table.h" line="21" column="5" declfile="src/ml_table.h" declline="21" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="ml__table_8h_1a0975197b32ba6df200f02d5eb251dd4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -250,7 +296,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_table.h" line="20" column="12" declfile="src/ml_table.h" declline="20" declcolumn="12"/>
+        <location file="src/ml_table.h" line="23" column="12" declfile="src/ml_table.h" declline="23" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="ml__table_8h_1a3555337a84eb00e58e032a951daf134a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -275,7 +321,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_table.h" line="21" column="5" declfile="src/ml_table.h" declline="21" declcolumn="5"/>
+        <location file="src/ml_table.h" line="24" column="5" declfile="src/ml_table.h" declline="24" declcolumn="5"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -298,18 +344,21 @@
 <codeline lineno="13"><highlight class="normal"></highlight></codeline>
 <codeline lineno="14"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_table_init(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Globals);</highlight></codeline>
 <codeline lineno="15"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_table();</highlight></codeline>
-<codeline lineno="16"><highlight class="normal"><ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*ml_table_insert(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Source);</highlight></codeline>
-<codeline lineno="17"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_table_columns(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table);</highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_table_column_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*fn)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Values,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data));</highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_table_row_table(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*TableRow);</highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_table_row_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*TableRow,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*fn)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_table_column(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/>ml_array_format_t<sp/>Format);</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_table_append(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>**Values);</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><ref refid="structml__array__t" kindref="compound">ml_array_t</ref><sp/>*ml_table_insert(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Source);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_table_columns(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_table_column_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Table,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*fn)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Name,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Values,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data));</highlight></codeline>
 <codeline lineno="22"><highlight class="normal"></highlight></codeline>
-<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="24"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight></codeline>
-<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_table_row_table(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*TableRow);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_table_row_foreach(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*TableRow,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*fn)(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_table.h"/>
   </compounddef>

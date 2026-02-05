@@ -147,18 +147,24 @@ static inline const char *ml_type_name(const ml_type_t *Value) {
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
 
+typedef struct {
+	ml_type_t Base;
+	int NumTypes;
+	ml_type_t *Types[] __attribute__((__counted_by__(NumTypes)));
+} ml_union_type_t;
+
 extern ml_type_t MLTypeUnionT[];
 
 ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]);
 
 #ifndef GENERATE_INIT
 
-#define ML_UNION_TYPE(TYPE, ...) ml_value_t *TYPE
+#define ML_UNION_TYPE(TYPE, ...) ml_type_t *TYPE
 
 #else
 
 #define ML_UNION_TYPE(TYPE, ...) \
-INIT_CODE TYPE = (ml_value_t *)ml_union_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
+INIT_CODE TYPE = ml_union_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
 
 #endif
 
@@ -170,7 +176,7 @@ struct ml_generic_type_t {
 	ml_type_t Base;
 	int NumArgs;
 	ml_generic_type_t *NextGeneric;
-	ml_type_t *Args[];
+	ml_type_t *Args[] __attribute__((__counted_by__(NumArgs)));
 };
 
 extern ml_type_t MLTypeGenericT[];
@@ -200,6 +206,7 @@ void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((s
 #define ML_TYPE_ARG(N) ((N << 1) + 1)
 
 int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
+int ml_is_subtype0(ml_type_t *T, ml_type_t *U) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
 typedef struct {
@@ -535,7 +542,7 @@ extern ml_type_t MLTupleT[];
 struct ml_tuple_t {
 	ml_type_t *Type;
 	int Size, NoRefs;
-	ml_value_t *Values[];
+	ml_value_t *Values[] __attribute__((__counted_by__(Size)));
 };
 
 ml_value_t *ml_tuple(size_t Size) __attribute__((malloc));
@@ -602,6 +609,7 @@ extern ml_type_t MLInteger64T[];
 
 uint64_t ml_gcd(uint64_t A, uint64_t B);
 uint64_t ml_random_integer(uint64_t Limit);
+double ml_random_real();
 
 #ifdef ML_RATIONAL
 
@@ -711,13 +719,17 @@ static inline int64_t ml_integer32_value(const ml_value_t *Value) {
 	return (int32_t)(intptr_t)Value;
 }
 
-static inline int64_t ml_integer64_value(const ml_value_t *Value) {
 #ifdef ML_BIGINT
-	return mpz_get_s64(((ml_integer_t *)Value)->Value);
+
+int64_t ml_integer64_value(const ml_value_t *Value);
+
 #else
+
+static inline int64_t ml_integer64_value(const ml_value_t *Value) {
 	return ((ml_integer_t *)Value)->Value;
-#endif
 }
+
+#endif
 
 static inline double ml_double_value(const ml_value_t *Value) {
 	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
@@ -889,6 +901,10 @@ ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, for
 #define ml_string_value ml_address_value
 #define ml_string_length ml_address_length
 
+size_t ml_string_count(ml_value_t *S);
+void ml_string_codes(ml_value_t *S, uint32_t *P);
+int ml_string_utf8(uint32_t Code, char *Out);
+
 //#define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
 #define ml_cstring(VALUE) ({ \
 	static ml_string_t String ## __COUNTER__ = {MLStringT, VALUE, strlen(VALUE), 0}; \
@@ -955,7 +971,7 @@ static inline ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const cha
 
 size_t ml_stringbuffer_read(ml_stringbuffer_t *Buffer, void *Address, size_t Count);
 
-static inline void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
+static inline ssize_t ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
 	int I = 8;
@@ -965,7 +981,7 @@ static inline void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Cod
 		LeadByteMax >>= (I == 7 ? 2 : 1);
 	}
 	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	ml_stringbuffer_write(Buffer, Val + I, 8 - I);
+	return ml_stringbuffer_write(Buffer, Val + I, 8 - I);
 }
 
 ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
@@ -1182,7 +1198,7 @@ struct ml_method_cached_t {
 	ml_method_t *Method;
 	ml_value_t *Callback;
 	int Count, Score;
-	ml_type_t *Types[];
+	ml_type_t *Types[] __attribute__((__counted_by__(Count)));
 };
 
 ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
@@ -1235,17 +1251,17 @@ static inline ml_value_t *ml_nop(void *Value) {
 
 #else
 
-#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, (void *)NULL);
 
-#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_methodx_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_methodx_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, (void *)NULL);
 
-#define ML_METHODZ(METHOD, TYPES ...) INIT_CODE ml_methodz_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+#define ML_METHODZ(METHOD, TYPES ...) INIT_CODE ml_methodz_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, (void *)NULL);
 
-#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, (void *)NULL);
 
-#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_methodx_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_methodx_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, (void *)NULL);
 
-#define ML_METHODVZ(METHOD, TYPES ...) INIT_CODE ml_methodz_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+#define ML_METHODVZ(METHOD, TYPES ...) INIT_CODE ml_methodz_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, (void *)NULL);
 
 #endif
 
@@ -1559,6 +1575,8 @@ struct ml_externals_t {
 };
 
 extern ml_externals_t MLExternals[1];
+
+ml_externals_t *ml_externals(ml_externals_t *Parent);
 const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value);
 ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name);
 void ml_externals_add(ml_externals_t *Externals, const char *Name, void *Value);

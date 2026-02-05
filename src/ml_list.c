@@ -1154,6 +1154,50 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 typedef struct {
 	ml_type_t *Type;
 	ml_list_t *List;
+	ml_list_node_t *Node;
+} ml_list_backwards_t;
+
+ML_TYPE(MLListBackwardsT, (MLSequenceT), "list::backwards");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLListBackwardsT, ml_state_t *Caller, ml_list_backwards_t *Backwards) {
+	ml_list_node_t *Node = Backwards->List->Tail;
+	if (!Node) ML_RETURN(MLNil);
+	Node->Index = Backwards->List->Length;
+	Backwards->Node = Node;
+	ML_RETURN(Backwards);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLListBackwardsT, ml_state_t *Caller, ml_list_backwards_t *Backwards) {
+	ml_list_node_t *Node = Backwards->Node->Prev;
+	if (!Node) ML_RETURN(MLNil);
+	Node->Index = Backwards->Node->Index - 1;
+	Backwards->Node = Node;
+	ML_RETURN(Backwards);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLListBackwardsT, ml_state_t *Caller, ml_list_backwards_t *Backwards) {
+	ML_RETURN(ml_integer(Backwards->Node->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLListBackwardsT, ml_state_t *Caller, ml_list_backwards_t *Backwards) {
+	ML_RETURN(Backwards->Node);
+}
+
+ML_METHOD("backwards", MLListT) {
+//<List
+//>Sequence
+// Returns a sequence which will iterate over :mini:`List` backwards.
+//$= map(list("abc"):backwards)
+	ml_list_backwards_t *Backwards = new(ml_list_backwards_t);
+	Backwards->Type = MLListBackwardsT;
+	Backwards->List = (ml_list_t *)Args[0];
+	return (ml_value_t *)Backwards;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_list_t *List;
 	int Count;
 } ml_list_skip_t;
 

@@ -145,8 +145,21 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	}
 	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
-		if (!ml_is_subtype(Types[I], Type)) return 0;
-		Score += 5 + Type->Rank;
+		if (Type->Type == MLTypeUnionT) {
+			ml_union_type_t *Union = (ml_union_type_t *)Type;
+			for (int J = 0; J < Union->NumTypes; ++J) {
+				ml_type_t *Type2 = Union->Types[J];
+				if (ml_is_subtype0(Types[I], Type2)) {
+					Score += 4 + Type2->Rank;
+					goto next;
+				}
+			}
+			return 0;
+		} else {
+			if (!ml_is_subtype0(Types[I], Type)) return 0;
+			Score += 5 + Type->Rank;
+		}
+	next:;
 	}
 	return Score;
 }
@@ -423,6 +436,17 @@ static void ML_TYPED_FN(ml_value_set_name, MLMethodAnonT, ml_method_t *Method, c
 }
 
 ML_METHODV(MLMethodDefault, MLMethodT) {
+//@method::default
+//<Method
+//>error
+// The default handler for method calls with no matching signature. Returns an error describing the missing signature.
+//
+// This method can be overridden to create remote proxies, custom error method errors, etc.
+//$= "A" *** "B"
+//$= 2 *** "B"
+//$= meth method::default(M: method, X: number, [Y]) 'New default handler! ({M}, {X}, {Y})'
+//$= "A" *** "B"
+//$= 2 *** "B"
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	//printf("Calling default method for %s", Method->Name);
 	int Length = 4;

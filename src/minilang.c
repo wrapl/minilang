@@ -16,6 +16,7 @@
 #include "ml_stream.h"
 #include "ml_logging.h"
 #include <sys/fcntl.h>
+#include <errno.h>
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -245,8 +246,131 @@ static int copy_export(const char *Name, void *Value, void *Data) {
 	return 0;
 }
 
-ML_FUNCTION(MLNullFn) {
+/*ML_FUNCTION(MLNullFn) {
 	return NULL;
+}*/
+
+#ifdef ML_CBOR
+
+ml_value_t *ml_state_load(FILE *File, ml_state_t *Base) {
+	ml_externals_t *Externals = ml_externals(MLExternals);
+	if (Base) ml_externals_add(Externals, "base-state", Base);
+	ml_cbor_reader_t *Reader = ml_cbor_reader(NULL, (ml_external_fn_t)ml_externals_get_value, Externals);
+	unsigned char Buffer[1024];
+	while (!ml_cbor_reader_done(Reader)) {
+		ssize_t Actual = fread(Buffer, 1, 1024, File);
+		if (Actual < 0) return ml_error("CBORError", "Error reading from file: %s", strerror(errno));
+		ml_cbor_reader_read(Reader, Buffer, Actual);
+	}
+	return ml_cbor_reader_get(Reader);
+}
+
+static int file_write(FILE *File, const unsigned char *Bytes, size_t Size) {
+	return fwrite(Bytes, 1, Size, File);
+}
+
+ml_value_t *ml_state_save(FILE *File, ml_state_t *State, ml_state_t *Base) {
+	if (!State->Type) return ml_error("CBORError", "Can not serialize untyped state");
+	if (Base && !Base->Type) Base->Type = MLStateT;
+	ml_externals_t *Externals = ml_externals(MLExternals);
+	if (Base) ml_externals_add(Externals, "base-state", Base);
+	return ml_cbor_encode_to(File, (ml_cbor_write_fn)file_write, Externals, (ml_value_t *)State);
+}
+
+ML_FUNCTIONX(MLSaveState) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ml_state_t *Base = NULL;
+	if (Count > 1) {
+		ML_CHECKX_ARG_TYPE(1, MLStateT);
+		Base = (ml_state_t *)Args[1];
+	}
+	const char *FileName = ml_string_value(Args[0]);
+	FILE *File = fopen(FileName, "w");
+	if (!File) ML_ERROR("FileError", "Unable to open %s: %s", FileName, strerror(errno));
+	ml_value_t *Error = ml_state_save(File, Caller, Base);
+	fclose(File);
+	if (Base) Caller = Base;
+	if (Error) ML_RETURN(Error);
+	ML_RETURN(MLNil);
+}
+
+ML_FUNCTIONX(MLResumeState) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *FileName = ml_string_value(Args[0]);
+	FILE *File = fopen(FileName, "r");
+	if (!File) ML_ERROR("FileError", "Unable to open %s: %s", FileName, strerror(errno));
+	ml_value_t *State = ml_state_load(File, Caller);
+	if (ml_is_error(State)) ML_RETURN(State);
+	ml_state_schedule((ml_state_t *)State, MLNil);
+}
+
+#endif
+
+static void load_cbor_run(const char *FileName) {
+	FILE *File = stdin;
+	if (FileName) {
+		File = fopen(FileName, "r");
+		if (!File) {
+			fprintf(stderr, "ReadError: error opening %s: %s\n", FileName, strerror(errno));
+			exit(-1);
+		}
+	}
+	ml_cbor_reader_t *Reader = ml_cbor_reader(NULL, NULL, NULL);
+	unsigned char Buffer[256];
+	for (;;) {
+		size_t Actual = fread(Buffer, 1, 256, File);
+		if (!Actual) break;
+		ml_cbor_reader_read(Reader, Buffer, Actual);
+		if (ml_cbor_reader_done(Reader)) break;
+	}
+	ml_value_t *Value = ml_cbor_reader_get(Reader);
+	if (ml_is_error(Value)) goto error;
+	if (!ml_is(Value, MLListT) || ml_list_length(Value) != 2) {
+		Value = ml_error("ProtocolError", "Invalid run config");
+		goto error;
+	}
+	ml_value_t *Script = ml_list_get(Value, 1);
+	ml_value_t *Args = ml_list_get(Value, 2);
+	if (!ml_is(Script, MLStringT) || !ml_is(Args, MLMapT)) {
+		Value = ml_error("ProtocolError", "Invalid run config");
+		goto error;
+	}
+	const char **Params = anew(const char *, ml_map_size(Args));
+	const char **Param = Params;
+	ml_state_t *Main = ml_state(NULL);
+	Main->run = ml_main_state_run;
+	ml_call_state_t *State = ml_call_state(Main, ml_map_size(Args));
+	State->Count = ml_map_size(Args);
+	ml_value_t **Arg = State->Args;
+	ML_MAP_FOREACH(Args, Iter) {
+		if (!ml_is(Iter->Key, MLStringT)) {
+			Value = ml_error("ProtocolError", "Invalid run config");
+			goto error;
+		}
+		*Param++ = ml_string_value(Iter->Key);
+		*Arg++ = Iter->Value;
+	}
+	ml_parser_t *Parser = ml_parser(NULL, NULL);
+	ml_parser_source(Parser, (ml_source_t){FileName, 1});
+	ml_parser_input(Parser, ml_string_value(Script), ml_string_length(Script));
+	const mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) {
+		Value = ml_parser_value(Parser);
+		goto error;
+	}
+	ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
+	return ml_function_compile((ml_state_t *)State, Expr, Compiler, Params);
+error: {
+		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+		}
+		exit(-1);
+	}
 }
 
 int main(int Argc, const char *Argv[]) {
@@ -265,7 +389,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_BACKTRACE
 	stringmap_insert(MLGlobals, "backtrace", MLBacktrace);
 #endif
-	stringmap_insert(MLGlobals, "null", MLNullFn);
+	//stringmap_insert(MLGlobals, "null", MLNullFn);
 	stringmap_insert(MLGlobals, "now", MLNow);
 	stringmap_insert(MLGlobals, "clock", MLClock);
 	stringmap_insert(MLGlobals, "print", MLPrint);
@@ -302,7 +426,11 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(MLGlobals, "variable", MLVariableT);
 	stringmap_insert(MLGlobals, "global", ml_stringmap_globals(MLGlobals));
 	stringmap_insert(MLGlobals, "globals", ml_cfunction(MLGlobals, (void *)ml_globals));
-
+#ifdef ML_CBOR
+	stringmap_insert(MLGlobals, "save", MLSaveState);
+	stringmap_insert(MLGlobals, "resume", MLResumeState);
+	ml_externals_default_add("save",  MLSaveState);
+#endif
 	ml_logging_init(MLGlobals);
 
 #ifdef ML_LIBRARY
@@ -388,6 +516,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	ml_value_t *Args = ml_list();
 	const char *MainModule = NULL;
+	int RunCbor = 0;
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
@@ -414,6 +543,9 @@ int main(int Argc, const char *Argv[]) {
 					fprintf(stderr, "Error: command required\n");
 					exit(-1);
 				}
+				break;
+			case 'C':
+				RunCbor = 1;
 				break;
 #ifdef ML_MODULES
 			case 'm':
@@ -514,7 +646,9 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_LIBRARY
 	stringmap_insert(Sys->Exports, "Args", Args);
 #endif
-	if (MainModule) {
+	if (RunCbor) {
+		load_cbor_run(MainModule);
+	} else if (MainModule) {
 #ifdef ML_LIBRARY
 		if (LoadModule) {
 			Main->run = ml_main_state_module;

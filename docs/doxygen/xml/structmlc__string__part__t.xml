@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="structmlc__string__part__t" kind="struct" language="C++" prot="public">
     <compoundname>mlc_string_part_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="248" column="19" bodyfile="src/ml_compiler2.h" bodystart="248" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="255" column="19" bodyfile="src/ml_compiler2.h" bodystart="255" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__string__part__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" static="no" mutable="no">
         <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="250" column="12" bodyfile="src/ml_compiler2.h" bodystart="250" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="257" column="12" bodyfile="src/ml_compiler2.h" bodystart="257" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__string__part__t_1a0a05a7f058cc32175a859aad95e3c0dd" prot="public" static="no" mutable="no">
         <type>const char *</type>
@@ -43,21 +43,21 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="251" column="12" bodyfile="src/ml_compiler2.h" bodystart="251" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="258" column="12" bodyfile="src/ml_compiler2.h" bodystart="258" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__string__part__t_1a34ddf2e3dc65a699296ce6df22d51387" prot="public" static="no" mutable="no">
-        <type>union <ref refid="structmlc__string__part__t" kindref="compound">mlc_string_part_t</ref></type>
-        <definition>union mlc_string_part_t </definition>
+        <type>union mlc_string_part_t::@137173101121120006040003301123026250116222136154</type>
+        <definition>union mlc_string_part_t::@137173101121120006040003301123026250116222136154 @100114341253273204334370012064227314367166103256</definition>
         <argsstring></argsstring>
-        <name></name>
-        <qualifiedname>mlc_string_part_t</qualifiedname>
+        <name>@100114341253273204334370012064227314367166103256</name>
+        <qualifiedname>mlc_string_part_t::@100114341253273204334370012064227314367166103256</qualifiedname>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="252" column="1"/>
+        <location file="src/ml_compiler2.h" line="259" column="1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__string__part__t_1a9fde862c8bc443d7a6872a487ec265a3" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -71,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="253" column="5" bodyfile="src/ml_compiler2.h" bodystart="253" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="260" column="5" bodyfile="src/ml_compiler2.h" bodystart="260" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__string__part__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -85,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="254" column="5" bodyfile="src/ml_compiler2.h" bodystart="254" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="261" column="5" bodyfile="src/ml_compiler2.h" bodystart="261" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -147,7 +147,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="247" column="1" bodyfile="src/ml_compiler2.h" bodystart="247" bodyend="255"/>
+    <location file="src/ml_compiler2.h" line="254" column="1" bodyfile="src/ml_compiler2.h" bodystart="254" bodyend="262"/>
     <listofallmembers>
       <member refid="structmlc__string__part__t_1a0a05a7f058cc32175a859aad95e3c0dd" prot="public" virt="non-virtual"><scope>mlc_string_part_t</scope><name>Chars</name></member>
       <member refid="structmlc__string__part__t_1afb0a22dedc27c96cc232f7c9d37eaec9" prot="public" virt="non-virtual"><scope>mlc_string_part_t</scope><name>Child</name></member>
