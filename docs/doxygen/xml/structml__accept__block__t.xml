@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structml__accept__block__t" kind="struct" language="C++" prot="public">
+    <compoundname>ml_accept_block_t</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structml__accept__block__t_1ab05a7d34a88be7e27bea5a0f0d1dd532" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> **</type>
+        <definition>mlc_expr_t** ExprSlot</definition>
+        <argsstring></argsstring>
+        <name>ExprSlot</name>
+        <qualifiedname>ml_accept_block_t::ExprSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="240" column="12" bodyfile="src/ml_compiler2.h" bodystart="240" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__accept__block__t_1a98c7cd7bcad7646f7f3153eb7a3bf3b9" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> **</type>
+        <definition>mlc_local_t** VarsSlot</definition>
+        <argsstring></argsstring>
+        <name>VarsSlot</name>
+        <qualifiedname>ml_accept_block_t::VarsSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="241" column="13" bodyfile="src/ml_compiler2.h" bodystart="241" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__accept__block__t_1a4f28deeb49e20ab4b3b0e5dc07edd738" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> **</type>
+        <definition>mlc_local_t** LetsSlot</definition>
+        <argsstring></argsstring>
+        <name>LetsSlot</name>
+        <qualifiedname>ml_accept_block_t::LetsSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="242" column="13" bodyfile="src/ml_compiler2.h" bodystart="242" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__accept__block__t_1ad8471ac3e160f26c985d5409fd4cd251" prot="public" static="no" mutable="no">
+        <type><ref refid="structmlc__local__t" kindref="compound">mlc_local_t</ref> **</type>
+        <definition>mlc_local_t** DefsSlot</definition>
+        <argsstring></argsstring>
+        <name>DefsSlot</name>
+        <qualifiedname>ml_accept_block_t::DefsSlot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_compiler2.h" line="243" column="13" bodyfile="src/ml_compiler2.h" bodystart="243" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="5">
+        <label>inthash_t</label>
+        <link refid="structinthash__t"/>
+      </node>
+      <node id="1">
+        <label>ml_accept_block_t</label>
+        <link refid="structml__accept__block__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>ExprSlot</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>DefsSlot</edgelabel>
+          <edgelabel>LetsSlot</edgelabel>
+          <edgelabel>VarsSlot</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ml_type_t</label>
+        <link refid="structml__type__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>Constructor</edgelabel>
+          <edgelabel>deref</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>Parents</edgelabel>
+          <edgelabel>TypedFns</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>Exports</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>ml_value_t</label>
+        <link refid="structml__value__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mlc_expr_t</label>
+        <link refid="structmlc__expr__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>Type</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>mlc_local_t</label>
+        <link refid="structmlc__local__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>Next</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>stringmap_t</label>
+        <link refid="structstringmap__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="src/ml_compiler2.h" line="239" column="1" bodyfile="src/ml_compiler2.h" bodystart="239" bodyend="244"/>
+    <listofallmembers>
+      <member refid="structml__accept__block__t_1ad8471ac3e160f26c985d5409fd4cd251" prot="public" virt="non-virtual"><scope>ml_accept_block_t</scope><name>DefsSlot</name></member>
+      <member refid="structml__accept__block__t_1ab05a7d34a88be7e27bea5a0f0d1dd532" prot="public" virt="non-virtual"><scope>ml_accept_block_t</scope><name>ExprSlot</name></member>
+      <member refid="structml__accept__block__t_1a4f28deeb49e20ab4b3b0e5dc07edd738" prot="public" virt="non-virtual"><scope>ml_accept_block_t</scope><name>LetsSlot</name></member>
+      <member refid="structml__accept__block__t_1a98c7cd7bcad7646f7f3153eb7a3bf3b9" prot="public" virt="non-virtual"><scope>ml_accept_block_t</scope><name>VarsSlot</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
