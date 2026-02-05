@@ -30,10 +30,12 @@ ml_xml_element_t *ml_xml_node_parent(ml_xml_node_t *Value) {
 }
 
 ml_xml_node_t *ml_xml_node_next(ml_xml_node_t *Value) {
+	if (Value->Parent != Value->IterParent) return NULL;
 	return Value->Next;
 }
 
 ml_xml_node_t *ml_xml_node_prev(ml_xml_node_t *Value) {
+	if (Value->Parent != Value->IterParent) return NULL;
 	return Value->Prev;
 }
 
@@ -66,6 +68,7 @@ ML_METHOD("prev", MLXmlT) {
 //>xml|nil
 // Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (Node->Parent != Node->IterParent) return MLNil;
 	return (ml_value_t *)Node->Prev ?: MLNil;
 }
 
@@ -74,6 +77,7 @@ ML_METHOD("<", MLXmlT) {
 //>xml|nil
 // Returns the previous sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (Node->Parent != Node->IterParent) return MLNil;
 	return (ml_value_t *)Node->Prev ?: MLNil;
 }
 
@@ -82,6 +86,7 @@ ML_METHOD("next", MLXmlT) {
 //>xml|nil
 // Returns the next sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (Node->Parent != Node->IterParent) return MLNil;
 	return (ml_value_t *)Node->Next ?: MLNil;
 }
 
@@ -90,6 +95,7 @@ ML_METHOD(">", MLXmlT) {
 //>xml|nil
 // Returns the next sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (Node->Parent != Node->IterParent) return MLNil;
 	return (ml_value_t *)Node->Next ?: MLNil;
 }
 

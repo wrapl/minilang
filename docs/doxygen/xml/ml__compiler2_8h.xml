@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="ml__compiler2_8h" kind="file" language="C++">
     <compoundname>ml_compiler2.h</compoundname>
     <includes refid="ml__compiler_8h" local="yes">ml_compiler.h</includes>
@@ -143,11 +143,11 @@
       <memberdef kind="define" id="ml__compiler2_8h_1a8bec446c9a672387da017f7ce9de231f" prot="public" static="no">
         <name>MLC_EXPR_FIELDS</name>
         <param><defname>name</defname></param>
-        <initializer>	<ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *Type; \
-	void (*compile)(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *, mlc_## name ## _expr_t *, int); \
-	<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *Next; \
-	const char *Source; \
-	int StartLine, EndLine; \</initializer>
+        <initializer><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *Type; \
+void (*compile)(<ref refid="structmlc__function__t" kindref="compound">mlc_function_t</ref> *, mlc_## name ## _expr_t *, int); \
+<ref refid="structmlc__expr__t" kindref="compound">mlc_expr_t</ref> *Next; \
+const char *Source; \
+int StartLine, EndLine; \</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -297,10 +297,10 @@
         <param><defname>EXPR</defname></param>
         <param><defname>TYPE</defname></param>
         <param><defname>COMP</defname></param>
-        <initializer>	mlc_ ## TYPE ## _expr_t *EXPR = new(mlc_ ## TYPE ## _expr_t); \
-	EXPR-&gt;compile = ml_ ## COMP ## _expr_compile; \
-	EXPR-&gt;Source = Parser-&gt;Source.Name; \
-	EXPR-&gt;StartLine = EXPR-&gt;EndLine = Parser-&gt;Source.Line</initializer>
+        <initializer>mlc_ ## TYPE ## _expr_t *EXPR = new(mlc_ ## TYPE ## _expr_t); \
+EXPR-&gt;compile = ml_ ## COMP ## _expr_compile; \
+EXPR-&gt;Source = Parser-&gt;Source.Name; \
+EXPR-&gt;StartLine = EXPR-&gt;EndLine = Parser-&gt;Source.Line</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

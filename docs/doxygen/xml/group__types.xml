@@ -1,11 +1,12 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="group__types" kind="group">
     <compoundname>types</compoundname>
     <title>Types</title>
     <innerclass refid="structml__value__t" prot="public">ml_value_t</innerclass>
     <innerclass refid="structml__hash__chain__t" prot="public">ml_hash_chain_t</innerclass>
     <innerclass refid="structml__type__t" prot="public">ml_type_t</innerclass>
+    <innerclass refid="structml__union__type__t" prot="public">ml_union_type_t</innerclass>
     <innerclass refid="structml__visitor__t" prot="public">ml_visitor_t</innerclass>
     <sectiondef kind="typedef">
       <memberdef kind="typedef" id="group__types_1ga5d1583b78bcbb3d035efb58c8bcad3ab" prot="public" static="no">
@@ -138,7 +139,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="150" column="18" declfile="src/ml_types.h" declline="150" declcolumn="18"/>
+        <location file="src/ml_types.h" line="156" column="18" declfile="src/ml_types.h" declline="156" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__types_1ga7eb5f2c70513bb79171d959d80580bee" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -487,7 +488,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="152" column="11" declfile="src/ml_types.h" declline="152" declcolumn="11"/>
+        <location file="src/ml_types.h" line="158" column="11" declfile="src/ml_types.h" declline="158" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__types_1gaf7611032ed61297d0a0125c510dc7116" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -951,24 +952,24 @@
         <param><defname>PARENTS</defname></param>
         <param><defname>NAME</defname></param>
         <param><defname>...</defname></param>
-        <initializer>	{ \
-	.Type = MLTypeT, \
-	.Name = NAME, \
-	.hash = ml_default_hash, \
-	.call = ml_default_call, \
-	.deref = ml_default_deref, \
-	.assign = ml_default_assign, \
-	.iterate = ml_iterate, \
-	.iter_value = ml_iter_value, \
-	.iter_key = ml_iter_key, \
-	.iter_next = ml_iter_next, \
-	.Constructor = CONSTRUCTOR, \
-	.Parents = {INTHASH_INIT}, \
-	.TypedFns = {INTHASH_INIT}, \
-	.Exports = {STRINGMAP_INIT}, \
-	.Rank = 0, \
-	.Interface = 0, \
-	##__VA_ARGS__ \
+        <initializer>    { \
+    .Type = MLTypeT, \
+    .Name = NAME, \
+    .hash = ml_default_hash, \
+    .call = ml_default_call, \
+    .deref = ml_default_deref, \
+    .assign = ml_default_assign, \
+    .iterate = ml_iterate, \
+    .iter_value = ml_iter_value, \
+    .iter_key = ml_iter_key, \
+    .iter_next = ml_iter_next, \
+    .Constructor = CONSTRUCTOR, \
+    .Parents = {INTHASH_INIT}, \
+    .TypedFns = {INTHASH_INIT}, \
+    .Exports = {STRINGMAP_INIT}, \
+    .Rank = 0, \
+    .Interface = 0, \
+    ##__VA_ARGS__ \
 }</initializer>
         <briefdescription>
         </briefdescription>
@@ -1021,7 +1022,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="156" column="9" bodyfile="src/ml_types.h" bodystart="156" bodyend="-1"/>
+        <location file="src/ml_types.h" line="162" column="9" bodyfile="src/ml_types.h" bodystart="162" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__types_1gaf4659355e52d7e390bf2360aea55b4f9" prot="public" static="no">
         <name>ML_TYPE_ARG</name>

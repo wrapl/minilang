@@ -93,6 +93,15 @@ slice
    *TBD*
 
 
+:mini:`meth (Slice: slice):backwards: Sequence`
+   Returns a sequence which will iterate over :mini:`Slice` backwards.
+
+   .. code-block:: mini
+
+      map(slice("abc"):backwards)
+      :> {3 is "c", 2 is "b", 1 is "a"}
+
+
 :mini:`meth (Arg₁: slice):bfind(Arg₂: any)`
    *TBD*
 
@@ -191,10 +200,6 @@ slice
 
 :mini:`type slice::index`
    An assignable reference to an index of a slice.
-
-
-:mini:`type slice::iter`
-   *TBD*
 
 
 :mini:`type slice::mutable < slice`
@@ -346,10 +351,6 @@ slice
 
 
 :mini:`meth (Arg₁: slice::mutable):splice(Arg₂: integer, Arg₃: slice::mutable)`
-   *TBD*
-
-
-:mini:`type slice::mutable::iter < slice::iter`
    *TBD*
 
 

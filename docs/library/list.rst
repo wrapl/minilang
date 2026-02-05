@@ -133,6 +133,15 @@ list
    Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
+:mini:`meth (List: list):backwards: Sequence`
+   Returns a sequence which will iterate over :mini:`List` backwards.
+
+   .. code-block:: mini
+
+      map(list("abc"):backwards)
+      :> {3 is "c", 2 is "b", 1 is "a"}
+
+
 :mini:`meth (List: list):bfind(Value: any): tuple[integer, integer]`
    Expects :mini:`List` is be already sorted according to :mini:`<>`. Returns :mini:`(I,  J)` where :mini:`List[I] = Value <= List[J]`.
    Note :mini:`I` can be :mini:`nil` and :mini:`J` can be :mini:`List:length + 1`.
@@ -225,7 +234,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
+      L:random :> "c"
       L:random :> "k"
 
 
@@ -457,13 +466,13 @@ list
    Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
 
-:mini:`type list::node::mutable`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`type list::node::mutable < list::node`
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.

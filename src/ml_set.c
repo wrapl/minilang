@@ -951,6 +951,48 @@ ML_METHOD("take", MLSetMutableT, MLSetMutableT) {
 
 typedef struct {
 	ml_type_t *Type;
+	ml_set_t *Set;
+	ml_set_node_t *Node;
+} ml_set_backwards_t;
+
+ML_TYPE(MLSetBackwardsT, (MLSequenceT), "set::backwards");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLSetBackwardsT, ml_state_t *Caller, ml_set_backwards_t *Backwards) {
+	ml_set_node_t *Node = Backwards->Set->Tail;
+	if (!Node) ML_RETURN(MLNil);
+	Backwards->Node = Node;
+	ML_RETURN(Backwards);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLSetBackwardsT, ml_state_t *Caller, ml_set_backwards_t *Backwards) {
+	ml_set_node_t *Node = Backwards->Node->Prev;
+	if (!Node) ML_RETURN(MLNil);
+	Backwards->Node = Node;
+	ML_RETURN(Backwards);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSetBackwardsT, ml_state_t *Caller, ml_set_backwards_t *Backwards) {
+	ML_RETURN(Backwards->Node->Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSetBackwardsT, ml_state_t *Caller, ml_set_backwards_t *Backwards) {
+	ML_RETURN(Backwards->Node->Key);
+}
+
+ML_METHOD("backwards", MLSetT) {
+//<Set
+//>Sequence
+// Returns a sequence which will iterate over :mini:`Set` backwards.
+//$= map(set("abc"):backwards)
+	ml_set_backwards_t *Backwards = new(ml_set_backwards_t);
+	Backwards->Type = MLSetBackwardsT;
+	Backwards->Set = (ml_set_t *)Args[0];
+	return (ml_value_t *)Backwards;
+}
+
+typedef struct {
+	ml_type_t *Type;
 	ml_set_node_t *Node;
 } ml_set_from_t;
 

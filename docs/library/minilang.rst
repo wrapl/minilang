@@ -33,3 +33,11 @@ minilang
    *TBD*
 
 
+:mini:`fun mlresumestate(Arg₁: string)`
+   *TBD*
+
+
+:mini:`fun mlsavestate(Arg₁: string)`
+   *TBD*
+
+
