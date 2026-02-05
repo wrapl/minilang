@@ -17,7 +17,7 @@
 
 struct ml_xml_node_t {
 	ml_string_t Base;
-	ml_xml_element_t *Parent;
+	ml_xml_element_t *Parent, *IterParent;
 	ml_xml_node_t *Next, *Prev;
 	size_t Index;
 };
@@ -232,7 +232,7 @@ void ml_xml_node_remove(ml_xml_node_t *Child) {
 void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
 	if (Child->Parent) ml_xml_node_remove(Child);
 	Child->Index = ++Parent->Base.Base.Length;
-	Child->Parent = Parent;
+	Child->Parent = Child->IterParent = Parent;
 	if (Parent->Tail) {
 		Parent->Tail->Next = Child;
 	} else {
@@ -527,7 +527,7 @@ static ml_value_t *ml_xml_grow(ml_xml_grower_t *Grower, ml_value_t *Value) {
 			Text->Base.Type = MLXmlTextT;
 			Text->Base.Length = ml_stringbuffer_length(Grower->Buffer);
 			Text->Base.Value = ml_stringbuffer_get_string(Grower->Buffer);
-			Text->Parent = Grower->Parent;
+			Text->Parent = Text->IterParent = Grower->Parent;
 			Text->Prev = Grower->Tail;
 			if (Grower->Tail) Grower->Tail->Next = Text; else Grower->Head = Text;
 			Grower->Tail = Text;
@@ -538,14 +538,14 @@ static ml_value_t *ml_xml_grow(ml_xml_grower_t *Grower, ml_value_t *Value) {
 			Text->Base.Type = MLXmlTextT;
 			Text->Base.Length = ml_stringbuffer_length(Grower->Buffer);
 			Text->Base.Value = ml_stringbuffer_get_string(Grower->Buffer);
-			Text->Parent = Grower->Parent;
+			Text->Parent = Text->IterParent = Grower->Parent;
 			Text->Prev = Grower->Tail;
 			if (Grower->Tail) Grower->Tail->Next = Text; else Grower->Head = Text;
 			Grower->Tail = Text;
 		}
 		ml_xml_node_t *Child = (ml_xml_node_t *)Value;
 		if (Child->Parent) ml_xml_node_remove(Child);
-		Child->Parent = Grower->Parent;
+		Child->Parent = Child->IterParent = Grower->Parent;
 		Child->Prev = Grower->Tail;
 		if (Grower->Tail) Grower->Tail->Next = Child; else Grower->Head = Child;
 		Grower->Tail = Child;
@@ -588,7 +588,7 @@ ML_METHOD("empty", MLXmlElementT) {
 	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
 	for (ml_xml_node_t *Child = Parent->Head; Child; Child = Child->Next) {
 		Child->Parent = NULL;
-		Child->Next = Child->Prev = NULL;
+		//Child->Next = Child->Prev = NULL;
 	}
 	Parent->Head = Parent->Tail = NULL;
 	Parent->Base.Base.Length = 0;
@@ -603,7 +603,7 @@ ML_METHOD("remove", MLXmlT) {
 	if (Node->Parent) {
 		ml_xml_node_remove(Node);
 		Node->Parent = NULL;
-		Node->Next = Node->Prev = NULL;
+		//Node->Next = Node->Prev = NULL;
 	}
 	return (ml_value_t *)Node;
 }
@@ -618,7 +618,7 @@ ML_METHOD("replace", MLXmlT, MLXmlT) {
 	if (Node1 == Node2) return (ml_value_t *)Node2;
 	if (!Node1->Parent) return (ml_value_t *)Node2;
 	if (Node2->Parent) ml_xml_node_remove(Node2);
-	ml_xml_element_t *Parent = Node2->Parent = Node1->Parent;
+	ml_xml_element_t *Parent = Node2->Parent = Node2->IterParent = Node1->Parent;
 	if ((Node2->Next = Node1->Next)) {
 		Node2->Next->Prev = Node2;
 	} else {
@@ -630,7 +630,7 @@ ML_METHOD("replace", MLXmlT, MLXmlT) {
 		Parent->Head = Node2;
 	}
 	Node1->Parent = NULL;
-	Node1->Next = Node1->Prev = NULL;
+	//Node1->Next = Node1->Prev = NULL;
 	return (ml_value_t *)Node2;
 }
 
@@ -1397,7 +1397,8 @@ static void ML_TYPED_FN(ml_iter_next, MLXmlRecursiveT, ml_state_t *Caller, ml_xm
 				}
 			}
 		}
-		Element = (ml_xml_element_t *)Element->Base.Parent;
+		Element = (ml_xml_element_t *)Element->Base.IterParent;
+		if (!Element) break;
 	}
 	ML_RETURN(MLNil);
 }
