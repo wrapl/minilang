@@ -611,14 +611,6 @@ uint64_t ml_gcd(uint64_t A, uint64_t B);
 uint64_t ml_random_integer(uint64_t Limit);
 double ml_random_real();
 
-#ifdef ML_RATIONAL
-
-extern ml_type_t MLRationalT[];
-
-typedef struct { int64_t Num; uint64_t Den; } rat64_t;
-
-#endif
-
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
@@ -633,6 +625,26 @@ typedef struct {
 	int64_t Value;
 #endif
 } ml_integer_t;
+
+#ifdef ML_RATIONAL
+
+extern ml_type_t MLRationalT[];
+
+typedef struct {
+	ml_type_t *Type;
+#ifdef ML_BIGINT
+	mpq_t Value;
+#else
+	int64_t Num;
+	uint64_t Den;
+#endif
+} ml_rational_t;
+
+typedef struct { int64_t Num; uint64_t Den; } rat64_t;
+
+rat64_t ml_rational_value(const ml_value_t *Value) __attribute__ ((const));
+
+#endif
 
 #ifdef ML_BIGINT
 
@@ -677,40 +689,6 @@ static inline ml_value_t *ml_real(double Value) {
 	return Boxed.Value;
 }
 
-#ifdef ML_RATIONAL
-
-typedef struct {
-	ml_type_t *Type;
-#ifdef ML_BIGINT
-	fmpq_t Value;
-#else
-	int64_t Num;
-	int64_t Den;
-#endif
-} ml_rational_t;
-
-static inline ml_value_t *ml_rational48(int32_t Num, uint16_t Den) {
-	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)Den << 32) + (uint32_t)Num);
-}
-
-ml_value_t *ml_rational64(int64_t Num, uint64_t Den);
-
-static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
-	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
-		return ml_rational48(Num, Den);
-	} else {
-		return ml_rational64(Num, Den);
-	}
-}
-
-#ifdef ML_BIGINT
-
-ml_value_t *ml_rational_fmpq(fmpq_t Source);
-
-#endif
-
-#endif
-
 static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
@@ -737,6 +715,34 @@ static inline double ml_double_value(const ml_value_t *Value) {
 	Boxed.Bits -= 0x07000000000000;
 	return Boxed.Double;
 }
+
+#ifdef ML_RATIONAL
+
+static inline ml_value_t *ml_rational48(int32_t Num, uint16_t Den) {
+	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)Den << 32) + (uint32_t)Num);
+}
+
+static inline rat64_t ml_rational48_value(ml_value_t *Value) {
+	return (rat64_t){(int32_t)(intptr_t)Value, ((uint64_t)(intptr_t)Value >> 48) & 0xFFFF};
+}
+
+ml_value_t *ml_rational64(int64_t Num, uint64_t Den);
+
+static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
+		return ml_rational48(Num, Den);
+	} else {
+		return ml_rational64(Num, Den);
+	}
+}
+
+#ifdef ML_BIGINT
+
+ml_value_t *ml_rational_mpq(mpq_t Source);
+
+#endif
+
+#endif
 
 #else
 

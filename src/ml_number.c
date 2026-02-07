@@ -495,7 +495,7 @@ ML_TYPE(MLRational48T, (MLRationalT), "rational48",
 
 static long ml_rational64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #ifdef ML_BIGINT
-	return fmpq_get_d(((ml_rational_t *)Value)->Value);
+	return mpq_get_d(((ml_rational_t *)Value)->Value);
 #else
 	return ((ml_integer_t *)Value)->Value;
 #endif
@@ -511,7 +511,7 @@ ml_value_t *ml_rational64(int64_t Num, uint64_t Den) {
 	ml_rational_t *Value = new(ml_rational_t);
 	Value->Type = MLRational64T;
 #ifdef ML_BIGINT
-	fmpq_set_si(Value->Value, Num, Den);
+	mpq_set_si(Value->Value, Num, Den);
 #else
 	Value->Num = Num;
 	Value->Den = Den;
@@ -528,7 +528,7 @@ rat64_t ml_rational_value(const ml_value_t *Value) {
 		// TODO: Approximate rational here
 		return (rat64_t){Dbl, 1};
 	}
-	if (Tag != 0) return (rat64_1){0, 1};
+	if (Tag != 0) return (rat64_t){0, 1};
 	if (ml_is_subtype(Value->Type, MLInteger64T)) {
 #ifdef ML_BIGINT
 		return (rat64_t){mpz_get_si(((ml_integer_t *)Value)->Value), 1};
@@ -832,7 +832,7 @@ ml_value_t *ml_rational_mpq(mpq_t Source) {
 	} else {
 		ml_rational_t *Value = new(ml_rational_t);
 		Value->Type = MLRational64T;
-		fmpq_set(Value->Value, Source);
+		mpq_set(Value->Value, Source);
 		return (ml_value_t *)Value;
 	}
 }
@@ -993,36 +993,6 @@ ML_METHOD("*", MLInteger32T, MLInteger64T) {
 	mpz_t Result; mpz_init_set(Result, B->Value);
 	mpz_mul_si(Result, Result, A);
 	return ml_integer_mpz(Result);
-}
-
-ML_METHOD("/", MLInteger64T, MLInteger32T) {
-	ml_integer_t *A = (ml_integer_t *)Args[0];
-	int32_t B = ml_integer32_value(Args[1]);
-	if (!B) return ml_error("ValueError", "Division by 0");
-	mpq_t Quotient;
-	mpz_init_set_si(mpq_denref(Quotient), B);
-	mpz_init_set(mpq_numref(Quotient), A->Value);
-	mpq_canonicalize(Quotient);
-	if (!mpz_cmp_ui(mpq_denref(Quotient), 1)) {
-		return ml_integer_mpz(mpq_numref(Quotient));
-	} else {
-		return ml_real(mpq_get_d(Quotient));
-	}
-}
-
-ML_METHOD("/", MLInteger32T, MLInteger64T) {
-	int32_t A = ml_integer32_value(Args[0]);
-	ml_integer_t *B = (ml_integer_t *)Args[1];
-	if (!B->Value->_mp_size) return ml_error("ValueError", "Division by 0");
-	mpq_t Quotient;
-	mpz_init_set(mpq_denref(Quotient), B->Value);
-	mpz_init_set_si(mpq_numref(Quotient), A);
-	mpq_canonicalize(Quotient);
-	if (!mpz_cmp_ui(mpq_denref(Quotient), 1)) {
-		return ml_integer_mpz(mpq_numref(Quotient));
-	} else {
-		return ml_real(mpq_get_d(Quotient));
-	}
 }
 
 #endif
@@ -1297,6 +1267,9 @@ ML_METHOD("/", MLInteger32T, MLInteger32T) {
 	int64_t IntegerA = ml_integer32_value(Args[0]);
 	int64_t IntegerB = ml_integer32_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
+#ifdef ML_RATIONAL
+#else
+#endif
 	ldiv_t Div = ldiv(IntegerA, IntegerB);
 	if (Div.rem) {
 		return ml_real((double)IntegerA / (double)IntegerB);
@@ -1419,16 +1392,21 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 	if (!mpz_cmp_ui(mpq_denref(Quotient), 1)) {
 		return ml_integer_mpz(mpq_numref(Quotient));
 	} else {
+#ifdef ML_RATIONAL
+		return ml_rational_mpq(Quotient);
+#else
 		return ml_real(mpq_get_d(Quotient));
+#endif
 	}
 #else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
-	if (IntegerA % IntegerB == 0) {
-		return ml_integer(IntegerA / IntegerB);
-	} else {
+	lldiv_t Div = lldiv(IntegerA, IntegerB);
+	if (Div.rem) {
 		return ml_real((double)IntegerA / (double)IntegerB);
+	} else {
+		return ml_integer(Div.quot);
 	}
 #endif
 }

@@ -1035,25 +1035,31 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 
 #ifdef ML_RATIONAL
 
+#ifdef ML_NANBOXING
+
+ML_METHOD("append", MLStringBufferT, MLRational48T) {
+//!number
+//<Buffer
+//<Value
+// Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	rat64_t Value = ml_rational48_value(Args[1]);
+	ml_stringbuffer_printf(Buffer, "%" PRId64 "/%" PRId64, Value.Num, Value.Den);
+	return MLSome;
+}
+
+#endif
+
 ML_METHOD("append", MLStringBufferT, MLRationalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_rational_t *Value = (ml_rational_t *)Args[1];
 #ifdef ML_BIGINT
-#ifdef ML_NANBOXING
-	if (__builtin_expect(!!ml_tag(Args[1]), 2)) {
-		goto rat48;
-	} else {
-#endif
-		const char *Str = fmpq_get_str(NULL, Base, ((ml_rational_t *)Args[1])->Value);
-		ml_stringbuffer_write(Buffer, Str, strlen(Str));
-		return MLSome;
-#ifdef ML_NANBOXING
-	}
-rat48:;
-#endif
+	const char *Str = mpq_get_str(NULL, 10, Value->Value);
+	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
-
+	ml_stringbuffer_printf(Buffer, "%" PRId64 "/%" PRId64, Value->Num, Value->Den);
 #endif
+	return MLSome;
 }
 
 #endif
