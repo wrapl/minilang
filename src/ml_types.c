@@ -2447,6 +2447,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_externals_default_add("number", MLNumberT);
 	ml_externals_default_add("integer", MLIntegerT);
 	ml_externals_default_add("real", MLRealT);
+#ifdef ML_RATIONAL
+	ml_externals_default_add("rational", MLRationalT);
+#endif
 #ifdef ML_COMPLEX
 	ml_externals_default_add("complex", MLComplexT);
 	ml_externals_default_add("i", ml_complex(1i));
@@ -2481,6 +2484,9 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "integer", MLIntegerT);
 		stringmap_insert(Globals, "real", MLRealT);
 		stringmap_insert(Globals, "double", MLDoubleT);
+#ifdef ML_RATIONAL
+		stringmap_insert(Globals, "rational", MLRationalT);
+#endif
 #ifdef ML_COMPLEX
 		stringmap_insert(Globals, "complex", MLComplexT);
 		stringmap_insert(Globals, "i", ml_complex(1i));

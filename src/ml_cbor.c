@@ -1101,7 +1101,7 @@ ml_value_t *ml_cbor_read_complex(ml_cbor_reader_t *Reader, ml_value_t *Value, vo
 	return ml_complex(ml_real_value(ml_list_get(Value, 1)) + ml_real_value(ml_list_get(Value, 2)) * _Complex_I);
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLComplexT, ml_cbor_writer_t *Writer, ml_complex_t *Arg) {
+static void ML_TYPED_FN(ml_cbor_write, MLComplexDoubleT, ml_cbor_writer_t *Writer, ml_complex_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_COMPLEX);
 	minicbor_write_array(Writer, 2);
 	minicbor_write_float8(Writer, creal(Arg->Value));

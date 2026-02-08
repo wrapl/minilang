@@ -723,12 +723,13 @@ static inline ml_value_t *ml_rational48(int32_t Num, uint16_t Den) {
 }
 
 static inline rat64_t ml_rational48_value(ml_value_t *Value) {
-	return (rat64_t){(int32_t)(intptr_t)Value, ((uint64_t)(intptr_t)Value >> 48) & 0xFFFF};
+	return (rat64_t){(int32_t)(intptr_t)Value, ((uint64_t)(intptr_t)Value >> 32) & 0xFFFF};
 }
 
 ml_value_t *ml_rational64(int64_t Num, uint64_t Den);
 
 static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+	if (Den == 1) return ml_integer(Num);
 	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
 		return ml_rational48(Num, Den);
 	} else {
@@ -737,6 +738,8 @@ static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
 }
 
 #ifdef ML_BIGINT
+
+void ml_rational_mpq_init(mpq_t Dest, ml_value_t *Source);
 
 ml_value_t *ml_rational_mpq(mpq_t Source);
 
@@ -789,6 +792,7 @@ typedef struct {
 } ml_complex_t;
 
 extern ml_type_t MLComplexT[];
+extern ml_type_t MLComplexDoubleT[];
 
 ml_value_t *ml_complex(complex_double Value);
 complex_double ml_complex_value(const ml_value_t *Value);
