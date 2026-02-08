@@ -1057,7 +1057,7 @@ ML_METHOD("append", MLStringBufferT, MLRationalT) {
 	const char *Str = mpq_get_str(NULL, 10, Value->Value);
 	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
-	ml_stringbuffer_printf(Buffer, "%" PRId64 "/%" PRId64, Value->Num, Value->Den);
+	ml_stringbuffer_printf(Buffer, "%" PRId64 "/%" PRId64, Value->Value.Num, Value->Value.Den);
 #endif
 	return MLSome;
 }

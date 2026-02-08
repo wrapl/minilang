@@ -184,7 +184,7 @@ static complex double ML_TYPED_FN(ml_complex_value, MLRationalT, ml_rational_t *
 #ifdef ML_BIGINT
 	return mpq_get_d(Value->Value);
 #else
-	return (double)Value->Num / (double)Value->Den;
+	return (double)Value->Value.Num / (double)Value->Value.Den;
 #endif
 }
 
@@ -545,8 +545,8 @@ ml_value_t *ml_rational64(int64_t Num, uint64_t Den) {
 #ifdef ML_BIGINT
 	mpq_set_si(Value->Value, Num, Den);
 #else
-	Value->Num = Num;
-	Value->Den = Den;
+	Value->Value.Num = Num;
+	Value->Value.Den = Den;
 #endif
 	return (ml_value_t *)Value;
 }
@@ -572,7 +572,7 @@ rat64_t ml_rational_value(const ml_value_t *Value) {
 #ifdef ML_BIGINT
 		return (rat64_t){mpz_get_si(((ml_integer_t *)Value)->Value), 1};
 #else
-		return (rat64_t){((ml_integer_t *)Value)->Value, 1};
+		return ((ml_rational_t *)Value)->Value;
 #endif
 	}
 	return (rat64_t){0, 1};
@@ -1548,24 +1548,7 @@ ML_METHOD("/", MLRationalT, MLRationalT) {
 
 #endif
 
-#endif
-
-#ifdef ML_NANBOXING
-
-ML_METHOD("/", MLInteger32T, MLInteger32T) {
-//<Int/1
-//<Int/2
-//>integer | real
-// Returns :mini:`Int/1 / Int/2` as an integer if the division is exact, otherwise as a real.
-//$= let N := 10 / 2
-//$= type(N)
-//$= let R := 10 / 3
-//$= type(R)
-	int64_t IntegerA = ml_integer32_value(Args[0]);
-	int64_t IntegerB = ml_integer32_value(Args[1]);
-	if (!IntegerB) return ml_error("ValueError", "Division by 0");
-	if (!IntegerA) return Args[0];
-#ifdef ML_RATIONAL
+static ml_value_t *ml_simplify_rational(int64_t IntegerA, int64_t IntegerB) {
 	int Negative = 0;
 	if (IntegerA < 0) {
 		IntegerA = -IntegerA;
@@ -1589,6 +1572,27 @@ ML_METHOD("/", MLInteger32T, MLInteger32T) {
 			return ml_rational(IntegerA / Gcd, IntegerB / Gcd);
 		}
 	}
+}
+
+#endif
+
+#ifdef ML_NANBOXING
+
+ML_METHOD("/", MLInteger32T, MLInteger32T) {
+//<Int/1
+//<Int/2
+//>integer | real
+// Returns :mini:`Int/1 / Int/2` as an integer if the division is exact, otherwise as a real.
+//$= let N := 10 / 2
+//$= type(N)
+//$= let R := 10 / 3
+//$= type(R)
+	int64_t IntegerA = ml_integer32_value(Args[0]);
+	int64_t IntegerB = ml_integer32_value(Args[1]);
+	if (!IntegerB) return ml_error("ValueError", "Division by 0");
+	if (!IntegerA) return Args[0];
+#ifdef ML_RATIONAL
+	return ml_simplify_rational(IntegerA, IntegerB);
 #else
 	ldiv_t Div = ldiv(IntegerA, IntegerB);
 	if (Div.rem) {
@@ -1723,12 +1727,16 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
+#ifdef ML_RATIONAL
+	return ml_simplify_rational(IntegerA, IntegerB);
+#else
 	ldiv_t Div = ldiv(IntegerA, IntegerB);
 	if (Div.rem) {
 		return ml_real((double)IntegerA / (double)IntegerB);
 	} else {
 		return ml_integer(Div.quot);
 	}
+#endif
 #endif
 }
 
@@ -2143,34 +2151,70 @@ ML_METHOD("<>", MLDoubleT, MLDoubleT) {
 	return (ml_value_t *)Zero;
 }
 
+ML_METHOD("<>", MLRealT, MLRealT) {
+//<Real/1
+//<Real/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Real/2`.
+	double RealA = ml_real_value(Args[0]);
+	double RealB = ml_real_value(Args[1]);
+	if (isnan(RealB)) return (ml_value_t *)One;
+	if (RealA < RealB) return (ml_value_t *)NegOne;
+	if (RealA > RealB) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
 #ifdef ML_RATIONAL
+
+static void __mul128(uint64_t C[4], uint64_t A, uint64_t B) {
+	uint64_t A0 = A & 0xFFFFFFFF;
+	uint64_t A1 = A >> 32;
+	uint64_t B0 = B & 0xFFFFFFFF;
+	uint64_t B1 = B >> 32;
+	uint64_t Temp;
+	Temp = A0 * B0;
+	C[0] = Temp & 0xFFFFFFFF;
+	C[1] = Temp >> 32;
+	Temp = A0 * B1;
+	C[1] += Temp & 0xFFFFFFFF;
+	C[2] = Temp >> 32;
+	Temp = A1 * B0;
+	C[1] += Temp & 0xFFFFFFFF;
+	C[2] += Temp >> 32;
+	Temp = A1 * B1;
+	C[2] += Temp & 0xFFFFFFFF;
+	C[3] = Temp >> 32;
+}
 
 static int cmp_rational(rat64_t A, rat64_t B) {
 	if (A.Num == B.Num && A.Den == B.Den) return 0;
+#ifdef __SIZEOF_INT128__0
+	__int128 AD = A.Num * B.Den;
+	__int128 CB = B.Num * A.Den;
+	if (AD < CB) return -1;
+	if (AD > CB) return 1;
+	return 0;
+#else
 	int Sign = 1;
-	for (;;) {
-		fprintf(stderr, "%ld / %ld <> %ld / %ld (sign = %d)\n", A.Num, A.Den, B.Num, B.Den, Sign);
-		ldiv_t ADiv = ldiv(A.Num, A.Den);
-		if (ADiv.rem < 0) {
-			ADiv.rem += A.Den;
-			--ADiv.quot;
-		}
-		ldiv_t BDiv = ldiv(B.Num, B.Den);
-		if (BDiv.rem < 0) {
-			BDiv.rem += B.Den;
-			--BDiv.quot;
-		}
-		fprintf(stderr, "\t%ld = %ld * %ld + %ld\n", A.Num, A.Den, ADiv.quot, ADiv.rem);
-		fprintf(stderr, "\t%ld = %ld * %ld + %ld\n", B.Num, B.Den, BDiv.quot, BDiv.rem);
-		if (ADiv.quot < BDiv.quot) return -Sign;
-		if (ADiv.quot > BDiv.quot) return Sign;
-		if (ADiv.rem == 0) return -Sign;
-		if (BDiv.rem == 0) return Sign;
-		A.Num = A.Den; A.Den = ADiv.rem;
-		B.Num = B.Den; B.Den = BDiv.rem;
-		Sign = -Sign;
+	if (A.Num < 0) {
+		if (B.Num >= 0) return -1;
+		A.Num = -A.Num;
+		B.Num = -B.Num;
+		Sign = -1;
+	} else if (B.Num < 0) {
+		return 1;
+	}
+	uint64_t AD[4], CB[4];
+	__mul128(AD, A.Num, B.Den);
+	__mul128(CB, B.Num, A.Den);
+	fprintf(stderr, "AD = %ld %ld %ld %ld\n", AD[0], AD[1], AD[2], AD[3]);
+	fprintf(stderr, "CB = %ld %ld %ld %ld\n", CB[0], CB[1], CB[2], CB[3]);
+	for (int I = 4; --I >= 0;) {
+		if (AD[I] < CB[I]) return -Sign;
+		if (AD[I] > CB[I]) return Sign;
 	}
 	return 0;
+#endif
 }
 
 ML_METHOD("<>", MLRationalT, MLRationalT) {

@@ -630,17 +630,16 @@ typedef struct {
 
 extern ml_type_t MLRationalT[];
 
+typedef struct { int64_t Num; uint64_t Den; } rat64_t;
+
 typedef struct {
 	ml_type_t *Type;
 #ifdef ML_BIGINT
 	mpq_t Value;
 #else
-	int64_t Num;
-	uint64_t Den;
+	rat64_t Value;
 #endif
 } ml_rational_t;
-
-typedef struct { int64_t Num; uint64_t Den; } rat64_t;
 
 rat64_t ml_rational_value(const ml_value_t *Value) __attribute__ ((const));
 
