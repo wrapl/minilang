@@ -728,12 +728,17 @@ static inline rat64_t ml_rational48_value(ml_value_t *Value) {
 ml_value_t *ml_rational64(int64_t Num, uint64_t Den);
 
 static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+	if (!Num) return ml_integer(0);
 	if (Den == 1) return ml_integer(Num);
+#ifdef ML_NANBOXING
 	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
 		return ml_rational48(Num, Den);
 	} else {
+#endif
 		return ml_rational64(Num, Den);
+#ifdef ML_NANBOXING
 	}
+#endif
 }
 
 #ifdef ML_BIGINT

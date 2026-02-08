@@ -285,12 +285,12 @@ math
       math::square(10) :> 100
 
 
-:mini:`def math::e: real`
-   Euler's constant.
-
-
 :mini:`def math::pi: real`
    Pi.
+
+
+:mini:`def math::e: real`
+   Euler's constant.
 
 
 :mini:`meth (X: number) ^ (Y: complex): number`
@@ -306,6 +306,10 @@ math
 
 
 :mini:`type random::choice < function`
+   *TBD*
+
+
+:mini:`meth (Arg₁: rational) ^ (Arg₂: integer)`
    *TBD*
 
 
@@ -334,7 +338,7 @@ math
       type(R) :> <<double>>
       let C := -2.3 ^ 1.5
       :> -6.40757745721465e-16 - 3.48812270426371i
-      type(C) :> <<complex>>
+      type(C) :> <<complex::double>>
 
 
 :mini:`meth (R: real):arg: real`

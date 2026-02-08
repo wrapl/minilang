@@ -135,6 +135,7 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 //$= let R := 2 ^ -1
 //$= type(R)
 	int64_t Exponent = ml_integer_value(Args[1]);
+	if (!Exponent) return ml_integer(1);
 #ifdef ML_BIGINT
 	if (Exponent < 0) {
 		double Base = ml_real_value(Args[0]);
@@ -162,6 +163,44 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	}
 #endif
 }
+
+#ifdef ML_RATIONAL
+
+ML_METHOD("^", MLRationalT, MLIntegerT) {
+	int64_t Exponent = ml_integer_value(Args[1]);
+	if (!Exponent) return ml_integer(1);
+	int Invert = 0;
+	if (Exponent < 0) {
+		Exponent = -Exponent;
+		Invert = 1;
+	}
+#ifdef ML_BIGINT
+	mpq_t Result; ml_rational_mpq_init(Result, Args[0]);
+	mpz_pow_ui(mpq_numref(Result), mpq_numref(Result), Exponent);
+	mpz_pow_ui(mpq_denref(Result), mpq_denref(Result), Exponent);
+	if (Invert) mpq_inv(Result, Result);
+	return ml_rational_mpq(Result);
+#else
+	rat64_t Base = ml_rational_value(Args[0]);
+	rat64_t Result = {1, 1};
+	while (Exponent) {
+		if (Exponent & 1) {
+			Result.Num *= Base.Num;
+			Result.Den *= Base.Den;
+		}
+		Base.Num *= Base.Num;
+		Base.Den *= Base.Den;
+		Exponent >>= 1;
+	}
+	if (Invert) {
+		if (Result.Num < 0) return ml_rational(-Result.Den, -Result.Num);
+		return ml_rational(Result.Den, Result.Num);
+	}
+	return ml_rational(Result.Num, Result.Den);
+#endif
+}
+
+#endif
 
 ML_METHOD("^", MLRealT, MLIntegerT) {
 //<X

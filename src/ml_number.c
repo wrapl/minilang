@@ -1118,6 +1118,7 @@ void ml_rational_mpq_init(mpq_t Dest, ml_value_t *Source) {
 ml_value_t *ml_rational_mpq(mpq_t Source) {
 	__mpz_struct *Num = mpq_numref(Source);
 	__mpz_struct *Den = mpq_denref(Source);
+	if (!Num->_mp_size) return ml_integer(0);
 	if (!mpz_cmp_ui(Den, 1)) {
 		return ml_integer_mpz(Num);
 	} else if (mpz_fits_sint_p(Num) && mpz_fits_ushort_p(Den)) {
