@@ -4586,7 +4586,41 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			return Parser->Token;
 		}
 		DO_CHAR_DIGIT: {
-			char *End;
+			const char *End = Next;
+			if (*End == '-') ++End;
+			for (;;) {
+				if ('0' <= *End && *End <= '9') {
+				} else if (*End == '.' || *End == 'e' || *End == 'E') {
+					goto parse_real;
+#ifdef ML_COMPLEX
+				} else if (*End == 'i') {
+					goto parse_real;
+#endif
+				} else {
+					break;
+				}
+				++End;
+			}
+#ifdef ML_BIGINT
+			int Length = End - Next;
+			if (Length < 19) {
+#endif
+				long Integer = strtol(Next, (char **)&End, 10);
+				Parser->Value = ml_integer(Integer);
+#ifdef ML_BIGINT
+			} else {
+				char Buffer[Length + 1];
+				memcpy(Buffer, Next, Length);
+				Buffer[Length] = 0;
+				mpz_t Integer;
+				mpz_init_set_str(Integer, Buffer, 10);
+				Parser->Value = ml_integer_mpz(Integer);
+			}
+#endif
+			Parser->Token = MLT_VALUE;
+			Parser->Next = End;
+			return Parser->Token;
+		parse_real:;
 			double Double = strtod(Next, (char **)&End);
 #ifdef ML_COMPLEX
 			if (*End == 'i') {
@@ -4596,16 +4630,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				return Parser->Token;
 			}
 #endif
-			for (const char *P = Next; P < End; ++P) {
-				if (P[0] == '.' || P[0] == 'e' || P[0] == 'E') {
-					Parser->Value = ml_real(Double);
-					Parser->Token = MLT_VALUE;
-					Parser->Next = End;
-					return Parser->Token;
-				}
-			}
-			long Integer = strtol(Next, (char **)&End, 10);
-			Parser->Value = ml_integer(Integer);
+			Parser->Value = ml_real(Double);
 			Parser->Token = MLT_VALUE;
 			Parser->Next = End;
 			return Parser->Token;

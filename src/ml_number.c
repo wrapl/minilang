@@ -578,49 +578,6 @@ rat64_t ml_rational_value(const ml_value_t *Value) {
 	return (rat64_t){0, 1};
 }
 
-#ifdef ML_BIGINT
-
-#define ml_arith_method_rational(NAME, FUNC) \
-\
-ML_METHOD(#NAME, MLRationalT) { \
-/*<A
-//>rational
-// Returns :mini:`NAME A`.
-*/\
-	mpq_t Result; ml_rational_mpq_init(Result, Args[0]); \
-	mpq_ ## FUNC(Result, Result); \
-	return ml_rational_mpq(Result); \
-}
-
-#define ml_arith_method_rational_rational(NAME, FUNC) \
-\
-ML_METHOD(#NAME, MLRational64T, MLRational64T) { \
-/*<A
-//<B
-//>rational
-// Returns :mini:`A NAME B`.
-*/\
-	ml_rational_t *A = (ml_rational_t *)Args[0]; \
-	ml_rational_t *B = (ml_rational_t *)Args[1]; \
-	mpq_t Result; mpq_init(Result); \
-	mpq_ ## FUNC(Result, A->Value, B->Value); \
-	return ml_rational_mpq(Result); \
-} \
-\
-ML_METHOD(#NAME, MLRationalT, MLRationalT) { \
-/*<A
-//<B
-//>integer
-// Returns :mini:`A NAME B`.
-*/\
-	mpq_t Result; ml_rational_mpq_init(Result, Args[0]); \
-	mpq_t RationalB; ml_rational_mpq_init(RationalB, Args[1]); \
-	mpq_ ## FUNC(Result, Result, RationalB); \
-	return ml_rational_mpq(Result); \
-}
-
-#else
-
 static void rat64_neg(rat64_t *Result) {
 	Result->Num = -Result->Num;
 }
@@ -693,6 +650,49 @@ static void rat64_div(rat64_t *Result, rat64_t *Other) {
 	Result->Den *= OtherNum;
 }
 
+#ifdef ML_BIGINT
+
+#define ml_arith_method_rational(NAME, FUNC) \
+\
+ML_METHOD(#NAME, MLRationalT) { \
+/*<A
+//>rational
+// Returns :mini:`NAME A`.
+*/\
+	mpq_t Result; ml_rational_mpq_init(Result, Args[0]); \
+	mpq_ ## FUNC(Result, Result); \
+	return ml_rational_mpq(Result); \
+}
+
+#define ml_arith_method_rational_rational(NAME, FUNC) \
+\
+ML_METHOD(#NAME, MLRational64T, MLRational64T) { \
+/*<A
+//<B
+//>rational
+// Returns :mini:`A NAME B`.
+*/\
+	ml_rational_t *A = (ml_rational_t *)Args[0]; \
+	ml_rational_t *B = (ml_rational_t *)Args[1]; \
+	mpq_t Result; mpq_init(Result); \
+	mpq_ ## FUNC(Result, A->Value, B->Value); \
+	return ml_rational_mpq(Result); \
+} \
+\
+ML_METHOD(#NAME, MLRationalT, MLRationalT) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`A NAME B`.
+*/\
+	mpq_t Result; ml_rational_mpq_init(Result, Args[0]); \
+	mpq_t RationalB; ml_rational_mpq_init(RationalB, Args[1]); \
+	mpq_ ## FUNC(Result, Result, RationalB); \
+	return ml_rational_mpq(Result); \
+}
+
+#else
+
 #define ml_arith_method_rational(NAME, FUNC) \
 \
 ML_METHOD(#NAME, MLRationalT) { \
@@ -715,6 +715,60 @@ ML_METHOD(#NAME, MLRationalT, MLRationalT) { \
 */\
 	rat64_t Result = ml_rational_value(Args[0]); \
 	rat64_t RationalB = ml_rational_value(Args[1]); \
+	rat64_ ## FUNC(&Result, &RationalB); \
+	return ml_rational(Result.Num, Result.Den); \
+}
+
+#endif
+
+#ifdef ML_NANBOXING
+
+#define ml_arith_method_rational48(NAME, FUNC) \
+\
+ML_METHOD(#NAME, MLRationalT) { \
+/*<A
+//>rational
+// Returns :mini:`NAME A`.
+*/\
+	rat64_t Result = ml_rational48_value(Args[0]); \
+	rat64_ ## FUNC(&Result); \
+	return ml_rational(Result.Num, Result.Den); \
+}
+
+#define ml_arith_method_rational48_rational48(NAME, FUNC) \
+\
+ML_METHOD(#NAME, MLRational64T, MLRational64T) { \
+/*<A
+//<B
+//>rational
+// Returns :mini:`A NAME B`.
+*/\
+	rat64_t Result = ml_rational48_value(Args[0]); \
+	rat64_t RationalB = ml_rational48_value(Args[1]); \
+	rat64_ ## FUNC(&Result, &RationalB); \
+	return ml_rational(Result.Num, Result.Den); \
+} \
+\
+ML_METHOD(#NAME, MLRational64T, MLInteger32T) { \
+/*<A
+//<B
+//>rational
+// Returns :mini:`A NAME B`.
+*/\
+	rat64_t Result = ml_rational48_value(Args[0]); \
+	rat64_t RationalB = (rat64_t){ml_integer32_value(Args[1]), 1}; \
+	rat64_ ## FUNC(&Result, &RationalB); \
+	return ml_rational(Result.Num, Result.Den); \
+} \
+\
+ML_METHOD(#NAME, MLInteger32T, MLRational64T) { \
+/*<A
+//<B
+//>rational
+// Returns :mini:`A NAME B`.
+*/\
+	rat64_t Result = (rat64_t){ml_integer32_value(Args[0]), 1}; \
+	rat64_t RationalB = ml_rational48_value(Args[1]); \
 	rat64_ ## FUNC(&Result, &RationalB); \
 	return ml_rational(Result.Num, Result.Den); \
 }
@@ -1380,6 +1434,12 @@ ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns :mini:`A << B`.
+#ifdef ML_BIGINT
+	mpz_t Result; ml_integer_mpz_init(Result, Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
+	mpz_mul_2exp(Result, Result, IntegerB);
+	return ml_integer_mpz(Result);
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	int64_t IntegerC;
@@ -1395,6 +1455,7 @@ ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 		IntegerC = IntegerA;
 	}
 	return ml_integer(IntegerC);
+#endif
 }
 
 ML_METHOD(">>", MLIntegerT, MLIntegerT) {
@@ -1402,6 +1463,12 @@ ML_METHOD(">>", MLIntegerT, MLIntegerT) {
 //<B
 //>integer
 // Returns :mini:`A >> B`.
+#ifdef ML_BIGINT
+	mpz_t Result; ml_integer_mpz_init(Result, Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
+	mpz_fdiv_q_2exp(Result, Result, IntegerB);
+	return ml_integer_mpz(Result);
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	int64_t IntegerC;
@@ -1417,6 +1484,7 @@ ML_METHOD(">>", MLIntegerT, MLIntegerT) {
 		IntegerC = IntegerA;
 	}
 	return ml_integer(IntegerC);
+#endif
 }
 
 ML_METHOD("++", MLIntegerT) {
@@ -1502,6 +1570,15 @@ ml_arith_method_rational(-, neg)
 ml_arith_method_rational_rational(+, add)
 ml_arith_method_rational_rational(-, sub)
 ml_arith_method_rational_rational(*, mul)
+
+#ifdef ML_NANBOXING
+
+ml_arith_method_rational48(-, neg)
+ml_arith_method_rational48_rational48(+, add)
+ml_arith_method_rational48_rational48(-, sub)
+ml_arith_method_rational48_rational48(*, mul)
+
+#endif
 
 #ifdef ML_BIGINT
 
@@ -1601,6 +1678,45 @@ ML_METHOD("/", MLInteger32T, MLInteger32T) {
 		return ml_integer(Div.quot);
 	}
 #endif
+}
+
+ML_METHOD("/", MLRational48T, MLRational48T) {
+/*<A
+//<B
+//>integer
+// Returns :mini:`A / B`.
+*/
+	rat64_t RationalB = ml_rational48_value(Args[1]);
+	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
+	rat64_t Result = ml_rational48_value(Args[0]);
+	rat64_div(&Result, &RationalB);
+	return ml_rational(Result.Num, Result.Den);
+}
+
+ML_METHOD("/", MLRational48T, MLInteger32T) {
+/*<A
+//<B
+//>integer
+// Returns :mini:`A / B`.
+*/
+	rat64_t RationalB = (rat64_t){ml_integer32_value(Args[1]), 1};
+	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
+	rat64_t Result = ml_rational48_value(Args[0]);
+	rat64_div(&Result, &RationalB);
+	return ml_rational(Result.Num, Result.Den);
+}
+
+ML_METHOD("/", MLInteger32T, MLRational48T) {
+/*<A
+//<B
+//>integer
+// Returns :mini:`A / B`.
+*/
+	rat64_t RationalB = ml_rational48_value(Args[1]);
+	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
+	rat64_t Result = (rat64_t){ml_integer32_value(Args[0]), 1};
+	rat64_div(&Result, &RationalB);
+	return ml_rational(Result.Num, Result.Den);
 }
 
 ML_METHOD("%", MLInteger32T, MLInteger32T) {
@@ -1747,10 +1863,18 @@ ML_METHOD("%", MLIntegerT, MLIntegerT) {
 // Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
 // Note: the result is calculated by rounding towards 0. In particular, if :mini:`Int/1` is negative, the result will be negative.
 // For a nonnegative remainder, use :mini:`Int/1 mod Int/2`.
+#ifdef ML_BIGINT
+	mpz_t Result; ml_integer_mpz_init(Result, Args[0]);
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]);
+	if (!IntegerB->_mp_size) return ml_error("ValueError", "Division by 0");
+	mpz_tdiv_r(Result, Result, IntegerB);
+	return ml_integer_mpz(Result);
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
 	return ml_integer(IntegerA % IntegerB);
+#endif
 }
 
 ML_METHOD("|", MLIntegerT, MLIntegerT) {
@@ -1758,10 +1882,18 @@ ML_METHOD("|", MLIntegerT, MLIntegerT) {
 //<Int/2
 //>integer
 // Returns :mini:`Int/2` if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+#ifdef ML_BIGINT
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]);
+	if (!IntegerB->_mp_size) return ml_error("ValueError", "Division by 0");
+	if (mpz_divisible_p(IntegerA, IntegerB)) return Args[1];
+	return MLNil;
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerA) return ml_error("ValueError", "Division by 0");
 	return (IntegerB % IntegerA) ? MLNil : Args[1];
+#endif
 }
 
 ML_METHOD("!|", MLIntegerT, MLIntegerT) {
@@ -1769,10 +1901,18 @@ ML_METHOD("!|", MLIntegerT, MLIntegerT) {
 //<Int/2
 //>integer
 // Returns :mini:`Int/2` if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+#ifdef ML_BIGINT
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]);
+	if (!IntegerB->_mp_size) return ml_error("ValueError", "Division by 0");
+	if (!mpz_divisible_p(IntegerA, IntegerB)) return Args[1];
+	return MLNil;
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerA) return ml_error("ValueError", "Division by 0");
 	return (IntegerB % IntegerA) ? Args[1] : MLNil;
+#endif
 }
 
 ML_METHOD("div", MLIntegerT, MLIntegerT) {
@@ -1781,6 +1921,13 @@ ML_METHOD("div", MLIntegerT, MLIntegerT) {
 //>integer
 // Returns the quotient of :mini:`Int/1` divided by :mini:`Int/2`.
 // The result is calculated by rounding down in all cases.
+#ifdef ML_BIGINT
+	mpz_t Result; ml_integer_mpz_init(Result, Args[0]);
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]);
+	if (!IntegerB->_mp_size) return ml_error("ValueError", "Division by 0");
+	mpz_fdiv_q(Result, Result, IntegerB);
+	return ml_integer_mpz(Result);
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
@@ -1794,6 +1941,7 @@ ML_METHOD("div", MLIntegerT, MLIntegerT) {
 	} else {
 		return ml_integer(Div.quot);
 	}
+#endif
 }
 
 ML_METHOD("mod", MLIntegerT, MLIntegerT) {
@@ -1802,6 +1950,13 @@ ML_METHOD("mod", MLIntegerT, MLIntegerT) {
 //>integer
 // Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
 // Note: the result is calculated by rounding down in all cases. In particular, the result is always nonnegative.
+#ifdef ML_BIGINT
+	mpz_t Result; ml_integer_mpz_init(Result, Args[0]);
+	mpz_t IntegerB; ml_integer_mpz_init(IntegerB, Args[1]);
+	if (!IntegerB->_mp_size) return ml_error("ValueError", "Division by 0");
+	mpz_fdiv_r(Result, Result, IntegerB);
+	return ml_integer_mpz(Result);
+#else
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
@@ -1810,6 +1965,7 @@ ML_METHOD("mod", MLIntegerT, MLIntegerT) {
 	long R = A % B;
 	if (R < 0) R += labs(B);
 	return ml_integer(R);
+#endif
 }
 
 ML_METHOD("bsf", MLIntegerT) {
@@ -1819,8 +1975,13 @@ ML_METHOD("bsf", MLIntegerT) {
 //$= 16:bsf
 //$= 10:bsf
 //$= 0:bsf
+#ifdef ML_BIGINT
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
+	return ml_integer(mpz_scan1(IntegerA, 0) + 1);
+#else
 	uint64_t A = (uint64_t)ml_integer_value(Args[0]);
 	return ml_integer(__builtin_ffsl(A));
+#endif
 }
 
 ML_METHOD("bsr", MLIntegerT) {
@@ -1830,8 +1991,13 @@ ML_METHOD("bsr", MLIntegerT) {
 //$= 16:bsr
 //$= 10:bsr
 //$= 0:bsr
+#ifdef ML_BIGINT
+	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
+	return ml_integer(mpz_sizeinbase(IntegerA, 2));
+#else
 	uint64_t A = (uint64_t)ml_integer_value(Args[0]);
 	return ml_integer(A ? 64 - __builtin_clzl(A) : 0);
+#endif
 }
 
 #ifdef ML_NANBOXING
@@ -2183,12 +2349,16 @@ static void __mul128(uint64_t C[4], uint64_t A, uint64_t B) {
 	C[2] += Temp >> 32;
 	Temp = A1 * B1;
 	C[2] += Temp & 0xFFFFFFFF;
+	C[2] += C[1] >> 32;
+	C[1] &= 0xFFFFFFFF;
 	C[3] = Temp >> 32;
+	C[3] += C[2] >> 32;
+	C[2] &= 0xFFFFFFFF;
 }
 
 static int cmp_rational(rat64_t A, rat64_t B) {
 	if (A.Num == B.Num && A.Den == B.Den) return 0;
-#ifdef __SIZEOF_INT128__0
+#ifdef __SIZEOF_INT128__
 	__int128 AD = A.Num * B.Den;
 	__int128 CB = B.Num * A.Den;
 	if (AD < CB) return -1;
@@ -2207,8 +2377,6 @@ static int cmp_rational(rat64_t A, rat64_t B) {
 	uint64_t AD[4], CB[4];
 	__mul128(AD, A.Num, B.Den);
 	__mul128(CB, B.Num, A.Den);
-	fprintf(stderr, "AD = %ld %ld %ld %ld\n", AD[0], AD[1], AD[2], AD[3]);
-	fprintf(stderr, "CB = %ld %ld %ld %ld\n", CB[0], CB[1], CB[2], CB[3]);
 	for (int I = 4; --I >= 0;) {
 		if (AD[I] < CB[I]) return -Sign;
 		if (AD[I] > CB[I]) return Sign;
@@ -2274,6 +2442,50 @@ ml_comp_method_rational_rational(<, <)
 ml_comp_method_rational_rational(<=, <=)
 ml_comp_method_rational_rational(>, >)
 ml_comp_method_rational_rational(>=, >=)
+
+#ifdef ML_NANBOXING
+
+static int cmp_rational48(ml_value_t *A0, ml_value_t *B0) {
+	rat64_t A = ml_rational48_value(A0);
+	rat64_t B = ml_rational48_value(B0);
+	if (A.Num == B.Num && A.Den == B.Den) return 0;
+	int64_t AD = A.Num * B.Den;
+	int64_t CB = B.Num * A.Den;
+	if (AD < CB) return -1;
+	if (AD > CB) return 1;
+	return 0;
+}
+
+ML_METHOD("<>", MLRational48T, MLRational48T) {
+//<Rational/1
+//<Rational/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Rational/1` is less than, equal to or greater than :mini:`Rational/2`.
+	int Cmp = cmp_rational48(Args[0], Args[1]);
+	if (Cmp < 0) return (ml_value_t *)NegOne;
+	if (Cmp > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
+#define ml_comp_method_rational48_rational48(NAME, OP) \
+ML_METHOD(#NAME, MLRational48T, MLRational48T) { \
+/*<A
+//<B
+//>rational
+// Returns :mini:`B` if :mini:`A NAME B`, otherwise returns :mini:`nil`.
+*/\
+	int Cmp = cmp_rational48(Args[0], Args[1]); \
+	return (Cmp OP 0) ? Args[1] : MLNil; \
+}
+
+ml_comp_method_rational48_rational48(=, ==)
+ml_comp_method_rational48_rational48(!=, !=)
+ml_comp_method_rational48_rational48(<, <)
+ml_comp_method_rational48_rational48(<=, <=)
+ml_comp_method_rational48_rational48(>, >)
+ml_comp_method_rational48_rational48(>=, >=)
+
+#endif
 
 #endif
 
