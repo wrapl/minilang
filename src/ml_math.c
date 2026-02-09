@@ -135,17 +135,28 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 //$= let R := 2 ^ -1
 //$= type(R)
 	int64_t Exponent = ml_integer_value(Args[1]);
-	if (!Exponent) return ml_integer(1);
 #ifdef ML_BIGINT
 	if (Exponent < 0) {
+		mpz_t A; ml_integer_mpz_init(A, Args[0]);
+		if (!A->_mp_size) return ml_real(NAN);
+#ifdef ML_RATIONAL
+		mpq_t Result;
+		mpz_init_set_ui(mpq_numref(Result), 1);
+		ml_integer_mpz_init(mpq_denref(Result), Args[0]);
+		mpz_pow_ui(mpq_denref(Result), mpq_denref(Result), Exponent);
+		return ml_rational_mpq(Result);
+#else
 		double Base = ml_real_value(Args[0]);
 		return ml_real(pow(Base, Exponent));
+#endif
 	} else if (Exponent > 0) {
-		mpz_t Base; ml_integer_mpz_init(Base, Args[0]);
-		mpz_t Result; mpz_init(Result);
-		mpz_pow_ui(Result, Base, Exponent);
+		mpz_t Result; ml_integer_mpz_init(Result, Args[0]);
+		if (!Result->_mp_size) return ml_real(NAN);
+		mpz_pow_ui(Result, Result, Exponent);
 		return ml_integer_mpz(Result);
 	} else {
+		mpz_t A; ml_integer_mpz_init(A, Args[0]);
+		if (!A->_mp_size) return ml_real(NAN);
 		return ml_integer(1);
 	}
 #else
@@ -193,10 +204,51 @@ ML_METHOD("^", MLRationalT, MLIntegerT) {
 		Exponent >>= 1;
 	}
 	if (Invert) {
-		if (Result.Num < 0) return ml_rational(-Result.Den, -Result.Num);
+		if (Result.Num < 0) return ml_rational(-(int64_t)Result.Den, -Result.Num);
 		return ml_rational(Result.Den, Result.Num);
 	}
 	return ml_rational(Result.Num, Result.Den);
+#endif
+}
+
+ML_METHOD("^", MLIntegerT, MLRationalT) {
+	rat64_t Exponent = ml_rational_value(Args[1]);
+#ifdef ML_BIGINT
+	if (Exponent.Num < 0) {
+		mpz_t A; ml_integer_mpz_init(A, Args[0]);
+		if (!A->_mp_size) return ml_integer(0);
+		mpq_t Result; mpq_init(Result);
+		if ((Exponent.Den % 2 || mpz_sgn(A) > 0)) {
+			if (mpz_root(mpq_denref(Result), A, Exponent.Den)) {
+				mpz_pow_ui(mpq_denref(Result), mpq_denref(Result), -Exponent.Num);
+				mpz_init_set_si(mpq_numref(Result), 1);
+				return ml_rational_mpq(Result);
+			}
+		}
+	} else if (Exponent.Num > 0) {
+		mpz_t A; ml_integer_mpz_init(A, Args[0]);
+		if (!A->_mp_size) return ml_integer(0);
+		mpz_t Result; mpz_init(Result);
+		if (Exponent.Den % 2 || mpz_sgn(A) > 0) {
+			if (mpz_root(Result, A, Exponent.Den)) {
+				mpz_pow_ui(Result, Result, Exponent.Num);
+				return ml_integer_mpz(Result);
+			}
+		}
+	} else {
+		mpz_t A; ml_integer_mpz_init(A, Args[0]);
+		if (!A->_mp_size) return ml_real(NAN);
+		return ml_integer(1);
+	}
+#endif
+	double Base = ml_real_value(Args[0]);
+	if (Exponent.Den % 2 || Base >= 0) {
+		return ml_real(pow(rootn(Base, Exponent.Den), Exponent.Num));
+	}
+#ifdef ML_COMPLEX
+	return ml_complex(cpow(Base, (double)Exponent.Num / Exponent.Den));
+#else
+	return ml_real(NAN);
 #endif
 }
 
@@ -435,25 +487,38 @@ MATH_NUMBER(Log10, log10, log10);
 MATH_NUMBER_KEEP_REAL(Sin, sin, sin);
 MATH_NUMBER_KEEP_REAL(Sinh, sinh, sinh);
 MATH_NUMBER(Sqrt, sqrt, sqrt);
+
+static uint64_t ml_integer_sqrt(uint64_t N) {
+	if (N <= 1) return N;
+	uint64_t X = N >> 1;
+	for (;;) {
+		uint64_t X1 = (X + N / X) >> 1;
+		if (X1 >= X) break;
+		X = X1;
+	}
+	if (X * X == N) return X;
+	return UINT64_MAX;
+}
+
 ML_METHOD(SqrtMethod, MLIntegerT) {
 //@math::sqrt
 //>integer|real
 // Returns the square root of :mini:`Arg/1`.
 #ifdef ML_BIGINT
-	mpz_t IntegerA; ml_integer_mpz_init(IntegerA, Args[0]);
-	switch (mpz_sgn(IntegerA)) {
+	mpz_t N; ml_integer_mpz_init(N, Args[0]);
+	switch (mpz_sgn(N)) {
 	case 0: return ml_integer(0);
 	case 1: {
 		mpz_t Result; mpz_init(Result);
-		if (mpz_root(Result, IntegerA, 2)) {
+		if (mpz_root(Result, N, 2)) {
 			return ml_integer_mpz(Result);
 		} else {
-			return ml_real(sqrt(mpz_get_d(IntegerA)));
+			return ml_real(sqrt(mpz_get_d(N)));
 		}
 	}
 	case -1: {
 #ifdef ML_COMPLEX
-		return ml_complex(csqrt(mpz_get_d(IntegerA)));
+		return ml_complex(csqrt(mpz_get_d(N)));
 #else
 		return ml_real(-NAN);
 #endif
@@ -469,17 +534,95 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 		return ml_real(-NAN);
 #endif
 	}
-	if (N <= 1) return Args[0];
-	int64_t X = N >> 1;
-	for (;;) {
-		int64_t X1 = (X + N / X) >> 1;
-		if (X1 >= X) break;
-		X = X1;
-	}
-	if (X * X == N) return ml_integer(X);
-	return ml_real(sqrt(N));
+	uint64_t Sqrt = ml_integer_sqrt(N);
+	if (Sqrt == UINT64_MAX) return ml_real(sqrt(N));
+	return ml_integer(Sqrt);
 #endif
 }
+
+#ifdef ML_NANBOXING
+
+ML_METHOD(SqrtMethod, MLInteger32T) {
+	int64_t N = ml_integer_value(Args[0]);
+	if (N < 0) {
+#ifdef ML_COMPLEX
+		return ml_complex(csqrt(N));
+#else
+		return ml_real(-NAN);
+#endif
+	}
+	uint64_t Sqrt = ml_integer_sqrt(N);
+	if (Sqrt == UINT64_MAX) return ml_real(sqrt(N));
+	return ml_integer(Sqrt);
+}
+
+#endif
+
+#ifdef ML_RATIONAL
+
+ML_METHOD(SqrtMethod, MLRationalT) {
+//@math::sqrt
+//>integer|real
+// Returns the square root of :mini:`Arg/1`.
+#ifdef ML_BIGINT
+	mpq_t R; ml_rational_mpq_init(R, Args[0]);
+	switch (mpz_sgn(mpq_numref(R))) {
+	case 0: return ml_integer(0);
+	case 1: {
+		mpq_t Result; mpq_init(Result);
+		if (mpz_root(mpq_numref(Result), mpq_numref(R), 2) && mpz_root(mpq_denref(Result), mpq_denref(R), 2)) {
+			return ml_rational_mpq(Result);
+		} else {
+			return ml_real(sqrt(mpq_get_d(R)));
+		}
+	}
+	case -1: {
+#ifdef ML_COMPLEX
+		return ml_complex(csqrt(mpq_get_d(R)));
+#else
+		return ml_real(-NAN);
+#endif
+	}
+	default: __builtin_unreachable();
+	}
+#else
+	rat64_t R = ml_rational_value(Args[0]);
+	if (R.Num < 0) {
+#ifdef ML_COMPLEX
+		return ml_complex(csqrt((double)R.Num / (double)R.Den));
+#else
+		return ml_real(-NAN);
+#endif
+	}
+	uint64_t Num = ml_integer_sqrt(R.Num);
+	if (Num == UINT64_MAX) return ml_real(sqrt((double)R.Num / (double)R.Den));
+	uint64_t Den = ml_integer_sqrt(R.Den);
+	if (Den == UINT64_MAX) return ml_real(sqrt((double)R.Num / (double)R.Den));
+	return ml_rational(Num, Den);
+#endif
+}
+
+#ifdef ML_NANBOXING
+
+ML_METHOD(SqrtMethod, MLRational48T) {
+	rat64_t R = ml_rational_value(Args[0]);
+	if (R.Num < 0) {
+#ifdef ML_COMPLEX
+		return ml_complex(csqrt((double)R.Num / (double)R.Den));
+#else
+		return ml_real(-NAN);
+#endif
+	}
+	uint64_t Num = ml_integer_sqrt(R.Num);
+	if (Num == UINT64_MAX) return ml_real(sqrt((double)R.Num / (double)R.Den));
+	uint64_t Den = ml_integer_sqrt(R.Den);
+	if (Den == UINT64_MAX) return ml_real(sqrt((double)R.Num / (double)R.Den));
+	return ml_rational(Num, Den);
+}
+
+#endif
+
+#endif
 
 ML_METHOD_DECL(SquareMethod, "math::square");
 ML_METHOD(SquareMethod, MLIntegerT) {
