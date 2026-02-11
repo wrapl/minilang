@@ -675,7 +675,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "c"
       random([]) :> nil
 
 
@@ -685,7 +685,7 @@ sequence
    .. code-block:: mini
 
       count2(1 .. 60000;) random::by(swap("cat"))
-      :> {"c" is 10018, "t" is 30010, "a" is 19972}
+      :> {"c" is 10107, "a" is 19969, "t" is 29924}
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`

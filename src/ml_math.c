@@ -589,6 +589,9 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 #ifdef ML_NANBOXING
 
 ML_METHOD(SqrtMethod, MLInteger32T) {
+//@math::sqrt
+//>integer|real
+// Returns the square root of :mini:`Arg/1`.
 	int64_t N = ml_integer_value(Args[0]);
 	if (N < 0) {
 #ifdef ML_COMPLEX
@@ -755,20 +758,47 @@ ML_METHOD(ConjMethod, MLRealT) {
 ML_METHOD_DECL(DeltaMethod, "math::delta");
 
 ML_METHOD(DeltaMethod, MLIntegerT, MLIntegerT) {
+//@math::delta
+#ifdef ML_BIGINT
+	mpz_t A; ml_integer_mpz_init(A, Args[0]);
+	mpz_t B; ml_integer_mpz_init(B, Args[1]);
+	if (!mpz_cmp(A, B)) return ml_integer(1);
+#else
 	if (ml_integer_value(Args[0]) == ml_integer_value(Args[1])) {
 		return ml_integer(1);
-	} else {
-		return ml_integer(0);
 	}
+#endif
+	return ml_integer(0);
 }
 
 ML_METHOD(DeltaMethod, MLRealT, MLRealT) {
+	//@math::delta
 	if (ml_real_value(Args[0]) == ml_real_value(Args[1])) {
 		return ml_integer(1);
 	} else {
 		return ml_integer(0);
 	}
 }
+
+#ifdef ML_RATIONAL
+
+ML_METHOD(DeltaMethod, MLRationalT, MLRationalT) {
+//@math::delta
+#ifdef ML_BIGINT
+	mpq_t A; ml_rational_mpq_init(A, Args[0]);
+	mpq_t B; ml_rational_mpq_init(B, Args[1]);
+	if (!mpq_cmp(A, B)) return ml_integer(1);
+#else
+	rat64_t A = ml_rational_value(Args[0]);
+	rat64_t B = ml_rational_value(Args[1]);
+	if (A.Num == B.Num && A.Den == B.Den) {
+		return ml_integer(1);
+	}
+#endif
+	return ml_integer(0);
+}
+
+#endif
 
 #ifdef ML_COMPLEX
 
@@ -797,6 +827,7 @@ ML_METHOD(ConjMethod, MLComplexT) {
 }
 
 ML_METHOD(DeltaMethod, MLComplexT, MLComplexT) {
+//@math::delta
 	if (ml_complex_value(Args[0]) == ml_complex_value(Args[1])) {
 		return ml_integer(1);
 	} else {

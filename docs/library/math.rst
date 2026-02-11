@@ -13,10 +13,6 @@ math
    *TBD*
 
 
-:mini:`meth (Arg₁: complex):DeltaMethod(Arg₂: complex)`
-   *TBD*
-
-
 :mini:`meth (X: complex) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -134,6 +130,10 @@ math
       :> 1.63043250480246 - 0.762072763912413i
 
 
+:mini:`meth math::delta(Arg₁: complex, Arg₂: complex)`
+   *TBD*
+
+
 :mini:`meth math::exp(Arg₁: complex): complex`
    Returns :mini:`exp(Arg₁)`.
 
@@ -246,10 +246,6 @@ math
    Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
 
 
-:mini:`meth (Arg₁: integer):DeltaMethod(Arg₂: integer)`
-   *TBD*
-
-
 :mini:`meth (X: integer) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -277,6 +273,10 @@ math
    Returns the greatest common divisor of :mini:`A` and :mini:`B`.
 
 
+:mini:`meth math::delta(Arg₁: integer, Arg₂: integer)`
+   *TBD*
+
+
 :mini:`meth math::sqrt(Arg₁: integer): integer | real`
    Returns the square root of :mini:`Arg₁`.
 
@@ -289,16 +289,16 @@ math
       math::square(10) :> 100
 
 
-:mini:`meth (Arg₁: integer32):SqrtMethod`
-   *TBD*
-
-
-:mini:`def math::e: real`
-   Euler's constant.
+:mini:`meth math::sqrt(Arg₁: integer32): integer | real`
+   Returns the square root of :mini:`Arg₁`.
 
 
 :mini:`def math::pi: real`
    Pi.
+
+
+:mini:`def math::e: real`
+   Euler's constant.
 
 
 :mini:`meth (X: number) ^ (Y: complex): number`
@@ -322,6 +322,10 @@ math
 
 
 :mini:`meth (Arg₁: rational) ^ (Arg₂: rational)`
+   *TBD*
+
+
+:mini:`meth math::delta(Arg₁: rational, Arg₂: rational)`
    *TBD*
 
 
