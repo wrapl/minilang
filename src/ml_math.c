@@ -143,7 +143,7 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 		mpq_t Result;
 		mpz_init_set_ui(mpq_numref(Result), 1);
 		ml_integer_mpz_init(mpq_denref(Result), Args[0]);
-		mpz_pow_ui(mpq_denref(Result), mpq_denref(Result), Exponent);
+		mpz_pow_ui(mpq_denref(Result), mpq_denref(Result), -Exponent);
 		return ml_rational_mpq(Result);
 #else
 		double Base = ml_real_value(Args[0]);
