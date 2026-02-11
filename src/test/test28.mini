@@ -13,10 +13,10 @@ for Xn, X in Xs do
 	print('1 - {X} = {1 - X}\n')
 	print('{X} * 2 = {X * 2}\n')
 	print('2 * {X} = {2 * X}\n')
-	print('{X} / 2 = {X / 2}\n')
+	print('{X} / 2 = {real(X / 2)}\n')
 	print('{X} * 4096 = {X * 4096}\n')
 	print('4096 * {X} = {4096 * X}\n')
-	print('{X} / 4096 = {X / 4096}\n')
+	print('{X} / 4096 = {real(X / 4096)}\n')
 	print("---\n")
 end
 

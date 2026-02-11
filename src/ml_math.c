@@ -252,6 +252,52 @@ ML_METHOD("^", MLIntegerT, MLRationalT) {
 #endif
 }
 
+ML_METHOD("^", MLRationalT, MLRationalT) {
+	rat64_t Exponent = ml_rational_value(Args[1]);
+#ifdef ML_BIGINT
+	if (Exponent.Num < 0) {
+		mpq_t A; ml_rational_mpq_init(A, Args[0]);
+		if (!mpq_numref(A)->_mp_size) return ml_integer(0);
+		mpq_t Result; mpq_init(Result);
+		if ((Exponent.Den % 2 || mpz_sgn(mpq_numref(A)) > 0)) {
+			if (mpz_root(mpq_denref(Result), mpq_numref(A), Exponent.Den) &&
+				mpz_root(mpq_numref(Result), mpq_denref(A), Exponent.Den)
+			) {
+				mpz_pow_ui(mpq_denref(Result), mpq_denref(Result), -Exponent.Num);
+				mpz_pow_ui(mpq_numref(Result), mpq_numref(Result), -Exponent.Num);
+				return ml_rational_mpq(Result);
+			}
+		}
+	} else if (Exponent.Num > 0) {
+		mpq_t A; ml_rational_mpq_init(A, Args[0]);
+		if (!mpq_numref(A)->_mp_size) return ml_integer(0);
+		mpq_t Result; mpq_init(Result);
+		if ((Exponent.Den % 2 || mpz_sgn(mpq_numref(A)) > 0)) {
+			if (mpz_root(mpq_denref(Result), mpq_denref(A), Exponent.Den) &&
+				mpz_root(mpq_numref(Result), mpq_numref(A), Exponent.Den)
+			) {
+				mpz_pow_ui(mpq_denref(Result), mpq_denref(Result), Exponent.Num);
+				mpz_pow_ui(mpq_numref(Result), mpq_numref(Result), Exponent.Num);
+				return ml_rational_mpq(Result);
+			}
+		}
+	} else {
+		mpq_t A; ml_rational_mpq_init(A, Args[0]);
+		if (!mpq_numref(A)->_mp_size) return ml_real(NAN);
+		return ml_integer(1);
+	}
+#endif
+	double Base = ml_real_value(Args[0]);
+	if (Exponent.Den % 2 || Base >= 0) {
+		return ml_real(pow(rootn(Base, Exponent.Den), Exponent.Num));
+	}
+#ifdef ML_COMPLEX
+	return ml_complex(cpow(Base, (double)Exponent.Num / Exponent.Den));
+#else
+	return ml_real(NAN);
+#endif
+}
+
 #endif
 
 ML_METHOD("^", MLRealT, MLIntegerT) {
