@@ -709,7 +709,7 @@ MATH_NUMBER_KEEP_REAL(Tanh, tanh, tanh);
 MATH_REAL(Erf, erf, erf);
 MATH_REAL(Erfc, erfc, erfc);
 MATH_REAL_REAL(Hypot, hypot, hypot);
-MATH_REAL(Gamma, lgamma, lgamma);
+MATH_REAL(Gamma, lgamma, gamma);
 MATH_NUMBER_KEEP_REAL(Acosh, acosh, acosh);
 MATH_NUMBER_KEEP_REAL(Asinh, asinh, asinh);
 MATH_NUMBER_KEEP_REAL(Atanh, atanh, atanh);
