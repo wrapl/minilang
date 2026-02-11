@@ -289,16 +289,12 @@ math
       math::square(10) :> 100
 
 
-:mini:`meth math::sqrt(Arg₁: integer32): integer | real`
-   Returns the square root of :mini:`Arg₁`.
+:mini:`def math::e: real`
+   Euler's constant.
 
 
 :mini:`def math::pi: real`
    Pi.
-
-
-:mini:`def math::e: real`
-   Euler's constant.
 
 
 :mini:`meth (X: number) ^ (Y: complex): number`
@@ -329,20 +325,12 @@ math
    *TBD*
 
 
-:mini:`meth math::sqrt(Arg₁: rational): integer | real`
+:mini:`meth math::sqrt(Arg₁: rational): rational | real`
    Returns the square root of :mini:`Arg₁`.
-
-
-:mini:`meth (Arg₁: rational48):SqrtMethod`
-   *TBD*
 
 
 :mini:`meth (X: real) % (Y: real): real`
    Returns the remainder of :mini:`X` on division by :mini:`Y`.
-
-
-:mini:`meth (Arg₁: real):DeltaMethod(Arg₂: real)`
-   *TBD*
 
 
 :mini:`meth (X: real) ^ (Y: integer): number`
@@ -483,6 +471,10 @@ math
 
       math::cosh(1.2345) :> 1.86381998863995
       math::cosh(-1.2345) :> 1.86381998863995
+
+
+:mini:`meth math::delta(Arg₁: real, Arg₂: real)`
+   *TBD*
 
 
 :mini:`meth math::erf(Arg₁: real): real`

@@ -589,9 +589,7 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 #ifdef ML_NANBOXING
 
 ML_METHOD(SqrtMethod, MLInteger32T) {
-//@math::sqrt
-//>integer|real
-// Returns the square root of :mini:`Arg/1`.
+//!internal
 	int64_t N = ml_integer_value(Args[0]);
 	if (N < 0) {
 #ifdef ML_COMPLEX
@@ -611,7 +609,7 @@ ML_METHOD(SqrtMethod, MLInteger32T) {
 
 ML_METHOD(SqrtMethod, MLRationalT) {
 //@math::sqrt
-//>integer|real
+//>rational|real
 // Returns the square root of :mini:`Arg/1`.
 #ifdef ML_BIGINT
 	mpq_t R; ml_rational_mpq_init(R, Args[0]);
@@ -654,6 +652,7 @@ ML_METHOD(SqrtMethod, MLRationalT) {
 #ifdef ML_NANBOXING
 
 ML_METHOD(SqrtMethod, MLRational48T) {
+//!internal
 	rat64_t R = ml_rational_value(Args[0]);
 	if (R.Num < 0) {
 #ifdef ML_COMPLEX
@@ -772,7 +771,7 @@ ML_METHOD(DeltaMethod, MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD(DeltaMethod, MLRealT, MLRealT) {
-	//@math::delta
+//@math::delta
 	if (ml_real_value(Args[0]) == ml_real_value(Args[1])) {
 		return ml_integer(1);
 	} else {
