@@ -222,12 +222,7 @@ extern ml_type_t MLVisitorT[];
 
 extern ml_type_t MLInteger32T[];
 extern ml_type_t MLDoubleT[];
-
-#ifdef ML_RATIONAL
-
 extern ml_type_t MLRational48T[];
-
-#endif
 
 __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
@@ -254,17 +249,10 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 #ifdef ML_NULLCHECKS
 	if (__builtin_expect(!Value, 0)) return MLNullT;
 #endif
-	if (__builtin_expect(Tag == 0, 1)) {
-		return Value->Type;
-	} else if (Tag == 1) {
-		return MLInteger32T;
-#ifdef ML_RATIONAL
-	} else if (Tag == 2) {
-		return MLRational48T;
-#endif
-	} else {
-		return MLDoubleT;
-	}
+	if (__builtin_expect(Tag == 0, 1)) return Value->Type;
+	if (Tag == 1) return MLInteger32T;
+	if (Tag == 2) return MLRational48T;
+	return MLDoubleT;
 }
 
 #define ml_typeof_deref(VALUE) ml_typeof(ml_deref(VALUE))

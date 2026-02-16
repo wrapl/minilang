@@ -315,20 +315,11 @@ ML_TYPE(MLRealT, (MLNumberT), "real");
 #endif
 // Base type for real numbers.
 
-#ifdef ML_RATIONAL
-
 ML_TYPE(MLRationalT, (MLRealT), "rational");
 //!internal
 
 ML_TYPE(MLIntegerT, (MLRationalT, MLFunctionT), "integer");
 // Base type of integers.
-
-#else
-
-ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer");
-// Base type of integers.
-
-#endif
 
 /*
 ML_DEF(Inf);
@@ -439,6 +430,16 @@ ML_TYPE(MLInteger32T, (MLIntegerT), "integer32",
 	.NoInherit = 1
 );
 
+static long ml_rational48_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	return (uint64_t)(intptr_t)Value & 0xFFFFFFFFFFFF;
+}
+
+ML_TYPE(MLRational48T, (MLRationalT), "rational48",
+//!internal
+	.hash = (void *)ml_rational48_hash,
+	.NoInherit = 1
+);
+
 static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_integer64_value(Value);
 }
@@ -514,16 +515,6 @@ uint64_t ml_gcd(uint64_t A, uint64_t B) {
 }
 
 #ifdef ML_RATIONAL
-
-static long ml_rational48_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	return (uint64_t)(intptr_t)Value & 0xFFFFFFFFFFFF;
-}
-
-ML_TYPE(MLRational48T, (MLRationalT), "rational48",
-//!internal
-	.hash = (void *)ml_rational48_hash,
-	.NoInherit = 1
-);
 
 static long ml_rational64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #ifdef ML_BIGINT
@@ -1579,6 +1570,45 @@ ml_arith_method_rational48_rational48(+, add)
 ml_arith_method_rational48_rational48(-, sub)
 ml_arith_method_rational48_rational48(*, mul)
 
+ML_METHOD("/", MLRational48T, MLRational48T) {
+/*<A
+//<B
+//>integer
+// Returns :mini:`A / B`.
+*/
+	rat64_t RationalB = ml_rational48_value(Args[1]);
+	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
+	rat64_t Result = ml_rational48_value(Args[0]);
+	rat64_div(&Result, &RationalB);
+	return ml_rational(Result.Num, Result.Den);
+}
+
+ML_METHOD("/", MLRational48T, MLInteger32T) {
+/*<A
+//<B
+//>integer
+// Returns :mini:`A / B`.
+*/
+	rat64_t RationalB = (rat64_t){ml_integer32_value(Args[1]), 1};
+	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
+	rat64_t Result = ml_rational48_value(Args[0]);
+	rat64_div(&Result, &RationalB);
+	return ml_rational(Result.Num, Result.Den);
+}
+
+ML_METHOD("/", MLInteger32T, MLRational48T) {
+/*<A
+//<B
+//>integer
+// Returns :mini:`A / B`.
+*/
+	rat64_t RationalB = ml_rational48_value(Args[1]);
+	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
+	rat64_t Result = (rat64_t){ml_integer32_value(Args[0]), 1};
+	rat64_div(&Result, &RationalB);
+	return ml_rational(Result.Num, Result.Den);
+}
+
 #endif
 
 #ifdef ML_BIGINT
@@ -1679,45 +1709,6 @@ ML_METHOD("/", MLInteger32T, MLInteger32T) {
 		return ml_integer(Div.quot);
 	}
 #endif
-}
-
-ML_METHOD("/", MLRational48T, MLRational48T) {
-/*<A
-//<B
-//>integer
-// Returns :mini:`A / B`.
-*/
-	rat64_t RationalB = ml_rational48_value(Args[1]);
-	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
-	rat64_t Result = ml_rational48_value(Args[0]);
-	rat64_div(&Result, &RationalB);
-	return ml_rational(Result.Num, Result.Den);
-}
-
-ML_METHOD("/", MLRational48T, MLInteger32T) {
-/*<A
-//<B
-//>integer
-// Returns :mini:`A / B`.
-*/
-	rat64_t RationalB = (rat64_t){ml_integer32_value(Args[1]), 1};
-	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
-	rat64_t Result = ml_rational48_value(Args[0]);
-	rat64_div(&Result, &RationalB);
-	return ml_rational(Result.Num, Result.Den);
-}
-
-ML_METHOD("/", MLInteger32T, MLRational48T) {
-/*<A
-//<B
-//>integer
-// Returns :mini:`A / B`.
-*/
-	rat64_t RationalB = ml_rational48_value(Args[1]);
-	if (!RationalB.Num) return ml_error("ValueError", "Division by 0");
-	rat64_t Result = (rat64_t){ml_integer32_value(Args[0]), 1};
-	rat64_div(&Result, &RationalB);
-	return ml_rational(Result.Num, Result.Den);
 }
 
 ML_METHOD("%", MLInteger32T, MLInteger32T) {
