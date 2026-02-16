@@ -436,6 +436,11 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLClassT, ml_context_t *Context,
 		Class->Call = Parent->Call;
 		ml_type_add_parent((ml_type_t *)Class, MLFunctionT);
 	}
+	if (Parent->Base.hash == (void *)ml_object_hash) {
+		Class->Base.hash = (void *)ml_object_hash;
+	} else if (Parent->Base.hash == (void *)ml_value_hash) {
+		Class->Base.hash = (void *)ml_value_hash;
+	}
 	return NULL;
 }
 
@@ -577,7 +582,7 @@ ML_FUNCTIONZ(MLClass) {
 					stringmap_insert(Class->Base.Exports, Name, Value);
 					if (!strcmp(Name, "of")) {
 						Class->Base.Constructor = Value;
-					} else if (!strcmp(Name, "hash")) {
+					} else if (!strcmp(Name, "#") || !strcmp(Name, "hash")) {
 						Value = ml_deref(Value);
 						if (ml_is(Value, MLStringT)) {
 							const char *Hash = ml_string_value(Value);
@@ -595,7 +600,7 @@ ML_FUNCTIONZ(MLClass) {
 						Class->Initializer = Value;
 					} else if (!strcmp(Name, "defaults")) {
 						Class->Defaults = Value;
-					} else if (!strcmp(Name, "()")) {
+					} else if (!strcmp(Name, "()") || !strcmp(Name, "call")) {
 						Class->Base.call = (void *)ml_object_call;
 						Class->Call = Value;
 						ml_type_add_parent((ml_type_t *)Class, MLFunctionT);

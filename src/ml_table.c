@@ -140,7 +140,7 @@ static void ml_table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_valu
 	ML_RETURN(Value);
 }
 
-ML_TYPE(MLTableRowT, (), "table::row",
+ML_TYPE(MLTableRowT, (MLSequenceT), "table::row",
 	.assign = (void *)ml_table_row_assign
 );
 
@@ -844,33 +844,73 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 }
 
 typedef struct {
-	ml_stringbuffer_t *Buffer;
-	ml_value_t *Indices[1];
-	int Comma;
-} ml_table_row_append_t;
+	ml_type_t *Type;
+	ml_table_t *Table;
+	ml_table_column_t *Column;
+	int Index;
+} ml_table_row_iter_t;
 
-static int ml_table_row_append_column(const char *Name, ml_table_column_t *Column, ml_table_row_append_t *Append) {
-	if (Append->Comma) ml_stringbuffer_write(Append->Buffer, ", ", 2);
-	ml_stringbuffer_write(Append->Buffer, Name, strlen(Name));
-	ml_stringbuffer_write(Append->Buffer, " is ", 4);
-	ml_value_t *Value = ml_array_index(Column->Values, 1, Append->Indices);
-	ml_stringbuffer_simple_append(Append->Buffer, Value);
-	Append->Comma = 1;
-	return 0;
+ML_TYPE(MLTableRowIterT, (), "table::row::iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLTableRowT, ml_state_t *Caller, ml_table_row_t *Row) {
+	ml_table_t *Table = Row->Table;
+	if (!Table->Columns) ML_RETURN(MLNil);
+	ml_table_row_iter_t *Iter = new(ml_table_row_iter_t);
+	Iter->Type = MLTableRowIterT;
+	Iter->Index = (Row - Table->Rows) + 1;
+	Iter->Table = Table;
+	Iter->Column = Table->Columns;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ml_table_column_t *Column = Iter->Column->Next;
+	if (!Column) ML_RETURN(MLNil);
+	Iter->Column = Column;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ML_RETURN(Iter->Column->Name);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ml_table_t *Table = Iter->Table;
+	int Index = Iter->Index;
+	if (Index <= 0 || Index > Table->Length) ML_ERROR("ValueError", "Row is no longer valid");
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	ML_RETURN(ml_array_index(Iter->Column->Values, 1, Indices));
 }
 
 ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_table_row_t *Row = (ml_table_row_t *)Args[1];
 	ml_table_t *Table = Row->Table;
 	int Index = (Row - Table->Rows) + 1;
 	if (Index <= 0 || Index > Table->Length) return ml_error("ValueError", "Row is no longer valid");
-	ml_table_row_append_t Append[1] = {{(ml_stringbuffer_t *)Args[0], {ml_integer(Index)}, 0}};
-	ml_stringbuffer_put(Append->Buffer, '<');
-	stringmap_foreach(Table->ColumnNames, Append, (void *)ml_table_row_append_column);
-	ml_stringbuffer_put(Append->Buffer, '>');
+	ml_value_t *Indices[1] = {ml_integer(Index)};
+	ml_table_column_t *Column = Table->Columns;
+	if (!Column) {
+		ml_stringbuffer_write(Buffer, "<>", 2);
+	} else {
+		ml_stringbuffer_put(Buffer, '<');
+		ml_stringbuffer_write(Buffer, ml_string_value(Column->Name), ml_string_length(Column->Name));
+		ml_stringbuffer_write(Buffer, " is ", 4);
+		ml_value_t *Value = ml_array_index(Column->Values, 1, Indices);
+		ml_stringbuffer_simple_append(Buffer, Value);
+		while ((Column = Column->Next)) {
+			ml_stringbuffer_write(Buffer, ", ", 2);
+			ml_stringbuffer_write(Buffer, ml_string_value(Column->Name), ml_string_length(Column->Name));
+			ml_stringbuffer_write(Buffer, " is ", 4);
+			ml_value_t *Value = ml_array_index(Column->Values, 1, Indices);
+			ml_stringbuffer_simple_append(Buffer, Value);
+		}
+		ml_stringbuffer_put(Buffer, '>');
+	}
 	return MLSome;
 }
 
