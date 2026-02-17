@@ -1,24 +1,22 @@
-#ifndef STRINGMAP_H
-#define STRINGMAP_H
+#ifndef STRINGMAP2_H
+#define STRINGMAP2_H
 
-typedef struct stringmap_node_t stringmap_node_t;
+typedef struct stringmap2_node_t stringmap2_node_t;
 
 typedef struct {
-	stringmap_node_t *Nodes;
+	stringmap2_node_t *Nodes;
 	int Size, Mask;
-} stringmap_t;
+} stringmap2_t;
 
-#define STRINGMAP_INIT (stringmap_t){0,}
+#define STRINGMAP2_INIT (stringmap2_t){0,}
 
-stringmap_t *stringmap_new() __attribute__ ((malloc));
-stringmap_t *stringmap_copy(stringmap_t *Map) __attribute__ ((malloc));
+stringmap2_t *stringmap2_new() __attribute__ ((malloc));
+stringmap2_t *stringmap2_copy(stringmap2_t *Map) __attribute__ ((malloc));
 
-void *stringmap_search(const stringmap_t *Map, const char *Key) __attribute__ ((pure));
-void *stringmap_insert(stringmap_t *Map, const char *Key, void *Value);
-void *stringmap_remove(stringmap_t *Map, const char *Key);
-void **stringmap_slot(stringmap_t *Map, const char *Key);
-int stringmap_foreach(stringmap_t *Map, void *Data, int (*callback)(const char *, void *, void *));
-
-unsigned long stringmap_hash(const char *Key) __attribute__ ((pure));
+void *stringmap2_search(const stringmap2_t *Map, const char *Key) __attribute__ ((pure));
+void *stringmap2_insert(stringmap2_t *Map, const char *Key, void *Value);
+void *stringmap2_remove(stringmap2_t *Map, const char *Key);
+void **stringmap2_slot(stringmap2_t *Map, const char *Key);
+int stringmap2_foreach(stringmap2_t *Map, void *Data, int (*callback)(const char *, void *, void *));
 
 #endif

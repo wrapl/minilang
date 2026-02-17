@@ -178,6 +178,7 @@ let Objects := [
 	file("ml_utils.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
+	file("stringmap2.o"),
 	file("uuidmap.o"),
 	file("weakmap.o")
 ]
