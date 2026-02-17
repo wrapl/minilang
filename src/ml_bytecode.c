@@ -1401,6 +1401,12 @@ void ml_closure_info_labels(ml_closure_info_t *Info) {
 	}
 }
 
+static long chars_hash(const char *P, int N) {
+	long Hash = 5381;
+	while (--N >= 0) Hash = ((Hash << 5) + Hash) + *P++;
+	return Hash;
+}
+
 static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
 	Info->Hash[I] ^= Inst->Opcode;
 	Info->Hash[J] ^= (Inst->Opcode << 4);
@@ -1441,7 +1447,7 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 		return 4;
 	case MLIT_COUNT_CHARS:
 		*(int *)(Info->Hash + I) ^= Inst[1].Count;
-		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst[2].Chars);
+		*(long *)(Info->Hash + J) ^= chars_hash(Inst[2].Chars, Inst[1].Count);
 		return 3;
 	case MLIT_DECL: return 2;
 	case MLIT_COUNT_DECL:

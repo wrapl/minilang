@@ -25,7 +25,7 @@ stringmap_t *stringmap_copy(stringmap_t *Map) {
 	return Copy;
 }
 
-unsigned long stringmap_hash(const char *Key) {
+static unsigned long stringmap_hash(const char *Key) {
 	unsigned long Hash = 5381;
 	for (const char *P = Key; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;

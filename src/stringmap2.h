@@ -1,21 +1,12 @@
 #ifndef STRINGMAP_H
 #define STRINGMAP_H
 
-/// \defgroup stringmap
-/// @{
-///
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct stringmap_t stringmap_t;
 typedef struct stringmap_node_t stringmap_node_t;
 
-struct stringmap_t {
-	stringmap_node_t *Root;
-	int Size;
-};
+typedef struct {
+	stringmap_node_t *Nodes;
+	int Size, Mask;
+} stringmap_t;
 
 #define STRINGMAP_INIT (stringmap_t){0,}
 
@@ -28,10 +19,6 @@ void *stringmap_remove(stringmap_t *Map, const char *Key);
 void **stringmap_slot(stringmap_t *Map, const char *Key);
 int stringmap_foreach(stringmap_t *Map, void *Data, int (*callback)(const char *, void *, void *));
 
-#ifdef __cplusplus
-}
-#endif
-
-/// @}
+unsigned long stringmap_hash(const char *Key) __attribute__ ((pure));
 
 #endif
