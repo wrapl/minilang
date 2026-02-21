@@ -602,7 +602,7 @@ double ml_random_real();
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
-ml_value_t *ml_integer_parse(char *String);
+ml_value_t *ml_integer_parse(const char *Start, int Base);
 ml_value_t *ml_real_parse(char *String);
 
 typedef struct {

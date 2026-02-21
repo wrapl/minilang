@@ -495,10 +495,6 @@ static int64_t ML_TYPED_FN(ml_integer_value, MLInteger64T, const ml_value_t *Val
 	return ml_integer64_value(Value);
 }
 
-ml_value_t *ml_integer_parse(char *String) {
-	return ml_integer(strtoll(String, NULL, 10));
-}
-
 uint64_t ml_gcd(uint64_t A, uint64_t B) {
 	int Shift = __builtin_ctzl(A | B);
 	A >>= __builtin_ctz(A);
@@ -1073,6 +1069,21 @@ ml_value_t *ml_integer_mpz(const mpz_t Source) {
 }
 
 #endif
+
+ml_value_t *ml_integer_parse(const char *Start, int Base) {
+	if (!Start[0]) return Zero;
+	int Limit = (63 * log(2)) / log(Base);
+#ifdef ML_BIGINT
+	if (strlen(Start) > Limit) {
+		mpz_t Result;
+		mpz_init_set_str(Result, Start, Base);
+		return ml_integer_mpz(Result);
+	}
+#endif
+	char *End;
+	long Value = strtol(Start, &End, Base);
+	return ml_integer(Value);
+}
 
 #ifdef ML_RATIONAL
 
