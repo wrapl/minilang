@@ -139,11 +139,14 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	if (Definition->Count > Count) return 0;
 	if (Definition->Count < Count) {
 		if (!Definition->Variadic) return 0;
-		Count = Definition->Count;
+		ml_type_t *Type = Definition->Variadic;
+		for (int I = Count; --I >= Definition->Count;) {
+			if (!ml_is_subtype(Types[I], Type)) return 0;
+		}
 	} else if (!Definition->Variadic) {
 		Score = 2;
 	}
-	for (int I = Count; --I >= 0;) {
+	for (int I = Definition->Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
 		if (Type->Type == MLTypeUnionT) {
 			ml_union_type_t *Union = (ml_union_type_t *)Type;
@@ -699,7 +702,14 @@ ML_METHODVX(MLMethodDefine, MLMethodT) {
 	int NumTypes = Count - 2;
 	ml_type_t *Variadic = NULL;
 	if (Count >= 3 && ml_is(Args[Count - 2], MLListT)) {
-		Variadic = MLAnyT;
+		ml_value_t *Type = ml_list_get(Args[Count - 2], 1);
+		if (!Type) {
+			Variadic = MLAnyT;
+		} else if (ml_is(Type, MLTypeT)) {
+			Variadic = (ml_type_t *)Type;
+		} else {
+			ML_ERROR("TypeError", "Expected type not %s", ml_typeof(Type)->Name);
+		}
 		--NumTypes;
 	}
 	for (int I = 1; I <= NumTypes; ++I) {
@@ -729,7 +739,14 @@ ML_METHODVX(MLMethodDefine, MLTypeT) {
 	int NumTypes = Count - 2;
 	ml_type_t *Variadic = NULL;
 	if (Count >= 3 && ml_is(Args[Count - 2], MLListT)) {
-		Variadic = MLAnyT;
+		ml_value_t *Type = ml_list_get(Args[Count - 2], 1);
+		if (Type == MLNil) {
+			Variadic = MLAnyT;
+		} else if (ml_is(Type, MLTypeT)) {
+			Variadic = (ml_type_t *)Type;
+		} else {
+			ML_ERROR("TypeError", "Expected type not %s", ml_typeof(Type)->Name);
+		}
 		--NumTypes;
 	}
 	for (int I = 1; I <= NumTypes; ++I) {
@@ -752,12 +769,42 @@ ML_METHODX("list", MLMethodT) {
 			for (int I = 0; I < Definition->Count; ++I) {
 				ml_tuple_set(Signature, I + 1, (ml_value_t *)Definition->Types[I]);
 			}
-			if (Definition->Variadic) ml_tuple_set(Signature, Definition->Count + 1, ml_list());
+			if (Definition->Variadic) {
+				ml_value_t *List = ml_list();
+				ml_list_put(List, (ml_value_t *)Definition->Variadic);
+				ml_tuple_set(Signature, Definition->Count + 1, List);
+			}
 			ml_map_node_t *Node = ml_map_slot(Results, Signature);
 			if (!Node->Value) {
 				const char *Source;
 				int Line;
 				if (ml_function_source(Definition->Callback, &Source, &Line)) {
+					Node->Value = ml_tuplev(2, ml_string(Source, -1), ml_integer(Line));
+				} else {
+					Node->Value = MLNil;
+				}
+			}
+		}
+		Methods = Methods->Parent;
+	} while (Methods);
+	ML_RETURN(Results);
+}
+
+ML_METHODX("cached", MLMethodT) {
+	ml_value_t *Results = ml_map();
+	ml_methods_t *Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
+	do {
+		for (ml_method_cached_t *Cached = (ml_method_cached_t *)inthash_search(Methods->Methods, (uintptr_t)Args[0]); Cached; Cached = Cached->MethodNext) {
+			if (Cached->Method != (ml_method_t *)Args[0]) continue;
+			ml_value_t *Signature = ml_tuple(Cached->Count);
+			for (int I = 0; I < Cached->Count; ++I) {
+				ml_tuple_set(Signature, I + 1, (ml_value_t *)Cached->Types[I]);
+			}
+			ml_map_node_t *Node = ml_map_slot(Results, Signature);
+			if (!Node->Value) {
+				const char *Source;
+				int Line;
+				if (ml_function_source(Cached->Callback, &Source, &Line)) {
 					Node->Value = ml_tuplev(2, ml_string(Source, -1), ml_integer(Line));
 				} else {
 					Node->Value = MLNil;
