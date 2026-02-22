@@ -267,10 +267,6 @@ number
    Base type of integers.
 
 
-:mini:`type integer < real, function`
-   Base type of integers.
-
-
 :mini:`meth integer(Real: double): integer`
    Converts :mini:`Real` to an integer (using default rounding).
 
@@ -962,12 +958,12 @@ number
    *TBD*
 
 
-:mini:`def real::NaN: real`
-   Not a number.
-
-
 :mini:`def real::Inf: real`
    Positive infinity.
+
+
+:mini:`def real::NaN: real`
+   Not a number.
 
 
 :mini:`meth real(String: string): real | error`

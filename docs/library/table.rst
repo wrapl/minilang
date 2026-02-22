@@ -125,7 +125,7 @@ table
    *TBD*
 
 
-:mini:`type table::row`
+:mini:`type table::row < sequence`
    *TBD*
 
 

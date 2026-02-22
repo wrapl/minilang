@@ -176,23 +176,6 @@
         </inbodydescription>
         <location file="src/stringmap.h" line="29" column="5" declfile="src/stringmap.h" declline="29" declcolumn="5"/>
       </memberdef>
-      <memberdef kind="function" id="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>unsigned long</type>
-        <definition>unsigned long stringmap_hash</definition>
-        <argsstring>(const char *Key) __attribute__((pure))</argsstring>
-        <name>stringmap_hash</name>
-        <param>
-          <type>const char *</type>
-          <declname>Key</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/stringmap.h" line="31" column="15" declfile="src/stringmap.h" declline="31" declcolumn="15"/>
-      </memberdef>
     </sectiondef>
     <sectiondef kind="define">
       <memberdef kind="define" id="group__stringmap_1ga04ce49e388ce3b5f4bf48647a444a2be" prot="public" static="no">

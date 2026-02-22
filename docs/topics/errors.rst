@@ -3,7 +3,7 @@ Error Handling
 
 When an error occurs in *Minilang*, an error value is created and returned. If an error handler has been declared in the current block, execution jumps to the error handler, assigning the error value to the error variable. If no error handler declared, the error is propagated to the surrounding block, or returned from the current function if the outermost block is reached without any error handler.
 
-.. parser-rule-diagram:: 'on' block
+.. syntax:parser-diagram:: 'on' block
 
 .. code-block:: mini
    :linenos:

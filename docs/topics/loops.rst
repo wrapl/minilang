@@ -8,19 +8,19 @@ Loop expressions
 
 The simplest looping expression in *Minilang* is the :mini:`loop`-expression which repeatedly evaluates a block of code until the loop is exited using an :mini:`exit`-expression somewhere in the body of the loop.
 
-.. parser-rule-diagram:: 'loop' block 'end'
+.. syntax:parser-diagram:: 'loop' block 'end'
 
-.. parser-rule-diagram:: 'exit' expression?
+.. syntax:parser-diagram:: 'exit' expression?
 
 The loop returns the value of the expression after :mini:`exit`, or :mini:`nil` if the expression in omitted.
 
 A :mini:`next`-expression causes the loop to move onto its next iteration immediately.
 
-.. parser-rule-diagram:: 'next'
+.. syntax:parser-diagram:: 'next'
 
 Normally, :mini:`exit`-expressions are used within conditional expressions such as :mini:`if`-expressions or with :mini:`and` or :mini:`or`. For convenience, *Minilang* provides :mini:`while`-expressions and :mini:`until`-expressions.
 
-.. parser-rule-diagram:: 'while' expression ( ',' expression )?
+.. syntax:parser-diagram:: 'while' expression ( ',' expression )?
 
 If the first expression after :mini:`while` evaluates to :mini:`nil` then the loop exits with the value of the second expression, or :mini:`nil` is the second expression is omitted. Otherwise, the :mini:`while`-expression evaluates to the result of the first expression.
 
@@ -35,7 +35,7 @@ If the first expression after :mini:`while` evaluates to :mini:`nil` then the lo
    :> behaves like
    if let Temp := X then Temp else exit Temp :<nil>: end
 
-.. parser-rule-diagram:: 'until' expression ( ',' expression )?
+.. syntax:parser-diagram:: 'until' expression ( ',' expression )?
 
 If the first expression after :mini:`until` evaluates to anything other than :mini:`nil` then the loop exits with the value of the second expression, or the value of the first expression if the second expression is omitted. Otherwise, the :mini:`until`-expression evaluates to :mini:`nil`.
 
@@ -100,7 +100,7 @@ If it is required to exit or restart deeply nested loops, using multiple :mini:`
 For expressions
 ---------------
 
-.. parser-rule-diagram:: 'for' ( identifier ',' )? ( identifier | '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' )  'in' expression 'do' block ( 'else' block )? 'end'
+.. syntax:parser-diagram:: 'for' ( identifier ',' )? ( identifier | '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' )  'in' expression 'do' block ( 'else' block )? 'end'
 
 A :mini:`for`-expressions loops over a sequence, binding the generated keys and values to local variables and evaluating a block of code for each iteration. The loop stops when the sequence is exhausted, or if a :mini:`exit` expression is used to exit the loop.
 
@@ -131,7 +131,7 @@ A :mini:`next`-expression can also be used in a :mini:`for`-expression which wil
 Each expressions
 ----------------
 
-.. parser-rule-diagram:: 'each' expression
+.. syntax:parser-diagram:: 'each' expression
 
 An :mini:`each`-expression simply loops over a sequence.
 

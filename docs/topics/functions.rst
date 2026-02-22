@@ -8,7 +8,7 @@ Closures
 
 Functions are created in *Minilang* using a :mini:`fun`-expression.
 
-.. parser-rule-diagram:: 'fun' ( '(' (
+.. syntax:parser-diagram:: 'fun' ( '(' (
    ( ( 'ref' | 'var' )? identifier ( ':' expression )? ( ':=' expression )? ( ',' ( 'ref' | 'var' )? identifier ( ':' expression )? ( ':=' expression )? )* ( ',' '[' identifier ']' )? ( ',' '{' identifier '}' )? ) |
    ( '[' identifier ']' ( ',' '{' identifier '}' )? ) |
    ( '{' identifier '}' )
@@ -49,7 +49,7 @@ Calling Functions
 
 Functions are called in *Minilang* using traditional postfix notation. Named arguments are passed using :mini:`Name is Value`, where :mini:`Name` is an identifier or a string.
 
-.. parser-rule-diagram:: term '(' ( expression ( ',' expression )* )? ( ',' ( identifier | string ) 'is' expression )* ')'
+.. syntax:parser-diagram:: term '(' ( expression ( ',' expression )* )? ( ',' ( identifier | string ) 'is' expression )* ')'
 
 .. code-block:: mini
    :linenos:
@@ -72,7 +72,7 @@ Simple functions can be written in *Minilang* using blank expressions, written a
    :linenos:
 
    let print_line := print("<", _, ">\n")
-   
+
    print_line("Hello world")
 
 .. code-block:: console

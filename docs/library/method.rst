@@ -45,6 +45,10 @@ method
    *TBD*
 
 
+:mini:`meth (Arg₁: method):cached`
+   *TBD*
+
+
 :mini:`meth (Arg₁: method):list`
    *TBD*
 

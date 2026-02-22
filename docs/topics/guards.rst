@@ -31,7 +31,7 @@ As a result, it is often required to check the result of an expression for :mini
 
 *Minilang* provides a shorthand for this type of check using *guarded* arguments. A simple guarded argument consists of an empty pair of braces :mini:`{}` following an expression in a function call.
 
-.. parser-rule-diagram:: expression '{' '}'
+.. syntax:parser-diagram:: expression '{' '}'
 
 If the expression in a simple guarded argument evaluates to :mini:`nil` then the **innermost** function call containing the guarded argument evaluates immediately to :mini:`nil` without invoking the called function.
 
@@ -47,7 +47,7 @@ General Guards
 
 Other than simply checking for :mini:`nil`, guarded arguments can also check their preceeding expression for arbitrarily complex conditions by including another expression inside the braces. Within the braces, the keyword :mini:`it` refers to the value of the preceeding expression.
 
-.. parser-rule-diagram:: expression '{' expression '}'
+.. syntax:parser-diagram:: expression '{' expression '}'
 
 .. code-block:: mini
    :linenos:
