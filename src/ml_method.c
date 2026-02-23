@@ -140,13 +140,14 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	if (Definition->Count < Count) {
 		if (!Definition->Variadic) return 0;
 		ml_type_t *Type = Definition->Variadic;
-		for (int I = Count; --I >= Definition->Count;) {
+		for (int I = Definition->Count; I < Count; ++I) {
+			if (Types[I] == MLNamesT) break;
 			if (!ml_is_subtype(Types[I], Type)) return 0;
 		}
 	} else if (!Definition->Variadic) {
 		Score = 2;
 	}
-	for (int I = Definition->Count; --I >= 0;) {
+	for (int I = 0; I < Definition->Count; ++I) {
 		ml_type_t *Type = Definition->Types[I];
 		if (Type->Type == MLTypeUnionT) {
 			ml_union_type_t *Union = (ml_union_type_t *)Type;
