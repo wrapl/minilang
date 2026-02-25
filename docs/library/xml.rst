@@ -25,6 +25,10 @@ xml
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
+:mini:`meth xmlwriter(Arg₁: stream)`
+   *TBD*
+
+
 :mini:`fun xml::escape(String: string): string`
    Escapes characters in :mini:`String`.
 
@@ -478,5 +482,29 @@ xml
 
 :mini:`meth (Xml: xml::text):text: string`
    Returns the text content of :mini:`Xml`.
+
+
+:mini:`type xml::writer < stream`
+   *TBD*
+
+
+:mini:`meth /(Arg₁: xml::writer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xml::writer) / (Arg₂: string)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xml::writer):attr(Arg₂: string, Arg₃: string)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xml::writer):close`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xml::writer):write(Arg₂: string)`
+   *TBD*
 
 

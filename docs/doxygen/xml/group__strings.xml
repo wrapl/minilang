@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="group__strings" kind="group">
     <compoundname>strings</compoundname>
     <title>Strings</title>
@@ -1083,9 +1083,9 @@
       <memberdef kind="define" id="group__strings_1ga00ffbc023fa5e4b7f0955e9c8186fc0d" prot="public" static="no">
         <name>ml_cstring</name>
         <param><defname>VALUE</defname></param>
-        <initializer>	({ \
-	static <ref refid="structml__string__t" kindref="compound">ml_string_t</ref> String ## __COUNTER__ = {MLStringT, VALUE, strlen(VALUE), 0}; \
-	(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *)&amp;String ## __COUNTER__; \
+        <initializer>    ({ \
+    static <ref refid="structml__string__t" kindref="compound">ml_string_t</ref> String ## __COUNTER__ = {MLStringT, VALUE, strlen(VALUE), 0}; \
+    (<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *)&amp;String ## __COUNTER__; \
 })</initializer>
         <briefdescription>
         </briefdescription>
