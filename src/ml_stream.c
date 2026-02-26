@@ -1478,6 +1478,79 @@ ML_METHOD("write", MLStreamFdT, MLAddressT) {
 	}
 }
 
+/*
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Read, *Write, *Flush;
+	ml_value_t *Seek, *Tell, *Close;
+} ml_stream_fns_t;
+
+ML_TYPE(MLStreamFnsT, (MLStreamT), "stream");
+
+ML_METHODV(MLStreamT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(0);
+	ml_stream_fns_t *Stream = new(ml_stream_fns_t);
+	Stream->Type = MLStreamFnsT;
+	int I = 1;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		const char *Name = ml_string_value(Iter->Value);
+		if (!strcmp(Name, "read")) {
+			Stream->Read = Args[I];
+		} else if (!strcmp(Name, "write")) {
+			Stream->Write = Args[I];
+		} else if (!strcmp(Name, "flush")) {
+			Stream->Flush = Args[I];
+		} else if (!strcmp(Name, "seek")) {
+			Stream->Seek = Args[I];
+		} else if (!strcmp(Name, "tell")) {
+			Stream->Tell = Args[I];
+		} else if (!strcmp(Name, "close")) {
+			Stream->Close = Args[I];
+		} else {
+			return ml_error("NameError", "Unknown setting %s", Name);
+		}
+		++I;
+	}
+	return (ml_value_t *)Stream;
+}
+
+ML_METHODX(ReadMethod, MLStreamFnsT, MLBufferT) {
+	ml_stream_fns_t *Stream = (ml_stream_fns_t *)Args[0];
+	if (!Stream->Read) ML_ERROR("ReadError", "No function defined for reading");
+	return ml_call(Caller, Stream->Read, 1, Args + 1);
+}
+
+ML_METHODX(WriteMethod, MLStreamFnsT, MLAddressT) {
+	ml_stream_fns_t *Stream = (ml_stream_fns_t *)Args[0];
+	if (!Stream->Write) ML_ERROR("WriteError", "No function defined for writing");
+	return ml_call(Caller, Stream->Write, 1, Args + 1);
+}
+
+ML_METHODX(FlushMethod, MLStreamFnsT, MLAddressT) {
+	ml_stream_fns_t *Stream = (ml_stream_fns_t *)Args[0];
+	if (!Stream->Flush) ML_RETURN(Stream);
+	return ml_call(Caller, Stream->Flush, 0, NULL);
+}
+
+ML_METHODX(SeekMethod, MLStreamFnsT, MLIntegerT, MLStreamSeekT) {
+	ml_stream_fns_t *Stream = (ml_stream_fns_t *)Args[0];
+	if (!Stream->Seek) ML_ERROR("SeekError", "No function defined for seeking");
+	return ml_call(Caller, Stream->Seek, 2, Args + 1);
+}
+
+ML_METHODX(TellMethod, MLStreamFnsT, MLAddressT) {
+	ml_stream_fns_t *Stream = (ml_stream_fns_t *)Args[0];
+	if (!Stream->Tell) ML_RETURN(ml_integer(0));
+	return ml_call(Caller, Stream->Tell, 0, NULL);
+}
+
+ML_METHODX(CloseMethod, MLStreamFnsT, MLAddressT) {
+	ml_stream_fns_t *Stream = (ml_stream_fns_t *)Args[0];
+	if (!Stream->Close) ML_RETURN(Stream);
+	return ml_call(Caller, Stream->Close, 0, NULL);
+}
+*/
+
 void ml_stream_init(stringmap_t *Globals) {
 #include "ml_stream_init.c"
 	ml_type_add_parent(MLStringBufferT, MLStreamT);
