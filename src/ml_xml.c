@@ -1868,6 +1868,7 @@ ML_METHODX("/", MLXmlWriterT) {
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
 	ml_stringbuffer_t *Buffer = Writer->Buffer;
 	ml_value_t *Tag = ml_slice_pull(Writer->Stack);
+	if (Tag == MLNil) ML_ERROR("StateError", "Invalid state");
 	if (Writer->State == ML_XML_WRITER_STATE_ATTRS) {
 		ml_stringbuffer_write(Buffer, "/>", 2);
 		Writer->State = ML_XML_WRITER_STATE_CONTENT;
