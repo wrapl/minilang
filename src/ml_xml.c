@@ -1788,12 +1788,23 @@ typedef enum {
 	ML_XML_WRITER_STATE_ATTRS
 } ml_xml_writer_state_t;
 
+enum {
+	ML_XML_WRITER_FLAG_NONE = 0,
+	ML_XML_WRITER_FLAG_INDENT = 1
+};
+
+ML_ENUM2(MLXmlWriterFlagsT, "xml::writer::flags",
+	"None", ML_XML_WRITER_FLAG_NONE,
+	"Indent", ML_XML_WRITER_FLAG_INDENT
+);
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Stream, *Stack;
 	typeof(ml_stream_write) *write;
 	ml_stringbuffer_t Buffer[1];
 	ml_xml_writer_state_t State;
+	int Flags, Indent;
 } ml_xml_writer_t;
 
 static void ml_xml_writer_run_close(ml_xml_writer_t *State, ml_value_t *Value) {
@@ -1829,6 +1840,20 @@ ML_METHOD(MLXmlWriterT, MLStreamT) {
 	return (ml_value_t *)Writer;
 }
 
+ML_METHOD(MLXmlWriterT, MLStreamT, MLXmlWriterFlagsT) {
+	ml_value_t *Stream = Args[0];
+	ml_xml_writer_t *Writer = new(ml_xml_writer_t);
+	Writer->Base.Type = MLXmlWriterT;
+	Writer->Base.run = (ml_state_fn)ml_xml_writer_run_partial;
+	Writer->Buffer[0] = ML_STRINGBUFFER_INIT;
+	Writer->Stack = ml_slice(4);
+	Writer->State = ML_XML_WRITER_STATE_CONTENT;
+	Writer->Stream = Stream;
+	Writer->write = ml_typed_fn_get(ml_typeof(Stream), ml_stream_write) ?: ml_stream_write_method;
+	Writer->Flags = ml_enum_value_value(Args[1]);
+	return (ml_value_t *)Writer;
+}
+
 ML_METHODX("/", MLXmlWriterT, MLStringT) {
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
 	ml_stringbuffer_t *Buffer = Writer->Buffer;
@@ -1837,6 +1862,34 @@ ML_METHODX("/", MLXmlWriterT, MLStringT) {
 	ml_stringbuffer_write(Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
 	Writer->State = ML_XML_WRITER_STATE_ATTRS;
 	ml_slice_put(Writer->Stack, Args[1]);
+	if (Buffer->Length > (4 * ML_STRINGBUFFER_NODE_SIZE)) {
+		size_t Length = ml_stringbuffer_reader(Buffer, 0);
+		Writer->Base.Caller = Caller;
+		Writer->Base.Context = Caller->Context;
+		return Writer->write((ml_state_t *)Writer, Writer->Stream, Buffer->Head->Chars + Buffer->Start, Length);
+	}
+	ML_RETURN(Writer);
+}
+
+ML_METHODVX("/", MLXmlWriterT, MLStringT, MLNamesT) {
+	ML_NAMES_CHECKX_ARG_COUNT(2);
+	for (int I = 3; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLStringT);
+	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
+	ml_stringbuffer_t *Buffer = Writer->Buffer;
+	if (Writer->State == ML_XML_WRITER_STATE_ATTRS) ml_stringbuffer_put(Buffer, '>');
+	ml_stringbuffer_put(Buffer, '<');
+	ml_stringbuffer_write(Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
+	Writer->State = ML_XML_WRITER_STATE_ATTRS;
+	ml_slice_put(Writer->Stack, Args[1]);
+	int I = 3;
+	ML_NAMES_FOREACH(Args[2], Iter) {
+		ml_stringbuffer_put(Buffer, ' ');
+		ml_xml_escape_string(Buffer, ml_string_value(Iter->Value), ml_string_length(Iter->Value));
+		ml_stringbuffer_write(Buffer, "=\"", 2);
+		ml_xml_escape_string(Buffer, ml_string_value(Args[I]), ml_string_length(Args[I]));
+		ml_stringbuffer_put(Buffer, '\"');
+		++I;
+	}
 	if (Buffer->Length > (4 * ML_STRINGBUFFER_NODE_SIZE)) {
 		size_t Length = ml_stringbuffer_reader(Buffer, 0);
 		Writer->Base.Caller = Caller;
@@ -2787,6 +2840,7 @@ void ml_xml_init(stringmap_t *Globals) {
 	stringmap_insert(MLXmlT->Exports, "flags", MLXmlFlagsT);
 	stringmap_insert(MLXmlT->Exports, "parser", MLXmlParserT);
 	stringmap_insert(MLXmlT->Exports, "writer", MLXmlWriterT);
+	stringmap_insert(MLXmlWriterT->Exports, "flags", MLXmlWriterFlagsT);
 #ifdef ML_GENERICS
 	stringmap_insert(MLXmlT->Exports, "sequence", MLXmlSequenceT);
 #endif
