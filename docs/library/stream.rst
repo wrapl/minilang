@@ -9,6 +9,10 @@ stream
 
 .. rst-class:: mini-api
 
+:mini:`meth stream(Arg₁₁ is Value₁, ...)`
+   *TBD*
+
+
 :mini:`type stream`
    Base type of readable and writable byte streams.
 
@@ -243,6 +247,34 @@ stream
 
 :mini:`meth (Stream: stream::fd):write(Source: address): integer`
    Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
+
+
+:mini:`type stream::fns < stream`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):CloseMethod(Arg₂: address)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):FlushMethod(Arg₂: address)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):ReadMethod(Arg₂: buffer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):SeekMethod(Arg₂: integer, Arg₃: stream::seek)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):TellMethod(Arg₂: address)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):WriteMethod(Arg₂: address)`
+   *TBD*
 
 
 :mini:`type stream::parser < function, sequence`

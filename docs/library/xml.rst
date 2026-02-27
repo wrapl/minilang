@@ -29,6 +29,10 @@ xml
    *TBD*
 
 
+:mini:`meth xmlwriter(Arg₁: stream, Arg₂: xml::writer::flags)`
+   *TBD*
+
+
 :mini:`fun xml::escape(String: string): string`
    Escapes characters in :mini:`String`.
 
@@ -496,6 +500,10 @@ xml
    *TBD*
 
 
+:mini:`meth (Arg₁: xml::writer) / (Arg₂: string, Arg₃₁ is Value₁, ...)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: xml::writer):attr(Arg₂: string, Arg₃: string)`
    *TBD*
 
@@ -506,5 +514,10 @@ xml
 
 :mini:`meth (Arg₁: xml::writer):write(Arg₂: string)`
    *TBD*
+
+
+:mini:`type xml::writer::flags < enum`
+   * :mini:`::None`
+   * :mini:`::Indent`
 
 
