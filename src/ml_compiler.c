@@ -3296,14 +3296,14 @@ void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Fla
 			break;
 		case ML_PARAM_BYREF:
 			Decl->Flags |= MLC_DECL_BYREF;
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			stringmap_insert(Info->Params, Param->Ident, Decl);
 			break;
 		case ML_PARAM_ASVAR:
 			Decl->Flags |= MLC_DECL_ASVAR;
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			stringmap_insert(Info->Params, Param->Ident, Decl);
 			break;
 		default:
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			stringmap_insert(Info->Params, Param->Ident, Decl);
 			break;
 		}
 		if (Param->Type) HasParamTypes = 1;
@@ -3416,18 +3416,16 @@ void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int
 						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCALI, 2);
 						LocalInst[1].Count = Index - Function->Top;
 						LocalInst[2].Decls = Decl;
+					} else if (Flags & MLCF_LOCAL) {
+						MLC_RETURN(ml_integer(Index));
+					} else if (Flags & MLCF_PUSH) {
+						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
+						LocalInst[1].Count = Index - Function->Top;
+						mlc_inc_top(Function);
+						MLC_RETURN(NULL);
 					} else {
-						if (Flags & MLCF_LOCAL) {
-							MLC_RETURN(ml_integer(Index));
-						} else if (Flags & MLCF_PUSH) {
-							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
-							LocalInst[1].Count = Index - Function->Top;
-							mlc_inc_top(Function);
-							MLC_RETURN(NULL);
-						} else {
-							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
-							LocalInst[1].Count = Index - Function->Top;
-						}
+						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
+						LocalInst[1].Count = Index - Function->Top;
 					}
 					if (Flags & MLCF_PUSH) {
 						MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
@@ -6652,7 +6650,7 @@ void ml_function_compile(ml_state_t *Caller, const mlc_expr_t *Expr, ml_compiler
 			Param->Ident = ml_ident(P[0], strlen(P[0]));
 			Param->Hash = ml_ident_hash(P[0]);
 			Param->Index = Function->Top++;
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)Function->Top);
+			stringmap_insert(Info->Params, Param->Ident, Param);
 			ParamSlot[0] = Param;
 			ParamSlot = &Param->Next;
 		}

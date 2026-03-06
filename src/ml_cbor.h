@@ -67,7 +67,7 @@ typedef struct {
 typedef int (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, size_t Size);
 typedef struct ml_cbor_writer_t ml_cbor_writer_t;
 
-#define ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS 0x0001
+#define ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS 0x1
 
 ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals);
 void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data);

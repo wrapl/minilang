@@ -393,7 +393,6 @@ extern void ml_recur_expr_compile(mlc_function_t *Function, const mlc_expr_t *Ex
 extern void ml_it_expr_compile(mlc_function_t *Function, const mlc_expr_t *Expr, int Flags);
 extern void ml_delegate_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
 extern void ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
-extern void mlc_inline_call_expr_compile(mlc_function_t *Function, ml_value_t *Value, const mlc_expr_t *Expr, mlc_expr_t *Child, int Flags);
 extern void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
 extern void ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, int Flags);
 extern void ml_guard_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags);
