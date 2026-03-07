@@ -2264,6 +2264,31 @@ ML_METHOD("random", MLSliceT) {
 	return (ml_value_t *)Iter;
 }
 
+ml_value_t *ml_slice0() {
+	ml_slice_t *Slice = new(ml_slice_t);
+	Slice->Type = MLSliceMutableT;
+	Slice->Nodes = Empty;
+	return (ml_value_t *)Slice;
+}
+
+ML_METHOD("subsets", MLSliceT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int N = Slice->Length;
+	ml_value_t **Values = anew(ml_value_t *, N);
+	memcpy(Values, Slice->Nodes + Slice->Offset, N * sizeof(ml_value_t *));
+	return ml_subsets(Values, INT_MAX, N, ml_slice0, ml_slice_put);
+}
+
+ML_METHOD("subsets", MLSliceT, MLIntegerT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	int N = Slice->Length;
+	int M = ml_integer_value(Args[1]);
+	if (M < 0) return ml_error("RangeError", "Subset size must be non-negative");
+	ml_value_t **Values = anew(ml_value_t *, N);
+	memcpy(Values, Slice->Nodes + Slice->Offset, N * sizeof(ml_value_t *));
+	return ml_subsets(Values, M, N, ml_slice0, ml_slice_put);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Visitor, *Dest;

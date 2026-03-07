@@ -190,6 +190,14 @@ slice
    Sorts :mini:`Slice` in-place using :mini:`Compare` and returns it.
 
 
+:mini:`meth (Arg₁: slice):subsets`
+   *TBD*
+
+
+:mini:`meth (Arg₁: slice):subsets(Arg₂: integer)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: slice)`
    *TBD*
 
