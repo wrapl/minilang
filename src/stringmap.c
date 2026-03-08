@@ -6,7 +6,7 @@ struct stringmap_node_t {
 	stringmap_node_t *Left, *Right;
 	const char *Key;
 	void *Value;
-	long Hash;
+	unsigned long Hash;
 	int Depth;
 };
 
@@ -25,9 +25,9 @@ stringmap_t *stringmap_copy(stringmap_t *Map) {
 	return Copy;
 }
 
-unsigned long stringmap_hash(const char *Key) {
+static unsigned long stringmap_hash(const char *Key) {
 	unsigned long Hash = 5381;
-	for (const char *P = Key; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	for (const unsigned char *P = (const unsigned char *)Key; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
 }
 

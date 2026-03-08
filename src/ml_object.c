@@ -397,6 +397,17 @@ void ml_class_add_field(ml_context_t *Context, ml_type_t *Class0, ml_value_t *Fi
 	add_field(Context, (ml_class_t *)Class0, Field, Type);
 }
 
+static long ml_object_hash(ml_object_t *Object, ml_hash_chain_t *Chain) {
+	ml_class_t *Class = Object->Type;
+	long Hash = 5381;
+	for (const char *P = Class->Base.Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	for (int I = 1; I <= Class->NumFields; ++I) {
+		ml_value_t *Field = Object->Fields[I].Value;
+		Hash ^= ml_hash_chain(Field, Chain);
+	}
+	return Hash;
+}
+
 static void ml_object_call(ml_state_t *Caller, ml_object_t *Object, int Count, ml_value_t **Args) {
 	ml_value_t **Args2 = ml_alloc_args(Count + 1);
 	memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
@@ -425,6 +436,11 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLClassT, ml_context_t *Context,
 		Class->Call = Parent->Call;
 		ml_type_add_parent((ml_type_t *)Class, MLFunctionT);
 	}
+	if (Parent->Base.hash == (void *)ml_object_hash) {
+		Class->Base.hash = (void *)ml_object_hash;
+	} else if (Parent->Base.hash == (void *)ml_value_hash) {
+		Class->Base.hash = (void *)ml_value_hash;
+	}
 	return NULL;
 }
 
@@ -441,6 +457,10 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLUUIDT, ml_context_t *Context, 
 static ml_value_t *ML_TYPED_FN(ml_class_modify, MLFunctionT, ml_context_t *Context, ml_class_t *Class, ml_value_t *Function) {
 	Class->Defaults = Function;
 	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_class_modify, MLStringT, ml_context_t *Context, ml_class_t *Class, ml_value_t *Option) {
+	return ml_error("ValueError", "Unknown option %s", ml_string_value(Option));
 }
 
 ML_FUNCTIONZ(MLClass) {
@@ -562,11 +582,25 @@ ML_FUNCTIONZ(MLClass) {
 					stringmap_insert(Class->Base.Exports, Name, Value);
 					if (!strcmp(Name, "of")) {
 						Class->Base.Constructor = Value;
+					} else if (!strcmp(Name, "#") || !strcmp(Name, "hash")) {
+						Value = ml_deref(Value);
+						if (ml_is(Value, MLStringT)) {
+							const char *Hash = ml_string_value(Value);
+							if (!strcmp(Hash, "value")) {
+								Class->Base.hash = ml_value_hash;
+							} else if (!strcmp(Hash, "type")) {
+								Class->Base.hash = ml_default_hash;
+							} else if (!strcmp(Hash, "all")) {
+								Class->Base.hash = (void *)ml_object_hash;
+							} else {
+								ML_ERROR("ValueError", "Unknown hash option: %s", Hash);
+							}
+						}
 					} else if (!strcmp(Name, "init")) {
 						Class->Initializer = Value;
 					} else if (!strcmp(Name, "defaults")) {
 						Class->Defaults = Value;
-					} else if (!strcmp(Name, "()")) {
+					} else if (!strcmp(Name, "()") || !strcmp(Name, "call")) {
 						Class->Base.call = (void *)ml_object_call;
 						Class->Call = Value;
 						ml_type_add_parent((ml_type_t *)Class, MLFunctionT);
@@ -574,7 +608,7 @@ ML_FUNCTIONZ(MLClass) {
 				}
 				break;
 			} else {
-				ml_value_t *Error = ml_class_modify(Caller->Context, Class, Args[I]);
+				ml_value_t *Error = ml_class_modify(Caller->Context, Class, ml_deref(Args[I]));
 				if (Error) ML_RETURN(Error);
 			}
 		}

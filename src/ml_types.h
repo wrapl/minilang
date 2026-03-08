@@ -222,12 +222,7 @@ extern ml_type_t MLVisitorT[];
 
 extern ml_type_t MLInteger32T[];
 extern ml_type_t MLDoubleT[];
-
-#ifdef ML_RATIONAL
-
 extern ml_type_t MLRational48T[];
-
-#endif
 
 __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
@@ -254,17 +249,10 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 #ifdef ML_NULLCHECKS
 	if (__builtin_expect(!Value, 0)) return MLNullT;
 #endif
-	if (__builtin_expect(Tag == 0, 1)) {
-		return Value->Type;
-	} else if (Tag == 1) {
-		return MLInteger32T;
-#ifdef ML_RATIONAL
-	} else if (Tag == 2) {
-		return MLRational48T;
-#endif
-	} else {
-		return MLDoubleT;
-	}
+	if (__builtin_expect(Tag == 0, 1)) return Value->Type;
+	if (Tag == 1) return MLInteger32T;
+	if (Tag == 2) return MLRational48T;
+	return MLDoubleT;
 }
 
 #define ml_typeof_deref(VALUE) ml_typeof(ml_deref(VALUE))
@@ -346,6 +334,8 @@ void ml_value_find_all(ml_value_t *Value, void *Data, ml_value_find_fn RefFn);
 int ml_value_is_constant(ml_value_t *Value);
 
 void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function, void (*finish)(ml_state_t *, size_t, int32_t *));
+
+ml_value_t *ml_subsets(ml_value_t **Values, int M, int N, ml_value_t *(*create)(), void (*add)(ml_value_t *, ml_value_t *));
 
 /// @}
 
@@ -611,18 +601,10 @@ uint64_t ml_gcd(uint64_t A, uint64_t B);
 uint64_t ml_random_integer(uint64_t Limit);
 double ml_random_real();
 
-#ifdef ML_RATIONAL
-
-extern ml_type_t MLRationalT[];
-
-typedef struct { int64_t Num; uint64_t Den; } rat64_t;
-
-#endif
-
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
-ml_value_t *ml_integer_parse(char *String);
+ml_value_t *ml_integer_parse(const char *Start, int Base);
 ml_value_t *ml_real_parse(char *String);
 
 typedef struct {
@@ -633,6 +615,25 @@ typedef struct {
 	int64_t Value;
 #endif
 } ml_integer_t;
+
+#ifdef ML_RATIONAL
+
+extern ml_type_t MLRationalT[];
+
+typedef struct { int64_t Num; uint64_t Den; } rat64_t;
+
+typedef struct {
+	ml_type_t *Type;
+#ifdef ML_BIGINT
+	mpq_t Value;
+#else
+	rat64_t Value;
+#endif
+} ml_rational_t;
+
+rat64_t ml_rational_value(const ml_value_t *Value) __attribute__ ((const));
+
+#endif
 
 #ifdef ML_BIGINT
 
@@ -677,40 +678,6 @@ static inline ml_value_t *ml_real(double Value) {
 	return Boxed.Value;
 }
 
-#ifdef ML_RATIONAL
-
-typedef struct {
-	ml_type_t *Type;
-#ifdef ML_BIGINT
-	fmpq_t Value;
-#else
-	int64_t Num;
-	int64_t Den;
-#endif
-} ml_rational_t;
-
-static inline ml_value_t *ml_rational48(int32_t Num, uint16_t Den) {
-	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)Den << 32) + (uint32_t)Num);
-}
-
-ml_value_t *ml_rational64(int64_t Num, uint64_t Den);
-
-static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
-	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
-		return ml_rational48(Num, Den);
-	} else {
-		return ml_rational64(Num, Den);
-	}
-}
-
-#ifdef ML_BIGINT
-
-ml_value_t *ml_rational_fmpq(fmpq_t Source);
-
-#endif
-
-#endif
-
 static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
@@ -737,6 +704,42 @@ static inline double ml_double_value(const ml_value_t *Value) {
 	Boxed.Bits -= 0x07000000000000;
 	return Boxed.Double;
 }
+
+#ifdef ML_RATIONAL
+
+static inline ml_value_t *ml_rational48(int32_t Num, uint16_t Den) {
+	return (ml_value_t *)(((uint64_t)2 << 48) + ((uint64_t)Den << 32) + (uint32_t)Num);
+}
+
+static inline rat64_t ml_rational48_value(ml_value_t *Value) {
+	return (rat64_t){(int32_t)(intptr_t)Value, ((uint64_t)(intptr_t)Value >> 32) & 0xFFFF};
+}
+
+ml_value_t *ml_rational64(int64_t Num, uint64_t Den);
+
+static inline ml_value_t *ml_rational(int64_t Num, uint64_t Den) {
+	if (!Num) return ml_integer(0);
+	if (Den == 1) return ml_integer(Num);
+#ifdef ML_NANBOXING
+	if (Den <= UINT16_MAX && Num >= INT32_MIN && Num <= INT32_MAX) {
+		return ml_rational48(Num, Den);
+	} else {
+#endif
+		return ml_rational64(Num, Den);
+#ifdef ML_NANBOXING
+	}
+#endif
+}
+
+#ifdef ML_BIGINT
+
+void ml_rational_mpq_init(mpq_t Dest, ml_value_t *Source);
+
+ml_value_t *ml_rational_mpq(mpq_t Source);
+
+#endif
+
+#endif
 
 #else
 
@@ -783,6 +786,7 @@ typedef struct {
 } ml_complex_t;
 
 extern ml_type_t MLComplexT[];
+extern ml_type_t MLComplexDoubleT[];
 
 ml_value_t *ml_complex(complex_double Value);
 complex_double ml_complex_value(const ml_value_t *Value);

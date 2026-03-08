@@ -291,7 +291,6 @@
       <member refid="group__stringmap_1ga0417ec748d22adad862d966c22117cb0" kind="function"><name>stringmap_remove</name></member>
       <member refid="group__stringmap_1ga30e3dcebb967aaf27cc9a76603bae8b7" kind="function"><name>stringmap_slot</name></member>
       <member refid="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" kind="function"><name>stringmap_foreach</name></member>
-      <member refid="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" kind="function"><name>stringmap_hash</name></member>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -325,14 +324,12 @@
 <codeline lineno="28"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**stringmap_slot(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map,<sp/>const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key);</highlight></codeline>
 <codeline lineno="29"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>stringmap_foreach(<ref refid="structstringmap__t" kindref="compound">stringmap_t</ref><sp/>*Map,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*Data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>(*callback)(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*));</highlight></codeline>
 <codeline lineno="30"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>stringmap_hash(const<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Key)<sp/>__attribute__<sp/>((pure));</highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
 <codeline lineno="36"><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/stringmap.h"/>
   </compounddef>

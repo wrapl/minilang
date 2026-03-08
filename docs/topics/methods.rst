@@ -7,9 +7,9 @@ Methods are written as :mini:`:name` (or :mini:`:"name"` if *name* contains non-
 
 If no suitable method is found for a specific combination of arguments, an error is raised. Methods can be defined using the :mini:`meth` keyword:
 
-.. parser-rule-diagram:: 'meth' term '(' (
-   ( identifier ':' expression ( ',' identifier ':' expression )* ( ',' '[' identifier ']' )? ( ',' '{' identifier '}' )? ) |
-   ( '[' identifier ']' ( ',' '{' identifier '}' )? ) |
+.. syntax:parser-diagram:: 'meth' term '(' (
+   ( identifier ':' expression ( ',' identifier ':' expression )* ( ',' '[' identifier ( ':' expression )? ']' )? ( ',' '{' identifier '}' )? ) |
+   ( '[' identifier( ':' expression )? ']' ( ',' '{' identifier '}' )? ) |
    ( '{' identifier '}' )
    )? ')' ':='? expression
 

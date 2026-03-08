@@ -3,7 +3,7 @@ Must
 
 A :mini:`must`-declaration can be used to ensure that particular code is guaranteed to run before a block is finished, even if an error occurs or :mini:`ret`, :mini:`exit`, :mini:`while`, :mini:`until` or :mini:`next` is used to exit the block early.
 
-.. parser-rule-diagram:: 'must' expression
+.. syntax:parser-diagram:: 'must' expression
 
 .. note::
 

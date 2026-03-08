@@ -679,6 +679,11 @@
     <member refid="structSHA256__CTX_1a9ef8c3daffe76c802a308b323158fc79" kind="variable"><name>bitlen</name></member>
     <member refid="structSHA256__CTX_1a280ea88df9670f196f2478c8cb5c4e5c" kind="variable"><name>state</name></member>
   </compound>
+  <compound refid="structstringmap2__t" kind="struct"><name>stringmap2_t</name>
+    <member refid="structstringmap2__t_1a7c7048fe7d6ebf7de01453c669214dfe" kind="variable"><name>Nodes</name></member>
+    <member refid="structstringmap2__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
+    <member refid="structstringmap2__t_1a1768c051d2dbbcc7abacf7b318bae910" kind="variable"><name>Mask</name></member>
+  </compound>
   <compound refid="structstringmap__t" kind="struct"><name>stringmap_t</name>
     <member refid="structstringmap__t_1ae4399f8c8d02037b3de60736354e4dae" kind="variable"><name>Root</name></member>
     <member refid="structstringmap__t_1af06eb7b9b70be91dadd4f12ebcaed796" kind="variable"><name>Size</name></member>
@@ -823,7 +828,6 @@
     <member refid="ml__bytecode_8h_1a0f323e88b0da5c4cc7b66bf231b82d30" kind="variable"><name>MLVariableT</name></member>
     <member refid="ml__bytecode_8h_1ac5d9492385f776354b892787c42f06b1" kind="function"><name>ml_closure</name></member>
     <member refid="ml__bytecode_8h_1a1b9d5a164b66de78b6a3ad16e3094251" kind="function"><name>ml_closure_relax_names</name></member>
-    <member refid="ml__bytecode_8h_1a893ebddbf66338cb8025ed24cdc38c7b" kind="function"><name>ml_closure_params</name></member>
     <member refid="ml__bytecode_8h_1ae4c89df42bdfe839fe908718dd1fb3db" kind="function"><name>ml_variable</name></member>
     <member refid="ml__bytecode_8h_1aabc24e65136a141fc7643a81ea1f6b2e" kind="function"><name>ml_variable_set</name></member>
     <member refid="ml__bytecode_8h_1af5b6edafb0893765c5dc817fe227ed1b" kind="function"><name>ml_closure_info_labels</name></member>
@@ -1159,7 +1163,6 @@
     <member refid="ml__compiler2_8h_1ab9a9791c15710ebdbb0411952f02b7dd" kind="function"><name>ml_it_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1a1a34cee22c0894048542c26ab0fe0624" kind="function"><name>ml_delegate_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1a884912c6eb627d3d25e90214aceb876b" kind="function"><name>ml_inline_expr_compile</name></member>
-    <member refid="ml__compiler2_8h_1a5c231e07524bcb0b6a89d7f405ee5a34" kind="function"><name>mlc_inline_call_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1ad88179c45385ab68a27d2de7f8b8cf5d" kind="function"><name>ml_call_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1abefd37e0dbbbd66b31573112aeb68ae2" kind="function"><name>ml_const_call_expr_compile</name></member>
     <member refid="ml__compiler2_8h_1afb4a55a2a332abb6a35f925fac0df001" kind="function"><name>ml_guard_expr_compile</name></member>
@@ -1913,6 +1916,7 @@
     <member refid="group__types_1ga8cb204adc3a8e2d5dd02afb6a3b48f98" kind="function"><name>ml_value_find_all</name></member>
     <member refid="group__types_1ga3f176cd90c96418ab1c256d8bb380f64" kind="function"><name>ml_value_is_constant</name></member>
     <member refid="group__types_1gaffe60b8247cf67e5336e2a3dbcbab182" kind="function"><name>ml_values_order</name></member>
+    <member refid="group__types_1gac4153daaf02112bddd85a31404c553a8" kind="function"><name>ml_subsets</name></member>
     <member refid="group__iterators_1gad04a6e6975ecb220982d335f4d2d9ce9" kind="function"><name>ml_count</name></member>
     <member refid="group__iterators_1gae73f12ecd8e7e2808051e632a4a4be06" kind="function"><name>ml_iterate</name></member>
     <member refid="group__iterators_1gac43acf7cb1f818d158117bde4fd04970" kind="function"><name>ml_iter_value</name></member>
@@ -1953,7 +1957,7 @@
     <member refid="group__numbers_1ga79b5e9bdea990e79548cb860ae41a4fe" kind="function"><name>ml_random_real</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
-    <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>
+    <member refid="group__numbers_1ga296cca4b59f6c8da79fe6c8c2c54ff00" kind="function"><name>ml_integer_parse</name></member>
     <member refid="group__numbers_1ga082c453c65a095369a4997191d9fec07" kind="function"><name>ml_real_parse</name></member>
     <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
@@ -2147,7 +2151,17 @@
     <member refid="group__stringmap_1ga0417ec748d22adad862d966c22117cb0" kind="function"><name>stringmap_remove</name></member>
     <member refid="group__stringmap_1ga30e3dcebb967aaf27cc9a76603bae8b7" kind="function"><name>stringmap_slot</name></member>
     <member refid="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" kind="function"><name>stringmap_foreach</name></member>
-    <member refid="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" kind="function"><name>stringmap_hash</name></member>
+  </compound>
+  <compound refid="stringmap2_8h" kind="file"><name>stringmap2.h</name>
+    <member refid="stringmap2_8h_1a53f69087063291d2b5614db1670aedbc" kind="define"><name>STRINGMAP2_INIT</name></member>
+    <member refid="stringmap2_8h_1aeb2e2e51da5c7ea716513a78a60da555" kind="typedef"><name>stringmap2_node_t</name></member>
+    <member refid="stringmap2_8h_1a1fe99e6f145c0423ab1b47bedbca411a" kind="function"><name>stringmap2_new</name></member>
+    <member refid="stringmap2_8h_1aa0e428e578b660d0714f7a564a449c20" kind="function"><name>stringmap2_copy</name></member>
+    <member refid="stringmap2_8h_1ab11225ffa74c262ca2c28923ae8e2c41" kind="function"><name>stringmap2_search</name></member>
+    <member refid="stringmap2_8h_1a3ec3a9ad031f35119eb13e875014683d" kind="function"><name>stringmap2_insert</name></member>
+    <member refid="stringmap2_8h_1af5eae53aee1107f45a539dd2aa7d2fff" kind="function"><name>stringmap2_remove</name></member>
+    <member refid="stringmap2_8h_1a2d2687100d3a34034d7ef765a2139714" kind="function"><name>stringmap2_slot</name></member>
+    <member refid="stringmap2_8h_1a100ea035ebbf84c92dae02a74cc6d297" kind="function"><name>stringmap2_foreach</name></member>
   </compound>
   <compound refid="timelib__mem_8h" kind="file"><name>timelib_mem.h</name>
     <member refid="timelib__mem_8h_1a169e5bce5af810344e2bc538a6844675" kind="define"><name>timelib_malloc</name></member>
@@ -2674,6 +2688,7 @@
     <member refid="group__types_1ga8cb204adc3a8e2d5dd02afb6a3b48f98" kind="function"><name>ml_value_find_all</name></member>
     <member refid="group__types_1ga3f176cd90c96418ab1c256d8bb380f64" kind="function"><name>ml_value_is_constant</name></member>
     <member refid="group__types_1gaffe60b8247cf67e5336e2a3dbcbab182" kind="function"><name>ml_values_order</name></member>
+    <member refid="group__types_1gac4153daaf02112bddd85a31404c553a8" kind="function"><name>ml_subsets</name></member>
     <member refid="group__types_1ga4a95025b22fbe37ef6fbf37cf178537f" kind="define"><name>_CONCAT2</name></member>
     <member refid="group__types_1ga54e717c978bb45793c9d9da1318d719e" kind="define"><name>CONCAT2</name></member>
     <member refid="group__types_1gaf4ddcba2ce2eb54447a204777b24e54c" kind="define"><name>_CONCAT3</name></member>
@@ -2793,7 +2808,7 @@
     <member refid="group__numbers_1ga79b5e9bdea990e79548cb860ae41a4fe" kind="function"><name>ml_random_real</name></member>
     <member refid="group__numbers_1ga68c91b4ebde9c4b9d7616645db7c6ae5" kind="function"><name>ml_integer_value</name></member>
     <member refid="group__numbers_1ga02e9388c3bc336c73af0627434e7b853" kind="function"><name>ml_real_value</name></member>
-    <member refid="group__numbers_1ga5c84507555a3535475be41ea10c4ce76" kind="function"><name>ml_integer_parse</name></member>
+    <member refid="group__numbers_1ga296cca4b59f6c8da79fe6c8c2c54ff00" kind="function"><name>ml_integer_parse</name></member>
     <member refid="group__numbers_1ga082c453c65a095369a4997191d9fec07" kind="function"><name>ml_real_parse</name></member>
     <member refid="group__numbers_1gafe9f7db7c45798d2347843ca905e99c5" kind="function"><name>ml_integer</name></member>
     <member refid="group__numbers_1gad14069fd889acb05e0511873cf98c484" kind="function"><name>ml_real</name></member>
@@ -3052,7 +3067,6 @@
     <member refid="group__stringmap_1ga0417ec748d22adad862d966c22117cb0" kind="function"><name>stringmap_remove</name></member>
     <member refid="group__stringmap_1ga30e3dcebb967aaf27cc9a76603bae8b7" kind="function"><name>stringmap_slot</name></member>
     <member refid="group__stringmap_1gad12eec37972389dfeec0d3496cb81d61" kind="function"><name>stringmap_foreach</name></member>
-    <member refid="group__stringmap_1ga3c4928ecb13ded49f590f494e7c7cff0" kind="function"><name>stringmap_hash</name></member>
     <member refid="group__stringmap_1ga04ce49e388ce3b5f4bf48647a444a2be" kind="define"><name>STRINGMAP_INIT</name></member>
   </compound>
   <compound refid="group__uuidmap" kind="group"><name>uuidmap</name>

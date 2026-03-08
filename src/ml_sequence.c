@@ -4284,7 +4284,7 @@ ML_FUNCTION(Batch) {
 	return (ml_value_t *)Batched;
 }
 
-typedef struct {
+/*typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;
 } ml_iterator_t;
@@ -4292,6 +4292,34 @@ typedef struct {
 ML_TYPE(MLIteratorT, (), "iterator");
 //@iterator
 // An iterator.
+
+static void ML_TYPED_FN(ml_value_find_all, MLIteratorT, ml_iterator_t *Iterator, void *Data, ml_value_find_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Iterator, 1)) return;
+	ml_value_find_all(Iterator->Iter, Data, RefFn);
+}
+
+
+#ifdef ML_CBOR
+
+#include "ml_cbor.h"
+
+static void ML_TYPED_FN(ml_cbor_write, MLIteratorT, ml_cbor_writer_t *Writer, ml_iterator_t *Iterator) {
+	ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	ml_cbor_write_array(Writer, 2);
+	ml_cbor_write_string(Writer, strlen("iterator"));
+	ml_cbor_write_raw(Writer, "iterator", strlen("iterator"));
+	ml_cbor_write(Writer, Iterator->Iter);
+}
+
+static ml_value_t *decode_iterator(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_iterator_t *Iterator = new(ml_iterator_t);
+	Iterator->Base.Type = MLIteratorT;
+	Iterator->Iter = Args[0];
+	return (ml_value_t *)Iterator;
+}
+
+#endif
 
 static void ml_iterator_run(ml_iterator_t *Iterator, ml_value_t *Iter) {
 	ml_state_t *Caller = Iterator->Base.Caller;
@@ -4339,6 +4367,26 @@ ML_METHODX("value", MLIteratorT) {
 // Returns the current value produced by :mini:`Iterator`.
 	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
 	return ml_iter_value(Caller, Iterator->Iter);
+}*/
+
+ML_FUNCTIONX(MLIterate) {
+	ML_CHECKX_ARG_COUNT(1);
+	return ml_iterate(Caller, Args[0]);
+}
+
+ML_FUNCTIONX(MLIterNext) {
+	ML_CHECKX_ARG_COUNT(1);
+	return ml_iter_next(Caller, Args[0]);
+}
+
+ML_FUNCTIONX(MLIterKey) {
+	ML_CHECKX_ARG_COUNT(1);
+	return ml_iter_key(Caller, Args[0]);
+}
+
+ML_FUNCTIONX(MLIterValue) {
+	ML_CHECKX_ARG_COUNT(1);
+	return ml_iter_value(Caller, Args[0]);
 }
 
 typedef struct {
@@ -4894,6 +4942,9 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "last2", ml_method("last2"));
 		stringmap_insert(Globals, "all", All);
 		stringmap_insert(Globals, "iterate", MLIterate);
+		stringmap_insert(Globals, "iter_next", MLIterNext);
+		stringmap_insert(Globals, "iter_key", MLIterKey);
+		stringmap_insert(Globals, "iter_value", MLIterValue);
 		stringmap_insert(Globals, "count", ml_method("count"));
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "random", ml_method("random"));
@@ -4922,4 +4973,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "dup", Dup);
 		stringmap_insert(Globals, "batch", Batch);
 	}
+/*#ifdef ML_CBOR
+	ml_cbor_default_object("iterator", decode_iterator);
+#endif*/
 }

@@ -606,6 +606,7 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
+			Frame->Base.Caller = NULL;
 		}
 		ML_CONTINUE(Caller, Result);
 	}
@@ -615,7 +616,9 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 		Frame->Top = Top;
 		ML_STORE_COUNTER();
 		Frame->Suspend = 1;
-		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
+		ml_state_t *Caller = Frame->Base.Caller;
+		Frame->Base.Caller = NULL;
+		ML_RETURN(Frame);
 	}
 	DO_RESUME: {
 		Frame->Suspend = 0;
@@ -1274,9 +1277,15 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 				ML_NAMES_CHECKX_ARG_COUNT(I);
 				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
-					int Index = (intptr_t)stringmap_search(Info->Params, Name);
-					if (Index) {
-						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
+					ml_decl_t *Decl = (ml_decl_t *)stringmap_search(Info->Params, Name);
+					if (Decl) {
+						if (Decl->Flags & MLC_DECL_ASVAR) {
+							Frame->Stack[Decl->Index] = ml_variable(ml_deref(Args[++I]), NULL);
+						} else if (Decl->Flags & MLC_DECL_BYREF) {
+							 Frame->Stack[Decl->Index] = Args[++I];
+						} else {
+							Frame->Stack[Decl->Index] = ml_deref(Args[++I]);
+						}
 					} else {
 						ml_map_insert(Options, Node->Value, ml_deref(Args[++I]));
 					}
@@ -1298,9 +1307,15 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 				ML_NAMES_CHECKX_ARG_COUNT(I);
 				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
-					int Index = (intptr_t)stringmap_search(Info->Params, Name);
-					if (Index) {
-						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
+					ml_decl_t *Decl = (ml_decl_t *)stringmap_search(Info->Params, Name);
+					if (Decl) {
+						if (Decl->Flags & MLC_DECL_ASVAR) {
+							Frame->Stack[Decl->Index] = ml_variable(ml_deref(Args[++I]), NULL);
+						} else if (Decl->Flags & MLC_DECL_BYREF) {
+							 Frame->Stack[Decl->Index] = Args[++I];
+						} else {
+							Frame->Stack[Decl->Index] = ml_deref(Args[++I]);
+						}
 					} else {
 						++I;
 					}
@@ -1401,6 +1416,12 @@ void ml_closure_info_labels(ml_closure_info_t *Info) {
 	}
 }
 
+static long chars_hash(const char *P, int N) {
+	long Hash = 5381;
+	while (--N >= 0) Hash = ((Hash << 5) + Hash) + *P++;
+	return Hash;
+}
+
 static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
 	Info->Hash[I] ^= Inst->Opcode;
 	Info->Hash[J] ^= (Inst->Opcode << 4);
@@ -1441,7 +1462,7 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 		return 4;
 	case MLIT_COUNT_CHARS:
 		*(int *)(Info->Hash + I) ^= Inst[1].Count;
-		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst[2].Chars);
+		*(long *)(Info->Hash + J) ^= chars_hash(Inst[2].Chars, Inst[1].Count);
 		return 3;
 	case MLIT_DECL: return 2;
 	case MLIT_COUNT_DECL:
@@ -1646,8 +1667,8 @@ ML_METHOD("append", MLStringBufferT, MLClosureT) {
 	return MLSome;
 }
 
-static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters[]) {
-	Parameters[(intptr_t)Value * 2 - 2] = ml_string(Name, -1);
+static int ml_closure_parameter_fn(const char *Name, ml_decl_t *Decl, ml_value_t *Parameters[]) {
+	Parameters[Decl->Index * 2] = ml_string(Name, -1);
 	return 0;
 }
 
@@ -1911,6 +1932,31 @@ ML_METHOD("jit", MLClosureT) {
 
 #include "ml_cbor.h"
 
+static void ML_TYPED_FN(ml_value_find_all, MLVariableT, ml_variable_t *Variable, void *Data, ml_value_find_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Variable, 1)) return;
+	ml_value_find_all(Variable->Value, Data, RefFn);
+	if (Variable->VarType) ml_value_find_all((ml_value_t *)Variable->VarType, Data, RefFn);
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLVariableT, ml_cbor_writer_t *Writer, ml_variable_t *Variable) {
+	ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	ml_cbor_write_array(Writer, 2 + !!Variable->VarType);
+	ml_cbor_write_string(Writer, 1);
+	ml_cbor_write_raw(Writer, (unsigned char *)"?", 1);
+	ml_cbor_write(Writer, Variable->Value);
+	if (Variable->VarType) ml_cbor_write(Writer, (ml_value_t *)Variable->VarType);
+}
+
+static ml_value_t *decode_variable(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	if (Count > 1) ML_CHECK_ARG_TYPE(1, MLTypeT);
+	ml_variable_t *Variable = new(ml_variable_t);
+	Variable->Type = MLVariableT;
+	Variable->Value = Args[0];
+	if (Count > 1) Variable->Value = Args[1];
+	return (ml_value_t *)Variable;
+}
+
 static void vlq64_encode(ml_stringbuffer_t *Buffer, int64_t Value) {
 	unsigned char Bytes[9];
 	uint64_t V;
@@ -1993,8 +2039,8 @@ static void vlq64_encode_string(ml_stringbuffer_t *Buffer, const char *Value) {
 	ml_stringbuffer_write(Buffer, Value, Length);
 }
 
-static int ml_closure_info_param_fn(const char *Name, void *Index, const char *Params[]) {
-	Params[(intptr_t)Index - 1] = Name;
+static int ml_closure_info_param_fn(const char *Name, ml_decl_t *Decl, const char *Params[]) {
+	Params[Decl->Index] = Name;
 	return 0;
 }
 
@@ -2337,10 +2383,8 @@ static ml_value_t *decode_closure_info(ml_cbor_reader_t *Reader, int Count, ml_v
 	Info->NumParams = VLQ64_NEXT();
 	Info->NumUpValues = VLQ64_NEXT();
 	Info->Flags = VLQ64_NEXT() & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS);
-	for (int I = 0; I < Info->NumParams; ++I) {
-		const char *Param = VLQ64_NEXT_STRING();
-		stringmap_insert(Info->Params, Param, (void *)(uintptr_t)(I + 1));
-	}
+	const char *Params[Info->NumParams];
+	for (int I = 0; I < Info->NumParams; ++I) Params[I] = VLQ64_NEXT_STRING();
 	int NumDecls = VLQ64_NEXT();
 	//if (NumDecls > Length / 4) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_decl_t *Decls = anew(ml_decl_t, NumDecls);
@@ -2355,6 +2399,11 @@ static ml_value_t *decode_closure_info(ml_cbor_reader_t *Reader, int Count, ml_v
 	}
 	int DeclIndex = VLQ64_NEXT();
 	Info->Decls = DeclIndex >= 0 ? &Decls[DeclIndex] : NULL;
+	ml_decl_t *Decl = Info->Decls;
+	for (int I = 0; I < Info->NumParams; ++I) {
+		stringmap_insert(Info->Params, Params[I], Decl);
+		Decl = Decl->Next;
+	}
 	int NumInsts = VLQ64_NEXT();
 	//if (NumInsts > Length + Count) ML_ERROR("CBORError", "Invalid bytecode");
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
@@ -2865,13 +2914,14 @@ static void ML_TYPED_FN(ml_cbor_write, MLContinuationT, ml_cbor_writer_t *Writer
 	ml_cbor_write_string(Writer, strlen(Frame->Source));
 	ml_cbor_write_raw(Writer, Frame->Source, strlen(Frame->Source));
 	ml_cbor_write_positive(Writer, Frame->Line);
-	for (ml_value_t **Slot = Frame->Stack; Slot < Frame->Top; ++Slot) ml_cbor_write(Writer, *Slot++);
+	ml_cbor_write_positive(Writer, Frame->Suspend);
+	for (ml_value_t **Slot = Frame->Stack; Slot < Frame->Top; ++Slot) ml_cbor_write(Writer, *Slot);
 	ml_cbor_write_break(Writer);
 }
 
 static ml_value_t *decode_frame(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 //!internal
-	ML_CHECK_ARG_COUNT(6);
+	ML_CHECK_ARG_COUNT(7);
 	ML_CHECK_ARG_TYPE(1, MLClosureT);
 	ML_CHECK_ARG_TYPE(2, MLIntegerT);
 	ML_CHECK_ARG_TYPE(3, MLIntegerT);
@@ -2893,8 +2943,9 @@ static ml_value_t *decode_frame(ml_cbor_reader_t *Reader, int Count, ml_value_t 
 	Frame->OnError = Info->Entry + ml_integer_value(Args[3]);
 	Frame->Source = ml_string_value(Args[4]);
 	Frame->Line = ml_integer_value(Args[5]);
+	Frame->Suspend = !!ml_integer_value(Args[6]);
 	ml_value_t **Top = Frame->Stack;
-	for (int I = 6; I < Count; ++I) *Top++ = Args[I];
+	for (int I = 7; I < Count; ++I) *Top++ = Args[I];
 	Frame->Top = Top;
 	return (ml_value_t *)Frame;
 }
@@ -2912,6 +2963,7 @@ void ml_bytecode_init() {
 #endif
 #include "ml_bytecode_init.c"
 #ifdef ML_CBOR
+	ml_cbor_default_object("?", decode_variable);
 	ml_cbor_default_object("!", decode_closure_info);
 	ml_cbor_default_object("*", decode_closure);
 	ml_cbor_default_object("frame", decode_frame);

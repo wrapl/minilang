@@ -3,7 +3,7 @@ sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
 sphinxcontrib-ansi
 sphinx_toolbox
-sphinx-a4doc
+sphinx-syntax
 insipid-sphinx-theme
 graphviz
 breathe

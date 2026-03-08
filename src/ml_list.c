@@ -2563,6 +2563,24 @@ ML_METHOD("random", MLListT) {
 	return (ml_value_t *)ml_list_index(List, ml_random_integer(Limit) + 1);
 }
 
+ML_METHOD("subsets", MLListT) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int N = List->Length;
+	ml_value_t **Values = anew(ml_value_t *, N);
+	ML_LIST_FOREACH(List, Iter) *Values++ = Iter->Value;
+	return ml_subsets(Values - N, INT_MAX, N, ml_list, ml_list_put);
+}
+
+ML_METHOD("subsets", MLListT, MLIntegerT) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int N = List->Length;
+	int M = ml_integer_value(Args[1]);
+	if (M < 0) return ml_error("RangeError", "Subset size must be non-negative");
+	ml_value_t **Values = anew(ml_value_t *, N);
+	ML_LIST_FOREACH(List, Iter) *Values++ = Iter->Value;
+	return ml_subsets(Values - N, M, N, ml_list, ml_list_put);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Visitor, *Dest;

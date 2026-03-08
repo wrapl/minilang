@@ -28,8 +28,6 @@ void *stringmap_remove(stringmap_t *Map, const char *Key);
 void **stringmap_slot(stringmap_t *Map, const char *Key);
 int stringmap_foreach(stringmap_t *Map, void *Data, int (*callback)(const char *, void *, void *));
 
-unsigned long stringmap_hash(const char *Key) __attribute__ ((pure));
-
 #ifdef __cplusplus
 }
 #endif

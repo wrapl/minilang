@@ -9,6 +9,10 @@ stream
 
 .. rst-class:: mini-api
 
+:mini:`meth stream(Arg₁₁ is Value₁, ...)`
+   *TBD*
+
+
 :mini:`type stream`
    Base type of readable and writable byte streams.
 
@@ -49,51 +53,51 @@ stream
    Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 
 
-:mini:`meth (Arg₁: stream):read" #1`
+:mini:`meth (Arg₁: stream):read16`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #1`
+:mini:`meth (Arg₁: stream):read16`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #1(Arg₂: byte::order)`
+:mini:`meth (Arg₁: stream):read16(Arg₂: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #1(Arg₂: byte::order)`
+:mini:`meth (Arg₁: stream):read16(Arg₂: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #3`
+:mini:`meth (Arg₁: stream):read32`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #3`
+:mini:`meth (Arg₁: stream):read32`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #3(Arg₂: byte::order)`
+:mini:`meth (Arg₁: stream):read32(Arg₂: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #3(Arg₂: byte::order)`
+:mini:`meth (Arg₁: stream):read32(Arg₂: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #6`
+:mini:`meth (Arg₁: stream):read64`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #6`
+:mini:`meth (Arg₁: stream):read64`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #6(Arg₂: byte::order)`
+:mini:`meth (Arg₁: stream):read64(Arg₂: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):read" #6(Arg₂: byte::order)`
+:mini:`meth (Arg₁: stream):read64(Arg₂: byte::order)`
    *TBD*
 
 
@@ -165,27 +169,27 @@ stream
    Writes each :mini:`Valueᵢ` in turn to :mini:`Stream`.
 
 
-:mini:`meth (Arg₁: stream):write" #1(Arg₂: integer)`
+:mini:`meth (Arg₁: stream):write16(Arg₂: integer)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):write" #1(Arg₂: integer, Arg₃: byte::order)`
+:mini:`meth (Arg₁: stream):write16(Arg₂: integer, Arg₃: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):write" #3(Arg₂: integer)`
+:mini:`meth (Arg₁: stream):write32(Arg₂: integer)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):write" #3(Arg₂: integer, Arg₃: byte::order)`
+:mini:`meth (Arg₁: stream):write32(Arg₂: integer, Arg₃: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):write" #6(Arg₂: integer)`
+:mini:`meth (Arg₁: stream):write64(Arg₂: integer)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):write" #6(Arg₂: integer, Arg₃: byte::order)`
+:mini:`meth (Arg₁: stream):write64(Arg₂: integer, Arg₃: byte::order)`
    *TBD*
 
 
@@ -193,27 +197,27 @@ stream
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):writeu" #1(Arg₂: integer)`
+:mini:`meth (Arg₁: stream):writeu16(Arg₂: integer)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):writeu" #1(Arg₂: integer, Arg₃: byte::order)`
+:mini:`meth (Arg₁: stream):writeu16(Arg₂: integer, Arg₃: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):writeu" #3(Arg₂: integer)`
+:mini:`meth (Arg₁: stream):writeu32(Arg₂: integer)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):writeu" #3(Arg₂: integer, Arg₃: byte::order)`
+:mini:`meth (Arg₁: stream):writeu32(Arg₂: integer, Arg₃: byte::order)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):writeu" #6(Arg₂: integer)`
+:mini:`meth (Arg₁: stream):writeu64(Arg₂: integer)`
    *TBD*
 
 
-:mini:`meth (Arg₁: stream):writeu" #6(Arg₂: integer, Arg₃: byte::order)`
+:mini:`meth (Arg₁: stream):writeu64(Arg₂: integer, Arg₃: byte::order)`
    *TBD*
 
 
@@ -243,6 +247,34 @@ stream
 
 :mini:`meth (Stream: stream::fd):write(Source: address): integer`
    Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
+
+
+:mini:`type stream::fns < stream`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):CloseMethod(Arg₂: address)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):FlushMethod(Arg₂: address)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):ReadMethod(Arg₂: buffer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):SeekMethod(Arg₂: integer, Arg₃: stream::seek)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):TellMethod(Arg₂: address)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: stream::fns):WriteMethod(Arg₂: address)`
+   *TBD*
 
 
 :mini:`type stream::parser < function, sequence`

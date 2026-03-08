@@ -1035,25 +1035,31 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 
 #ifdef ML_RATIONAL
 
+#ifdef ML_NANBOXING
+
+ML_METHOD("append", MLStringBufferT, MLRational48T) {
+//!number
+//<Buffer
+//<Value
+// Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	rat64_t Value = ml_rational48_value(Args[1]);
+	ml_stringbuffer_printf(Buffer, "%" PRId64 "/%" PRId64, Value.Num, Value.Den);
+	return MLSome;
+}
+
+#endif
+
 ML_METHOD("append", MLStringBufferT, MLRationalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_rational_t *Value = (ml_rational_t *)Args[1];
 #ifdef ML_BIGINT
-#ifdef ML_NANBOXING
-	if (__builtin_expect(!!ml_tag(Args[1]), 2)) {
-		goto rat48;
-	} else {
-#endif
-		const char *Str = fmpq_get_str(NULL, Base, ((ml_rational_t *)Args[1])->Value);
-		ml_stringbuffer_write(Buffer, Str, strlen(Str));
-		return MLSome;
-#ifdef ML_NANBOXING
-	}
-rat48:;
-#endif
+	const char *Str = mpq_get_str(NULL, 10, Value->Value);
+	ml_stringbuffer_write(Buffer, Str, strlen(Str));
 #else
-
+	ml_stringbuffer_printf(Buffer, "%" PRId64 "/%" PRId64, Value->Value.Num, Value->Value.Den);
 #endif
+	return MLSome;
 }
 
 #endif
@@ -1357,6 +1363,13 @@ ML_METHOD(MLIntegerT, MLStringT) {
 //$= integer("ABC")
 	const char *Start = ml_string_value(Args[0]);
 	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
+#ifdef ML_BIGINT
+	if (ml_string_length(Args[0]) > 18) {
+		mpz_t Result;
+		mpz_init_set_str(Result, ml_string_value(Args[0]), 10);
+		return ml_integer_mpz(Result);
+	}
+#endif
 	char *End;
 	long Value = strtol(Start, &End, 10);
 	if (End - Start == ml_string_length(Args[0])) {
@@ -1374,8 +1387,17 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 // Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 	const char *Start = ml_string_value(Args[0]);
 	if (!Start[0]) return ml_error("ValueError", "Error parsing integer");
+	int Base = ml_integer_value(Args[1]);
+	int Limit = (63 * log(2)) / log(Base);
+#ifdef ML_BIGINT
+	if (ml_string_length(Args[0]) > Limit) {
+		mpz_t Result;
+		mpz_init_set_str(Result, ml_string_value(Args[0]), Base);
+		return ml_integer_mpz(Result);
+	}
+#endif
 	char *End;
-	long Value = strtol(Start, &End, ml_integer_value(Args[1]));
+	long Value = strtol(Start, &End, Base);
 	if (End - Start == ml_string_length(Args[0])) {
 		return ml_integer(Value);
 	} else {

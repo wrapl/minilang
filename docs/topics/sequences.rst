@@ -73,7 +73,7 @@ Sequence Comprehensions
 
 Sequences can be written in *Minilang* using comprehensions. Usually the resulting sequence will be used in a call to :mini:`list`, :mini:`map`, etc, but they are first class values that can be passed to other functions, stored in variables, etc.
 
-.. parser-rule-diagram:: expression ( 'to' expression )? ( 'for' identifier ( ',' identifier )* 'in' expression | 'if' expression | 'with' identifier ':=' expression )+
+.. syntax:parser-diagram:: expression ( 'to' expression )? ( 'for' identifier ( ',' identifier )* 'in' expression | 'if' expression | 'with' identifier ':=' expression )+
 
 .. code-block:: mini
    :linenos:
@@ -95,9 +95,9 @@ Given an initial sequence, it is possible to create a new sequence by modifying 
    :linenos:
 
    list("cat" -> :upper)
-   
+
    fun is_consonant(L) not {"a", "e", "i", "o", "u"}[L:lower]
-   
+
    list("cat" ->? is_consonant)
 
 .. code-block:: console

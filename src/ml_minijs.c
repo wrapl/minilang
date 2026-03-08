@@ -371,8 +371,8 @@ static ml_value_t *ml_closure_decl_encode(ml_decl_t *Decl, ml_decls_json_t *Decl
 	return Index;
 }
 
-static int ml_closure_info_param_fn(const char *Name, void *Index, ml_value_t *Params) {
-	ml_list_set(Params, (intptr_t)Index - 1, ml_string(Name, -1));
+static int ml_closure_info_param_fn(const char *Name, ml_decl_t *Decl, ml_value_t *Params) {
+	ml_list_set(Params, Decl->Index + 1, ml_string(Name, -1));
 	return 0;
 }
 
@@ -805,15 +805,10 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 	if (Version != ML_BYTECODE_VERSION) return NULL;
 	if (ExtraArgs) Info->Flags |= ML_CLOSURE_EXTRA_ARGS;
 	if (NamedArgs) Info->Flags |= ML_CLOSURE_NAMED_ARGS;
-	int Index = 1;
-	ML_LIST_FOREACH(Params, Iter) {
-		stringmap_insert(Info->Params, ml_string_value(Iter->Value), (void *)(uintptr_t)(Index));
-		++Index;
-	}
 	int Length = ml_list_length(Instructions);
 	int *Offsets = anew(int, Length);
 	int Offset = 0;
-	Index = 0;
+	int Index = 0;
 	while (Index < Length) {
 		Offsets[Index] = Offset;
 		ml_opcode_t Opcode = ml_integer_value(ml_list_get(Instructions, Index + 1));
@@ -868,6 +863,11 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 		++Index;
 	}
 	if (InitDecl >= 0) Info->Decls = Decls[InitDecl];
+	ml_decl_t *Decl = Info->Decls;
+	ML_LIST_FOREACH(Params, Iter) {
+		stringmap_insert(Info->Params, ml_string_value(Iter->Value), Decl);
+		Decl = Decl->Next;
+	}
 	ml_inst_t *Code = anew(ml_inst_t, Offset);
 	Info->Halt = Code + Offset;
 	ml_inst_t *Inst = Code;

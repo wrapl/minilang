@@ -234,8 +234,16 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
-      L:random :> "a"
+      L:random :> "c"
+      L:random :> "c"
+
+
+:mini:`meth (Arg₁: list):subsets`
+   *TBD*
+
+
+:mini:`meth (Arg₁: list):subsets(Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

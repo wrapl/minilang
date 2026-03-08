@@ -17,7 +17,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1616" column="18" declfile="src/ml_types.h" declline="1616" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1620" column="18" declfile="src/ml_types.h" declline="1620" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__symbols_1ga3bc4dea944bb5e056dae16efc973f76f" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -30,7 +30,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1627" column="18" declfile="src/ml_types.h" declline="1627" declcolumn="18"/>
+        <location file="src/ml_types.h" line="1631" column="18" declfile="src/ml_types.h" declline="1631" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -49,7 +49,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1618" column="12" declfile="src/ml_types.h" declline="1618" declcolumn="12"/>
+        <location file="src/ml_types.h" line="1622" column="12" declfile="src/ml_types.h" declline="1622" declcolumn="12"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -63,7 +63,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1620" column="9" bodyfile="src/ml_types.h" bodystart="1620" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1624" column="9" bodyfile="src/ml_types.h" bodystart="1624" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__symbols_1ga147785770a3d8d8f93e266dd57acee36" prot="public" static="no">
         <name>ml_symbol_interval_first</name>
@@ -75,7 +75,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1629" column="9" bodyfile="src/ml_types.h" bodystart="1629" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1633" column="9" bodyfile="src/ml_types.h" bodystart="1633" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="group__symbols_1ga6006cd404d12e02ed29d82c1bf33272c" prot="public" static="no">
         <name>ml_symbol_interval_last</name>
@@ -87,7 +87,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1630" column="9" bodyfile="src/ml_types.h" bodystart="1630" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1634" column="9" bodyfile="src/ml_types.h" bodystart="1634" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

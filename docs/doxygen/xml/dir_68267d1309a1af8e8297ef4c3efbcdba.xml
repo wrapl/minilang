@@ -49,6 +49,7 @@
     <innerfile refid="ml__xml_8h">ml_xml.h</innerfile>
     <innerfile refid="sha256_8h">sha256.h</innerfile>
     <innerfile refid="stringmap_8h">stringmap.h</innerfile>
+    <innerfile refid="stringmap2_8h">stringmap2.h</innerfile>
     <innerfile refid="timelib__mem_8h">timelib_mem.h</innerfile>
     <innerfile refid="uuidmap_8h">uuidmap.h</innerfile>
     <innerfile refid="weakmap_8h">weakmap.h</innerfile>

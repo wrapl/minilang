@@ -958,7 +958,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:length :> 11
 
 
-:mini:`meth (Buffer: string::buffer):read" #1: integer`
+:mini:`meth (Buffer: string::buffer):read16: integer`
    Reads a signed 16-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -968,7 +968,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read16 :> 25928
 
 
-:mini:`meth (Buffer: string::buffer):read" #1(Arg₂: byte::order): integer`
+:mini:`meth (Buffer: string::buffer):read16(Arg₂: byte::order): integer`
    Reads a signed 16-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -979,7 +979,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read16(address::BE) :> 27756
 
 
-:mini:`meth (Buffer: string::buffer):read" #1(Arg₂: byte::order): integer`
+:mini:`meth (Buffer: string::buffer):read16(Arg₂: byte::order): integer`
    Reads a signed 16-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -992,7 +992,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> error("MethodError", "no method found for readu16(string::buffer, address::byteorder)")
 
 
-:mini:`meth (Buffer: string::buffer):read" #3: integer`
+:mini:`meth (Buffer: string::buffer):read32: integer`
    Reads a signed 32-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1002,7 +1002,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read32 :> 1819043144
 
 
-:mini:`meth (Buffer: string::buffer):read" #3(Arg₂: byte::order): integer`
+:mini:`meth (Buffer: string::buffer):read32(Arg₂: byte::order): integer`
    Reads a signed 32-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1013,7 +1013,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read32(address::BE) :> 1864398703
 
 
-:mini:`meth (Buffer: string::buffer):read" #3(Arg₂: byte::order): integer`
+:mini:`meth (Buffer: string::buffer):read32(Arg₂: byte::order): integer`
    Reads a signed 32-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1026,7 +1026,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> error("MethodError", "no method found for readu32(string::buffer, address::byteorder)")
 
 
-:mini:`meth (Buffer: string::buffer):read" #6: integer`
+:mini:`meth (Buffer: string::buffer):read64: integer`
    Reads a signed 64-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1036,7 +1036,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read64 :> 8031924123371070792
 
 
-:mini:`meth (Buffer: string::buffer):read" #6(Arg₂: byte::order): integer`
+:mini:`meth (Buffer: string::buffer):read64(Arg₂: byte::order): integer`
    Reads a signed 64-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1047,7 +1047,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read64(address::BE) :> nil
 
 
-:mini:`meth (Buffer: string::buffer):read" #6(Arg₂: byte::order): integer`
+:mini:`meth (Buffer: string::buffer):read64(Arg₂: byte::order): integer`
    Reads a signed 64-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1069,7 +1069,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read8 :> -52
 
 
-:mini:`meth (Buffer: string::buffer):readu" #1: integer`
+:mini:`meth (Buffer: string::buffer):readu16: integer`
    Reads a signed 16-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1079,7 +1079,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:readu16 :> 25928
 
 
-:mini:`meth (Buffer: string::buffer):readu" #3: integer`
+:mini:`meth (Buffer: string::buffer):readu32: integer`
    Reads a signed 32-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1089,7 +1089,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:readu32 :> 1819043144
 
 
-:mini:`meth (Buffer: string::buffer):readu" #6: integer`
+:mini:`meth (Buffer: string::buffer):readu64: integer`
    Reads a signed 64-bit value from :mini:`Buffer`.
 
    .. code-block:: mini
@@ -1133,7 +1133,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "1 + 1 = 2"
 
 
-:mini:`meth (Buffer: string::buffer):write" #1(Value: integer): buffer`
+:mini:`meth (Buffer: string::buffer):write16(Value: integer): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 16-bit signed value. Uses the platform byte order.
 
    .. code-block:: mini
@@ -1143,7 +1143,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "90"
 
 
-:mini:`meth (Buffer: string::buffer):write" #1(Value: integer, Arg₃: byte::order): buffer`
+:mini:`meth (Buffer: string::buffer):write16(Value: integer, Arg₃: byte::order): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 16-bit signed value. Uses the given byte order.
 
    .. code-block:: mini
@@ -1155,7 +1155,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "09"
 
 
-:mini:`meth (Buffer: string::buffer):write" #3(Value: integer): buffer`
+:mini:`meth (Buffer: string::buffer):write32(Value: integer): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 32-bit signed value. Uses the platform byte order.
 
    .. code-block:: mini
@@ -1165,7 +1165,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "90\0\0"
 
 
-:mini:`meth (Buffer: string::buffer):write" #3(Value: integer, Arg₃: byte::order): buffer`
+:mini:`meth (Buffer: string::buffer):write32(Value: integer, Arg₃: byte::order): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 32-bit signed value. Uses the given byte order.
 
    .. code-block:: mini
@@ -1181,7 +1181,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
-:mini:`meth (Buffer: string::buffer):write" #6(Value: integer): buffer`
+:mini:`meth (Buffer: string::buffer):write64(Value: integer): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 64-bit signed value. Uses the platform byte order.
 
    .. code-block:: mini
@@ -1191,7 +1191,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "90\0\0\0\0\0\0"
 
 
-:mini:`meth (Buffer: string::buffer):write" #6(Value: integer, Arg₃: byte::order): buffer`
+:mini:`meth (Buffer: string::buffer):write64(Value: integer, Arg₃: byte::order): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 64-bit signed value. Uses the given byte order.
 
    .. code-block:: mini
@@ -1213,7 +1213,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "x"
 
 
-:mini:`meth (Buffer: string::buffer):writeu" #1(Value: integer): buffer`
+:mini:`meth (Buffer: string::buffer):writeu16(Value: integer): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 16-bit unsigned value. Uses the platform byte order.
 
    .. code-block:: mini
@@ -1223,7 +1223,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "90"
 
 
-:mini:`meth (Buffer: string::buffer):writeu" #1(Value: integer, Arg₃: byte::order): buffer`
+:mini:`meth (Buffer: string::buffer):writeu16(Value: integer, Arg₃: byte::order): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 16-bit unsigned value. Uses the given byte order.
 
    .. code-block:: mini
@@ -1235,7 +1235,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "09"
 
 
-:mini:`meth (Buffer: string::buffer):writeu" #3(Value: integer): buffer`
+:mini:`meth (Buffer: string::buffer):writeu32(Value: integer): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 32-bit unsigned value. Uses the platform byte order.
 
    .. code-block:: mini
@@ -1245,7 +1245,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "90\0\0"
 
 
-:mini:`meth (Buffer: string::buffer):writeu" #3(Value: integer, Arg₃: byte::order): buffer`
+:mini:`meth (Buffer: string::buffer):writeu32(Value: integer, Arg₃: byte::order): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 32-bit unsigned value. Uses the given byte order.
 
    .. code-block:: mini
@@ -1257,7 +1257,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "\0\009"
 
 
-:mini:`meth (Buffer: string::buffer):writeu" #6(Value: integer): buffer`
+:mini:`meth (Buffer: string::buffer):writeu64(Value: integer): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 64-bit unsigned value. Uses the platform byte order.
 
    .. code-block:: mini
@@ -1267,7 +1267,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "90\0\0\0\0\0\0"
 
 
-:mini:`meth (Buffer: string::buffer):writeu" #6(Value: integer, Arg₃: byte::order): buffer`
+:mini:`meth (Buffer: string::buffer):writeu64(Value: integer, Arg₃: byte::order): buffer`
    Writes :mini:`Value` to :mini:`Buffer` as an 64-bit unsigned value. Uses the given byte order.
 
    .. code-block:: mini

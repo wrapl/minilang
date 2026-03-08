@@ -1176,7 +1176,7 @@
     <sectiondef kind="define">
       <memberdef kind="define" id="group__cbor_1ga41a1421a02c06683c089d2350f3bf9ac" prot="public" static="no">
         <name>ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS</name>
-        <initializer>0x0001</initializer>
+        <initializer>0x1</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

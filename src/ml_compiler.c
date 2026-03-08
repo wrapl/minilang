@@ -3296,14 +3296,14 @@ void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Fla
 			break;
 		case ML_PARAM_BYREF:
 			Decl->Flags |= MLC_DECL_BYREF;
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			stringmap_insert(Info->Params, Param->Ident, Decl);
 			break;
 		case ML_PARAM_ASVAR:
 			Decl->Flags |= MLC_DECL_ASVAR;
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			stringmap_insert(Info->Params, Param->Ident, Decl);
 			break;
 		default:
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			stringmap_insert(Info->Params, Param->Ident, Decl);
 			break;
 		}
 		if (Param->Type) HasParamTypes = 1;
@@ -3416,18 +3416,16 @@ void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int
 						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCALI, 2);
 						LocalInst[1].Count = Index - Function->Top;
 						LocalInst[2].Decls = Decl;
+					} else if (Flags & MLCF_LOCAL) {
+						MLC_RETURN(ml_integer(Index));
+					} else if (Flags & MLCF_PUSH) {
+						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
+						LocalInst[1].Count = Index - Function->Top;
+						mlc_inc_top(Function);
+						MLC_RETURN(NULL);
 					} else {
-						if (Flags & MLCF_LOCAL) {
-							MLC_RETURN(ml_integer(Index));
-						} else if (Flags & MLCF_PUSH) {
-							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
-							LocalInst[1].Count = Index - Function->Top;
-							mlc_inc_top(Function);
-							MLC_RETURN(NULL);
-						} else {
-							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
-							LocalInst[1].Count = Index - Function->Top;
-						}
+						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
+						LocalInst[1].Count = Index - Function->Top;
 					}
 					if (Flags & MLCF_PUSH) {
 						MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
@@ -4586,7 +4584,41 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			return Parser->Token;
 		}
 		DO_CHAR_DIGIT: {
-			char *End;
+			const char *End = Next;
+			if (*End == '-') ++End;
+			for (;;) {
+				if ('0' <= *End && *End <= '9') {
+				} else if (*End == '.' || *End == 'e' || *End == 'E') {
+					goto parse_real;
+#ifdef ML_COMPLEX
+				} else if (*End == 'i') {
+					goto parse_real;
+#endif
+				} else {
+					break;
+				}
+				++End;
+			}
+#ifdef ML_BIGINT
+			int Length = End - Next;
+			if (Length < 19) {
+#endif
+				long Integer = strtol(Next, (char **)&End, 10);
+				Parser->Value = ml_integer(Integer);
+#ifdef ML_BIGINT
+			} else {
+				char Buffer[Length + 1];
+				memcpy(Buffer, Next, Length);
+				Buffer[Length] = 0;
+				mpz_t Integer;
+				mpz_init_set_str(Integer, Buffer, 10);
+				Parser->Value = ml_integer_mpz(Integer);
+			}
+#endif
+			Parser->Token = MLT_VALUE;
+			Parser->Next = End;
+			return Parser->Token;
+		parse_real:;
 			double Double = strtod(Next, (char **)&End);
 #ifdef ML_COMPLEX
 			if (*End == 'i') {
@@ -4596,16 +4628,7 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				return Parser->Token;
 			}
 #endif
-			for (const char *P = Next; P < End; ++P) {
-				if (P[0] == '.' || P[0] == 'e' || P[0] == 'E') {
-					Parser->Value = ml_real(Double);
-					Parser->Token = MLT_VALUE;
-					Parser->Next = End;
-					return Parser->Token;
-				}
-			}
-			long Integer = strtol(Next, (char **)&End, 10);
-			Parser->Value = ml_integer(Integer);
+			Parser->Value = ml_real(Double);
 			Parser->Token = MLT_VALUE;
 			Parser->Next = End;
 			return Parser->Token;
@@ -6627,7 +6650,7 @@ void ml_function_compile(ml_state_t *Caller, const mlc_expr_t *Expr, ml_compiler
 			Param->Ident = ml_ident(P[0], strlen(P[0]));
 			Param->Hash = ml_ident_hash(P[0]);
 			Param->Index = Function->Top++;
-			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)Function->Top);
+			stringmap_insert(Info->Params, Param->Ident, Param);
 			ParamSlot[0] = Param;
 			ParamSlot = &Param->Next;
 		}

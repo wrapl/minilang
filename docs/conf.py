@@ -95,6 +95,7 @@ github_url = "https://github.com/wrapl/minilang"
 extensions = [
 	'sphinx.ext.graphviz',
 	'sphinx.ext.viewcode',
+	"sphinx_syntax",
 	#'sphinx_toolbox.collapse',
 	#'sphinxcontrib.ansi',
 	#'breathe',

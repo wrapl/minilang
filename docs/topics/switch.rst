@@ -3,7 +3,7 @@ Switch Expressions
 
 The :mini:`switch`-expression in *Minilang* provides an alternative to an :mini:`if`-expression with multiple :mini:`elseif` branches when a single value is tested for the first match.
 
-.. parser-rule-diagram:: 'switch' expression ':' expression ( 'case' expression ( ',' expression )* 'do' block )* ( 'else' block )? 'end'
+.. syntax:parser-diagram:: 'switch' expression ':' expression ( 'case' expression ( ',' expression )* 'do' block )* ( 'else' block )? 'end'
 
 For example:
 

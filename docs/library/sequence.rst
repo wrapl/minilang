@@ -9,6 +9,22 @@ sequence
 
 .. rst-class:: mini-api
 
+:mini:`fun mliterate(Arg₁: any)`
+   *TBD*
+
+
+:mini:`fun mliterkey(Arg₁: any)`
+   *TBD*
+
+
+:mini:`fun mliternext(Arg₁: any)`
+   *TBD*
+
+
+:mini:`fun mlitervalue(Arg₁: any)`
+   *TBD*
+
+
 :mini:`meth @(Value: any): sequence`
    Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`,  :mini:`weave`,  etc.
 
@@ -675,7 +691,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "k"
+      random("cake") :> "a"
       random([]) :> nil
 
 
@@ -685,7 +701,7 @@ sequence
    .. code-block:: mini
 
       count2(1 .. 60000;) random::by(swap("cat"))
-      :> {"a" is 20128, "t" is 30011, "c" is 9861}
+      :> {"t" is 29819, "a" is 20211, "c" is 9970}
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`

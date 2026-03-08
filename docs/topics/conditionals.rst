@@ -12,7 +12,7 @@ And / or expressions
 
 These expressions check their left argument for :mini:`nil` and only evaluate their right argument if necessary.
 
-.. parser-rule-diagram:: expression ( 'and' | 'or' ) expression
+.. syntax:parser-diagram:: expression ( 'and' | 'or' ) expression
 
 They operate as follows:
 
@@ -51,5 +51,5 @@ An :mini:`if`-expression evaluates its condition expressions and evaluates the :
 
 The condition value itself can optionally contain a variable declaration using :mini:`let` or :mini:`var` (including an unpacking declaration) allowing a computed value such as a regular expression match to be used as the condition without needing an extra declaration.
 
-.. parser-rule-diagram:: 'if' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block ( 'elseif' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block )* ( 'else' block )? 'end'
+.. syntax:parser-diagram:: 'if' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block ( 'elseif' ( ( 'var' | 'let' ) ( identifier | ( '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' ) ) ':=' )? expression 'then' block )* ( 'else' block )? 'end'
 

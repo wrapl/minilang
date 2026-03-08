@@ -13,10 +13,6 @@ math
    *TBD*
 
 
-:mini:`meth (Arg₁: complex):DeltaMethod(Arg₂: complex)`
-   *TBD*
-
-
 :mini:`meth (X: complex) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -134,6 +130,10 @@ math
       :> 1.63043250480246 - 0.762072763912413i
 
 
+:mini:`meth math::delta(Arg₁: complex, Arg₂: complex)`
+   *TBD*
+
+
 :mini:`meth math::exp(Arg₁: complex): complex`
    Returns :mini:`exp(Arg₁)`.
 
@@ -246,10 +246,6 @@ math
    Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
 
 
-:mini:`meth (Arg₁: integer):DeltaMethod(Arg₂: integer)`
-   *TBD*
-
-
 :mini:`meth (X: integer) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -257,8 +253,12 @@ math
 
       let N := 2 ^ 2 :> 4
       type(N) :> <<integer32>>
-      let R := 2 ^ -1 :> 0.5
-      type(R) :> <<double>>
+      let R := 2 ^ -1 :> 1/2
+      type(R) :> <<rational48>>
+
+
+:mini:`meth (Arg₁: integer) ^ (Arg₂: rational)`
+   *TBD*
 
 
 :mini:`meth (N: integer):abs: integer`
@@ -271,6 +271,10 @@ math
 
 :mini:`meth (A: integer):gcd(B: integer): integer`
    Returns the greatest common divisor of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth math::delta(Arg₁: integer, Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth math::sqrt(Arg₁: integer): integer | real`
@@ -309,12 +313,24 @@ math
    *TBD*
 
 
+:mini:`meth (Arg₁: rational) ^ (Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: rational) ^ (Arg₂: rational)`
+   *TBD*
+
+
+:mini:`meth math::delta(Arg₁: rational, Arg₂: rational)`
+   *TBD*
+
+
+:mini:`meth math::sqrt(Arg₁: rational): rational | real`
+   Returns the square root of :mini:`Arg₁`.
+
+
 :mini:`meth (X: real) % (Y: real): real`
    Returns the remainder of :mini:`X` on division by :mini:`Y`.
-
-
-:mini:`meth (Arg₁: real):DeltaMethod(Arg₂: real)`
-   *TBD*
 
 
 :mini:`meth (X: real) ^ (Y: integer): number`
@@ -334,7 +350,7 @@ math
       type(R) :> <<double>>
       let C := -2.3 ^ 1.5
       :> -6.40757745721465e-16 - 3.48812270426371i
-      type(C) :> <<complex>>
+      type(C) :> <<complex::double>>
 
 
 :mini:`meth (R: real):arg: real`
@@ -457,6 +473,10 @@ math
       math::cosh(-1.2345) :> 1.86381998863995
 
 
+:mini:`meth math::delta(Arg₁: real, Arg₂: real)`
+   *TBD*
+
+
 :mini:`meth math::erf(Arg₁: real): real`
    Returns :mini:`erf(Arg₁)`.
 
@@ -511,19 +531,17 @@ math
       math::floor(-1.2345, 32) :> -1.25
 
 
-:mini:`meth math::hypot(Arg₁: real, Arg₂: real): real`
-   Returns :mini:`hypot(Arg₁,  Arg₂)`.
-
-
-:mini:`meth math::lgamma(Arg₁: real): real`
-   Returns :mini:`lgamma(Arg₁)`.
+:mini:`meth math::gamma(Arg₁: real): real`
+   Returns :mini:`gamma(Arg₁)`.
 
    .. code-block:: mini
 
-      math::lgamma(1.2345)
-      :> error("ModuleError", "Symbol lgamma not exported from module math")
-      math::lgamma(-1.2345)
-      :> error("ModuleError", "Symbol lgamma not exported from module math")
+      math::gamma(1.2345) :> -0.0946016466793967
+      math::gamma(-1.2345) :> 1.42638586810001
+
+
+:mini:`meth math::hypot(Arg₁: real, Arg₂: real): real`
+   Returns :mini:`hypot(Arg₁,  Arg₂)`.
 
 
 :mini:`meth math::log(Arg₁: real): real`

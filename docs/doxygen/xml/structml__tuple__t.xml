@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="543" column="11" bodyfile="src/ml_types.h" bodystart="543" bodyend="-1"/>
+        <location file="src/ml_types.h" line="533" column="11" bodyfile="src/ml_types.h" bodystart="533" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__tuple__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="544" column="5" bodyfile="src/ml_types.h" bodystart="544" bodyend="-1"/>
+        <location file="src/ml_types.h" line="534" column="5" bodyfile="src/ml_types.h" bodystart="534" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__tuple__t_1a89d568a12750246b9e6ca7798aa9541c" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="544" column="10" bodyfile="src/ml_types.h" bodystart="544" bodyend="-1"/>
+        <location file="src/ml_types.h" line="534" column="10" bodyfile="src/ml_types.h" bodystart="534" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="public-func">
@@ -62,7 +62,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="545" column="19"/>
+        <location file="src/ml_types.h" line="535" column="19"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -111,7 +111,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="542" column="1" bodyfile="src/ml_types.h" bodystart="542" bodyend="546"/>
+    <location file="src/ml_types.h" line="532" column="1" bodyfile="src/ml_types.h" bodystart="532" bodyend="536"/>
     <listofallmembers>
       <member refid="structml__tuple__t_1a30df3a7708e08c88d033df71355c2eb0" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>__attribute__</name></member>
       <member refid="structml__tuple__t_1a89d568a12750246b9e6ca7798aa9541c" prot="public" virt="non-virtual"><scope>ml_tuple_t</scope><name>NoRefs</name></member>
