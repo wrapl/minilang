@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="group__functions" kind="group">
     <compoundname>functions</compoundname>
     <title>Functions</title>
@@ -591,9 +591,9 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         <name>ML_CHECK_ARG_TYPE</name>
         <param><defname>N</defname></param>
         <param><defname>TYPE</defname></param>
-        <initializer>if (!ml_is(Args[N], TYPE)) { \
-    return ml_error(&quot;TypeError&quot;, &quot;Expected %s for argument %d&quot;, TYPE-&gt;Name, N + 1); \
-}</initializer>
+        <initializer>	if (!ml_is(Args[N], TYPE)) { \
+		return ml_error(&quot;TypeError&quot;, &quot;Expected %s for argument %d&quot;, TYPE-&gt;Name, N + 1); \
+	}</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -605,9 +605,9 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
       <memberdef kind="define" id="group__functions_1ga50ddfec988528d83059fe61515af315e" prot="public" static="no">
         <name>ML_CHECK_ARG_COUNT</name>
         <param><defname>N</defname></param>
-        <initializer>if (Count &lt; N) { \
-    return ml_error(&quot;CallError&quot;, &quot;%d arguments required&quot;, N); \
-}</initializer>
+        <initializer>	if (Count &lt; N) { \
+		return ml_error(&quot;CallError&quot;, &quot;%d arguments required&quot;, N); \
+	}</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -620,9 +620,9 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         <name>ML_CHECKX_ARG_TYPE</name>
         <param><defname>N</defname></param>
         <param><defname>TYPE</defname></param>
-        <initializer>if (!ml_is(Args[N], TYPE)) { \
-    ML_ERROR(&quot;TypeError&quot;, &quot;Expected %s for argument %d&quot;, TYPE-&gt;Name, N + 1); \
-}</initializer>
+        <initializer>	if (!ml_is(Args[N], TYPE)) { \
+		ML_ERROR(&quot;TypeError&quot;, &quot;Expected %s for argument %d&quot;, TYPE-&gt;Name, N + 1); \
+	}</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -634,9 +634,9 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
       <memberdef kind="define" id="group__functions_1gaf190c16bb03f1d1ebb8ad401ecfb62dd" prot="public" static="no">
         <name>ML_CHECKX_ARG_COUNT</name>
         <param><defname>N</defname></param>
-        <initializer>if (Count &lt; N) { \
-    ML_ERROR(&quot;CallError&quot;, &quot;%d arguments required&quot;, N); \
-}</initializer>
+        <initializer>	if (Count &lt; N) { \
+		ML_ERROR(&quot;CallError&quot;, &quot;%d arguments required&quot;, N); \
+	}</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -649,10 +649,10 @@ static void FUNCTION(<ref refid="structml__state__t" kindref="compound">ml_state
         <name>ML_CONTINUE</name>
         <param><defname>STATE</defname></param>
         <param><defname>VALUE</defname></param>
-        <initializer>    { \
-    <ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *__State = (<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *)(STATE); \
-    <ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *__Value = (<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *)(VALUE); \
-    return __State-&gt;run(__State, __Value); \
+        <initializer>	{ \
+	<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *__State = (<ref refid="structml__state__t" kindref="compound">ml_state_t</ref> *)(STATE); \
+	<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *__Value = (<ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *)(VALUE); \
+	return __State-&gt;run(__State, __Value); \
 }</initializer>
         <briefdescription>
         </briefdescription>

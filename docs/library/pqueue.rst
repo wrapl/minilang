@@ -9,20 +9,14 @@ pqueue
 
 .. rst-class:: mini-api
 
-:mini:`fun top(N: integer, Sequence: sequence, Fn: function): list`
-   Returns the top :mini:`N` values of :mini:`Sequence` based on :mini:`Fn(Valueᵢ)`.
-
-
-:mini:`fun top2(N: integer, Sequence: sequence, Fn: function): sequence`
-   Returns the top :mini:`N` values and priorities of :mini:`Sequence` based on :mini:`Fn(Valueᵢ)`.
-
-
 :mini:`type pqueue < sequence`
-   A priority queue with values and associated priorities.
+   A priority queue with values and associated priorities. The priority comparison function :mini:`Fn` is supplied at construction,  defaulting to :mini:`>`.
+   If :mini:`(Valueᵢ,  Priorityⱼ)` and :mini:`(Valueᵢ,  Priorityⱼ)` are added to the queue with :mini:`Fn(Priorityᵢ,  Priorityⱼ)`,  then :mini:`Valueᵢ` will come before :mini:`Valueⱼ` when taking entries from the queue.
 
 
-:mini:`meth pqueue(Greater: function): pqueue`
-   Returns a new priority queue using :mini:`Greater` to compare priorities.
+:mini:`meth pqueue(Fn: function): pqueue`
+   If :mini:`(Valueᵢ,  Priorityⱼ)` and :mini:`(Valueᵢ,  Priorityⱼ)` are added to the queue with :mini:`Fn(Priorityᵢ,  Priorityⱼ)`,  then :mini:`Valueᵢ` will come before :mini:`Valueⱼ` when taking entries from the queue.
+   Returns a new priority queue using :mini:`Fn` to compare priorities.
 
 
 :mini:`meth pqueue(): pqueue`

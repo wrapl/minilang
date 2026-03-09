@@ -4284,107 +4284,34 @@ ML_FUNCTION(Batch) {
 	return (ml_value_t *)Batched;
 }
 
-/*typedef struct {
-	ml_state_t Base;
-	ml_value_t *Iter;
-} ml_iterator_t;
-
-ML_TYPE(MLIteratorT, (), "iterator");
-//@iterator
-// An iterator.
-
-static void ML_TYPED_FN(ml_value_find_all, MLIteratorT, ml_iterator_t *Iterator, void *Data, ml_value_find_fn RefFn) {
-	if (!RefFn(Data, (ml_value_t *)Iterator, 1)) return;
-	ml_value_find_all(Iterator->Iter, Data, RefFn);
-}
-
-
-#ifdef ML_CBOR
-
-#include "ml_cbor.h"
-
-static void ML_TYPED_FN(ml_cbor_write, MLIteratorT, ml_cbor_writer_t *Writer, ml_iterator_t *Iterator) {
-	ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
-	ml_cbor_write_array(Writer, 2);
-	ml_cbor_write_string(Writer, strlen("iterator"));
-	ml_cbor_write_raw(Writer, "iterator", strlen("iterator"));
-	ml_cbor_write(Writer, Iterator->Iter);
-}
-
-static ml_value_t *decode_iterator(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ml_iterator_t *Iterator = new(ml_iterator_t);
-	Iterator->Base.Type = MLIteratorT;
-	Iterator->Iter = Args[0];
-	return (ml_value_t *)Iterator;
-}
-
-#endif
-
-static void ml_iterator_run(ml_iterator_t *Iterator, ml_value_t *Iter) {
-	ml_state_t *Caller = Iterator->Base.Caller;
-	Iterator->Iter = Iter;
-	if (Iter == MLNil) ML_RETURN(Iter);
-	if (ml_is_error(Iter)) ML_RETURN(Iter);
-	ML_RETURN(Iterator);
-}
-
 ML_FUNCTIONX(MLIterate) {
 //@iterate
-//<Sequence:sequence
-//>iterator|nil
-// Create an iterator for :mini:`Sequence`. Returns :mini:`nil` is :mini:`Sequence` is empty.
-	ML_CHECKX_ARG_COUNT(1);
-	ml_iterator_t *Iterator = new(ml_iterator_t);
-	Iterator->Base.Type = MLIteratorT;
-	Iterator->Base.Caller = Caller;
-	Iterator->Base.Context = Caller->Context;
-	Iterator->Base.run = (ml_state_fn)ml_iterator_run;
-	return ml_iterate((ml_state_t *)Iterator, Args[0]);
-}
-
-ML_METHODX("next", MLIteratorT) {
-//<Iterator
-//>iterator|nil
-// Advances :mini:`Iterator`, returning :mini:`nil` if it is finished.
-	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
-	Iterator->Base.Caller = Caller;
-	Iterator->Base.Context = Caller->Context;
-	return ml_iter_next((ml_state_t *)Iterator, Iterator->Iter);
-}
-
-ML_METHODX("key", MLIteratorT) {
-//<Iterator
-//>any
-// Returns the current key produced by :mini:`Iterator`.
-	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
-	return ml_iter_key(Caller, Iterator->Iter);
-}
-
-ML_METHODX("value", MLIteratorT) {
-//<Iterator
-//>any
-// Returns the current value produced by :mini:`Iterator`.
-	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
-	return ml_iter_value(Caller, Iterator->Iter);
-}*/
-
-ML_FUNCTIONX(MLIterate) {
+//<Sequence
+//>iterator
 	ML_CHECKX_ARG_COUNT(1);
 	return ml_iterate(Caller, Args[0]);
 }
 
 ML_FUNCTIONX(MLIterNext) {
+//@iter_next
+//<Iterator
+//>iterator
 	ML_CHECKX_ARG_COUNT(1);
 	return ml_iter_next(Caller, Args[0]);
 }
 
 ML_FUNCTIONX(MLIterKey) {
+//@iter_key
+//<Iterator
+//>any
 	ML_CHECKX_ARG_COUNT(1);
 	return ml_iter_key(Caller, Args[0]);
 }
 
 ML_FUNCTIONX(MLIterValue) {
+//@iter_value
+//<Iterator
+//>any
 	ML_CHECKX_ARG_COUNT(1);
 	return ml_iter_value(Caller, Args[0]);
 }
@@ -4546,6 +4473,11 @@ static void ML_TYPED_FN(ml_iter_next, MLSplitInnerT, ml_state_t *Caller, ml_valu
 }
 
 ML_METHOD("split", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Returns a sequence of sequences, each of which produces the key-value pairs from :mini:`Sequence`, stopping when :mini:`Fn(Value)` returns :mini:`nil`. Empty sub-sequences are not produced.
+//$= list("a" .. "z" split fun(C) not "aeiou" find C, list)
 	ml_split_t *Split = new(ml_split_t);
 	Split->Type = MLSplitT;
 	Split->Seq = Args[0];
@@ -4645,6 +4577,11 @@ static void ML_TYPED_FN(ml_iter_next, MLChunkInnerT, ml_state_t *Caller, ml_valu
 }
 
 ML_METHOD("chunk", MLSequenceT, MLIntegerT) {
+//<Sequence
+//<Size
+//>sequence
+// Returns a sequence of sequences, each of which produces the next :mini:`Size` key-value pairs from :mini:`Sequence`.
+//$= list("aAaAaabBbbbBaAAAaacccCCCccbcB" chunk 5, list)
 	ml_chunk_t *Chunk = new(ml_chunk_t);
 	Chunk->Type = MLChunkT;
 	Chunk->Seq = Args[0];
@@ -4820,6 +4757,11 @@ static void ML_TYPED_FN(ml_iter_next, MLGroupedInnerT, ml_state_t *Caller, ml_va
 }
 
 ML_METHOD("group", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Returns a sequence of sequences, each of which produces the key-value pairs from :mini:`Sequence` up to the value of :mini:`Fn(Value)` changing.
+//$= list("aAaAaabBbbbBaAAAaacccCCCccbcB" group :upper, list)
 	ml_grouped_t *Grouped = new(ml_grouped_t);
 	Grouped->Type = MLGroupedT;
 	Grouped->Seq = Args[0];

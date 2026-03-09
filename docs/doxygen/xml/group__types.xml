@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
   <compounddef id="group__types" kind="group">
     <compoundname>types</compoundname>
     <title>Types</title>
@@ -985,24 +985,24 @@
         <param><defname>PARENTS</defname></param>
         <param><defname>NAME</defname></param>
         <param><defname>...</defname></param>
-        <initializer>    { \
-    .Type = MLTypeT, \
-    .Name = NAME, \
-    .hash = ml_default_hash, \
-    .call = ml_default_call, \
-    .deref = ml_default_deref, \
-    .assign = ml_default_assign, \
-    .iterate = ml_iterate, \
-    .iter_value = ml_iter_value, \
-    .iter_key = ml_iter_key, \
-    .iter_next = ml_iter_next, \
-    .Constructor = CONSTRUCTOR, \
-    .Parents = {INTHASH_INIT}, \
-    .TypedFns = {INTHASH_INIT}, \
-    .Exports = {STRINGMAP_INIT}, \
-    .Rank = 0, \
-    .Interface = 0, \
-    ##__VA_ARGS__ \
+        <initializer>	{ \
+	.Type = MLTypeT, \
+	.Name = NAME, \
+	.hash = ml_default_hash, \
+	.call = ml_default_call, \
+	.deref = ml_default_deref, \
+	.assign = ml_default_assign, \
+	.iterate = ml_iterate, \
+	.iter_value = ml_iter_value, \
+	.iter_key = ml_iter_key, \
+	.iter_next = ml_iter_next, \
+	.Constructor = CONSTRUCTOR, \
+	.Parents = {INTHASH_INIT}, \
+	.TypedFns = {INTHASH_INIT}, \
+	.Exports = {STRINGMAP_INIT}, \
+	.Rank = 0, \
+	.Interface = 0, \
+	##__VA_ARGS__ \
 }</initializer>
         <briefdescription>
         </briefdescription>

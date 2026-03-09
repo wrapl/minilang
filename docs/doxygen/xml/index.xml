@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.16.1" xml:lang="en-US">
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.14.0" xml:lang="en-US">
   <compound refid="structcoro__stack" kind="struct"><name>coro_stack</name>
     <member refid="structcoro__stack_1aa9494898e3ec67c540adc987376eeb8f" kind="variable"><name>sptr</name></member>
     <member refid="structcoro__stack_1a50d9dde2bb9e3198d11d929aa1fa98bc" kind="variable"><name>ssze</name></member>
@@ -57,7 +57,7 @@
   <compound refid="structml__cbor__t" kind="struct"><name>ml_cbor_t</name>
     <member refid="structml__cbor__t_1afd75d67662a1d310a64c44f30a50f088" kind="variable"><name>Data</name></member>
     <member refid="structml__cbor__t_1aa4ac06fe4d51708f71a9d71eef3896ca" kind="variable"><name>Error</name></member>
-    <member refid="structml__cbor__t_1aedf38f1750ca631ccbb311d9868711fa" kind="variable"><name>@001117157276365074205144104163017123325042263342</name></member>
+    <member refid="structml__cbor__t_1aedf38f1750ca631ccbb311d9868711fa" kind="variable"><name></name></member>
     <member refid="structml__cbor__t_1af5a30ee2a50d2f045d13a54a1a0b08d5" kind="variable"><name>Length</name></member>
   </compound>
   <compound refid="structml__cbor__tag__info__t" kind="struct"><name>ml_cbor_tag_info_t</name>
@@ -202,7 +202,7 @@
     <member refid="unionml__inst__t_1ac132425a70f39fe07667cecb77969764" kind="variable"><name>Reserved</name></member>
     <member refid="unionml__inst__t_1a1cd966d36202496180f973f7284b3806" kind="variable"><name>Label</name></member>
     <member refid="unionml__inst__t_1af7f07a1fda3ef5519223c66c30d01a90" kind="variable"><name>Line</name></member>
-    <member refid="unionml__inst__t_1a2f3276624bb78aa11040a385115f8fe3" kind="variable"><name>@060260065251065052000131264172175250235267135031</name></member>
+    <member refid="unionml__inst__t_1a2f3276624bb78aa11040a385115f8fe3" kind="variable"><name></name></member>
     <member refid="unionml__inst__t_1a176d72e6e12a34c0016fa8cb4a894621" kind="variable"><name>Inst</name></member>
     <member refid="unionml__inst__t_1ab7494fbcf04e1ca7ec49d5b29bf7b8a9" kind="variable"><name>Insts</name></member>
     <member refid="unionml__inst__t_1aad462966ed963f892117056de1eba502" kind="variable"><name>Count</name></member>
@@ -340,7 +340,7 @@
     <member refid="structml__parser__t_1a022b24deb82c844e73083ad06165b5bd" kind="variable"><name>Value</name></member>
     <member refid="structml__parser__t_1a2ebabbbf2f4b784c39233f2cc8fb2450" kind="variable"><name>Expr</name></member>
     <member refid="structml__parser__t_1a2db00ef00fcbc1dbad7b1cb9e45f24cc" kind="variable"><name>Ident</name></member>
-    <member refid="structml__parser__t_1ab0dd34c53c84a24f53113a009011fbd9" kind="variable"><name>@007312022267037040053175163123044272315300114200</name></member>
+    <member refid="structml__parser__t_1ab0dd34c53c84a24f53113a009011fbd9" kind="variable"><name></name></member>
     <member refid="structml__parser__t_1a7dd870cb799fc12819e7d6d136845a21" kind="variable"><name>Warnings</name></member>
     <member refid="structml__parser__t_1a8e52d38e13f2f12be142cfd560513b54" kind="variable"><name>ExpectedDelimiter</name></member>
     <member refid="structml__parser__t_1ad56bad7355a1d0777fb36d9d54fdeb2e" kind="variable"><name>EscapeFns</name></member>
@@ -659,7 +659,7 @@
     <member refid="structmlc__string__part__t_1ad9981c7dd5dbcff6384e0de9f87c8520" kind="variable"><name>Next</name></member>
     <member refid="structmlc__string__part__t_1afb0a22dedc27c96cc232f7c9d37eaec9" kind="variable"><name>Child</name></member>
     <member refid="structmlc__string__part__t_1a0a05a7f058cc32175a859aad95e3c0dd" kind="variable"><name>Chars</name></member>
-    <member refid="structmlc__string__part__t_1a34ddf2e3dc65a699296ce6df22d51387" kind="variable"><name>@100114341253273204334370012064227314367166103256</name></member>
+    <member refid="structmlc__string__part__t_1a34ddf2e3dc65a699296ce6df22d51387" kind="variable"><name></name></member>
     <member refid="structmlc__string__part__t_1a9fde862c8bc443d7a6872a487ec265a3" kind="variable"><name>Length</name></member>
     <member refid="structmlc__string__part__t_1af5b2cae791582f6f4f975f6b25290977" kind="variable"><name>Line</name></member>
   </compound>
@@ -1561,7 +1561,7 @@
     <member refid="group__runtime_1ga051cb433271b4305a6d7d13d1d46b2ef" kind="define"><name>MLC_DECL_ASVAR</name></member>
     <member refid="group__runtime_1ga44204b201d70aacc6352e3128246582c" kind="define"><name>ML_STATE_FN2</name></member>
     <member refid="group__runtime_1gad2ca04d78c9fa90c543e797ce81d056d" kind="define"><name>ML_STATE_FN</name></member>
-    <member refid="group__runtime_1ga2bc9ca8c26b6343ca17c72542d2d3cdf" kind="enum"><name>@156350124131337373207011335051010141250073350044</name></member>
+    <member refid="group__runtime_1ga2bc9ca8c26b6343ca17c72542d2d3cdf" kind="enum"><name></name></member>
     <member refid="group__runtime_1gad422db96e7445bb8df941890132ae087" kind="typedef"><name>ml_config_fn</name></member>
     <member refid="group__runtime_1ga0a66ed25c741cc91af6ca91e2b021f32" kind="typedef"><name>ml_state_fn</name></member>
     <member refid="group__runtime_1gad3fed0c97cb782a1cf6f912e88e9dff0" kind="typedef"><name>ml_call_wait_state_t</name></member>
@@ -1695,9 +1695,6 @@
     <member refid="group__streams_1ga8d07a3578ed5c618a43c8a089b74a407" kind="function"><name>ml_stream_buffered</name></member>
     <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
     <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
-  </compound>
-  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
-    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
   </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
@@ -2493,7 +2490,7 @@
     <member refid="group__flags_1ga4debaf08105991d1cc3c7ce9c96b0792" kind="define"><name>ML_SUB_ENUM</name></member>
   </compound>
   <compound refid="group__runtime" kind="group"><name>runtime</name>
-    <member refid="group__runtime_1ga2bc9ca8c26b6343ca17c72542d2d3cdf" kind="enum"><name>@156350124131337373207011335051010141250073350044</name></member>
+    <member refid="group__runtime_1ga2bc9ca8c26b6343ca17c72542d2d3cdf" kind="enum"><name></name></member>
     <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfadf0ec3ef24e00de9e7e703b0de3e7ea0" kind="enumvalue"><name>ML_METHODS_INDEX</name></member>
     <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfaa839a411d2f1a0119f0145ac6a0fd2d1" kind="enumvalue"><name>ML_VARIABLES_INDEX</name></member>
     <member refid="group__runtime_1gga2bc9ca8c26b6343ca17c72542d2d3cdfad97ccf7157754f3627ff85fba8c8dbf0" kind="enumvalue"><name>ML_DEBUGGER_INDEX</name></member>

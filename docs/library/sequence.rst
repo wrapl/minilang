@@ -9,19 +9,19 @@ sequence
 
 .. rst-class:: mini-api
 
-:mini:`fun mliterate(Arg₁: any)`
+:mini:`fun iter_key(Iterator: any): any`
    *TBD*
 
 
-:mini:`fun mliterkey(Arg₁: any)`
+:mini:`fun iter_next(Iterator: any): iterator`
    *TBD*
 
 
-:mini:`fun mliternext(Arg₁: any)`
+:mini:`fun iter_value(Iterator: any): any`
    *TBD*
 
 
-:mini:`fun mlitervalue(Arg₁: any)`
+:mini:`fun iterate(Sequence: any): iterator`
    *TBD*
 
 
@@ -105,28 +105,20 @@ sequence
    *TBD*
 
 
+:mini:`fun top(N: integer, Sequence: sequence, Fn: function): sequence`
+   Returns the top :mini:`N` values of :mini:`Sequence` based on :mini:`Fn(Valueᵢ)`.
+
+
+:mini:`fun top2(N: integer, Sequence: sequence, Fn: function): sequence`
+   Returns the top :mini:`N` values and priorities of :mini:`Sequence` based on :mini:`Fn(Valueᵢ)`.
+
+
 :mini:`meth (Arg₁: integer::interval) & (Arg₂: integer::interval)`
    *TBD*
 
 
 :mini:`meth (Arg₁: integer::range) & (Arg₂: integer::range)`
    *TBD*
-
-
-:mini:`type iterator`
-   An iterator.
-
-
-:mini:`meth (Iterator: iterator):key: any`
-   Returns the current key produced by :mini:`Iterator`.
-
-
-:mini:`meth (Iterator: iterator):next: iterator | nil`
-   Advances :mini:`Iterator`,  returning :mini:`nil` if it is finished.
-
-
-:mini:`meth (Iterator: iterator):value: any`
-   Returns the current value produced by :mini:`Iterator`.
 
 
 :mini:`meth (Arg₁: paired):count`
@@ -223,10 +215,6 @@ sequence
       :> [(1, c, true), (1, c, false), (1, a, true), (1, a, false), (1, k, true), (1, k, false), (1, e, true), (1, e, false), (2, c, true), (2, c, false), (2, a, true), (2, a, false), (2, k, true), (2, k, false), (2, e, true), (2, e, false), (3, c, true), (3, c, false), (3, a, true), (3, a, false), (3, k, true), (3, k, false), (3, e, true), (3, e, false)]
       list(grid(1 .. 3, "cake", *))
       :> ["c", "a", "k", "e", "cc", "aa", "kk", "ee", "ccc", "aaa", "kkk", "eee"]
-
-
-:mini:`fun iterate(Sequence: sequence): iterator | nil`
-   Create an iterator for :mini:`Sequence`. Returns :mini:`nil` is :mini:`Sequence` is empty.
 
 
 :mini:`fun key(Sequence: sequence)`
@@ -570,8 +558,13 @@ sequence
    *TBD*
 
 
-:mini:`meth (Arg₁: sequence):chunk(Arg₂: integer)`
-   *TBD*
+:mini:`meth (Sequence: sequence):chunk(Size: integer): sequence`
+   Returns a sequence of sequences,  each of which produces the next :mini:`Size` key-value pairs from :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      list("aAaAaabBbbbBaAAAaacccCCCccbcB" chunk 5, list)
+      :> [["a", "A", "a", "A", "a"], ["a", "b", "B", "b", "b"], ["b", "B", "a", "A", "A"], ["A", "a", "a", "c", "c"], ["c", "C", "C", "C", "c"], ["c", "b", "c", "B"]]
 
 
 :mini:`meth (Sequence: sequence):find(Value: any): any | nil`
@@ -630,8 +623,13 @@ sequence
       f() :> nil
 
 
-:mini:`meth (Arg₁: sequence):group(Arg₂: function)`
-   *TBD*
+:mini:`meth (Sequence: sequence):group(Fn: function): sequence`
+   Returns a sequence of sequences,  each of which produces the key-value pairs from :mini:`Sequence` up to the value of :mini:`Fn(Value)` changing.
+
+   .. code-block:: mini
+
+      list("aAaAaabBbbbBaAAAaacccCCCccbcB" group :upper, list)
+      :> [["a", "A", "a", "A", "a", "a"], ["b", "B", "b", "b", "b", "B"], ["a", "A", "A", "A", "a", "a"], ["c", "c", "c", "C", "C", "C", "c", "c"], ["b"], ["c"], ["B"]]
 
 
 :mini:`meth (Sequence: sequence):join: string`
@@ -691,7 +689,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "c"
       random([]) :> nil
 
 
@@ -701,7 +699,7 @@ sequence
    .. code-block:: mini
 
       count2(1 .. 60000;) random::by(swap("cat"))
-      :> {"t" is 29819, "a" is 20211, "c" is 9970}
+      :> {"t" is 29911, "c" is 10035, "a" is 20054}
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`
@@ -723,8 +721,13 @@ sequence
       :> ["a", "n", "a", "n", "a"]
 
 
-:mini:`meth (Arg₁: sequence):split(Arg₂: function)`
-   *TBD*
+:mini:`meth (Sequence: sequence):split(Fn: function): sequence`
+   Returns a sequence of sequences,  each of which produces the key-value pairs from :mini:`Sequence`,  stopping when :mini:`Fn(Value)` returns :mini:`nil`. Empty sub-sequences are not produced.
+
+   .. code-block:: mini
+
+      list("a" .. "z" split fun(C) not "aeiou" find C, list)
+      :> [["b", "c", "d"], ["f", "g", "h"], ["j", "k", "l", "m", "n"], ["p", "q", "r", "s", "t"], ["v", "w", "x", "y", "z"]]
 
 
 :mini:`meth (Buffer: string::buffer):append(Sequence: sequence, Separator: string): some | nil`

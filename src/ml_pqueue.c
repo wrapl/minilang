@@ -36,7 +36,8 @@ struct ml_pqueue_t {
 };
 
 ML_TYPE(MLPQueueT, (MLSequenceT), "pqueue");
-// A priority queue with values and associated priorities.
+// A priority queue with values and associated priorities. The priority comparison function :mini:`Fn` is supplied at construction, defaulting to :mini:`>`.
+// If :mini:`(Value/i, Priority/j)` and :mini:`(Value/i, Priority/j)` are added to the queue with :mini:`Fn(Priority/i, Priority/j)`, then :mini:`Value/i` will come before :mini:`Value/j` when taking entries from the queue.
 
 ml_value_t *ml_pqueue(ml_value_t *Compare) {
 	ml_pqueue_t *Queue = new(ml_pqueue_t);
@@ -56,9 +57,10 @@ ML_METHOD(MLPQueueT) {
 }
 
 ML_METHOD(MLPQueueT, MLFunctionT) {
-//<Greater
+//<Fn
 //>pqueue
-// Returns a new priority queue using :mini:`Greater` to compare priorities.
+// If :mini:`(Value/i, Priority/j)` and :mini:`(Value/i, Priority/j)` are added to the queue with :mini:`Fn(Priority/i, Priority/j)`, then :mini:`Value/i` will come before :mini:`Value/j` when taking entries from the queue.
+// Returns a new priority queue using :mini:`Fn` to compare priorities.
 	return ml_pqueue(Args[0]);
 }
 
@@ -487,25 +489,26 @@ static void ML_TYPED_FN(ml_iter_value, MLPQueueIterT, ml_state_t *Caller, ml_pqu
 }
 
 ML_MINI_FUNCTION(MLTop, ("N", "Sequence", "Fn"),
+//!sequence
 //@top
 //<N:integer
 //<Sequence:sequence
 //<Fn:function
-//>list
+//>sequence
 // Returns the top :mini:`N` values of :mini:`Sequence` based on :mini:`Fn(Value/i)`.
 	"let PQueue := pqueue(<)\n"
 	"for Value in Sequence do\n"
 		"PQueue:keep(N, Value, Fn(Value))\n"
 	"end\n"
-	"let List := []\n"
 	"loop\n"
 		"let Next := while PQueue:next\n"
-		"List:push(Next:value)\n"
+		"susp Next:value\n"
 	"end\n"
-	"ret List"
+	"ret nil"
 )
 
 ML_MINI_FUNCTION(MLTop2, ("N", "Sequence", "Fn"),
+//!sequence
 //@top2
 //<N:integer
 //<Sequence:sequence
@@ -516,11 +519,11 @@ ML_MINI_FUNCTION(MLTop2, ("N", "Sequence", "Fn"),
 	"for Key, Value in Sequence do\n"
 		"PQueue:keep(N, Value, Fn(Value))\n"
 	"end\n"
-	"let List := []\n"
 	"loop\n"
-		"List:push(while PQueue:next)\n"
+		"let Next := while PQueue:next\n"
+		"susp Next:value, Next:priority\n"
 	"end\n"
-	"ret unpack(List)"
+	"ret nil"
 )
 
 void ml_pqueue_init(stringmap_t *Globals) {
