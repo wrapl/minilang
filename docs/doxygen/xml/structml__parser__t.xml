@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="structml__parser__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_parser_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -130,11 +130,11 @@
         <location file="src/ml_compiler2.h" line="445" column="12" bodyfile="src/ml_compiler2.h" bodystart="445" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__parser__t_1ab0dd34c53c84a24f53113a009011fbd9" prot="public" static="no" mutable="no">
-        <type>union <ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref></type>
-        <definition>union ml_parser_t </definition>
+        <type>union ml_parser_t::@046023247261124225157042054070335227214010351333</type>
+        <definition>union ml_parser_t::@046023247261124225157042054070335227214010351333 @007312022267037040053175163123044272315300114200</definition>
         <argsstring></argsstring>
-        <name></name>
-        <qualifiedname>ml_parser_t</qualifiedname>
+        <name>@007312022267037040053175163123044272315300114200</name>
+        <qualifiedname>ml_parser_t::@007312022267037040053175163123044272315300114200</qualifiedname>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

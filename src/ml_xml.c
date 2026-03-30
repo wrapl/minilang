@@ -1807,27 +1807,33 @@ typedef struct {
 	int Flags, Indent;
 } ml_xml_writer_t;
 
-static void ml_xml_writer_run_close(ml_xml_writer_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_stringbuffer_t *Buffer = State->Buffer;
+static void ml_xml_writer_run_close(ml_xml_writer_t *Writer, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Writer->Base.Caller, Value);
+	ml_stringbuffer_t *Buffer = Writer->Buffer;
 	size_t Length = ml_integer_value(Value);
 	Length = ml_stringbuffer_reader(Buffer, Length);
-	if (!Length) ML_CONTINUE(State->Base.Caller, State);
-	return State->write((ml_state_t *)State, State->Stream, Buffer->Head->Chars + Buffer->Start, Length);
+	if (!Length) ML_CONTINUE(Writer->Base.Caller, Writer->Stream);
+	return Writer->write((ml_state_t *)Writer, Writer->Stream, Buffer->Head->Chars + Buffer->Start, Length);
 }
 
-static void ml_xml_writer_run_partial(ml_xml_writer_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_stringbuffer_t *Buffer = State->Buffer;
+static void ml_xml_writer_run_partial(ml_xml_writer_t *Writer, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Writer->Base.Caller, Value);
+	ml_stringbuffer_t *Buffer = Writer->Buffer;
 	size_t Length = ml_integer_value(Value);
 	Length = ml_stringbuffer_reader(Buffer, Length);
-	if (Length < ML_STRINGBUFFER_NODE_SIZE) ML_CONTINUE(State->Base.Caller, State);
-	return State->write((ml_state_t *)State, State->Stream, Buffer->Head->Chars + Buffer->Start, Length);
+	if (Length < ML_STRINGBUFFER_NODE_SIZE) ML_CONTINUE(Writer->Base.Caller, Writer);
+	return Writer->write((ml_state_t *)Writer, Writer->Stream, Buffer->Head->Chars + Buffer->Start, Length);
 }
 
 ML_TYPE(MLXmlWriterT, (MLStreamT), "xml::writer");
+// Used to incremental write XML to a target stream.
+// An XML writer tracks the open element and uses an internal buffer, :mini:`:close` must be called on the writer when finished to close any open elements and flush the internal buffer to the target stream.
 
 ML_METHOD(MLXmlWriterT, MLStreamT) {
+//@xml::writer
+//<Stream
+//>xml::writer
+// Creates a new XML writer with target :mini:`Stream` and default flags.
 	ml_value_t *Stream = Args[0];
 	ml_xml_writer_t *Writer = new(ml_xml_writer_t);
 	Writer->Base.Type = MLXmlWriterT;
@@ -1841,6 +1847,11 @@ ML_METHOD(MLXmlWriterT, MLStreamT) {
 }
 
 ML_METHOD(MLXmlWriterT, MLStreamT, MLXmlWriterFlagsT) {
+//@xml::writer
+//<Stream
+//<Flags
+//>xml::writer
+// Creates a new XML writer with target :mini:`Stream` and flags :mini:`Flags`.
 	ml_value_t *Stream = Args[0];
 	ml_xml_writer_t *Writer = new(ml_xml_writer_t);
 	Writer->Base.Type = MLXmlWriterT;
@@ -1855,6 +1866,10 @@ ML_METHOD(MLXmlWriterT, MLStreamT, MLXmlWriterFlagsT) {
 }
 
 ML_METHODX("/", MLXmlWriterT, MLStringT) {
+//<Writer
+//<Tag
+//>Writer
+// Opens a new element with tag :mini:`Tag` and returns :mini:`Writer`.
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
 	ml_stringbuffer_t *Buffer = Writer->Buffer;
 	if (Writer->State == ML_XML_WRITER_STATE_ATTRS) ml_stringbuffer_put(Buffer, '>');
@@ -1872,6 +1887,11 @@ ML_METHODX("/", MLXmlWriterT, MLStringT) {
 }
 
 ML_METHODVX("/", MLXmlWriterT, MLStringT, MLNamesT) {
+//<Writer
+//<Tag
+//<Attr,Value
+//>Writer
+// Opens a new element with tag :mini:`Tag` and attributes :mini:`Attr/i = Value/i, ...` and returns :mini:`Writer`.
 	ML_NAMES_CHECKX_ARG_COUNT(2);
 	for (int I = 3; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLStringT);
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
@@ -1900,6 +1920,12 @@ ML_METHODVX("/", MLXmlWriterT, MLStringT, MLNamesT) {
 }
 
 ML_METHODX("attr", MLXmlWriterT, MLStringT, MLStringT) {
+//<Writer
+//<Attr
+//<Value
+//>Writer
+// Adds the attribute :mini:`Attr = Value` to the current element and returns :mini:`Writer`.
+// Raises an error if any content or children have been added to the current element.
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
 	if (Writer->State != ML_XML_WRITER_STATE_ATTRS) ML_ERROR("StateError", "Invalid state");
 	ml_stringbuffer_t *Buffer = Writer->Buffer;
@@ -1917,7 +1943,39 @@ ML_METHODX("attr", MLXmlWriterT, MLStringT, MLStringT) {
 	ML_RETURN(Writer);
 }
 
+ML_METHODVX("attr", MLXmlWriterT, MLNamesT) {
+//<Writer
+//<Attr,Value
+//>Writer
+// Adds attributes :mini:`Attr/i = Value/i, ...` to the current element and returns :mini:`Writer`.
+// Raises an error if any content or children have been added to the current element.
+	ML_NAMES_CHECKX_ARG_COUNT(1);
+	for (int I = 2; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLStringT);
+	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
+	if (Writer->State != ML_XML_WRITER_STATE_ATTRS) ML_ERROR("StateError", "Invalid state");
+	ml_stringbuffer_t *Buffer = Writer->Buffer;
+	int I = 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		ml_stringbuffer_put(Buffer, ' ');
+		ml_xml_escape_string(Buffer, ml_string_value(Iter->Value), ml_string_length(Iter->Value));
+		ml_stringbuffer_write(Buffer, "=\"", 2);
+		ml_xml_escape_string(Buffer, ml_string_value(Args[I]), ml_string_length(Args[I]));
+		ml_stringbuffer_put(Buffer, '\"');
+		++I;
+	}
+	if (Buffer->Length > (4 * ML_STRINGBUFFER_NODE_SIZE)) {
+		size_t Length = ml_stringbuffer_reader(Buffer, 0);
+		Writer->Base.Caller = Caller;
+		Writer->Base.Context = Caller->Context;
+		return Writer->write((ml_state_t *)Writer, Writer->Stream, Buffer->Head->Chars + Buffer->Start, Length);
+	}
+	ML_RETURN(Writer);
+}
+
 ML_METHODX("/", MLXmlWriterT) {
+//<Writer
+//>Writer
+// Close the current element and returns :mini:`Writer`.
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
 	ml_stringbuffer_t *Buffer = Writer->Buffer;
 	ml_value_t *Tag = ml_slice_pull(Writer->Stack);
@@ -1940,6 +1998,10 @@ ML_METHODX("/", MLXmlWriterT) {
 }
 
 ML_METHODX("write", MLXmlWriterT, MLStringT) {
+//<Writer
+//<Text
+//>Writer
+// Adds :mini:`Text` to the current element and returns :mini:`Writer`.
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
 	ml_stringbuffer_t *Buffer = Writer->Buffer;
 	if (Writer->State == ML_XML_WRITER_STATE_ATTRS) {
@@ -1957,6 +2019,9 @@ ML_METHODX("write", MLXmlWriterT, MLStringT) {
 }
 
 ML_METHODX("close", MLXmlWriterT) {
+//<Writer
+//>stream
+// Closes all remaining open elements, flushes the internal buffer to the target stream and returns the target stream.
 	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
 	ml_stringbuffer_t *Buffer = Writer->Buffer;
 	if (Writer->State == ML_XML_WRITER_STATE_ATTRS) {
@@ -1971,7 +2036,7 @@ ML_METHODX("close", MLXmlWriterT) {
 		ml_stringbuffer_put(Buffer, '>');
 	}
 	size_t Length = ml_stringbuffer_reader(Buffer, 0);
-	if (!Length) ML_RETURN(Writer);
+	if (!Length) ML_RETURN(Writer->Stream);
 	Writer->Base.Caller = Caller;
 	Writer->Base.Context = Caller->Context;
 	Writer->Base.run = (ml_state_fn)ml_xml_writer_run_close;
@@ -2008,6 +2073,28 @@ static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_element_
 		ml_stringbuffer_write(Buffer, "/>", 2);
 	}
 	return NULL;
+}
+
+ML_METHODX("put", MLXmlWriterT, MLXmlElementT) {
+//<Writer
+//<Element
+//>Writer
+// Adds :mini:`Element` to the current element and returns :mini:`Writer`.
+	ml_xml_writer_t *Writer = (ml_xml_writer_t *)Args[0];
+	ml_xml_element_t *Node = (ml_xml_element_t *)Args[1];
+	ml_stringbuffer_t *Buffer = Writer->Buffer;
+	if (Writer->State == ML_XML_WRITER_STATE_ATTRS) {
+		ml_stringbuffer_put(Buffer, '>');
+		Writer->State = ML_XML_WRITER_STATE_CONTENT;
+	}
+	ml_xml_node_append(Buffer, Node);
+	if (Buffer->Length > (4 * ML_STRINGBUFFER_NODE_SIZE)) {
+		size_t Length = ml_stringbuffer_reader(Buffer, 0);
+		Writer->Base.Caller = Caller;
+		Writer->Base.Context = Caller->Context;
+		return Writer->write((ml_state_t *)Writer, Writer->Stream, Buffer->Head->Chars + Buffer->Start, Length);
+	}
+	ML_RETURN(Writer);
 }
 
 ML_METHOD("append", MLStringBufferT, MLXmlElementT) {

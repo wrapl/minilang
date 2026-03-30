@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="structml__cbor__t" kind="struct" language="C++" prot="public">
     <compoundname>ml_cbor_t</compoundname>
     <sectiondef kind="public-attrib">
@@ -32,11 +32,11 @@
         <location file="src/ml_cbor.h" line="62" column="12" bodyfile="src/ml_cbor.h" bodystart="62" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__cbor__t_1aedf38f1750ca631ccbb311d9868711fa" prot="public" static="no" mutable="no">
-        <type>union <ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
-        <definition>union ml_cbor_t </definition>
+        <type>union ml_cbor_t::@363352170273374042121366235367225231171151000175</type>
+        <definition>union ml_cbor_t::@363352170273374042121366235367225231171151000175 @001117157276365074205144104163017123325042263342</definition>
         <argsstring></argsstring>
-        <name></name>
-        <qualifiedname>ml_cbor_t</qualifiedname>
+        <name>@001117157276365074205144104163017123325042263342</name>
+        <qualifiedname>ml_cbor_t::@001117157276365074205144104163017123325042263342</qualifiedname>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

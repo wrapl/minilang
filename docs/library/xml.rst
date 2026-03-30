@@ -25,14 +25,6 @@ xml
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
-:mini:`meth xmlwriter(Arg₁: stream)`
-   *TBD*
-
-
-:mini:`meth xmlwriter(Arg₁: stream, Arg₂: xml::writer::flags)`
-   *TBD*
-
-
 :mini:`fun xml::escape(String: string): string`
    Escapes characters in :mini:`String`.
 
@@ -489,31 +481,50 @@ xml
 
 
 :mini:`type xml::writer < stream`
-   *TBD*
+   Used to incremental write XML to a target stream.
+   An XML writer tracks the open element and uses an internal buffer,  :mini:`:close` must be called on the writer when finished to close any open elements and flush the internal buffer to the target stream.
 
 
-:mini:`meth /(Arg₁: xml::writer)`
-   *TBD*
+:mini:`meth xml::writer(Stream: stream): xml::writer`
+   Creates a new XML writer with target :mini:`Stream` and default flags.
 
 
-:mini:`meth (Arg₁: xml::writer) / (Arg₂: string)`
-   *TBD*
+:mini:`meth xml::writer(Stream: stream, Flags: xml::writer::flags): xml::writer`
+   Creates a new XML writer with target :mini:`Stream` and flags :mini:`Flags`.
 
 
-:mini:`meth (Arg₁: xml::writer) / (Arg₂: string, Arg₃₁ is Value₁, ...)`
-   *TBD*
+:mini:`meth /(Writer: xml::writer): Writer`
+   Close the current element and returns :mini:`Writer`.
 
 
-:mini:`meth (Arg₁: xml::writer):attr(Arg₂: string, Arg₃: string)`
-   *TBD*
+:mini:`meth (Writer: xml::writer) / (Tag: string): Writer`
+   Opens a new element with tag :mini:`Tag` and returns :mini:`Writer`.
 
 
-:mini:`meth (Arg₁: xml::writer):close`
-   *TBD*
+:mini:`meth (Writer: xml::writer) / (Tag: string, Attr₁ is Value₁, ...): Writer`
+   Opens a new element with tag :mini:`Tag` and attributes :mini:`Attrᵢ = Valueᵢ,  ...` and returns :mini:`Writer`.
 
 
-:mini:`meth (Arg₁: xml::writer):write(Arg₂: string)`
-   *TBD*
+:mini:`meth (Writer: xml::writer):attr(Attr₁ is Value₁, ...): Writer`
+   Adds attributes :mini:`Attrᵢ = Valueᵢ,  ...` to the current element and returns :mini:`Writer`.
+   Raises an error if any content or children have been added to the current element.
+
+
+:mini:`meth (Writer: xml::writer):attr(Attr: string, Value: string): Writer`
+   Adds the attribute :mini:`Attr = Value` to the current element and returns :mini:`Writer`.
+   Raises an error if any content or children have been added to the current element.
+
+
+:mini:`meth (Writer: xml::writer):close: stream`
+   Closes all remaining open elements,  flushes the internal buffer to the target stream and returns the target stream.
+
+
+:mini:`meth (Writer: xml::writer):put(Element: xml::element): Writer`
+   Adds :mini:`Element` to the current element and returns :mini:`Writer`.
+
+
+:mini:`meth (Writer: xml::writer):write(Text: string): Writer`
+   Adds :mini:`Text` to the current element and returns :mini:`Writer`.
 
 
 :mini:`type xml::writer::flags < enum`

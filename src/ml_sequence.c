@@ -197,6 +197,7 @@ static ml_value_t *ml_chained_function_compare(ml_chained_function_t *A, ml_chai
 }
 
 ML_METHOD("<>", MLChainedT, MLChainedT) {
+//!internal
 	ml_chained_function_t *A = (ml_chained_function_t *)Args[0];
 	ml_chained_function_t *B = (ml_chained_function_t *)Args[1];
 	return ml_chained_function_compare(A, B);
@@ -709,6 +710,7 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 }
 
 ML_METHODV("[]", MLChainedT) {
+//!internal
 	ml_value_t *Partial = ml_partial_function(IndexMethod, Count);
 	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
@@ -2607,6 +2609,7 @@ ML_METHOD("&", MLSequenceT, MLSequenceT) {
 }
 
 ML_METHOD("&", MLIntegerIntervalT, MLIntegerIntervalT) {
+//!internal
 	ml_integer_interval_t *Interval1 = (ml_integer_interval_t *)Args[0];
 	ml_integer_interval_t *Interval2 = (ml_integer_interval_t *)Args[1];
 	if (Interval1->Limit + 1 == Interval2->Start) {
@@ -2620,6 +2623,7 @@ ML_METHOD("&", MLIntegerIntervalT, MLIntegerIntervalT) {
 }
 
 ML_METHOD("&", MLIntegerRangeT, MLIntegerRangeT) {
+//!internal
 	ml_integer_range_t *Range1 = (ml_integer_range_t *)Args[0];
 	ml_integer_range_t *Range2 = (ml_integer_range_t *)Args[1];
 	if ((Range1->Step == Range2->Step) && (Range1->Limit + Range1->Step == Range2->Start)) {
@@ -2717,6 +2721,14 @@ ML_METHOD("limit", MLSequenceT, MLIntegerT) {
 	return (ml_value_t *)Limited;
 }
 
+ML_METHOD("limit", MLSequenceT, MLNilT) {
+//<Sequence
+//<Limit
+//>Sequence
+// Returns :mini:`Sequence`, useful for cases where :mini:`Limit` is an optional argument.
+	return Args[0];
+}
+
 typedef struct {
 	ml_state_t Base;
 	int Value;
@@ -2793,6 +2805,14 @@ ML_METHOD("skip", MLSequenceT, MLIntegerT) {
 	Skipped->Value = Args[0];
 	Skipped->Remaining = ml_integer_value(Args[1]);
 	return (ml_value_t *)Skipped;
+}
+
+ML_METHOD("skip", MLSequenceT, MLNilT) {
+//<Sequence
+//<Skip
+//>Sequence
+// Returns :mini:`Sequence`, useful for cases where :mini:`Skip` is an optional argument.
+	return Args[0];
 }
 
 static void skipped_precount_run(integer_state_t *State, ml_value_t *Value) {
@@ -3251,11 +3271,13 @@ ML_FUNCTION(Zip) {
 }
 
 ML_METHODX("precount", MLZippedT) {
+//!internal
 	ml_zipped_t *Zipped = (ml_zipped_t *)Args[0];
 	return ml_zip_count(Caller, PrecountMethod, Zipped->Count, Zipped->Iters);
 }
 
 ML_METHODX("count", MLZippedT) {
+//!internal
 	ml_zipped_t *Zipped = (ml_zipped_t *)Args[0];
 	return ml_zip_count(Caller, CountMethod, Zipped->Count, Zipped->Iters);
 }
@@ -3374,11 +3396,13 @@ ML_FUNCTION(Zip2) {
 }
 
 ML_METHODX("precount", MLZipped2T) {
+//!internal
 	ml_zipped2_t *Zipped = (ml_zipped2_t *)Args[0];
 	return ml_zip_count(Caller, PrecountMethod, Zipped->Count, Zipped->Iters);
 }
 
 ML_METHODX("count", MLZipped2T) {
+//!internal
 	ml_zipped2_t *Zipped = (ml_zipped2_t *)Args[0];
 	return ml_zip_count(Caller, CountMethod, Zipped->Count, Zipped->Iters);
 }
@@ -3499,6 +3523,7 @@ static void ml_grid_count_run(ml_grid_count_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("precount", MLGridT) {
+//!internal
 	ml_grid_t *Grid = (ml_grid_t *)Args[0];
 	if (!Grid->Count) ML_RETURN(ml_integer(0));
 	ml_grid_count_state_t *State = new(ml_grid_count_state_t);
@@ -3513,6 +3538,7 @@ ML_METHODX("precount", MLGridT) {
 }
 
 ML_METHODX("count", MLGridT) {
+//!internal
 	ml_grid_t *Grid = (ml_grid_t *)Args[0];
 	if (!Grid->Count) ML_RETURN(ml_integer(0));
 	ml_grid_count_state_t *State = new(ml_grid_count_state_t);
@@ -3627,11 +3653,13 @@ ML_FUNCTION(Pair) {
 }
 
 ML_METHODX("precount", MLPairedT) {
+//!internal
 	ml_paired_t *Paired = (ml_paired_t *)Args[0];
 	return ml_zip_count(Caller, PrecountMethod, 2, Paired->Iters);
 }
 
 ML_METHODX("count", MLPairedT) {
+//!internal
 	ml_paired_t *Paired = (ml_paired_t *)Args[0];
 	return ml_zip_count(Caller, CountMethod, 2, Paired->Iters);
 }
@@ -3773,8 +3801,15 @@ ML_FUNCTION(Unpack) {
 }
 
 ML_METHODX("precount", MLUnpackedT) {
+//!internal
 	ml_unpacked_t *Unpacked = (ml_unpacked_t *)Args[0];
 	return ml_call(Caller, PrecountMethod, 1, &Unpacked->Iter);
+}
+
+ML_METHODX("count", MLUnpackedT) {
+//!internal
+	ml_unpacked_t *Unpacked = (ml_unpacked_t *)Args[0];
+	return ml_call(Caller, CountMethod, 1, &Unpacked->Iter);
 }
 
 typedef struct {
@@ -4322,6 +4357,7 @@ typedef struct {
 } ml_split_t;
 
 ML_TYPE(MLSplitT, (MLSequenceT), "split");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -4492,6 +4528,7 @@ typedef struct {
 } ml_chunk_t;
 
 ML_TYPE(MLChunkT, (MLSequenceT), "chunk");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -4595,6 +4632,7 @@ typedef struct {
 } ml_grouped_t;
 
 ML_TYPE(MLGroupedT, (MLSequenceT), "grouped");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
