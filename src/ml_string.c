@@ -266,6 +266,45 @@ ML_METHOD("gets", MLAddressT, MLIntegerT) {
 	return ml_string_checked(String, Length);
 }
 
+ML_METHOD("gets", MLAddressT, MLIntegerT) {
+//!address
+//<Address
+//<Offset
+//>string
+// Returns the string consisting of the bytes at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:gets
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	size_t Length = ml_address_length(Args[0]);
+	int Offset = ml_integer_value(Args[1]);
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative");
+	if (Length < Offset) return ml_error("SizeError", "Not enough bytes to read");
+	Length -= Offset;
+	char *String = snew(Length + 1);
+	memcpy(String, Address->Value + Offset, Length);
+	String[Length - Offset] = 0;
+	return ml_string_checked(String, Length);
+}
+
+ML_METHOD("gets", MLAddressT, MLIntegerT, MLIntegerT) {
+//!address
+//<Address
+//<Size
+//>string
+// Returns the string consisting of the first :mini:`Size` bytes at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:gets(5)
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	int Offset = ml_integer_value(Args[1]);
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative");
+	size_t Length = ml_integer_value(Args[2]);
+	if (Address->Length < Offset + Length) return ml_error("SizeError", "Not enough bytes to read");
+	char *String = snew(Length + 1);
+	memcpy(String, Address->Value + Offset, Length);
+	String[Length] = 0;
+	return ml_string_checked(String, Length);
+}
+
 ML_METHOD("find", MLAddressT, MLAddressT) {
 //!address
 //<Haystack
@@ -586,6 +625,170 @@ ML_METHOD("putu" #WIDTH, MLBufferT, MLIntegerT, MLByteOrderT) { \
 		*(uint ## WIDTH ##_t *)Buffer->Value = ML_LITTLE_ENDIAN(WIDTH)((uint ## WIDTH ##_t)ml_integer_value(Args[1]));  \
 	} \
 	return Args[0]; \
+}  \
+\
+ML_METHOD("get" #WIDTH, MLAddressT, MLIntegerT) { \
+/*!address
+//@getWIDTH
+//<Address
+//<Offset
+//>integer
+// Returns the signed WIDTH-bit value at :mini:`Address`. Uses the platform byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getWIDTH
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Address->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	return ml_integer(*(int ## WIDTH ## _t *)(Address->Value + Offset)); \
+} \
+\
+ML_METHOD("get" #WIDTH, MLAddressT, MLIntegerT, MLByteOrderT) { \
+/*!address
+//@getWIDTH
+//<Address
+//<Offset
+//<Order
+//>integer
+// Returns the signed WIDTH-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getWIDTH(address::LE)
+//$= A:getWIDTH(address::BE)
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Address->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		return ml_integer(ML_BIG_ENDIAN(WIDTH)(*(int ## WIDTH ## _t *)(Address->Value + Offset))); \
+	} else { \
+		return ml_integer(ML_LITTLE_ENDIAN(WIDTH)(*(int ## WIDTH ## _t *)(Address->Value + Offset))); \
+	} \
+} \
+\
+ML_METHOD("getu" #WIDTH, MLAddressT, MLIntegerT) { \
+/*!address
+//@getuWIDTH
+//<Address
+//<Offset
+//<Order
+//>integer
+// Returns the unsigned WIDTH-bit value at :mini:`Address`. Uses the platform byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getuWIDTH
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Address->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	return ml_integer(*(uint ## WIDTH ##_t *)(Address->Value + Offset)); \
+} \
+\
+ML_METHOD("getu" #WIDTH, MLAddressT, MLIntegerT, MLByteOrderT) { \
+/*!address
+//@getuWIDTH
+//<Address
+//<Offset
+//>integer
+// Returns the unsigned WIDTH-bit value at :mini:`Address`. Uses :mini:`Order` byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getuWIDTH(address::LE)
+//$= A:getuWIDTH(address::BE)
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Address->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		return ml_integer(ML_BIG_ENDIAN(WIDTH)(*(uint ## WIDTH ##_t *)(Address->Value + Offset))); \
+	} else { \
+		return ml_integer(ML_LITTLE_ENDIAN(WIDTH)(*(uint ## WIDTH ##_t *)(Address->Value + Offset))); \
+	} \
+} \
+\
+ML_METHOD("put" #WIDTH, MLBufferT, MLIntegerT, MLIntegerT) { \
+/*!buffer
+//@putWIDTH
+//<Buffer
+//<Offset
+//<Value
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit signed value. Uses the platform byte order.
+//$= buffer(SIZE):putWIDTH(12345)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Buffer->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	*(int ## WIDTH ##_t *)(Buffer->Value + Offset) = (int ## WIDTH ##_t)ml_integer_value(Args[2]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("put" #WIDTH, MLBufferT, MLIntegerT, MLIntegerT, MLByteOrderT) { \
+/*!buffer
+//@putWIDTH
+//<Buffer
+//<Offset
+//<Value
+//<Order
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit signed value. Uses :mini:`Order` byte order.
+//$= buffer(SIZE):putWIDTH(12345, address::LE)
+//$= buffer(SIZE):putWIDTH(12345, address::BE)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Buffer->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	if (ml_enum_value_value(Args[3]) == 2) { \
+		*(int ## WIDTH ##_t *)(Buffer->Value + Offset) = ML_BIG_ENDIAN(WIDTH)((int ## WIDTH ##_t)ml_integer_value(Args[2]));  \
+	} else { \
+		*(int ## WIDTH ##_t *)(Buffer->Value + Offset) = ML_LITTLE_ENDIAN(WIDTH)((int ## WIDTH ##_t)ml_integer_value(Args[2]));  \
+	} \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putu" #WIDTH, MLBufferT, MLIntegerT, MLIntegerT) { \
+/*!buffer
+//@putuWIDTH
+//<Buffer
+//<Offset
+//<Value
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit unsigned value. Uses the platform byte order.
+//$= buffer(SIZE):putuWIDTH(12345)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Buffer->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	*(uint ## WIDTH ##_t *)(Buffer->Value + Offset) = (uint ## WIDTH ##_t)ml_integer_value(Args[2]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putu" #WIDTH, MLBufferT, MLIntegerT, MLIntegerT, MLByteOrderT) { \
+/*!buffer
+//@putuWIDTH
+//<Buffer
+//<Offset
+//<Value
+//<Order
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an WIDTH-bit unsigned value. Uses :mini:`Order` byte order.
+//$= buffer(SIZE):putuWIDTH(12345, address::LE)
+//$= buffer(SIZE):putuWIDTH(12345, address::BE)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Buffer->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	if (ml_enum_value_value(Args[3]) == 2) { \
+		*(uint ## WIDTH ##_t *)(Buffer->Value + Offset) = ML_BIG_ENDIAN(WIDTH)((uint ## WIDTH ##_t)ml_integer_value(Args[2]));  \
+	} else { \
+		*(uint ## WIDTH ##_t *)(Buffer->Value + Offset) = ML_LITTLE_ENDIAN(WIDTH)((uint ## WIDTH ##_t)ml_integer_value(Args[2]));  \
+	} \
+	return Args[0]; \
 }
 
 ML_BUFFER_INT_METHODS(16, 2)
@@ -666,6 +869,92 @@ ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT, MLByteOrderT) { \
 		*(uint ## WIDTH ## _t *)Buffer->Value = ML_LITTLE_ENDIAN(WIDTH)(X.I);  \
 	} \
 	return Args[0]; \
+} \
+\
+ML_METHOD("getf" #WIDTH, MLAddressT, MLIntegerT) { \
+/*!address
+//@getfWIDTH
+//<Address
+//<Offset
+//>real
+// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses the platform byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getfWIDTH
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Address->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	return ml_real(*(CTYPE *)(Address->Value + Offset)); \
+} \
+\
+ML_METHOD("getf" #WIDTH, MLAddressT, MLIntegerT, MLByteOrderT) { \
+/*!address
+//@getfWIDTH
+//<Address
+//<Offset
+//<Order
+//>real
+// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
+//$= let A := address("Hello world!\n")
+//$= A:getfWIDTH(address::LE)
+//$= A:getfWIDTH(address::BE)
+*/ \
+	ml_address_t *Address = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Address->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	if (ml_enum_value_value(Args[2]) == 2) { \
+		X.I = ML_BIG_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)(Address->Value + Offset)); \
+	} else { \
+		X.I = ML_LITTLE_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)(Address->Value + Offset)); \
+	} \
+	return ml_real(X.R); \
+} \
+\
+ML_METHOD("putf" #WIDTH, MLBufferT, MLIntegerT, MLRealT) { \
+/*!buffer
+//@putfWIDTH
+//<Buffer
+//<Offset
+//<Value
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses the platform byte order.
+//$= buffer(SIZE):putfWIDTH(1.23456789)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Buffer->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	*(CTYPE *)(Buffer->Value + Offset) = ml_real_value(Args[2]);  \
+	return Args[0]; \
+} \
+\
+ML_METHOD("putf" #WIDTH, MLBufferT, MLIntegerT, MLRealT, MLByteOrderT) { \
+/*!buffer
+//@putfWIDTH
+//<Buffer
+//<Offset
+//<Value
+//<Order
+//>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses little endian byte order.
+//$= buffer(SIZE):putfWIDTH(1.23456789, address::LE)
+//$= buffer(SIZE):putfWIDTH(1.23456789, address::BE)
+*/ \
+	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
+	int Offset = ml_integer_value(Args[1]); \
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative"); \
+	if (Buffer->Length < Offset + SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
+	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
+	X.R = ml_real_value(Args[2]); \
+	if (ml_enum_value_value(Args[3]) == 2) { \
+		*(uint ## WIDTH ## _t *)(Buffer->Value + Offset) = ML_BIG_ENDIAN(WIDTH)(X.I);  \
+	} else { \
+		*(uint ## WIDTH ## _t *)(Buffer->Value + Offset) = ML_LITTLE_ENDIAN(WIDTH)(X.I);  \
+	} \
+	return Args[0]; \
 }
 
 ML_BUFFER_REAL_METHODS(32, 4, float)
@@ -682,6 +971,23 @@ ML_METHOD("put", MLBufferT, MLAddressT) {
 	ml_address_t *Source = (ml_address_t *)Args[1];
 	if (Buffer->Length < Source->Length) return ml_error("SizeError", "Not enough space");
 	memcpy(Buffer->Value, Source->Value, Source->Length);
+	return Args[0];
+}
+
+ML_METHOD("put", MLBufferT, MLIntegerT, MLAddressT) {
+//!buffer
+//<Buffer
+//<Offset
+//<Value
+//>buffer
+// Puts the bytes of :mini:`Value` in :mini:`Buffer`.
+//$= buffer(10):put("Hello\0\0\0\0\0")
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	int Offset = ml_integer_value(Args[1]);
+	if (Offset < 0) ml_error("RangeError", "Offset cannot be negative");
+	ml_address_t *Source = (ml_address_t *)Args[2];
+	if (Buffer->Length < Offset + Source->Length) return ml_error("SizeError", "Not enough space");
+	memcpy(Buffer->Value + Offset, Source->Value, Source->Length);
 	return Args[0];
 }
 
@@ -5672,86 +5978,6 @@ ML_METHOD("writeu" #WIDTH, MLStringBufferT, MLIntegerT, MLByteOrderT) { \
 ML_STRINGBUFFER_INT_METHODS(16, 2)
 ML_STRINGBUFFER_INT_METHODS(32, 4)
 ML_STRINGBUFFER_INT_METHODS(64, 8)
-
-#define ML_BUFFER_REAL_METHODS(WIDTH, SIZE, CTYPE) \
-\
-ML_METHOD("getf" #WIDTH, MLAddressT) { \
-/*!address
-//@getfWIDTH
-//<Address
-//>real
-// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses the platform byte order.
-//$= let A := address("Hello world!\n")
-//$= A:getfWIDTH
-*/ \
-	ml_address_t *Address = (ml_address_t *)Args[0]; \
-	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
-	return ml_real(*(CTYPE *)Address->Value); \
-} \
-\
-ML_METHOD("getf" #WIDTH, MLAddressT, MLByteOrderT) { \
-/*!address
-//@getfWIDTH
-//<Address
-//<Order
-//>real
-// Returns the WIDTH-bit floating point value at :mini:`Address`. Uses :mini:`Order` byte order.
-//$= let A := address("Hello world!\n")
-//$= A:getfWIDTH(address::LE)
-//$= A:getfWIDTH(address::BE)
-*/ \
-	ml_address_t *Address = (ml_address_t *)Args[0]; \
-	if (Address->Length < SIZE) return ml_error("SizeError", "Not enough bytes to read"); \
-	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
-	if (ml_enum_value_value(Args[1]) == 2) { \
-		X.I = ML_BIG_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)Address->Value); \
-	} else { \
-		X.I = ML_LITTLE_ENDIAN(WIDTH)(*(uint ## WIDTH ## _t *)Address->Value); \
-	} \
-	return ml_real(X.R); \
-} \
-\
-ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT) { \
-/*!buffer
-//@putfWIDTH
-//<Buffer
-//<Value
-//>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses the platform byte order.
-//$= buffer(SIZE):putfWIDTH(1.23456789)
-*/ \
-	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
-	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
-	*(CTYPE *)Buffer->Value = ml_real_value(Args[1]);  \
-	return Args[0]; \
-} \
-\
-ML_METHOD("putf" #WIDTH, MLBufferT, MLRealT, MLByteOrderT) { \
-/*!buffer
-//@putfWIDTH
-//<Buffer
-//<Value
-//<Order
-//>buffer
-// Puts :mini:`Value` in :mini:`Buffer` as a WIDTH-bit floating point value. Uses little endian byte order.
-//$= buffer(SIZE):putfWIDTH(1.23456789, address::LE)
-//$= buffer(SIZE):putfWIDTH(1.23456789, address::BE)
-*/ \
-	ml_address_t *Buffer = (ml_address_t *)Args[0]; \
-	if (Buffer->Length < SIZE) return ml_error("SizeError", "Not enough space"); \
-	union { uint ## WIDTH ## _t I; CTYPE R; } X; \
-	X.R = ml_real_value(Args[1]); \
-	if (ml_enum_value_value(Args[2]) == 2) { \
-		*(uint ## WIDTH ## _t *)Buffer->Value = ML_BIG_ENDIAN(WIDTH)(X.I);  \
-	} else { \
-		*(uint ## WIDTH ## _t *)Buffer->Value = ML_LITTLE_ENDIAN(WIDTH)(X.I);  \
-	} \
-	return Args[0]; \
-}
-
-ML_BUFFER_REAL_METHODS(32, 4, float)
-ML_BUFFER_REAL_METHODS(64, 8, double)
-
 
 typedef struct {
 	const char *Chars;
