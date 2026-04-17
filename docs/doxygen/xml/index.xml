@@ -1696,6 +1696,9 @@
     <member refid="group__streams_1ga4b3fc481f1d5e7248ef02a7a23498c9c" kind="function"><name>ml_fd_stream</name></member>
     <member refid="group__streams_1ga135eacad7bb7412d0564354fdbe31c91" kind="function"><name>ml_fd_stream_fd</name></member>
   </compound>
+  <compound refid="ml__struct_8h" kind="file"><name>ml_struct.h</name>
+    <member refid="ml__struct_8h_1a3985ba5a9b0e3d1d3f28e844e3138392" kind="function"><name>ml_struct_init</name></member>
+  </compound>
   <compound refid="ml__table_8h" kind="file"><name>ml_table.h</name>
     <member refid="ml__table_8h_1a465b5ffa06e4a7a9b27e84eed2296d89" kind="variable"><name>MLTableT</name></member>
     <member refid="ml__table_8h_1a9653f1d3aed3da41af6ea923da3ce8ef" kind="variable"><name>MLTableRowT</name></member>

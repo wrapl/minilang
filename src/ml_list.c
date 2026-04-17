@@ -1281,7 +1281,7 @@ ML_METHOD("+", MLListT, MLListT) {
 
 ML_METHOD("splice", MLListMutableT) {
 //<List
-//>list | nil
+//>list
 // Removes all elements from :mini:`List`. Returns the removed elements as a new list.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_list_t *Removed = (ml_list_t *)ml_list();

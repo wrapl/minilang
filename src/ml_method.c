@@ -333,6 +333,13 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	Definition->Callback = Callback;
 	Definition->Count = Count;
 	Definition->Variadic = Variadic;
+	//ml_type_t **Dest = Definition->Types;
+	//for (int I = Count; --I >= 0;) {
+	//	if (Types[0]->Type == MLUninitializedT) {
+	//		ml_uninitialized_use((ml_value_t *)Types[0], (ml_value_t **)Dest);
+	//	}
+	//	*Dest++ = *Types++;
+	//}
 	memcpy(Definition->Types, Types, Count * sizeof(ml_type_t *));
 	ml_methods_lock(Methods);
 	Definition->Next = inthash_insert(Methods->Definitions, (uintptr_t)Method, Definition);

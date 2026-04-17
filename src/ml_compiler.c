@@ -3750,6 +3750,7 @@ typedef struct {
 	ml_type_t *Type;
 	mlc_expr_t *Expr;
 	mlc_expr_t **ExprSlot;
+	ml_value_t *Names;
 } mlc_expr_builder_t;
 
 ML_TYPE(MLExprBuilderT, (), "expr-builder");
@@ -3830,9 +3831,40 @@ ML_METHODV("add", MLExprBuilderT, MLExprT) {
 //<Expr...
 //>blockbuilder
 // Adds the expression :mini:`Expr` to a block.
-	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
+	mlc_expr_builder_t *Builder = (mlc_expr_builder_t *)Args[0];
+	if (Builder->Names) return ml_error("StateError", "Can not add unnamed arguments after named arguments");
 	for (int I = 1; I < Count; ++I) {
 		mlc_expr_t *Delegate = ml_delegate_expr(Args[I]);
+		Builder->ExprSlot[0] = Delegate;
+		Builder->ExprSlot = &Delegate->Next;
+	}
+	return Args[0];
+}
+
+ML_METHODV("add", MLExprBuilderT, MLNamesT, MLExprT) {
+//!macro
+//<Builder
+//<Name,Expr...
+//>blockbuilder
+// Adds the expression :mini:`Expr` to a block.
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	for (int I = 3; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLExprT);
+	mlc_expr_builder_t *Builder = (mlc_expr_builder_t *)Args[0];
+	if (!Builder->Names) {
+		Builder->Names = ml_names();
+		mlc_value_expr_t *Expr = new(mlc_value_expr_t);
+		Expr->compile = ml_value_expr_compile;
+		Expr->Source = "<macro>";
+		Expr->StartLine = 1;
+		Expr->EndLine = 1;
+		Expr->Value = Builder->Names;
+		Builder->ExprSlot[0] = (mlc_expr_t *)Expr;
+		Builder->ExprSlot = &Expr->Next;
+	}
+	int I = 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		ml_names_add(Builder->Names, Iter->Value);
+		mlc_expr_t *Delegate = ml_delegate_expr(Args[I++]);
 		Builder->ExprSlot[0] = Delegate;
 		Builder->ExprSlot = &Delegate->Next;
 	}

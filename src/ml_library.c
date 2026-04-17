@@ -2,6 +2,7 @@
 #include "ml_macros.h"
 #include "ml_module.h"
 #include "ml_utils.h"
+#include "ml_logging.h"
 #include <string.h>
 #ifdef Mingw
 #else
@@ -163,7 +164,10 @@ void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
 		ML_ERROR("ModuleError", "Module %s not found in %s", Name, Path ?: "<library>");
 	}
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, Info.FileName);
-	if (!Slot[0]) return Info.Loader->load(Caller, Info.FileName, Slot);
+	if (!Slot[0]) {
+		ML_LOG_DEBUG(NULL, "Loading library %s", Info.FileName);
+		return Info.Loader->load(Caller, Info.FileName, Slot);
+	}
 	ML_RETURN(Slot[0]);
 }
 
@@ -184,7 +188,10 @@ ml_value_t *ml_library_load0(const char *Path, const char *Name) {
 		return ml_error("ModuleError", "Module %s not found in %s", Name, Path ?: "<library>");
 	}
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, Info.FileName);
-	if (!Slot[0]) return Info.Loader->load0(Info.FileName, Slot);
+	if (!Slot[0]) {
+		ML_LOG_DEBUG(NULL, "Loading library %s", Info.FileName);
+		return Info.Loader->load0(Info.FileName, Slot);
+	}
 	return Slot[0];
 }
 

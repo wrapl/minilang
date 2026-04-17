@@ -13,6 +13,10 @@ boolean
    Returns a random boolean that has probability :mini:`P` of being :mini:`true`. If omitted,  :mini:`P` defaults to :mini:`0.5`.
 
 
+:mini:`meth !!(Value: any): boolean`
+   Returns :mini:`true` if :mini:`Value` is not :mini:`nil`,  otherwise returns :mini:`false`.
+
+
 :mini:`type boolean`
    A boolean value (either :mini:`true` or :mini:`false`).
 

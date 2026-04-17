@@ -202,7 +202,7 @@ static __attribute__((noinline)) void ml_map_template_call2(ml_map_t *Template, 
 	memset(Nodes, 0, Map->Size * sizeof(ml_map_node_t *));
 	Map->Root = ml_map_template_node(Template->Root, Args, Nodes);
 	ml_map_node_t **Slot = &Map->Head, *Prev = NULL;
-	for (int I = 0; I < Count; ++I) {
+	for (int I = 0; I < Template->Size; ++I) {
 		ml_map_node_t *Node = Nodes[I];
 		if (Node) {
 			ml_value_t *Value = Node->Value;
@@ -1020,10 +1020,10 @@ ML_METHOD("::", MLMapT, MLStringT) {
 
 #ifdef ML_GENERICS
 
-static ml_map_node_t *ml_map_find_node_string(ml_map_t *Map, ml_value_t *Key) {
+static ml_map_node_t *ml_map_find_node_address(ml_map_t *Map, ml_value_t *Key) {
 	long Hash = ml_hash(Key);
-	int LengthA = ml_string_length(Key);
-	const char *StringA = ml_string_value(Key);
+	int LengthA = ml_address_length(Key);
+	const char *AddressA = ml_address_value(Key);
 	ml_map_node_t *Node = Map->Root;
 	while (Node) {
 		int Compare;
@@ -1032,14 +1032,14 @@ static ml_map_node_t *ml_map_find_node_string(ml_map_t *Map, ml_value_t *Key) {
 		} else if (Hash > Node->Hash) {
 			Compare = 1;
 		} else {
-			int LengthB = ml_string_length(Node->Key);
-			const char *StringB = ml_string_value(Node->Key);
+			int LengthB = ml_address_length(Node->Key);
+			const char *AddressB = ml_address_value(Node->Key);
 			if (LengthA < LengthB) {
-				Compare = memcmp(StringA, StringB, LengthA) ?: -1;
+				Compare = memcmp(AddressA, AddressB, LengthA) ?: -1;
 			} else if (LengthA > LengthB) {
-				Compare = memcmp(StringA, StringB, LengthB) ?: 1;
+				Compare = memcmp(AddressA, AddressB, LengthB) ?: 1;
 			} else {
-				Compare = memcmp(StringA, StringB, LengthA);
+				Compare = memcmp(AddressA, AddressB, LengthA);
 			}
 		}
 		if (!Compare) {
@@ -1051,12 +1051,12 @@ static ml_map_node_t *ml_map_find_node_string(ml_map_t *Map, ml_value_t *Key) {
 	return NULL;
 }
 
-ML_GENERIC_TYPE(MLMapMutableStringAnyT, MLMapMutableT, MLStringT, MLAnyT);
+ML_GENERIC_TYPE(MLMapMutableAddressAnyT, MLMapMutableT, MLAddressT, MLAnyT);
 
-ML_METHOD("[]", MLMapMutableStringAnyT, MLStringT) {
+ML_METHOD("[]", MLMapMutableAddressAnyT, MLAddressT) {
 //!internal
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	ml_map_node_t *Node = ml_map_find_node_address(Map, Args[1]);
 	if (!Node) {
 		Node = new(ml_map_node_t);
 		Node->Type = MLMapIndexT;
@@ -1071,10 +1071,10 @@ ML_METHOD("[]", MLMapMutableStringAnyT, MLStringT) {
 	return (ml_value_t *)Node;
 }
 
-ML_METHOD("::", MLMapMutableStringAnyT, MLStringT) {
+ML_METHOD("::", MLMapMutableAddressAnyT, MLAddressT) {
 //!internal
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	ml_map_node_t *Node = ml_map_find_node_address(Map, Args[1]);
 	if (!Node) {
 		Node = new(ml_map_node_t);
 		Node->Type = MLMapIndexT;
@@ -1091,19 +1091,19 @@ ML_METHOD("::", MLMapMutableStringAnyT, MLStringT) {
 
 #ifdef ML_MUTABLES
 
-ML_GENERIC_TYPE(MLMapStringAnyT, MLMapT, MLStringT, MLAnyT);
+ML_GENERIC_TYPE(MLMapAddressAnyT, MLMapT, MLAddressT, MLAnyT);
 
-ML_METHOD("[]", MLMapStringAnyT, MLStringT) {
+ML_METHOD("[]", MLMapAddressAnyT, MLAddressT) {
 //!internal
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	ml_map_node_t *Node = ml_map_find_node_address(Map, Args[1]);
 	return Node ? Node->Value : MLNil;
 }
 
-ML_METHOD("::", MLMapStringAnyT, MLStringT) {
+ML_METHOD("::", MLMapAddressAnyT, MLAddressT) {
 //!internal
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	ml_map_node_t *Node = ml_map_find_node_address(Map, Args[1]);
 	return Node ? Node->Value : MLNil;
 }
 
@@ -1384,6 +1384,12 @@ ML_METHOD("insert", MLMapMutableT, MLAnyT, MLAnyT) {
 }
 
 ML_METHODV("insert", MLMapMutableT, MLNamesT) {
+//<Map
+//<Key,Value
+//>Map
+// Inserts the pairs :mini:`Key/i, Value/i` into :mini:`Map`. Returns :mini:`Map`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:insert(A is 10, D is 20)
 	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_value_t *Map = Args[0];
 	int I = 1;
@@ -1391,7 +1397,31 @@ ML_METHODV("insert", MLMapMutableT, MLNamesT) {
 	return Map;
 }
 
+ML_METHOD("splice", MLMapMutableT) {
+//<Map
+//>map
+// Removes every key-value pair from :mini:`Map`, returns the removed pairs as a new map.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_t *Removed = (ml_map_t *)ml_map();
+	*Removed = *Map;
+	ML_MAP_FOREACH(Removed, Iter) Iter->Map = Removed;
+	Map->Root = Map->Head = Map->Tail = NULL;
+	Map->Size = 0;
+#ifdef ML_GENERICS
+	Map->Type = MLMapMutableT;
+#endif
+	return (ml_value_t *)Removed;
+}
+
 ML_METHOD("splice", MLMapMutableT, MLAnyT) {
+//<Map
+//<Key
+//>map|nil
+// Removes every key-value pair from :mini:`Map` starting at :mini:`Key`, returning the removed pairs as a new map.
+// Returns :mini:`nil` if :mini:`Key` is not in :mini:`Map`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+//$= M:splice("D")
+//$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_t *Removed = (ml_map_t *)ml_map();
 	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
@@ -1406,6 +1436,17 @@ ML_METHOD("splice", MLMapMutableT, MLAnyT) {
 }
 
 ML_METHOD("splice", MLMapMutableT, MLAnyT, MLIntegerT) {
+//<Map
+//<Key
+//<Count
+//>map|nil
+// Removes :mini:`Count` key-value pairs from :mini:`Map` starting at :mini:`Key`, returning the removed pairs as a new map.
+// Returns :mini:`nil` if :mini:`Key` is not in :mini:`Map` or there are not enough pairs to remove.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+//$= M:splice("C", 2)
+//$= M
+//$= M:splice("E", 10)
+//$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_t *Removed = (ml_map_t *)ml_map();
 	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
@@ -1428,6 +1469,14 @@ ML_METHOD("splice", MLMapMutableT, MLAnyT, MLIntegerT) {
 }
 
 ML_METHOD("splice", MLMapMutableT, MLAnyT, MLMapMutableT) {
+//<Map
+//<Key
+//<New
+//>map
+// Removes every key-value pair from :mini:`Map` starting at :mini:`Key`, then moves the key-value pairs from :mini:`New` into :mini:`Map` leaving :mini:`New` empty. Returns the removed pairs as a new map, or :`nil` if :mini:`Key` is not in :mini:`Map`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+//$= M:splice("D", {"G" is 7, "H" is 8})
+//$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_t *Removed = (ml_map_t *)ml_map();
 	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
@@ -1468,6 +1517,15 @@ ML_METHOD("splice", MLMapMutableT, MLAnyT, MLMapMutableT) {
 }
 
 ML_METHOD("splice", MLMapMutableT, MLAnyT, MLIntegerT, MLMapMutableT) {
+//<Map
+//<Count
+//<Key
+//<New
+//>map
+// Removes :mini:`Count` key-value pairs from :mini:`Map` starting at :mini:`Key`, then moves the key-value pairs from :mini:`New` into :mini:`Map` leaving :mini:`New` empty. Returns the removed pairs as a new map, or :`nil` if :mini:`Key` is not in :mini:`Map`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+//$= M:splice("D", 2, {"G" is 7, "H" is 8})
+//$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_t *Removed = (ml_map_t *)ml_map();
 	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);

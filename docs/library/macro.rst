@@ -101,6 +101,10 @@ macro
    Adds the expression :mini:`Expr` to a block.
 
 
+:mini:`meth (Builder: expr::builder):add(Name₁ is Expr...₁, Arg₃: expr): blockbuilder`
+   Adds the expression :mini:`Expr` to a block.
+
+
 :mini:`meth (Builder: expr::builder):end: expr`
    Finishes a block and returns it as an expression.
 

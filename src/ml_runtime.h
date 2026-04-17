@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -206,6 +207,21 @@ void ml_uninitialized_use(ml_value_t *Uninitialized, ml_value_t **Slot);
 void ml_uninitialized_set(ml_value_t *Uninitialized, ml_value_t *Value);
 const char *ml_uninitialized_name(ml_value_t *Uninitialized);
 ml_source_t ml_uninitialized_source(ml_value_t *Uninitialized);
+
+#define VALUE_REF_DECL(UNAME, LNAME, CTYPE) ml_value_t *ml_ ## LNAME ## _value_ref(CTYPE *Address)
+
+VALUE_REF_DECL(Boolean, boolean, _Bool);
+VALUE_REF_DECL(Int8, int8, int8_t);
+VALUE_REF_DECL(UInt8, uint8, uint8_t);
+VALUE_REF_DECL(Int16, int16, int16_t);
+VALUE_REF_DECL(UInt16, uint16, uint16_t);
+VALUE_REF_DECL(Int32, int32, int32_t);
+VALUE_REF_DECL(UInt32, uint32, uint32_t);
+VALUE_REF_DECL(Int64, int64, int64_t);
+VALUE_REF_DECL(UInt64, uint64, uint64_t);
+VALUE_REF_DECL(Float, float, float);
+VALUE_REF_DECL(Double, double, double);
+VALUE_REF_DECL(Utf8, utf8, const char *);
 
 // Backtraces //
 

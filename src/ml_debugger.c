@@ -3,6 +3,7 @@
 #include "ml_compiler.h"
 #include "ml_macros.h"
 #include "ml_logging.h"
+#include "ml_object.h"
 #ifdef ML_JSON
 #include "ml_json.h"
 #endif
@@ -28,7 +29,7 @@ struct interactive_debugger_info_t {
 
 typedef struct {
 	ml_state_t *State, *Active;
-	ml_value_t *Value;
+	ml_value_t *Value, **Locals;
 } debug_thread_t;
 
 typedef struct {
@@ -438,7 +439,8 @@ typedef enum {
 	ML_DEBUGGER_COMMAND_FRAMES = 10,
 	ML_DEBUGGER_COMMAND_THREADS = 11,
 	ML_DEBUGGER_COMMAND_EVALUATE = 12,
-	ML_DEBUGGER_COMMAND_TERMINATE = 13
+	ML_DEBUGGER_COMMAND_TERMINATE = 13,
+	ML_DEBUGGER_COMMAND_LOCAL = 14
 } ml_debugger_command_t;
 
 typedef enum {
@@ -453,7 +455,7 @@ typedef enum {
 } ml_debugger_event_t;
 
 static int ml_remote_debugger_send(ml_remote_debugger_t *Remote, const char *Buffer, size_t Size) {
-	//fprintf(stderr, "< %.*s\n", (int)Size, Buffer);
+	fprintf(stderr, "< %.*s\n", (int)Size, Buffer);
 	while (Size) {
 		ssize_t Write = write(Remote->Socket, Buffer, Size);
 		if (Write < 0) return Write;
@@ -466,6 +468,210 @@ static int ml_remote_debugger_send(ml_remote_debugger_t *Remote, const char *Buf
 static size_t *ml_remote_debugger_breakpoints(ml_debugger_t *Debugger, const char *Source, int Max) {
 	ml_remote_debugger_t *Remote = (ml_remote_debugger_t *)((void *)Debugger - offsetof(ml_remote_debugger_t, Debugger));
 	return stringmap_breakpoints(Remote->Modules, Source, Max);
+}
+
+ml_value_t *ml_remote_debugger_describe(ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	Value = ml_deref(Value);
+	typeof(ml_remote_debugger_describe) *fn = ml_typed_fn_get(ml_typeof(Value), ml_remote_debugger_describe);
+	if (!fn) {
+		fprintf(stderr, "Using default debug description for %s\n", ml_typeof(Value)->Name);
+		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+		ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+		ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+		return NULL;
+	}
+	fprintf(stderr, "Using typed debug description for %s\n", ml_typeof(Value)->Name);
+	ml_value_t *Error = fn(Value, Output, Thread);
+	if (Error) {
+		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+		ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+		ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+		return NULL;
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLNilT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_list_put(Output, ml_cstring("nil"));
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLIntegerT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Value));
+	ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLRealT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "%g", ml_real_value(Value));
+	ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLStringT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_list_put(Output, Value);
+	return NULL;
+}
+
+static int ml_remote_debugger_local(debug_thread_t *Thread, ml_value_t *Value) {
+	if (!Thread->Locals) {
+		Thread->Locals = anew(ml_value_t *, 16);
+		Thread->Locals[15] = MLNil;
+		Thread->Locals[0] = Value;
+		return 0;
+	}
+	ml_value_t **Locals = Thread->Locals;
+	for (int I = 0;; ++I) {
+		if (Locals[I] == Value) return I;
+		if (Locals[I] == NULL) { Locals[I] = Value; return I; }
+		if (Locals[I] == MLNil) {
+			int Size = (I + 1) * 2;
+			Thread->Locals = anew(ml_value_t *, Size);
+			memcpy(Thread->Locals, Locals, I * sizeof(ml_value_t *));
+			Thread->Locals[Size - 1] = MLNil;
+			Thread->Locals[I] = Value;
+			return I;
+		}
+	}
+	return 0;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLTupleT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+	ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+	ml_list_put(Output, ml_integer(ml_remote_debugger_local(Thread, Value)));
+	ml_list_put(Output, ml_integer(ml_tuple_size(Value)));
+	ml_list_put(Output, Zero);
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLListT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+	ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+	ml_list_put(Output, ml_integer(ml_remote_debugger_local(Thread, Value)));
+	ml_list_put(Output, ml_integer(ml_list_length(Value)));
+	ml_list_put(Output, Zero);
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLMapT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+	ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+	ml_list_put(Output, ml_integer(ml_remote_debugger_local(Thread, Value)));
+	ml_list_put(Output, ml_integer(ml_map_size(Value)));
+	ml_list_put(Output, Zero);
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLObjectT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+	ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+	ml_list_put(Output, ml_integer(ml_remote_debugger_local(Thread, Value)));
+	ml_list_put(Output, Zero);
+	ml_list_put(Output, ml_integer(ml_object_size(Value)));
+	return NULL;
+}
+
+void ml_remote_debugger_locals(ml_value_t *Parent, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	typeof(ml_remote_debugger_locals) *fn = ml_typed_fn_get(ml_typeof(Parent), ml_remote_debugger_locals);
+	if (fn) fn(Parent, Start, Count, Output, Thread);
+}
+
+static void ML_TYPED_FN(ml_remote_debugger_locals, MLStateT, ml_state_t *Frame, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	for (ml_decl_t *Decl = ml_debugger_decls(Frame); Decl; Decl = Decl->Next) {
+		if (--Start >= 0) continue;
+		if (--Count < 0) break;
+		ml_value_t *Value = Decl->Value ?: ml_debugger_local(Frame, Decl->Index);
+		if (!Value) continue;
+		ml_value_t *Variable = ml_list();
+		ml_list_put(Variable, ml_string(Decl->Ident, -1));
+		ml_list_put(Variable, ml_integer(Decl->Source.Line));
+		ml_remote_debugger_describe(Value, Variable, Thread);
+		ml_list_put(Output, Variable);
+	}
+}
+
+static void ML_TYPED_FN(ml_remote_debugger_locals, MLTupleT, ml_value_t *Tuple, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	int Limit = ml_tuple_size(Tuple);
+	if (Start + Count < Limit) Limit = Start + Count;
+	for (int I = Start; I < Limit; ++I) {
+		ml_value_t *Variable = ml_list();
+		ml_list_put(Variable, ml_integer(I + 1));
+		ml_list_put(Variable, Zero);
+		ml_remote_debugger_describe(ml_tuple_get(Tuple, I + 1), Variable, Thread);
+		ml_list_put(Output, Variable);
+	}
+}
+
+static void ML_TYPED_FN(ml_remote_debugger_locals, MLListT, ml_value_t *List, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	int Index = 0;
+	ML_LIST_FOREACH(List, Iter) {
+		++Index;
+		if (--Start >= 0) continue;
+		if (--Count < 0) break;
+		ml_value_t *Variable = ml_list();
+		ml_list_put(Variable, ml_integer(Index));
+		ml_list_put(Variable, Zero);
+		ml_remote_debugger_describe(Iter->Value, Variable, Thread);
+		ml_list_put(Output, Variable);
+	}
+}
+
+static void ML_TYPED_FN(ml_remote_debugger_locals, MLMapT, ml_value_t *Map, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	int Index = 0;
+	ML_MAP_FOREACH(Map, Iter) {
+		++Index;
+		if (--Start >= 0) continue;
+		if (--Count < 0) break;
+		ml_value_t *Variable = ml_list();
+		if (ml_is(Iter->Key, MLStringT) || ml_is(Iter->Key, MLRealT)) {
+			ml_list_put(Variable, Iter->Key);
+			ml_list_put(Variable, Zero);
+			ml_remote_debugger_describe(Iter->Value, Variable, Thread);
+		} else {
+			ml_list_put(Variable, ml_integer(Index));
+			ml_list_put(Variable, Zero);
+			ml_list_put(Variable, ml_cstring("<map-node>"));
+			ml_list_put(Variable, ml_integer(ml_remote_debugger_local(Thread, (ml_value_t *)Iter)));
+			ml_list_put(Variable, ml_integer(2));
+			ml_list_put(Variable, Zero);
+		}
+		ml_list_put(Output, Variable);
+	}
+}
+
+extern ml_type_t MLMapNodeT[];
+
+static void ML_TYPED_FN(ml_remote_debugger_locals, MLMapNodeT, ml_map_node_t *Node, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_value_t *Variable = ml_list();
+	ml_list_put(Variable, ml_cstring("key"));
+	ml_list_put(Variable, Zero);
+	ml_remote_debugger_describe(Node->Key, Variable, Thread);
+	ml_list_put(Output, Variable);
+	Variable = ml_list();
+	ml_list_put(Variable, ml_cstring("value"));
+	ml_list_put(Variable, Zero);
+	ml_remote_debugger_describe(Node->Key, Variable, Thread);
+	ml_list_put(Output, Variable);
+}
+
+static void ML_TYPED_FN(ml_remote_debugger_locals, MLObjectT, ml_value_t *Object, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_type_t *Class = ml_typeof(Object);
+	int Limit = ml_class_size(Class);
+	if (Start + Count < Limit) Limit = Start + Count;
+	for (int I = Start; I < Limit; ++I) {
+		ml_value_t *Variable = ml_list();
+		ml_list_put(Variable, ml_string(ml_class_field_name(Class, I + 1), -1));
+		ml_list_put(Variable, Zero);
+		ml_remote_debugger_describe(ml_object_field(Object, I + 1), Variable, Thread);
+		ml_list_put(Output, Variable);
+	}
 }
 
 static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t *Command) {
@@ -518,6 +724,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			ml_state_t *State = Thread->State;
 			if (State) {
 				ml_value_t *Value = Thread->Value;
+				Thread->Locals = NULL;
 				ml_debugger_step_mode(State, 0, 0);
 				Thread->Active = Thread->State = NULL;
 				Thread->Value = NULL;
@@ -534,6 +741,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Remote->Debugger.StepIn = 0;
 			ml_state_t *State = Thread->State;
 			ml_value_t *Value = Thread->Value;
+			Thread->Locals = NULL;
 			ml_debugger_step_mode(State, 0, 0);
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
@@ -551,6 +759,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Remote->Debugger.StepIn = 1;
 			ml_state_t *State = Thread->State;
 			ml_value_t *Value = Thread->Value;
+			Thread->Locals = NULL;
 			ml_debugger_step_mode(State, 0, 0);
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
@@ -568,6 +777,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Remote->Debugger.StepIn = 0;
 			ml_state_t *State = Thread->State;
 			ml_value_t *Value = Thread->Value;
+			Thread->Locals = NULL;
 			ml_debugger_step_mode(State, 1, 0);
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
@@ -585,6 +795,7 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 			Remote->Debugger.StepIn = 0;
 			ml_state_t *State = Thread->State;
 			ml_value_t *Value = Thread->Value;
+			Thread->Locals = NULL;
 			ml_debugger_step_mode(State, 0, 1);
 			Thread->Active = Thread->State = NULL;
 			Thread->Value = NULL;
@@ -600,49 +811,43 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 		int Index = ml_integer_value(ml_list_pop(Command));
 		if (0 <= Index && Index < Remote->MaxThreads) {
 			debug_thread_t *Thread = Remote->Threads + Index;
-			ml_state_t *Frame = Thread->State;
-			int Depth = ml_integer_value(ml_list_pop(Command));
-			for (;;) {
-				while (!ml_debugger_check(Frame)) {
-					Frame = Frame->Caller;
-					if (!Frame) goto invalid;
+			int Label = ml_integer_value(ml_list_pop(Command));
+			ml_value_t **Locals = Thread->Locals;
+			if (Locals) {
+				while (--Label >= 0) {
+					if (*Locals == NULL || *Locals == MLNil) goto invalid;
+					++Locals;
 				}
-				if (--Depth < 0) break;
-				Frame = Frame->Caller;
-				if (!Frame) goto invalid;
+				ml_value_t *Value = *Locals;
+				int Start = ml_integer_value(ml_list_pop(Command));
+				int Count = ml_integer_value(ml_list_pop(Command)) ?: INT_MAX;
+				ml_remote_debugger_locals(Value, Start, Count, Result, Thread);
 			}
-			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-			for (ml_decl_t *Decl = ml_debugger_decls(Frame); Decl; Decl = Decl->Next) {
-				ml_value_t *Value = Decl->Value ?: ml_debugger_local(Frame, Decl->Index);
-				if (!Value) continue;
-				ml_value_t *Variable = ml_list();
-				ml_list_put(Variable, ml_string(Decl->Ident, -1));
-				ml_value_t *Error = ml_stringbuffer_simple_append(Buffer, Value);
-				if (ml_is_error(Error)) {
-					ml_stringbuffer_clear(Buffer);
-					ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
-				}
-				ml_list_put(Variable, ml_stringbuffer_get_value(Buffer));
-				ml_list_put(Variable, ml_integer(Decl->Source.Line));
-				ml_list_put(Result, Variable);
-			}
+			invalid:;
 		}
-		invalid:;
 		break;
 	}
 	case ML_DEBUGGER_COMMAND_FRAMES: {
 		Result = ml_list();
 		int Index = ml_integer_value(ml_list_pop(Command));
+		int Start = ml_integer_value(ml_list_pop(Command));
+		int Count = ml_integer_value(ml_list_pop(Command)) ?: INT_MAX;
 		if (0 <= Index && Index < Remote->MaxThreads) {
 			debug_thread_t *Thread = Remote->Threads + Index;
 			ml_state_t *Frame = Thread->State;
-			while (Frame) {
+			while (Frame && Start > 0) {
+				Frame = Frame->Caller;
+				--Start;
+			}
+			while (Frame && Count > 0) {
 				if (ml_debugger_check(Frame)) {
 					ml_source_t Source = ml_debugger_source(Frame);
 					ml_value_t *Location = ml_list();
 					ml_list_put(Location, ml_string(Source.Name, -1));
 					ml_list_put(Location, ml_integer(Source.Line));
+					ml_list_put(Location, ml_integer(ml_remote_debugger_local(Thread, (ml_value_t *)Frame)));
 					ml_list_put(Result, Location);
+					--Count;
 				}
 				Frame = Frame->Caller;
 			}
@@ -717,7 +922,7 @@ static void *ml_remote_debugger_fn(void *Arg) {
 	for (;;) {
 		ssize_t Read = read(Remote->Socket, Buffer, 64);
 		if (Read <= 0) break;
-		//fprintf(stderr, "> %.*s\n", (int)Read, Buffer);
+		fprintf(stderr, "> %.*s\n", (int)Read, Buffer);
 		json_decoder_parse(Remote->Decoder, Buffer, Read);
 	}
 	fprintf(stderr, "Remote connection closed\n");
@@ -726,6 +931,7 @@ static void *ml_remote_debugger_fn(void *Arg) {
 }
 
 void ml_remote_debugger_init(ml_context_t *Context, const char *Address) {
+#include "ml_debugger_init.c"
 	const char *Port = strchr(Address, ':');
 	int Socket;
 	if (Port) {

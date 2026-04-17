@@ -279,7 +279,11 @@ static void ml_chained_iterator_continue(ml_chained_iterator_t *State) {
 		Function = Entry[1];
 		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
-		State->Base.run = (void *)ml_chained_iterator_duo_key;
+		if (Entry[2]) {
+			State->Base.run = (void *)ml_chained_iterator_duo_key;
+		} else {
+			State->Base.run = (void *)ml_chained_iterator_value;
+		}
 		return ml_call(State, Function, 2, State->Values);
 	} else if (Function == FilterSoloMethod) {
 		Function = Entry[1];

@@ -15,7 +15,6 @@ static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
 }
 
 ML_TYPE(MLBooleanT, (), "boolean",
-//!boolean
 // A boolean value (either :mini:`true` or :mini:`false`).
 	.hash = (void *)ml_boolean_hash
 );
@@ -41,7 +40,6 @@ static int ML_TYPED_FN(ml_value_is_constant, MLBooleanT, ml_value_t *Value) {
 }
 
 ML_METHOD(MLBooleanT, MLStringT) {
-//!boolean
 //<String
 //>boolean | error
 // Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).
@@ -53,8 +51,14 @@ ML_METHOD(MLBooleanT, MLStringT) {
 	return ml_error("ValueError", "Invalid boolean: %s", Name);
 }
 
+ML_METHOD("!!", MLAnyT) {
+//<Value
+//>boolean
+// Returns :mini:`true` if :mini:`Value` is not :mini:`nil`, otherwise returns :mini:`false`.
+	return (Args[0] == MLNil) ? (ml_value_t *)MLFalse : (ml_value_t *)MLTrue;
+}
+
 ML_METHOD("-", MLBooleanT) {
-//!boolean
 //<Bool
 //>boolean
 // Returns the logical inverse of :mini:`Bool`
@@ -62,7 +66,6 @@ ML_METHOD("-", MLBooleanT) {
 }
 
 ML_METHOD("!", MLBooleanT) {
-//!boolean
 //<Bool
 //>boolean
 // Returns the logical inverse of :mini:`Bool`
@@ -70,7 +73,6 @@ ML_METHOD("!", MLBooleanT) {
 }
 
 ML_METHODV("/\\", MLBooleanT, MLBooleanT) {
-//!boolean
 //<Bool/1
 //<Bool/2
 //>boolean
@@ -85,7 +87,6 @@ ML_METHODV("/\\", MLBooleanT, MLBooleanT) {
 }
 
 ML_METHODV("\\/", MLBooleanT, MLBooleanT) {
-//!boolean
 //<Bool/1
 //<Bool/2
 //>boolean
@@ -100,7 +101,6 @@ ML_METHODV("\\/", MLBooleanT, MLBooleanT) {
 }
 
 ML_METHOD("><", MLBooleanT, MLBooleanT) {
-//!boolean
 //<Bool/1
 //<Bool/2
 //>boolean

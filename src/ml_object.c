@@ -426,11 +426,17 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLMethodT, ml_context_t *Context
 	return NULL;
 }
 
+static int ml_class_add_export(const char *Name, void *Value, ml_class_t *Class) {
+	stringmap_insert(Class->Base.Exports, Name, Value);
+	return 0;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_class_modify, MLClassT, ml_context_t *Context, ml_class_t *Class, ml_class_t *Parent) {
 	for (ml_field_info_t *Info = Parent->Fields; Info; Info = Info->Next) {
 		add_field(Context, Class, Info->Method, Info->Type);
 	}
 	ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Parent);
+	stringmap_foreach(Parent->Base.Exports, Class, (void *)ml_class_add_export);
 	if (Parent->Call) {
 		Class->Base.call = (void *)ml_object_call;
 		Class->Call = Parent->Call;

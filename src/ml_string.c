@@ -991,6 +991,23 @@ ML_METHOD("put", MLBufferT, MLIntegerT, MLAddressT) {
 	return Args[0];
 }
 
+ML_METHOD("xor", MLBufferT, MLAddressT) {
+//!buffer
+//<Buffer
+//<Value
+//>buffer
+// Xors the bytes of :mini:`Value` into :mini:`Buffer`.
+//$= buffer(10):put("Hello\0\0\0\0\0")
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	ml_address_t *Source = (ml_address_t *)Args[1];
+	int Length = Buffer->Length;
+	if (Length != Source->Length) return ml_error("SizeError", "Sizes do not match");
+	unsigned char *Out = (unsigned char *)Buffer->Value;
+	const unsigned char *In = (const unsigned char *)Source->Value;
+	while (--Length > 0) *Out++ ^= *In++;
+	return Args[0];
+}
+
 static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	uint64_t Hash = String->Hash;
 	if (Hash) return Hash;

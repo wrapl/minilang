@@ -539,6 +539,53 @@ ML_METHODX("::", MLUninitializedT, MLStringT) {
 	ML_RETURN(Slot[0]);
 }
 
+typedef struct {
+	ml_type_t *Type;
+	void *Address;
+} value_ref_t;
+
+ML_TYPE(ValueRefT, (), "value-ref");
+//!internal
+
+#define VALUE_REF(UNAME, LNAME, CTYPE, GETTER, SETTER) \
+static ml_value_t *LNAME ## _value_deref(value_ref_t *Ref) { \
+	CTYPE Value = *(CTYPE *)Ref->Address; \
+	return GETTER; \
+} \
+\
+static void LNAME ## _value_assign(ml_state_t *Caller, value_ref_t *Ref, ml_value_t *Value) { \
+	CTYPE *Address = (CTYPE *)Ref->Address; \
+	*Address = SETTER; \
+	ML_RETURN(Value); \
+} \
+\
+ML_TYPE(UNAME ## ValueRefT, (ValueRefT), #LNAME "-value-ref", \
+/*!internal
+*/ \
+	.deref = (void *)LNAME ## _value_deref, \
+	.assign = (void *)LNAME ## _value_assign \
+); \
+\
+ml_value_t *ml_ ## LNAME ## _value_ref(CTYPE *Address) { \
+	value_ref_t *Ref = new(value_ref_t); \
+	Ref->Type = UNAME ## ValueRefT; \
+	Ref->Address = Address; \
+	return (ml_value_t *)Ref; \
+}
+
+VALUE_REF(Boolean, boolean, _Bool, ml_boolean(Value), ml_boolean_value(Value));
+VALUE_REF(Int8, int8, int8_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(UInt8, uint8, uint8_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(Int16, int16, int16_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(UInt16, uint16, uint16_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(Int32, int32, int32_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(UInt32, uint32, uint32_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(Int64, int64, int64_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(UInt64, uint64, uint64_t, ml_integer(Value), ml_integer_value(Value));
+VALUE_REF(Float, float, float, ml_real(Value), ml_real_value(Value));
+VALUE_REF(Double, double, double, ml_real(Value), ml_real_value(Value));
+VALUE_REF(Utf8, utf8, const char *, ml_string(Value, -1), ml_string_value(Value));
+
 // Errors //
 
 #define MAX_TRACE 16

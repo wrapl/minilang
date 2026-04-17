@@ -302,8 +302,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
-      M:random :> "a"
+      M:random :> "e"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -460,8 +460,14 @@ map
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
 
 
-:mini:`meth (Arg₁: map::mutable):insert(Arg₂₁ is Value₁, ...)`
-   *TBD*
+:mini:`meth (Map: map::mutable):insert(Key₁ is Value₁, ...): Map`
+   Inserts the pairs :mini:`Keyᵢ,  Valueᵢ` into :mini:`Map`. Returns :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M:insert(A is 10, D is 20)
+      :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
 
 
 :mini:`meth (Map: map::mutable):missing(Key: any): some | nil`
@@ -692,20 +698,51 @@ map
       :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
 
 
-:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any)`
-   *TBD*
+:mini:`meth (Map: map::mutable):splice(Key: any): map | nil`
+   Removes every key-value pair from :mini:`Map` starting at :mini:`Key`,  returning the removed pairs as a new map.
+   Returns :mini:`nil` if :mini:`Key` is not in :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+      M:splice("D") :> {"D" is 4, "E" is 5, "F" is 6}
+      M :> {"A" is 1, "B" is 2, "C" is 3}
 
 
-:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: integer)`
-   *TBD*
+:mini:`meth (Map: map::mutable):splice(Key: any, Count: integer): map | nil`
+   Removes :mini:`Count` key-value pairs from :mini:`Map` starting at :mini:`Key`,  returning the removed pairs as a new map.
+   Returns :mini:`nil` if :mini:`Key` is not in :mini:`Map` or there are not enough pairs to remove.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+      M:splice("C", 2) :> {"C" is 3, "D" is 4}
+      M :> {"A" is 1, "B" is 2, "E" is 5, "F" is 6}
+      M:splice("E", 10) :> nil
+      M :> {"A" is 1, "B" is 2, "E" is 5, "F" is 6}
 
 
-:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: integer, Arg₄: map::mutable)`
-   *TBD*
+:mini:`meth (Map: map::mutable):splice(Count: any, Key: integer, New: map::mutable): map`
+   Removes :mini:`Count` key-value pairs from :mini:`Map` starting at :mini:`Key`,  then moves the key-value pairs from :mini:`New` into :mini:`Map` leaving :mini:`New` empty. Returns the removed pairs as a new map,  or :`nil` if :mini:`Key` is not in :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+      M:splice("D", 2, {"G" is 7, "H" is 8})
+      :> {"D" is 4, "E" is 5}
+      M
+      :> {"A" is 1, "B" is 2, "C" is 3, "G" is 7, "H" is 8, "F" is 6}
 
 
-:mini:`meth (Arg₁: map::mutable):splice(Arg₂: any, Arg₃: map::mutable)`
-   *TBD*
+:mini:`meth (Map: map::mutable):splice(Key: any, New: map::mutable): map`
+   Removes every key-value pair from :mini:`Map` starting at :mini:`Key`,  then moves the key-value pairs from :mini:`New` into :mini:`Map` leaving :mini:`New` empty. Returns the removed pairs as a new map,  or :`nil` if :mini:`Key` is not in :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5, "F" is 6}
+      M:splice("D", {"G" is 7, "H" is 8}) :> {}
+      M
+      :> {"A" is 1, "B" is 2, "C" is 3, "G" is 7, "H" is 8, "D" is 4, "E" is 5, "F" is 6}
 
 
 :mini:`meth (Map: map::mutable):take(Source: map::mutable): map`
