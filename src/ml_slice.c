@@ -258,14 +258,14 @@ void ml_slice_insert(ml_value_t *Slice0, int Index, ml_value_t *Value) {
 	if (Length == Capacity) {
 		Capacity += (Capacity >> 2) + 4;
 		ml_slice_node_t *Nodes = anew(ml_slice_node_t, Capacity + 1);
-		Offset = (Capacity - Length - 1) / 2;
+		Offset = (Capacity - Length) / 2;
 		ml_slice_node_t *Next = mempcpy(Nodes + Offset, Slice->Nodes, (Index - 1) * sizeof(ml_slice_node_t));
 		(Next++)->Value = Value;
 		memcpy(Next, Slice->Nodes + (Index - 1), (Length - (Index - 1)) * sizeof(ml_slice_node_t));
 		Slice->Nodes = Nodes;
 		Slice->Capacity = Capacity;
 		Slice->Offset = Offset;
-	} else if (!Offset || (Index > Length / 2)) {
+	} else if (!Offset || ((Index > Length / 2) && (Offset + Length < Capacity))) {
 		ml_slice_node_t *Nodes = Slice->Nodes + Offset;
 		memmove(Nodes + Index, Nodes + (Index - 1), (Length - (Index - 1)) * sizeof(ml_slice_node_t));
 		Nodes[Index - 1].Value = Value;

@@ -558,6 +558,16 @@ static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLListT, ml_value_t 
 	return NULL;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLSliceT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+	ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
+	ml_list_put(Output, ml_integer(ml_remote_debugger_local(Thread, Value)));
+	ml_list_put(Output, ml_integer(ml_slice_length(Value)));
+	ml_list_put(Output, Zero);
+	return NULL;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLMapT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
@@ -612,6 +622,20 @@ static void ML_TYPED_FN(ml_remote_debugger_locals, MLTupleT, ml_value_t *Tuple, 
 static void ML_TYPED_FN(ml_remote_debugger_locals, MLListT, ml_value_t *List, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
 	int Index = 0;
 	ML_LIST_FOREACH(List, Iter) {
+		++Index;
+		if (--Start >= 0) continue;
+		if (--Count < 0) break;
+		ml_value_t *Variable = ml_list();
+		ml_list_put(Variable, ml_integer(Index));
+		ml_list_put(Variable, Zero);
+		ml_remote_debugger_describe(Iter->Value, Variable, Thread);
+		ml_list_put(Output, Variable);
+	}
+}
+
+static void ML_TYPED_FN(ml_remote_debugger_locals, MLSliceT, ml_value_t *Slice, int Start, int Count, ml_value_t *Output, debug_thread_t *Thread) {
+	int Index = 0;
+	ML_SLICE_FOREACH(Slice, Iter) {
 		++Index;
 		if (--Start >= 0) continue;
 		if (--Count < 0) break;
