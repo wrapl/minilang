@@ -1398,6 +1398,14 @@ static void ML_TYPED_FN(ml_stream_write, MLStringBufferT, ml_state_t *Caller, ml
 	ML_RETURN(ml_integer(ml_stringbuffer_write(Buffer, Address, Count)));
 }
 
+static void ML_TYPED_FN(ml_stream_tell, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Buffer) {
+	ML_RETURN(ml_integer(Buffer->Length));
+}
+
+static void ML_TYPED_FN(ml_stream_seek, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Buffer, int64_t Offset, int Mode) {
+	ML_RETURN(ml_integer(Buffer->Length));
+}
+
 typedef struct {
 	const ml_type_t *Type;
 	int Fd;
@@ -1476,6 +1484,14 @@ ML_METHOD("write", MLStreamFdT, MLAddressT) {
 	} else {
 		return ml_integer(Actual);
 	}
+}
+
+static void ML_TYPED_FN(ml_stream_tell, MLStreamFdT, ml_state_t *Caller, ml_fd_stream_t *Stream) {
+	ML_RETURN(ml_integer(lseek(Stream->Fd, 0, SEEK_CUR)));
+}
+
+static void ML_TYPED_FN(ml_stream_seek, MLStreamFdT, ml_state_t *Caller, ml_fd_stream_t *Stream, int64_t Offset, int Mode) {
+	ML_RETURN(ml_integer(lseek(Stream->Fd, Offset, Mode)));
 }
 
 /*

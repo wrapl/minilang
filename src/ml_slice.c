@@ -1250,6 +1250,24 @@ ML_METHOD("splice", MLSliceMutableT) {
 	return (ml_value_t *)Removed;
 }
 
+ML_METHOD("splice", MLSliceMutableT, MLIntegerT) {
+	ml_slice_t *Slice = (ml_slice_t *)Args[0];
+	size_t Offset = Slice->Offset;
+	size_t Length = Slice->Length;
+	int Start = ml_integer_value(Args[1]);
+	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > Length + 1) return MLNil;
+	int Remove = Length - (Start - 1);
+	ml_slice_t *Removed = (ml_slice_t *)ml_slice(Remove);
+	ml_slice_node_t *Nodes0 = Slice->Nodes + Offset + Start - 1;
+	memcpy(Removed->Nodes, Nodes0, Remove * sizeof(ml_slice_node_t));
+	Removed->Length = Remove;
+	memset(Nodes0, 0, Remove * sizeof(ml_slice_node_t));
+	Slice->Length -= Remove;
+	return (ml_value_t *)Removed;
+}
+
 ML_METHOD("splice", MLSliceMutableT, MLIntegerT, MLIntegerT) {
 	ml_slice_t *Slice = (ml_slice_t *)Args[0];
 	size_t Offset = Slice->Offset;

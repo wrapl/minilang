@@ -3318,6 +3318,7 @@ void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Fla
 	Info->Decls = SubFunction->Decls;
 	Info->Entry = SubFunction->Next;
 	MLC_FRAME(mlc_fun_expr_frame_t, ml_fun_expr_compile2);
+	Function->Frame->Line = Expr->StartLine;
 	Frame->Expr = Expr;
 	Frame->Info = Info;
 	Frame->HasParamTypes = HasParamTypes;

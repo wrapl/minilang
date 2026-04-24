@@ -1049,7 +1049,7 @@ static void first_iterate(ml_state_t *State, ml_value_t *Value) {
 	return ml_iter_value(State->Caller, Value);
 }
 
-ML_METHODX("first", MLSequenceT) {
+ML_METHODVX("first", MLSequenceT) {
 //<Sequence
 //>any | nil
 // Returns the first value produced by :mini:`Sequence`.
@@ -1084,7 +1084,7 @@ static void first2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODX("first2", MLSequenceT) {
+ML_METHODVX("first2", MLSequenceT) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the first key and value produced by :mini:`Sequence`.
@@ -1115,7 +1115,7 @@ static void last_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODX("last", MLSequenceT) {
+ML_METHODVX("last", MLSequenceT) {
 //<Sequence
 //>any | nil
 // Returns the last value produced by :mini:`Sequence`.
@@ -1160,7 +1160,7 @@ static void last2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODX("last2", MLSequenceT) {
+ML_METHODVX("last2", MLSequenceT) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the last key and value produced by :mini:`Sequence`.

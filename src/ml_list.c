@@ -1291,6 +1291,38 @@ ML_METHOD("splice", MLListMutableT) {
 	return (ml_value_t *)Removed;
 }
 
+ML_METHOD("splice", MLListMutableT, MLIntegerT) {
+//<List
+//<Index
+//>list | nil
+// Removes all the elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Start = ml_integer_value(Args[1]);
+	if (Start <= 0) Start += List->Length + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > List->Length + 1) return MLNil;
+	ml_list_t *Removed = (ml_list_t *)ml_list();
+	if (Start == 1) {
+		*Removed = *List;
+		List->Head = List->Tail = NULL;
+		List->Length = 0;
+	} else {
+		int Remove = List->Length - (Start - 1);
+		ml_list_node_t *StartNode = ml_list_index(List, Start);
+		ml_list_node_t *PrevNode = StartNode->Prev;
+		StartNode->Prev = NULL;
+		Removed->CachedNode = Removed->Head = StartNode;
+		Removed->Tail = List->Tail;
+		Removed->Length = Remove;
+		List->Tail = PrevNode;
+		PrevNode->Next = NULL;
+		List->CachedNode = List->Head;
+		List->CachedIndex = 1;
+		List->Length -= Remove;
+	}
+	return (ml_value_t *)Removed;
+}
+
 ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT) {
 //<List
 //<Index
