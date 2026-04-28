@@ -44,13 +44,15 @@
         </childnode>
         <childnode refid="9" relation="include">
         </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
       </node>
       <node id="1">
         <label>src/ml_thread.h</label>
         <link refid="ml__thread_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="17" relation="include">
+        <childnode refid="18" relation="include">
         </childnode>
       </node>
       <node id="8">
@@ -81,7 +83,7 @@
       <node id="15">
         <label>ml_config.h</label>
       </node>
-      <node id="17">
+      <node id="18">
         <label>pthread.h</label>
       </node>
       <node id="6">
@@ -89,6 +91,9 @@
       </node>
       <node id="11">
         <label>stdarg.h</label>
+      </node>
+      <node id="17">
+        <label>stdbool.h</label>
       </node>
       <node id="14">
         <label>stdint.h</label>

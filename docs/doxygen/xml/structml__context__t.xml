@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="32" column="14" bodyfile="src/ml_runtime.h" bodystart="32" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="33" column="14" bodyfile="src/ml_runtime.h" bodystart="33" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__context__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="33" column="5" bodyfile="src/ml_runtime.h" bodystart="33" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="34" column="5" bodyfile="src/ml_runtime.h" bodystart="34" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__context__t_1a26cb4313f9edb7d4ba6e4fef1ea14015" prot="public" static="no" mutable="no">
         <type>void *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="34" column="6" bodyfile="src/ml_runtime.h" bodystart="34" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="35" column="6" bodyfile="src/ml_runtime.h" bodystart="35" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -59,7 +59,7 @@
         </childnode>
       </node>
     </collaborationgraph>
-    <location file="src/ml_runtime.h" line="31" column="1" bodyfile="src/ml_runtime.h" bodystart="31" bodyend="35"/>
+    <location file="src/ml_runtime.h" line="32" column="1" bodyfile="src/ml_runtime.h" bodystart="32" bodyend="36"/>
     <listofallmembers>
       <member refid="structml__context__t_1ae65220b285f8f2f50cba6c8980b928f1" prot="public" virt="non-virtual"><scope>ml_context_t</scope><name>Parent</name></member>
       <member refid="structml__context__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" virt="non-virtual"><scope>ml_context_t</scope><name>Size</name></member>

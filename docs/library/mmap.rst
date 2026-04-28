@@ -13,15 +13,15 @@ mmap
    *TBD*
 
 
-:mini:`meth (Arg₁: mmap):unmap`
+:mini:`meth mmap(FileName: string, Mode: string): mmap`
+   *TBD*
+
+
+:mini:`meth (Mapped: mmap):unmap: nil`
    *TBD*
 
 
 :mini:`type mmap::buffer < mmap, buffer`
-   *TBD*
-
-
-:mini:`meth mmap(Arg₁: string, Arg₂: string)`
    *TBD*
 
 

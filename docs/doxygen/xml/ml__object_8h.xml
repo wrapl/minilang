@@ -45,7 +45,7 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
-        <childnode refid="19" relation="include">
+        <childnode refid="20" relation="include">
         </childnode>
       </node>
       <node id="16">
@@ -58,6 +58,8 @@
         <childnode refid="5" relation="include">
         </childnode>
         <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
         </childnode>
       </node>
       <node id="2">
@@ -83,14 +85,14 @@
         <link refid="ml__uuid_8h_source"/>
         <childnode refid="13" relation="include">
         </childnode>
-        <childnode refid="18" relation="include">
+        <childnode refid="19" relation="include">
         </childnode>
       </node>
       <node id="7">
         <label>stringmap.h</label>
         <link refid="stringmap_8h_source"/>
       </node>
-      <node id="19">
+      <node id="20">
         <label>uuidmap.h</label>
         <link refid="uuidmap_8h_source"/>
         <childnode refid="12" relation="include">
@@ -108,6 +110,9 @@
       <node id="5">
         <label>stdarg.h</label>
       </node>
+      <node id="18">
+        <label>stdbool.h</label>
+      </node>
       <node id="10">
         <label>stdint.h</label>
       </node>
@@ -123,7 +128,7 @@
       <node id="6">
         <label>unistd.h</label>
       </node>
-      <node id="18">
+      <node id="19">
         <label>uuid/uuid.h</label>
       </node>
     </incdepgraph>

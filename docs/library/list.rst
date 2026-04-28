@@ -234,8 +234,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "a"
       L:random :> "e"
+      L:random :> "a"
 
 
 :mini:`meth (Arg₁: list):subsets`
@@ -449,8 +449,12 @@ list
    Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 
 
-:mini:`meth (List: list::mutable):splice: list | nil`
+:mini:`meth (List: list::mutable):splice: list`
    Removes all elements from :mini:`List`. Returns the removed elements as a new list.
+
+
+:mini:`meth (List: list::mutable):splice(Index: integer): list | nil`
+   Removes all the elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
 
 
 :mini:`meth (List: list::mutable):splice(Index: integer, Count: integer): list | nil`

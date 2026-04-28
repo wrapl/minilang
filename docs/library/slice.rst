@@ -350,6 +350,10 @@ slice
    *TBD*
 
 
+:mini:`meth (Arg₁: slice::mutable):splice(Arg₂: integer)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: slice::mutable):splice(Arg₂: integer, Arg₃: integer)`
    *TBD*
 

@@ -32,7 +32,7 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="17" relation="include">
+        <childnode refid="18" relation="include">
         </childnode>
         <childnode refid="13" relation="include">
         </childnode>
@@ -47,16 +47,16 @@
         <childnode refid="13" relation="include">
         </childnode>
       </node>
-      <node id="17">
+      <node id="18">
         <label>ml_object.h</label>
         <link refid="ml__object_8h_source"/>
         <childnode refid="9" relation="include">
         </childnode>
-        <childnode refid="18" relation="include">
+        <childnode refid="19" relation="include">
         </childnode>
         <childnode refid="13" relation="include">
         </childnode>
-        <childnode refid="20" relation="include">
+        <childnode refid="21" relation="include">
         </childnode>
       </node>
       <node id="8">
@@ -69,6 +69,8 @@
         <childnode refid="12" relation="include">
         </childnode>
         <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
         </childnode>
       </node>
       <node id="9">
@@ -89,22 +91,22 @@
         <childnode refid="15" relation="include">
         </childnode>
       </node>
-      <node id="18">
+      <node id="19">
         <label>ml_uuid.h</label>
         <link refid="ml__uuid_8h_source"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="19" relation="include">
+        <childnode refid="20" relation="include">
         </childnode>
       </node>
       <node id="13">
         <label>stringmap.h</label>
         <link refid="stringmap_8h_source"/>
       </node>
-      <node id="20">
+      <node id="21">
         <label>uuidmap.h</label>
         <link refid="uuidmap_8h_source"/>
-        <childnode refid="18" relation="include">
+        <childnode refid="19" relation="include">
         </childnode>
       </node>
       <node id="16">
@@ -118,6 +120,9 @@
       </node>
       <node id="12">
         <label>stdarg.h</label>
+      </node>
+      <node id="17">
+        <label>stdbool.h</label>
       </node>
       <node id="2">
         <label>stdint.h</label>
@@ -134,7 +139,7 @@
       <node id="5">
         <label>unistd.h</label>
       </node>
-      <node id="19">
+      <node id="20">
         <label>uuid/uuid.h</label>
       </node>
     </incdepgraph>

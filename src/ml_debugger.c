@@ -908,21 +908,40 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 		int Count = ml_integer_value(ml_list_pop(Command)) ?: INT_MAX;
 		if (0 <= Index && Index < Remote->MaxThreads) {
 			debug_thread_t *Thread = Remote->Threads + Index;
+			if (ml_is_error(Thread->Value)) {
+				int Level = 0;
+				ml_source_t Source;
+				while (Start > 0) {
+					if (!ml_error_source(Thread->Value, Level++, &Source)) break;
+					--Start;
+				}
+				while (Count > 0) {
+					if (!ml_error_source(Thread->Value, Level++, &Source)) break;
+					ml_value_t *Location = ml_list();
+					ml_list_put(Location, ml_string(Source.Name, -1));
+					ml_list_put(Location, ml_integer(Source.Line));
+					ml_list_put(Location, Zero);
+					ml_list_put(Result, Location);
+					--Count;
+				}
+			}
 			ml_state_t *Frame = Thread->State;
 			while (Frame && Start > 0) {
 				Frame = Frame->Caller;
 				--Start;
 			}
 			while (Frame && Count > 0) {
+				ml_source_t Source = ml_debugger_source(Frame);
+				ml_value_t *Location = ml_list();
+				ml_list_put(Location, ml_string(Source.Name, -1));
+				ml_list_put(Location, ml_integer(Source.Line));
 				if (ml_debugger_check(Frame)) {
-					ml_source_t Source = ml_debugger_source(Frame);
-					ml_value_t *Location = ml_list();
-					ml_list_put(Location, ml_string(Source.Name, -1));
-					ml_list_put(Location, ml_integer(Source.Line));
 					ml_list_put(Location, ml_integer(ml_remote_debugger_local(Thread, (ml_value_t *)Frame)));
-					ml_list_put(Result, Location);
-					--Count;
+				} else {
+					ml_list_put(Location, Zero);
 				}
+				ml_list_put(Result, Location);
+				--Count;
 				Frame = Frame->Caller;
 			}
 		}

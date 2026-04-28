@@ -14,6 +14,9 @@ ML_TYPE(MLMMapT, (MLAddressT), "mmap");
 ML_TYPE(MLMMapBufferT, (MLMMapT, MLBufferT), "mmap::buffer");
 
 ML_METHOD(MLMMapT, MLStringT, MLStringT) {
+//<FileName
+//<Mode
+//>mmap
 	int OpenMode, MMapProtect;
 	ml_type_t *Type;
 	switch (ml_string_value(Args[1])[0]) {
@@ -47,6 +50,8 @@ ML_METHOD(MLMMapT, MLStringT, MLStringT) {
 }
 
 ML_METHOD("unmap", MLMMapT) {
+//<Mapped
+//>nil
 	ml_address_t *MMap = (ml_address_t *)Args[0];
 	if (munmap(MMap->Value, MMap->Length) < 0) {
 		return ml_error("MMapError", "failed to unmap: %s", strerror(errno));

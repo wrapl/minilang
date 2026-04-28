@@ -302,8 +302,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "e"
-      M:random :> "e"
+      M:random :> "c"
+      M:random :> "a"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -696,6 +696,10 @@ map
       :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
       M:sort(fun(K1, K2, V1, V2) V1 < V2)
       :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
+
+
+:mini:`meth (Map: map::mutable):splice: map`
+   Removes every key-value pair from :mini:`Map`,  returns the removed pairs as a new map.
 
 
 :mini:`meth (Map: map::mutable):splice(Key: any): map | nil`

@@ -543,7 +543,7 @@ sequence
       map("a" .. "z"):find("j", <) :> 107
 
 
-:mini:`meth (Sequence: sequence):first: any | nil`
+:mini:`meth (Sequence: sequence):first(...): any | nil`
    Returns the first value produced by :mini:`Sequence`.
 
    .. code-block:: mini
@@ -552,7 +552,7 @@ sequence
       first([]) :> nil
 
 
-:mini:`meth (Sequence: sequence):first2: tuple(any,  any) | nil`
+:mini:`meth (Sequence: sequence):first2(...): tuple(any,  any) | nil`
    Returns the first key and value produced by :mini:`Sequence`.
 
    .. code-block:: mini
@@ -608,7 +608,7 @@ sequence
       (1 .. 10):join :> "12345678910"
 
 
-:mini:`meth (Sequence: sequence):last: any | nil`
+:mini:`meth (Sequence: sequence):last(...): any | nil`
    Returns the last value produced by :mini:`Sequence`.
 
    .. code-block:: mini
@@ -617,7 +617,7 @@ sequence
       last([]) :> nil
 
 
-:mini:`meth (Sequence: sequence):last2: tuple(any,  any) | nil`
+:mini:`meth (Sequence: sequence):last2(...): tuple(any,  any) | nil`
    Returns the last key and value produced by :mini:`Sequence`.
 
    .. code-block:: mini
@@ -653,7 +653,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "c"
+      random("cake") :> "k"
       random([]) :> nil
 
 
@@ -663,7 +663,7 @@ sequence
    .. code-block:: mini
 
       count2(1 .. 60000;) random::by(swap("cat"))
-      :> {"t" is 30150, "a" is 19861, "c" is 9989}
+      :> {"a" is 20160, "t" is 29871, "c" is 9969}
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`

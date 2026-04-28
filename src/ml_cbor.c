@@ -329,6 +329,10 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	}
 }
 
+ML_TYPE(MLUnknownT, (), "unknown");
+
+ML_VALUE(MLUnknown, MLUnknownT);
+
 int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, int Size) {
 	minicbor_stream_t *Stream = Reader->Stream;
 	Stream->Next = Bytes;
@@ -411,7 +415,7 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 				value_handler(Reader, MLNil);
 				break;
 			default:
-				value_handler(Reader, MLNil);
+				value_handler(Reader, MLUnknown);
 				break;
 			}
 			break;

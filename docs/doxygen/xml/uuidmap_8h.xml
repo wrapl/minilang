@@ -44,6 +44,8 @@
         </childnode>
         <childnode refid="10" relation="include">
         </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
       </node>
       <node id="9">
         <label>ml_types.h</label>
@@ -68,7 +70,7 @@
         <link refid="ml__uuid_8h_source"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="18" relation="include">
+        <childnode refid="19" relation="include">
         </childnode>
       </node>
       <node id="13">
@@ -93,6 +95,9 @@
       <node id="12">
         <label>stdarg.h</label>
       </node>
+      <node id="18">
+        <label>stdbool.h</label>
+      </node>
       <node id="15">
         <label>stdint.h</label>
       </node>
@@ -108,7 +113,7 @@
       <node id="5">
         <label>unistd.h</label>
       </node>
-      <node id="18">
+      <node id="19">
         <label>uuid/uuid.h</label>
       </node>
     </incdepgraph>

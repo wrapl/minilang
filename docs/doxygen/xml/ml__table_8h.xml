@@ -23,7 +23,7 @@
         <childnode refid="5" relation="include">
         </childnode>
       </node>
-      <node id="17">
+      <node id="18">
         <label>ml_array.h</label>
         <link refid="ml__array_8h_source"/>
         <childnode refid="2" relation="include">
@@ -50,13 +50,15 @@
         </childnode>
         <childnode refid="9" relation="include">
         </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
       </node>
       <node id="1">
         <label>src/ml_table.h</label>
         <link refid="ml__table_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="17" relation="include">
+        <childnode refid="18" relation="include">
         </childnode>
       </node>
       <node id="8">
@@ -92,6 +94,9 @@
       </node>
       <node id="11">
         <label>stdarg.h</label>
+      </node>
+      <node id="17">
+        <label>stdbool.h</label>
       </node>
       <node id="14">
         <label>stdint.h</label>

@@ -23,10 +23,10 @@
         </childnode>
         <childnode refid="12" relation="include">
         </childnode>
-        <childnode refid="14" relation="include">
+        <childnode refid="15" relation="include">
         </childnode>
       </node>
-      <node id="14">
+      <node id="15">
         <label>ml_opcodes.h</label>
         <link refid="ml__opcodes_8h_source"/>
       </node>
@@ -40,6 +40,8 @@
         <childnode refid="5" relation="include">
         </childnode>
         <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
         </childnode>
       </node>
       <node id="2">
@@ -72,6 +74,9 @@
       </node>
       <node id="5">
         <label>stdarg.h</label>
+      </node>
+      <node id="14">
+        <label>stdbool.h</label>
       </node>
       <node id="10">
         <label>stdint.h</label>

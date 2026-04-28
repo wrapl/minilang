@@ -1553,6 +1553,7 @@
     <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
     <member refid="group__runtime_1ga443ffa134273c6e68e7c3619aa33854d" kind="define"><name>ml_state_continue</name></member>
     <member refid="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" kind="define"><name>ml_simple_inline</name></member>
+    <member refid="group__runtime_1gaf9610505bcd53f383b85412d3ae6b8ca" kind="define"><name>VALUE_REF_DECL</name></member>
     <member refid="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" kind="define"><name>SIZE_BITS</name></member>
     <member refid="group__runtime_1ga1c4e727662d91855584cc5f105ead657" kind="define"><name>MLC_DECL_CONSTANT</name></member>
     <member refid="group__runtime_1ga11e3df0bb21bd4d7ecff69b09d9ec7f0" kind="define"><name>MLC_DECL_FORWARD</name></member>
@@ -1631,6 +1632,18 @@
     <member refid="group__runtime_1ga47132b1afc1de7bad97ba1a50adbb493" kind="function"><name>ml_uninitialized_set</name></member>
     <member refid="group__runtime_1gaa9d1722f4b553b334463a55bd6a58bea" kind="function"><name>ml_uninitialized_name</name></member>
     <member refid="group__runtime_1ga627a55970344757243fbbbd0db5cd70c" kind="function"><name>ml_uninitialized_source</name></member>
+    <member refid="group__runtime_1ga34584979f0bb9b13c11b24422f37441d" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga513fee1a0d6893f202ba7dfadc433043" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gae4eae42072dc4e99c943d49992bd4c01" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga789fc66eaea5192bce77de0354e090c2" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gab11584c0d69ad609fd5ae2c111489517" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga4fa48877550c7e2fd939e3605d355513" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gafc13a122f6a2145c39815ac123883e41" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga056dc754f873d6e9b524e293de647eb5" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga7a2d7c2c473e89c68cb91d4e2d7f1e07" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga66eeb62552f460de2135028735f7bdcd" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gadb5fc4504ef764fa85c71c7423c87efb" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga87555d728eaba331d21ec2038188bf54" kind="function"><name>VALUE_REF_DECL</name></member>
     <member refid="group__runtime_1gab58836a023054d3ec67fa43390728008" kind="function"><name>ml_is_error</name></member>
     <member refid="group__runtime_1ga4779497872e6f36deafe8ae9212273e8" kind="function"><name>ml_error</name></member>
     <member refid="group__runtime_1ga08e90030c51b2e380dd1527a97a6934f" kind="function"><name>format</name></member>
@@ -2571,6 +2584,18 @@
     <member refid="group__runtime_1ga47132b1afc1de7bad97ba1a50adbb493" kind="function"><name>ml_uninitialized_set</name></member>
     <member refid="group__runtime_1gaa9d1722f4b553b334463a55bd6a58bea" kind="function"><name>ml_uninitialized_name</name></member>
     <member refid="group__runtime_1ga627a55970344757243fbbbd0db5cd70c" kind="function"><name>ml_uninitialized_source</name></member>
+    <member refid="group__runtime_1ga34584979f0bb9b13c11b24422f37441d" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga513fee1a0d6893f202ba7dfadc433043" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gae4eae42072dc4e99c943d49992bd4c01" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga789fc66eaea5192bce77de0354e090c2" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gab11584c0d69ad609fd5ae2c111489517" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga4fa48877550c7e2fd939e3605d355513" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gafc13a122f6a2145c39815ac123883e41" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga056dc754f873d6e9b524e293de647eb5" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga7a2d7c2c473e89c68cb91d4e2d7f1e07" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga66eeb62552f460de2135028735f7bdcd" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1gadb5fc4504ef764fa85c71c7423c87efb" kind="function"><name>VALUE_REF_DECL</name></member>
+    <member refid="group__runtime_1ga87555d728eaba331d21ec2038188bf54" kind="function"><name>VALUE_REF_DECL</name></member>
     <member refid="group__runtime_1gab58836a023054d3ec67fa43390728008" kind="function"><name>ml_is_error</name></member>
     <member refid="group__runtime_1ga4779497872e6f36deafe8ae9212273e8" kind="function"><name>ml_error</name></member>
     <member refid="group__runtime_1ga08e90030c51b2e380dd1527a97a6934f" kind="function"><name>format</name></member>
@@ -2611,6 +2636,7 @@
     <member refid="group__runtime_1gaf30b423fc69c031c64e988f6137cab6b" kind="define"><name>ml_alloc_args</name></member>
     <member refid="group__runtime_1ga443ffa134273c6e68e7c3619aa33854d" kind="define"><name>ml_state_continue</name></member>
     <member refid="group__runtime_1ga0e6996ae6c38dc643407f9991dfe309d" kind="define"><name>ml_simple_inline</name></member>
+    <member refid="group__runtime_1gaf9610505bcd53f383b85412d3ae6b8ca" kind="define"><name>VALUE_REF_DECL</name></member>
     <member refid="group__runtime_1ga29e2f3007fc1fe9406f144630d7fbfee" kind="define"><name>SIZE_BITS</name></member>
     <member refid="group__runtime_1ga1c4e727662d91855584cc5f105ead657" kind="define"><name>MLC_DECL_CONSTANT</name></member>
     <member refid="group__runtime_1ga11e3df0bb21bd4d7ecff69b09d9ec7f0" kind="define"><name>MLC_DECL_FORWARD</name></member>

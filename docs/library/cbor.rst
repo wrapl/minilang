@@ -17,14 +17,6 @@ cbor
    Decode :mini:`Bytes` into a Minilang value,  or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 
 
-:mini:`meth cbor::decode(Bytes: address, Globals: function): any | error`
-   Decode :mini:`Bytes` into a Minilang value,  or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
-
-
-:mini:`meth cbor::decode(Bytes: address, Globals: map): any | error`
-   Decode :mini:`Bytes` into a Minilang value,  or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
-
-
 :mini:`type cbor::decoder < stream`
    A CBOR decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
 
@@ -34,6 +26,22 @@ cbor
 
 
 :mini:`meth cbor::decode(Stream: stream): any | error`
+   *TBD*
+
+
+:mini:`meth cbor::decode(Bytes: address, Globals: function): any | error`
+   Decode :mini:`Bytes` into a Minilang value,  or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
+
+
+:mini:`meth cbor::decode(Bytes: address, Globals: map): any | error`
+   Decode :mini:`Bytes` into a Minilang value,  or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
+
+
+:mini:`type unknown`
+   *TBD*
+
+
+:mini:`def MLUnknown: unknown`
    *TBD*
 
 

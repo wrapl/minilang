@@ -161,5 +161,6 @@ ML_FUNCTION(RandomBoolean) {
 
 void ml_boolean_init() {
 #include "ml_boolean_init.c"
+	ml_method_by_value(MLBooleanT->Constructor, NULL, ml_identity, MLBooleanT, NULL);
 	stringmap_insert(MLBooleanT->Exports, "random", RandomBoolean);
 }
