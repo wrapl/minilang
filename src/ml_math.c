@@ -293,7 +293,11 @@ ML_METHOD("^", MLRationalT, MLRationalT) {
 #endif
 	double Base = ml_real_value(Args[0]);
 	if (Exponent.Den % 2 || Base >= 0) {
+#if __STDC_VERSION__ >= 202311L
 		return ml_real(pow(rootn(Base, Exponent.Den), Exponent.Num));
+#else
+		return ml_real(pow(Base, (double)Exponent.Num /Exponent.Den));
+#endif
 	}
 #ifdef ML_COMPLEX
 	return ml_complex(cpow(Base, (double)Exponent.Num / Exponent.Den));
