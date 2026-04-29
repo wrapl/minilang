@@ -832,6 +832,12 @@ void ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, i
 		Frame->Expr = Expr;
 		Frame->Flags = Flags;
 		return mlc_compile(Function, Expr->Child, Function->Try ? 0 : MLCF_RETURN);
+	} else if (Function->Must || Function->Try) {
+		MLC_FRAME(mlc_parent_expr_frame_t, ml_return_expr_compile2);
+		Frame->Expr = Expr;
+		Frame->Flags = Flags;
+		MLC_EMIT(Expr->StartLine, MLI_NIL, 0);
+		return ml_return_expr_compile2(Function, NULL, Frame);
 	} else {
 		MLC_EMIT(Expr->StartLine, MLI_NIL, 0);
 		MLC_EMIT(Expr->EndLine, MLI_RETURN, 0);

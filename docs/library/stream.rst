@@ -165,8 +165,16 @@ stream
    Writes the bytes at :mini:`Address` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
-:mini:`meth (Stream: stream):write(Value₁, : any, ...): integer`
-   Writes each :mini:`Valueᵢ` in turn to :mini:`Stream`.
+:mini:`meth (Stream: stream):write(Values: any, ...): integer`
+   Writes each value in :mini:`Values` in turn to :mini:`Stream`.
+
+
+:mini:`meth (Stream: stream):write(Source: stream): integer`
+   Copies the remaining bytes from :mini:`Source` to :mini:`Stream`.
+
+
+:mini:`meth (Stream: stream):write(Source: stream, Count: integer): integer`
+   Copies upto :mini:`Count` bytes from :mini:`Source` to :mini:`Stream`.
 
 
 :mini:`meth (Arg₁: stream):write16(Arg₂: integer)`

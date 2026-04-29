@@ -697,9 +697,9 @@ static void ml_stream_write_append_run(ml_write_state_t *State, ml_value_t *Valu
 
 ML_METHODVX("write", MLStreamT, MLAnyT) {
 //<Stream
-//<Value/1,...,Value/n
+//<Values...
 //>integer
-// Writes each :mini:`Value/i` in turn to :mini:`Stream`.
+// Writes each value in :mini:`Values` in turn to :mini:`Stream`.
 	ml_value_t *Stream = Args[0];
 	ml_write_state_t *State = xnew(ml_write_state_t, Count - 1, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -975,6 +975,42 @@ ML_METHODX("copy", MLStreamT, MLStreamT, MLIntegerT) {
 	State->Base.Context = Caller->Context;
 	ml_value_t *Source = State->Source = Args[0];
 	ml_value_t *Destination = State->Destination = Args[1];
+	State->read = ml_typed_fn_get(ml_typeof(Source), ml_stream_read) ?: ml_stream_read_method;
+	State->write = ml_typed_fn_get(ml_typeof(Destination), ml_stream_write) ?: ml_stream_write_method;
+	State->Base.run = (ml_state_fn)ml_stream_copy_read_run;
+	State->Remaining = ml_integer_value(Args[2]);
+	size_t Read = State->Remaining < ML_STRINGBUFFER_NODE_SIZE ? State->Remaining : ML_STRINGBUFFER_NODE_SIZE;
+	return State->read((ml_state_t *)State, Source, State->Buffer, Read);
+}
+
+ML_METHODX("write", MLStreamT, MLStreamT) {
+//<Stream
+//<Source
+//>integer
+// Copies the remaining bytes from :mini:`Source` to :mini:`Stream`.
+	ml_stream_copy_state_t *State = new(ml_stream_copy_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	ml_value_t *Source = State->Source = Args[1];
+	ml_value_t *Destination = State->Destination = Args[0];
+	State->read = ml_typed_fn_get(ml_typeof(Source), ml_stream_read) ?: ml_stream_read_method;
+	State->write = ml_typed_fn_get(ml_typeof(Destination), ml_stream_write) ?: ml_stream_write_method;
+	State->Base.run = (ml_state_fn)ml_stream_copy_read_run;
+	State->Remaining = SIZE_MAX;
+	return State->read((ml_state_t *)State, Source, State->Buffer, ML_STRINGBUFFER_NODE_SIZE);
+}
+
+ML_METHODX("write", MLStreamT, MLStreamT, MLIntegerT) {
+//<Stream
+//<Source
+//<Count
+//>integer
+// Copies upto :mini:`Count` bytes from :mini:`Source` to :mini:`Stream`.
+	ml_stream_copy_state_t *State = new(ml_stream_copy_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	ml_value_t *Source = State->Source = Args[1];
+	ml_value_t *Destination = State->Destination = Args[0];
 	State->read = ml_typed_fn_get(ml_typeof(Source), ml_stream_read) ?: ml_stream_read_method;
 	State->write = ml_typed_fn_get(ml_typeof(Destination), ml_stream_write) ?: ml_stream_write_method;
 	State->Base.run = (ml_state_fn)ml_stream_copy_read_run;
