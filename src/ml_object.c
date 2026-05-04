@@ -2144,6 +2144,11 @@ ML_METHOD("in", MLFlagsValueT, MLFlagsSpecT) {
 	}
 }
 
+ML_METHOD(MLIntegerT, MLFlagsValueT) {
+	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
+	return ml_integer(A->Value);
+}
+
 typedef struct {
 	ml_value_t *Values;
 	uint64_t Value;

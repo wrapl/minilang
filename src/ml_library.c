@@ -3,6 +3,7 @@
 #include "ml_module.h"
 #include "ml_utils.h"
 #include "ml_logging.h"
+#include "ml_json.h"
 #include <string.h>
 #ifdef Mingw
 #else
@@ -362,6 +363,39 @@ static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) 
 	}
 }
 
+static void ml_library_json_emit(json_decoder_t *Decoder, ml_value_t *Value) {
+	ml_value_t **Slot = (ml_value_t **)json_decoder_data(Decoder);
+	*Slot = Value;
+}
+
+static void ml_library_json_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
+	FILE *File = fopen(FileName, "r");
+	if (!File) ML_RETURN(Slot[0] = ml_error("ReadError", "Error reading %s", FileName));
+	json_decoder_t *Decoder = json_decoder(ml_library_json_emit, Slot);
+	char Buffer[256];
+	for (;;) {
+		size_t Actual = fread(Buffer, 1, 256, File);
+		if (!Actual) break;
+		json_decoder_parse(Decoder, Buffer, Actual);
+	}
+	if (!Slot[0]) Slot[0] = ml_error("JSONError", "Failed to parse %s", FileName);
+	ML_RETURN(Slot[0]);
+}
+
+static ml_value_t *ml_library_json_load0(const char *FileName, ml_value_t **Slot) {
+	FILE *File = fopen(FileName, "r");
+	if (!File) return Slot[0] = ml_error("ReadError", "Error reading %s", FileName);
+	json_decoder_t *Decoder = json_decoder(ml_library_json_emit, Slot);
+	char Buffer[256];
+	for (;;) {
+		size_t Actual = fread(Buffer, 1, 256, File);
+		if (!Actual) break;
+		json_decoder_parse(Decoder, Buffer, Actual);
+	}
+	if (!Slot[0]) Slot[0] = ml_error("JSONError", "Failed to parse %s", FileName);
+	return Slot[0];
+}
+
 #endif
 
 typedef struct {
@@ -462,6 +496,7 @@ void ml_library_init(stringmap_t *_Globals) {
 	ml_library_path_add_default();
 	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
 	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
+	ml_library_loader_add(".json", NULL, ml_library_json_load, ml_library_json_load0);
 #endif
 	//ml_library_loader_add("", ml_library_dir_test, ml_library_dir_load, ml_library_dir_load0);
 #include "ml_library_init.c"
