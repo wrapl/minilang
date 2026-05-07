@@ -2126,6 +2126,7 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 	Action.sa_flags = SA_RESTART;
 	sigaction(SIGALRM, &Action, NULL);
 #endif
+	signal(SIGPIPE, SIG_IGN);
 #if defined(ML_UNWIND) || defined(ML_BACKTRACE)
 	signal(SIGSEGV, error_handler);
 	signal(SIGABRT, error_handler);

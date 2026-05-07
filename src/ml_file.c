@@ -144,6 +144,20 @@ ml_value_t *ml_file(FILE *Handle) {
 	return (ml_value_t *)File;
 }
 
+ML_FUNCTION(MLFileRealPath) {
+//@file::realpath
+//<Path
+//>string|nil
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Path = ml_string_value(Args[0]);
+	const char *RealPath = realpath(Path, NULL);
+	if (!RealPath) return ml_error("FileError", "%s", strerror(errno));
+	ml_value_t *Result = ml_string_copy(RealPath, -1);
+	free((void *)RealPath);
+	return Result;
+}
+
 ML_FUNCTION(MLFileExists) {
 //!file
 //@file::exists
@@ -441,6 +455,7 @@ void ml_file_init(stringmap_t *Globals) {
 #ifndef Mingw
 	stringmap_insert(MLFileT->Exports, "mode", MLFileModeT);
 #endif
+	stringmap_insert(MLFileT->Exports, "realpath", MLFileRealPath);
 	stringmap_insert(MLFileT->Exports, "exists", MLFileExists);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
