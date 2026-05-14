@@ -788,7 +788,7 @@ ML_METHODX("writeu8", MLStreamT, MLIntegerT) {
 
 #endif
 
-extern ml_type_t MLByteOrderT[];
+extern ml_type_t *MLByteOrderT;
 
 #define ML_STREAM_INT_METHODS(WIDTH, SIZE) \
 \
