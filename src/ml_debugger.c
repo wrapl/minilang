@@ -473,13 +473,13 @@ ml_value_t *ml_remote_debugger_describe(ml_value_t *Value, ml_value_t *Output, d
 	Value = ml_deref(Value);
 	typeof(ml_remote_debugger_describe) *fn = ml_typed_fn_get(ml_typeof(Value), ml_remote_debugger_describe);
 	if (!fn) {
-		fprintf(stderr, "Using default debug description for %s\n", ml_typeof(Value)->Name);
+		//fprintf(stderr, "Using default debug description for %s\n", ml_typeof(Value)->Name);
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 		ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
 		ml_list_put(Output, ml_stringbuffer_get_value(Buffer));
 		return NULL;
 	}
-	fprintf(stderr, "Using typed debug description for %s\n", ml_typeof(Value)->Name);
+	//fprintf(stderr, "Using typed debug description for %s\n", ml_typeof(Value)->Name);
 	ml_value_t *Error = fn(Value, Output, Thread);
 	if (Error) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};

@@ -114,9 +114,9 @@ ML_METHOD("indices", XEVarT) {
 
 static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringbuffer_t *Buffer) {
 	ml_stringbuffer_put(Buffer, ' ');
-	ml_stringbuffer_simple_append(Buffer, Key);
+	ml_stringbuffer_append(Buffer, Key);
 	ml_stringbuffer_put(Buffer, '=');
-	ml_stringbuffer_simple_append(Buffer, Value);
+	ml_stringbuffer_append(Buffer, Value);
 	return 0;
 }
 
@@ -131,7 +131,7 @@ ML_METHOD("append", MLStringBufferT, XENodeT) {
 	if (ml_list_length(Node->Content)) {
 		ml_stringbuffer_put(Buffer, ':');
 		ML_LIST_FOREACH(Node->Content, Iter) {
-			ml_stringbuffer_simple_append(Buffer, Iter->Value);
+			ml_stringbuffer_append(Buffer, Iter->Value);
 		}
 	}
 	ml_stringbuffer_put(Buffer, '>');
@@ -142,10 +142,10 @@ ML_METHOD("append", MLStringBufferT, XEVarT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	xe_var_t *Var = (xe_var_t *)Args[1];
 	ml_stringbuffer_write(Buffer, "<$", 2);
-	ml_stringbuffer_simple_append(Buffer, Var->Name);
+	ml_stringbuffer_append(Buffer, Var->Name);
 	ML_LIST_FOREACH(Var->Indices, Iter) {
 		ml_stringbuffer_put(Buffer, ':');
-		ml_stringbuffer_simple_append(Buffer, Iter->Value);
+		ml_stringbuffer_append(Buffer, Iter->Value);
 	}
 	ml_stringbuffer_put(Buffer, '>');
 	return MLSome;

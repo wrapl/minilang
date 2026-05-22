@@ -36,10 +36,11 @@ ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
 
 ML_TYPE(MLArrayT, (MLAddressT, MLSequenceT), "array",
 // Base type for multidimensional arrays.
-	.Constructor = (ml_value_t *)MLArray
+	.Constructor = (ml_value_t *)MLArray,
+	.Rank = 3 // Needs to be MLBufferT->Rank + 1
 );
 
-ML_TYPE(MLArrayMutableT, (MLArrayT), "array::mutable",
+ML_TYPE(MLArrayMutableT, (MLArrayT, MLBufferT), "array::mutable",
 	.Constructor = (ml_value_t *)MLArray
 );
 
@@ -2154,7 +2155,7 @@ static long srotl(long X, unsigned int N) {
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
 
-#define BUFFER_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_simple_append(BUFFER, VALUE)
+#define BUFFER_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_append(BUFFER, VALUE)
 
 #ifdef ML_COMPLEX
 
@@ -2269,6 +2270,15 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 		} \
 	} \
 	ml_stringbuffer_write(Buffer, ">", 1); \
+} \
+\
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLArray ## SUFFIX, ml_stringbuffer_t *Buffer, ml_array_t *Array) { \
+	if (Array->Degree == 0) { \
+		APPEND(Buffer, PRINTF, *(CTYPE *)Array->Base.Value); \
+	} else { \
+		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Value); \
+	} \
+	return MLSome; \
 } \
 \
  ML_METHOD("append", MLStringBufferT, MLArray ## SUFFIX) { \

@@ -1078,6 +1078,11 @@ ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
 	.NoInherit = 1
 );
 
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLAddressT, ml_stringbuffer_t *Buffer, ml_address_t *Address) {
+	ml_stringbuffer_write(Buffer, Address->Value, Address->Length);
+	return MLSome;
+}
+
 ML_METHOD("append", MLStringBufferT, MLAddressT) {
 //!address
 //<Buffer
@@ -1216,6 +1221,15 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	return ml_string(Value, Length);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLBooleanT, ml_stringbuffer_t *Buffer, ml_boolean_t *Boolean) {
+	if (Boolean->Value) {
+		ml_stringbuffer_write(Buffer, "true", 4);
+	} else {
+		ml_stringbuffer_write(Buffer, "false", 5);
+	}
+	return MLSome;
+}
+
 ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 //!boolean
 //<Buffer
@@ -1232,6 +1246,11 @@ ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 }
 
 #ifdef ML_NANBOXING
+
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLInteger32T, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	ml_stringbuffer_printf(Buffer, "%" PRId64, ml_integer32_value(Value));
+	return MLSome;
+}
 
 ML_METHOD("append", MLStringBufferT, MLInteger32T) {
 //!number
@@ -1521,6 +1540,11 @@ ML_METHOD("append", MLStringBufferT, MLRealIntervalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g", Interval->Start, Interval->Limit);
+	return MLSome;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLDoubleT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", ml_double_value(Value));
 	return MLSome;
 }
 
@@ -5751,32 +5775,25 @@ done:;
 	return Result;
 }
 
-ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	typeof(ml_stringbuffer_append) *fn = ml_typed_fn_get(ml_typeof(Value), ml_stringbuffer_append);
+	if (fn) return fn(Buffer, Value);
 	return ml_simple_inline(AppendMethod, 2, Buffer, Value);
 }
 
-void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_value_t **Args = ml_alloc_args(2);
-	Args[0] = (ml_value_t *)Buffer;
-	Args[1] = Value;
-	return ml_call(Caller, AppendMethod, 2, Args);
+ML_METHOD("append", MLStringBufferT, MLAnyT) {
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_value_t *Value = Args[1];
+	typeof(ml_stringbuffer_append) *fn = ml_typed_fn_get(ml_typeof(Value), ml_stringbuffer_append);
+	if (fn) return fn(Buffer, Value);
+	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Value)->Name);
+	return MLSome;
 }
 
-typedef struct {
-	ml_state_t Base;
-	ml_stringbuffer_t *Buffer;
-	int Index, Count, Initial;
-	ml_value_t *Args[];
-} ml_write_state_t;
-
-static void ml_string_buffer_write_run(ml_write_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_stringbuffer_t *Buffer = State->Buffer;
-	if (++State->Index < State->Count) return ml_stringbuffer_append((ml_state_t *)State, Buffer, State->Args[State->Index]);
-	ML_CONTINUE(State->Base.Caller, ml_integer(State->Buffer->Length - State->Initial));
-}
-
-ML_METHODVX("write", MLStringBufferT, MLAnyT) {
+ML_METHODV("write", MLStringBufferT, MLAnyT) {
 //<Buffer
 //<Value/1,...,Value/n
 //>integer
@@ -5784,16 +5801,14 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 //$- let B := string::buffer()
 //$- B:write("1 + 1 = ", 1 + 1)
 //$= B:rest
-	ml_write_state_t *State = xnew(ml_write_state_t, Count - 1, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_string_buffer_write_run;
-	State->Buffer = (ml_stringbuffer_t *)Args[0];
-	State->Initial = State->Buffer->Length;
-	State->Index = 0;
-	State->Count = Count - 1;
-	for (int I = 1; I < Count; ++I) State->Args[I - 1] = Args[I];
-	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, State->Args[0]);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_value_t *Result = MLNil;
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Value = ml_stringbuffer_append(Buffer, Args[I]);
+		if (ml_is_error(Value)) return Value;
+		if (Value != MLNil) Result = Value;
+	}
+	return Result;
 }
 
 ML_METHOD("read8", MLStringBufferT) {

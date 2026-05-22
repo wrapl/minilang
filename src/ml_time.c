@@ -457,12 +457,69 @@ ML_METHODV("-", MLTimeT, MLNamesT, MLIntegerT) {
 	return (ml_value_t *)Time;
 }
 
+ML_FUNCTION(MLTimeEpoch) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLIntegerT);
+		uint64_t Scale = 1, NScale = 1;
+		switch (ml_integer_value(Args[1])) {
+		case 0: Scale = 1; NScale = 1000000000; break;
+		case 1: Scale = 10; NScale = 100000000; break;
+		case 2: Scale = 100; NScale = 10000000; break;
+		case 3: Scale = 1000; NScale = 1000000; break;
+		case 4: Scale = 10000; NScale = 100000; break;
+		case 5: Scale = 100000; NScale = 10000; break;
+		case 6: Scale = 1000000; NScale = 1000; break;
+		case 7: Scale = 10000000; NScale = 100; break;
+		case 8: Scale = 100000000; NScale = 10; break;
+		case 9: Scale = 1000000000; NScale = 1; break;
+		default: return ml_error("RangeError", "Unsupported time scale");
+		}
+		ldiv_t Div = ldiv(ml_integer_value(Args[0]), Scale);
+		if (Div.rem < 0) {
+			Div.rem += Scale;
+			--Div.quot;
+		}
+		Time->Value->tv_sec = Div.quot;
+		Time->Value->tv_nsec = Div.rem * NScale;
+	} else {
+		Time->Value->tv_sec = ml_integer_value(Args[0]);
+	}
+	return (ml_value_t *)Time;
+}
+
 ML_METHOD("epoch", MLTimeT) {
 //<Time
 //>integer
-// Returns the seconds component of :mini:`Time`.
+// Returns the seconds since the epoch.
 	ml_time_t *Time = (ml_time_t *)Args[0];
 	return ml_integer(Time->Value->tv_sec);
+}
+
+ML_METHOD("epoch", MLTimeT, MLIntegerT) {
+//<Time
+//<Precision
+//>integer
+// Returns the :mini:`round(Seconds since epoch x 10^Precision)`.
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	uint64_t Scale = 1, NScale = 1;
+	switch (ml_integer_value(Args[1])) {
+	case 0: Scale = 1; NScale = 1000000000; break;
+	case 1: Scale = 10; NScale = 100000000; break;
+	case 2: Scale = 100; NScale = 10000000; break;
+	case 3: Scale = 1000; NScale = 1000000; break;
+	case 4: Scale = 10000; NScale = 100000; break;
+	case 5: Scale = 100000; NScale = 10000; break;
+	case 6: Scale = 1000000; NScale = 1000; break;
+	case 7: Scale = 10000000; NScale = 100; break;
+	case 8: Scale = 100000000; NScale = 10; break;
+	case 9: Scale = 1000000000; NScale = 1; break;
+	default: return ml_error("RangeError", "Unsupported time scale");
+	}
+	return ml_integer((Time->Value->tv_sec * Scale) + (Time->Value->tv_nsec / NScale));
 }
 
 ML_METHOD("nsec", MLTimeT) {
@@ -1221,6 +1278,7 @@ void ml_time_init(stringmap_t *Globals) {
 		"Hour", ml_integer(60 * 60),
 		"Day", ml_integer(60 * 60 * 24),
 	NULL));
+	stringmap_insert(MLTimeT->Exports, "epoch", MLTimeEpoch);
 	stringmap_insert(MLTimeT->Exports, "mdays", MLTimeMdays);
 	stringmap_insert(MLTimeT->Exports, "day", MLTimeDayT);
 	stringmap_insert(MLTimeT->Exports, "month", MLTimeMonthT);

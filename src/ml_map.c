@@ -1823,6 +1823,37 @@ ML_METHOD("from", MLMapT, MLAnyT) {
 	return (ml_value_t *)From;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMapT, ml_stringbuffer_t *Buffer, ml_map_t *Map) {
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Map) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			return MLSome;
+		}
+	}
+	ml_map_node_t *Node = Map->Head;
+	if (!Node) {
+		ml_stringbuffer_write(Buffer, "{}", 2);
+		return MLSome;
+	}
+	ml_hash_chain_t Chain[1] = {{Buffer->Chain, (ml_value_t *)Map, 0}};
+	Buffer->Chain = Chain;
+	ml_stringbuffer_put(Buffer, '{');
+	ml_stringbuffer_append(Buffer, Node->Key);
+	ml_stringbuffer_write(Buffer, " is ", 4);
+	ml_stringbuffer_append(Buffer, Node->Value);
+	while ((Node = Node->Next)) {
+		ml_stringbuffer_write(Buffer, ", ", 2);
+		ml_stringbuffer_append(Buffer, Node->Key);
+		ml_stringbuffer_write(Buffer, " is ", 4);
+		ml_stringbuffer_append(Buffer, Node->Value);
+	}
+	ml_stringbuffer_put(Buffer, '}');
+	Buffer->Chain = Chain->Previous;
+	return MLSome;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;

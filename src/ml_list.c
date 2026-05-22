@@ -1005,6 +1005,35 @@ ML_METHODX(">=", MLListT, MLListT) {
 	return ml_call(State, GreaterMethod, 2, State->Args);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLListT, ml_stringbuffer_t *Buffer, ml_list_t *List) {
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)List) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			return MLSome;
+		}
+	}
+	ml_list_node_t *Node = List->Head;
+	if (!Node) {
+		ml_stringbuffer_write(Buffer, "[]", 2);
+		return MLSome;
+	}
+	ml_hash_chain_t Chain[1] = {{Buffer->Chain, (ml_value_t *)List, 0}};
+	Buffer->Chain = Chain;
+	ml_stringbuffer_put(Buffer, '[');
+	ml_value_t *Value = ml_stringbuffer_append(Buffer, Node->Value);
+	if (ml_is_error(Value)) return Value;
+	while ((Node = Node->Next)) {
+		ml_stringbuffer_write(Buffer, ", ", 2);
+		ml_value_t *Value = ml_stringbuffer_append(Buffer, Node->Value);
+		if (ml_is_error(Value)) return Value;
+	}
+	ml_stringbuffer_put(Buffer, ']');
+	Buffer->Chain = Chain->Previous;
+	return MLSome;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;

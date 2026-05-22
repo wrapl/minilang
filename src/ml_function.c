@@ -13,7 +13,7 @@
 extern ml_value_t *IndexMethod;
 extern ml_value_t *CompareMethod;
 
-ML_INTERFACE(MLFunctionT, (), "function");
+ML_INTERFACE(MLFunctionT, (), "function", .Rank = 1);
 // The base type of all functions.
 
 int ml_function_source(ml_value_t *Value, const char **Source, int *Line) {

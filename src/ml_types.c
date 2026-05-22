@@ -58,7 +58,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 
 // Types //
 
-ML_INTERFACE(MLAnyT, (), "any", .Rank = 1);
+ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
 //!any
 // Base type for all values.
 
@@ -278,7 +278,7 @@ void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
 }
 
 void ml_type_init(ml_type_t *Type, ...) {
-	int Rank = 1;
+	int Rank = Type->Rank;
 	va_list Args;
 	va_start(Args, Type);
 	ml_type_t *Parent;
@@ -287,7 +287,7 @@ void ml_type_init(ml_type_t *Type, ...) {
 		ml_type_add_parent(Type, Parent);
 	}
 	va_end(Args);
-	if (Type != MLAnyT) Type->Rank = Rank + 1;
+	Type->Rank = Rank + 1;
 	stringmap_insert(Type->Exports, "of", Type->Constructor);
 }
 
@@ -1442,15 +1442,6 @@ ML_METHODX("max", MLAnyT, MLAnyT) {
 	return ml_call(State, GreaterMethod, 2, State->Args);
 }
 
-ML_METHOD("append", MLStringBufferT, MLAnyT) {
-//<Buffer
-//<Value
-// Appends a representation of :mini:`Value` to :mini:`Buffer`.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Args[1])->Name);
-	return MLSome;
-}
-
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Default;
@@ -2512,6 +2503,7 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_BIGINT
 	mp_set_memory_functions(GC_malloc_atomic, GC_realloc2, GC_nop2);
 #endif
+	ml_function_init();
 	ml_method_init();
 #include "ml_types_init.c"
 #ifdef ML_GENERICS
@@ -2539,7 +2531,6 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 	ml_method_by_name("max", NULL, ml_return_first, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("min", NULL, ml_return_second, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("max", NULL, ml_return_second, MLNilT, MLAnyT, NULL);
-	ml_function_init();
 	ml_tuple_init();
 	ml_boolean_init();
 	ml_number_init();

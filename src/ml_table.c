@@ -785,7 +785,7 @@ ML_METHOD(AppendMethod, MLStringBufferT, MLTableT) {
 	for (ml_table_column_t *Column = ((ml_table_t *)Table)->Columns; Column; Column = Column->Next) {
 		ml_stringbuffer_write(Buffer, ml_string_value(Column->Name), ml_string_length(Column->Name));
 		ml_stringbuffer_write(Buffer, ": ", strlen(": "));
-		ml_stringbuffer_simple_append(Buffer, (ml_value_t *)Column->Values);
+		ml_stringbuffer_append(Buffer, (ml_value_t *)Column->Values);
 		ml_stringbuffer_write(Buffer, "\n", strlen("\n"));
 	}
 	return MLSome;
@@ -901,13 +901,13 @@ ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 		ml_stringbuffer_write(Buffer, ml_string_value(Column->Name), ml_string_length(Column->Name));
 		ml_stringbuffer_write(Buffer, " is ", 4);
 		ml_value_t *Value = ml_array_index(Column->Values, 1, Indices);
-		ml_stringbuffer_simple_append(Buffer, Value);
+		ml_stringbuffer_append(Buffer, Value);
 		while ((Column = Column->Next)) {
 			ml_stringbuffer_write(Buffer, ", ", 2);
 			ml_stringbuffer_write(Buffer, ml_string_value(Column->Name), ml_string_length(Column->Name));
 			ml_stringbuffer_write(Buffer, " is ", 4);
 			ml_value_t *Value = ml_array_index(Column->Values, 1, Indices);
-			ml_stringbuffer_simple_append(Buffer, Value);
+			ml_stringbuffer_append(Buffer, Value);
 		}
 		ml_stringbuffer_put(Buffer, '>');
 	}

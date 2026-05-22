@@ -117,7 +117,7 @@ void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **A
 	.Parents = {INTHASH_INIT}, \
 	.TypedFns = {INTHASH_INIT}, \
 	.Exports = {STRINGMAP_INIT}, \
-	.Rank = 0, \
+	.Rank = 1, \
 	.Interface = 0, \
 	##__VA_ARGS__ \
 }
@@ -136,7 +136,7 @@ ml_type_t TYPE[1] = {ML_TYPE_INIT((ml_value_t *)CONCAT2(TYPE, Of), PARENTS, NAME
 
 #endif
 
-#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = 1, .Interface = 1, __VA_ARGS__)
+#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Interface = 1, __VA_ARGS__)
 
 void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 
@@ -952,7 +952,7 @@ static inline int ml_stringbuffer_length(ml_stringbuffer_t *Buffer) {
 char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 char ml_stringbuffer_last(ml_stringbuffer_t *Buffer);
-void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
+ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 void ml_stringbuffer_clear(ml_stringbuffer_t *Buffer);
 void ml_stringbuffer_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Length);
 
@@ -987,8 +987,6 @@ static inline ssize_t ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t 
 	Val[--I] = (Code & LeadByteMax) | (~LeadByteMax << 1);
 	return ml_stringbuffer_write(Buffer, Val + I, 8 - I);
 }
-
-ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));

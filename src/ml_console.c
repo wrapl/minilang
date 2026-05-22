@@ -128,7 +128,7 @@ static void ml_console_log(ml_console_t *Console, ml_value_t *Value) {
 		}
 	} else {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		Value = ml_stringbuffer_simple_append(Buffer, Value);
+		Value = ml_stringbuffer_append(Buffer, Value);
 		if (ml_is_error(Value)) goto error;
 		ml_stringbuffer_drain(Buffer, Console->Output, (void *)ml_stringbuffer_print);
 		fputs("\n", Console->Output);

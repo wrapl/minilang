@@ -126,7 +126,7 @@ static void ml_session_run(ml_session_t *Session, ml_value_t *Value) {
 			ml_stringbuffer_printf(Buffer, "\t%s:%d\n", Source.Name, Source.Line);
 		}
 	} else {
-		Value = ml_stringbuffer_simple_append(Buffer, Value);
+		Value = ml_stringbuffer_append(Buffer, Value);
 		if (ml_is_error(Value)) goto error;
 		ml_stringbuffer_write(Buffer, "\n", strlen("\n"));
 	}
@@ -140,7 +140,7 @@ ML_FUNCTIONX(MLPrint) {
 	ml_session_t *Session = ml_context_get_static(Caller->Context, ML_SESSION_INDEX);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
+		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) ML_RETURN(Result);
 	}
 	_ml_output(Session - Sessions, ml_stringbuffer_get_string(Buffer));

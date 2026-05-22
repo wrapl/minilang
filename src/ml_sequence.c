@@ -2103,16 +2103,12 @@ static void join_next(ml_join_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-static void join_append(ml_join_state_t *State, ml_value_t *Value) {
+static void join_value(ml_join_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	Value = ml_stringbuffer_append(State->Buffer, Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (void *)join_next;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void join_value(ml_join_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Base.run = (void *)join_append;
-	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, Value);
 }
 
 static void join_first(ml_join_state_t *State, ml_value_t *Value) {
@@ -2171,16 +2167,12 @@ static void append_next(ml_append_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-static void append_append(ml_append_state_t *State, ml_value_t *Value) {
+static void append_value(ml_append_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	Value = ml_stringbuffer_append(State->Buffer, Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (void *)append_next;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void append_value(ml_append_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Base.run = (void *)append_append;
-	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, Value);
 }
 
 static void append_first(ml_append_state_t *State, ml_value_t *Value) {

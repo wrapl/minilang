@@ -184,6 +184,35 @@ ML_METHOD("id", MLClassT) {
 	return ml_uuid(Class->Id);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLObjectT, ml_stringbuffer_t *Buffer, ml_object_t *Object) {
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == (ml_value_t *)Object) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
+			return MLSome;
+		}
+	}
+	ml_hash_chain_t Chain[1] = {{Buffer->Chain, (ml_value_t *)Object, 0}};
+	Buffer->Chain = Chain;
+	int Separator = 0;
+	ml_stringbuffer_printf(Buffer, "%s(", Object->Type->Base.Name);
+	for (ml_field_info_t *Info = Object->Type->Fields; Info; Info = Info->Next) {
+		const char *Name = ml_method_name(Info->Method);
+		if (Name) {
+			if (Separator) ml_stringbuffer_write(Buffer, ", ", 2);
+			Separator = 1;
+			ml_stringbuffer_write(Buffer, Name, strlen(Name));
+			ml_stringbuffer_write(Buffer, " is ", 4);
+			ml_value_t *Value = ml_stringbuffer_append(Buffer, Object->Fields[Info->Index].Value);
+			if (ml_is_error(Value)) return Value;
+		}
+	}
+	ml_stringbuffer_put(Buffer, ')');
+	Buffer->Chain = Chain->Previous;
+	return MLSome;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;
