@@ -374,6 +374,41 @@ ml_value_t *ml_table_append(ml_value_t *Table0, ml_value_t **Values) {
 	return NULL;
 }
 
+void ml_table_append_fast(ml_value_t *Table0, ml_table_value_t *Values) {
+	ml_table_t *Table = (ml_table_t *)Table0;
+	int Length = Table->Length;
+	ml_table_insert_row(Table, Length + 1);
+	for (ml_table_column_t *Column = Table->Columns; Column; Column = Column->Next, ++Values) {
+		char *Address = Column->Values->Base.Value + Length * Column->Values->Dimensions[0].Stride;
+		switch (Column->Values->Format) {
+		case ML_ARRAY_FORMAT_NONE: break;
+		case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = Values->Int8; break;
+		case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = Values->UInt8; break;
+		case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = Values->Int8; break;
+		case ML_ARRAY_FORMAT_U16: *(uint16_t *)Address = Values->UInt8; break;
+		case ML_ARRAY_FORMAT_I32: *(int32_t *)Address = Values->Int32; break;
+		case ML_ARRAY_FORMAT_U32: *(uint32_t *)Address = Values->UInt32; break;
+		case ML_ARRAY_FORMAT_I64: *(int64_t *)Address = Values->Int64; break;
+		case ML_ARRAY_FORMAT_U64: *(uint64_t *)Address = Values->UInt64; break;
+		case ML_ARRAY_FORMAT_F32: *(float *)Address = Values->Float; break;
+		case ML_ARRAY_FORMAT_F64: *(double *)Address = Values->Double; break;
+#ifdef ML_COMPLEX
+		case ML_ARRAY_FORMAT_C32:
+			((float *)Address)[0] = Values[0].Float;
+			((float *)Address)[1] = Values[1].Float;
+			++Values;
+			break;
+		case ML_ARRAY_FORMAT_C64:
+			((double *)Address)[0] = Values[0].Double;
+			((double *)Address)[1] = Values[1].Double;
+			++Values;
+			break;
+#endif
+		case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = Values->Value; break;
+		}
+	}
+}
+
 static __attribute__ ((noinline)) ml_value_t * ml_table_append_row(ml_table_t *Table, ml_value_t *Value) {
 	int Index = Table->Length + 1;
 	ml_table_insert_row(Table, Index);

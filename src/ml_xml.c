@@ -2345,6 +2345,10 @@ static ml_value_t *ml_xml_from_string(const char *Text, size_t Length, int Flags
 	return Result ?: ml_error("XMLError", "Incomplete XML");
 }
 
+ml_value_t *ml_xml_parse(const char *Text, size_t Length) {
+	return ml_xml_from_string(Text, Length, 0);
+}
+
 ML_METHOD(MLXmlT, MLStringT) {
 //<String
 //>xml

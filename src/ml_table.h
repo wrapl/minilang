@@ -16,6 +16,23 @@ ml_value_t *ml_table();
 void ml_table_column(ml_value_t *Table, const char *Name, ml_array_format_t Format);
 ml_value_t *ml_table_append(ml_value_t *Table, ml_value_t **Values);
 
+typedef union {
+	ml_value_t *Value;
+	void *Ptr;
+	int8_t Int8;
+	int16_t Int16;
+	int32_t Int32;
+	int64_t Int64;
+	uint8_t UInt8;
+	uint16_t UInt16;
+	uint32_t UInt32;
+	uint64_t UInt64;
+	float Float;
+	double Double;
+} ml_table_value_t;
+
+void ml_table_append_fast(ml_value_t *Table, ml_table_value_t *Values);
+
 ml_array_t *ml_table_insert(ml_value_t *Table, const char *Name, ml_value_t *Source);
 ml_value_t *ml_table_columns(ml_value_t *Table);
 int ml_table_column_foreach(ml_value_t *Table, void *Data, int (*fn)(ml_value_t *Name, ml_value_t *Values, void *Data));
