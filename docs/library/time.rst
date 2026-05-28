@@ -11,6 +11,10 @@ time
 
 Provides time and date operations.
 
+:mini:`fun mltimeepoch(Arg₁: integer)`
+   *TBD*
+
+
 :mini:`fun time::mdays(Year: integer, Month: integer): integer`
    *TBD*
 
@@ -48,7 +52,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2026-04-29T08:02:24.435513
+      time() :> 2026-05-28T08:38:15.34647
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer): time`
@@ -143,7 +147,11 @@ Provides time and date operations.
 
 
 :mini:`meth (Time: time):epoch: integer`
-   Returns the seconds component of :mini:`Time`.
+   Returns the seconds since the epoch.
+
+
+:mini:`meth (Time: time):epoch(Precision: integer): integer`
+   Returns the :mini:`round(Seconds since epoch x 10^Precision)`.
 
 
 :mini:`meth (Time: time):hour: integer`

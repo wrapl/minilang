@@ -66,7 +66,3 @@ any
    Returns :mini:`A` if :mini:`A < B` and :mini:`B` otherwise.
 
 
-:mini:`meth (Buffer: string::buffer):append(Value: any)`
-   Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
-

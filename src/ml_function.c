@@ -39,7 +39,19 @@ ML_METHODX("!", MLFunctionT, MLTupleT) {
 // Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
 	ml_value_t *Function = Args[0];
-	return ml_call(Caller, Function, Tuple->Size, Tuple->Values);
+	if (Tuple->Names) {
+		ml_value_t **Args2 = ml_alloc_args(Tuple->Size + 1);
+		int NamedCount = ml_names_length(Tuple->Names);
+		int Offset = Tuple->Size - NamedCount;
+		memcpy(Args2, Tuple->Values, Offset * sizeof(ml_value_t *));
+		Args[Offset] = Tuple->Names;
+		memcpy(Args2 + Offset + 1, Tuple->Values + Offset, NamedCount * sizeof(ml_value_t *));
+		return ml_call(Caller, Function, Tuple->Size + 1, Args2);
+	} else {
+		ml_value_t **Args2 = ml_alloc_args(Tuple->Size);
+		memcpy(Args2, Tuple->Values, Tuple->Size * sizeof(ml_value_t *));
+		return ml_call(Caller, Function, Tuple->Size, Args2);
+	}
 }
 
 ML_METHODX("!", MLFunctionT, MLListT) {
@@ -94,10 +106,19 @@ ML_METHODX("!", MLFunctionT, MLTupleT, MLMapT) {
 	int MapCount = ml_map_size(Map);
 	int Count2 = TupleCount + MapCount + 1;
 	ml_value_t **Args2 = ml_alloc_args(Count2);
-	memcpy(Args2, Tuple->Values, TupleCount * sizeof(ml_value_t *));
 	ml_value_t *Names = ml_names();
-	ml_value_t **Arg = Args2 + TupleCount;
-	*(Arg++) = Names;
+	if (Tuple->Names) {
+		int NamedCount = ml_names_length(Tuple->Names);
+		int Offset = Tuple->Size - NamedCount;
+		memcpy(Args2, Tuple->Values, Offset * sizeof(ml_value_t *));
+		ML_NAMES_FOREACH(Tuple->Names, Iter) ml_names_add(Names, Iter->Value);
+		Args2[Offset] = Names;
+		memcpy(Args2 + Offset + 1, Tuple->Values + Offset, NamedCount * sizeof(ml_value_t *));
+	} else {
+		memcpy(Args2, Tuple->Values, TupleCount * sizeof(ml_value_t *));
+		Args2[Tuple->Size] = Names;
+	}
+	ml_value_t **Arg = Args2 + TupleCount + 1;
 	ML_MAP_FOREACH(Map, Node) {
 		ml_value_t *Name = Node->Key;
 		if (ml_is(Name, MLStringT)) {

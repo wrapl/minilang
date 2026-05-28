@@ -101,6 +101,10 @@ tuple
    Indexing starts at :mini:`1`. Negative indices count from the end,  with :mini:`-1` returning the last element.
 
 
+:mini:`meth (Tuple: tuple)[Name: string]: any | error`
+   Returns the element in :mini:`Tuple` named :mini:`Name` or an error if no such named element exists.
+
+
 :mini:`meth (Tuple: tuple):size: integer`
    Returns the number of elements in :mini:`Tuple`.
 

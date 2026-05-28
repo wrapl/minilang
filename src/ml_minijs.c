@@ -650,10 +650,11 @@ static ml_value_t *ml_minijs_decode_tuple(ml_minijs_decoder_t *Decoder, ml_list_
 	for (ml_list_node_t *Tail = Node; Tail; Tail = Tail->Next) ++Size;
 	ml_value_t *Tuple = ml_tuple(Size);
 	if (Index >= 0) inthash_insert(Decoder->Cached, Index, Tuple);
-	for (int I = 1; Node; Node = Node->Next, ++I) {
+	while (Node) {
 		ml_value_t *Value = ml_minijs_decode(Decoder, Node->Value);
 		if (ml_is_error(Value)) return Value;
 		ml_tuple_set(Tuple, Index, Value);
+		Node = Node->Next;
 	}
 	return Tuple;
 }

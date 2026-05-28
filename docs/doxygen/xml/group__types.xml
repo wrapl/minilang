@@ -1000,7 +1000,7 @@
     .Parents = {INTHASH_INIT}, \
     .TypedFns = {INTHASH_INIT}, \
     .Exports = {STRINGMAP_INIT}, \
-    .Rank = 0, \
+    .Rank = 1, \
     .Interface = 0, \
     ##__VA_ARGS__ \
 }</initializer>
@@ -1035,7 +1035,7 @@
         <param><defname>PARENTS</defname></param>
         <param><defname>NAME</defname></param>
         <param><defname>...</defname></param>
-        <initializer>ML_TYPE(TYPE, PARENTS, NAME, .Rank = 1, .Interface = 1, __VA_ARGS__)</initializer>
+        <initializer>ML_TYPE(TYPE, PARENTS, NAME, .Interface = 1, __VA_ARGS__)</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>

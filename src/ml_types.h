@@ -532,6 +532,7 @@ extern ml_type_t MLTupleT[];
 struct ml_tuple_t {
 	ml_type_t *Type;
 	int Size, NoRefs;
+	ml_value_t *Names;
 	ml_value_t *Values[] __attribute__((__counted_by__(Size)));
 };
 
@@ -1402,6 +1403,9 @@ extern ml_type_t MLNamesT[];
 ml_value_t *ml_names();
 void ml_names_add(ml_value_t *Names, ml_value_t *Value);
 #define ml_names_length ml_list_length
+
+int ml_names_find(ml_value_t *Names, ml_value_t *Name);
+#define ml_names_get ml_list_get
 
 #define ML_NAMES_CHECK_ARG_COUNT(N) { \
 	int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \

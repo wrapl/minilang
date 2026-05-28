@@ -370,6 +370,27 @@
         </inbodydescription>
         <location file="src/ml_xml.h" line="30" column="6" declfile="src/ml_xml.h" declline="30" declcolumn="6"/>
       </memberdef>
+      <memberdef kind="function" id="ml__xml_8h_1a62fd9ee6ff9308a3657652a9bb675207" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+        <definition>ml_value_t * ml_xml_parse</definition>
+        <argsstring>(const char *Text, size_t Length)</argsstring>
+        <name>ml_xml_parse</name>
+        <param>
+          <type>const char *</type>
+          <declname>Text</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>Length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_xml.h" line="32" column="12" declfile="src/ml_xml.h" declline="32" declcolumn="12"/>
+      </memberdef>
       <memberdef kind="function" id="ml__xml_8h_1a0373c058ef2dd0bdcbfcae5f0adb3d91" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
         <definition>ml_value_t * ml_parser_escape_xml_like</definition>
@@ -389,7 +410,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_xml.h" line="32" column="12" declfile="src/ml_xml.h" declline="32" declcolumn="12"/>
+        <location file="src/ml_xml.h" line="34" column="12" declfile="src/ml_xml.h" declline="34" declcolumn="12"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -428,13 +449,15 @@
 <codeline lineno="29"><highlight class="normal">ml_xml_node_t<sp/>*ml_xml_text(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Content,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
 <codeline lineno="30"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_xml_element_put(ml_xml_element_t<sp/>*Parent,<sp/>ml_xml_node_t<sp/>*Child);</highlight></codeline>
 <codeline lineno="31"><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_parser_escape_xml_like(<ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref><sp/>*Parser,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Constructor);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_xml_parse(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*Text,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>Length);</highlight></codeline>
 <codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_parser_escape_xml_like(<ref refid="structml__parser__t" kindref="compound">ml_parser_t</ref><sp/>*Parser,<sp/><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Constructor);</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="src/ml_xml.h"/>
   </compounddef>

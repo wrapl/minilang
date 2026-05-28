@@ -133,13 +133,28 @@ ML_FUNCTION(MLTuple) {
 //<Value/n
 //>tuple
 // Returns a tuple of values :mini:`Value/1, ..., Value/n`.
-	ml_value_t *Tuple = ml_tuple(Count);
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Count, ml_value_t *);
+	Tuple->Size = Count;
+	ml_value_t **Slot = Tuple->Values;
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Value = ml_deref(Args[I]);
-		//if (ml_is_error(Value)) return Value;
-		ml_tuple_set(Tuple, I + 1, Value);
+		if (ml_typeof(Value) == MLNamesT) {
+			ML_NAMES_CHECK_ARG_COUNT(I);
+			--Tuple->Size;
+			Tuple->Names = Value;
+		} else {
+			*Slot++ = Value;
+		}
 	}
-	return Tuple;
+#ifdef ML_GENERICS
+	ml_type_t *Types[Tuple->Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
+	Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
+#else
+	Tuple->Type = MLTupleT;
+#endif
+	return (ml_value_t *)Tuple;
 }
 
 ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
@@ -278,60 +293,57 @@ ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
 	return Value;
 }
 
+#endif
+
 ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) {
 	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 	Tuple->Size = Size;
-	ml_type_t *Types[Size + 1];
-	Types[0] = MLTupleT;
+	ml_value_t **Slot = Tuple->Values;
 	for (int I = 0; I < Size; ++I) {
-		Tuple->Values[I] = Values[I];
-		Types[I + 1] = ml_typeof(Values[I]);
+		if (ml_typeof(Values[I]) == MLNamesT) {
+			--Tuple->Size;
+			Tuple->Names = Values[I];
+		} else {
+			*Slot++ = Values[I];
+		}
 	}
-	Tuple->Type = ml_generic_type(Size + 1, Types);
+#ifdef ML_GENERICS
+	ml_type_t *Types[Tuple->Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
+	Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
+#else
+	Tuple->Type = MLTupleT;
+#endif
 	return (ml_value_t *)Tuple;
 }
 
 ml_value_t *ml_tuplev(size_t Size, ...) {
 	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 	Tuple->Size = Size;
-	ml_type_t *Types[Size + 1];
-	Types[0] = MLTupleT;
+	ml_value_t **Slot = Tuple->Values;
 	va_list Args;
 	va_start(Args, Size);
 	for (int I = 0; I < Size; ++I) {
 		ml_value_t *Value = va_arg(Args, ml_value_t *);
-		Tuple->Values[I] = Value;
-		Types[I + 1] = ml_typeof(Value);
+		if (ml_typeof(Value) == MLNamesT) {
+			--Tuple->Size;
+			Tuple->Names = Value;
+		} else {
+			*Slot++ = Value;
+		}
 	}
 	va_end(Args);
-	Tuple->Type = ml_generic_type(Size + 1, Types);
-	return (ml_value_t *)Tuple;
-}
-
+#ifdef ML_GENERICS
+	ml_type_t *Types[Tuple->Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
+	Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
 #else
-
-ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) {
-	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 	Tuple->Type = MLTupleT;
-	Tuple->Size = Size;
-	for (int I = 0; I < Size; ++I) Tuple->Values[I] = Values[I];
-	return (ml_value_t *)Tuple;
-}
-
-ml_value_t *ml_tuplev(size_t Size, ...) {
-	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
-	Tuple->Type = MLTupleT;
-	Tuple->Size = Size;
-	va_list Args;
-	va_start(Args, Size);
-	for (int I = 0; I < Size; ++I) {
-		Tuple->Values[I] = va_arg(Args, ml_value_t *);
-	}
-	va_end(Args);
-	return (ml_value_t *)Tuple;
-}
-
 #endif
+	return (ml_value_t *)Tuple;
+}
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
@@ -367,10 +379,23 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 	return Tuple->Values[Index];
 }
 
+ML_METHOD("[]", MLTupleT, MLStringT) {
+//<Tuple
+//<Name
+//>any | error
+// Returns the element in :mini:`Tuple` named :mini:`Name` or an error if no such named element exists.
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
+	if (!Tuple->Names) return ml_error("NameError", "Tuple has no names");
+	int Index = ml_names_find(Tuple->Names, Args[1]);
+	if (!Index) return ml_error("NameError", "Tuple has no named value %s", ml_string_value(Args[1]));
+	return Tuple->Values[Index + (Tuple->Size - ml_names_length(Tuple->Names)) - 1];
+}
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t **Values;
-	int Size, Index;
+	ml_value_t *Names;
+	size_t Size, Index, Offset;
 } ml_tuple_iter_t;
 
 ML_TYPE(MLTupleIterT, (), "tuple-iter");
@@ -383,7 +408,11 @@ static void ML_TYPED_FN(ml_iter_next, MLTupleIterT, ml_state_t *Caller, ml_tuple
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLTupleIterT, ml_state_t *Caller, ml_tuple_iter_t *Iter) {
-	ML_RETURN(ml_integer(Iter->Index));
+	if (Iter->Index > Iter->Offset) {
+		ML_RETURN(ml_names_get(Iter->Names, Iter->Index - Iter->Offset));
+	} else {
+		ML_RETURN(ml_integer(Iter->Index));
+	}
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLTupleIterT, ml_state_t *Caller, ml_tuple_iter_t *Iter) {
@@ -397,12 +426,19 @@ static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tu
 	Iter->Size = Tuple->Size;
 	Iter->Index = 1;
 	Iter->Values = Tuple->Values;
+	if (Tuple->Names) {
+		Iter->Names = Tuple->Names;
+		Iter->Offset = Tuple->Size - ml_names_length(Tuple->Names);
+	} else {
+		Iter->Offset = SIZE_MAX;
+	}
 	ML_RETURN(Iter);
 }
 
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;
+	ml_value_t *Names;
 	ml_value_t **Values;
 	ml_value_t *Args[2];
 	ml_hash_chain_t Chain[1];
@@ -410,7 +446,7 @@ typedef struct {
 	const char *Terminator;
 	size_t SeperatorLength;
 	size_t TerminatorLength;
-	size_t Index, Size;
+	size_t Index, Size, Offset;
 } ml_tuple_append_state_t;
 
 extern ml_value_t *AppendMethod;
@@ -425,6 +461,11 @@ static void ml_tuple_append_state_run(ml_tuple_append_state_t *State, ml_value_t
 	}
 	ml_stringbuffer_write(State->Buffer, State->Seperator, State->SeperatorLength);
 	State->Args[1] = State->Values[State->Index];
+	if (State->Index >= State->Offset) {
+		ml_value_t *Name = ml_names_get(State->Names, (State->Index - State->Offset) + 1);
+		ml_stringbuffer_write(State->Buffer, ml_string_value(Name), ml_string_length(Name));
+		ml_stringbuffer_write(State->Buffer, " is ", 4);
+	}
 	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
@@ -456,6 +497,12 @@ ML_METHODX("append", MLStringBufferT, MLTupleT) {
 	Buffer->Chain = State->Chain;
 	State->Buffer = Buffer;
 	State->Values = Tuple->Values;
+	if (Tuple->Names) {
+		State->Names = Tuple->Names;
+		State->Offset = Tuple->Size - ml_names_length(Tuple->Names);
+	} else {
+		State->Offset = SIZE_MAX;
+	}
 	State->Size = Tuple->Size;
 	State->Index = 0;
 	State->Seperator = ", ";
@@ -464,6 +511,11 @@ ML_METHODX("append", MLStringBufferT, MLTupleT) {
 	State->TerminatorLength = strlen(")");
 	State->Args[0] = (ml_value_t *)Buffer;
 	State->Args[1] = Tuple->Values[0];
+	if (State->Index >= State->Offset) {
+		ml_value_t *Name = ml_names_get(State->Names, (State->Index - State->Offset) + 1);
+		ml_stringbuffer_write(Buffer, ml_string_value(Name), ml_string_length(Name));
+		ml_stringbuffer_write(Buffer, " is ", 4);
+	}
 	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
@@ -491,6 +543,12 @@ ML_METHODX("append", MLStringBufferT, MLTupleT, MLStringT) {
 	Buffer->Chain = State->Chain;
 	State->Buffer = Buffer;
 	State->Values = Tuple->Values;
+	if (Tuple->Names) {
+		State->Names = Tuple->Names;
+		State->Offset = Tuple->Size - ml_names_length(Tuple->Names);
+	} else {
+		State->Offset = SIZE_MAX;
+	}
 	State->Size = Tuple->Size;
 	State->Index = 0;
 	State->Seperator = ml_string_value(Args[2]);
@@ -499,6 +557,11 @@ ML_METHODX("append", MLStringBufferT, MLTupleT, MLStringT) {
 	State->TerminatorLength = 0;
 	State->Args[0] = (ml_value_t *)Buffer;
 	State->Args[1] = Tuple->Values[0];
+	if (State->Index >= State->Offset) {
+		ml_value_t *Name = ml_names_get(State->Names, (State->Index - State->Offset) + 1);
+		ml_stringbuffer_write(Buffer, ml_string_value(Name), ml_string_length(Name));
+		ml_stringbuffer_write(Buffer, " is ", 4);
+	}
 	return ml_call(State, AppendMethod, 2, State->Args);
 }
 

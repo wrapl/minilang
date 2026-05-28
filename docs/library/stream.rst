@@ -295,3 +295,7 @@ stream
    * :mini:`::End`
 
 
+:mini:`meth (Arg₁: string::buffer):close`
+   *TBD*
+
+

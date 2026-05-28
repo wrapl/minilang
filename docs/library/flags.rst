@@ -125,6 +125,10 @@ flags
    *TBD*
 
 
+:mini:`meth integer(Arg₁: flags::value)`
+   *TBD*
+
+
 :mini:`meth list(Arg₁: flags::value)`
    *TBD*
 

@@ -2791,6 +2791,21 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 	List->CachedIndex = ++List->Length;
 }
 
+int ml_names_find(ml_value_t *Names, ml_value_t *Name) {
+	int Index = 0;
+	const char *NameValue = ml_string_value(Name);
+	ML_LIST_FOREACH(Names, Iter) {
+		++Index;
+		if (Iter->Value == Name) return Index;
+	}
+	Index = 0;
+	ML_LIST_FOREACH(Names, Iter) {
+		++Index;
+		if (!strcmp(ml_string_value(Iter->Value), NameValue)) return Index;
+	}
+	return 0;
+}
+
 ML_METHOD(MLListT, MLNamesT) {
 	ml_value_t *List = ml_list();
 	ML_NAMES_FOREACH(Args[0], Iter) ml_list_put(List, Iter->Value);

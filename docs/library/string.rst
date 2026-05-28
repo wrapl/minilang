@@ -30,6 +30,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    *TBD*
 
 
+:mini:`meth (Buffer: string::buffer):append(Value: any)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: any, Arg₃: function, ...)`
    *TBD*
 
@@ -975,8 +979,10 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       let B := string::buffer("Hello world!\n")
       :> <string::buffer>
-      B:read16(address::LE) :> 25928
-      B:read16(address::BE) :> 27756
+      B:readu16(address::LE)
+      :> error("MethodError", "no method found for readu16(string::buffer, address::byteorder)")
+      B:readu16(address::BE)
+      :> error("MethodError", "no method found for readu16(string::buffer, address::byteorder)")
 
 
 :mini:`meth (Buffer: string::buffer):read16(Arg₂: byte::order): integer`
@@ -986,10 +992,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       let B := string::buffer("Hello world!\n")
       :> <string::buffer>
-      B:readu16(address::LE)
-      :> error("MethodError", "no method found for readu16(string::buffer, address::byteorder)")
-      B:readu16(address::BE)
-      :> error("MethodError", "no method found for readu16(string::buffer, address::byteorder)")
+      B:read16(address::LE) :> 25928
+      B:read16(address::BE) :> 27756
 
 
 :mini:`meth (Buffer: string::buffer):read32: integer`
@@ -1043,8 +1047,10 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       let B := string::buffer("Hello world!\n")
       :> <string::buffer>
-      B:read64(address::LE) :> 8031924123371070792
-      B:read64(address::BE) :> nil
+      B:readu64(address::LE)
+      :> error("MethodError", "no method found for readu64(string::buffer, address::byteorder)")
+      B:readu64(address::BE)
+      :> error("MethodError", "no method found for readu64(string::buffer, address::byteorder)")
 
 
 :mini:`meth (Buffer: string::buffer):read64(Arg₂: byte::order): integer`
@@ -1054,10 +1060,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       let B := string::buffer("Hello world!\n")
       :> <string::buffer>
-      B:readu64(address::LE)
-      :> error("MethodError", "no method found for readu64(string::buffer, address::byteorder)")
-      B:readu64(address::BE)
-      :> error("MethodError", "no method found for readu64(string::buffer, address::byteorder)")
+      B:read64(address::LE) :> 8031924123371070792
+      B:read64(address::BE) :> nil
 
 
 :mini:`meth (Buffer: string::buffer):read8: integer`

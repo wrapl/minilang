@@ -110,6 +110,10 @@ file
    *TBD*
 
 
+:mini:`fun file::realpath(Path: string): string | nil`
+   *TBD*
+
+
 :mini:`fun file::rename(Old: string, New: string)`
    Renames the file :mini:`Old` to :mini:`New`.
 
