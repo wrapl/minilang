@@ -221,6 +221,25 @@ static __attribute__((noinline)) void ml_map_template_call2(ml_map_t *Template, 
 		}
 	}
 	Map->Tail = Prev;
+#ifdef ML_GENERICS
+	ml_type_t *KeyType = ml_typeof(Map->Head->Key);
+	ml_type_t *ValueType = ml_typeof(Map->Head->Value);
+	for (ml_map_node_t *Node = Map->Head->Next; Node; Node = Node->Next) {
+		ml_type_t *Type = ml_typeof(Node->Key);
+		if (!ml_is_subtype(Type, KeyType)) {
+			KeyType = ml_type_max(KeyType, Type);
+			if (KeyType == MLAnyT) break;
+		}
+	}
+	for (ml_map_node_t *Node = Map->Head->Next; Node; Node = Node->Next) {
+		ml_type_t *Type = ml_typeof(Node->Value);
+		if (!ml_is_subtype(Type, ValueType)) {
+			ValueType = ml_type_max(ValueType, Type);
+			if (ValueType == MLAnyT) break;
+		}
+	}
+	Map->Type = ml_generic_type(3, (ml_type_t *[]){MLMapMutableT, KeyType, ValueType});
+#endif
 }
 
 static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Count, ml_value_t **Args) {

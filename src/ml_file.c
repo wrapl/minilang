@@ -26,7 +26,6 @@ static void ml_file_finalize(ml_file_t *File, void *Data) {
 }
 
 ML_FUNCTION(MLFileOpen) {
-//!file
 //@file
 //<Path
 //<Mode
@@ -159,7 +158,6 @@ ML_FUNCTION(MLFileRealPath) {
 }
 
 ML_FUNCTION(MLFileExists) {
-//!file
 //@file::exists
 //<Path
 //>string|nil
@@ -172,7 +170,6 @@ ML_FUNCTION(MLFileExists) {
 }
 
 ML_FUNCTION(MLFileRename) {
-//!file
 //@file::rename
 //<Old
 //<New
@@ -189,7 +186,6 @@ ML_FUNCTION(MLFileRename) {
 }
 
 ML_FUNCTION(MLFileUnlink) {
-//!file
 //@file::unlink
 //<Path
 // Removes the file at :mini:`Path`.
@@ -198,6 +194,18 @@ ML_FUNCTION(MLFileUnlink) {
 	const char *Name = ml_string_value(Args[0]);
 	if (unlink(Name)) {
 		return ml_error("FileError", "failed to unlink %s: %s", Name, strerror(errno));
+	}
+	return MLNil;
+}
+
+ML_FUNCTION(MLFileSymLink) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	const char *OldName = ml_string_value(Args[0]);
+	const char *NewName = ml_string_value(Args[1]);
+	if (symlink(OldName, NewName)) {
+		return ml_error("FileError", "failed to create symlink %s -> %s: %s", OldName, NewName, strerror(errno));
 	}
 	return MLNil;
 }
@@ -459,6 +467,7 @@ void ml_file_init(stringmap_t *Globals) {
 	stringmap_insert(MLFileT->Exports, "exists", MLFileExists);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
+	stringmap_insert(MLFileT->Exports, "symlink", MLFileSymLink);
 	stringmap_insert(MLDirT->Exports, "create", MLDirCreate);
 	stringmap_insert(MLDirT->Exports, "remove", MLDirRemove);
 	if (Globals) {

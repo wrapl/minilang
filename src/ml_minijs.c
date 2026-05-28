@@ -124,13 +124,17 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLMethodT, ml_minijs_encoder_t 
 	return Json;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTupleT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLTupleT, ml_minijs_encoder_t *Encoder, ml_tuple_t *Tuple) {
 	ml_value_t *Json = ml_list();
 	ml_list_put(Json, ml_cstring("x"));
-	inthash_insert(Encoder->Cached, (uintptr_t)Value, Json);
-	int Size = ml_tuple_size(Value);
-	for (int I = 1; I <= Size; ++I) {
-		ml_list_put(Json, ml_minijs_encode(Encoder, ml_tuple_get(Value, I)));
+	inthash_insert(Encoder->Cached, (uintptr_t)Tuple, Json);
+	if (Tuple->Names) {
+		int Offset = Tuple->Size = ml_names_length(Tuple->Names);
+		for (int I = 0; I < Offset; ++I) ml_list_put(Json, ml_minijs_encode(Encoder, Tuple->Values[I]));
+		ml_list_put(Json, ml_minijs_encode(Encoder, Tuple->Names));
+		for (int I = Offset; I < Tuple->Size; ++I) ml_list_put(Json, ml_minijs_encode(Encoder, Tuple->Values[I]));
+	} else {
+		for (int I = 0; I < Tuple->Size; ++I) ml_list_put(Json, ml_minijs_encode(Encoder, Tuple->Values[I]));
 	}
 	return Json;
 }
@@ -648,15 +652,29 @@ static ml_value_t *ml_minijs_decode_some(ml_minijs_decoder_t *Decoder, ml_list_n
 static ml_value_t *ml_minijs_decode_tuple(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
 	int Size = 0;
 	for (ml_list_node_t *Tail = Node; Tail; Tail = Tail->Next) ++Size;
-	ml_value_t *Tuple = ml_tuple(Size);
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 	if (Index >= 0) inthash_insert(Decoder->Cached, Index, Tuple);
-	while (Node) {
+	Tuple->Size = Size;
+	ml_value_t **Slot = Tuple->Values;
+	for (int I = 0; I < Size; ++I, Node = Node->Next) {
 		ml_value_t *Value = ml_minijs_decode(Decoder, Node->Value);
 		if (ml_is_error(Value)) return Value;
-		ml_tuple_set(Tuple, Index, Value);
-		Node = Node->Next;
+		if (ml_typeof(Value) == MLNamesT) {
+			--Tuple->Size;
+			Tuple->Names = Value;
+		} else {
+			*Slot++ = Value;
+		}
 	}
-	return Tuple;
+#ifdef ML_GENERICS
+	ml_type_t *Types[Tuple->Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
+	Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
+#else
+	Tuple->Type = MLTupleT;
+#endif
+	return (ml_value_t *)Tuple;
 }
 
 static ml_value_t *ml_minijs_decode_list(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {

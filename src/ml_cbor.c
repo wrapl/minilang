@@ -953,13 +953,29 @@ static void ML_TYPED_FN(ml_cbor_write, MLRegexT, ml_cbor_writer_t *Writer, ml_va
 	Writer->WriteFn(Writer->Data, (void *)Pattern, strlen(Pattern));
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLTupleT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
+static void ML_TYPED_FN(ml_cbor_write, MLTupleT, ml_cbor_writer_t *Writer, ml_tuple_t *Tuple) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
-	int Size = ml_tuple_size(Arg);
-	minicbor_write_array(Writer, 1 + Size);
-	minicbor_write_string(Writer, 5);
-	Writer->WriteFn(Writer->Data, (void *)"tuple", 5);
-	for (int I = 1; I <= Size; ++I) ml_cbor_write(Writer, ml_tuple_get(Arg, I));
+	if (Tuple->Names) {
+		int Offset = Tuple->Size = ml_names_length(Tuple->Names);
+		minicbor_write_array(Writer, 2 + Tuple->Size);
+		minicbor_write_string(Writer, 5);
+		Writer->WriteFn(Writer->Data, (void *)"tuple", 5);
+		for (int I = 0; I < Offset; ++I) ml_cbor_write(Writer, Tuple->Values[I]);
+		ml_cbor_write(Writer, Tuple->Names);
+		for (int I = Offset; I < Tuple->Size; ++I) ml_cbor_write(Writer, Tuple->Values[I]);
+	} else {
+		minicbor_write_array(Writer, 1 + Tuple->Size);
+		minicbor_write_string(Writer, 5);
+		Writer->WriteFn(Writer->Data, (void *)"tuple", 5);
+		for (int I = 0; I < Tuple->Size; ++I) ml_cbor_write(Writer, Tuple->Values[I]);
+	}
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLNamesT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	minicbor_write_array(Writer, ml_names_length(Arg) + 1);
+	Writer->WriteFn(Writer->Data, (void *)"names", 5);
+	ML_NAMES_FOREACH(Arg, Node) ml_cbor_write(Writer, Node->Value);
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLListT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
@@ -1552,6 +1568,15 @@ static ml_value_t *ml_cbor_object_tuple(ml_cbor_reader_t *Reader, int Count, ml_
 	return ml_tuplen(Count, Args);
 }
 
+static ml_value_t *ml_cbor_object_names(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	ml_value_t *Names = ml_names();
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLStringT);
+		ml_names_add(Names, Args[I]);
+	}
+	return Names;
+}
+
 extern ml_value_t *RangeMethod;
 
 static ml_value_t *ml_cbor_object_range(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
@@ -1599,6 +1624,7 @@ ML_ENUM2(CborTagsT, "cbor::tags",
 void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_object("some", ml_cbor_object_some);
 	ml_cbor_default_object("tuple", ml_cbor_object_tuple);
+	ml_cbor_default_object("names", ml_cbor_object_names);
 	ml_cbor_default_object("range", ml_cbor_object_range);
 	ml_cbor_default_object("object", ml_cbor_object_object);
 #ifdef ML_COMPLEX

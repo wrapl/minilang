@@ -44,7 +44,7 @@ ML_METHODX("!", MLFunctionT, MLTupleT) {
 		int NamedCount = ml_names_length(Tuple->Names);
 		int Offset = Tuple->Size - NamedCount;
 		memcpy(Args2, Tuple->Values, Offset * sizeof(ml_value_t *));
-		Args[Offset] = Tuple->Names;
+		Args2[Offset] = Tuple->Names;
 		memcpy(Args2 + Offset + 1, Tuple->Values + Offset, NamedCount * sizeof(ml_value_t *));
 		return ml_call(Caller, Function, Tuple->Size + 1, Args2);
 	} else {
