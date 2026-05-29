@@ -495,6 +495,11 @@ static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLNilT, ml_value_t *
 	return NULL;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLBooleanT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	ml_list_put(Output, Value);
+	return NULL;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLIntegerT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value(Value));
@@ -594,6 +599,13 @@ static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLObjectT, ml_value_
 	ml_list_put(Output, ml_integer(ml_remote_debugger_local(Thread, Value)));
 	ml_list_put(Output, Zero);
 	ml_list_put(Output, ml_integer(ml_object_size(Value)));
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_remote_debugger_describe, MLUUIDT, ml_value_t *Value, ml_value_t *Output, debug_thread_t *Thread) {
+	char String[UUID_STR_LEN];
+	uuid_unparse_lower(ml_uuid_value(Value), String);
+	ml_list_put(Output, ml_string_copy(String, UUID_STR_LEN - 1));
 	return NULL;
 }
 

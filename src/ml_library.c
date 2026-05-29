@@ -94,6 +94,7 @@ static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 	ml_library_loader_t *Loader = NULL;
 	if (Path) {
 		char *FileName = path_join(Path, Name, 0, MaxLibraryExtensionLength);
+		//fprintf(stderr, "Trying %s\n", FileName);
 		if (!FileName) return (ml_library_info_t){NULL, NULL};
 		char *End = FileName + strlen(FileName);
 		Loader = Loaders;
