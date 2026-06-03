@@ -12,13 +12,10 @@ ML_CLASS(AstExprT, (), "ast::expr");
 // * :mini:`:startline(Value: ast::expr): integer`
 // * :mini:`:endline(Value: ast::expr): integer`
 
-ML_FIELD("source", AstExprT);
-
-ML_FIELD("startline", AstExprT);
-
-ML_FIELD("endline", AstExprT);
-
-ML_FIELD("data", AstExprT);
+ML_FIELD(AstExprT, "source");
+ML_FIELD(AstExprT, "startline");
+ML_FIELD(AstExprT, "endline");
+ML_FIELD(AstExprT, "data");
 
 ML_CLASS(AstIfExprT, (AstExprT), "ast::expr::if");
 //@ast::expr::if
@@ -27,9 +24,8 @@ ML_CLASS(AstIfExprT, (AstExprT), "ast::expr::if");
 // * :mini:`:cases(Value: ast::expr::if): list[ast::ifcase]`
 // * :mini:`:else(Value: ast::expr::if): list[ast::expr]`
 
-ML_FIELD("cases", AstIfExprT);
-
-ML_FIELD("else", AstIfExprT);
+ML_FIELD(AstIfExprT, "cases");
+ML_FIELD(AstIfExprT, "else");
 
 ML_CLASS(AstFunExprT, (AstExprT), "ast::expr::fun");
 //@ast::expr::fun
@@ -40,13 +36,10 @@ ML_CLASS(AstFunExprT, (AstExprT), "ast::expr::fun");
 // * :mini:`:body(Value: ast::expr::fun): list[ast::expr]`
 // * :mini:`:returntype(Value: ast::expr::fun): list[ast::expr]`
 
-ML_FIELD("name", AstFunExprT);
-
-ML_FIELD("params", AstFunExprT);
-
-ML_FIELD("body", AstFunExprT);
-
-ML_FIELD("returntype", AstFunExprT);
+ML_FIELD(AstFunExprT, "name");
+ML_FIELD(AstFunExprT, "params");
+ML_FIELD(AstFunExprT, "body");
+ML_FIELD(AstFunExprT, "returntype");
 
 ML_CLASS(AstForExprT, (AstExprT), "ast::expr::for");
 //@ast::expr::for
@@ -59,22 +52,18 @@ ML_CLASS(AstForExprT, (AstExprT), "ast::expr::for");
 // * :mini:`:name(Value: ast::expr::for): string`
 // * :mini:`:unpack(Value: ast::expr::for): integer`
 
-ML_FIELD("key", AstForExprT);
-
-ML_FIELD("local", AstForExprT);
-
-ML_FIELD("sequence", AstForExprT);
-
-ML_FIELD("body", AstForExprT);
-
-ML_FIELD("name", AstForExprT);
-
-ML_FIELD("unpack", AstForExprT);
+ML_FIELD(AstForExprT, "key");
+ML_FIELD(AstForExprT, "local");
+ML_FIELD(AstForExprT, "sequence");
+ML_FIELD(AstForExprT, "body");
+ML_FIELD(AstForExprT, "name");
+ML_FIELD(AstForExprT, "unpack");
 
 ML_CLASS(AstArgsExprT, (AstExprT), "ast::expr::args");
 //@ast::expr::args
 // An :mini:`args` expression
 //
+
 
 ML_CLASS(AstValueExprT, (AstExprT), "ast::expr::value");
 //@ast::expr::value
@@ -82,12 +71,13 @@ ML_CLASS(AstValueExprT, (AstExprT), "ast::expr::value");
 //
 // * :mini:`:value(Value: ast::expr::value): any`
 
-ML_FIELD("value", AstValueExprT);
+ML_FIELD(AstValueExprT, "value");
 
 ML_CLASS(AstSubstExprT, (AstExprT), "ast::expr::subst");
 //@ast::expr::subst
 // A :mini:`subst` expression
 //
+
 
 ML_CLASS(AstIdentExprT, (AstExprT), "ast::expr::ident");
 //@ast::expr::ident
@@ -95,7 +85,7 @@ ML_CLASS(AstIdentExprT, (AstExprT), "ast::expr::ident");
 //
 // * :mini:`:ident(Value: ast::expr::ident): string`
 
-ML_FIELD("ident", AstIdentExprT);
+ML_FIELD(AstIdentExprT, "ident");
 
 ML_CLASS(AstLocalExprT, (AstExprT), "ast::expr::local");
 //@ast::expr::local
@@ -105,11 +95,9 @@ ML_CLASS(AstLocalExprT, (AstExprT), "ast::expr::local");
 // * :mini:`:child(Value: ast::expr::local): list[ast::expr]`
 // * :mini:`:count(Value: ast::expr::local): integer`
 
-ML_FIELD("local", AstLocalExprT);
-
-ML_FIELD("child", AstLocalExprT);
-
-ML_FIELD("count", AstLocalExprT);
+ML_FIELD(AstLocalExprT, "local");
+ML_FIELD(AstLocalExprT, "child");
+ML_FIELD(AstLocalExprT, "count");
 
 ML_CLASS(AstBlockExprT, (AstExprT), "ast::expr::block");
 //@ast::expr::block
@@ -126,25 +114,16 @@ ML_CLASS(AstBlockExprT, (AstExprT), "ast::expr::block");
 // * :mini:`:numlets(Value: ast::expr::block): integer`
 // * :mini:`:numdefs(Value: ast::expr::block): integer`
 
-ML_FIELD("vars", AstBlockExprT);
-
-ML_FIELD("lets", AstBlockExprT);
-
-ML_FIELD("defs", AstBlockExprT);
-
-ML_FIELD("child", AstBlockExprT);
-
-ML_FIELD("catchbody", AstBlockExprT);
-
-ML_FIELD("must", AstBlockExprT);
-
-ML_FIELD("catchident", AstBlockExprT);
-
-ML_FIELD("numvars", AstBlockExprT);
-
-ML_FIELD("numlets", AstBlockExprT);
-
-ML_FIELD("numdefs", AstBlockExprT);
+ML_FIELD(AstBlockExprT, "vars");
+ML_FIELD(AstBlockExprT, "lets");
+ML_FIELD(AstBlockExprT, "defs");
+ML_FIELD(AstBlockExprT, "child");
+ML_FIELD(AstBlockExprT, "catchbody");
+ML_FIELD(AstBlockExprT, "must");
+ML_FIELD(AstBlockExprT, "catchident");
+ML_FIELD(AstBlockExprT, "numvars");
+ML_FIELD(AstBlockExprT, "numlets");
+ML_FIELD(AstBlockExprT, "numdefs");
 
 ML_CLASS(AstStringExprT, (AstExprT), "ast::expr::string");
 //@ast::expr::string
@@ -152,12 +131,13 @@ ML_CLASS(AstStringExprT, (AstExprT), "ast::expr::string");
 //
 // * :mini:`:parts(Value: ast::expr::string): list[ast::stringpart]`
 
-ML_FIELD("parts", AstStringExprT);
+ML_FIELD(AstStringExprT, "parts");
 
 ML_CLASS(AstScopedExprT, (AstExprT), "ast::expr::scoped");
 //@ast::expr::scoped
 // A :mini:`scoped` expression
 //
+
 
 ML_CLASS(AstParentExprT, (AstExprT), "ast::expr::parent");
 //@ast::expr::parent
@@ -166,9 +146,8 @@ ML_CLASS(AstParentExprT, (AstExprT), "ast::expr::parent");
 // * :mini:`:child(Value: ast::expr::parent): list[ast::expr]`
 // * :mini:`:name(Value: ast::expr::parent): string`
 
-ML_FIELD("child", AstParentExprT);
-
-ML_FIELD("name", AstParentExprT);
+ML_FIELD(AstParentExprT, "child");
+ML_FIELD(AstParentExprT, "name");
 
 ML_CLASS(AstDefaultExprT, (AstExprT), "ast::expr::default");
 //@ast::expr::default
@@ -178,11 +157,9 @@ ML_CLASS(AstDefaultExprT, (AstExprT), "ast::expr::default");
 // * :mini:`:index(Value: ast::expr::default): integer`
 // * :mini:`:flags(Value: ast::expr::default): integer`
 
-ML_FIELD("child", AstDefaultExprT);
-
-ML_FIELD("index", AstDefaultExprT);
-
-ML_FIELD("flags", AstDefaultExprT);
+ML_FIELD(AstDefaultExprT, "child");
+ML_FIELD(AstDefaultExprT, "index");
+ML_FIELD(AstDefaultExprT, "flags");
 
 ML_CLASS(AstIfConfigExprT, (AstExprT), "ast::expr::ifconfig");
 //@ast::expr::ifconfig
@@ -191,9 +168,8 @@ ML_CLASS(AstIfConfigExprT, (AstExprT), "ast::expr::ifconfig");
 // * :mini:`:child(Value: ast::expr::ifconfig): list[ast::expr]`
 // * :mini:`:config(Value: ast::expr::ifconfig): string`
 
-ML_FIELD("child", AstIfConfigExprT);
-
-ML_FIELD("config", AstIfConfigExprT);
+ML_FIELD(AstIfConfigExprT, "child");
+ML_FIELD(AstIfConfigExprT, "config");
 
 ML_CLASS(AstParentValueExprT, (AstExprT), "ast::expr::parentvalue");
 //@ast::expr::parentvalue
@@ -202,224 +178,266 @@ ML_CLASS(AstParentValueExprT, (AstExprT), "ast::expr::parentvalue");
 // * :mini:`:child(Value: ast::expr::parentvalue): list[ast::expr]`
 // * :mini:`:value(Value: ast::expr::parentvalue): any`
 
-ML_FIELD("child", AstParentValueExprT);
-
-ML_FIELD("value", AstParentValueExprT);
+ML_FIELD(AstParentValueExprT, "child");
+ML_FIELD(AstParentValueExprT, "value");
 
 ML_CLASS(AstAndExprT, (AstParentExprT), "ast::expr::and");
 //@ast::expr::and
 // An :mini:`and` expression
 //
 
+
 ML_CLASS(AstAssignExprT, (AstParentExprT), "ast::expr::assign");
 //@ast::expr::assign
 // An :mini:`assign` expression
 //
+
 
 ML_CLASS(AstBlankExprT, (AstExprT), "ast::expr::blank");
 //@ast::expr::blank
 // A :mini:`blank` expression
 //
 
+
 ML_CLASS(AstCallExprT, (AstParentExprT), "ast::expr::call");
 //@ast::expr::call
 // A :mini:`call` expression
 //
+
 
 ML_CLASS(AstConstCallExprT, (AstParentValueExprT), "ast::expr::constcall");
 //@ast::expr::constcall
 // A :mini:`const` :mini:`call` expression
 //
 
+
 ML_CLASS(AstDebugExprT, (AstParentExprT), "ast::expr::debug");
 //@ast::expr::debug
 // A :mini:`debug` expression
 //
+
 
 ML_CLASS(AstDefExprT, (AstLocalExprT), "ast::expr::def");
 //@ast::expr::def
 // A :mini:`def` expression
 //
 
+
 ML_CLASS(AstDefInExprT, (AstLocalExprT), "ast::expr::defin");
 //@ast::expr::defin
 // A :mini:`def` :mini:`in` expression
 //
+
 
 ML_CLASS(AstDefUnpackExprT, (AstLocalExprT), "ast::expr::defunpack");
 //@ast::expr::defunpack
 // A :mini:`def` :mini:`unpack` expression
 //
 
+
 ML_CLASS(AstDefineExprT, (AstIdentExprT), "ast::expr::define");
 //@ast::expr::define
 // A :mini:`define` expression
 //
+
 
 ML_CLASS(AstDelegateExprT, (AstParentExprT), "ast::expr::delegate");
 //@ast::expr::delegate
 // A :mini:`delegate` expression
 //
 
+
 ML_CLASS(AstEachExprT, (AstParentExprT), "ast::expr::each");
 //@ast::expr::each
 // An :mini:`each` expression
 //
+
 
 ML_CLASS(AstExitExprT, (AstParentExprT), "ast::expr::exit");
 //@ast::expr::exit
 // An :mini:`exit` expression
 //
 
+
 ML_CLASS(AstGuardExprT, (AstParentExprT), "ast::expr::guard");
 //@ast::expr::guard
 // A :mini:`guard` expression
 //
+
 
 ML_CLASS(AstInlineExprT, (AstParentExprT), "ast::expr::inline");
 //@ast::expr::inline
 // An :mini:`inline` expression
 //
 
+
 ML_CLASS(AstItExprT, (AstExprT), "ast::expr::it");
 //@ast::expr::it
 // An :mini:`it` expression
 //
+
 
 ML_CLASS(AstLetExprT, (AstLocalExprT), "ast::expr::let");
 //@ast::expr::let
 // A :mini:`let` expression
 //
 
+
 ML_CLASS(AstLetInExprT, (AstLocalExprT), "ast::expr::letin");
 //@ast::expr::letin
 // A :mini:`let` :mini:`in` expression
 //
+
 
 ML_CLASS(AstLetUnpackExprT, (AstLocalExprT), "ast::expr::letunpack");
 //@ast::expr::letunpack
 // A :mini:`let` :mini:`unpack` expression
 //
 
+
 ML_CLASS(AstListExprT, (AstParentExprT), "ast::expr::list");
 //@ast::expr::list
 // A :mini:`list` expression
 //
+
 
 ML_CLASS(AstLoopExprT, (AstParentExprT), "ast::expr::loop");
 //@ast::expr::loop
 // A :mini:`loop` expression
 //
 
+
 ML_CLASS(AstMapExprT, (AstParentExprT), "ast::expr::map");
 //@ast::expr::map
 // A :mini:`map` expression
 //
+
 
 ML_CLASS(AstNextExprT, (AstParentExprT), "ast::expr::next");
 //@ast::expr::next
 // A :mini:`next` expression
 //
 
+
 ML_CLASS(AstNilExprT, (AstExprT), "ast::expr::nil");
 //@ast::expr::nil
 // A :mini:`nil` expression
 //
+
 
 ML_CLASS(AstNotExprT, (AstParentExprT), "ast::expr::not");
 //@ast::expr::not
 // A :mini:`not` expression
 //
 
+
 ML_CLASS(AstOldExprT, (AstExprT), "ast::expr::old");
 //@ast::expr::old
 // An :mini:`old` expression
 //
+
 
 ML_CLASS(AstOrExprT, (AstParentExprT), "ast::expr::or");
 //@ast::expr::or
 // An :mini:`or` expression
 //
 
+
 ML_CLASS(AstRecurExprT, (AstExprT), "ast::expr::recur");
 //@ast::expr::recur
 // A :mini:`recur` expression
 //
+
 
 ML_CLASS(AstRefExprT, (AstLocalExprT), "ast::expr::ref");
 //@ast::expr::ref
 // A :mini:`ref` expression
 //
 
+
 ML_CLASS(AstRefInExprT, (AstLocalExprT), "ast::expr::refin");
 //@ast::expr::refin
 // A :mini:`ref` :mini:`in` expression
 //
+
 
 ML_CLASS(AstRefUnpackExprT, (AstLocalExprT), "ast::expr::refunpack");
 //@ast::expr::refunpack
 // A :mini:`ref` :mini:`unpack` expression
 //
 
+
 ML_CLASS(AstRegisterExprT, (AstExprT), "ast::expr::register");
 //@ast::expr::register
 // A :mini:`register` expression
 //
+
 
 ML_CLASS(AstResolveExprT, (AstParentValueExprT), "ast::expr::resolve");
 //@ast::expr::resolve
 // A :mini:`resolve` expression
 //
 
+
 ML_CLASS(AstReturnExprT, (AstParentExprT), "ast::expr::return");
 //@ast::expr::return
 // A :mini:`return` expression
 //
+
 
 ML_CLASS(AstSuspendExprT, (AstParentExprT), "ast::expr::suspend");
 //@ast::expr::suspend
 // A :mini:`suspend` expression
 //
 
+
 ML_CLASS(AstSwitchExprT, (AstParentExprT), "ast::expr::switch");
 //@ast::expr::switch
 // A :mini:`switch` expression
 //
+
 
 ML_CLASS(AstTupleExprT, (AstParentExprT), "ast::expr::tuple");
 //@ast::expr::tuple
 // A :mini:`tuple` expression
 //
 
+
 ML_CLASS(AstUnknownExprT, (AstExprT), "ast::expr::unknown");
 //@ast::expr::unknown
 // An :mini:`unknown` expression
 //
+
 
 ML_CLASS(AstVarExprT, (AstLocalExprT), "ast::expr::var");
 //@ast::expr::var
 // A :mini:`var` expression
 //
 
+
 ML_CLASS(AstVarInExprT, (AstLocalExprT), "ast::expr::varin");
 //@ast::expr::varin
 // A :mini:`var` :mini:`in` expression
 //
+
 
 ML_CLASS(AstVarTypeExprT, (AstLocalExprT), "ast::expr::vartype");
 //@ast::expr::vartype
 // A :mini:`var` :mini:`type` expression
 //
 
+
 ML_CLASS(AstVarUnpackExprT, (AstLocalExprT), "ast::expr::varunpack");
 //@ast::expr::varunpack
 // A :mini:`var` :mini:`unpack` expression
 //
 
+
 ML_CLASS(AstWithExprT, (AstLocalExprT), "ast::expr::with");
 //@ast::expr::with
 // A :mini:`with` expression
 //
+
 
 ML_CLASS(AstLocalT, (), "ast::local");
 //@ast::local
@@ -429,11 +447,9 @@ ML_CLASS(AstLocalT, (), "ast::local");
 // * :mini:`:line(Value: ast::local): integer`
 // * :mini:`:index(Value: ast::local): integer`
 
-ML_FIELD("ident", AstLocalT);
-
-ML_FIELD("line", AstLocalT);
-
-ML_FIELD("index", AstLocalT);
+ML_FIELD(AstLocalT, "ident");
+ML_FIELD(AstLocalT, "line");
+ML_FIELD(AstLocalT, "index");
 
 ML_CLASS(AstParamT, (), "ast::param");
 //@ast::param
@@ -443,11 +459,9 @@ ML_CLASS(AstParamT, (), "ast::param");
 // * :mini:`:line(Value: ast::param): integer`
 // * :mini:`:kind(Value: ast::param): ast::paramkind`
 
-ML_FIELD("ident", AstParamT);
-
-ML_FIELD("line", AstParamT);
-
-ML_FIELD("kind", AstParamT);
+ML_FIELD(AstParamT, "ident");
+ML_FIELD(AstParamT, "line");
+ML_FIELD(AstParamT, "kind");
 
 ML_CLASS(AstStringPartT, (), "ast::stringpart");
 //@ast::stringpart
@@ -458,13 +472,10 @@ ML_CLASS(AstStringPartT, (), "ast::stringpart");
 // * :mini:`:length(Value: ast::stringpart): integer`
 // * :mini:`:line(Value: ast::stringpart): integer`
 
-ML_FIELD("child", AstStringPartT);
-
-ML_FIELD("chars", AstStringPartT);
-
-ML_FIELD("length", AstStringPartT);
-
-ML_FIELD("line", AstStringPartT);
+ML_FIELD(AstStringPartT, "child");
+ML_FIELD(AstStringPartT, "chars");
+ML_FIELD(AstStringPartT, "length");
+ML_FIELD(AstStringPartT, "line");
 
 ML_CLASS(AstIfCaseT, (), "ast::ifcase");
 //@ast::ifcase
@@ -475,14 +486,10 @@ ML_CLASS(AstIfCaseT, (), "ast::ifcase");
 // * :mini:`:local(Value: ast::ifcase): list[ast::local]`
 // * :mini:`:token(Value: ast::ifcase): integer`
 
-ML_FIELD("condition", AstIfCaseT);
-
-ML_FIELD("body", AstIfCaseT);
-
-ML_FIELD("local", AstIfCaseT);
-
-ML_FIELD("token", AstIfCaseT);
-
+ML_FIELD(AstIfCaseT, "condition");
+ML_FIELD(AstIfCaseT, "body");
+ML_FIELD(AstIfCaseT, "local");
+ML_FIELD(AstIfCaseT, "token");
 
 static void ml_ast_types_init() {
 	stringmap_insert(Ast->Exports, "expr", AstExprT);

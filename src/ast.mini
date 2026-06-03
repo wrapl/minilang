@@ -187,14 +187,15 @@ with Output := file("src/ml_ast_types.c", "w") do
 		Output:write("\n")
 		if let Struct := Structs[Type] then
 			for FieldName, FieldType in Struct:fields do
-				Output:write('ML_FIELD(\"{FieldName:lower}\", Ast{Name});\n\n')
+				Output:write('ML_FIELD(Ast{Name}, \"{FieldName:lower}\");\n')
 			end
 		end
 		if Type = "mlc_expr_t" then
-			Output:write('ML_FIELD(\"data\", AstExprT);\n\n')
+			Output:write('ML_FIELD(AstExprT, \"data\");\n')
 		end
+		Output:write("\n")
 	end
-	Output:write("\n")
+	
 	Output:write("static void ml_ast_types_init() {\n")
 	for Type, Parent in AllTypes do
 		let Name := sum(Type / "_" skip 1 -> :title)
