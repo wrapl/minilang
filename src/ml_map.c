@@ -1224,7 +1224,10 @@ ML_TYPE(MapNodeNodeStateT, (MLStateT), "map::node::state");
 static void ml_node_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
 	if (State->Node->Value != (ml_value_t *)State) {
 		Value = State->Node->Value;
-	} else if (!ml_is_error(Value)) {
+	} else if (ml_is_error(Value)) {
+		ml_map_t *Map = State->Node->Map;
+		ml_map_remove_internal(Map, &Map->Root, State->Node->Hash, State->Node->Key);
+	} else {
 		State->Node->Value = ml_deref(Value);
 		Value = (ml_value_t *)State->Node;
 	}
@@ -1676,6 +1679,8 @@ ML_METHOD("missing", MLMapMutableT, MLAnyT) {
 
 static void ml_missing_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
+		ml_map_t *Map = State->Node->Map;
+		ml_map_remove_internal(Map, &Map->Root, State->Node->Hash, State->Node->Key);
 		ML_CONTINUE(State->Base.Caller, Value);
 	} else {
 		State->Node->Value = ml_deref(Value);
