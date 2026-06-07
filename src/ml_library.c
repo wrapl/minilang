@@ -325,7 +325,7 @@ static int check_api_version(const int *ApiVersion) {
 	if (ApiVersion[0] < MinApiVersion[0]) return 0;
 	if (ApiVersion[1] > MinApiVersion[1]) return 1;
 	if (ApiVersion[1] < MinApiVersion[1]) return 0;
-	if (ApiVersion[2] >= MinApiVersion[0]) return 1;
+	if (ApiVersion[2] >= MinApiVersion[2]) return 1;
 	return 0;
 }
 

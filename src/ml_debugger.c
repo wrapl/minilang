@@ -439,7 +439,8 @@ typedef enum {
 	ML_DEBUGGER_COMMAND_FRAMES = 10,
 	ML_DEBUGGER_COMMAND_THREADS = 11,
 	ML_DEBUGGER_COMMAND_EVALUATE = 12,
-	ML_DEBUGGER_COMMAND_TERMINATE = 13
+	ML_DEBUGGER_COMMAND_TERMINATE = 13,
+	ML_DEBUGGER_COMMAND_PAUSE_ALL = 14
 } ml_debugger_command_t;
 
 typedef enum {
@@ -835,6 +836,10 @@ static void ml_remote_debugger_command(ml_remote_debugger_t *Remote, ml_value_t 
 		} else {
 			Result = (ml_value_t *)MLFalse;
 		}
+		break;
+	}
+	case ML_DEBUGGER_COMMAND_PAUSE_ALL: {
+		Remote->Debugger.StepIn = 1;
 		break;
 	}
 	case ML_DEBUGGER_COMMAND_STEP_IN: {
