@@ -318,6 +318,17 @@ static sigset_t Signals;
 
 #endif
 
+static const int MinApiVersion[3] = {2, 20, 1};
+
+static int check_api_version(const int *ApiVersion) {
+	if (ApiVersion[0] > MinApiVersion[0]) return 1;
+	if (ApiVersion[0] < MinApiVersion[0]) return 0;
+	if (ApiVersion[1] > MinApiVersion[1]) return 1;
+	if (ApiVersion[1] < MinApiVersion[1]) return 0;
+	if (ApiVersion[2] >= MinApiVersion[0]) return 1;
+	return 0;
+}
+
 static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
 	BLOCK_PREEMPT
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
@@ -326,6 +337,14 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 		const char *ConfigHash = dlsym(Handle, "ml_config_hash");
 		if (!ConfigHash || strcmp(ConfigHash, ML_CONFIG_HASH)) {
 			ML_ERROR("LibraryError", "config hash missing or different %s", FileName);
+		}
+		const int *ApiVersion = dlsym(Handle, "ml_api_version");
+		if (!ApiVersion) ML_ERROR("LibraryError", "api version missing from $%s", FileName);
+		if (!check_api_version(ApiVersion)) {
+			ML_ERROR("LibraryError", "api version mismatch in %s: %d.%d.%d < %d.%d.%d", FileName,
+				ApiVersion[0], ApiVersion[1], ApiVersion[2],
+				MinApiVersion[0], MinApiVersion[1], MinApiVersion[2]
+			);
 		}
 		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
@@ -351,6 +370,18 @@ static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) 
 	UNBLOCK_PREEMPT
 	if (Handle) {
 		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
+		const char *ConfigHash = dlsym(Handle, "ml_config_hash");
+		if (!ConfigHash || strcmp(ConfigHash, ML_CONFIG_HASH)) {
+			return ml_error("LibraryError", "config hash missing or different %s", FileName);
+		}
+		const int *ApiVersion = dlsym(Handle, "ml_api_version");
+		if (!ApiVersion) return ml_error("LibraryError", "api version missing from $%s", FileName);
+		if (!check_api_version(ApiVersion)) {
+			return ml_error("LibraryError", "api version mismatch in %s: %d.%d.%d < %d.%d.%d", FileName,
+				ApiVersion[0], ApiVersion[1], ApiVersion[2],
+				MinApiVersion[0], MinApiVersion[1], MinApiVersion[2]
+			);
+		}
 		if (init0) {
 			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
 			init0(Slot);
