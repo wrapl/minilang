@@ -2096,7 +2096,7 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 	Error->Error->Message = "";
 	Error->Error->Value = MLNil;
 #ifdef ML_BACKTRACE
-	backtrace_full(BacktraceState, 1, ml_backtrace_to_error, NULL, Error);
+	//backtrace_full(BacktraceState, 1, ml_backtrace_to_error, NULL, Error);
 #endif
 	ml_log(MLLoggerDefault, ML_LOG_LEVEL_WARN, NULL, "", 0, Format, Arg);
 }

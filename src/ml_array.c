@@ -4521,7 +4521,7 @@ void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length) {
 	}
 }
 
-#if defined(Mingw) || defined(Android)
+#ifdef Mingw
 
 #define ARRAY_ORDER(CTYPE) \
 \
