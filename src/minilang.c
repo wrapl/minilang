@@ -308,6 +308,8 @@ ML_FUNCTIONX(MLResumeState) {
 
 #endif
 
+#ifdef ML_CBOR
+
 static void load_cbor_run(const char *FileName) {
 	FILE *File = stdin;
 	if (FileName) {
@@ -372,6 +374,8 @@ error: {
 		exit(-1);
 	}
 }
+
+#endif
 
 int main(int Argc, const char *Argv[]) {
 	ml_init(Argv[0], MLGlobals);
@@ -516,7 +520,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	ml_value_t *Args = ml_list();
 	const char *MainModule = NULL;
+#ifdef ML_CBOR
 	int RunCbor = 0;
+#endif
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
@@ -544,9 +550,11 @@ int main(int Argc, const char *Argv[]) {
 					exit(-1);
 				}
 				break;
+#ifdef ML_CBOR
 			case 'C':
 				RunCbor = 1;
 				break;
+#endif
 #ifdef ML_MODULES
 			case 'm':
 				if (Argv[I][2]) {
@@ -646,9 +654,12 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_LIBRARY
 	stringmap_insert(Sys->Exports, "Args", Args);
 #endif
+#ifdef ML_CBOR
 	if (RunCbor) {
 		load_cbor_run(MainModule);
-	} else if (MainModule) {
+	} else
+#endif
+	if (MainModule) {
 #ifdef ML_LIBRARY
 		if (LoadModule) {
 			Main->run = ml_main_state_module;
