@@ -117,7 +117,7 @@ typedef ml_value_t *any;
 ML_ARRAY_ACCESSORS(any);
 
 void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length);
-void ml_order_permutation(ml_state_t *Caller, size_t Length, int32_t *Order);
+void ml_order_permutation(ml_state_t *Caller, size_t Length, uint32_t *Order);
 
 typedef void (*update_row_fn_t)(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
 

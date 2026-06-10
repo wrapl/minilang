@@ -2160,19 +2160,19 @@ typedef struct {
 	ml_value_t *Compare;
 	ml_methods_t *Methods;
 	ml_method_cached_t *Cached;
-	int32_t *Source, *Dest;
-	int32_t *IndexA, *LimitA, *IndexB, *LimitB;
-	int32_t *Target, *Limit;
+	uint32_t *Source, *Dest;
+	uint32_t *IndexA, *LimitA, *IndexB, *LimitB;
+	uint32_t *Target, *Limit;
 	ml_value_t *Args[2];
-	void (*finish)(ml_state_t *, size_t, int32_t *);
+	void (*finish)(ml_state_t *, size_t, uint32_t *);
 	size_t Length, BlockSize;
 } ml_values_order_state_t;
 
 static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	int32_t *Target = State->Target;
+	uint32_t *Target = State->Target;
 	if (Value != MLNil) {
-		int32_t *Index = State->IndexA;
+		uint32_t *Index = State->IndexA;
 		*Target++ = *Index++;
 		if (Index < State->LimitA) {
 			State->Target = Target;
@@ -2183,7 +2183,7 @@ static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t
 		}
 		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
 	} else {
-		int32_t *Index = State->IndexB;
+		uint32_t *Index = State->IndexB;
 		*Target++ = *Index++;
 		if (Index < State->LimitB) {
 			State->Target = Target;
@@ -2196,7 +2196,7 @@ static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t
 	}
 	size_t Remaining = State->Limit - Target;
 	size_t BlockSize = State->BlockSize;
-	int32_t *IndexA = State->LimitB;
+	uint32_t *IndexA = State->LimitB;
 	if (Remaining <= BlockSize) {
 		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
 		BlockSize *= 2;
@@ -2205,14 +2205,14 @@ static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t
 			return State->finish(State->Base.Caller, Remaining, State->Dest);
 		}
 		State->BlockSize = BlockSize;
-		int32_t *Temp = State->Source;
+		uint32_t *Temp = State->Source;
 		IndexA = State->Source = State->Dest;
 		Target = State->Dest = Temp;
 		State->Limit = Target + State->Length;
 	}
 	State->Target = Target;
 	State->IndexA = IndexA;
-	int32_t *IndexB = IndexA + BlockSize;
+	uint32_t *IndexB = IndexA + BlockSize;
 	State->LimitA = State->IndexB = IndexB;
 	Remaining -= BlockSize;
 	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
@@ -2223,9 +2223,9 @@ static void ml_values_order_state_run(ml_values_order_state_t *State, ml_value_t
 
 static void ml_values_order_method_state_run(ml_values_order_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	int32_t *Target = State->Target;
+	uint32_t *Target = State->Target;
 	if (Value != MLNil) {
-		int32_t *Index = State->IndexA;
+		uint32_t *Index = State->IndexA;
 		*Target++ = *Index++;
 		if (Index < State->LimitA) {
 			State->Target = Target;
@@ -2236,7 +2236,7 @@ static void ml_values_order_method_state_run(ml_values_order_state_t *State, ml_
 		}
 		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(int32_t));
 	} else {
-		int32_t *Index = State->IndexB;
+		uint32_t *Index = State->IndexB;
 		*Target++ = *Index++;
 		if (Index < State->LimitB) {
 			State->Target = Target;
@@ -2249,7 +2249,7 @@ static void ml_values_order_method_state_run(ml_values_order_state_t *State, ml_
 	}
 	size_t Remaining = State->Limit - Target;
 	size_t BlockSize = State->BlockSize;
-	int32_t *IndexA = State->LimitB;
+	uint32_t *IndexA = State->LimitB;
 	if (Remaining <= BlockSize) {
 		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
 		BlockSize *= 2;
@@ -2258,14 +2258,14 @@ static void ml_values_order_method_state_run(ml_values_order_state_t *State, ml_
 			return State->finish(State->Base.Caller, Remaining, State->Dest);
 		}
 		State->BlockSize = BlockSize;
-		int32_t *Temp = State->Source;
+		uint32_t *Temp = State->Source;
 		IndexA = State->Source = State->Dest;
 		Target = State->Dest = Temp;
 		State->Limit = Target + State->Length;
 	}
 	State->Target = Target;
 	State->IndexA = IndexA;
-	int32_t *IndexB = IndexA + BlockSize;
+	uint32_t *IndexB = IndexA + BlockSize;
 	State->LimitA = State->IndexB = IndexB;
 	Remaining -= BlockSize;
 	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
@@ -2276,9 +2276,9 @@ static void ml_values_order_method_state_run(ml_values_order_state_t *State, ml_
 	return ml_call(State, Cached ? Cached->Callback : State->Compare, 2, State->Args);
 }
 
-void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function, void (*finish)(ml_state_t *, size_t, int32_t *)) {
+void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_value_t *Function, void (*finish)(ml_state_t *, size_t, uint32_t *)) {
 	if (Length < 2) {
-		int32_t *Order = anew(int32_t, Length);
+		uint32_t *Order = anew(uint32_t, Length);
 		if (Length) Order[0] = 0;
 		return finish(Caller, Length, Order);
 	}
@@ -2288,8 +2288,8 @@ void ml_values_order(ml_state_t *Caller, size_t Length, ml_value_t **Values, ml_
 	State->Base.run = (ml_state_fn)ml_values_order_state_run;
 	State->Compare = Function;
 	State->Methods = ml_context_get_static(Caller->Context, ML_METHODS_INDEX);
-	int32_t *Source = State->Source = asnew(int32_t, Length);
-	int32_t *Dest = State->Dest = asnew(int32_t, Length);
+	uint32_t *Source = State->Source = asnew(uint32_t, Length);
+	uint32_t *Dest = State->Dest = asnew(uint32_t, Length);
 	for (int I = 0; I < Length; ++I) Source[I] = I;
 	State->Values = Values;
 	State->IndexA = Source;

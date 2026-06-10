@@ -4350,36 +4350,36 @@ static int int32_compare(const void *A, const void *B) {
 }
 
 ML_METHODV(MLPermutationT, MLIntegerT) {
-	int32_t *Indices = anew(int32_t, Count);
+	uint32_t *Indices = anew(uint32_t, Count);
 	for (int I = 0; I < Count; ++I) Indices[I] = ml_integer_value(Args[I]);
 	qsort(Indices, Count, sizeof(int32_t), int32_compare);
 	for (int I = 0; I < Count; ++I) if (Indices[I] != I + 1) return ml_error("ValueError", "Invalid permutation");
 	for (int I = 0; I < Count; ++I) Indices[I] = ml_integer_value(Args[I]);
-	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_U32, 1);
 	Permutation->Base.Type = MLPermutationT;
 	Permutation->Base.Value = (char *)Indices;
-	Permutation->Base.Length = Count * sizeof(int32_t);
+	Permutation->Base.Length = Count * sizeof(uint32_t);
 	Permutation->Dimensions[0].Size = Count;
-	Permutation->Dimensions[0].Stride = sizeof(int32_t);
+	Permutation->Dimensions[0].Stride = sizeof(uint32_t);
 	return (ml_value_t *)Permutation;
 }
 
 ML_METHOD(MLPermutationT, MLListT) {
 	int Length = ml_list_length(Args[0]);
 	if (Length <= 0) return ml_error("ValueError", "Permutation requires positive size");
-	int32_t *Indices = anew(int32_t, Length);
-	int32_t *P = Indices;
+	uint32_t *Indices = anew(uint32_t, Length);
+	uint32_t *P = Indices;
 	ML_LIST_FOREACH(Args[0], Iter) *P++ = ml_integer_value(Iter->Value);
 	qsort(Indices, Length, sizeof(int32_t), int32_compare);
 	for (int I = 0; I < Length; ++I) if (Indices[I] != I + 1) return ml_error("ValueError", "Invalid permutation");
 	P = Indices;
 	ML_LIST_FOREACH(Args[0], Iter) *P++ = ml_integer_value(Iter->Value);
-	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_U32, 1);
 	Permutation->Base.Type = MLPermutationT;
 	Permutation->Base.Value = (char *)Indices;
-	Permutation->Base.Length = Length * sizeof(int32_t);
+	Permutation->Base.Length = Length * sizeof(uint32_t);
 	Permutation->Dimensions[0].Size = Length;
-	Permutation->Dimensions[0].Stride = sizeof(int32_t);
+	Permutation->Dimensions[0].Stride = sizeof(uint32_t);
 	return (ml_value_t *)Permutation;
 }
 
@@ -4393,7 +4393,7 @@ ML_FUNCTION(RandomPermutation) {
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
-	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_U32, 1, Limit);
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
 	Values[0] = 1;
 	for (int I = 2; I <= Limit; ++I) {
@@ -4420,7 +4420,7 @@ ML_FUNCTION(RandomCycle) {
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
-	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Limit);
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_U32, 1, Limit);
 	Permutation->Base.Type = MLPermutationT;
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
 	if (Limit == 1) {
@@ -4445,7 +4445,7 @@ ML_METHOD("->", MLPermutationT, MLPermutationT) {
 	if (B->Dimensions->Size != Size) return ml_error("ShapeError", "Permutations have different sizes");
 	uint32_t *ValuesA = (uint32_t *)A->Base.Value;
 	uint32_t *ValuesB = (uint32_t *)B->Base.Value;
-	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Size);
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_U32, 1, Size);
 	Permutation->Base.Type = MLPermutationT;
 	uint32_t *Values = (uint32_t *)Permutation->Base.Value;
 	for (int I = 0; I < Size; ++I) Values[I] = ValuesA[ValuesB[I] - 1];
@@ -4456,7 +4456,7 @@ ML_METHOD("\\", MLPermutationT) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Length = A->Dimensions[0].Size;
 	if (!Length) return (ml_value_t *)A;
-	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_I32, 1, Length);
+	ml_array_t *Permutation = ml_array(ML_ARRAY_FORMAT_U32, 1, Length);
 	Permutation->Base.Type = MLPermutationT;
 	int32_t *Indices = (int32_t *)A->Base.Value;
 	int32_t *Values = (int32_t *)Permutation->Base.Value;
@@ -4521,99 +4521,136 @@ void ml_array_reorder(ml_array_t *Values, int32_t *Order, size_t Length) {
 	}
 }
 
-#ifdef Mingw
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 
 #define ARRAY_ORDER(CTYPE) \
 \
-static int order_compare_ ## CTYPE(void *Arg, const void *A, const void *B) { \
-	CTYPE *Values = Arg; \
-	CTYPE AX = Values[*(int32_t *)A]; \
-	CTYPE BX = Values[*(int32_t *)B]; \
-	if (AX < BX) return -1; \
-	if (AX > BX) return 1; \
-	return 0; \
+uint32_t *order_ ## CTYPE(const CTYPE *Values, uint32_t *Source, uint32_t *Dest, int Length) { \
+	for (size_t BlockSize = 1; BlockSize < Length; BlockSize *= 2) { \
+		size_t Start = 0, End = BlockSize * 2; \
+		while (End <= Length) { \
+			size_t Mid = Start + BlockSize; \
+			size_t A = Start, B = Mid, C = Start; \
+			for (;;) { \
+				if (B == End) { \
+					memcpy(Dest + C, Source + A, (Mid - A) * sizeof(uint32_t)); \
+					break; \
+				} else if (A == Mid) { \
+					memcpy(Dest + C, Source + B, (End - B) * sizeof(uint32_t)); \
+					break; \
+				} else if (Values[Source[A]] <= Values[Source[B]]) { \
+					Dest[C++] = Source[A++]; \
+				} else { \
+					Dest[C++] = Source[B++]; \
+				} \
+			} \
+			Start = End; \
+			End += BlockSize * 2; \
+		} \
+		if (Start < Length) {\
+			size_t Mid = Start + BlockSize; \
+			if (Mid < Length) { \
+				End = Length; \
+				size_t A = Start, B = Mid, C = Start; \
+				for (;;) { \
+					if (B == End) { \
+						memcpy(Dest + C, Source + A, (Mid - A) * sizeof(uint32_t)); \
+						break; \
+					} else if (A == Mid) { \
+						memcpy(Dest + C, Source + B, (End - B) * sizeof(uint32_t)); \
+						break; \
+					} else if (Values[Source[A]] <= Values[Source[B]]) { \
+						Dest[C++] = Source[A++]; \
+					} else { \
+						Dest[C++] = Source[B++]; \
+					} \
+				} \
+			} else { \
+				memcpy(Dest + Start, Source + Start, (Length - Start) * sizeof(uint32_t)); \
+			} \
+		} \
+		uint32_t *Temp = Source; \
+		Source = Dest; \
+		Dest = Temp; \
+	} \
+	return Source; \
 } \
 \
-static int order_compare_indexed_ ## CTYPE(void *Arg, const void *A, const void *B) { \
-	ml_array_t *Array = Arg; \
-	CTYPE *Values = (CTYPE *)Array->Base.Value; \
-	const int *Indices = Array->Dimensions[0].Indices; \
-	CTYPE AX = Values[Indices[*(int32_t *)A]]; \
-	CTYPE BX = Values[Indices[*(int32_t *)B]]; \
-	if (AX < BX) return -1; \
-	if (AX > BX) return 1; \
-	return 0; \
+uint32_t *order_indexed_ ## CTYPE(const CTYPE *Values, const int *Indices, uint32_t *Source, uint32_t *Dest, int Length) { \
+	for (size_t BlockSize = 1; BlockSize < Length; BlockSize *= 2) { \
+		size_t Start = 0, End = BlockSize * 2; \
+		while (End <= Length) { \
+			size_t Mid = Start + BlockSize; \
+			size_t A = Start, B = Mid, C = Start; \
+			for (;;) { \
+				if (B == End) { \
+					memcpy(Dest + C, Source + A, (Mid - A) * sizeof(uint32_t)); \
+					break; \
+				} else if (A == Mid) { \
+					memcpy(Dest + C, Source + B, (End - B) * sizeof(uint32_t)); \
+					break; \
+				} else if (Values[Indices[Source[A]]] <= Values[Indices[Source[B]]]) { \
+					Dest[C++] = Source[A++]; \
+				} else { \
+					Dest[C++] = Source[B++]; \
+				} \
+			} \
+			Start = End; \
+			End += BlockSize * 2; \
+		} \
+		if (Start < Length) {\
+			size_t Mid = Start + BlockSize; \
+			if (Mid < Length) { \
+				End = Length; \
+				size_t A = Start, B = Mid, C = Start; \
+				for (;;) { \
+					if (B == End) { \
+						memcpy(Dest + C, Source + A, (Mid - A) * sizeof(uint32_t)); \
+						break; \
+					} else if (A == Mid) { \
+						memcpy(Dest + C, Source + B, (End - B) * sizeof(uint32_t)); \
+						break; \
+					} else if (Values[Indices[Source[A]]] <= Values[Indices[Source[B]]]) { \
+						Dest[C++] = Source[A++]; \
+					} else { \
+						Dest[C++] = Source[B++]; \
+					} \
+				} \
+			} else { \
+				memcpy(Dest + Start, Source + Start, (Length - Start) * sizeof(uint32_t)); \
+			} \
+		} \
+		uint32_t *Temp = Source; \
+		Source = Dest; \
+		Dest = Temp; \
+	} \
+	return Source; \
 } \
 \
 ml_value_t *ml_array_order_ ## CTYPE(ml_array_t *Array) { \
 	int Size = Array->Dimensions[0].Size; \
-	int32_t *Order = anew(int32_t, Size); \
-	for (size_t I = 0; I < Size; ++I) Order[I] = I; \
+	uint32_t *Order1 = anew(uint32_t, Size); \
+	uint32_t *Order2 = anew(uint32_t, Size); \
+	for (size_t I = 0; I < Size; ++I) Order1[I] = I; \
 	if (Array->Dimensions[0].Stride != sizeof(CTYPE)) { \
 		char *Values = ml_array_flatten(Array); \
-		qsort_s(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Values); \
+		Order1 = order_ ## CTYPE((CTYPE *)Values, Order1, Order2, Size); \
 	} else if (Array->Dimensions[0].Indices) { \
-		qsort_s(Order, Size, sizeof(int32_t), order_compare_indexed_ ## CTYPE, Array); \
+		Order1 = order_indexed_ ## CTYPE((CTYPE *)Array->Base.Value, Array->Dimensions[0].Indices, Order1, Order2, Size); \
 	} else { \
-		qsort_s(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Array->Base.Value); \
+		Order1 = order_ ## CTYPE((CTYPE *)Array->Base.Value, Order1, Order2, Size); \
 	} \
-	for (size_t I = 0; I < Size; ++I) ++Order[I]; \
-	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1); \
+	for (size_t I = 0; I < Size; ++I) ++Order1[I]; \
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_U32, 1); \
 	Permutation->Base.Type = MLPermutationT; \
-	Permutation->Base.Value = (char *)Order; \
-	Permutation->Base.Length = Size * sizeof(int32_t); \
+	Permutation->Base.Value = (char *)Order1; \
+	Permutation->Base.Length = Size * sizeof(uint32_t); \
 	Permutation->Dimensions[0].Size = Size; \
-	Permutation->Dimensions[0].Stride = sizeof(int32_t); \
+	Permutation->Dimensions[0].Stride = sizeof(uint32_t); \
 	return (ml_value_t *)Permutation; \
 }
-
-#else
-
-#define ARRAY_ORDER(CTYPE) \
-\
-static int order_compare_ ## CTYPE(const void *A, const void *B, void *Arg) { \
-	CTYPE *Values = Arg; \
-	CTYPE AX = Values[*(int32_t *)A]; \
-	CTYPE BX = Values[*(int32_t *)B]; \
-	if (AX < BX) return -1; \
-	if (AX > BX) return 1; \
-	return 0; \
-} \
-\
-static int order_compare_indexed_ ## CTYPE(const void *A, const void *B, void *Arg) { \
-	ml_array_t *Array = Arg; \
-	CTYPE *Values = (CTYPE *)Array->Base.Value; \
-	const int *Indices = Array->Dimensions[0].Indices; \
-	CTYPE AX = Values[Indices[*(int32_t *)A]]; \
-	CTYPE BX = Values[Indices[*(int32_t *)B]]; \
-	if (AX < BX) return -1; \
-	if (AX > BX) return 1; \
-	return 0; \
-} \
-\
-ml_value_t *ml_array_order_ ## CTYPE(ml_array_t *Array) { \
-	int Size = Array->Dimensions[0].Size; \
-	int32_t *Order = anew(int32_t, Size); \
-	for (size_t I = 0; I < Size; ++I) Order[I] = I; \
-	if (Array->Dimensions[0].Stride != sizeof(CTYPE)) { \
-		char *Values = ml_array_flatten(Array); \
-		qsort_r(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Values); \
-	} else if (Array->Dimensions[0].Indices) { \
-		qsort_r(Order, Size, sizeof(int32_t), order_compare_indexed_ ## CTYPE, Array); \
-	} else { \
-		qsort_r(Order, Size, sizeof(int32_t), order_compare_ ## CTYPE, Array->Base.Value); \
-	} \
-	for (size_t I = 0; I < Size; ++I) ++Order[I]; \
-	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1); \
-	Permutation->Base.Type = MLPermutationT; \
-	Permutation->Base.Value = (char *)Order; \
-	Permutation->Base.Length = Size * sizeof(int32_t); \
-	Permutation->Dimensions[0].Size = Size; \
-	Permutation->Dimensions[0].Stride = sizeof(int32_t); \
-	return (ml_value_t *)Permutation; \
-}
-
-#endif
 
 ARRAY_ORDER(uint8_t)
 ARRAY_ORDER(int8_t)
@@ -4626,14 +4663,14 @@ ARRAY_ORDER(int64_t)
 ARRAY_ORDER(float)
 ARRAY_ORDER(double)
 
-void ml_order_permutation(ml_state_t *Caller, size_t Length, int32_t *Order) {
+void ml_order_permutation(ml_state_t *Caller, size_t Length, uint32_t *Order) {
 	for (int I = 0; I < Length; ++I) ++Order[I];
-	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	ml_array_t *Permutation = ml_array_alloc(ML_ARRAY_FORMAT_U32, 1);
 	Permutation->Base.Type = MLPermutationT;
 	Permutation->Base.Value = (char *)Order;
-	Permutation->Base.Length = Length * sizeof(int32_t);
+	Permutation->Base.Length = Length * sizeof(uint32_t);
 	Permutation->Dimensions[0].Size = Length;
-	Permutation->Dimensions[0].Stride = sizeof(int32_t);
+	Permutation->Dimensions[0].Stride = sizeof(uint32_t);
 	ML_CONTINUE(Caller, Permutation);
 }
 
