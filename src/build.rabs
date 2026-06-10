@@ -765,7 +765,7 @@ elseif PLATFORM = "Mingw" then
 elseif PLATFORM = "Android" then
 	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-target aarch64-none-linux-android36", "-DUSE_LINENOISE"]
-	LDFLAGS := old + ["-Wl,-target aarch64-none-linux-android36"]
+	LDFLAGS := old + ["-Wl,-target=aarch64-none-linux-android36"]
 	GC or LDFLAGS := old + ["-lgc"]
 end
 
