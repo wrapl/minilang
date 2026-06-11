@@ -1692,40 +1692,28 @@ ML_METHOD("contains", MLXmlSequenceT, MLStringT) {
 	return Chained;
 }
 
-static int regex_test(const char *Subject, regex_t *Regex) {
-	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef ML_TRE
-	int Length = strlen(Subject);
-	return !regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0);
-
-#else
-	return !regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0);
-#endif
-}
-
-static void ml_xml_contains_regex(ml_state_t *Caller, regex_t *Regex, int Count, ml_value_t **Args) {
+static void ml_xml_contains_regex(ml_state_t *Caller, ml_value_t *Regex, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLXmlT);
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	if (Node->Base.Type == MLXmlTextT) {
-		if (regex_test(Node->Base.Value, Regex)) ML_RETURN(Node);
+		if (ml_regex_match(Regex, Node->Base.Value, Node->Base.Length)) ML_RETURN(Node);
 	} else if (Node->Base.Type == MLXmlElementT) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 		ml_xml_element_text((ml_xml_element_t *)Node, Buffer, "", 0);
+		int Length = ml_stringbuffer_length(Buffer);
 		const char *Value = ml_stringbuffer_get_string(Buffer);
-		if (regex_test(Value, Regex)) ML_RETURN(Node);
+		if (ml_regex_match(Regex, Value, Length)) ML_RETURN(Node);
 	}
 	ML_RETURN(MLNil);
 }
-
-extern regex_t *ml_regex_value(const ml_value_t *Value);
 
 ML_METHOD("contains", MLXmlSequenceT, MLRegexT) {
 //<Sequence
 //<Regex
 //>sequence
 // Equivalent to :mini:`Sequence ->? fun(X) X:text:find(Regex)`.
-	ml_value_t *Contains = ml_cfunctionx(ml_regex_value(Args[1]), (ml_callbackx_t)ml_xml_contains_regex);
+	ml_value_t *Contains = ml_cfunctionx(Args[1], (ml_callbackx_t)ml_xml_contains_regex);
 	ml_value_t *Chained = ml_chainedv(3, Args[0], FilterSoloMethod, Contains);
 #ifdef ML_GENERICS
 	Chained->Type = (ml_type_t *)MLXmlChainedT;

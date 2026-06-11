@@ -14,8 +14,10 @@
 #include <locale.h>
 
 #include "ml_sequence.h"
-#ifdef ML_TRE
+#if defined(ML_TRE)
 #include <tre/regex.h>
+#elif defined(ML_PCRE)
+#include <pcre2posix.h>
 #else
 #include <regex.h>
 #endif

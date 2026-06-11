@@ -93,7 +93,8 @@ endif
 
 ifeq ($(PLATFORM), Android)
 	platform_objects += obj/linenoise.o
-	override LDFLAGS += -lgc -luuid
+	override CFLAGS += -DML_PCRE
+	override LDFLAGS += -lgc -luuid -lpcre2-8 -lpcre2-posix
 endif
 
 ifeq ($(PLATFORM), FreeBSD)

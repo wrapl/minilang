@@ -231,6 +231,7 @@ let Options := [
 	"JIT",
 	"NANBOXING",
 	"TRE",
+	"PCRE",
 	"GENERICS",
 	"MUTABLES",
 	"TIMEZONES",
@@ -272,7 +273,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_LIBRARY := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
 	MINILANG_TIMESCHED := not defined("NOTIMESCHED")
-	MINILANG_TRE := not defined("NOTRE")
+	MINILANG_TRE := not (defined("NOTRE") or defined("PCRE"))
 	MINILANG_GENERICS := not defined("NOGENERICS")
 	MINILANG_MUTABLES := 1
 	MINILANG_UUID := 1
@@ -366,6 +367,7 @@ MINILANG_SCHEDULER := MINILANG_HOSTTHREADS or MINILANG_MODULES or MINILANG_TRAMP
 MINILANG_TIMESCHED := old or defined("TIMESCHED")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_TRE := old or defined("TRE")
+MINILANG_PCRE := old or defined("PCRE")
 MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_MUTABLES := old or defined("MUTABLES")
 MINILANG_TIMEZONES := old or defined("TIMEZONES")
@@ -670,6 +672,9 @@ if MINILANG_TRE then
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ["-DML_TRE"]
 	Libraries:put(Lib)
+elseif MINILANG_PCRE then
+	CFLAGS := old + ["-DML_PCRE"]
+	LDFLAGS := old + ["-lpcre2-8", "-lpcre2-posix"]
 end
 
 if MINILANG_TIMEZONES then
