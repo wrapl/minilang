@@ -1078,11 +1078,6 @@ ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
 	.NoInherit = 1
 );
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLAddressT, ml_stringbuffer_t *Buffer, ml_address_t *Address) {
-	ml_stringbuffer_write(Buffer, Address->Value, Address->Length);
-	return MLSome;
-}
-
 ML_METHOD("append", MLStringBufferT, MLAddressT) {
 //!address
 //<Buffer
@@ -1221,15 +1216,6 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	return ml_string(Value, Length);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLBooleanT, ml_stringbuffer_t *Buffer, ml_boolean_t *Boolean) {
-	if (Boolean->Value) {
-		ml_stringbuffer_write(Buffer, "true", 4);
-	} else {
-		ml_stringbuffer_write(Buffer, "false", 5);
-	}
-	return MLSome;
-}
-
 ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 //!boolean
 //<Buffer
@@ -1246,11 +1232,6 @@ ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 }
 
 #ifdef ML_NANBOXING
-
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLInteger32T, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_printf(Buffer, "%" PRId64, ml_integer32_value(Value));
-	return MLSome;
-}
 
 ML_METHOD("append", MLStringBufferT, MLInteger32T) {
 //!number
@@ -1540,11 +1521,6 @@ ML_METHOD("append", MLStringBufferT, MLRealIntervalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_interval_t *Interval = (ml_real_interval_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g", Interval->Start, Interval->Limit);
-	return MLSome;
-}
-
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLDoubleT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", ml_double_value(Value));
 	return MLSome;
 }
 
@@ -5776,8 +5752,6 @@ done:;
 }
 
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	typeof(ml_stringbuffer_append) *fn = ml_typed_fn_get(ml_typeof(Value), ml_stringbuffer_append);
-	if (fn) return fn(Buffer, Value);
 	return ml_simple_inline(AppendMethod, 2, Buffer, Value);
 }
 

@@ -603,22 +603,10 @@ void ml_methodx_by_value(void *Value, void *Data, ml_callbackx_t Callback, ...) 
 	ml_method_insert(MLRootMethods, Method, ml_cfunctionx(Data, Callback), Count, MLAnyT, Types);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMethodT, ml_stringbuffer_t *Buffer, ml_method_t *Method) {
-	ml_stringbuffer_put(Buffer, ':');
-	ml_stringbuffer_write(Buffer, Method->Name, strlen(Method->Name));
-	return MLSome;
-}
-
 ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];
 	ml_stringbuffer_put(Buffer, ':');
-	ml_stringbuffer_write(Buffer, Method->Name, strlen(Method->Name));
-	return MLSome;
-}
-
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMethodAnonT, ml_stringbuffer_t *Buffer, ml_method_t *Method) {
-	ml_stringbuffer_put(Buffer, '@');
 	ml_stringbuffer_write(Buffer, Method->Name, strlen(Method->Name));
 	return MLSome;
 }

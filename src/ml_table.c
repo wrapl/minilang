@@ -812,9 +812,7 @@ ML_METHOD("[]", MLTableT, MLVectorInt8T) {
 	return ml_sub_table((ml_table_t *)Args[0], (ml_array_t *)Args[1]);
 }
 
-extern ml_value_t *AppendMethod;
-
-ML_METHOD(AppendMethod, MLStringBufferT, MLTableT) {
+ML_METHOD("append", MLStringBufferT, MLTableT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_table_t *Table = (ml_table_t *)Args[1];
 	for (ml_table_column_t *Column = ((ml_table_t *)Table)->Columns; Column; Column = Column->Next) {

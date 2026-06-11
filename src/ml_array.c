@@ -2272,15 +2272,6 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	ml_stringbuffer_write(Buffer, ">", 1); \
 } \
 \
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLArray ## SUFFIX, ml_stringbuffer_t *Buffer, ml_array_t *Array) { \
-	if (Array->Degree == 0) { \
-		APPEND(Buffer, PRINTF, *(CTYPE *)Array->Base.Value); \
-	} else { \
-		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Value); \
-	} \
-	return MLSome; \
-} \
-\
  ML_METHOD("append", MLStringBufferT, MLArray ## SUFFIX) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \

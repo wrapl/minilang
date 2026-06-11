@@ -1656,12 +1656,6 @@ static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, co
 	Closure->Name = Name;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLClosureT, ml_stringbuffer_t *Buffer, ml_closure_t *Closure) {
-	const char *Name = Closure->Name ?: Closure->Info->Name;
-	ml_stringbuffer_write(Buffer, Name, strlen(Name));
-	return MLSome;
-}
-
 ML_METHOD("append", MLStringBufferT, MLClosureT) {
 //<Buffer
 //<Closure
