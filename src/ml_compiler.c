@@ -5102,41 +5102,52 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 	return ML_EXPR_END(MethodExpr);
 }
 
-static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_expr_t **ArgsSlot, ml_value_t *Names) {
+static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_expr_t **ArgsSlot, ml_value_t *Names, mlc_expr_t *Value) {
 	mlc_expr_t **NamesSlot = ArgsSlot;
 	mlc_expr_t *Arg = ArgsSlot[0];
 	ArgsSlot = &Arg->Next;
-	if (ml_parse2(Parser, MLT_SEMICOLON)) {
+	mlc_expected_delimiter_t Expected = {Parser->ExpectedDelimiter, EndToken};
+	if (Value) {
+		Arg = ArgsSlot[0] = Value;
+	} else if (ml_parse2(Parser, MLT_SEMICOLON)) {
 		ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
 		return;
-	}
-	mlc_expected_delimiter_t Expected = {Parser->ExpectedDelimiter, EndToken};
-	Parser->ExpectedDelimiter = &Expected;
-	Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
-	if (Expected.Token != EndToken) {
-		Parser->ExpectedDelimiter = Expected.Prev;
-		return;
+	} else {
+		Parser->ExpectedDelimiter = &Expected;
+		Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
+		if (Expected.Token != EndToken) {
+			Parser->ExpectedDelimiter = Expected.Prev;
+			return;
+		}
 	}
 	ArgsSlot = &Arg->Next;
 	while (ml_parse2(Parser, MLT_COMMA)) {
 		ml_token_t Token = ml_current2(Parser);
-		if (Token == MLT_IDENT) {
+		if (Token == MLT_FUN) {
 			ml_next(Parser);
+			ml_accept(Parser, MLT_IDENT);
 			ml_names_add(Names, ml_string(Parser->Ident, -1));
-		} else if (Token == MLT_VALUE && ml_typeof(Parser->Value) == MLStringT) {
-			ml_next(Parser);
-			ml_names_add(Names, Parser->Value);
+			ml_accept(Parser, MLT_LEFT_PAREN);
+			Arg = ArgsSlot[0] = ml_accept_fun_expr(Parser, Parser->Ident, MLT_RIGHT_PAREN);
 		} else {
-			ml_parse_warn(Parser, "ParseError", "Argument names must be identifiers or string");
-			goto resume;
+			if (Token == MLT_IDENT) {
+				ml_next(Parser);
+				ml_names_add(Names, ml_string(Parser->Ident, -1));
+			} else if (Token == MLT_VALUE && ml_typeof(Parser->Value) == MLStringT) {
+				ml_next(Parser);
+				ml_names_add(Names, Parser->Value);
+			} else {
+				ml_parse_warn(Parser, "ParseError", "Argument names must be identifiers or string");
+				goto resume;
+			}
+			if (!ml_parse2(Parser, MLT_COLON)) ml_accept(Parser, MLT_IS);
+			if (ml_parse2(Parser, MLT_SEMICOLON)) {
+				Parser->ExpectedDelimiter = Expected.Prev;
+				ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
+				return;
+			}
+			Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
 		}
-		if (!ml_parse2(Parser, MLT_COLON)) ml_accept(Parser, MLT_IS);
-		if (ml_parse2(Parser, MLT_SEMICOLON)) {
-			Parser->ExpectedDelimiter = Expected.Prev;
-			ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
-			return;
-		}
-		Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
 		if (Expected.Token != EndToken) {
 			Parser->ExpectedDelimiter = Expected.Prev;
 			return;
@@ -5161,7 +5172,25 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 		mlc_expected_delimiter_t Expected = {Parser->ExpectedDelimiter, EndToken};
 		Parser->ExpectedDelimiter = &Expected;
 		do {
-			mlc_expr_t *Arg = ml_accept_expression(Parser, EXPR_DEFAULT);
+			ml_skip_eol(Parser);
+			mlc_expr_t *Arg;
+			if (ml_parse(Parser, MLT_FUN)) {
+				if (ml_parse(Parser, MLT_IDENT)) {
+					ml_value_t *Names = ml_names();
+					ml_names_add(Names, ml_string(Parser->Ident, -1));
+					ML_EXPR(NamesArg, value, value);
+					NamesArg->Value = Names;
+					ArgsSlot[0] = ML_EXPR_END(NamesArg);
+					ml_accept(Parser, MLT_LEFT_PAREN);
+					mlc_expr_t *FunExpr = ml_accept_fun_expr(Parser, Parser->Ident, MLT_RIGHT_PAREN);
+					return ml_accept_named_arguments(Parser, EndToken, ArgsSlot, Names, FunExpr);
+				} else {
+					ml_accept(Parser, MLT_LEFT_PAREN);
+					Arg = ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
+				}
+			} else {
+				Arg = ml_accept_expression(Parser, EXPR_DEFAULT);
+			}
 			if (Expected.Token != EndToken) {
 				ArgsSlot[0] = Arg;
 				Parser->ExpectedDelimiter = Expected.Prev;
@@ -5184,7 +5213,7 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 				NamesArg->Value = Names;
 				ArgsSlot[0] = ML_EXPR_END(NamesArg);
 				Parser->ExpectedDelimiter = Expected.Prev;
-				return ml_accept_named_arguments(Parser, EndToken, ArgsSlot, Names);
+				return ml_accept_named_arguments(Parser, EndToken, ArgsSlot, Names, NULL);
 			}
 			ArgsSlot[0] = Arg;
 			ArgsSlot = &Arg->Next;
@@ -5745,14 +5774,16 @@ with_name:
 	}
 	case MLT_FUN: {
 		ml_next(Parser);
-		if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
+		/*if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
 			return ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
 		} else {
 			ML_EXPR(FunExpr, fun, fun);
 			FunExpr->Source = Parser->Source.Name;
 			FunExpr->Body = ml_accept_expression(Parser, EXPR_DEFAULT);
 			return ML_EXPR_END(FunExpr);
-		}
+		}*/
+		ml_accept(Parser, MLT_LEFT_PAREN);
+		return ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
 	}
 	case MLT_METH: {
 		ml_next(Parser);
@@ -5918,7 +5949,7 @@ with_name:
 			ML_EXPR(NamesArg, value, value);
 			NamesArg->Value = Names;
 			TupleExpr->Child = ML_EXPR_END(NamesArg);
-			ml_accept_named_arguments(Parser, MLT_RIGHT_PAREN, &TupleExpr->Child, Names);
+			ml_accept_named_arguments(Parser, MLT_RIGHT_PAREN, &TupleExpr->Child, Names, NULL);
 			Expr = ML_EXPR_END(TupleExpr);
 		} else {
 			ml_accept(Parser, MLT_RIGHT_PAREN);
