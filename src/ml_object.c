@@ -2078,6 +2078,8 @@ static ml_value_t *ml_flags_switch_fn(ml_flags_t *Flags, int Count, ml_value_t *
 					if (!FlagsValue) return ml_error("FlagsError", "Invalid flags name");
 					Case->Value |= ml_flags_value_value(FlagsValue);
 				}
+			} else if (Value == MLNil) {
+				Case->Value = 0;
 			} else {
 				return ml_error("ValueError", "Unsupported value in flags case");
 			}
