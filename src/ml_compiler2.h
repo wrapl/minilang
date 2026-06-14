@@ -78,7 +78,8 @@ typedef enum {
 	EXPR_XOR,
 	EXPR_OR,
 	EXPR_FOR,
-	EXPR_DEFAULT
+	EXPR_DEFAULT,
+	EXPR_DECL
 } ml_expr_level_t;
 
 void ml_accept(ml_parser_t *Parser, ml_token_t Token);
