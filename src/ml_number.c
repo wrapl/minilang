@@ -2577,7 +2577,7 @@ double ml_random_real() {
 	return ldexp(Int, -64);
 }
 
-ML_FUNCTION(RandomInteger) {
+ML_TYPE_FUNCTION(MLIntegerT, random) {
 //@integer::random
 //<Min?:number
 //<Max?:number
@@ -2602,9 +2602,6 @@ ML_FUNCTION(RandomInteger) {
 		return ml_integer(Random);
 	}
 }
-
-extern ml_cfunction_t RandomPermutation[1];
-extern ml_cfunction_t RandomCycle[1];
 
 #ifndef ML_MATH
 
@@ -2664,7 +2661,7 @@ ML_FUNCTION(RandomCycle) {
 
 #endif
 
-ML_FUNCTION(RandomReal) {
+ML_TYPE_FUNCTION(MLRealT, random) {
 //@real::random
 //<Min?:number
 //<Max?:number
@@ -4566,12 +4563,8 @@ void ml_number_init() {
 #endif
 	stringmap_insert(MLIntegerT->Exports, "interval", MLIntegerIntervalT);
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
-	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);
-	stringmap_insert(MLIntegerT->Exports, "random_permutation", RandomPermutation);
-	stringmap_insert(MLIntegerT->Exports, "random_cycle", RandomCycle);
 	stringmap_insert(MLRealT->Exports, "interval", MLRealIntervalT);
 	stringmap_insert(MLRealT->Exports, "switch", MLRealSwitch);
-	stringmap_insert(MLRealT->Exports, "random", RandomReal);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isfinite", NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isnan", NULL, ml_return_nil, MLIntegerT, NULL);

@@ -1973,7 +1973,7 @@ void ml_roots_general(int N, const complex double Coeffs[], complex double Roots
 	}
 }
 
-ML_FUNCTION(MLPolynomialRoots) {
+ML_TYPE_FUNCTION(MLPolynomialT, roots) {
 //@polynomial::roots
 //<Coeffs
 //>list[complex]
@@ -2124,9 +2124,6 @@ ML_DESERIALIZER("polynomial") {
 
 void ml_polynomial_init(stringmap_t *Globals) {
 #include "ml_polynomial_init.c"
-#ifdef ML_COMPLEX
-	stringmap_insert(MLPolynomialT->Exports, "roots", MLPolynomialRoots);
-#endif
 	stringmap_insert(MLPolynomialT->Exports, "eval", MLPolynomialEval);
 	if (Globals) {
 		stringmap_insert(Globals, "polynomial", MLPolynomialT);

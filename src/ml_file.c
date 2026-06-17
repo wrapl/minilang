@@ -143,7 +143,7 @@ ml_value_t *ml_file(FILE *Handle) {
 	return (ml_value_t *)File;
 }
 
-ML_FUNCTION(MLFileRealPath) {
+ML_TYPE_FUNCTION(MLFileT, realpath) {
 //@file::realpath
 //<Path
 //>string|nil
@@ -157,7 +157,7 @@ ML_FUNCTION(MLFileRealPath) {
 	return Result;
 }
 
-ML_FUNCTION(MLFileExists) {
+ML_TYPE_FUNCTION(MLFileT, exists) {
 //@file::exists
 //<Path
 //>string|nil
@@ -169,7 +169,7 @@ ML_FUNCTION(MLFileExists) {
 	return Args[0];
 }
 
-ML_FUNCTION(MLFileRename) {
+ML_TYPE_FUNCTION(MLFileT, rename) {
 //@file::rename
 //<Old
 //<New
@@ -185,7 +185,7 @@ ML_FUNCTION(MLFileRename) {
 	return MLNil;
 }
 
-ML_FUNCTION(MLFileUnlink) {
+ML_TYPE_FUNCTION(MLFileT, unlink) {
 //@file::unlink
 //<Path
 // Removes the file at :mini:`Path`.
@@ -198,7 +198,7 @@ ML_FUNCTION(MLFileUnlink) {
 	return MLNil;
 }
 
-ML_FUNCTION(MLFileSymLink) {
+ML_TYPE_FUNCTION(MLFileT, symlink) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -373,7 +373,7 @@ static void ML_TYPED_FN(ml_iterate, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
 	}
 }
 
-ML_FUNCTION(MLDirCreate) {
+ML_TYPE_FUNCTION(MLDirT, create) {
 //@dir::create
 //<Path
 //<Mode
@@ -397,7 +397,7 @@ ML_FUNCTION(MLDirCreate) {
 	return MLNil;
 }
 
-ML_FUNCTION(MLDirRemove) {
+ML_TYPE_FUNCTION(MLDirT, remove) {
 //@dir::remove
 //<Path
 	ML_CHECK_ARG_COUNT(1);
@@ -459,17 +459,10 @@ ML_METHOD("close", MLPOpenT) {
 
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
-	stringmap_insert(MLFileT->Exports, "stat", MLFileStat);
+	stringmap_insert(MLFileT->Exports, "stat", MLFileStatT);
 #ifndef Mingw
 	stringmap_insert(MLFileT->Exports, "mode", MLFileModeT);
 #endif
-	stringmap_insert(MLFileT->Exports, "realpath", MLFileRealPath);
-	stringmap_insert(MLFileT->Exports, "exists", MLFileExists);
-	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
-	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
-	stringmap_insert(MLFileT->Exports, "symlink", MLFileSymLink);
-	stringmap_insert(MLDirT->Exports, "create", MLDirCreate);
-	stringmap_insert(MLDirT->Exports, "remove", MLDirRemove);
 	if (Globals) {
 		stringmap_insert(Globals, "file", MLFileT);
 		stringmap_insert(Globals, "dir", MLDirT);

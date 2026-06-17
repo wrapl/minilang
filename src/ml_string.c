@@ -4742,7 +4742,7 @@ void ml_stringbuffer_escape_string(ml_stringbuffer_t *Buffer, const char *String
 	}
 }
 
-ML_FUNCTION(MLStringEscape) {
+ML_TYPE_FUNCTION(MLStringT, escape) {
 //@string::escape
 //<String:string
 //>string
@@ -5021,7 +5021,7 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 	return MLSome;
 }
 
-ML_FUNCTION(MLRegexEscape) {
+ML_TYPE_FUNCTION(MLRegexT, escape) {
 //@regex::escape
 //<String:string
 //>string
@@ -6183,8 +6183,6 @@ void ml_string_init() {
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	regcomp(StringFormat, "^\\s*%[-]?[0-9]*[s]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
-	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
-	stringmap_insert(MLRegexT->Exports, "escape", MLRegexEscape);
 #include "ml_string_init.c"
 	stringmap_insert(MLAddressT->Exports, "LE", ml_enum_value(MLByteOrderT, 1));
 	stringmap_insert(MLAddressT->Exports, "BE", ml_enum_value(MLByteOrderT, 2));

@@ -257,7 +257,7 @@ ML_TYPE(MLMapTemplateT, (MLFunctionT), "map::template",
 	.call = (void *)ml_map_template_call
 );
 
-ML_FUNCTION(MLMapTemplate) {
+ML_TYPE_FUNCTION(MLMapT, template) {
 //!internal
 	ml_value_t *Template = ml_map();
 	for (int I = 0; I < Count; ++I) ml_map_insert(Template, Args[I], ml_integer(I));
@@ -324,7 +324,7 @@ static void map_reduce_iterate(ml_map_reduce_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(MLMapReduce) {
+ML_TYPE_FUNCTIONX(MLMapT, reduce) {
 //@map::reduce
 //<Sequence:sequence
 //<Reduce:function
@@ -2742,7 +2742,7 @@ static int ML_TYPED_FN(ml_value_is_constant, MLMapT, ml_value_t *Map) {
 	return 1;
 }
 
-ML_FUNCTIONX(MLMapBy) {
+ML_TYPE_FUNCTIONX(MLMapT, by) {
 //@map::by
 //<Sequence
 //<Fn/1,...,Fn/n:function
@@ -2759,7 +2759,7 @@ ML_FUNCTIONX(MLMapBy) {
 	return ml_call(Caller, (ml_value_t *)MLMapT, 1, Args2);
 }
 
-ML_FUNCTIONX(MLMapTo) {
+ML_TYPE_FUNCTIONX(MLMapT, to) {
 //@map::to
 //<Sequence
 //<Fn/1,...,Fn/n:function
@@ -2822,7 +2822,7 @@ static void ml_map_join_state_run(ml_map_join_state_t *State, ml_value_t *Value)
 	ML_RETURN(State->Map);
 }
 
-ML_FUNCTIONX(MLMapJoin) {
+ML_TYPE_FUNCTIONX(MLMapT, join) {
 //@map::join
 //<Map/1,...:map
 //<Fn:function
@@ -2901,7 +2901,7 @@ static void ml_map_join2_state_run(ml_map_join_state_t *State, ml_value_t *Value
 	ML_RETURN(State->Map);
 }
 
-ML_FUNCTIONX(MLMapJoin2) {
+ML_TYPE_FUNCTIONX(MLMapT, join2) {
 //@map::join2
 //<Map/1,...:map
 //<Fn:function
@@ -2960,7 +2960,7 @@ ML_TYPE(MLMapLabellerT, (MLFunctionT, MLMapT), "labeller",
 	.call = (void *)ml_map_labeller_call
 );
 
-ML_FUNCTION(MLMapLabeller) {
+ML_TYPE_FUNCTION(MLMapT, labeller) {
 //@map::labeller
 //>map::labeller
 	ml_value_t *Labeller = ml_map();
@@ -2973,13 +2973,6 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "mutable", MLMapMutableT);
 	MLMapMutableT->Constructor = MLMapT->Constructor;
 	stringmap_insert(MLMapT->Exports, "order", MLMapOrderT);
-	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
-	stringmap_insert(MLMapT->Exports, "join2", MLMapJoin2);
-	stringmap_insert(MLMapT->Exports, "reduce", MLMapReduce);
-	stringmap_insert(MLMapT->Exports, "labeller", MLMapLabeller);
-	stringmap_insert(MLMapT->Exports, "template", MLMapTemplate);
-	stringmap_insert(MLMapT->Exports, "by", MLMapBy);
-	stringmap_insert(MLMapT->Exports, "to", MLMapTo);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #ifdef ML_MUTABLES

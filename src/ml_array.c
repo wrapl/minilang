@@ -4374,9 +4374,9 @@ ML_METHOD(MLPermutationT, MLListT) {
 	return (ml_value_t *)Permutation;
 }
 
-ML_FUNCTION(RandomPermutation) {
+ML_TYPE_FUNCTION(MLPermutationT, random) {
 //!number
-//@integer::random_permutation
+//@permutation::random
 //<Max:number
 //>permutation
 // Returns a random permutation of :mini:`1, ..., Max`.
@@ -4401,9 +4401,9 @@ ML_FUNCTION(RandomPermutation) {
 	return (ml_value_t *)Permutation;
 }
 
-ML_FUNCTION(RandomCycle) {
+ML_TYPE_FUNCTION(MLPermutationT, random_cycle) {
 //!number
-//@integer::random_cycle
+//@permutation::random_cycle
 //<Max:number
 //>permutation
 // Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
@@ -5222,9 +5222,6 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLVectorT->Exports, "complex", MLVectorComplexT);
 	stringmap_insert(MLMatrixT->Exports, "complex", MLMatrixComplexT);
 #endif
-
-	stringmap_insert(MLPermutationT->Exports, "random", RandomPermutation);
-	stringmap_insert(MLPermutationT->Exports, "random_cycle", RandomCycle);
 	if (Globals) {
 		stringmap_insert(Globals, "array", MLArrayT);
 		stringmap_insert(Globals, "vector", MLVectorT);

@@ -457,7 +457,7 @@ ML_METHODV("-", MLTimeT, MLNamesT, MLIntegerT) {
 	return (ml_value_t *)Time;
 }
 
-ML_FUNCTION(MLTimeEpoch) {
+ML_TYPE_FUNCTION(MLTimeT, epoch) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	ml_time_t *Time = new(ml_time_t);
@@ -795,7 +795,7 @@ ML_TIME_PART("hour", hour, ml_integer(TM.tm_hour))
 ML_TIME_PART("minute", minute, ml_integer(TM.tm_min))
 ML_TIME_PART("second", second, ml_integer(TM.tm_sec))
 
-ML_FUNCTION(MLTimeMdays) {
+ML_TYPE_FUNCTION(MLTimeT, mdays) {
 //@time::mdays
 //<Year
 //<Month
@@ -1278,8 +1278,6 @@ void ml_time_init(stringmap_t *Globals) {
 		"Hour", ml_integer(60 * 60),
 		"Day", ml_integer(60 * 60 * 24),
 	NULL));
-	stringmap_insert(MLTimeT->Exports, "epoch", MLTimeEpoch);
-	stringmap_insert(MLTimeT->Exports, "mdays", MLTimeMdays);
 	stringmap_insert(MLTimeT->Exports, "day", MLTimeDayT);
 	stringmap_insert(MLTimeT->Exports, "month", MLTimeMonthT);
 	ml_method_by_value(MLTimeT->Constructor, NULL, ml_identity, MLTimeT, NULL);
