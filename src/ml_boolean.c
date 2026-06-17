@@ -51,6 +51,19 @@ ML_METHOD(MLBooleanT, MLStringT) {
 	return ml_error("ValueError", "Invalid boolean: %s", Name);
 }
 
+ML_METHOD(MLBooleanT, MLIntegerT) {
+	return ml_integer_value(Args[0]) ? (ml_value_t *)MLTrue : (ml_value_t *)MLFalse;
+}
+
+ML_TYPE_FUNCTION(MLBooleanT, value) {
+	ML_CHECK_ARG_COUNT(1);
+	if (ml_deref(Args[0]) == MLNil) {
+		return (ml_value_t *)MLFalse;
+	} else {
+		return (ml_value_t *)MLTrue;
+	}
+}
+
 ML_METHOD("!!", MLAnyT) {
 //<Value
 //>boolean
@@ -144,7 +157,7 @@ ml_comp_method_boolean_boolean(>, >);
 ml_comp_method_boolean_boolean(<=, <=);
 ml_comp_method_boolean_boolean(>=, >=);
 
-ML_FUNCTION(RandomBoolean) {
+ML_TYPE_FUNCTION(MLBooleanT, random) {
 //@boolean::random
 //<P?:number
 //>boolean
@@ -162,5 +175,4 @@ ML_FUNCTION(RandomBoolean) {
 void ml_boolean_init() {
 #include "ml_boolean_init.c"
 	ml_method_by_value(MLBooleanT->Constructor, NULL, ml_identity, MLBooleanT, NULL);
-	stringmap_insert(MLBooleanT->Exports, "random", RandomBoolean);
 }

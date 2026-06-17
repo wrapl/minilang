@@ -183,6 +183,15 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLGlobalT, ml_minijs_encoder_t 
 	return ml_minijs_encode(Encoder, Value);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLCFunctionT, ml_minijs_encoder_t *Encoder, ml_cfunction_t *Function) {
+	if (!Function->Parent) return ml_error("TypeError", "Unable to encode unnamed C function: %s:%d", Function->Source, Function->Line);
+	ml_value_t *Json = ml_list();
+	ml_list_put(Json, ml_cstring("::"));
+	ml_list_put(Json, ml_minijs_encode(Encoder, Function->Parent));
+	ml_list_put(Json, ml_string(Function->Name, -1));
+	return Json;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLVariableT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	ml_value_t *Json = ml_list();
 	ml_list_put(Json, ml_cstring("v"));
@@ -639,6 +648,18 @@ static ml_value_t *ml_minijs_decode_global(ml_minijs_decoder_t *Decoder, ml_list
 	if (!ml_is(Value, MLStringT)) return ml_error("TypeError", "Global requires string name");
 	const char *Name = ml_string_value(Value);
 	return ml_externals_get_value(Decoder->Externals, Name) ?: ml_error("NameError", "Unknown global %s", Name);
+}
+
+static ml_value_t *ml_minijs_decode_import(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
+	if (!Node || !Node->Next) return ml_error("TypeError", "Import requires parent and name");
+	ml_value_t *Parent = ml_minijs_decode(Decoder, Node->Value);
+	if (ml_is_error(Parent)) return Parent;
+	if (!ml_is(Parent, MLTypeT)) return ml_error("TypeError", "Import requires parent to be a type"); // TODO: Allow more general imports
+	if (!ml_is(Node->Next->Value, MLStringT)) return ml_error("TypeError", "Import requires name to be a string");
+	const char *Name = ml_string_value(Node->Next->Value);
+	ml_value_t *Value = stringmap_search(((ml_type_t *)Parent)->Exports, Name);
+	if (!Value) return ml_error("NameError", "Unknown import %s::%s", ((ml_type_t *)Parent)->Name, Name);
+	return Value;
 }
 
 static ml_value_t *ml_minijs_decode_blank(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
@@ -1100,6 +1121,7 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "m", ml_minijs_decode_map);
 	stringmap_insert(Decoders, "type", ml_minijs_decode_type);
 	stringmap_insert(Decoders, "t", ml_minijs_decode_type);
+	stringmap_insert(Decoders, "::", ml_minijs_decode_import);
 #ifdef ML_COMPLEX
 	stringmap_insert(Decoders, "complex", ml_minijs_decode_complex);
 	stringmap_insert(Decoders, "c", ml_minijs_decode_complex);

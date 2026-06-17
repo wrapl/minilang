@@ -397,6 +397,8 @@ struct ml_cfunction_t {
 	ml_type_t *Type;
 	ml_callback_t Callback;
 	void *Data;
+	ml_value_t *Parent;
+	const char *Name;
 	const char *Source;
 	int Line;
 };
@@ -405,6 +407,8 @@ struct ml_cfunctionx_t {
 	ml_type_t *Type;
 	ml_callbackx_t Callback;
 	void *Data;
+	ml_value_t *Parent;
+	const char *Name;
 	const char *Source;
 	int Line;
 };
@@ -413,11 +417,11 @@ extern ml_type_t MLCFunctionT[];
 extern ml_type_t MLCFunctionXT[];
 extern ml_type_t MLCFunctionZT[];
 
-#define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA, ML_CATEGORY, __LINE__}}
+#define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA, NULL, NULL, ML_CATEGORY, __LINE__}}
 
-#define ML_CFUNCTIONX(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, CALLBACK, DATA, ML_CATEGORY, __LINE__}}
+#define ML_CFUNCTIONX(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, CALLBACK, DATA, NULL, NULL, ML_CATEGORY, __LINE__}}
 
-#define ML_CFUNCTIONZ(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, CALLBACK, DATA, ML_CATEGORY, __LINE__}}
+#define ML_CFUNCTIONZ(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, CALLBACK, DATA, NULL, NULL, ML_CATEGORY, __LINE__}}
 
 extern ml_cfunctionx_t MLCallCC[];
 extern ml_cfunctionx_t MLMarkCC[];
@@ -443,29 +447,42 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_
 
 ml_value_t *ml_value_function(ml_value_t *Value);
 
-#define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
+#define ML_FUNCTION2(NAME, FUNCTION, PARENT, EXPORT) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
 \
-ml_cfunction_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \
+ml_cfunction_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL, (ml_value_t *)PARENT, EXPORT, ML_CATEGORY, __LINE__}}; \
 \
 static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
 
-#define ML_FUNCTION(NAME) ML_FUNCTION2(NAME, CONCAT3(ml_cfunction_, __LINE__, __COUNTER__))
+#define ML_FUNCTION(NAME) ML_FUNCTION2(NAME, CONCAT3(ml_cfunction_, __LINE__, __COUNTER__), NULL, NULL)
 
-#define ML_FUNCTIONX2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
+#define ML_FUNCTIONX2(NAME, FUNCTION, PARENT, EXPORT) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
 \
-ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \
-\
+ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL, (ml_value_t *)PARENT, EXPORT, ML_CATEGORY, __LINE__}}; \
 static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
-#define ML_FUNCTIONX(NAME, TYPES ...) ML_FUNCTIONX2(NAME, CONCAT3(ml_cfunctionx_, __LINE__, __COUNTER__))
+#define ML_FUNCTIONX(NAME, TYPES ...) ML_FUNCTIONX2(NAME, CONCAT3(ml_cfunctionx_, __LINE__, __COUNTER__), NULL, NULL)
 
 #define ML_FUNCTIONZ2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
 \
-ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, FUNCTION, NULL, ML_CATEGORY, __LINE__}}; \
+ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, FUNCTION, NULL, NULL, NULL, ML_CATEGORY, __LINE__}}; \
 \
 static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
 #define ML_FUNCTIONZ(NAME, TYPES ...) ML_FUNCTIONZ2(NAME, CONCAT3(ml_cfunctionx_, __LINE__, __COUNTER__))
+
+#ifndef GENERATE_INIT
+
+#define ML_TYPE_FUNCTION(TYPE, EXPORT) ML_FUNCTION2(TYPE ## _ ## EXPORT, CONCAT3(ml_cfunction_, __LINE__, __COUNTER__), TYPE, #EXPORT)
+
+#define ML_TYPE_FUNCTIONX(TYPE, EXPORT) ML_FUNCTIONX2(TYPE ## _ ## EXPORT, CONCAT3(ml_cfunction_, __LINE__, __COUNTER__), TYPE, #EXPORT)
+
+#else
+
+#define ML_TYPE_FUNCTION(TYPE, EXPORT) INIT_CODE stringmap_insert(TYPE->Exports, #EXPORT, TYPE ## _ ## EXPORT); __COUNTER__;
+
+#define ML_TYPE_FUNCTIONX(TYPE, EXPORT) INIT_CODE stringmap_insert(TYPE->Exports, #EXPORT, TYPE ## _ ## EXPORT); __COUNTER__;
+
+#endif
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \

@@ -923,6 +923,17 @@ static void ML_TYPED_FN(ml_cbor_write, MLGlobalT, ml_cbor_writer_t *Writer, ml_v
 	ml_cbor_write(Writer, Value);
 }
 
+static void ML_TYPED_FN(ml_cbor_write, MLCFunctionT, ml_cbor_writer_t *Writer, ml_cfunction_t *Function) {
+	if (!Function->Parent) ML_CBOR_WRITER_ERROR(Writer, "TypeError", "Unable to encode unnamed C function: %s:%d", Function->Source, Function->Line);
+	ml_cbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	ml_cbor_write_array(Writer, 3);
+	ml_cbor_write_string(Writer, 6);
+	Writer->WriteFn(Writer->Data, (void *)"import", 6);
+	ml_cbor_write(Writer, Function->Parent);
+	ml_cbor_write_string(Writer, strlen(Function->Name));
+	Writer->WriteFn(Writer->Data, (const unsigned char *)Function->Name, strlen(Function->Name));
+}
+
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	//printf("%s()\n", __func__);
 	int64_t Value = ml_integer_value(Arg);
@@ -1545,6 +1556,15 @@ static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml
 	return (ml_value_t *)Object;
 }
 
+static ml_value_t *ml_cbor_object_import(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLTypeT); // TODO: change this to support other types
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	ml_value_t *Value = stringmap_search(((ml_type_t *)Args[0])->Exports, ml_string_value(Args[1]));
+	if (Value) return Value;
+	return ml_error("TagError", "Import %s not found in type %s", ml_string_value(Args[1]), ((ml_type_t *)Args[0])->Name);
+}
+
 static stringmap_t CborObjectTypes[1] = {STRINGMAP_INIT};
 
 ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value, void *Data) {
@@ -1627,6 +1647,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_object("names", ml_cbor_object_names);
 	ml_cbor_default_object("range", ml_cbor_object_range);
 	ml_cbor_default_object("object", ml_cbor_object_object);
+	ml_cbor_default_object("import", ml_cbor_object_import);
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", ml_cbor_object_complex);
 	ml_cbor_default_tag(ML_CBOR_TAG_COMPLEX, ml_cbor_read_complex);
