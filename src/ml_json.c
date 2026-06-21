@@ -151,13 +151,11 @@ static void json_finish_value(json_decoder_t *Decoder, ml_value_t *Value) {
 }
 
 static void json_finish_integer(json_decoder_t *Decoder) {
-	char *String = ml_stringbuffer_get_string(Decoder->Buffer);
-	json_finish_value(Decoder, ml_integer(strtoll(String, NULL, 10)));
+	json_finish_value(Decoder, ml_integer(ml_stringbuffer_parse_integer(Decoder->Buffer)));
 }
 
 static void json_finish_real(json_decoder_t *Decoder) {
-	char *String = ml_stringbuffer_get_string(Decoder->Buffer);
-	json_finish_value(Decoder, ml_real(strtod(String, NULL)));
+	json_finish_value(Decoder, ml_real(ml_stringbuffer_parse_real(Decoder->Buffer)));
 }
 
 static ml_value_t *json_finish_keyword(json_decoder_t *Decoder) {

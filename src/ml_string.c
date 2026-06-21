@@ -5504,6 +5504,32 @@ char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 	return String;
 }
 
+int64_t ml_stringbuffer_parse_integer(ml_stringbuffer_t *Buffer) {
+	int Start = Buffer->Start, Length = Buffer->Length;
+	if (Start + Length + 1 < ML_STRINGCACHE_MAX) {
+		char *String = Buffer->Head->Chars + Start;
+		String[Length] = 0;
+		int64_t Value = strtoll(String, NULL, 10);
+		ml_stringbuffer_clear(Buffer);
+		return Value;
+	} else {
+		return strtoll(ml_stringbuffer_get_string(Buffer), NULL, 10);
+	}
+}
+
+double ml_stringbuffer_parse_real(ml_stringbuffer_t *Buffer) {
+	int Start = Buffer->Start, Length = Buffer->Length;
+	if (Start + Length + 1 < ML_STRINGCACHE_MAX) {
+		char *String = Buffer->Head->Chars + Start;
+		String[Length] = 0;
+		double Value = strtod(String, NULL);
+		ml_stringbuffer_clear(Buffer);
+		return Value;
+	} else {
+		return strtod(ml_stringbuffer_get_string(Buffer), NULL);
+	}
+}
+
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
 	if (Buffer->Length == 0) return "";
 	char *String = GC_MALLOC_ATOMIC_UNCOLLECTABLE(Buffer->Length + 1);

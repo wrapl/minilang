@@ -1010,6 +1010,9 @@ char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((mall
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 
+int64_t ml_stringbuffer_parse_integer(ml_stringbuffer_t *Buffer);
+double ml_stringbuffer_parse_real(ml_stringbuffer_t *Buffer);
+
 ml_value_t *ml_stringbuffer_to_address(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
