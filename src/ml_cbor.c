@@ -133,7 +133,7 @@ struct ml_cbor_reader_t {
 	ml_external_fn_t GlobalGet;
 	void *Globals;
 	ml_value_t **Reused;
-	ml_class_table_t *ClassTable;
+	ml_object_table_t *ObjectTable;
 	minicbor_stream_t Stream[1];
 	ml_stringbuffer_t Buffer[1];
 	int NumReused, MaxReused;
@@ -186,8 +186,8 @@ void *ml_cbor_reader_get_setting(ml_cbor_reader_t *Reader, int Setting) {
 	return Setting < Reader->NumSettings ? Reader->Settings[Setting] : NULL;
 }
 
-void ml_cbor_reader_set_classtable(ml_cbor_reader_t *Reader, ml_class_table_t *ClassTable) {
-	Reader->ClassTable = ClassTable;
+void ml_cbor_reader_set_ObjectTable(ml_cbor_reader_t *Reader, ml_object_table_t *ObjectTable) {
+	Reader->ObjectTable = ObjectTable;
 }
 
 int ml_cbor_reader_done(ml_cbor_reader_t *Reader) {
@@ -433,13 +433,13 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 	return Size - Stream->Available;
 }
 
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable) {
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_object_table_t *ObjectTable) {
 	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	Reader->ClassTable = ClassTable;
+	Reader->ObjectTable = ObjectTable;
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, Cbor.Data, Cbor.Length);
 	int Extra = ml_cbor_reader_extra(Reader);
@@ -447,13 +447,13 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_tab
 	return ml_cbor_reader_get(Reader);
 }
 
-ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable) {
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_object_table_t *ObjectTable) {
 	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	Reader->ClassTable = ClassTable;
+	Reader->ObjectTable = ObjectTable;
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, Cbor.Data, Cbor.Length);
 	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};
@@ -471,7 +471,7 @@ ML_METHODX(CborDecode, MLAddressT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+	Reader->ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
@@ -499,7 +499,7 @@ ML_METHODX(CborDecode, MLAddressT, MLMapT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_map;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+	Reader->ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
@@ -527,7 +527,7 @@ ML_METHODX(CborDecode, MLAddressT, MLFunctionT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_fn;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+	Reader->ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
@@ -549,7 +549,7 @@ ML_METHODX(CborDecode, MLAddressT, MLExternalSetT) {
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	Reader->ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
+	Reader->ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX);
 	minicbor_stream_init(Reader->Stream);
 	ml_cbor_reader_read(Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
@@ -1523,19 +1523,19 @@ ml_value_t *ml_cbor_read_blank(ml_cbor_reader_t *Reader, ml_value_t *Value, void
 }
 
 static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
-	if (!Reader->ClassTable) return ml_error("TagError", "Objects not supported by reader");
+	if (!Reader->ObjectTable) return ml_error("TagError", "Objects not supported by reader");
 	ML_CHECK_ARG_COUNT(1);
 	ml_value_t *ClassDef = Args[0];
 	ml_class_t *Class;
 	if (ml_is(ClassDef, MLUUIDT)) {
-		Class = Reader->ClassTable->lookup(Reader->ClassTable, ml_uuid_value(ClassDef));
+		Class = Reader->ObjectTable->lookup(Reader->ObjectTable, ml_uuid_value(ClassDef));
 		if (!Class) return ml_error("TagError", "Object type requires valid class");
 	} else if (ml_is(ClassDef, MLListT)) {
 		ml_list_iter_t Iter[1];
 		if (!ml_list_iter_forward(ClassDef, Iter)) return ml_error("TagError", "Object type requires valid class");
 		if (!ml_is(Iter->Value, MLUUIDT)) return ml_error("TagError", "Object type requires valid class");
 		const unsigned char *Id = ml_uuid_value(Iter->Value);
-		Class = Reader->ClassTable->lookup(Reader->ClassTable, ml_uuid_value(Iter->Value));
+		Class = Reader->ObjectTable->lookup(Reader->ObjectTable, ml_uuid_value(Iter->Value));
 		if (Class) {
 			int NumFields = ml_list_length(ClassDef) - 1;
 			if (Class->NumFields < NumFields) return ml_error("TagError", "Class definitions do not match");
@@ -1545,7 +1545,7 @@ static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml
 				if (!ml_is(Iter->Value, MLStringT)) return ml_error("TagError", "Object type requires valid class");
 				ml_pseudo_class_add_field(Class, ml_string_value(Iter->Value));
 			}
-			Reader->ClassTable->insert(Reader->ClassTable, Class);
+			Reader->ObjectTable->insert(Reader->ObjectTable, Class);
 		}
 	} else {
 		return ml_error("TagError", "Object requires type description");

@@ -54,7 +54,7 @@ int ml_cbor_reader_read(ml_cbor_reader_t *Reader, const unsigned char *Bytes, in
 int ml_cbor_reader_done(ml_cbor_reader_t *Reader);
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader);
 int ml_cbor_reader_extra(ml_cbor_reader_t *Reader);
-void ml_cbor_reader_set_classtable(ml_cbor_reader_t *Reader, ml_class_table_t *ClassTable);
+void ml_cbor_reader_set_ObjectTable(ml_cbor_reader_t *Reader, ml_object_table_t *ObjectTable);
 
 typedef struct {
 	union {
@@ -110,11 +110,11 @@ void ml_cbor_write_break(ml_cbor_writer_t *Writer);
 void ml_cbor_write_tag(ml_cbor_writer_t *Writer, uint64_t Tag);
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable);
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_object_table_t *ObjectTable);
 
 typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
-ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable);
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_object_table_t *ObjectTable);
 
 #define ML_CBOR_TAG_TIME_STRING 0
 #define ML_CBOR_TAG_TIME_EPOCH 1

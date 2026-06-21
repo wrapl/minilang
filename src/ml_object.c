@@ -552,8 +552,8 @@ ML_FUNCTIONZ(MLClass) {
 	} else {
 		ml_class_t *Class ;
 		if (Id) {
-			for (ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX); ClassTable; ClassTable = ClassTable->Prev) {
-				Class = ClassTable->lookup(ClassTable, ml_uuid_value(Id));
+			for (ml_object_table_t *ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX); ObjectTable; ObjectTable = ObjectTable->Prev) {
+				Class = ObjectTable->lookup(ObjectTable, ml_uuid_value(Id));
 				if (Class) {
 					if (Class->Base.Type != MLPseudoClassT) ML_ERROR("ClassError", "Class id must be unique");
 					if (Class->NumFields < NumFields) ML_ERROR("ClassError", "Class id previously declared with more fields");
@@ -622,11 +622,11 @@ ML_FUNCTIONZ(MLClass) {
 		if (Class->Initializer && Class->Defaults) ML_ERROR("CallError", "Only one of init and defaults can be specified");
 		if (Id) {
 			memcpy(Class->Id, ml_uuid_value(Id), sizeof(uuid_t));
-			ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
-			if (ClassTable) ClassTable->insert(ClassTable, Class);
 		} else {
 			uuid_generate(Class->Id);
 		}
+		ml_object_table_t *ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX);
+		if (ObjectTable) ObjectTable->insert(ObjectTable, Class);
 		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
@@ -876,14 +876,14 @@ static void ML_TYPED_FN(ml_value_set_name, MLObjectT, ml_object_t *Object, const
 	Field->Value = ml_string(Name, -1);
 }
 
-ml_class_t *ml_default_class_table_lookup(ml_class_table_t *_ClassTable, uuid_t Id) {
-	ml_default_class_table_t *ClassTable = (ml_default_class_table_t *)_ClassTable;
-	return uuidmap_search(ClassTable->Classes, Id);
+ml_class_t *ml_default_class_table_lookup(ml_object_table_t *_ObjectTable, uuid_t Id) {
+	ml_default_class_table_t *ObjectTable = (ml_default_class_table_t *)_ObjectTable;
+	return uuidmap_search(ObjectTable->Classes, Id);
 }
 
-ml_value_t *ml_default_class_table_insert(ml_class_table_t *_ClassTable, ml_class_t *Class) {
-	ml_default_class_table_t *ClassTable = (ml_default_class_table_t *)_ClassTable;
-	ml_class_t **Slot = (ml_class_t **)uuidmap_slot(ClassTable->Classes, Class->Id);
+ml_value_t *ml_default_class_table_insert(ml_object_table_t *_ObjectTable, ml_class_t *Class) {
+	ml_default_class_table_t *ObjectTable = (ml_default_class_table_t *)_ObjectTable;
+	ml_class_t **Slot = (ml_class_t **)uuidmap_slot(ObjectTable->Classes, Class->Id);
 	if (Slot[0]) {
 		char IdString[UUID_STR_LEN];
 		uuid_unparse_lower(Class->Id, IdString);
@@ -949,9 +949,9 @@ ML_METHOD(MLMethodDefault, MLMethodT, MLPseudoObjectT) {
 
 ML_METHODX("register", MLPseudoClassT) {
 	ml_class_t *Class = (ml_class_t *)Args[0];
-	ml_class_table_t *ClassTable = ml_context_get_static(Caller->Context, ML_CLASSES_INDEX);
-	if (!ClassTable) ML_ERROR("ClassError", "No class table found");
-	ml_value_t *Error = ClassTable->insert(ClassTable, Class);
+	ml_object_table_t *ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX);
+	if (!ObjectTable) ML_ERROR("ClassError", "No class table found");
+	ml_value_t *Error = ObjectTable->insert(ObjectTable, Class);
 	if (Error) ML_RETURN(Error);
 	ML_RETURN(Class);
 }
@@ -1094,7 +1094,14 @@ ML_FUNCTIONX(MLEnum) {
 				stringmap_insert(Enum->Base.Exports, ml_string_value(Iter->Value), Value);
 				++Value;
 			}
+		} else if (ml_is(Arg, MLUUIDT)) {
+			Id = Args[I];
 		}
+	}
+	if (Id) {
+		memcpy(Enum->Id, ml_uuid_value(Id), sizeof(uuid_t));
+	} else {
+		uuid_generate(Enum->Id);
 	}
 	ML_RETURN(Enum);
 }
@@ -2266,10 +2273,10 @@ ML_METHOD(MLListT, MLFlagsValueT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
-	ml_default_class_table_t *ClassTable = new(ml_default_class_table_t);
-	ClassTable->Base.lookup = ml_default_class_table_lookup;
-	ClassTable->Base.insert = ml_default_class_table_insert;
-	ml_context_set_static(MLRootContext, ML_CLASSES_INDEX, ClassTable);
+	ml_default_class_table_t *ObjectTable = new(ml_default_class_table_t);
+	ObjectTable->Base.lookup = ml_default_class_table_lookup;
+	ObjectTable->Base.insert = ml_default_class_table_insert;
+	ml_context_set_static(MLRootContext, ML_OBJECTS_INDEX, ObjectTable);
 	//ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_string_fn, MLStringT, NULL);
 	//ml_method_by_value(MLEnumT->Constructor, MLEnumT, ml_enum_names_fn, MLNamesT, NULL);
 	ml_method_by_value(MLEnumCyclicT->Constructor, MLEnumCyclicT, ml_enum_string_fn, MLStringT, NULL);

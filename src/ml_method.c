@@ -47,7 +47,7 @@ ML_TYPE(MLMethodContextT, (), "method::context",
 	.call = (void *)ml_methods_call
 );
 
-ML_FUNCTIONX(MLMethodContext) {
+ML_TYPE_FUNCTIONX(MLMethodT, context) {
 //@method::context
 //>method::context
 // Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
@@ -57,7 +57,7 @@ ML_FUNCTIONX(MLMethodContext) {
 	ML_RETURN(Methods);
 }
 
-ML_FUNCTIONX(MLMethodIsolate) {
+ML_TYPE_FUNCTIONX(MLMethodT, isolate) {
 //@method::isolate
 //<Args...
 //<Fn:function
@@ -893,7 +893,7 @@ static int ml_method_list_fn(const char *Name, ml_value_t *Method, ml_value_t *R
 	return 0;
 }
 
-ML_FUNCTION(MLMethodList) {
+ML_TYPE_FUNCTION(MLMethodT, list) {
 //@method::list
 //>list[method]
 	ml_value_t *Result = ml_list();
@@ -908,10 +908,7 @@ void ml_method_init() {
 	stringmap_insert(MLMethodT->Exports, "define", MLMethodDefine);
 	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
 	//stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
-	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
-	stringmap_insert(MLMethodT->Exports, "isolate", MLMethodIsolate);
 	stringmap_insert(MLMethodT->Exports, "isolated", MLMethodIsolatedT);
-	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);
 	stringmap_insert(MLMethodT->Exports, "default", MLMethodDefault);
 	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);
 }

@@ -134,30 +134,30 @@ static void json_decoder_pop(json_decoder_t *Decoder) {
 	}
 }
 
-static void json_finish_number(json_decoder_t *Decoder) {
-	char *String = ml_stringbuffer_get_string(Decoder->Buffer);
-	ml_value_t *Number;
-	for (char *P = String; *P; ++P) {
-		if (*P == '.' || *P == 'e' || *P == 'E') {
-			Number = ml_real(strtod(String, NULL));
-			goto real;
-		}
-	}
-	Number = ml_integer(strtoll(String, NULL, 10));
-real:
+static void json_finish_value(json_decoder_t *Decoder, ml_value_t *Value) {
 	if (Decoder->Collection) {
 		if (Decoder->Key) {
-			ml_map_insert(Decoder->Collection, Decoder->Key, Number);
+			ml_map_insert(Decoder->Collection, Decoder->Key, Value);
 			Decoder->Key = NULL;
 			Decoder->State = JS_OBJECT_REST;
 		} else if (ml_is(Decoder->Collection, MLListT)) {
-			ml_list_put(Decoder->Collection, Number);
+			ml_list_put(Decoder->Collection, Value);
 			Decoder->State = JS_ARRAY_REST;
 		}
 	} else {
 		Decoder->State = JS_VALUE;
-		Decoder->emit(Decoder, Number);
+		Decoder->emit(Decoder, Value);
 	}
+}
+
+static void json_finish_integer(json_decoder_t *Decoder) {
+	char *String = ml_stringbuffer_get_string(Decoder->Buffer);
+	json_finish_value(Decoder, ml_integer(strtoll(String, NULL, 10)));
+}
+
+static void json_finish_real(json_decoder_t *Decoder) {
+	char *String = ml_stringbuffer_get_string(Decoder->Buffer);
+	json_finish_value(Decoder, ml_real(strtod(String, NULL)));
 }
 
 static ml_value_t *json_finish_keyword(json_decoder_t *Decoder) {
@@ -172,19 +172,7 @@ static ml_value_t *json_finish_keyword(json_decoder_t *Decoder) {
 	} else {
 		return ml_error("JSONError", "Invalid keyword: %s", String);
 	}
-	if (Decoder->Collection) {
-		if (Decoder->Key) {
-			ml_map_insert(Decoder->Collection, Decoder->Key, Value);
-			Decoder->Key = NULL;
-			Decoder->State = JS_OBJECT_REST;
-		} else if (ml_is(Decoder->Collection, MLListT)) {
-			ml_list_put(Decoder->Collection, Value);
-			Decoder->State = JS_ARRAY_REST;
-		}
-	} else {
-		Decoder->State = JS_VALUE;
-		Decoder->emit(Decoder, Value);
-	}
+	json_finish_value(Decoder, Value);
 	return NULL;
 }
 
@@ -455,7 +443,7 @@ ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_
 				Decoder->State = JS_EXPONENT_SIGN;
 				break;
 			default:
-				json_finish_number(Decoder);
+				json_finish_integer(Decoder);
 				--Input;
 				++Size;
 				break;
@@ -472,7 +460,7 @@ ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_
 				Decoder->State = JS_EXPONENT_SIGN;
 				break;
 			default:
-				json_finish_number(Decoder);
+				json_finish_integer(Decoder);
 				--Input;
 				++Size;
 				break;
@@ -498,7 +486,7 @@ ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_
 				Decoder->State = JS_EXPONENT_SIGN;
 				break;
 			default:
-				json_finish_number(Decoder);
+				json_finish_real(Decoder);
 				--Input;
 				++Size;
 				break;
@@ -534,7 +522,7 @@ ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_
 				ml_stringbuffer_put(Decoder->Buffer, Char);
 				break;
 			default: {
-				json_finish_number(Decoder);
+				json_finish_real(Decoder);
 				--Input;
 				++Size;
 				break;
@@ -570,19 +558,16 @@ ml_value_t *json_decoder_parse(json_decoder_t *Decoder, const char *Input, size_
 static ml_value_t *json_decoder_finish(json_decoder_t *Decoder) {
 	switch (Decoder->State) {
 	case JS_DIGITS:
-		json_finish_number(Decoder);
+		json_finish_integer(Decoder);
 		break;
 	case JS_ZERO:
-		json_finish_number(Decoder);
+		json_finish_integer(Decoder);
 		break;
 	case JS_FRACTION:
-		json_finish_number(Decoder);
-		break;
-	case JS_EXPONENT_SIGN:
-		json_finish_number(Decoder);
+		json_finish_real(Decoder);
 		break;
 	case JS_EXPONENT:
-		json_finish_number(Decoder);
+		json_finish_real(Decoder);
 		break;
 	case JS_KEYWORD: {
 		ml_value_t *Error = json_finish_keyword(Decoder);

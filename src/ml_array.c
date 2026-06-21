@@ -627,7 +627,7 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 	}
 }
 
-ML_FUNCTIONX(MLArrayNew) {
+ML_TYPE_FUNCTIONX(MLArrayT, new) {
 //@array::new
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLTypeT);
@@ -636,7 +636,7 @@ ML_FUNCTIONX(MLArrayNew) {
 	return ml_array_typed_new_fnx(Caller, (void *)Format, Count - 1, Args + 1);
 }
 
-ML_FUNCTION(MLArrayWrap) {
+ML_TYPE_FUNCTION(MLArrayT, wrap) {
 //@array::wrap
 //<Type:type
 //<Buffer
@@ -5207,8 +5207,6 @@ void ml_array_init(stringmap_t *Globals) {
 #include "ml_array_init.c"
 	ml_method_definev(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
 	ml_method_definev(ml_method("$"), MLArrayT->Constructor, 0, MLSliceT, NULL);
-	stringmap_insert(MLArrayT->Exports, "new", MLArrayNew);
-	stringmap_insert(MLArrayT->Exports, "wrap", MLArrayWrap);
 	stringmap_insert(MLArrayT->Exports, "nil", MLArrayNil);
 	stringmap_insert(MLArrayT->Exports, "integer", MLArrayIntegerT);
 	stringmap_insert(MLArrayT->Exports, "real", MLArrayRealT);

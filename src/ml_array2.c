@@ -4146,7 +4146,7 @@ static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
 	return (ml_value_t *)C;
 }
 
-ML_FUNCTION(MLArrayCat) {
+ML_TYPE_FUNCTION(MLArrayT, cat) {
 //@array::cat
 //<Index
 //<Array/1...
@@ -4164,7 +4164,7 @@ ML_FUNCTION(MLArrayCat) {
 	return ml_array_cat(Axis, Count - 1, Args + 1);
 }
 
-ML_FUNCTION(MLArrayHCat) {
+ML_TYPE_FUNCTION(MLArrayT, hcat) {
 //@array::hcat
 //<Array/1...
 //>array
@@ -4178,7 +4178,7 @@ ML_FUNCTION(MLArrayHCat) {
 	return ml_array_cat(A->Degree - 1, Count, Args);
 }
 
-ML_FUNCTION(MLArrayVCat) {
+ML_TYPE_FUNCTION(MLArrayT, vcat) {
 //@array::vcat
 //<Array/1...
 //>array
@@ -4203,9 +4203,6 @@ extern ml_type_t MLArrayMutableT[];
 
 void ml_array2_init(stringmap_t *Globals) {
 #include "ml_array2_init.c"
-	stringmap_insert(MLArrayT->Exports, "cat", MLArrayCat);
-	stringmap_insert(MLArrayT->Exports, "hcat", MLArrayHCat);
-	stringmap_insert(MLArrayT->Exports, "vcat", MLArrayVCat);
 	ml_method_by_name("set", UpdateSetRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("add", UpdateAddRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
 	ml_method_by_name("mul", UpdateMulRowFns, update_array_fn, MLArrayMutableT, MLArrayT, NULL);
