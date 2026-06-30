@@ -200,11 +200,6 @@ ML_METHOD("fields", MLClassT) {
 	return Fields;
 }
 
-ML_METHOD("id", MLClassT) {
-	ml_class_t *Class = (ml_class_t *)Args[0];
-	return ml_uuid(Class->Base.Id);
-}
-
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t *Buffer;
@@ -1329,7 +1324,66 @@ void ml_enum_add_value(ml_enum_t *Enum, ml_value_t *Name, int64_t N) {
 	Enum->Values[Index] = Value;
 }
 
-ml_type_t *ml_enum(const char *TypeName, const char *Id, ...) {
+ml_type_t *ml_enum(const char *TypeName, ...) {
+	va_list Args;
+	int Size = 0;
+	va_start(Args, TypeName);
+	while (va_arg(Args, const char *)) ++Size;
+	va_end(Args);
+	ml_enum_t *Enum = ml_enum_alloc(MLEnumT, TypeName, Size);
+	uuid_generate(Enum->Base.Id);
+	int Index = 0;
+	va_start(Args, TypeName);
+	const char *String;
+	while ((String = va_arg(Args, const char *))) {
+		ml_enum_add_value(Enum, ml_string(String, -1), ++Index);
+	}
+	va_end(Args);
+	uuidmap_insert(MLRootObjectTable->Types, Enum->Base.Id, Enum);
+	return (ml_type_t *)Enum;
+}
+
+ml_type_t *ml_enum_cyclic(const char *TypeName, ...) {
+	va_list Args;
+	int Size = 0;
+	va_start(Args, TypeName);
+	while (va_arg(Args, const char *)) ++Size;
+	va_end(Args);
+	ml_enum_t *Enum = ml_enum_alloc(MLEnumCyclicT, TypeName, Size);
+	uuid_generate(Enum->Base.Id);
+	int Index = 0;
+	va_start(Args, TypeName);
+	const char *String;
+	while ((String = va_arg(Args, const char *))) {
+		ml_enum_add_value(Enum, ml_string(String, -1), ++Index);
+	}
+	va_end(Args);
+	uuidmap_insert(MLRootObjectTable->Types, Enum->Base.Id, Enum);
+	return (ml_type_t *)Enum;
+}
+
+ml_type_t *ml_enum2(const char *TypeName, ...) {
+	va_list Args;
+	int Size = 0;
+	va_start(Args, TypeName);
+	while (va_arg(Args, const char *)) {
+		++Size;
+		va_arg(Args, int);
+	}
+	va_end(Args);
+	ml_enum_t *Enum = ml_enum_alloc(MLEnumT, TypeName, Size);
+	uuid_generate(Enum->Base.Id);
+	va_start(Args, TypeName);
+	const char *String;
+	while ((String = va_arg(Args, const char *))) {
+		ml_enum_add_value(Enum, ml_string(String, -1), va_arg(Args, int));
+	}
+	va_end(Args);
+	uuidmap_insert(MLRootObjectTable->Types, Enum->Base.Id, Enum);
+	return (ml_type_t *)Enum;
+}
+
+ml_type_t *ml_enum_with_id(const char *TypeName, const char *Id, ...) {
 	va_list Args;
 	int Size = 0;
 	va_start(Args, Id);
@@ -1348,7 +1402,7 @@ ml_type_t *ml_enum(const char *TypeName, const char *Id, ...) {
 	return (ml_type_t *)Enum;
 }
 
-ml_type_t *ml_enum_cyclic(const char *TypeName, const char *Id, ...) {
+ml_type_t *ml_enum_cyclic_with_id(const char *TypeName, const char *Id, ...) {
 	va_list Args;
 	int Size = 0;
 	va_start(Args, Id);
@@ -1367,7 +1421,7 @@ ml_type_t *ml_enum_cyclic(const char *TypeName, const char *Id, ...) {
 	return (ml_type_t *)Enum;
 }
 
-ml_type_t *ml_enum2(const char *TypeName, const char *Id, ...) {
+ml_type_t *ml_enum2_with_id(const char *TypeName, const char *Id, ...) {
 	va_list Args;
 	int Size = 0;
 	va_start(Args, Id);

@@ -271,7 +271,7 @@ ML_METHOD("ctime", MLFileStatT) {
 #endif
 }
 
-ML_ENUM2(MLFileModeT, "file::mode",
+ML_ENUM2_WITH_ID(MLFileModeT, "file::mode",
 	"a1f97efb-942f-47d7-89ae-206eb6d53f1a",
 	"DIR", S_IFDIR,
 	"CHR", S_IFCHR,

@@ -1526,7 +1526,7 @@ ML_METHOD(CborEncode, MLAnyT, MLStringBufferT, MLExternalSetT) {
 	return (ml_value_t *)Buffer;
 }
 
-ML_ENUM2(CborFlagT, "cbor::flag",
+ML_ENUM2_WITH_ID(CborFlagT, "cbor::flag",
 	"461c605a-b79b-4960-ba26-3bdb12bd411c",
 	"ReuseMapKeys", ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS
 );
@@ -1709,7 +1709,7 @@ void ml_cbor_default_object(const char *Name, ml_cbor_object_fn Fn) {
 	stringmap_insert(CborObjectTypes, Name, Fn);
 }
 
-ML_ENUM2(CborTagsT, "cbor::tags",
+ML_ENUM2_WITH_ID(CborTagsT, "cbor::tags",
 	"666555f1-7d69-49b0-b58c-6a0c2e8d03a1",
 	"TimeString", 0,
 	"TimeEpoch", 1,

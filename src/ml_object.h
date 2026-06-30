@@ -138,12 +138,15 @@ extern ml_type_t MLEnumValueT[];
 ml_enum_t *ml_enum_alloc(ml_type_t *Type, const char *Name, int Size);
 void ml_enum_add_value(ml_enum_t *Enum, ml_value_t *Name, int64_t Value);
 
-ml_type_t *ml_enum(const char *Name, const char *Id, ...);
-ml_type_t *ml_enum_cyclic(const char *Name, const char *Id, ...);
-ml_type_t *ml_enum2(const char *Name, const char *Id, ...);
-ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...);
+ml_type_t *ml_enum(const char *Name, ...);
+ml_type_t *ml_enum_cyclic(const char *Name, ...);
+ml_type_t *ml_enum2(const char *Name, ...);
 
-ml_type_t *ml_enum_from_id(uuid_t Id, int Size, int Index, const char *Name, int64_t Value);
+ml_type_t *ml_enum_with_id(const char *Name, const char *Id, ...);
+ml_type_t *ml_enum_cyclic_with_id(const char *Name, const char *Id, ...);
+ml_type_t *ml_enum2_with_id(const char *Name, const char *Id, ...);
+
+ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...);
 
 ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Enum);
 
@@ -185,9 +188,12 @@ const char *ml_flags_value_name(ml_value_t *Value);
 	} \
 }
 #define ML_FIELD(TYPE, FIELD)
-#define ML_ENUM(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
-#define ML_ENUM_CYCLIC(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
-#define ML_ENUM2(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
+#define ML_ENUM(TYPE, NAME, VALUES ...) ml_type_t *TYPE
+#define ML_ENUM_CYCLIC(TYPE, NAME, VALUES ...) ml_type_t *TYPE
+#define ML_ENUM2(TYPE, NAME, VALUES ...) ml_type_t *TYPE
+#define ML_ENUM_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
+#define ML_ENUM_CYCLIC_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
+#define ML_ENUM2_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
 #define ML_FLAGS(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 #define ML_FLAGS2(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 #define ML_SUB_ENUM(TYPE, NAME, VALUES ...) ml_type_t *TYPE
@@ -198,9 +204,12 @@ const char *ml_flags_value_name(ml_value_t *Value);
 	INIT_CODE TYPE = ml_class(NAME); \
 	INIT_CODE ML_CLASS_ADD_PARENTS(TYPE UNWRAP PARENTS)
 #define ML_FIELD(TYPE, FIELD) INIT_CODE ml_class_add_field(NULL, TYPE, _Generic(FIELD, char *: ml_method, default: ml_nop)(FIELD), MLFieldMutableT)
-#define ML_ENUM(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum(NAME, ID, VALUES, NULL)
-#define ML_ENUM_CYCLIC(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum_cyclic(NAME, ID, VALUES, NULL)
-#define ML_ENUM2(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum2(NAME, ID, VALUES, NULL)
+#define ML_ENUM(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum(NAME, VALUES, NULL)
+#define ML_ENUM_CYCLIC(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum_cyclic(NAME, VALUES, NULL)
+#define ML_ENUM2(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum2(NAME, VALUES, NULL)
+#define ML_ENUM_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum_with_id(NAME, ID, VALUES, NULL)
+#define ML_ENUM_CYCLIC_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum_cyclic_with_id(NAME, ID, VALUES, NULL)
+#define ML_ENUM2_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum2_with_id(NAME, ID, VALUES, NULL)
 #define ML_FLAGS(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags(NAME, VALUES, NULL)
 #define ML_FLAGS2(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags2(NAME, VALUES, NULL)
 #define ML_SUB_ENUM(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_sub_enum(NAME, VALUES, NULL)

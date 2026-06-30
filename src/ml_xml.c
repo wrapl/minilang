@@ -1781,7 +1781,7 @@ enum {
 	ML_XML_WRITER_FLAG_INDENT = 1
 };
 
-ML_ENUM2(MLXmlWriterFlagsT, "xml::writer::flags",
+ML_ENUM2_WITH_ID(MLXmlWriterFlagsT, "xml::writer::flags",
 	"e76f665e-873e-4a90-94c7-904e14740b34",
 	"None", ML_XML_WRITER_FLAG_NONE,
 	"Indent", ML_XML_WRITER_FLAG_INDENT

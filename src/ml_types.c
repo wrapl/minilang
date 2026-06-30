@@ -122,6 +122,15 @@ static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports
 	return 0;
 }
 
+#ifdef ML_UUID
+
+ML_METHOD("id", MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	return ml_uuid(Type->Id);
+}
+
+#endif
+
 ML_METHOD("exports", MLTypeT) {
 //<Type
 //>map

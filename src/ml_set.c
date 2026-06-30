@@ -41,7 +41,7 @@ static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
 
 #endif
 
-ML_ENUM2(MLSetOrderT, "set::order",
+ML_ENUM2_WITH_ID(MLSetOrderT, "set::order",
 	"cee0d2c7-7057-4756-a5e5-2efe75677bef",
 	"Insert", SET_ORDER_INSERT, // default ordering; inserted values are put at end, no reordering on access.
 	"LRU", SET_ORDER_LRU, // inserted values are put at start, accessed values are moved to start.

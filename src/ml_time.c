@@ -723,7 +723,7 @@ ML_METHOD("precision", MLTimeT, MLIntegerT) {
 	return ml_time(Sec, NSec);
 }
 
-ML_ENUM_CYCLIC(MLTimeDayT, "time::day",
+ML_ENUM_CYCLIC_WITH_ID(MLTimeDayT, "time::day",
 	"680d8166-c207-47da-985c-bed298f26ab3",
 	"Monday",
 	"Tuesday",
@@ -747,7 +747,7 @@ ML_SUB_ENUM(MLTimeWeekendT, "time::weekend", MLTimeDayT,
 	"Sunday"
 );
 
-ML_ENUM_CYCLIC(MLTimeMonthT, "time::month",
+ML_ENUM_CYCLIC_WITH_ID(MLTimeMonthT, "time::month",
 	"396bf34e-40ed-40d0-919a-9ec6a73aece7",
 	"January",
 	"February",

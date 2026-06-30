@@ -4,7 +4,7 @@
 
 ml_value_t *mlc_expr_describe(mlc_expr_t *Expr);
 
-ML_ENUM2(ParamKindT, "param-kind",
+ML_ENUM2_WITH_ID(ParamKindT, "param-kind",
 	"c1838031-c6a7-4583-8193-d032b8278bcb",
 	"Default", ML_PARAM_DEFAULT,
 	"Extra", ML_PARAM_EXTRA,
