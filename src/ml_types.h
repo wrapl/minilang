@@ -82,6 +82,7 @@ struct ml_type_t {
 	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
+	unsigned char Id[16];
 	unsigned int Rank:30;
 	unsigned int Interface:1;
 	unsigned int NoInherit:1;

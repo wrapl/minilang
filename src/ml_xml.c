@@ -1782,6 +1782,7 @@ enum {
 };
 
 ML_ENUM2(MLXmlWriterFlagsT, "xml::writer::flags",
+	"e76f665e-873e-4a90-94c7-904e14740b34",
 	"None", ML_XML_WRITER_FLAG_NONE,
 	"Indent", ML_XML_WRITER_FLAG_INDENT
 );
@@ -2199,7 +2200,6 @@ typedef struct {
 	void (*Callback)(void *Data, ml_value_t *Value);
 	void *Data;
 	ml_xml_element_t *Element;
-	xml_stack_t *Stack;
 	ml_stringbuffer_t Buffer[1];
 	xml_stack_t Stack0;
 	int Flags;
@@ -2224,15 +2224,7 @@ static void xml_start_element(xml_parser_t *Parser, const XML_Char *Name, const 
 			}
 		}
 	}
-	xml_stack_t *Stack = Parser->Stack;
-	if (Stack->Index == ML_XML_STACK_SIZE) {
-		xml_stack_t *NewStack = new(xml_stack_t);
-		NewStack->Prev = Stack;
-		Stack = Parser->Stack = NewStack;
-	}
-	Stack->Nodes[Stack->Index] = Parser->Element;
-	++Stack->Index;
-	ml_xml_element_t *Element = Parser->Element = new(ml_xml_element_t);
+	ml_xml_element_t *Element = new(ml_xml_element_t);
 	Element->Base.Base.Type = MLXmlElementT;
 	ml_value_t *Tag = (ml_value_t *)stringmap_search(MLXmlTags, Name);
 	if (!Tag) {
@@ -2245,6 +2237,7 @@ static void xml_start_element(xml_parser_t *Parser, const XML_Char *Name, const 
 	for (const XML_Char **Attr = Attrs; Attr[0]; Attr += 2) {
 		ml_map_insert(Element->Attributes, ml_string(GC_strdup(Attr[0]), -1), ml_string(GC_strdup(Attr[1]), -1));
 	}
+	if (Parser->Element) ml_xml_element_put(Parser->Element, (ml_xml_node_t *)Element);
 	Parser->Element = Element;
 }
 
@@ -2265,17 +2258,8 @@ static void xml_end_element(xml_parser_t *Parser, const XML_Char *Name) {
 			ml_xml_element_put(Parser->Element, Text);
 		}
 	}
-	xml_stack_t *Stack = Parser->Stack;
-	if (Stack->Index == 0) {
-		Stack = Parser->Stack = Stack->Prev;
-	}
 	ml_xml_node_t *Element = (ml_xml_node_t *)Parser->Element;
-	--Stack->Index;
-	ml_xml_element_t *Parent = Parser->Element = Stack->Nodes[Stack->Index];
-	Stack->Nodes[Stack->Index] = NULL;
-	if (Parent) {
-		ml_xml_element_put(Parent, Element);
-	} else {
+	if (!(Parser->Element = Element->Parent)) {
 		Parser->Callback(Parser->Data, (ml_value_t *)Element);
 	}
 }
@@ -2314,7 +2298,6 @@ static ml_value_t *ml_xml_from_string(const char *Text, size_t Length, int Flags
 	Parser.Flags = Flags;
 	Parser.Callback = (void *)xml_decode_callback;
 	Parser.Data = &Result;
-	Parser.Stack = &Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
 	XML_SetUserData(Handle, &Parser);
@@ -2390,7 +2373,6 @@ static void ml_xml_from_stream(ml_state_t *Caller, ml_value_t *Stream, int Flags
 	State->Parser.Flags = Flags;
 	State->Parser.Callback = (void *)xml_decode_callback;
 	State->Parser.Data = &State->Result;
-	State->Parser.Stack = &State->Parser.Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
 	XML_SetReparseDeferralEnabled(Handle, XML_FALSE);
@@ -2539,7 +2521,6 @@ ML_FUNCTIONX(XmlParser) {
 	Parser->Callback = Args[0];
 	Parser->Parser->Callback = (void *)ml_xml_decode_callback;
 	Parser->Parser->Data = Parser;
-	Parser->Parser->Stack = &Parser->Parser->Stack0;
 	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
 	Parser->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
 	XML_SetUserData(Parser->Handle, Parser->Parser);

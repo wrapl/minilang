@@ -47,6 +47,7 @@ static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Va
 #endif
 
 ML_ENUM2(MLMapOrderT, "map::order",
+	"1c643645-a0b9-4058-b0c0-64d375ad27b4",
 	"Insert", MAP_ORDER_INSERT, // default ordering; inserted pairs are put at end, no reordering on access.
 	"LRU", MAP_ORDER_LRU, // inserted pairs are put at start, accessed pairs are moved to start.
 	"MRU", MAP_ORDER_MRU, // inserted pairs are put at end, accessed pairs are moved to end.

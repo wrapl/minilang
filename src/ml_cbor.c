@@ -1083,6 +1083,64 @@ static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_v
 	for (int I = 0; I < Size; ++I) ml_cbor_write(Writer, ml_object_field(Arg, I + 1));
 }
 
+static void ML_TYPED_FN(ml_cbor_write, MLEnumT, ml_cbor_writer_t *Writer, ml_enum_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	void **Slot = uuidmap_slot(Writer->Classes, Arg->Base.Id);
+	if (Slot[0]) {
+		minicbor_write_array(Writer, 2);
+		minicbor_write_string(Writer, 4);
+		Writer->WriteFn(Writer->Data, (unsigned const char *)"enum", 4);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_UUID);
+		minicbor_write_bytes(Writer, sizeof(uuid_t));
+		Writer->WriteFn(Writer->Data, Arg->Base.Id, sizeof(uuid_t));
+	} else {
+		Slot[0] = Arg;
+		int IsSimple = 1;
+		ml_enum_value_t **Values = Arg->Values;
+		for (int I = 1; I <= Arg->Base.Exports->Size; ++I, ++Values) {
+			if (ml_enum_value_value((ml_value_t *)Values[0]) != I) {
+				IsSimple = 0;
+				break;
+			}
+		}
+		if (IsSimple) {
+			minicbor_write_array(Writer, 3 + Arg->Base.Exports->Size);
+		} else {
+			minicbor_write_array(Writer, 3 + 2 * Arg->Base.Exports->Size);
+		}
+		minicbor_write_string(Writer, 4);
+		Writer->WriteFn(Writer->Data, (unsigned const char *)"enum", 4);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_UUID);
+		minicbor_write_bytes(Writer, sizeof(uuid_t));
+		Writer->WriteFn(Writer->Data, Arg->Base.Id, sizeof(uuid_t));
+		if (ml_is((ml_value_t *)Arg, MLEnumCyclicT)) {
+			minicbor_write_integer(Writer, -Arg->Base.Exports->Size);
+		} else {
+			minicbor_write_integer(Writer, Arg->Base.Exports->Size);
+		}
+		Values = Arg->Values;
+		if (IsSimple) {
+			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, ++Values) {
+				ml_cbor_write(Writer, Values[0]->Name);
+			}
+		} else {
+			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, ++Values) {
+				ml_cbor_write(Writer, Values[0]->Name);
+				minicbor_write_integer(Writer, ml_enum_value_value((ml_value_t *)Values[0]));
+			}
+		}
+	}
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLEnumValueT, ml_cbor_writer_t *Writer, ml_enum_value_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	minicbor_write_array(Writer, 3);
+	minicbor_write_string(Writer, 6);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"import", 6);
+	ml_cbor_write(Writer, (ml_value_t *)Arg->Base.Type);
+	ml_cbor_write(Writer, Arg->Name);
+}
+
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_cbor_writer_t *Writer, ml_integer_range_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, 4);
@@ -1469,6 +1527,7 @@ ML_METHOD(CborEncode, MLAnyT, MLStringBufferT, MLExternalSetT) {
 }
 
 ML_ENUM2(CborFlagT, "cbor::flag",
+	"461c605a-b79b-4960-ba26-3bdb12bd411c",
 	"ReuseMapKeys", ML_CBOR_WRITER_FLAG_REUSE_MAP_KEYS
 );
 
@@ -1526,10 +1585,11 @@ static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml
 	if (!Reader->ObjectTable) return ml_error("TagError", "Objects not supported by reader");
 	ML_CHECK_ARG_COUNT(1);
 	ml_value_t *ClassDef = Args[0];
-	ml_class_t *Class;
+	ml_type_t *Class;
 	if (ml_is(ClassDef, MLUUIDT)) {
 		Class = Reader->ObjectTable->lookup(Reader->ObjectTable, ml_uuid_value(ClassDef));
 		if (!Class) return ml_error("TagError", "Object type requires valid class");
+		if (!ml_is((ml_value_t *)Class, MLClassT)) return ml_error("TagError", "Object type requires valid class");
 	} else if (ml_is(ClassDef, MLListT)) {
 		ml_list_iter_t Iter[1];
 		if (!ml_list_iter_forward(ClassDef, Iter)) return ml_error("TagError", "Object type requires valid class");
@@ -1537,23 +1597,65 @@ static ml_value_t *ml_cbor_object_object(ml_cbor_reader_t *Reader, int Count, ml
 		const unsigned char *Id = ml_uuid_value(Iter->Value);
 		Class = Reader->ObjectTable->lookup(Reader->ObjectTable, ml_uuid_value(Iter->Value));
 		if (Class) {
+			if (!ml_is((ml_value_t *)Class, MLClassT)) return ml_error("TagError", "Object type requires valid class");
 			int NumFields = ml_list_length(ClassDef) - 1;
-			if (Class->NumFields < NumFields) return ml_error("TagError", "Class definitions do not match");
+			if (ml_class_size(Class) < NumFields) return ml_error("TagError", "Class definitions do not match");
 		} else {
-			Class = ml_pseudo_class(NULL, Id);
+			ml_class_t *PseudoClass = ml_pseudo_class(NULL, Id);
 			while (ml_list_iter_next(Iter)) {
 				if (!ml_is(Iter->Value, MLStringT)) return ml_error("TagError", "Object type requires valid class");
-				ml_pseudo_class_add_field(Class, ml_string_value(Iter->Value));
+				ml_pseudo_class_add_field(PseudoClass, ml_string_value(Iter->Value));
 			}
+			Class = (ml_type_t *)PseudoClass;
 			Reader->ObjectTable->insert(Reader->ObjectTable, Class);
 		}
 	} else {
 		return ml_error("TagError", "Object requires type description");
 	}
-	if (Class->NumFields != Count - 1) return ml_error("TagError", "Fields and values do not match");
+	if (ml_class_size(Class) != Count - 1) return ml_error("TagError", "Fields and values do not match");
 	ml_object_t *Object = (ml_object_t *)ml_object((ml_type_t *)Class, NULL);
 	for (int I = 1; I < Count; ++I) Object->Fields[I].Value = Args[I];
 	return (ml_value_t *)Object;
+}
+
+static ml_value_t *ml_cbor_object_enum(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	if (!Reader->ObjectTable) return ml_error("TagError", "Enums not supported by reader");
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLUUIDT);
+	if (Count < 3 && Count != 1) return ml_error("TagError", "Invalid enum definition");
+	if (Count > 1) ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	int RawCount = Count > 1 ? ml_integer_value(Args[1]) : 0;
+	int NumValues = RawCount < 0 ? -RawCount : RawCount;
+	ml_type_t *Type = RawCount < 0 ? MLEnumCyclicT : MLEnumT;
+	unsigned char *Id = ml_uuid_value(Args[0]);
+	ml_type_t *Enum = Reader->ObjectTable->lookup(Reader->ObjectTable, Id);
+	if (Enum) {
+		if (!ml_is((ml_value_t *)Enum, MLEnumT)) return ml_error("TagError", "Enum type conflict");
+		if (Enum->Exports->Size < NumValues) {
+			return ml_error("TagError", "Enum definition size mismatch");
+		}
+		return (ml_value_t *)Enum;
+	}
+	if (Count == 1) return ml_error("TagError", "Enum type not found");
+	int RemainingArgs = Count - 2;
+	Enum = (ml_type_t *)ml_enum_alloc(Type, NULL, NumValues);
+	memcpy(Enum->Id, Id, sizeof(uuid_t));
+	if (RemainingArgs == NumValues) {
+		for (int I = 2; I < Count; ++I) {
+			ML_CHECK_ARG_TYPE(I, MLStringT);
+			ml_enum_add_value((ml_enum_t *)Enum, Args[I], I - 1);
+		}
+	} else if (RemainingArgs == NumValues * 2) {
+		for (int I = 2; I < Count; I += 2) {
+			ML_CHECK_ARG_TYPE(I, MLStringT);
+			ML_CHECK_ARG_TYPE(I + 1, MLIntegerT);
+			ml_enum_add_value((ml_enum_t *)Enum, Args[I], ml_integer_value(Args[I + 1]));
+		}
+	} else {
+		return ml_error("TagError", "Enum field count mismatch");
+	}
+	Reader->ObjectTable->insert(Reader->ObjectTable, Enum);
+	return (ml_value_t *)Enum;
 }
 
 static ml_value_t *ml_cbor_object_import(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
@@ -1608,6 +1710,7 @@ void ml_cbor_default_object(const char *Name, ml_cbor_object_fn Fn) {
 }
 
 ML_ENUM2(CborTagsT, "cbor::tags",
+	"666555f1-7d69-49b0-b58c-6a0c2e8d03a1",
 	"TimeString", 0,
 	"TimeEpoch", 1,
 	"UnsignedBignum", 2,
@@ -1647,6 +1750,8 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_object("names", ml_cbor_object_names);
 	ml_cbor_default_object("range", ml_cbor_object_range);
 	ml_cbor_default_object("object", ml_cbor_object_object);
+	ml_cbor_default_object("enum", ml_cbor_object_enum);
+	//ml_cbor_default_object("flags", ml_cbor_object_flags);
 	ml_cbor_default_object("import", ml_cbor_object_import);
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", ml_cbor_object_complex);

@@ -10,6 +10,7 @@
 #include <string.h>
 
 ML_ENUM2(MLSocketTypeT, "socket::type",
+	"d4cc354a-2f35-41d6-8b91-3e7cf51ce6e8",
 	"Stream", SOCK_STREAM,
 	"DGram", SOCK_DGRAM,
 	"Raw", SOCK_RAW

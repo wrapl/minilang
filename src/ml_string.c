@@ -483,6 +483,7 @@ ML_METHOD("putu8", MLBufferT, MLIntegerT) {
 #endif
 
 ML_ENUM(MLByteOrderT, "address::byteorder",
+	"97381589-a9ca-4953-933c-889e76632a88",
 	"LittleEndian",
 	"BigEndian"
 );
@@ -2405,6 +2406,7 @@ enum {
 
 ML_ENUM2(MLStringNormT, "string::norm",
 //@string::norm
+	"c53521d9-2b85-49f9-b47a-2527518396c8",
 	"NFC", ML_UNORM_NFC,
 	"NFD", ML_UNORM_NFD,
 	"NFKC", ML_UNORM_NFKC,
@@ -2453,6 +2455,7 @@ ML_METHOD("normalize", MLStringT, MLStringNormT) {
 
 ML_ENUM2(MLStringCTypeT, "string::ctype",
 //@string::ctype
+	"3127dfe0-cb65-4b7b-a9a1-b65f956a7b96",
 	"Cn", U_GENERAL_OTHER_TYPES, // General Other Types
 	"Lu", U_UPPERCASE_LETTER, // Uppercase Letter
 	"Ll", U_LOWERCASE_LETTER, // Lowercase Letter

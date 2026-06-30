@@ -62,6 +62,7 @@ void ml_stream_flush(ml_state_t *Caller, ml_value_t *Value) {
 }
 
 ML_ENUM2(MLStreamSeekT, "stream::seek",
+	"dda7d1db-6359-4d5f-8381-769c96522373",
 	"Set", SEEK_SET,
 	"Cur", SEEK_CUR,
 	"End", SEEK_END
