@@ -1096,9 +1096,9 @@ static void ML_TYPED_FN(ml_cbor_write, MLEnumT, ml_cbor_writer_t *Writer, ml_enu
 	} else {
 		Slot[0] = Arg;
 		int IsSimple = 1;
-		ml_enum_value_t **Values = Arg->Values;
-		for (int I = 1; I <= Arg->Base.Exports->Size; ++I, ++Values) {
-			if (ml_enum_value_value((ml_value_t *)Values[0]) != I) {
+		ml_enum_value_t *Value = Arg->Values;
+		for (int I = 1; I <= Arg->Base.Exports->Size; ++I, Value = Value->Next) {
+			if (Value->Value != I) {
 				IsSimple = 0;
 				break;
 			}
@@ -1118,15 +1118,15 @@ static void ML_TYPED_FN(ml_cbor_write, MLEnumT, ml_cbor_writer_t *Writer, ml_enu
 		} else {
 			minicbor_write_integer(Writer, Arg->Base.Exports->Size);
 		}
-		Values = Arg->Values;
+		Value = Arg->Values;
 		if (IsSimple) {
-			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, ++Values) {
-				ml_cbor_write(Writer, Values[0]->Name);
+			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, Value = Value->Next) {
+				ml_cbor_write(Writer, Value->Name);
 			}
 		} else {
-			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, ++Values) {
-				ml_cbor_write(Writer, Values[0]->Name);
-				minicbor_write_integer(Writer, ml_enum_value_value((ml_value_t *)Values[0]));
+			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, Value = Value->Next) {
+				ml_cbor_write(Writer, Value->Name);
+				minicbor_write_integer(Writer, Value->Value);
 			}
 		}
 	}
@@ -1137,7 +1137,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLEnumValueT, ml_cbor_writer_t *Writer, m
 	minicbor_write_array(Writer, 3);
 	minicbor_write_string(Writer, 6);
 	Writer->WriteFn(Writer->Data, (unsigned const char *)"import", 6);
-	ml_cbor_write(Writer, (ml_value_t *)Arg->Base.Type);
+	ml_cbor_write(Writer, (ml_value_t *)Arg->Type);
 	ml_cbor_write(Writer, Arg->Name);
 }
 
@@ -1638,7 +1638,7 @@ static ml_value_t *ml_cbor_object_enum(ml_cbor_reader_t *Reader, int Count, ml_v
 	}
 	if (Count == 1) return ml_error("TagError", "Enum type not found");
 	int RemainingArgs = Count - 2;
-	Enum = (ml_type_t *)ml_enum_alloc(Type, NULL, NumValues);
+	Enum = (ml_type_t *)ml_enum_alloc(Type, NULL);
 	memcpy(Enum->Id, Id, sizeof(uuid_t));
 	if (RemainingArgs == NumValues) {
 		for (int I = 2; I < Count; ++I) {

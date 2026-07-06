@@ -119,23 +119,28 @@ static inline void *ml_struct_instance_value(ml_value_t *Value) {
 /// @{
 ///
 
-typedef struct {
-	ml_integer_t Base;
-	ml_value_t *Name;
-	int Index;
-} ml_enum_value_t;
+typedef struct ml_enum_t ml_enum_t;
+typedef struct ml_enum_value_t ml_enum_value_t;
 
-typedef struct {
+struct ml_enum_value_t {
+	ml_enum_t *Type;
+	ml_value_t *Name;
+	ml_enum_value_t *Next;
+	int64_t Value;
+	int Index;
+};
+
+struct ml_enum_t {
 	ml_type_t Base;
-	ml_enum_value_t **Values;
+	ml_enum_value_t *Values;
 	ml_value_t *Switch;
-} ml_enum_t;
+};
 
 extern ml_type_t MLEnumT[];
 extern ml_type_t MLEnumCyclicT[];
 extern ml_type_t MLEnumValueT[];
 
-ml_enum_t *ml_enum_alloc(ml_type_t *Type, const char *Name, int Size);
+ml_enum_t *ml_enum_alloc(ml_type_t *Type, const char *Name);
 void ml_enum_add_value(ml_enum_t *Enum, ml_value_t *Name, int64_t Value);
 
 ml_type_t *ml_enum(const char *Name, ...);
@@ -151,7 +156,7 @@ ml_type_t *ml_sub_enum(const char *TypeName, ml_type_t *Parent, ...);
 ml_value_t *ml_enum_value(ml_type_t *Type, int64_t Enum);
 
 static inline int64_t ml_enum_value_value(ml_value_t *Value) {
-	return ml_integer64_value(Value);
+	return ((ml_enum_value_t *)Value)->Value;
 }
 
 static inline const char *ml_enum_value_name(ml_value_t *Value) {
@@ -168,14 +173,39 @@ static inline int ml_enum_value_index(ml_value_t *Value) {
 /// @{
 ///
 
+typedef struct ml_flags_t ml_flags_t;
+typedef struct ml_flags_value_t ml_flags_value_t;
+
+struct ml_flags_value_t {
+	ml_flags_t *Type;
+	ml_value_t *Name;
+	ml_flags_value_t *Next;
+	uint64_t Value;
+};
+
+struct ml_flags_t {
+	ml_type_t Base;
+	ml_flags_value_t *Values;
+	ml_value_t *Switch;
+};
+
 extern ml_type_t MLFlagsT[];
 extern ml_type_t MLFlagsValueT[];
 
+ml_flags_t *ml_flags_alloc(const char *Name);
+void ml_flags_add_value(ml_flags_t *Flags, ml_value_t *Name, uint64_t Value);
+
 ml_type_t *ml_flags(const char *Name, ...);
 ml_type_t *ml_flags2(const char *Name, ...);
+ml_type_t *ml_flags_with_id(const char *Name, const char *Id, ...);
+ml_type_t *ml_flags2_with_id(const char *Name, const char *Id, ...);
 
 ml_value_t *ml_flags_value(ml_type_t *Type, uint64_t Flags);
-uint64_t ml_flags_value_value(ml_value_t *Value);
+
+static inline uint64_t ml_flags_value_value(ml_value_t *Value) {
+	return ((ml_flags_value_t *)Value)->Value;
+}
+
 const char *ml_flags_value_name(ml_value_t *Value);
 
 #ifndef GENERATE_INIT
@@ -194,9 +224,11 @@ const char *ml_flags_value_name(ml_value_t *Value);
 #define ML_ENUM_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
 #define ML_ENUM_CYCLIC_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
 #define ML_ENUM2_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
+#define ML_SUB_ENUM(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 #define ML_FLAGS(TYPE, NAME, VALUES ...) ml_type_t *TYPE
 #define ML_FLAGS2(TYPE, NAME, VALUES ...) ml_type_t *TYPE
-#define ML_SUB_ENUM(TYPE, NAME, VALUES ...) ml_type_t *TYPE
+#define ML_FLAGS_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
+#define ML_FLAGS2_WITH_ID(TYPE, NAME, ID, VALUES ...) ml_type_t *TYPE
 
 #else
 
@@ -210,9 +242,11 @@ const char *ml_flags_value_name(ml_value_t *Value);
 #define ML_ENUM_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum_with_id(NAME, ID, VALUES, NULL)
 #define ML_ENUM_CYCLIC_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum_cyclic_with_id(NAME, ID, VALUES, NULL)
 #define ML_ENUM2_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_enum2_with_id(NAME, ID, VALUES, NULL)
+#define ML_SUB_ENUM(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_sub_enum(NAME, VALUES, NULL)
 #define ML_FLAGS(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags(NAME, VALUES, NULL)
 #define ML_FLAGS2(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags2(NAME, VALUES, NULL)
-#define ML_SUB_ENUM(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_sub_enum(NAME, VALUES, NULL)
+#define ML_FLAGS_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_flags_with_id(NAME, ID, VALUES, NULL)
+#define ML_FLAGS2_WITH_ID(TYPE, NAME, ID, VALUES...) INIT_CODE TYPE = ml_flags2(NAME, ID, VALUES, NULL)
 
 #endif
 
