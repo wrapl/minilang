@@ -1012,13 +1012,14 @@ static void ml_enum_constructor(ml_state_t *Caller, void *Data, int Count, ml_va
 		for (ml_object_table_t *ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX); ObjectTable; ObjectTable = ObjectTable->Prev) {
 			Enum = (ml_enum_t *)ObjectTable->lookup(ObjectTable, ml_uuid_value(Id));
 			if (Enum) {
-				if (!ml_is((ml_value_t *)Enum, MLEnumT)) ML_ERROR("EnumError", "Enum id must be unique");
+				if (!ml_is((ml_value_t *)Enum, MLEnumT)) ML_ERROR("NameError", "Enum id must be unique");
 				goto have_enum;
 			}
 		}
 	}
 	Enum = new(ml_enum_t);
 have_enum:
+	// TODO: Change code so that reusing an existing enum works properly
 	Enum->Base.Type = (ml_type_t *)Data;
 	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
@@ -1339,7 +1340,7 @@ ml_value_t *ml_enum_index(ml_enum_t *Enum, int Index) {
 		if (Index < 0) Index += Enum->Base.Exports->Size;
 	}
 	ml_enum_value_t *EnumValue = Enum->Values;
-	while (--Index > 0) EnumValue = EnumValue->Next;
+	while (--Index >= 0) EnumValue = EnumValue->Next;
 	return (ml_value_t *)EnumValue;
 }
 
@@ -1398,7 +1399,7 @@ static void ML_TYPED_FN(ml_iter_value, MLEnumIterT, ml_state_t *Caller, ml_enum_
 	ML_RETURN(Iter->Current);
 }
 
-ML_TYPE(MLEnumIntervalT, (), "enum-interval");
+ML_TYPE(MLEnumIntervalT, (MLSequenceT), "enum-interval");
 //!internal
 
 typedef struct {
@@ -1437,6 +1438,31 @@ static void ML_TYPED_FN(ml_iterate, MLEnumIntervalT, ml_state_t *Caller, ml_enum
 	Iter->Type = MLEnumIterT;
 	Iter->Current = Interval->Start;
 	Iter->End = Interval->End->Next;
+	ML_RETURN(Iter);
+}
+
+ML_TYPE(MLEnumOpenIntervalT, (MLSequenceT), "enum-open-interval");
+//!internal
+
+ML_METHOD("up", MLEnumValueT) {
+	ml_enum_value_t *Start = (ml_enum_value_t *)Args[0];
+	ml_enum_interval_t *Interval = new(ml_enum_interval_t);
+#ifdef ML_GENERICS
+	ml_type_t *Types[2] = {MLEnumOpenIntervalT, (ml_type_t *)Start->Type};
+	Interval->Type = ml_generic_type(2, Types);
+#else
+	Interval->Type = MLEnumOpenIntervalT;
+#endif
+	Interval->Start = Start;
+	Interval->End = NULL;
+	return (ml_value_t *)Interval;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLEnumOpenIntervalT, ml_state_t *Caller, ml_enum_interval_t *Interval) {
+	ml_enum_iter_t *Iter = new(ml_enum_iter_t);
+	Iter->Type = MLEnumIterT;
+	Iter->Current = Interval->Start;
+	Iter->End = NULL;
 	ML_RETURN(Iter);
 }
 
@@ -1591,8 +1617,12 @@ static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_v
 			Value->Value |= ml_flags_value_value(Flag);
 		} else if (ml_is(Arg, MLIntegerT)) {
 			uint64_t Flag = ml_integer_value(Arg);
-			if (Flag >= (1L << Flags->Base.Exports->Size)) ML_ERROR("FlagError", "Invalid flags value");
 			Value->Value |= Flag;
+			for (ml_flags_value_t *FlagValue = Flags->Values; FlagValue; FlagValue = FlagValue->Next) {
+				Flag &= ~FlagValue->Value;
+				if (!Flag) break;
+			}
+			if (Flag) ML_ERROR("FlagError", "Invalid flags value");
 		} else {
 			ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
 		}
@@ -1600,13 +1630,110 @@ static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_v
 	ML_RETURN(Value);
 }
 
-ML_FUNCTION(MLFlags) {
-
+ML_FUNCTIONX(MLFlags) {
+	ml_value_t *Id = NULL;
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = Args[I];
+		if (ml_typeof(Arg) == MLNamesT) {
+			ML_NAMES_CHECKX_ARG_COUNT(I);
+			break;
+		} else if (ml_is(Arg, MLStringT)) {
+		} else if (ml_is(Arg, MLMapT)) {
+		} else if (ml_is(Arg, MLListT)) {
+		} else if (ml_is(Arg, MLUUIDT)) {
+			Id = Arg;
+		} else {
+			ML_ERROR("TypeError", "Unsupported type for flags: %s", ml_typeof(Arg)->Name);
+		}
+	}
+	ml_flags_t *Flags;
+	if (Id) {
+		for (ml_object_table_t *ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX); ObjectTable; ObjectTable = ObjectTable->Prev) {
+			Flags = (ml_flags_t *)ObjectTable->lookup(ObjectTable, ml_uuid_value(Id));
+			if (Flags) {
+				if (!ml_is((ml_value_t *)Flags, MLFlagsT)) ML_ERROR("NameError", "Flags id must be unique");
+				goto have_flags;
+			}
+		}
+	}
+	Flags = new(ml_flags_t);
+have_flags:
+	// TODO: Change code so that reusing an existing flags works properly
+	Flags->Base.Type = (ml_type_t *)MLFlagsT;
+	GC_asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
+	Flags->Base.deref = ml_default_deref;
+	Flags->Base.assign = ml_default_assign;
+	Flags->Base.iterate = ml_iterate;
+	Flags->Base.iter_value = ml_iter_value;
+	Flags->Base.iter_key = ml_iter_key;
+	Flags->Base.iter_next = ml_iter_next;
+	Flags->Base.hash = (void *)ml_enum_value_hash;
+	Flags->Base.call = ml_default_call;
+	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
+	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_flags_value_t **Slot = &Flags->Values;
+	uint64_t LastFlag = 1;
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = Args[I];
+		if (ml_typeof(Arg) == MLNamesT) {
+			ML_NAMES_CHECKX_ARG_COUNT(I);
+			ML_NAMES_FOREACH(Arg, Iter) {
+				ml_flags_value_t *FlagsValue = Slot[0] = new(ml_flags_value_t);
+				FlagsValue->Type = Flags;
+				FlagsValue->Name = Iter->Value;
+				FlagsValue->Value = ml_integer_value(Args[++I]);
+				stringmap_insert(Flags->Base.Exports, ml_string_value(Iter->Value), FlagsValue);
+				Slot = &FlagsValue->Next;
+			}
+			break;
+		} else if (ml_is(Arg, MLStringT)) {
+			ml_flags_value_t *FlagsValue = Slot[0] = new(ml_flags_value_t);
+			FlagsValue->Type = Flags;
+			FlagsValue->Name = Args[I];
+			FlagsValue->Value = LastFlag;
+			LastFlag <<= 1;
+			stringmap_insert(Flags->Base.Exports, ml_string_value(Args[I]), FlagsValue);
+			Slot = &FlagsValue->Next;
+		} else if (ml_is(Arg, MLMapT)) {
+			ML_MAP_FOREACH(Arg, Iter) {
+				if (!ml_is(Iter->Key, MLStringT)) ML_ERROR("TypeError", "Flags names must be strings");
+				ml_flags_value_t *FlagsValue = Slot[0] = new(ml_flags_value_t);
+				FlagsValue->Type = Flags;
+				FlagsValue->Name = Iter->Key;
+				FlagsValue->Value = LastFlag = ml_integer_value(Iter->Value);
+				LastFlag <<= 1;
+				stringmap_insert(Flags->Base.Exports, ml_string_value(Iter->Key), FlagsValue);
+				Slot = &FlagsValue->Next;
+			}
+		} else if (ml_is(Arg, MLListT)) {
+			ML_LIST_FOREACH(Arg, Iter) {
+				if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Flags names must be strings");
+				ml_flags_value_t *FlagsValue = Slot[0] = new(ml_flags_value_t);
+				FlagsValue->Type = Flags;
+				FlagsValue->Name = Iter->Value;
+				FlagsValue->Value = LastFlag;
+				LastFlag <<= 1;
+				stringmap_insert(Flags->Base.Exports, ml_string_value(Iter->Value), FlagsValue);
+				Slot = &FlagsValue->Next;
+			}
+		} else if (ml_is(Arg, MLUUIDT)) {
+			Id = Args[I];
+		}
+	}
+	if (Id) {
+		memcpy(Flags->Base.Id, ml_uuid_value(Id), sizeof(uuid_t));
+	} else {
+		uuid_generate(Flags->Base.Id);
+	}
+	ml_object_table_t *ObjectTable = ml_context_get_static(Caller->Context, ML_OBJECTS_INDEX);
+	if (ObjectTable) ObjectTable->insert(ObjectTable, (ml_type_t *)Flags);
+	ML_RETURN(Flags);
 }
 
 ML_TYPE(MLFlagsT, (MLTypeT), "flags",
 // The base type of flag types.
-	.call = (void *)ml_flags_call
+	.call = (void *)ml_flags_call,
+	.Constructor = (ml_value_t *)MLFlags
 );
 
 static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) {
@@ -1674,77 +1801,6 @@ ML_METHOD("append", MLStringBufferT, MLFlagsSpecT) {
 	return ml_stringbuffer_length(Buffer) > Append->Length ? MLSome : MLNil;
 }
 
-ML_METHODV(MLFlagsT, MLStringT) {
-//<Name/1
-//>flags
-// Returns a new flags type, where :mini:`Name/i` has value :math:`2^{i-1}`.
-//$= let mode := flags("Read", "Write", "Execute")
-//$= mode::Read
-//$= mode::Read + mode::Write
-	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
-	ml_flags_t *Flags = xnew(ml_flags_t, Count, ml_value_t *);
-	Flags->Base.Type = MLFlagsT;
-	GC_asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
-	Flags->Base.deref = ml_default_deref;
-	Flags->Base.assign = ml_default_assign;
-	Flags->Base.iterate = ml_iterate;
-	Flags->Base.iter_value = ml_iter_value;
-	Flags->Base.iter_key = ml_iter_key;
-	Flags->Base.iter_next = ml_iter_next;
-	Flags->Base.hash = (void *)ml_flag_value_hash;
-	Flags->Base.call = ml_default_call;
-	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
-	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
-	ml_flags_value_t **Slot = &Flags->Values;
-	uint64_t Flag = 1;
-	for (int I = 0; I < Count; ++I) {
-		ml_flags_value_t *Value = Slot[0] = new(ml_flags_value_t);
-		Value->Type = Flags;
-		Value->Name = Args[I];
-		Value->Value = Flag;
-		Flag <<= 1;
-		stringmap_insert(Flags->Base.Exports, ml_string_value(Value->Name), Value);
-		Slot = &Value->Next;
-	}
-	return (ml_value_t *)Flags;
-}
-
-ML_METHODV(MLFlagsT, MLNamesT) {
-//<Name,Value
-//>flags
-// Returns a new flags type
-// Returns a new flags type, where :mini:`Name/i` has value :mini:`Value/i`.
-//$= let mode := flags(Read is 1, Write is 4, Execute is 32)
-//$= mode::Read
-//$= mode::Read + mode::Write
-	ML_NAMES_CHECK_ARG_COUNT(0);
-	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
-	ml_flags_t *Flags = xnew(ml_flags_t, Count - 1, ml_value_t *);
-	Flags->Base.Type = MLFlagsT;
-	GC_asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
-	Flags->Base.deref = ml_default_deref;
-	Flags->Base.assign = ml_default_assign;
-	Flags->Base.iterate = ml_iterate;
-	Flags->Base.iter_value = ml_iter_value;
-	Flags->Base.iter_key = ml_iter_key;
-	Flags->Base.iter_next = ml_iter_next;
-	Flags->Base.hash = (void *)ml_flag_value_hash;
-	Flags->Base.call = ml_default_call;
-	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
-	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
-	ml_flags_value_t **Slot = &Flags->Values;
-	int I = 0;
-	ML_NAMES_FOREACH(Args[0], Iter) {
-		ml_flags_value_t *Value = Slot[0] = new(ml_flags_value_t);
-		Value->Type = Flags;
-		Value->Name = Iter->Value;
-		Value->Value = ml_integer_value(Args[++I]);
-		stringmap_insert(Flags->Base.Exports, ml_string_value(Value->Name), Value);
-		Slot = &Value->Next;
-	}
-	return (ml_value_t *)Flags;
-}
-
 ml_flags_t *ml_flags_alloc(const char *Name) {
 	ml_flags_t *Flags = new(ml_flags_t);
 	Flags->Base.Type = MLFlagsT;
@@ -1775,23 +1831,7 @@ void ml_flags_add_value(ml_flags_t *Flags, ml_value_t *Name, uint64_t N) {
 
 ml_type_t *ml_flags(const char *TypeName, ...) {
 	va_list Args;
-	int Size = 0;
-	va_start(Args, TypeName);
-	while (va_arg(Args, const char *)) ++Size;
-	va_end(Args);
-	ml_flags_t *Flags = xnew(ml_flags_t, Size, ml_value_t *);
-	Flags->Base.Type = MLFlagsT;
-	Flags->Base.Name = TypeName;
-	Flags->Base.deref = ml_default_deref;
-	Flags->Base.assign = ml_default_assign;
-	Flags->Base.iterate = ml_iterate;
-	Flags->Base.iter_value = ml_iter_value;
-	Flags->Base.iter_key = ml_iter_key;
-	Flags->Base.iter_next = ml_iter_next;
-	Flags->Base.hash = (void *)ml_flag_value_hash;
-	Flags->Base.call = ml_default_call;
-	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
-	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_flags_t *Flags = ml_flags_alloc(TypeName);
 	uint64_t Flag = 1;
 	va_start(Args, TypeName);
 	const char *String;
@@ -1806,26 +1846,7 @@ ml_type_t *ml_flags(const char *TypeName, ...) {
 
 ml_type_t *ml_flags2(const char *TypeName, ...) {
 	va_list Args;
-	int Size = 0;
-	va_start(Args, TypeName);
-	while (va_arg(Args, const char *)) {
-		++Size;
-		va_arg(Args, int);
-	}
-	va_end(Args);
-	ml_flags_t *Flags = xnew(ml_flags_t, Size, ml_value_t *);
-	Flags->Base.Type = MLFlagsT;
-	Flags->Base.Name = TypeName;
-	Flags->Base.deref = ml_default_deref;
-	Flags->Base.assign = ml_default_assign;
-	Flags->Base.iterate = ml_iterate;
-	Flags->Base.iter_value = ml_iter_value;
-	Flags->Base.iter_key = ml_iter_key;
-	Flags->Base.iter_next = ml_iter_next;
-	Flags->Base.hash = (void *)ml_flag_value_hash;
-	Flags->Base.call = ml_default_call;
-	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
-	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	ml_flags_t *Flags = ml_flags_alloc(TypeName);
 	va_start(Args, TypeName);
 	const char *String;
 	while ((String = va_arg(Args, const char *))) {
