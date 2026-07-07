@@ -1744,21 +1744,6 @@ ML_TYPE(MLFlagsValueT, (), "flag-value");
 //@flags::value
 // An instance of a flags type.
 
-typedef struct {
-	ml_stringbuffer_t *Buffer;
-	uint64_t Value;
-	int Length;
-} ml_flags_value_append_t;
-
-static int ml_flags_value_append(const char *Name, ml_flags_value_t *Flags, ml_flags_value_append_t *Append) {
-	if ((Append->Value & Flags->Value) == Flags->Value) {
-		ml_stringbuffer_t *Buffer = Append->Buffer;
-		if (ml_stringbuffer_length(Buffer) > Append->Length) ml_stringbuffer_put(Buffer, ',');
-		ml_stringbuffer_write(Buffer, Name, strlen(Name));
-	}
-	return 0;
-}
-
 ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	uint64_t Value = ml_flags_value_value(Args[1]);
@@ -1786,19 +1771,32 @@ ML_TYPE(MLFlagsSpecT, (), "flag-spec");
 ML_METHOD("append", MLStringBufferT, MLFlagsSpecT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_flags_spec_t *Value = (ml_flags_spec_t *)Args[1];
-	ml_stringbuffer_put(Buffer, '(');
-	ml_flags_value_append_t Append[1] = {{Buffer, Value->Include, ml_stringbuffer_length(Buffer)}};
-	stringmap_foreach(Value->Flags->Base.Exports, Append, (void *)ml_flags_value_append);
+	size_t OldLength = Buffer->Length;
 	if (Value->Exclude == ~Value->Include) {
-		ml_stringbuffer_write(Buffer, "/*", 2);
-	} else if (Value->Exclude) {
+		ml_stringbuffer_put(Buffer, '~');
+		for (ml_flags_value_t *Flag = ((ml_flags_value_t *)Args[1])->Type->Values; Flag; Flag = Flag->Next) {
+			if (Flag->Value & Value->Exclude) {
+				if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, '|');
+				ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+			}
+		}
+	} else {
+		for (ml_flags_value_t *Flag = ((ml_flags_value_t *)Args[1])->Type->Values; Flag; Flag = Flag->Next) {
+			if (Flag->Value & Value->Include) {
+				if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, '|');
+				ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+			}
+		}
 		ml_stringbuffer_put(Buffer, '/');
-		Append->Value = Value->Exclude;
-		Append->Length = ml_stringbuffer_length(Buffer);
-		stringmap_foreach(Value->Flags->Base.Exports, Append, (void *)ml_flags_value_append);
+		size_t OldLength2 = Buffer->Length;
+		for (ml_flags_value_t *Flag = ((ml_flags_value_t *)Args[1])->Type->Values; Flag; Flag = Flag->Next) {
+			if (Flag->Value & Value->Exclude) {
+				if (Buffer->Length > OldLength2) ml_stringbuffer_put(Buffer, '|');
+				ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+			}
+		}
 	}
-	ml_stringbuffer_put(Buffer, ')');
-	return ml_stringbuffer_length(Buffer) > Append->Length ? MLSome : MLNil;
+	return ml_stringbuffer_length(Buffer) > OldLength ? MLSome : MLNil;
 }
 
 ml_flags_t *ml_flags_alloc(const char *Name) {
@@ -1868,10 +1866,16 @@ ml_value_t *ml_flags_value(ml_type_t *Type, uint64_t Flags) {
 	return (ml_value_t *)Value;
 }
 
-const char *ml_flags_value_name(ml_value_t *Value) {
+const char *ml_flags_value_name(ml_value_t *FlagsValue) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_flags_value_append_t Append[1] = {{Buffer, ml_flags_value_value(Value), ml_stringbuffer_length(Buffer)}};
-	stringmap_foreach(Value->Type->Exports, Append, (void *)ml_flags_value_append);
+	uint64_t Value = ml_flags_value_value(FlagsValue);
+	size_t OldLength = Buffer->Length;
+	for (ml_flags_value_t *Flag = ((ml_flags_value_t *)FlagsValue)->Type->Values; Flag; Flag = Flag->Next) {
+		if (Flag->Value & Value) {
+			if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, ',');
+			ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+		}
+	}
 	return ml_stringbuffer_get_string(Buffer);
 }
 
@@ -2070,7 +2074,7 @@ ML_METHOD("/", MLFlagsValueT, MLFlagsValueT) {
 	return (ml_value_t *)Spec;
 }
 
-ML_METHOD("/", MLFlagsValueT) {
+ML_METHOD("~", MLFlagsValueT) {
 //<Flags
 //>flags::spec
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
