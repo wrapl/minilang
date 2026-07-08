@@ -1772,27 +1772,42 @@ ML_METHOD("append", MLStringBufferT, MLFlagsSpecT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_flags_spec_t *Value = (ml_flags_spec_t *)Args[1];
 	size_t OldLength = Buffer->Length;
-	if (Value->Exclude == ~Value->Include) {
+	if (Value->Include == 0) {
 		ml_stringbuffer_put(Buffer, '~');
-		for (ml_flags_value_t *Flag = ((ml_flags_value_t *)Args[1])->Type->Values; Flag; Flag = Flag->Next) {
+		int Sep = 0;
+		for (ml_flags_value_t *Flag = Value->Flags->Values; Flag; Flag = Flag->Next) {
 			if (Flag->Value & Value->Exclude) {
-				if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, '|');
+				if (Sep) ml_stringbuffer_put(Buffer, '|');
 				ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+				Sep = 1;
+			}
+		}
+	} else if (Value->Exclude == ~Value->Include) {
+		ml_stringbuffer_put(Buffer, '!');
+		int Sep = 0;
+		for (ml_flags_value_t *Flag = Value->Flags->Values; Flag; Flag = Flag->Next) {
+			if (Flag->Value & Value->Include) {
+				if (Sep) ml_stringbuffer_put(Buffer, '|');
+				ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+				Sep = 1;
 			}
 		}
 	} else {
-		for (ml_flags_value_t *Flag = ((ml_flags_value_t *)Args[1])->Type->Values; Flag; Flag = Flag->Next) {
+		int Sep = 0;
+		for (ml_flags_value_t *Flag = Value->Flags->Values; Flag; Flag = Flag->Next) {
 			if (Flag->Value & Value->Include) {
-				if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, '|');
+				if (Sep) ml_stringbuffer_put(Buffer, '|');
 				ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+				Sep = 1;
 			}
 		}
 		ml_stringbuffer_put(Buffer, '/');
-		size_t OldLength2 = Buffer->Length;
-		for (ml_flags_value_t *Flag = ((ml_flags_value_t *)Args[1])->Type->Values; Flag; Flag = Flag->Next) {
+		Sep = 0;
+		for (ml_flags_value_t *Flag = Value->Flags->Values; Flag; Flag = Flag->Next) {
 			if (Flag->Value & Value->Exclude) {
-				if (Buffer->Length > OldLength2) ml_stringbuffer_put(Buffer, '|');
+				if (Sep) ml_stringbuffer_put(Buffer, '|');
 				ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
+				Sep = 1;
 			}
 		}
 	}
@@ -2074,7 +2089,7 @@ ML_METHOD("/", MLFlagsValueT, MLFlagsValueT) {
 	return (ml_value_t *)Spec;
 }
 
-ML_METHOD("~", MLFlagsValueT) {
+ML_METHOD("!", MLFlagsValueT) {
 //<Flags
 //>flags::spec
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
@@ -2083,6 +2098,18 @@ ML_METHOD("~", MLFlagsValueT) {
 	Spec->Flags = (ml_flags_t *)A->Type;
 	Spec->Include = A->Value;
 	Spec->Exclude = ~A->Value;
+	return (ml_value_t *)Spec;
+}
+
+ML_METHOD("~", MLFlagsValueT) {
+//<Flags
+//>flags::spec
+	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
+	ml_flags_spec_t *Spec = new(ml_flags_spec_t);
+	Spec->Type = MLFlagsSpecT;
+	Spec->Flags = (ml_flags_t *)A->Type;
+	Spec->Include = 0;
+	Spec->Exclude = A->Value;
 	return (ml_value_t *)Spec;
 }
 
