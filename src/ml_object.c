@@ -1744,13 +1744,28 @@ ML_TYPE(MLFlagsValueT, (), "flag-value");
 //@flags::value
 // An instance of a flags type.
 
+ML_METHOD("::", MLFlagsT, MLListT) {
+	ml_flags_t *Flags = (ml_flags_t *)Args[0];
+	ml_flags_value_t *Value = new(ml_flags_value_t);
+	Value->Type = Flags;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLStringT)) {
+			return ml_error("TypeError", "Expected <string> not <%s>", ml_typeof(Iter->Value)->Name);
+		}
+		ml_value_t *Flag = stringmap_search(Flags->Base.Exports, ml_string_value(Iter->Value));
+		if (!Flag) return ml_error("FlagError", "Invalid flag name");
+		Value->Value |= ml_flags_value_value(Flag);
+	}
+	return (ml_value_t *)Value;
+}
+
 ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	uint64_t Value = ml_flags_value_value(Args[1]);
 	size_t OldLength = Buffer->Length;
 	for (ml_flags_value_t *Flag = ((ml_flags_value_t *)Args[1])->Type->Values; Flag; Flag = Flag->Next) {
 		if (Flag->Value & Value) {
-			if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, ',');
+			if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, '|');
 			ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
 		}
 	}
@@ -1882,12 +1897,13 @@ ml_value_t *ml_flags_value(ml_type_t *Type, uint64_t Flags) {
 }
 
 const char *ml_flags_value_name(ml_value_t *FlagsValue) {
+	if (((ml_flags_value_t *)FlagsValue)->Name) return ml_string_value(((ml_flags_value_t *)FlagsValue)->Name);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	uint64_t Value = ml_flags_value_value(FlagsValue);
 	size_t OldLength = Buffer->Length;
 	for (ml_flags_value_t *Flag = ((ml_flags_value_t *)FlagsValue)->Type->Values; Flag; Flag = Flag->Next) {
 		if (Flag->Value & Value) {
-			if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, ',');
+			if (Buffer->Length > OldLength) ml_stringbuffer_put(Buffer, '|');
 			ml_stringbuffer_write(Buffer, ml_string_value(Flag->Name), ml_string_length(Flag->Name));
 		}
 	}

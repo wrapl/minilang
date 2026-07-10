@@ -1141,6 +1141,81 @@ static void ML_TYPED_FN(ml_cbor_write, MLEnumValueT, ml_cbor_writer_t *Writer, m
 	ml_cbor_write(Writer, Arg->Name);
 }
 
+static void ML_TYPED_FN(ml_cbor_write, MLFlagsT, ml_cbor_writer_t *Writer, ml_flags_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	void **Slot = uuidmap_slot(Writer->Classes, Arg->Base.Id);
+	if (Slot[0]) {
+		minicbor_write_array(Writer, 2);
+		minicbor_write_string(Writer, 5);
+		Writer->WriteFn(Writer->Data, (unsigned const char *)"flags", 5);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_UUID);
+		minicbor_write_bytes(Writer, sizeof(uuid_t));
+		Writer->WriteFn(Writer->Data, Arg->Base.Id, sizeof(uuid_t));
+	} else {
+		Slot[0] = Arg;
+		int IsSimple = 1;
+		uint64_t Expected = 1;
+		ml_flags_value_t *Value = Arg->Values;
+		for (int I = 1; I <= Arg->Base.Exports->Size; ++I, Value = Value->Next) {
+			if (Value->Value != Expected) {
+				IsSimple = 0;
+				break;
+			}
+			Expected <<= 1;
+		}
+		if (IsSimple) {
+			minicbor_write_array(Writer, 3 + Arg->Base.Exports->Size);
+		} else {
+			minicbor_write_array(Writer, 3 + 2 * Arg->Base.Exports->Size);
+		}
+		minicbor_write_string(Writer, 5);
+		Writer->WriteFn(Writer->Data, (unsigned const char *)"flags", 5);
+		minicbor_write_tag(Writer, ML_CBOR_TAG_UUID);
+		minicbor_write_bytes(Writer, sizeof(uuid_t));
+		Writer->WriteFn(Writer->Data, Arg->Base.Id, sizeof(uuid_t));
+		minicbor_write_integer(Writer, Arg->Base.Exports->Size);
+		Value = Arg->Values;
+		if (IsSimple) {
+			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, Value = Value->Next) {
+				ml_cbor_write(Writer, Value->Name);
+			}
+		} else {
+			for (int I = 1; I <= Arg->Base.Exports->Size; ++I, Value = Value->Next) {
+				ml_cbor_write(Writer, Value->Name);
+				minicbor_write_integer(Writer, Value->Value);
+			}
+		}
+	}
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLFlagsValueT, ml_cbor_writer_t *Writer, ml_flags_value_t *Arg) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	minicbor_write_array(Writer, 3);
+	minicbor_write_string(Writer, 6);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"import", 6);
+	ml_cbor_write(Writer, (ml_value_t *)Arg->Type);
+	if (Arg->Name) {
+		ml_cbor_write_string(Writer, ml_string_length(Arg->Name));
+		Writer->WriteFn(Writer->Data, (const unsigned char *)ml_string_value(Arg->Name), ml_string_length(Arg->Name));
+	} else {
+		int MaxNames = Arg->Type->Base.Exports->Size, NumNames = 0;
+		ml_value_t *Names[MaxNames];
+		uint64_t Value = Arg->Value;
+		for (ml_flags_value_t *Flag = Arg->Type->Values; Flag; Flag = Flag->Next) {
+			if (Flag->Value & Value) {
+				Value &= ~Flag->Value;
+				if (NumNames == MaxNames) ML_CBOR_WRITER_ERROR(Writer, "ValueError", "Invalid flags value");
+				Names[NumNames++] = Flag->Name;
+			}
+		}
+		ml_cbor_write_array(Writer, NumNames);
+		for (int I = 0; I < NumNames; ++I) {
+			ml_cbor_write_string(Writer, ml_string_length(Names[I]));
+			Writer->WriteFn(Writer->Data, (const unsigned char *)ml_string_value(Names[I]), ml_string_length(Names[I]));
+		}
+	}
+}
+
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_cbor_writer_t *Writer, ml_integer_range_t *Arg) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, 4);
@@ -1658,13 +1733,48 @@ static ml_value_t *ml_cbor_object_enum(ml_cbor_reader_t *Reader, int Count, ml_v
 	return (ml_value_t *)Enum;
 }
 
+extern ml_value_t *SymbolMethod;
+
 static ml_value_t *ml_cbor_object_import(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLTypeT); // TODO: change this to support other types
-	ML_CHECK_ARG_TYPE(1, MLStringT);
-	ml_value_t *Value = stringmap_search(((ml_type_t *)Args[0])->Exports, ml_string_value(Args[1]));
-	if (Value) return Value;
-	return ml_error("TagError", "Import %s not found in type %s", ml_string_value(Args[1]), ((ml_type_t *)Args[0])->Name);
+	return ml_simple_call(SymbolMethod, Count, Args);
+}
+
+static ml_value_t *ml_cbor_object_flags(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	if (!Reader->ObjectTable) return ml_error("TagError", "Flagss not supported by reader");
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLUUIDT);
+	if (Count < 3 && Count != 1) return ml_error("TagError", "Invalid flags definition");
+	if (Count > 1) ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	int NumValues = Count > 1 ? ml_integer_value(Args[1]) : 0;
+	unsigned char *Id = ml_uuid_value(Args[0]);
+	ml_type_t *Flags = Reader->ObjectTable->lookup(Reader->ObjectTable, Id);
+	if (Flags) {
+		if (!ml_is((ml_value_t *)Flags, MLFlagsT)) return ml_error("TagError", "Flags type conflict");
+		if (Flags->Exports->Size < NumValues) {
+			return ml_error("TagError", "Flags definition size mismatch");
+		}
+		return (ml_value_t *)Flags;
+	}
+	if (Count == 1) return ml_error("TagError", "Flags type not found");
+	int RemainingArgs = Count - 2;
+	Flags = (ml_type_t *)ml_flags_alloc(NULL);
+	memcpy(Flags->Id, Id, sizeof(uuid_t));
+	if (RemainingArgs == NumValues) {
+		for (int I = 2; I < Count; ++I) {
+			ML_CHECK_ARG_TYPE(I, MLStringT);
+			ml_flags_add_value((ml_flags_t *)Flags, Args[I], I - 1);
+		}
+	} else if (RemainingArgs == NumValues * 2) {
+		for (int I = 2; I < Count; I += 2) {
+			ML_CHECK_ARG_TYPE(I, MLStringT);
+			ML_CHECK_ARG_TYPE(I + 1, MLIntegerT);
+			ml_flags_add_value((ml_flags_t *)Flags, Args[I], ml_integer_value(Args[I + 1]));
+		}
+	} else {
+		return ml_error("TagError", "Flags field count mismatch");
+	}
+	Reader->ObjectTable->insert(Reader->ObjectTable, Flags);
+	return (ml_value_t *)Flags;
 }
 
 static stringmap_t CborObjectTypes[1] = {STRINGMAP_INIT};
@@ -1751,7 +1861,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_object("range", ml_cbor_object_range);
 	ml_cbor_default_object("object", ml_cbor_object_object);
 	ml_cbor_default_object("enum", ml_cbor_object_enum);
-	//ml_cbor_default_object("flags", ml_cbor_object_flags);
+	ml_cbor_default_object("flags", ml_cbor_object_flags);
 	ml_cbor_default_object("import", ml_cbor_object_import);
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", ml_cbor_object_complex);

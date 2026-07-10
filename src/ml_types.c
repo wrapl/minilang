@@ -1484,8 +1484,8 @@ ML_FUNCTION_INLINE(MLAnySwitch) {
 }
 
 void ml_value_set_name(ml_value_t *Value, const char *Name) {
-	typeof(ml_value_set_name) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_set_name);
-	if (function) function(Value, Name);
+	typeof(ml_value_set_name) *fn = ml_typed_fn_get(ml_typeof(Value), ml_value_set_name);
+	if (fn) fn(Value, Name);
 }
 
 void ml_value_find_all(ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
