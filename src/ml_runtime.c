@@ -1316,12 +1316,12 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 #endif
 	Queue->Slice = Slice;
 #ifdef ML_TIMESCHED
-	if (Slice) {
-		struct itimerval Interval = {0,};
-		Interval.it_interval.tv_usec = Slice;
-		Interval.it_value.tv_usec = Slice;
-		setitimer(ITIMER_REAL, &Interval, NULL);
-	}
+	//if (Slice) {
+	//	struct itimerval Interval = {0,};
+	//	Interval.it_interval.tv_usec = Slice;
+	//	Interval.it_value.tv_usec = Slice;
+	//	setitimer(ITIMER_VIRTUAL, &Interval, NULL);
+	//}
 #else
 	Queue->Counter = Slice;
 #endif
@@ -2107,6 +2107,19 @@ static void ml_preempt(int Signal) {
 	--MLPreempt;
 }
 
+static pthread_t TimerThread;
+
+static void *ml_preempt_thread(void *Arg) {
+	struct timespec Interval;
+	Interval.tv_sec = 0;
+	Interval.tv_nsec = 250000;
+	for (;;) {
+		clock_nanosleep(CLOCK_MONOTONIC, 0, &Interval, NULL);
+		--MLPreempt;
+	}
+	return NULL;
+}
+
 #endif
 
 void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
@@ -2121,10 +2134,11 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	MLEndState->Context = MLRootContext;
 #ifdef ML_TIMESCHED
-	struct sigaction Action = {0,};
-	Action.sa_handler = ml_preempt;
-	Action.sa_flags = SA_RESTART;
-	sigaction(SIGALRM, &Action, NULL);
+	pthread_create(&TimerThread, NULL, ml_preempt_thread, NULL);
+	//struct sigaction Action = {0,};
+	//Action.sa_handler = ml_preempt;
+	//Action.sa_flags = SA_RESTART;
+	//sigaction(SIGVTALRM, &Action, NULL);
 #endif
 	signal(SIGPIPE, SIG_IGN);
 #if defined(ML_UNWIND) || defined(ML_BACKTRACE)

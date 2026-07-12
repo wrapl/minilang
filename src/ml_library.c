@@ -522,6 +522,7 @@ void ml_library_init(stringmap_t *_Globals) {
 #ifdef ML_TIMESCHED
 	sigemptyset(&Signals);
 	sigaddset(&Signals, SIGALRM);
+	sigaddset(&Signals, SIGVTALRM);
 #endif
 	Globals = _Globals;
 	LibraryPath = ml_list();
