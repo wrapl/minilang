@@ -2102,10 +2102,7 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 }
 
 #ifdef ML_TIMESCHED
-
-static void ml_preempt(int Signal) {
-	--MLPreempt;
-}
+#ifdef ML_HOSTTHREADS
 
 static pthread_t TimerThread;
 
@@ -2120,6 +2117,13 @@ static void *ml_preempt_thread(void *Arg) {
 	return NULL;
 }
 
+#else
+
+static void ml_preempt(int Signal) {
+	--MLPreempt;
+}
+
+#endif
 #endif
 
 void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
@@ -2134,11 +2138,31 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	MLEndState->Context = MLRootContext;
 #ifdef ML_TIMESCHED
-	pthread_create(&TimerThread, NULL, ml_preempt_thread, NULL);
-	//struct sigaction Action = {0,};
-	//Action.sa_handler = ml_preempt;
-	//Action.sa_flags = SA_RESTART;
-	//sigaction(SIGVTALRM, &Action, NULL);
+#ifdef ML_HOSTTHREADS
+	pthread_attr_t Attr;
+	pthread_attr_init(&Attr);
+	pthread_attr_setstacksize(&Attr, PTHREAD_STACK_MIN);
+	pthread_attr_setguardsize(&Attr, 0);
+	pthread_create(&TimerThread, &Attr, ml_preempt_thread, NULL);
+	pthread_attr_destroy(&Attr);
+	pthread_setname_np(TimerThread, "preempt");
+#else
+	timer_t PreemptTimer;
+	struct sigevent Event = {0,};
+	Event.sigev_notify = SIGEV_SIGNAL;
+	Event.sigev_signo = SIGALRM;
+	timer_create(CLOCK_MONOTONIC, &Event, &PreemptTimer);
+	struct itimerspec TimerSpec;
+	TimerSpec.it_interval.tv_sec = 0;
+	TimerSpec.it_interval.tv_nsec = 250000;
+	TimerSpec.it_value.tv_sec = 0;
+	TimerSpec.it_value.tv_nsec = 250000;
+	timer_settime(PreemptTimer, 0, &TimerSpec, NULL);
+	struct sigaction Action = {0,};
+	Action.sa_handler = ml_preempt;
+	Action.sa_flags = SA_RESTART;
+	sigaction(SIGALRM, &Action, NULL);
+#endif
 #endif
 	signal(SIGPIPE, SIG_IGN);
 #if defined(ML_UNWIND) || defined(ML_BACKTRACE)
