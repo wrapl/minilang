@@ -2102,7 +2102,7 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 }
 
 #ifdef ML_TIMESCHED
-#ifdef ML_HOSTTHREADS
+#ifdef ML_HOSTTHREADSX
 
 static pthread_t TimerThread;
 
@@ -2123,7 +2123,28 @@ static void ml_preempt(int Signal) {
 	--MLPreempt;
 }
 
+static timer_t PreemptTimer;
+
+void ml_preemption_enable() {
+	static struct itimerspec TimerSpec = {{.tv_sec = 0, .tv_nsec = 250000}, {.tv_sec = 0, .tv_nsec = 250000}};
+	timer_settime(PreemptTimer, 0, &TimerSpec, NULL);
+}
+
+void ml_preemption_disable() {
+	static struct itimerspec TimerSpec = {{.tv_sec = 0, .tv_nsec = 0}, {.tv_sec = 0, .tv_nsec = 0}};
+	timer_settime(PreemptTimer, 0, &TimerSpec, NULL);
+}
+
 #endif
+
+#else
+
+void ml_preemption_enable() {
+}
+
+void ml_preemption_disable() {
+}
+
 #endif
 
 void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
@@ -2138,7 +2159,7 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	MLEndState->Context = MLRootContext;
 #ifdef ML_TIMESCHED
-#ifdef ML_HOSTTHREADS
+#ifdef ML_HOSTTHREADSX
 	pthread_attr_t Attr;
 	pthread_attr_init(&Attr);
 	pthread_attr_setstacksize(&Attr, PTHREAD_STACK_MIN);
@@ -2147,21 +2168,15 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 	pthread_attr_destroy(&Attr);
 	pthread_setname_np(TimerThread, "preempt");
 #else
-	timer_t PreemptTimer;
-	struct sigevent Event = {0,};
-	Event.sigev_notify = SIGEV_SIGNAL;
-	Event.sigev_signo = SIGALRM;
-	timer_create(CLOCK_MONOTONIC, &Event, &PreemptTimer);
-	struct itimerspec TimerSpec;
-	TimerSpec.it_interval.tv_sec = 0;
-	TimerSpec.it_interval.tv_nsec = 250000;
-	TimerSpec.it_value.tv_sec = 0;
-	TimerSpec.it_value.tv_nsec = 250000;
-	timer_settime(PreemptTimer, 0, &TimerSpec, NULL);
 	struct sigaction Action = {0,};
 	Action.sa_handler = ml_preempt;
 	Action.sa_flags = SA_RESTART;
 	sigaction(SIGALRM, &Action, NULL);
+	struct sigevent Event = {0,};
+	Event.sigev_notify = SIGEV_SIGNAL;
+	Event.sigev_signo = SIGALRM;
+	timer_create(CLOCK_MONOTONIC, &Event, &PreemptTimer);
+	ml_preemption_enable();
 #endif
 #endif
 	signal(SIGPIPE, SIG_IGN);

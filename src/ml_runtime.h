@@ -317,6 +317,9 @@ extern volatile int MLPreempt;
 
 #endif
 
+void ml_preemption_enable();
+void ml_preemption_disable();
+
 typedef struct ml_scheduler_t ml_scheduler_t;
 
 typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
