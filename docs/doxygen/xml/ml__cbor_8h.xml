@@ -214,7 +214,7 @@
       <member refid="group__cbor_1ga301c044c02b1cb1b83cfa19c878c6e40" kind="function"><name>ml_cbor_reader_done</name></member>
       <member refid="group__cbor_1gaf9b45c94d3f93e3649586f6a0eb4678e" kind="function"><name>ml_cbor_reader_get</name></member>
       <member refid="group__cbor_1gaa8424e59dea6603c428ce454cff50561" kind="function"><name>ml_cbor_reader_extra</name></member>
-      <member refid="group__cbor_1gac671f6253d1521f6a339ad03f8bda0d8" kind="function"><name>ml_cbor_reader_set_classtable</name></member>
+      <member refid="group__cbor_1ga86e19cbadf2421dfc4dbf02f055bf7e4" kind="function"><name>ml_cbor_reader_set_ObjectTable</name></member>
       <member refid="group__cbor_1ga9154edefa5aa11097e7993f2b9e048ec" kind="function"><name>ml_cbor_writer</name></member>
       <member refid="group__cbor_1ga9803fa101246b2b9c8241a1bac3841e7" kind="function"><name>ml_cbor_writer_reset</name></member>
       <member refid="group__cbor_1ga8a2684b2d4d77c018c4f0caaf0365bce" kind="function"><name>ml_cbor_writer_set_flags</name></member>
@@ -245,8 +245,8 @@
       <member refid="group__cbor_1gaf012c0fba7c38ad2e628be0b46d7730b" kind="function"><name>ml_cbor_write_break</name></member>
       <member refid="group__cbor_1ga855a61374e2ed28281b15b09868e100c" kind="function"><name>ml_cbor_write_tag</name></member>
       <member refid="group__cbor_1ga1a9844ccc58fb268ecd9bfb45acac18d" kind="function"><name>ml_to_cbor</name></member>
-      <member refid="group__cbor_1ga8a4f8cd94f1ea40cb7e0e46864df94cb" kind="function"><name>ml_from_cbor</name></member>
-      <member refid="group__cbor_1ga11382cdc46d7492f90b32917b32c29a8" kind="function"><name>ml_from_cbor_extra</name></member>
+      <member refid="group__cbor_1ga6cf28e7fd93692716cfd3eb84d11d3d5" kind="function"><name>ml_from_cbor</name></member>
+      <member refid="group__cbor_1ga5b2288dbb3058ec5f64cf6d35c981f38" kind="function"><name>ml_from_cbor_extra</name></member>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -306,7 +306,7 @@
 <codeline lineno="54"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_cbor_reader_done(ml_cbor_reader_t<sp/>*Reader);</highlight></codeline>
 <codeline lineno="55"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_cbor_reader_get(ml_cbor_reader_t<sp/>*Reader);</highlight></codeline>
 <codeline lineno="56"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ml_cbor_reader_extra(ml_cbor_reader_t<sp/>*Reader);</highlight></codeline>
-<codeline lineno="57"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_reader_set_classtable(ml_cbor_reader_t<sp/>*Reader,<sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*ClassTable);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_reader_set_ObjectTable(ml_cbor_reader_t<sp/>*Reader,<sp/><ref refid="structml__object__table__t" kindref="compound">ml_object_table_t</ref><sp/>*ObjectTable);</highlight></codeline>
 <codeline lineno="58"><highlight class="normal"></highlight></codeline>
 <codeline lineno="59" refid="structml__cbor__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
 <codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal">{</highlight></codeline>
@@ -362,11 +362,11 @@
 <codeline lineno="110"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>ml_cbor_write_tag(ml_cbor_writer_t<sp/>*Writer,<sp/>uint64_t<sp/>Tag);</highlight></codeline>
 <codeline lineno="111"><highlight class="normal"></highlight></codeline>
 <codeline lineno="112"><highlight class="normal"><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>ml_to_cbor(<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value);</highlight></codeline>
-<codeline lineno="113"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_from_cbor(<ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>Cbor,<sp/>ml_cbor_tag_fns_t<sp/>*TagFns,<sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*ClassTable);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*ml_from_cbor(<ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>Cbor,<sp/>ml_cbor_tag_fns_t<sp/>*TagFns,<sp/><ref refid="structml__object__table__t" kindref="compound">ml_object_table_t</ref><sp/>*ObjectTable);</highlight></codeline>
 <codeline lineno="114"><highlight class="normal"></highlight></codeline>
 <codeline lineno="115" refid="structml__cbor__result__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{<ref refid="structml__value__t" kindref="compound">ml_value_t</ref><sp/>*Value;<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>Extra;}<sp/><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref>;</highlight></codeline>
 <codeline lineno="116"><highlight class="normal"></highlight></codeline>
-<codeline lineno="117"><highlight class="normal"><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref><sp/>ml_from_cbor_extra(<ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>Cbor,<sp/>ml_cbor_tag_fns_t<sp/>*TagFns,<sp/><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref><sp/>*ClassTable);</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref><sp/>ml_from_cbor_extra(<ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref><sp/>Cbor,<sp/>ml_cbor_tag_fns_t<sp/>*TagFns,<sp/><ref refid="structml__object__table__t" kindref="compound">ml_object_table_t</ref><sp/>*ObjectTable);</highlight></codeline>
 <codeline lineno="118"><highlight class="normal"></highlight></codeline>
 <codeline lineno="119"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_TIME_STRING<sp/>0</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="120"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ML_CBOR_TAG_TIME_EPOCH<sp/>1</highlight><highlight class="normal"></highlight></codeline>

@@ -87,20 +87,6 @@
         </inbodydescription>
         <location file="src/ml_object.h" line="33" column="13" bodyfile="src/ml_object.h" bodystart="33" bodyend="-1"/>
       </memberdef>
-      <memberdef kind="variable" id="structml__class__t_1aad683eae2c5a5b7c43fb20615e5281f8" prot="public" static="no" mutable="no">
-        <type>uuid_t</type>
-        <definition>uuid_t Id</definition>
-        <argsstring></argsstring>
-        <name>Id</name>
-        <qualifiedname>ml_class_t::Id</qualifiedname>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_object.h" line="34" column="8" bodyfile="src/ml_object.h" bodystart="34" bodyend="-1"/>
-      </memberdef>
       <memberdef kind="variable" id="structml__class__t_1a0b4a5fc671df8ad2881096927bfacce8" prot="public" static="no" mutable="no">
         <type>int</type>
         <definition>int NumFields</definition>
@@ -113,7 +99,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="35" column="5" bodyfile="src/ml_object.h" bodystart="35" bodyend="-1"/>
+        <location file="src/ml_object.h" line="34" column="5" bodyfile="src/ml_object.h" bodystart="34" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -186,13 +172,12 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_object.h" line="29" column="1" bodyfile="src/ml_object.h" bodystart="29" bodyend="36"/>
+    <location file="src/ml_object.h" line="29" column="1" bodyfile="src/ml_object.h" bodystart="29" bodyend="35"/>
     <listofallmembers>
       <member refid="structml__class__t_1a6ca96d2df4c00c34fee1edbfae6486bc" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Base</name></member>
       <member refid="structml__class__t_1a45dc058b3d3caf83f458f9ba9e3b3b3e" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Call</name></member>
       <member refid="structml__class__t_1a0754a32f4ccbfc83511ece65254e3a5e" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Defaults</name></member>
       <member refid="structml__class__t_1abe63bfb65f252c406d1885ab2bfdeb93" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Fields</name></member>
-      <member refid="structml__class__t_1aad683eae2c5a5b7c43fb20615e5281f8" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Id</name></member>
       <member refid="structml__class__t_1a0e184c195424c58941a7356d4bebe8f1" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Initializer</name></member>
       <member refid="structml__class__t_1ad221667156a88d2210ab522cd4857bd7" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Names</name></member>
       <member refid="structml__class__t_1a0b4a5fc671df8ad2881096927bfacce8" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>NumFields</name></member>

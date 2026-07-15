@@ -17,15 +17,15 @@ logging
    *TBD*
 
 
+:mini:`meth (Logger: logger) :: (Level: string): logger::fn`
+   *TBD*
+
+
 :mini:`type logger`
    A logger.
 
 
 :mini:`fun logger(Category: string): logger`
    Returns a new logger with levels :mini:`::error`,  :mini:`::warn`,  :mini:`::info` and :mini:`::debug`.
-
-
-:mini:`meth (Logger: logger) :: (Level: string): logger::fn`
-   *TBD*
 
 

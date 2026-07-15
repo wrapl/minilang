@@ -21,6 +21,14 @@ method
    *TBD*
 
 
+:mini:`meth (Arg₁: method):cached`
+   *TBD*
+
+
+:mini:`meth (Arg₁: method):list`
+   *TBD*
+
+
 :mini:`type method < function`
    A map of type signatures to functions. Each type signature consists of a number of types and a flag denoting whether the signature is variadic.
    
@@ -33,24 +41,27 @@ method
       * A type signature with the same number of types as arguments is considered a closer match than a matching variadic signature with fewer types.
 
 
-:mini:`meth method(): method`
-   Returns a new anonymous method.
+:mini:`type method::context`
+   A context for isolating method definitions.
+   
+   :mini:`(C: method::context)(Args: any,  ...,  Fn: function): any`
+       Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: method::anon)`
+   *TBD*
 
 
 :mini:`meth method(Name: string): method`
    Returns the method with name :mini:`Name`.
 
 
-:mini:`meth (Arg₁: method)[...]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: method):cached`
-   *TBD*
-
-
-:mini:`meth (Arg₁: method):list`
-   *TBD*
+:mini:`meth method(): method`
+   Returns a new anonymous method.
 
 
 :mini:`meth method::default(Method: method, ...): error`
@@ -79,19 +90,8 @@ method
    Returns the name of :mini:`Method`.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
+:mini:`meth (Arg₁: method)[...]`
    *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: method::anon)`
-   *TBD*
-
-
-:mini:`type method::context`
-   A context for isolating method definitions.
-   
-   :mini:`(C: method::context)(Args: any,  ...,  Fn: function): any`
-       Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
 
 
 :mini:`fun method::context(): method::context`

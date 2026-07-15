@@ -9,11 +9,11 @@ base64
 
 .. rst-class:: mini-api
 
-:mini:`fun base64::decode(String: address): address`
+:mini:`fun base64::encode(Address: address): string`
    *TBD*
 
 
-:mini:`fun base64::encode(Address: address): string`
+:mini:`fun base64::decode(String: address): address`
    *TBD*
 
 

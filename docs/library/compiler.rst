@@ -9,43 +9,19 @@ compiler
 
 .. rst-class:: mini-api
 
-:mini:`fun mlidentcachecheck()`
-   *TBD*
-
-
-:mini:`fun mlxor()`
-   *TBD*
-
-
 :mini:`fun source(): tuple[string, integer]`
    Returns the caller source location. Evaluated at compile time if possible.
 
 
-:mini:`fun not(Arg₁: any)`
+:mini:`meth (Parser: parser):input(String: string, Arg₃: integer): compiler`
    *TBD*
 
 
-:mini:`meth compilereoi(Arg₁: any)`
+:mini:`fun parser(Read?: function): parser`
    *TBD*
 
 
-:mini:`type command::decl`
-   *TBD*
-
-
-:mini:`type compiler < state`
-   *TBD*
-
-
-:mini:`fun compiler(Globals: function|map): compiler`
-   *TBD*
-
-
-:mini:`meth (Compiler: compiler)[Name: string]: any`
-   *TBD*
-
-
-:mini:`meth (Compiler: compiler):command_def(Name: string, Value: any): any`
+:mini:`meth (Parser: parser):input(String: string): compiler`
    *TBD*
 
 
@@ -53,11 +29,95 @@ compiler
    *TBD*
 
 
-:mini:`meth (Compiler: compiler):command_var(Name: string): variable`
+:mini:`meth (Parser: parser):reset: parser`
+   *TBD*
+
+
+:mini:`type global`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):source(Source: string, Line: integer): tuple`
+   *TBD*
+
+
+:mini:`meth (Compiler: compiler):vars: map`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):compile(Compiler: compiler, Parameters: list): any`
+   *TBD*
+
+
+:mini:`meth $(Arg₁: expr)`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):compile(Compiler: compiler): any`
+   *TBD*
+
+
+:mini:`type compilereoi`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):parse: expr`
+   *TBD*
+
+
+:mini:`meth (Arg₁: expr):start`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):warnings: parser`
+   *TBD*
+
+
+:mini:`meth (Expr: expr):compile(Compiler: compiler, Arg₃: list): any`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):permissive(Permissive: boolean): parser`
+   *TBD*
+
+
+:mini:`type macro::subst < function`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):run(Compiler: compiler): any`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):evaluate(Compiler: compiler): any`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):clear: string`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):special(Callback: list): parser`
+   *TBD*
+
+
+:mini:`meth (Parser: parser):special(Callback: function): parser`
+   *TBD*
+
+
+:mini:`type compiler < state`
+   *TBD*
+
+
+:mini:`meth (Compiler: compiler):command_def(Name: string, Value: any): any`
    *TBD*
 
 
 :mini:`meth (Compiler: compiler):command_var(Name: string, Type: type): variable`
+   *TBD*
+
+
+:mini:`meth (Arg₁: expr):end`
    *TBD*
 
 
@@ -69,23 +129,7 @@ compiler
    *TBD*
 
 
-:mini:`meth (Compiler: compiler):var(Name: string): variable`
-   *TBD*
-
-
-:mini:`meth (Compiler: compiler):var(Name: string, Type: type): variable`
-   *TBD*
-
-
-:mini:`meth (Compiler: compiler):vars: map`
-   *TBD*
-
-
 :mini:`type compiler::function < state`
-   *TBD*
-
-
-:mini:`type compilereoi`
    *TBD*
 
 
@@ -93,7 +137,7 @@ compiler
    *TBD*
 
 
-:mini:`meth $(Arg₁: expr)`
+:mini:`meth (Compiler: compiler)[Name: string]: any`
    *TBD*
 
 
@@ -101,31 +145,7 @@ compiler
    *TBD*
 
 
-:mini:`meth (Expr: expr):compile(Compiler: compiler, Arg₃: list): any`
-   *TBD*
-
-
-:mini:`meth (Arg₁: expr):end`
-   *TBD*
-
-
-:mini:`meth (Arg₁: expr):source`
-   *TBD*
-
-
-:mini:`meth (Arg₁: expr):start`
-   *TBD*
-
-
 :mini:`type function::inline < function`
-   *TBD*
-
-
-:mini:`type global`
-   *TBD*
-
-
-:mini:`type macro::subst < function`
    *TBD*
 
 
@@ -133,63 +153,43 @@ compiler
    *TBD*
 
 
-:mini:`fun parser(Read?: function): parser`
+:mini:`type command::decl`
    *TBD*
 
 
-:mini:`meth (Parser: parser):clear: string`
+:mini:`meth (Compiler: compiler):command_var(Name: string): variable`
    *TBD*
 
 
-:mini:`meth (Parser: parser):compile(Compiler: compiler): any`
+:mini:`meth (Compiler: compiler):var(Name: string, Type: type): variable`
    *TBD*
 
 
-:mini:`meth (Parser: parser):compile(Compiler: compiler, Parameters: list): any`
+:mini:`meth (Compiler: compiler):var(Name: string): variable`
    *TBD*
 
 
-:mini:`meth (Parser: parser):evaluate(Compiler: compiler): any`
+:mini:`fun not(Arg₁: any)`
    *TBD*
 
 
-:mini:`meth (Parser: parser):input(String: string): compiler`
+:mini:`meth (Arg₁: expr):source`
    *TBD*
 
 
-:mini:`meth (Parser: parser):input(String: string, Arg₃: integer): compiler`
+:mini:`meth compilereoi(Arg₁: any)`
    *TBD*
 
 
-:mini:`meth (Parser: parser):parse: expr`
+:mini:`fun compiler(Globals: function|map): compiler`
    *TBD*
 
 
-:mini:`meth (Parser: parser):permissive(Permissive: boolean): parser`
+:mini:`fun mlxor()`
    *TBD*
 
 
-:mini:`meth (Parser: parser):reset: parser`
-   *TBD*
-
-
-:mini:`meth (Parser: parser):run(Compiler: compiler): any`
-   *TBD*
-
-
-:mini:`meth (Parser: parser):source(Source: string, Line: integer): tuple`
-   *TBD*
-
-
-:mini:`meth (Parser: parser):special(Callback: function): parser`
-   *TBD*
-
-
-:mini:`meth (Parser: parser):special(Callback: list): parser`
-   *TBD*
-
-
-:mini:`meth (Parser: parser):warnings: parser`
+:mini:`fun mlidentcachecheck()`
    *TBD*
 
 

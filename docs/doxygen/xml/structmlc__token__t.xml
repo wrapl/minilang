@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="423" column="13" bodyfile="src/ml_compiler2.h" bodystart="423" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="424" column="13" bodyfile="src/ml_compiler2.h" bodystart="424" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__token__t_1abd8eff2c91d0ec0945d44181e9954b42" prot="public" static="no" mutable="no">
         <type>void *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="424" column="6" bodyfile="src/ml_compiler2.h" bodystart="424" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="425" column="6" bodyfile="src/ml_compiler2.h" bodystart="425" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__token__t_1ab0dd8704f8a586d7b9e86cb824197481" prot="public" static="no" mutable="no">
         <type><ref refid="structml__source__t" kindref="compound">ml_source_t</ref></type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="425" column="13" bodyfile="src/ml_compiler2.h" bodystart="425" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="426" column="13" bodyfile="src/ml_compiler2.h" bodystart="426" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structmlc__token__t_1a467f11d902b73ee0102af63ac791ec3b" prot="public" static="no" mutable="no">
         <type>ml_token_t</type>
@@ -57,7 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_compiler2.h" line="426" column="12" bodyfile="src/ml_compiler2.h" bodystart="426" bodyend="-1"/>
+        <location file="src/ml_compiler2.h" line="427" column="12" bodyfile="src/ml_compiler2.h" bodystart="427" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -80,7 +80,7 @@
         </childnode>
       </node>
     </collaborationgraph>
-    <location file="src/ml_compiler2.h" line="422" column="1" bodyfile="src/ml_compiler2.h" bodystart="422" bodyend="427"/>
+    <location file="src/ml_compiler2.h" line="423" column="1" bodyfile="src/ml_compiler2.h" bodystart="423" bodyend="428"/>
     <listofallmembers>
       <member refid="structmlc__token__t_1abd8eff2c91d0ec0945d44181e9954b42" prot="public" virt="non-virtual"><scope>mlc_token_t</scope><name>General</name></member>
       <member refid="structmlc__token__t_1a399fa1afb8518ed8539efd7e21e1dba8" prot="public" virt="non-virtual"><scope>mlc_token_t</scope><name>Next</name></member>

@@ -9,10 +9,6 @@ condition
 
 .. rst-class:: mini-api
 
-:mini:`type condition`
-   A condition for synchronizing concurrent code.
-
-
 :mini:`fun condition(): condition`
    Returns a new condition.
 
@@ -27,5 +23,9 @@ condition
 
 :mini:`meth (Condition: condition):wait(Semaphore: semaphore): integer`
    Increments :mini:`Semaphore`,  waits until :mini:`Condition` is signalled,  then decrements :mini:`Semaphore` (waiting if necessary) and returns its value.
+
+
+:mini:`type condition`
+   A condition for synchronizing concurrent code.
 
 

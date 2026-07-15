@@ -404,10 +404,6 @@ ast
 
 
 :mini:`type paramkind < enum`
-   * :mini:`::Default`
-   * :mini:`::Extra`
-   * :mini:`::Named`
-   * :mini:`::ByRef`
-   * :mini:`::AsVar`
+   *TBD*
 
 

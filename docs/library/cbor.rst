@@ -17,12 +17,12 @@ cbor
    Decode :mini:`Bytes` into a Minilang value,  or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 
 
-:mini:`type cbor::decoder < stream`
-   A CBOR decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
-
-
 :mini:`fun cbor::decoder(Callback: function): cbor::decoder`
    Returns a new CBOR decoder that calls :mini:`Callback(Value)` whenever a complete CBOR value is written to the decoder.
+
+
+:mini:`type cbor::decoder < stream`
+   A CBOR decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is decoded.
 
 
 :mini:`meth cbor::decode(Stream: stream): any | error`

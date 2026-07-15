@@ -479,18 +479,18 @@
         </inbodydescription>
         <location file="src/ml_cbor.h" line="56" column="5" declfile="src/ml_cbor.h" declline="56" declcolumn="5"/>
       </memberdef>
-      <memberdef kind="function" id="group__cbor_1gac671f6253d1521f6a339ad03f8bda0d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="group__cbor_1ga86e19cbadf2421dfc4dbf02f055bf7e4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
-        <definition>void ml_cbor_reader_set_classtable</definition>
-        <argsstring>(ml_cbor_reader_t *Reader, ml_class_table_t *ClassTable)</argsstring>
-        <name>ml_cbor_reader_set_classtable</name>
+        <definition>void ml_cbor_reader_set_ObjectTable</definition>
+        <argsstring>(ml_cbor_reader_t *Reader, ml_object_table_t *ObjectTable)</argsstring>
+        <name>ml_cbor_reader_set_ObjectTable</name>
         <param>
           <type>ml_cbor_reader_t *</type>
           <declname>Reader</declname>
         </param>
         <param>
-          <type><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref> *</type>
-          <declname>ClassTable</declname>
+          <type><ref refid="structml__object__table__t" kindref="compound">ml_object_table_t</ref> *</type>
+          <declname>ObjectTable</declname>
         </param>
         <briefdescription>
         </briefdescription>
@@ -1122,10 +1122,10 @@
         </inbodydescription>
         <location file="src/ml_cbor.h" line="112" column="11" declfile="src/ml_cbor.h" declline="112" declcolumn="11"/>
       </memberdef>
-      <memberdef kind="function" id="group__cbor_1ga8a4f8cd94f1ea40cb7e0e46864df94cb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="group__cbor_1ga6cf28e7fd93692716cfd3eb84d11d3d5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
         <definition>ml_value_t * ml_from_cbor</definition>
-        <argsstring>(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable)</argsstring>
+        <argsstring>(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_object_table_t *ObjectTable)</argsstring>
         <name>ml_from_cbor</name>
         <param>
           <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
@@ -1136,8 +1136,8 @@
           <declname>TagFns</declname>
         </param>
         <param>
-          <type><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref> *</type>
-          <declname>ClassTable</declname>
+          <type><ref refid="structml__object__table__t" kindref="compound">ml_object_table_t</ref> *</type>
+          <declname>ObjectTable</declname>
         </param>
         <briefdescription>
         </briefdescription>
@@ -1147,10 +1147,10 @@
         </inbodydescription>
         <location file="src/ml_cbor.h" line="113" column="12" declfile="src/ml_cbor.h" declline="113" declcolumn="12"/>
       </memberdef>
-      <memberdef kind="function" id="group__cbor_1ga11382cdc46d7492f90b32917b32c29a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="group__cbor_1ga5b2288dbb3058ec5f64cf6d35c981f38" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__cbor__result__t" kindref="compound">ml_cbor_result_t</ref></type>
         <definition>ml_cbor_result_t ml_from_cbor_extra</definition>
-        <argsstring>(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_class_table_t *ClassTable)</argsstring>
+        <argsstring>(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns, ml_object_table_t *ObjectTable)</argsstring>
         <name>ml_from_cbor_extra</name>
         <param>
           <type><ref refid="structml__cbor__t" kindref="compound">ml_cbor_t</ref></type>
@@ -1161,8 +1161,8 @@
           <declname>TagFns</declname>
         </param>
         <param>
-          <type><ref refid="structml__class__table__t" kindref="compound">ml_class_table_t</ref> *</type>
-          <declname>ClassTable</declname>
+          <type><ref refid="structml__object__table__t" kindref="compound">ml_object_table_t</ref> *</type>
+          <declname>ObjectTable</declname>
         </param>
         <briefdescription>
         </briefdescription>

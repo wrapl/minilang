@@ -9,13 +9,29 @@ thread
 
 .. rst-class:: mini-api
 
+:mini:`meth (Args...: any):thread(Fn: function, Arg₃: any): thread`
+   Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
+   All arguments must be thread-safe.
+
+
 :mini:`fun mlthreadport(Arg₁: any)`
    *TBD*
 
 
-:mini:`meth (Args...: any):thread(Fn: function, Arg₃: any): thread`
-   Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
-   All arguments must be thread-safe.
+:mini:`meth (Condition: thread::condition):signal: thread::condition`
+   Signals a single thread waiting on :mini:`Condition`.
+
+
+:mini:`meth (Condition: thread::condition):wait(Mutex: thread::mutex): thread::condition`
+   Waits for a signal on :mini:`Condition`,  using :mini:`Mutex` for synchronization.
+
+
+:mini:`type thread::condition`
+   A condition.
+
+
+:mini:`fun thread::condition(): thread::condition`
+   Creates a new condition.
 
 
 :mini:`fun thread::sleep(Duration: number): nil`
@@ -26,20 +42,24 @@ thread
    A thread.
 
 
-:mini:`meth thread()`
-   *TBD*
+:mini:`meth (Condition: thread::condition):broadcast: thread::condition`
+   Signals all threads waiting on :mini:`Condition`.
 
 
-:mini:`meth (Thread: thread):join: any`
-   Waits until the thread :mini:`Thread` completes and returns its result.
+:mini:`meth (Mutex: thread::mutex):unlock: thread::mutex`
+   Unlocks :mini:`Mutex`.
 
 
-:mini:`type thread::channel`
-   A channel for thread communication.
+:mini:`meth (Mutex: thread::mutex):lock: thread::mutex`
+   Locks :mini:`Mutex`.
 
 
-:mini:`fun thread::channel(Capacity: integer): thread::channel`
-   Creates a new channel with capacity :mini:`Capacity`.
+:mini:`type thread::mutex`
+   A mutex.
+
+
+:mini:`meth (Mutex: thread::mutex):protect(Value: any): thread::protected`
+   Creates a thread-safe (protected) wrapper for :mini:`Value`.
 
 
 :mini:`meth (Channel₁: thread::channel):recv(: thread::channel, ...): tuple[integer, any]`
@@ -51,44 +71,28 @@ thread
    Blocks if :mini:`Channel` is currently full.
 
 
-:mini:`type thread::condition`
-   A condition.
+:mini:`type thread::channel`
+   A channel for thread communication.
 
 
-:mini:`fun thread::condition(): thread::condition`
-   Creates a new condition.
+:mini:`fun thread::channel(Capacity: integer): thread::channel`
+   Creates a new channel with capacity :mini:`Capacity`.
 
 
-:mini:`meth (Condition: thread::condition):broadcast: thread::condition`
-   Signals all threads waiting on :mini:`Condition`.
-
-
-:mini:`meth (Condition: thread::condition):signal: thread::condition`
-   Signals a single thread waiting on :mini:`Condition`.
-
-
-:mini:`meth (Condition: thread::condition):wait(Mutex: thread::mutex): thread::condition`
-   Waits for a signal on :mini:`Condition`,  using :mini:`Mutex` for synchronization.
-
-
-:mini:`type thread::mutex`
-   A mutex.
+:mini:`meth (Protected₁: thread::protected):use(: thread::protected, ..., Function: function): any`
+   Locks :mini:`Protected₁:mutex`,  then calls :mini:`Function(Value₁,  ...,  Valueₙ)` where :mini:`Valueᵢ` is the value protected by :mini:`Protectedᵢ`. All :mini:`Protectedᵢ` must be protected by the same :mini:`thread::mutex`.
 
 
 :mini:`fun thread::mutex(): thread::mutex`
    Creates a new mutex.
 
 
-:mini:`meth (Mutex: thread::mutex):lock: thread::mutex`
-   Locks :mini:`Mutex`.
+:mini:`meth thread()`
+   *TBD*
 
 
-:mini:`meth (Mutex: thread::mutex):protect(Value: any): thread::protected`
-   Creates a thread-safe (protected) wrapper for :mini:`Value`.
-
-
-:mini:`meth (Mutex: thread::mutex):unlock: thread::mutex`
-   Unlocks :mini:`Mutex`.
+:mini:`meth (Thread: thread):join: any`
+   Waits until the thread :mini:`Thread` completes and returns its result.
 
 
 :mini:`type thread::port < function`
@@ -97,9 +101,5 @@ thread
 
 :mini:`type thread::protected`
    A thread-safe (protected) wrapper for another value.
-
-
-:mini:`meth (Protected₁: thread::protected):use(: thread::protected, ..., Function: function): any`
-   Locks :mini:`Protected₁:mutex`,  then calls :mini:`Function(Value₁,  ...,  Valueₙ)` where :mini:`Valueᵢ` is the value protected by :mini:`Protectedᵢ`. All :mini:`Protectedᵢ` must be protected by the same :mini:`thread::mutex`.
 
 

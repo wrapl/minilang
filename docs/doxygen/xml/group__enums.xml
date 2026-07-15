@@ -4,6 +4,35 @@
     <compoundname>enums</compoundname>
     <title>Enums</title>
     <innerclass refid="structml__enum__value__t" prot="public">ml_enum_value_t</innerclass>
+    <innerclass refid="structml__enum__t" prot="public">ml_enum_t</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__enums_1gaca2b3b40669e8ff2b922956da3fe8fc3" prot="public" static="no">
+        <type>struct ml_enum_t</type>
+        <definition>typedef struct ml_enum_t ml_enum_t</definition>
+        <argsstring></argsstring>
+        <name>ml_enum_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="122" column="24" bodyfile="src/ml_object.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__enums_1ga70b83c701567569a3e9c2ea6c8ae351b" prot="public" static="no">
+        <type>struct ml_enum_value_t</type>
+        <definition>typedef struct ml_enum_value_t ml_enum_value_t</definition>
+        <argsstring></argsstring>
+        <name>ml_enum_value_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="123" column="30" bodyfile="src/ml_object.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
     <sectiondef kind="var">
       <memberdef kind="variable" id="group__enums_1ga55bf3f6aaa5344af28b9935aadf25e4f" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -16,7 +45,20 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="122" column="18" declfile="src/ml_object.h" declline="122" declcolumn="18"/>
+        <location file="src/ml_object.h" line="139" column="18" declfile="src/ml_object.h" declline="139" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__enums_1ga8c9b6d037ea7e7f4f93d001c24dbdd1b" prot="public" static="no" extern="yes" mutable="no">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
+        <definition>ml_type_t MLEnumCyclicT[]</definition>
+        <argsstring>[]</argsstring>
+        <name>MLEnumCyclicT</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="140" column="18" declfile="src/ml_object.h" declline="140" declcolumn="18"/>
       </memberdef>
       <memberdef kind="variable" id="group__enums_1gacd8ad4a915700a0019bf3bf99a8d849f" prot="public" static="no" extern="yes" mutable="no">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref></type>
@@ -29,10 +71,56 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="123" column="18" declfile="src/ml_object.h" declline="123" declcolumn="18"/>
+        <location file="src/ml_object.h" line="141" column="18" declfile="src/ml_object.h" declline="141" declcolumn="18"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
+      <memberdef kind="function" id="group__enums_1ga6b97dceaef53896d29692d7c799572b1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__enum__t" kindref="compound">ml_enum_t</ref> *</type>
+        <definition>ml_enum_t * ml_enum_alloc</definition>
+        <argsstring>(ml_type_t *Type, const char *Name)</argsstring>
+        <name>ml_enum_alloc</name>
+        <param>
+          <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+          <declname>Type</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="143" column="11" declfile="src/ml_object.h" declline="143" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__enums_1ga95e41e4a67a3e7d47a66f14259a85876" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ml_enum_add_value</definition>
+        <argsstring>(ml_enum_t *Enum, ml_value_t *Name, int64_t Value)</argsstring>
+        <name>ml_enum_add_value</name>
+        <param>
+          <type><ref refid="structml__enum__t" kindref="compound">ml_enum_t</ref> *</type>
+          <declname>Enum</declname>
+        </param>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>int64_t</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="144" column="6" declfile="src/ml_object.h" declline="144" declcolumn="6"/>
+      </memberdef>
       <memberdef kind="function" id="group__enums_1ga7a389a166525f8c68d3b799602c743a7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
         <definition>ml_type_t * ml_enum</definition>
@@ -51,7 +139,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="125" column="11" declfile="src/ml_object.h" declline="125" declcolumn="11"/>
+        <location file="src/ml_object.h" line="146" column="11" declfile="src/ml_object.h" declline="146" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1ga5efee1e223a0f1f41d471ab8d21f42eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -71,7 +159,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="126" column="11" declfile="src/ml_object.h" declline="126" declcolumn="11"/>
+        <location file="src/ml_object.h" line="147" column="11" declfile="src/ml_object.h" declline="147" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1gaea1aaa2b592b7adac6cb39555aa03d9d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -91,7 +179,79 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="127" column="11" declfile="src/ml_object.h" declline="127" declcolumn="11"/>
+        <location file="src/ml_object.h" line="148" column="11" declfile="src/ml_object.h" declline="148" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__enums_1ga01db51f376fc32fdd63d72ce191aa79c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t * ml_enum_with_id</definition>
+        <argsstring>(const char *Name, const char *Id,...)</argsstring>
+        <name>ml_enum_with_id</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Id</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="150" column="11" declfile="src/ml_object.h" declline="150" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__enums_1ga6becbf8435acde08f91b29da2320d157" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t * ml_enum_cyclic_with_id</definition>
+        <argsstring>(const char *Name, const char *Id,...)</argsstring>
+        <name>ml_enum_cyclic_with_id</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Id</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="151" column="11" declfile="src/ml_object.h" declline="151" declcolumn="11"/>
+      </memberdef>
+      <memberdef kind="function" id="group__enums_1ga0303e69a0f318b753b5fe9bad4b0bdac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
+        <definition>ml_type_t * ml_enum2_with_id</definition>
+        <argsstring>(const char *Name, const char *Id,...)</argsstring>
+        <name>ml_enum2_with_id</name>
+        <param>
+          <type>const char *</type>
+          <declname>Name</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>Id</declname>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="152" column="11" declfile="src/ml_object.h" declline="152" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1gafdbc55ae9224493cdfca1a201cd264ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__type__t" kindref="compound">ml_type_t</ref> *</type>
@@ -115,7 +275,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="128" column="11" declfile="src/ml_object.h" declline="128" declcolumn="11"/>
+        <location file="src/ml_object.h" line="154" column="11" declfile="src/ml_object.h" declline="154" declcolumn="11"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1ga5ee952e00c3e2798f9b27627aa07b6f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -136,7 +296,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="130" column="12" declfile="src/ml_object.h" declline="130" declcolumn="12"/>
+        <location file="src/ml_object.h" line="156" column="12" declfile="src/ml_object.h" declline="156" declcolumn="12"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1gac87ff1c74fecafacbb010540d5c0b408" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>int64_t</type>
@@ -153,7 +313,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="132" column="23" bodyfile="src/ml_object.h" bodystart="132" bodyend="134"/>
+        <location file="src/ml_object.h" line="158" column="23" bodyfile="src/ml_object.h" bodystart="158" bodyend="160"/>
       </memberdef>
       <memberdef kind="function" id="group__enums_1gaa7a5587a66946fd2c3e82ae84a8f43e4" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>const char *</type>
@@ -170,7 +330,24 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_object.h" line="136" column="26" bodyfile="src/ml_object.h" bodystart="136" bodyend="138"/>
+        <location file="src/ml_object.h" line="162" column="26" bodyfile="src/ml_object.h" bodystart="162" bodyend="164"/>
+      </memberdef>
+      <memberdef kind="function" id="group__enums_1gadd0f527a619cef1abecfdc3467058af3" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ml_enum_value_index</definition>
+        <argsstring>(ml_value_t *Value)</argsstring>
+        <name>ml_enum_value_index</name>
+        <param>
+          <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
+          <declname>Value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="166" column="19" bodyfile="src/ml_object.h" bodystart="166" bodyend="168"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

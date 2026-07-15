@@ -9,8 +9,20 @@ minilang
 
 .. rst-class:: mini-api
 
+:mini:`fun now()`
+   *TBD*
+
+
 :mini:`fun clock()`
    *TBD*
+
+
+:mini:`fun mlsavestate(Arg₁: string)`
+   *TBD*
+
+
+:mini:`fun print(Values: any, ...): nil`
+   Prints :mini:`Values` to standard output,  converting to strings if necessary.
 
 
 :mini:`fun halt(Code?: integer)`
@@ -21,23 +33,11 @@ minilang
    *TBD*
 
 
-:mini:`fun now()`
-   *TBD*
-
-
-:mini:`fun print(Values: any, ...): nil`
-   Prints :mini:`Values` to standard output,  converting to strings if necessary.
-
-
 :mini:`fun mlconsole(Arg₁: integer)`
    *TBD*
 
 
 :mini:`fun mlresumestate(Arg₁: string)`
-   *TBD*
-
-
-:mini:`fun mlsavestate(Arg₁: string)`
    *TBD*
 
 

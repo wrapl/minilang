@@ -3886,6 +3886,107 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 	}
 }
 
+typedef struct {
+	ml_type_t *Type;
+	regex_t *Regex;
+	const char *Subject;
+	size_t Length;
+} ml_regex_match_t;
+
+ML_TYPE(MLRegexMatchT, (MLSequenceT), "regex-match");
+//!internal
+
+ML_METHOD("%%", MLStringT, MLRegexT) {
+	ml_regex_match_t *Match = new(ml_regex_match_t);
+	Match->Type = MLRegexMatchT;
+	Match->Regex = ml_regex_value(Args[1]);
+	Match->Subject = ml_string_value(Args[0]);
+	Match->Length = ml_string_length(Args[0]);
+	return (ml_value_t *)Match;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+	regex_t *Regex;
+	const char *Subject;
+	size_t Length, Start, End;
+} ml_regex_match_iter_t;
+
+ML_TYPE(MLRegexMatchIterT, (), "regex-match-iter");
+//!internal
+
+static __attribute__((noinline)) ml_value_t *ml_regex_match_next(regex_t *Regex, const char *Subject, size_t Length, size_t *Start, size_t *End) {
+	regmatch_t Matches[Regex->re_nsub + 1];
+#ifdef ML_TRE
+	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
+
+#else
+	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH:
+		return MLNil;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "%s", ErrorMessage);
+	}
+	default: {
+		ml_value_t *Results = ml_tuple(Regex->re_nsub + 1);
+		for (int I = 0; I < Regex->re_nsub + 1; ++I) {
+			regoff_t Start = Matches[I].rm_so;
+			if (Start >= 0) {
+				size_t Length = Matches[I].rm_eo - Start;
+				ml_tuple_set(Results, I + 1, ml_string(Subject + Start, Length));
+			} else {
+				ml_tuple_set(Results, I + 1, MLNil);
+			}
+		}
+		*Start = Matches[0].rm_so;
+		*End = Matches[0].rm_eo;
+		return Results;
+	}
+	}
+}
+
+static void ML_TYPED_FN(ml_iterate, MLRegexMatchT, ml_state_t *Caller, ml_regex_match_t *Match) {
+	size_t Start, End;
+	ml_value_t *Value = ml_regex_match_next(Match->Regex, Match->Subject, Match->Length, &Start, &End);
+	if (Value == MLNil) ML_RETURN(Value);
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_regex_match_iter_t *Iter = new(ml_regex_match_iter_t);
+	Iter->Type = MLRegexMatchIterT;
+	Iter->Subject = Match->Subject + End;
+	Iter->Length = Match->Length - End;
+	Iter->Regex = Match->Regex;
+	Iter->Start = Start;
+	Iter->End = End;
+	Iter->Value = Value;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLRegexMatchIterT, ml_state_t *Caller, ml_regex_match_iter_t *Iter) {
+	size_t Start, End;
+	ml_value_t *Value = ml_regex_match_next(Iter->Regex, Iter->Subject, Iter->Length, &Start, &End);
+	if (Value == MLNil) ML_RETURN(Value);
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	Iter->Subject += End;
+	Iter->Length -= End;
+	Iter->Start = Iter->End + Start;
+	Iter->End += End;
+	Iter->Value = Value;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLRegexMatchIterT, ml_state_t *Caller, ml_regex_match_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Start + 1));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLRegexMatchIterT, ml_state_t *Caller, ml_regex_match_iter_t *Iter) {
+	ML_RETURN(Iter->Value);
+}
+
 int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 	regex_t *Regex = ml_regex_value(Value);
 #ifdef ML_TRE

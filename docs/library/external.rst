@@ -9,11 +9,27 @@ external
 
 .. rst-class:: mini-api
 
-:mini:`type external`
-   A placeholder value that can be encoded and replaced on decoding.
-
-
 :mini:`fun external(Name: string): external`
+   *TBD*
+
+
+:mini:`type external::set`
+   *TBD*
+
+
+:mini:`fun external::add(Name: string, Value: any)`
+   *TBD*
+
+
+:mini:`fun external::get(Name: string): any | error`
+   *TBD*
+
+
+:mini:`meth (Externals: external::set):add(Name: string, Value: any)`
+   *TBD*
+
+
+:mini:`meth external::set(): external::set`
    *TBD*
 
 
@@ -25,23 +41,7 @@ external
    *TBD*
 
 
-:mini:`type external::set`
-   *TBD*
-
-
-:mini:`meth external::set(): external::set`
-   *TBD*
-
-
-:mini:`meth (Externals: external::set):add(Name: string, Value: any)`
-   *TBD*
-
-
-:mini:`fun external::add(Name: string, Value: any)`
-   *TBD*
-
-
-:mini:`fun external::get(Name: string): any | error`
-   *TBD*
+:mini:`type external`
+   A placeholder value that can be encoded and replaced on decoding.
 
 

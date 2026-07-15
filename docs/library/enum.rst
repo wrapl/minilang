@@ -9,19 +9,20 @@ enum
 
 .. rst-class:: mini-api
 
-:mini:`type enum < type, sequence`
-   The base type of enumeration types.
+:mini:`fun mlenum()`
+   *TBD*
 
 
-:mini:`meth enum(Name₁ is Value₁, ...): enum`
-   Returns a new enumeration type.
+:mini:`fun mlenumcyclic()`
+   *TBD*
 
-   .. code-block:: mini
 
-      let colour := enum(Red is 10, Green is 20, Blue is 30)
-      :> <<colour>>
-      colour::Red :> Red
-      list(colour, _ + 0) :> [Red, Green, Blue]
+:mini:`meth (Arg₁: enum::value):next`
+   *TBD*
+
+
+:mini:`meth (Arg₁: enum::value) - (Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth enum(Names: string, ...): enum`
@@ -32,7 +33,7 @@ enum
       let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
       :> <<day>>
       day::Wed :> Wed
-      day::Fri + 0 :> Fri
+      integer(day::Fri) :> 5
 
 
 :mini:`meth (Enum: enum):count: integer`
@@ -49,23 +50,23 @@ enum
    *TBD*
 
 
+:mini:`meth (Arg₁: enum::value) <> (Arg₂: integer)`
+   *TBD*
+
+
 :mini:`type enum::cyclic < enum`
    *TBD*
 
 
-:mini:`type enum::interval < sequence`
-   A interval of enum values.
-
-
-:mini:`type enum::value < integer64`
-   An instance of an enumeration type.
-
-
-:mini:`meth (Arg₁: enum::value) + (Arg₂: integer)`
+:mini:`meth (Arg₁: enum::value):value`
    *TBD*
 
 
-:mini:`meth (Arg₁: enum::value) - (Arg₂: integer)`
+:mini:`meth (Arg₁: enum::value):index`
+   *TBD*
+
+
+:mini:`meth (Arg₁: enum::value):up`
    *TBD*
 
 
@@ -79,26 +80,6 @@ enum
       day::Mon .. day::Fri :> <enum-interval[day]>
 
 
-:mini:`meth (Arg₁: enum::value) <> (Arg₂: integer)`
-   *TBD*
-
-
-:mini:`meth integer(Arg₁: enum::value)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: enum::value):next`
-   *TBD*
-
-
-:mini:`meth (Arg₁: enum::value):prev`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: integer) + (Arg₂: enum::value)`
    *TBD*
 
@@ -107,16 +88,24 @@ enum
    *TBD*
 
 
+:mini:`meth (Arg₁: enum)[Arg₂: integer]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: enum::value) + (Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth integer(Arg₁: enum::value)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
+   *TBD*
+
+
 :mini:`meth enum::cyclic(Name₁ is Value₁, ...): enum`
-   Returns a new enumeration type.
-
-   .. code-block:: mini
-
-      let colour := enum::cyclic(Red is 10, Green is 20, Blue is 30)
-      :> <<colour>>
-      colour::Red :> Red
-      list(colour, _ + 0)
-      :> error("EnumError", "Invalid enum index")
+   *TBD*
 
 
 :mini:`meth enum::cyclic(Names: string, ...): enum`
@@ -128,5 +117,28 @@ enum
       :> <<day>>
       day::Wed :> Wed
       day::Fri + 0 :> Fri
+
+
+:mini:`type enum < type, sequence`
+   The base type of enumeration types.
+
+
+:mini:`meth enum(Name₁ is Value₁, ...): enum`
+   Returns a new enumeration type.
+
+   .. code-block:: mini
+
+      let colour := enum(Red is 10, Green is 20, Blue is 30)
+      :> <<colour>>
+      colour::Red :> Red
+      list(colour, integer) :> [10, 20, 30]
+
+
+:mini:`type enum::value`
+   An instance of an enumeration type.
+
+
+:mini:`meth (Arg₁: enum::value):prev`
+   *TBD*
 
 

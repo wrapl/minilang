@@ -13,7 +13,7 @@ symbol
    *TBD*
 
 
-:mini:`meth (Arg₁: symbol) :: (Arg₂: string)`
+:mini:`type symbol::interval`
    *TBD*
 
 
@@ -21,7 +21,7 @@ symbol
    *TBD*
 
 
-:mini:`type symbol::interval`
+:mini:`meth (Arg₁: symbol) :: (Arg₂: string)`
    *TBD*
 
 

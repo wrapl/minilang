@@ -9,16 +9,8 @@ rwlock
 
 .. rst-class:: mini-api
 
-:mini:`type rwlock`
-   A read-write lock for synchronizing concurrent code.
-
-
 :mini:`fun rwlock(): rwlock`
    Returns a new read-write lock.
-
-
-:mini:`meth (Lock: rwlock):rdlock`
-   Locks :mini:`Lock` for reading,  waiting if there are any writers using or waiting to use :mini:`Lock`.
 
 
 :mini:`meth (Lock: rwlock):unlock`
@@ -27,5 +19,13 @@ rwlock
 
 :mini:`meth (Lock: rwlock):wrlock`
    Locks :mini:`Lock` for reading,  waiting if there are any readers or other writers using :mini:`Lock`.
+
+
+:mini:`meth (Lock: rwlock):rdlock`
+   Locks :mini:`Lock` for reading,  waiting if there are any writers using or waiting to use :mini:`Lock`.
+
+
+:mini:`type rwlock`
+   A read-write lock for synchronizing concurrent code.
 
 

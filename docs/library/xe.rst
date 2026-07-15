@@ -13,39 +13,15 @@ xe
    *TBD*
 
 
-:mini:`type xe::node < sequence`
+:mini:`fun xe::var(Name: string): xe::var`
    *TBD*
 
 
-:mini:`fun xe::node(Tag: string): xe::node`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xe::node)[Arg₂: any]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xe::node):attributes`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xe::node):content`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xe::node):tag`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xe::var)`
    *TBD*
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xe::node)`
-   *TBD*
-
-
-:mini:`type xe::var`
-   *TBD*
-
-
-:mini:`fun xe::var(Name: string): xe::var`
    *TBD*
 
 
@@ -57,7 +33,31 @@ xe
    *TBD*
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xe::var)`
+:mini:`type xe::var`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xe::node)[Arg₂: any]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xe::node):attributes`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xe::node):tag`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xe::node):content`
+   *TBD*
+
+
+:mini:`fun xe::node(Tag: string): xe::node`
+   *TBD*
+
+
+:mini:`type xe::node < sequence`
    *TBD*
 
 

@@ -17,45 +17,175 @@ polynomial
       polynomial::roots([2, -3, 1]) :> [1, 2]
 
 
-:mini:`meth (A: number) * (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A * B`.
+:mini:`meth (Arg₁: polynomial):MLPolynomialEval(...)`
+   *TBD*
 
 
-:mini:`meth (A: number) * (B: polynomial): polynomial`
-   Returns :mini:`A * B`.
+:mini:`meth polynomial(Arg₁: string, Arg₂: number, ...)`
+   *TBD*
 
 
-:mini:`meth (A: number) + (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A + B`.
+:mini:`meth (A: polynomial) != (B: polynomial): polynomial`
+   Returns :mini:`B` if :mini:`A != B` and :mini:`nil` otherwise.
 
 
-:mini:`meth (A: number) + (B: polynomial): polynomial`
-   Returns :mini:`A + B`.
+:mini:`meth (Buffer: string::buffer):append(Poly: polynomial::rational)`
+   Appends a representation of :mini:`Poly` to :mini:`Buffer`.
 
 
-:mini:`meth (A: number) - (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A - B`.
-
-
-:mini:`meth (A: number) - (B: polynomial): polynomial`
-   Returns :mini:`A - B`.
-
-
-:mini:`meth (A: number) / (B: polynomial::rational): polynomial::rational`
+:mini:`meth (A: polynomial::rational) / (B: polynomial::rational): polynomial::rational`
    Returns :mini:`A / B`.
 
 
-:mini:`meth (A: number) / (B: polynomial): polynomial::rational`
+:mini:`meth (A: polynomial::rational) / (B: polynomial): polynomial::rational`
    Returns :mini:`A / B`.
+
+
+:mini:`meth (A: polynomial) / (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: polynomial::rational) / (B: number): polynomial::rational`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: polynomial) - (B: number): polynomial`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: polynomial::rational) * (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: polynomial::rational) * (B: polynomial): polynomial::rational`
+   Returns :mini:`A * B`.
+
+
+:mini:`type polynomial::rational`
+   *TBD*
+
+
+:mini:`meth (A: polynomial::rational) * (B: number): polynomial::rational`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: polynomial) / (B: number): polynomial`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: polynomial::rational) - (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: polynomial::rational) - (B: polynomial): polynomial::rational`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: polynomial) - (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: polynomial::rational) - (B: number): polynomial::rational`
+   Returns :mini:`A - B`.
+
+
+:mini:`meth (A: polynomial) * (B: polynomial): polynomial`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: polynomial::rational) + (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: polynomial::rational) + (B: polynomial): polynomial::rational`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: polynomial) + (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: polynomial::rational) + (B: number): polynomial::rational`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: polynomial) * (B: number): polynomial`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (Arg₁: polynomial):red(Arg₂: polynomial)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: polynomial):spol(Arg₂: polynomial)`
+   *TBD*
+
+
+:mini:`meth (Poly: polynomial):coeff(Var: string, Degree: integer): number | polynomial`
+   Returns the coefficient of :mini:`Var ^ Degree` in :mini:`Poly`.
+
+   .. code-block:: mini
+
+      let X := polynomial("x")
+      (X ^ 2 + (3 * X) + 2):coeff("x", 1) :> 3
+
+
+:mini:`meth (A: polynomial) = (B: polynomial): polynomial`
+   Returns :mini:`B` if :mini:`A = B` and :mini:`nil` otherwise.
+
+
+:mini:`meth (A: polynomial) / (B: polynomial): polynomial::rational`
+   Returns :mini:`A / B`.
+
+
+:mini:`type polynomial < function`
+   A polynomial with numeric (real or complex) coefficients.
+   Calling a polynomial with named arguments returns the result of substituting the named variables with the corresponding values.
+
+
+:mini:`meth (A: polynomial) * (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: polynomial) + (B: polynomial): polynomial`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Poly: polynomial)`
+   Appends a representation of :mini:`Poly` to :mini:`Buffer`.
+
+
+:mini:`meth (A: polynomial) ^ (B: integer): polynomial`
+   Returns :mini:`A ^ B`.
+
+
+:mini:`meth (Poly: polynomial):d(Var: string): number | polynomial`
+   Returns the derivative of :mini:`Poly` w.r.t. :mini:`Var`.
+
+   .. code-block:: mini
+
+      let X := polynomial("x")
+      (X ^ 2 + (3 * X) + 2):d("x") :> 2x + 3
+
+
+:mini:`meth (A: polynomial) + (B: number): polynomial`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: polynomial) - (B: polynomial): polynomial`
+   Returns :mini:`A - B`.
 
 
 :mini:`meth (Arg₁: number):MLPolynomialEval(...)`
    *TBD*
 
 
-:mini:`type polynomial < function`
-   A polynomial with numeric (real or complex) coefficients.
-   Calling a polynomial with named arguments returns the result of substituting the named variables with the corresponding values.
+:mini:`meth (A: number) / (B: polynomial): polynomial::rational`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: number) / (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A / B`.
 
 
 :mini:`meth polynomial(Var: string): polynomial`
@@ -68,88 +198,6 @@ polynomial
       P(y is 3) :> x⁴ - 12x³ + 54x² - 108x + 81
 
 
-:mini:`meth (A: polynomial) != (B: polynomial): polynomial`
-   Returns :mini:`B` if :mini:`A != B` and :mini:`nil` otherwise.
-
-
-:mini:`meth (A: polynomial) * (B: number): polynomial`
-   Returns :mini:`A * B`.
-
-
-:mini:`meth (A: polynomial) * (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A * B`.
-
-
-:mini:`meth (A: polynomial) * (B: polynomial): polynomial`
-   Returns :mini:`A * B`.
-
-
-:mini:`meth (A: polynomial) + (B: number): polynomial`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: polynomial) + (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: polynomial) + (B: polynomial): polynomial`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: polynomial) - (B: number): polynomial`
-   Returns :mini:`A - B`.
-
-
-:mini:`meth (A: polynomial) - (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A - B`.
-
-
-:mini:`meth (A: polynomial) - (B: polynomial): polynomial`
-   Returns :mini:`A - B`.
-
-
-:mini:`meth (A: polynomial) / (B: number): polynomial`
-   Returns :mini:`A / B`.
-
-
-:mini:`meth (A: polynomial) / (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A / B`.
-
-
-:mini:`meth (A: polynomial) / (B: polynomial): polynomial::rational`
-   Returns :mini:`A / B`.
-
-
-:mini:`meth (A: polynomial) = (B: polynomial): polynomial`
-   Returns :mini:`B` if :mini:`A = B` and :mini:`nil` otherwise.
-
-
-:mini:`meth (Arg₁: polynomial):MLPolynomialEval(...)`
-   *TBD*
-
-
-:mini:`meth (A: polynomial) ^ (B: integer): polynomial`
-   Returns :mini:`A ^ B`.
-
-
-:mini:`meth (Poly: polynomial):coeff(Var: string, Degree: integer): number | polynomial`
-   Returns the coefficient of :mini:`Var ^ Degree` in :mini:`Poly`.
-
-   .. code-block:: mini
-
-      let X := polynomial("x")
-      (X ^ 2 + (3 * X) + 2):coeff("x", 1) :> 3
-
-
-:mini:`meth (Poly: polynomial):d(Var: string): number | polynomial`
-   Returns the derivative of :mini:`Poly` w.r.t. :mini:`Var`.
-
-   .. code-block:: mini
-
-      let X := polynomial("x")
-      (X ^ 2 + (3 * X) + 2):d("x") :> 2x + 3
-
-
 :mini:`meth (Poly: polynomial):degree(Var: string): integer`
    Returns the highest degree of :mini:`Var` in :mini:`Poly`.
 
@@ -159,75 +207,27 @@ polynomial
       (X ^ 2 + (3 * X) + 2):degree("x") :> 2
 
 
-:mini:`meth (Arg₁: polynomial):red(Arg₂: polynomial)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: polynomial):spol(Arg₂: polynomial)`
-   *TBD*
-
-
-:mini:`meth (Buffer: string::buffer):append(Poly: polynomial)`
-   Appends a representation of :mini:`Poly` to :mini:`Buffer`.
-
-
-:mini:`type polynomial::rational`
-   *TBD*
-
-
-:mini:`meth (A: polynomial::rational) * (B: number): polynomial::rational`
-   Returns :mini:`A * B`.
-
-
-:mini:`meth (A: polynomial::rational) * (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A * B`.
-
-
-:mini:`meth (A: polynomial::rational) * (B: polynomial): polynomial::rational`
-   Returns :mini:`A * B`.
-
-
-:mini:`meth (A: polynomial::rational) + (B: number): polynomial::rational`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: polynomial::rational) + (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: polynomial::rational) + (B: polynomial): polynomial::rational`
-   Returns :mini:`A + B`.
-
-
-:mini:`meth (A: polynomial::rational) - (B: number): polynomial::rational`
+:mini:`meth (A: number) - (B: polynomial::rational): polynomial::rational`
    Returns :mini:`A - B`.
 
 
-:mini:`meth (A: polynomial::rational) - (B: polynomial::rational): polynomial::rational`
+:mini:`meth (A: number) + (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A + B`.
+
+
+:mini:`meth (A: number) - (B: polynomial): polynomial`
    Returns :mini:`A - B`.
 
 
-:mini:`meth (A: polynomial::rational) - (B: polynomial): polynomial::rational`
-   Returns :mini:`A - B`.
+:mini:`meth (A: number) * (B: polynomial::rational): polynomial::rational`
+   Returns :mini:`A * B`.
 
 
-:mini:`meth (A: polynomial::rational) / (B: number): polynomial::rational`
-   Returns :mini:`A / B`.
+:mini:`meth (A: number) * (B: polynomial): polynomial`
+   Returns :mini:`A * B`.
 
 
-:mini:`meth (A: polynomial::rational) / (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A / B`.
-
-
-:mini:`meth (A: polynomial::rational) / (B: polynomial): polynomial::rational`
-   Returns :mini:`A / B`.
-
-
-:mini:`meth (Buffer: string::buffer):append(Poly: polynomial::rational)`
-   Appends a representation of :mini:`Poly` to :mini:`Buffer`.
-
-
-:mini:`meth polynomial(Arg₁: string, Arg₂: number, ...)`
-   *TBD*
+:mini:`meth (A: number) + (B: polynomial): polynomial`
+   Returns :mini:`A + B`.
 
 

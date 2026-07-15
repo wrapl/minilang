@@ -17,31 +17,8 @@ function
    *TBD*
 
 
-:mini:`type function`
-   The base type of all functions.
-
-
-:mini:`meth (Function: function) ! (List: list): any`
-   Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
-
-
-:mini:`meth (Function: function) ! (List: list, Map: map): any`
-   Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
-   Returns an error if any of the keys in :mini:`Map` is not a string or method.
-
-
-:mini:`meth (Function: function) ! (Map: map): any`
-   Calls :mini:`Function` with the keys and values in :mini:`Map` as named arguments.
-   Returns an error if any of the keys in :mini:`Map` is not a string or method.
-
-
-:mini:`meth (Function: function) ! (Tuple: tuple): any`
-   Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments.
-
-
-:mini:`meth (Function: function) ! (Tuple: tuple, Map: map): any`
-   Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments and the keys and values in :mini:`Map` as named arguments.
-   Returns an error if any of the keys in :mini:`Map` is not a string or method.
+:mini:`type function::partial < function, sequence`
+   *TBD*
 
 
 :mini:`meth (Function: function) !! (List: list): function::partial`
@@ -53,39 +30,67 @@ function
    Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
 
 
-:mini:`meth (Function: function) $ (Values: any, ...): function::partial`
-   Returns a function equivalent to :mini:`fun(Args...) Function(Values...,  Args...)`.
-
-
-:mini:`meth (Function: function) $! (List: list): function::partial`
-   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
-
-
-:mini:`meth (Function: function) $! (List: list, Arg₃: map): function::partial`
-   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
+:mini:`fun function::partial(Function: function, Size: integer): function::partial`
+   *TBD*
 
 
 :mini:`meth (Function: function) $! (List: map): function::partial`
    Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
 
 
-:mini:`meth (Base: function) -> (Function: function): chained`
-   Returns a chained function equivalent to :mini:`Function(Base(...))`.
-
-   .. code-block:: mini
-
-      let F := :upper -> (3 * _)
-      F("hello") :> "HELLOHELLOHELLO"
-      F("cake") :> "CAKECAKECAKE"
+:mini:`meth (Function: function) $! (List: list): function::partial`
+   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
 
 
-:mini:`meth (Base: function) ->! (F: function): function`
-   Returns a chained function equivalent to :mini:`F ! Base(...)`.
+:mini:`meth (Arg₁: function::value) <> (Arg₂: function::value)`
+   *TBD*
 
-   .. code-block:: mini
 
-      let F := list ->! 3 :> <chained>
-      F("cat") :> "t"
+:mini:`meth (Function: function) ! (Tuple: tuple, Map: map): any`
+   Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments and the keys and values in :mini:`Map` as named arguments.
+   Returns an error if any of the keys in :mini:`Map` is not a string or method.
+
+
+:mini:`meth (Function: function) ! (Map: map): any`
+   Calls :mini:`Function` with the keys and values in :mini:`Map` as named arguments.
+   Returns an error if any of the keys in :mini:`Map` is not a string or method.
+
+
+:mini:`type function::value < function`
+   *TBD*
+
+
+:mini:`meth (Arg₁: function::partial) <> (Arg₂: function::partial)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: function::partial)[...]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: function::partial):set`
+   *TBD*
+
+
+:mini:`meth (Arg₁: function::partial):arity`
+   *TBD*
+
+
+:mini:`meth (Function: function) $ (Values: any, ...): function::partial`
+   Returns a function equivalent to :mini:`fun(Args...) Function(Values...,  Args...)`.
+
+
+:mini:`meth (Function: function) $! (List: list, Arg₃: map): function::partial`
+   Returns a function equivalent to :mini:`fun(Args...) Function(List[1],  List[2],  ...,  Args...)`.
+
+
+:mini:`meth (Function: function) ! (List: list, Map: map): any`
+   Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
+   Returns an error if any of the keys in :mini:`Map` is not a string or method.
+
+
+:mini:`type function`
+   The base type of all functions.
 
 
 :mini:`meth (Base: function) ->? (F: function): function`
@@ -98,8 +103,26 @@ function
       :> [nil, 1, nil, 2, nil, 3, nil, 4, nil, 5]
 
 
-:mini:`meth /(Function: function): function`
-   Returns a function equivalent to :mini:`fun(Args...) Function()`.
+:mini:`meth (Function: function) ! (List: list): any`
+   Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
+
+
+:mini:`meth (Function: function) ! (Tuple: tuple): any`
+   Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments.
+
+
+:mini:`meth (Arg₁: function):source`
+   *TBD*
+
+
+:mini:`meth (Base: function) -> (Function: function): chained`
+   Returns a chained function equivalent to :mini:`Function(Base(...))`.
+
+   .. code-block:: mini
+
+      let F := :upper -> (3 * _)
+      F("hello") :> "HELLOHELLOHELLO"
+      F("cake") :> "CAKECAKECAKE"
 
 
 :mini:`meth (Base: function) => (Function: function): chained`
@@ -111,39 +134,16 @@ function
       F("h", "e", "l", "l", "o") :> "HELLO"
 
 
-:mini:`meth (Arg₁: function):source`
-   *TBD*
+:mini:`meth (Base: function) ->! (F: function): function`
+   Returns a chained function equivalent to :mini:`F ! Base(...)`.
+
+   .. code-block:: mini
+
+      let F := list ->! 3 :> <chained>
+      F("cat") :> "t"
 
 
-:mini:`type function::partial < function, sequence`
-   *TBD*
-
-
-:mini:`fun function::partial(Function: function, Size: integer): function::partial`
-   *TBD*
-
-
-:mini:`meth (Arg₁: function::partial) <> (Arg₂: function::partial)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: function::partial)[...]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: function::partial):arity`
-   *TBD*
-
-
-:mini:`meth (Arg₁: function::partial):set`
-   *TBD*
-
-
-:mini:`type function::value < function`
-   *TBD*
-
-
-:mini:`meth (Arg₁: function::value) <> (Arg₂: function::value)`
-   *TBD*
+:mini:`meth /(Function: function): function`
+   Returns a function equivalent to :mini:`fun(Args...) Function()`.
 
 

@@ -46,7 +46,7 @@ end
 let Categories := {}
 
 fun emit(Category, Key, Docs) do
-	Categories[Category, fun pqueue(<)]:insert(Docs, Key)
+	Categories[Category, fun() pqueue(<)]:insert(Docs, Key)
 end
 
 fun write_overview(Category, Description) do
@@ -526,7 +526,7 @@ fun process(FileName) do
 				else
 					write_method(Category, Kind, Method, Params, Return, Description, Examples, Location)
 				end
-			elseif Line % r"^ML_FUNCTION" then
+			elseif Line % r"^ML_FUNCTION" or Line % r"^ML_TYPE_FUNCTION" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
 				let Kind := Line[1, I]
