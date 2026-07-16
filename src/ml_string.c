@@ -5610,7 +5610,7 @@ char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 
 int64_t ml_stringbuffer_parse_integer(ml_stringbuffer_t *Buffer) {
 	int Start = Buffer->Start, Length = Buffer->Length;
-	if (Start + Length + 1 < ML_STRINGCACHE_MAX) {
+	if (Start + Length + 1 < ML_STRINGBUFFER_NODE_SIZE) {
 		char *String = Buffer->Head->Chars + Start;
 		String[Length] = 0;
 		int64_t Value = strtoll(String, NULL, 10);
@@ -5623,7 +5623,7 @@ int64_t ml_stringbuffer_parse_integer(ml_stringbuffer_t *Buffer) {
 
 double ml_stringbuffer_parse_real(ml_stringbuffer_t *Buffer) {
 	int Start = Buffer->Start, Length = Buffer->Length;
-	if (Start + Length + 1 < ML_STRINGCACHE_MAX) {
+	if (Start + Length + 1 < ML_STRINGBUFFER_NODE_SIZE) {
 		char *String = Buffer->Head->Chars + Start;
 		String[Length] = 0;
 		double Value = strtod(String, NULL);
