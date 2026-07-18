@@ -313,12 +313,9 @@ extern ml_cfunctionx_t MLTrace[];
 
 #ifdef ML_TIMESCHED
 
-extern volatile int MLPreempt;
+extern volatile uint64_t MLPreempt;
 
 #endif
-
-void ml_preemption_enable();
-void ml_preemption_disable();
 
 typedef struct ml_scheduler_t ml_scheduler_t;
 
@@ -349,6 +346,7 @@ struct ml_scheduler_t {
 #ifdef ML_HOSTTHREADS
 	ml_scheduler_block_t *Resume;
 #endif
+	uint64_t Preempt;
 	int Fill;
 };
 

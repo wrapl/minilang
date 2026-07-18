@@ -31,7 +31,8 @@ static uint64_t DefaultCounter = UINT_MAX;
 static int default_swap(ml_scheduler_t *Queue, ml_state_t *State, ml_value_t *Value) {
 	DefaultCounter = UINT_MAX;
 #ifdef ML_TIMESCHED
-	MLPreempt = 1;
+	//MLPreempt = 1;
+	Queue->Preempt = MLPreempt;
 #endif
 	State->run(State, Value);
 	return 0;
@@ -276,8 +277,9 @@ ml_state_t *ml_state(ml_state_t *Caller) {
 
 void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
 #ifdef ML_TIMESCHED
-	if (MLPreempt < 0) {
-		ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
+	if (Scheduler->Preempt < MLPreempt) {
+		Scheduler->Preempt = MLPreempt;
 		Scheduler->add(Scheduler, State, Value);
 	} else {
 		return State->run(State, Value);
@@ -1141,7 +1143,7 @@ static int ml_config_debugger(ml_context_t *Context) {
 
 #ifdef ML_TIMESCHED
 
-volatile int MLPreempt = 0;
+volatile uint64_t MLPreempt = 0;
 
 #endif
 
@@ -1183,7 +1185,7 @@ static ml_queued_state_t ml_scheduler_queue_read(ml_scheduler_queue_t *Queue) {
 	++Queue->Space;
 	--Queue->Base.Fill;
 #ifdef ML_TIMESCHED
-	MLPreempt = 1;
+	//MLPreempt = 1;
 #else
 	Queue->Counter = Queue->Slice;
 #endif
@@ -1314,7 +1316,6 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	pthread_mutex_init(Queue->Lock, NULL);
 	pthread_cond_init(Queue->Available, NULL);
 #endif
-	Queue->Slice = Slice;
 #ifdef ML_TIMESCHED
 	//if (Slice) {
 	//	struct itimerval Interval = {0,};
@@ -1322,7 +1323,9 @@ ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	//	Interval.it_value.tv_usec = Slice;
 	//	setitimer(ITIMER_VIRTUAL, &Interval, NULL);
 	//}
+	Queue->Base.Preempt = MLPreempt;
 #else
+	Queue->Slice = Slice;
 	Queue->Counter = Slice;
 #endif
 	return Queue;
@@ -2102,17 +2105,14 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 }
 
 #ifdef ML_TIMESCHED
-#ifdef ML_HOSTTHREADSX
 
-static pthread_t TimerThread;
+#ifdef ML_HOSTTHREADS
 
-static void *ml_preempt_thread(void *Arg) {
-	struct timespec Interval;
-	Interval.tv_sec = 0;
-	Interval.tv_nsec = 250000;
+static void *ml_preempt_fn(void *Data) {
+	struct timespec Interval = {.tv_sec = 0, .tv_nsec = 10000000};
 	for (;;) {
-		clock_nanosleep(CLOCK_MONOTONIC, 0, &Interval, NULL);
-		--MLPreempt;
+		nanosleep(&Interval, NULL);
+		++MLPreempt;
 	}
 	return NULL;
 }
@@ -2120,30 +2120,10 @@ static void *ml_preempt_thread(void *Arg) {
 #else
 
 static void ml_preempt(int Signal) {
-	--MLPreempt;
-}
-
-static timer_t PreemptTimer;
-
-void ml_preemption_enable() {
-	static struct itimerspec TimerSpec = {{.tv_sec = 0, .tv_nsec = 250000}, {.tv_sec = 0, .tv_nsec = 250000}};
-	timer_settime(PreemptTimer, 0, &TimerSpec, NULL);
-}
-
-void ml_preemption_disable() {
-	static struct itimerspec TimerSpec = {{.tv_sec = 0, .tv_nsec = 0}, {.tv_sec = 0, .tv_nsec = 0}};
-	timer_settime(PreemptTimer, 0, &TimerSpec, NULL);
+	++MLPreempt;
 }
 
 #endif
-
-#else
-
-void ml_preemption_enable() {
-}
-
-void ml_preemption_disable() {
-}
 
 #endif
 
@@ -2159,13 +2139,9 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #endif
 	MLEndState->Context = MLRootContext;
 #ifdef ML_TIMESCHED
-#ifdef ML_HOSTTHREADSX
-	pthread_attr_t Attr;
-	pthread_attr_init(&Attr);
-	pthread_attr_setstacksize(&Attr, PTHREAD_STACK_MIN);
-	pthread_attr_setguardsize(&Attr, 0);
-	pthread_create(&TimerThread, &Attr, ml_preempt_thread, NULL);
-	pthread_attr_destroy(&Attr);
+#ifdef ML_HOSTTHREADS
+	pthread_t TimerThread;
+	pthread_create(&TimerThread, NULL, ml_preempt_fn, NULL);
 	pthread_setname_np(TimerThread, "preempt");
 #else
 	struct sigaction Action = {0,};
@@ -2175,8 +2151,10 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 	struct sigevent Event = {0,};
 	Event.sigev_notify = SIGEV_SIGNAL;
 	Event.sigev_signo = SIGALRM;
+	timer_t PreemptTimer;
 	timer_create(CLOCK_MONOTONIC, &Event, &PreemptTimer);
-	ml_preemption_enable();
+	static struct itimerspec TimerSpec = {{.tv_sec = 0, .tv_nsec = 250000}, {.tv_sec = 0, .tv_nsec = 250000}};
+	timer_settime(PreemptTimer, 0, &TimerSpec, NULL);
 #endif
 #endif
 	signal(SIGPIPE, SIG_IGN);

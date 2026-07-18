@@ -143,7 +143,9 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
-#ifndef ML_TIMESCHED
+#ifdef ML_TIMESCHED
+	uint64_t *Preempt;
+#else
 	uint64_t *Counter;
 #endif
 #endif
@@ -243,7 +245,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #ifdef ML_SCHEDULER
 #ifdef ML_TIMESCHED
 #define CHECK_COUNTER
-#define CHECK_COUNTER_GOTO if (__builtin_expect(MLPreempt < 0, 0)) goto DO_SWAP;
+#define CHECK_COUNTER_GOTO if (__builtin_expect(MLPreempt > Frame->Preempt[0], 0)) goto DO_SWAP;
 #else
 #define CHECK_COUNTER if (__builtin_expect(--Counter == 0, 0)) goto DO_SWAP;
 #define CHECK_COUNTER_GOTO CHECK_COUNTER
@@ -1200,6 +1202,9 @@ static void DEBUG_FUNC(frame_run)(ml_state_t *State, ml_value_t *Result) {
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
+#ifdef ML_TIMESCHED
+		Frame->Preempt[0] = MLPreempt;
+#endif
 		ml_state_schedule((ml_state_t *)Frame, Result);
 	}
 #endif
@@ -1337,7 +1342,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Inst = Info->Entry;
 	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
-#ifndef ML_TIMESCHED
+#ifdef ML_TIMESCHED
+	Frame->Preempt = &ml_context_get_scheduler(Caller->Context)->Preempt;
+#else
 	Frame->Counter = (uint64_t *)ml_context_get_static(Caller->Context, ML_COUNTER_INDEX);
 #endif
 #endif
