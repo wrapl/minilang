@@ -2109,7 +2109,7 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 #ifdef ML_HOSTTHREADS
 
 static void *ml_preempt_fn(void *Data) {
-	struct timespec Interval = {.tv_sec = 0, .tv_nsec = 10000000};
+	struct timespec Interval = {.tv_sec = 0, .tv_nsec = 250000};
 	for (;;) {
 		nanosleep(&Interval, NULL);
 		++MLPreempt;

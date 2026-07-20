@@ -31,6 +31,7 @@ stringmap2_t *stringmap2_copy(stringmap2_t *Map) {
 }
 
 void *stringmap2_search(const stringmap2_t *Map, const char *Key) {
+	if (!Map->Mask) return NULL;
 	uint32_t Hash = stringmap2_hash(Key);
 	uint32_t Mask = Map->Mask;
 	uint32_t Index = Hash & Mask;
@@ -38,7 +39,7 @@ void *stringmap2_search(const stringmap2_t *Map, const char *Key) {
 	uint32_t Offset = 0;
 	for (;;) {
 		stringmap2_node_t *Node = Nodes + Index;
-		if (!Node->Value || Node->Offset > Offset) break;
+		if (!Node->Key || Node->Offset > Offset) break;
 		if (Node->Hash == Hash && !strcmp(Node->Key, Key)) return Node->Value;
 		++Offset;
 		Index = (Index + 1) & Mask;
@@ -85,16 +86,17 @@ static void stringmap2_grow(stringmap2_t *Map) {
 	}
 	Map->Nodes = Nodes;
 	Map->Mask = Mask;
+	++Map->Generation;
 }
 
-void **stringmap2_slot(stringmap2_t *Map, const char *Key) {
+void *stringmap2_lookup(stringmap2_t *Map, const char *Key, stringmap2_slot_t *Slot) {
 	if ((Map->Size + (Map->Size >> 2)) >= Map->Mask) stringmap2_grow(Map);
 	uint32_t Hash = stringmap2_hash(Key);
 	uint32_t Mask = Map->Mask;
 	uint32_t Index = Hash & Mask;
 	stringmap2_node_t *Nodes = Map->Nodes;
 	uint32_t Offset = 0;
-	void *Value, **Slot;
+	void *Value;
 	for (;;) {
 		stringmap2_node_t *Node = Nodes + Index;
 		if (!Node->Key) {
@@ -102,17 +104,23 @@ void **stringmap2_slot(stringmap2_t *Map, const char *Key) {
 			Node->Hash = Hash;
 			Node->Offset = Offset;
 			++Map->Size;
-			return &(Node->Value);
+			Slot->Address = &Nodes[Index].Value;
+			Slot->Generation = Map->Generation;
+			return NULL;
 		}
 		if (Node->Hash == Hash && !strcmp(Node->Key, Key)) {
-			return &(Node->Value);
+			Slot->Address = &Nodes[Index].Value;
+			Slot->Generation = Map->Generation;
+			return Node->Value;
 		}
 		if (Node->Offset > Offset) {
 			stringmap2_node_t Old = Nodes[Index];
 			Nodes[Index].Key = Key;
-			Slot = &Nodes[Index].Value;
 			Nodes[Index].Hash = Hash;
 			Nodes[Index].Offset = Offset;
+			Nodes[Index].Value = NULL;
+			Slot->Address = &Nodes[Index].Value;
+			Slot->Generation = ++Map->Generation;
 			Key = Old.Key;
 			Value = Old.Value;
 			Hash = Old.Hash;
@@ -134,7 +142,7 @@ void **stringmap2_slot(stringmap2_t *Map, const char *Key) {
 			Node->Offset = Offset;
 			break;
 		}
-		if (Node->Offset >= Offset) {
+		if (Node->Offset > Offset) {
 			stringmap2_node_t Old = Nodes[Index];
 			Nodes[Index].Key = Key;
 			Nodes[Index].Value = Value;
@@ -146,17 +154,84 @@ void **stringmap2_slot(stringmap2_t *Map, const char *Key) {
 			Offset = Old.Offset;
 		}
 	}
-	return Slot;
+	return NULL;
 }
 
 void *stringmap2_insert(stringmap2_t *Map, const char *Key, void *Value) {
-	void **Slot = stringmap2_slot(Map, Key);
-	void *Old = *Slot;
-	*Slot = Value;
-	return Old;
+	if ((Map->Size + (Map->Size >> 2)) >= Map->Mask) stringmap2_grow(Map);
+	uint32_t Hash = stringmap2_hash(Key);
+	uint32_t Mask = Map->Mask;
+	uint32_t Index = Hash & Mask;
+	stringmap2_node_t *Nodes = Map->Nodes;
+	uint32_t Offset = 0;
+	for (;;) {
+		stringmap2_node_t *Node = Nodes + Index;
+		if (!Node->Key) {
+			Node->Key = Key;
+			Node->Hash = Hash;
+			Node->Offset = Offset;
+			Node->Value = Value;
+			++Map->Size;
+			return NULL;
+		}
+		if (Node->Hash == Hash && !strcmp(Node->Key, Key)) {
+			void *OldValue = Node->Value;
+			Node->Value = Value;
+			return OldValue;
+		}
+		if (Node->Offset > Offset) {
+			stringmap2_node_t Old = Nodes[Index];
+			Nodes[Index].Key = Key;
+			Nodes[Index].Hash = Hash;
+			Nodes[Index].Offset = Offset;
+			Nodes[Index].Value = Value;
+			Key = Old.Key;
+			Value = Old.Value;
+			Hash = Old.Hash;
+			Offset = Old.Offset;
+			++Map->Size;
+			break;
+		}
+		++Offset;
+		Index = (Index + 1) & Mask;
+	}
+	++Map->Generation;
+	for (;;) {
+		++Offset;
+		Index = (Index + 1) & Mask;
+		stringmap2_node_t *Node = Nodes + Index;
+		if (!Node->Key) {
+			Node->Key = Key;
+			Node->Value = Value;
+			Node->Hash = Hash;
+			Node->Offset = Offset;
+			break;
+		}
+		if (Node->Offset > Offset) {
+			stringmap2_node_t Old = Nodes[Index];
+			Nodes[Index].Key = Key;
+			Nodes[Index].Value = Value;
+			Nodes[Index].Hash = Hash;
+			Nodes[Index].Offset = Offset;
+			Key = Old.Key;
+			Value = Old.Value;
+			Hash = Old.Hash;
+			Offset = Old.Offset;
+		}
+	}
+	return NULL;
+}
+
+void stringmap2_update(stringmap2_t *Map, const char *Key, stringmap2_slot_t *Slot, void *Value) {
+	if (Slot->Generation == Map->Generation) {
+		Slot->Address[0] = Value;
+	} else {
+		stringmap2_insert(Map, Key, Value);
+	}
 }
 
 void *stringmap2_remove(stringmap2_t *Map, const char *Key) {
+	if (!Map->Mask) return NULL;
 	uint32_t Hash = stringmap2_hash(Key);
 	uint32_t Mask = Map->Mask;
 	uint32_t Index = Hash & Mask;
@@ -174,6 +249,7 @@ void *stringmap2_remove(stringmap2_t *Map, const char *Key) {
 		++Offset;
 		Index = (Index + 1) & Mask;
 	}
+	int Shifted = 0;
 	for (;;) {
 		uint32_t Next = (Index + 1) & Mask;
 		if (!Nodes[Next].Key || !Nodes[Next].Offset) {
@@ -181,15 +257,19 @@ void *stringmap2_remove(stringmap2_t *Map, const char *Key) {
 			Nodes[Index].Value = NULL;
 			break;
 		}
+		Shifted = 1;
 		Nodes[Index] = Nodes[Next];
 		Offset = Nodes[Index].Offset;
 		Nodes[Index].Offset = Offset - 1;
 		Index = Next;
 	}
+	--Map->Size;
+	if (Shifted) ++Map->Generation;
 	return Old;
 }
 
 int stringmap2_foreach(stringmap2_t *Map, void *Data, int (*callback)(const char *, void *, void *)) {
+	if (!Map->Mask) return 0;
 	stringmap2_node_t *Node = Map->Nodes;
 	for (int N = Map->Mask + 1; --N >= 0; ++Node) {
 		if (Node->Key) {
