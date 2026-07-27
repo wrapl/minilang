@@ -1376,6 +1376,8 @@ static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
 static void *ml_scheduler_thread_fn(void *Data) {
 #ifdef Darwin
 	pthread_setname_np("minilang");
+#else
+	pthread_setname_np(pthread_self(), "minilang");
 #endif
 	static int NumIdle = 0;
 	ml_scheduler_t *Scheduler = (ml_scheduler_t *)Data;
@@ -1424,9 +1426,6 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
 		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Scheduler);
-#ifndef Darwin
-		pthread_setname_np(Thread, "minilang");
-#endif
 	}
 	pthread_mutex_unlock(ThreadLock);
 }
@@ -2111,6 +2110,11 @@ static void ml_gc_warn_fn(char *Format, GC_word Arg) {
 #ifdef ML_HOSTTHREADS
 
 static void *ml_preempt_fn(void *Data) {
+#ifdef Darwin
+	pthread_setname_np("preempt");
+#else
+	pthread_setname_np(pthread_self(), "preempt");
+#endif
 	struct timespec Interval = {.tv_sec = 0, .tv_nsec = 250000};
 	for (;;) {
 		nanosleep(&Interval, NULL);
@@ -2144,7 +2148,6 @@ void ml_runtime_init(const char *ExecName, stringmap_t *Globals) {
 #ifdef ML_HOSTTHREADS
 	pthread_t TimerThread;
 	pthread_create(&TimerThread, NULL, ml_preempt_fn, NULL);
-	pthread_setname_np(TimerThread, "preempt");
 #else
 	struct sigaction Action = {0,};
 	Action.sa_handler = ml_preempt;
