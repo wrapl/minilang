@@ -176,7 +176,7 @@ void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
 ml_value_t *ml_library_load0(const char *Path, const char *Name) {
 	ml_library_info_t Info = ml_library_find(Path, Name);
 	if (!Info.Loader) {
-		char *Import = strrchr(Name, '/');
+		char *Import = (char *)strrchr(Name, '/');
 		if (Import) {
 			*Import = 0;
 			ml_value_t *Parent = ml_library_load0(Path, Name);
@@ -304,20 +304,6 @@ static void ml_library_path_add_default(void) {
 	}
 }
 
-#ifdef ML_TIMESCHED
-
-static sigset_t Signals;
-
-#define BLOCK_PREEMPT sigprocmask(SIG_BLOCK, &Signals, NULL);
-#define UNBLOCK_PREEMPT sigprocmask(SIG_UNBLOCK, &Signals, NULL);
-
-#else
-
-#define BLOCK_PREEMPT
-#define UNBLOCK_PREEMPT
-
-#endif
-
 static const int MinApiVersion[3] = {2, 20, 1};
 
 static int check_api_version(const int *ApiVersion) {
@@ -330,9 +316,7 @@ static int check_api_version(const int *ApiVersion) {
 }
 
 static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
-	BLOCK_PREEMPT
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
-	UNBLOCK_PREEMPT
 	if (Handle) {
 		const char *ConfigHash = dlsym(Handle, "ml_config_hash");
 		if (!ConfigHash || strcmp(ConfigHash, ML_CONFIG_HASH)) {
@@ -365,9 +349,7 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 }
 
 static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) {
-	BLOCK_PREEMPT
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
-	UNBLOCK_PREEMPT
 	if (Handle) {
 		ml_library_entry0_t init0 = dlsym(Handle, "ml_library_entry0");
 		const char *ConfigHash = dlsym(Handle, "ml_config_hash");
@@ -519,11 +501,6 @@ ML_FUNCTION(Unload) {
 static ml_importer_t Importer[1] = {{MLImporterT, NULL}};
 
 void ml_library_init(stringmap_t *_Globals) {
-#ifdef ML_TIMESCHED
-	sigemptyset(&Signals);
-	sigaddset(&Signals, SIGALRM);
-	sigaddset(&Signals, SIGVTALRM);
-#endif
 	Globals = _Globals;
 	LibraryPath = ml_list();
 #ifndef Wasm
