@@ -338,23 +338,6 @@ typedef struct ml_scheduler_block_t ml_scheduler_block_t;
 
 #endif
 
-struct ml_scheduler_t {
-	ml_scheduler_add_fn add;
-	ml_scheduler_run_fn run;
-	ml_scheduler_fill_fn fill;
-	ml_scheduler_sleep_fn sleep;
-#ifdef ML_HOSTTHREADS
-	ml_scheduler_block_t *Resume;
-#endif
-	uint64_t Preempt;
-	int Fill;
-};
-
-static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
-	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
-	Scheduler->add(Scheduler, State, Value);
-}
-
 typedef struct {
 	ml_state_t *State;
 	ml_value_t *Value;
@@ -365,8 +348,6 @@ typedef struct ml_scheduler_queue_t ml_scheduler_queue_t;
 ml_scheduler_queue_t *ml_scheduler_queue(int Slice);
 uint64_t *ml_scheduler_queue_counter(ml_scheduler_queue_t *Queue);
 
-ml_scheduler_queue_t *ml_default_queue_init(ml_context_t *Context, int Slice);
-
 int ml_scheduler_queue_size(ml_scheduler_queue_t *Queue);
 int ml_scheduler_queue_fill(ml_scheduler_queue_t *Queue);
 void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*Fn)(void *Data, ml_state_t *State));
@@ -374,8 +355,24 @@ void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
 int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
 
-ml_queued_state_t ml_scheduler_queue_next_wait(ml_scheduler_queue_t *Queue);
-int ml_scheduler_queue_add_signal(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
+struct ml_scheduler_t {
+	ml_scheduler_add_fn add;
+	ml_scheduler_run_fn run;
+	ml_scheduler_fill_fn fill;
+	ml_scheduler_sleep_fn sleep;
+	ml_scheduler_queue_t *Queue;
+#ifdef ML_HOSTTHREADS
+	ml_scheduler_block_t *Resume;
+#endif
+	uint64_t Preempt;
+};
+
+ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice);
+
+static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
+	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
+	Scheduler->add(Scheduler, State, Value);
+}
 
 #ifdef ML_SCHEDULER
 extern ml_cfunctionx_t MLAtomic[];

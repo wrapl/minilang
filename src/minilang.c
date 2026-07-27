@@ -641,7 +641,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_state_t *Main = ml_state(NULL);
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
-	if (SliceSize) ml_default_queue_init(Main->Context, SliceSize);
+	if (SliceSize) ml_default_scheduler_init(Main->Context, SliceSize);
 #endif
 #ifdef Linux
 #ifdef ML_JSON

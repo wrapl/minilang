@@ -18,12 +18,6 @@ static inline void *stpcpy(void *__restrict Dest, const void *__restrict Source)
 
 #ifdef Darwin
 
-static inline void *stpcpy(void *__restrict Dest, const void *__restrict Source) {
-	size_t Length = strlen(Source);
-	memcpy(Dest, Source, Length);
-	return Dest + Length;
-}
-
 static inline void *mempcpy(void *__restrict Dest, const void *__restrict Source, size_t Size) {
 	memcpy(Dest, Source, Size);
 	return Dest + Size;
