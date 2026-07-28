@@ -31,7 +31,8 @@ CFLAGS := old + [
 	:>"-Wsuggest-attribute=malloc",
 	'-I.', '-I{PATH / "include"}',
 	"-D_GNU_SOURCE",
-	'-D{PLATFORM}'
+	'-D{PLATFORM}',
+	'-D{MACHINE}'
 ]
 LDFLAGS := old + ["-lm"]
 

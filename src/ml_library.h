@@ -39,6 +39,32 @@ typedef void (*ml_library_entry0_t)(ml_value_t **Slot);
 #define ML_EXTERN
 #endif
 
+#ifdef Darwin
+
+#define ML_LIBRARY_ENTRY(NAME) \
+const char ml_config_hash[] = ML_CONFIG_HASH; \
+const int ml_api_version[3] = {MINILANG_VERSION}; \
+\
+ML_EXTERN void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot); \
+ML_EXTERN void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot) { \
+	CONCAT3(ml_, NAME, entry)(Caller, Slot); \
+} \
+void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot)
+
+#define ML_LIBRARY_ENTRY0(NAME) \
+ML_EXTERN const char ml_config_hash[]; \
+\
+const char ml_config_hash[] = ML_CONFIG_HASH; \
+const int ml_api_version[3] = {MINILANG_VERSION}; \
+\
+ML_EXTERN void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot); \
+ML_EXTERN void ml_library_entry0(ml_value_t **Slot) { \
+	CONCAT3(ml_, NAME, entry0)(Slot); \
+} \
+void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot)
+
+#else
+
 #define ML_LIBRARY_ENTRY(NAME) \
 const char ml_config_hash[] = ML_CONFIG_HASH; \
 const int ml_api_version[3] = {MINILANG_VERSION}; \
@@ -56,6 +82,8 @@ const int ml_api_version[3] = {MINILANG_VERSION}; \
 ML_EXTERN void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot); \
 ML_EXTERN void ml_library_entry0(ml_value_t **Slot) __attribute__ ((weak, alias(LIBRARY_ENTRY0(NAME)))); \
 void CONCAT3(ml_, NAME, entry0)(ml_value_t **Slot)
+
+#endif
 
 #define ML_LIBRARY_SCHEDULER(NAME) \
 ml_main_loop_t ml_library_scheduler_init(ml_context_t *Context)
