@@ -1515,10 +1515,19 @@ ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_va
 	State.Block.Base.run = (ml_state_fn)ml_call_slow_fn;
 	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Context);
 	State.Block.Scheduler = Scheduler;
+#ifdef Darwin
+	State.Block.Ready = dispatch_semaphore_create(0);
+#else
 	sem_init(State.Block.Ready, 0, 0);
+#endif
 	ml_scheduler_split(Scheduler);
+#ifdef Darwin
+	dispatch_semaphore_wait(State.Block.Ready, DISPATCH_TIME_FOREVER);
+	dispatch_release(State.Block.Ready);
+#else
 	sem_wait(State.Block.Ready);
 	sem_destroy(State.Block.Ready);
+#endif
 	return State.Value;
 }
 
