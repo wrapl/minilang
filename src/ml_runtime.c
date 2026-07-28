@@ -1348,7 +1348,11 @@ ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice) {
 
 #ifdef ML_HOSTTHREADS
 
+#ifdef Darwin
+#include <dispatch/dispatch.h>
+#else
 #include <semaphore.h>
+#endif
 
 typedef struct ml_scheduler_thread_t ml_scheduler_thread_t;
 
@@ -1361,7 +1365,11 @@ struct ml_scheduler_thread_t {
 struct ml_scheduler_block_t {
 	ml_state_t Base;
 	ml_scheduler_t *Scheduler;
+#ifdef Darwin
+	dispatch_semaphore_t Ready;
+#else
 	sem_t Ready[1];
+#endif
 };
 
 static ml_scheduler_thread_t *NextThread = NULL;
@@ -1387,8 +1395,11 @@ static void *ml_scheduler_thread_fn(void *Data) {
 		if (Scheduler->Resume) {
 			ml_scheduler_block_t *Block = Scheduler->Resume;
 			Scheduler->Resume = NULL;
+#ifdef Darwin
+			dispatch_semaphore_signal(Block->Ready);
+#else
 			sem_post(Block->Ready);
-
+#endif
 			pthread_mutex_lock(ThreadLock);
 			if (NumIdle >= MaxIdle) {
 				pthread_mutex_unlock(ThreadLock);
@@ -1426,6 +1437,7 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 		pthread_attr_setdetachstate(&Attr, PTHREAD_CREATE_DETACHED);
 		pthread_t Thread;
 		GC_pthread_create(&Thread, &Attr, ml_scheduler_thread_fn, Scheduler);
+		pthread_attr_destroy(&Attr);
 	}
 	pthread_mutex_unlock(ThreadLock);
 }
@@ -1435,10 +1447,19 @@ void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 		{NULL, NULL, ml_scheduler_thread_resume, NULL},
 		Scheduler
 	};
+#ifdef Darwin
+	Block.Ready = dispatch_semaphore_create(0);
+#else
 	sem_init(Block.Ready, 0, 0);
+#endif
 	Scheduler->add(Scheduler, (ml_state_t *)&Block, MLNil);
+#ifdef Darwin
+	dispatch_semaphore_wait(Block.Ready, DISPATCH_TIME_FOREVER);
+	dispatch_release(Block.Ready);
+#else
 	sem_wait(Block.Ready);
 	sem_destroy(Block.Ready);
+#endif
 }
 
 struct ml_call_wait_state_t {
