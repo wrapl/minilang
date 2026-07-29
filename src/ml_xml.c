@@ -2888,10 +2888,13 @@ void ml_xml_init(stringmap_t *Globals) {
 	ml_method_by_value(PrevSiblingsMethod, PrevSiblingsMethod, recursive_doubled, MLXmlSequenceT, NULL);
 	ml_method_by_value(ParentMethod, ParentMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 	ml_method_by_name("parent", ParentMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("^", ParentMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 	ml_method_by_value(NextSiblingMethod, NextSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 	ml_method_by_name("next", NextSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name(">", NextSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 	ml_method_by_value(PrevSiblingMethod, PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 	ml_method_by_name("prev", PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
+	ml_method_by_name("<", PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 #endif
 	stringmap_insert(MLXmlT->Exports, "parse", MLXmlParse);
 	stringmap_insert(MLXmlT->Exports, "escape", MLXmlEscape);

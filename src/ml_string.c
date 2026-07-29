@@ -3994,9 +3994,9 @@ int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 #else
 	switch (regexec(Regex, Subject, 0, NULL, 0)) {
 #endif
-	case REG_NOMATCH: return 1;
-	case REG_ESPACE: return -1;
-	default: return 0;
+	case REG_NOMATCH: return 0;
+	case REG_ESPACE: return 0;
+	default: return 1;
 	}
 }
 
