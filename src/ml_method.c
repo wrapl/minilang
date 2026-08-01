@@ -888,6 +888,10 @@ ML_METHODVX("[]", MLMethodT) {
 	ML_RETURN(ml_method_wrap(Cached->Callback, Cached->Count, Cached->Types));
 }
 
+int ml_methods_foreach(void *Data, int (*fn)(const char *, void *, void *)) {
+	stringmap_foreach(Methods, Data, fn);
+}
+
 static int ml_method_list_fn(const char *Name, ml_value_t *Method, ml_value_t *Result) {
 	ml_list_put(Result, Method);
 	return 0;
@@ -897,7 +901,7 @@ ML_TYPE_FUNCTION(MLMethodT, list) {
 //@method::list
 //>list[method]
 	ml_value_t *Result = ml_list();
-	stringmap_foreach(Methods, Result, (void *)ml_method_list_fn);
+	ml_methods_foreach(Result, (void *)ml_method_list_fn);
 	return Result;
 
 }

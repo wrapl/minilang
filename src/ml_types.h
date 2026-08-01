@@ -1210,6 +1210,8 @@ void ml_method_definev(ml_value_t *Method, ml_value_t *Function, ml_type_t *Vari
 
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, ml_type_t *Variadic, ml_type_t **Types);
 
+int ml_methods_foreach(void *Data, int (*fn)(const char *, void *, void *));
+
 ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
 
 ml_value_t *ml_method_wrap(ml_value_t *Function, int Count, ml_type_t **Types);
