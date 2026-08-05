@@ -2661,15 +2661,28 @@ static ml_value_t *ml_parser_escape_xml_string(xml_escape_parser_t *Parser) {
 
 static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 	const char *Next = Parser->Next;
-	while ((*Next > ' ') && (*Next != '/') && (*Next != '>')) ++Next;
-	int TagLength = Next - Parser->Next;
-	if (!TagLength) return ml_error("ParseError", "Invalid start tag");
-	ml_value_t *Tag = ml_string_copy(Parser->Next, TagLength);
-	mlc_value_expr_t *TagExpr = new(mlc_value_expr_t);
-	TagExpr->compile = ml_value_expr_compile;
-	TagExpr->Value = Tag;
-	TagExpr->Source = Parser->Source.Name;
-	TagExpr->StartLine = TagExpr->EndLine = Parser->Source.Line;
+	ml_value_t *Tag = NULL;
+	mlc_expr_t *TagExpr;
+	if (*Next == '{') {
+		ml_parser_input(Parser->Parser, Next + 1, 0);
+		ml_parser_source(Parser->Parser, Parser->Source);
+		TagExpr = ml_accept_expression(Parser->Parser, EXPR_DEFAULT);
+		if (!TagExpr) return ml_parser_value(Parser->Parser);
+		ml_accept(Parser->Parser, MLT_RIGHT_BRACE);
+		Parser->Source = ml_parser_position(Parser->Parser);
+		Next = ml_parser_clear(Parser->Parser);
+	} else {
+		while ((*Next > ' ') && (*Next != '/') && (*Next != '>')) ++Next;
+		int TagLength = Next - Parser->Next;
+		if (!TagLength) return ml_error("ParseError", "Invalid start tag");
+		Tag = ml_string_copy(Parser->Next, TagLength);
+		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+		ValueExpr->compile = ml_value_expr_compile;
+		ValueExpr->Value = Tag;
+		ValueExpr->Source = Parser->Source.Name;
+		ValueExpr->StartLine = ValueExpr->EndLine = Parser->Source.Line;
+		TagExpr = (mlc_expr_t *)ValueExpr;
+	}
 	mlc_parent_value_expr_t *ElementExpr = new(mlc_parent_value_expr_t);
 	ElementExpr->compile = ml_const_call_expr_compile;
 	ElementExpr->Value = Parser->Constructor;
@@ -2772,10 +2785,18 @@ static ml_value_t *ml_parser_escape_xml_node(xml_escape_parser_t *Parser) {
 						Next = (End += 2);
 						while ((*Next > ' ') && (*Next != '>')) ++Next;
 						if (Next[0] != '>') return ml_error("ParseError", "Invalid end tag");
-						if (strncmp(End, ml_string_value(Tag), Next - End)) {
-							ml_parser_input(Parser->Parser, Next + 1, 0);
-							ml_parser_source(Parser->Parser, Parser->Source);
-							return ml_error("ParseError", "Mismatched start and end tag");
+						if (Tag) {
+							if (strncmp(End, ml_string_value(Tag), Next - End)) {
+								ml_parser_input(Parser->Parser, Next + 1, 0);
+								ml_parser_source(Parser->Parser, Parser->Source);
+								return ml_error("ParseError", "Mismatched start and end tag");
+							}
+						} else {
+							if (Next != End) {
+								ml_parser_input(Parser->Parser, Next + 1, 0);
+								ml_parser_source(Parser->Parser, Parser->Source);
+								return ml_error("ParseError", "Mismatched start and end tag");
+							}
 						}
 						++Next;
 						break;
