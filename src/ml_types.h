@@ -968,7 +968,15 @@ static inline int ml_stringbuffer_length(ml_stringbuffer_t *Buffer) {
 	return Buffer->Length;
 }
 
-char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length);
+/**
+ * Updates \a Buffer after writing bytes directly to its internal nodes. \a Count can be 0 to start writing.
+ * After a call to this function, Buffer->Space will be greater than 0.
+ *
+ * \param Buffer Target buffer.
+ * \param Count The number of bytes written to the buffer.
+ * \return The address to write up to Buffer->Space bytes.
+ */
+char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Count);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 char ml_stringbuffer_last(ml_stringbuffer_t *Buffer);
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
@@ -993,6 +1001,7 @@ static inline ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const cha
 }
 
 size_t ml_stringbuffer_read(ml_stringbuffer_t *Buffer, void *Address, size_t Count);
+int ml_stringbuffer_get(ml_stringbuffer_t *Buffer);
 
 static inline ssize_t ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
 	char Val[8];
@@ -1007,6 +1016,9 @@ static inline ssize_t ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t 
 	return ml_stringbuffer_write(Buffer, Val + I, 8 - I);
 }
 
+void ml_stringbuffer_encode_vlq64(ml_stringbuffer_t *Buffer, int64_t Value);
+int64_t ml_stringbuffer_decode_vlq64(ml_stringbuffer_t *Buffer);
+
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
@@ -1018,7 +1030,26 @@ ml_value_t *ml_stringbuffer_to_address(ml_stringbuffer_t *Buffer) __attribute__ 
 ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 
+/**
+ * Updates \a Buffer after reading bytes directly from its internal nodes. \a Count can be 0 to start writing.
+ *
+ * \param Buffer Target buffer.
+ * \param Count The number of bytes read from the buffer.
+ * \return The number of available bytes to read from the buffer.
+ * \sa ml_stringbuffer_start
+ */
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length);
+
+/**
+ * Returns the next available bytes to read from \a Buffer.
+ *
+ * \param Buffer Target buffer.
+ * \return Address of next available bytes.
+ * \sa ml_stringbuffer_reader
+ */
+static inline const char *ml_stringbuffer_start(ml_stringbuffer_t *Buffer) {
+	return Buffer->Head->Chars + Buffer->Start;
+}
 
 int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 

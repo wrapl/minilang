@@ -96,7 +96,8 @@ extensions = [
 	'sphinx.ext.graphviz',
 	'sphinx.ext.viewcode',
 	"sphinx_syntax",
-	'linuxdoc.rstFlatTable'
+	'linuxdoc.rstFlatTable',
+	"breathe"
 ]
 
 breathe_projects = {"minilang": "doxygen/xml"}

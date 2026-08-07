@@ -5545,6 +5545,132 @@ void ml_stringbuffer_put_actual(ml_stringbuffer_t *Buffer, char Char) {
 	Buffer->Tail = Node;
 }
 
+void ml_stringbuffer_encode_vlq64(ml_stringbuffer_t *Buffer, int64_t Value) {
+	unsigned char Bytes[9];
+	uint64_t V;
+	if (Value < 0) {
+		V = (~(uint64_t)Value << 1) + 1;
+	} else {
+		V = (uint64_t)Value << 1;
+	}
+	int N;
+	if (V <= 240) {
+		Bytes[0] = V;
+		N = 1;
+	} else if (V <= 2287) {
+		Bytes[0] = ((V - 240) >> 8) + 241;
+		Bytes[1] = (V - 240) & 255;
+		N = 2;
+	} else if (V <= 67823) {
+		Bytes[0] = 249;
+		Bytes[1] = (V - 2288) >> 8;
+		Bytes[2] = (V - 2288) & 255;
+		N = 3;
+	} else if (V <= 16777215) {
+		Bytes[0] = 250;
+		Bytes[1] = V >> 16;
+		Bytes[2] = (V >> 8) & 255;
+		Bytes[3] = V & 255;
+		N = 4;
+	} else if (V <= 4294967295) {
+		Bytes[0] = 251;
+		Bytes[1] = (V >> 24) & 255;
+		Bytes[2] = (V >> 16) & 255;
+		Bytes[3] = (V >> 8) & 255;
+		Bytes[4] = V & 255;
+		N = 5;
+	} else if (V <= 1099511627775) {
+		Bytes[0] = 252;
+		Bytes[1] = (V >> 32) & 255;
+		Bytes[2] = (V >> 24) & 255;
+		Bytes[3] = (V >> 16) & 255;
+		Bytes[4] = (V >> 8) & 255;
+		Bytes[5] = V & 255;
+		N = 6;
+	} else if (V <= 281474976710655) {
+		Bytes[0] = 253;
+		Bytes[1] = (V >> 40) & 255;
+		Bytes[2] = (V >> 32) & 255;
+		Bytes[3] = (V >> 24) & 255;
+		Bytes[4] = (V >> 16) & 255;
+		Bytes[5] = (V >> 8) & 255;
+		Bytes[6] = V & 255;
+		N = 7;
+	} else if (V <= 72057594037927935) {
+		Bytes[0] = 254;
+		Bytes[1] = (V >> 48) & 255;
+		Bytes[2] = (V >> 40) & 255;
+		Bytes[3] = (V >> 32) & 255;
+		Bytes[4] = (V >> 24) & 255;
+		Bytes[5] = (V >> 16) & 255;
+		Bytes[6] = (V >> 8) & 255;
+		Bytes[7] = V & 255;
+		N = 8;
+	} else {
+		Bytes[0] = 255;
+		Bytes[1] = (V >> 56) & 255;
+		Bytes[2] = (V >> 48) & 255;
+		Bytes[3] = (V >> 40) & 255;
+		Bytes[4] = (V >> 32) & 255;
+		Bytes[5] = (V >> 24) & 255;
+		Bytes[6] = (V >> 16) & 255;
+		Bytes[7] = (V >> 8) & 255;
+		Bytes[8] = V & 255;
+		N = 9;
+	}
+	ml_stringbuffer_write(Buffer, (const char *)Bytes, N);
+}
+
+int64_t ml_stringbuffer_decode_vlq64(ml_stringbuffer_t *Buffer) {
+	uint64_t X = 0;
+	int C = ml_stringbuffer_get(Buffer);
+	uint8_t Bytes[8] = {0,};
+	switch (C) {
+	case 0 ... 240:
+		X = C;
+		break;
+	case 241 ... 248:
+		ml_stringbuffer_read(Buffer, Bytes, 1);
+		X = 240 + (((uint64_t)C - 241) << 8) + Bytes[0];
+		break;
+	case 249:
+		ml_stringbuffer_read(Buffer, Bytes, 2);
+		X = 2288 + ((uint64_t)Bytes[0] << 8) + Bytes[1];
+		break;
+	case 250:
+		ml_stringbuffer_read(Buffer, Bytes, 3);
+		X = ((uint64_t)Bytes[0] << 16) + ((uint64_t)Bytes[1] << 8) + Bytes[2];
+		break;
+	case 251:
+		ml_stringbuffer_read(Buffer, Bytes, 4);
+		X = ((uint64_t)Bytes[0] << 24) + ((uint64_t)Bytes[1] << 16) + ((uint64_t)Bytes[2] << 8) + Bytes[3];
+		break;
+	case 252:
+		ml_stringbuffer_read(Buffer, Bytes, 5);
+		X = ((uint64_t)Bytes[0] << 32) + ((uint64_t)Bytes[1] << 24) + ((uint64_t)Bytes[2] << 16) + ((uint64_t)Bytes[3] << 8) + Bytes[4];
+		break;
+	case 253:
+		ml_stringbuffer_read(Buffer, Bytes, 6);
+		X = ((uint64_t)Bytes[0] << 40) + ((uint64_t)Bytes[1] << 32) + ((uint64_t)Bytes[2] << 24) + ((uint64_t)Bytes[3] << 16) + ((uint64_t)Bytes[4] << 8) + Bytes[5];
+		break;
+	case 254:
+		ml_stringbuffer_read(Buffer, Bytes, 7);
+		X = ((uint64_t)Bytes[0] << 48) + ((uint64_t)Bytes[1] << 40) + ((uint64_t)Bytes[2] << 32) + ((uint64_t)Bytes[3] << 24) + ((uint64_t)Bytes[4] << 16) + ((uint64_t)Bytes[5] << 8) + Bytes[6];
+		break;
+	case 255:
+		ml_stringbuffer_read(Buffer, Bytes, 8);
+		X = ((uint64_t)Bytes[0] << 56) + ((uint64_t)Bytes[1] << 48) + ((uint64_t)Bytes[2] << 40) + ((uint64_t)Bytes[3] << 32) + ((uint64_t)Bytes[4] << 24) + ((uint64_t)Bytes[5] << 16) + ((uint64_t)Bytes[6] << 8) + Bytes[7];
+		break;
+	default:
+		return 0;
+	}
+	if (X % 2) {
+		return (int64_t)~(X >> 1);
+	} else {
+		return (int64_t)(X >> 1);
+	}
+}
+
 char ml_stringbuffer_last(ml_stringbuffer_t *Buffer) {
 	ml_stringbuffer_node_t *Node = Buffer->Tail;
 	if (!Node) return 0;
@@ -5793,6 +5919,27 @@ ML_METHOD("length", MLStringBufferT) {
 //$= B:length
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	return ml_integer(Buffer->Length);
+}
+
+int ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
+	if (!Buffer->Length) return EOF;
+	ml_stringbuffer_node_t *Node = Buffer->Head;
+	int Start = Buffer->Start;
+	unsigned char Char = Node->Chars[Start++];
+	if (--Buffer->Length) {
+		if (Start == ML_STRINGBUFFER_NODE_SIZE) {
+			Buffer->Head = Node->Next;
+			ml_stringbuffer_node_free(Node);
+			Buffer->Start = 0;
+		} else {
+			Buffer->Start = Start;
+		}
+	} else {
+		Buffer->Head = Buffer->Tail = NULL;
+		ml_stringbuffer_node_free(Node);
+		Buffer->Start = 0;
+	}
+	return (int)Char;
 }
 
 size_t ml_stringbuffer_read(ml_stringbuffer_t *Buffer, void *Address, size_t Count) {
@@ -6116,6 +6263,18 @@ ML_METHOD("writeu" #WIDTH, MLStringBufferT, MLIntegerT, MLByteOrderT) { \
 ML_STRINGBUFFER_INT_METHODS(16, 2)
 ML_STRINGBUFFER_INT_METHODS(32, 4)
 ML_STRINGBUFFER_INT_METHODS(64, 8)
+
+ML_METHOD("encode_vlq64", MLStringBufferT, MLIntegerT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	int64_t Value = ml_integer_value(Args[1]);
+	ml_stringbuffer_encode_vlq64(Buffer, Value);
+	return (ml_value_t *)Buffer;
+}
+
+ML_METHOD("decode_vlq64", MLStringBufferT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_integer(ml_stringbuffer_decode_vlq64(Buffer));
+}
 
 typedef struct {
 	const char *Chars;

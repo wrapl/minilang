@@ -494,7 +494,7 @@ sequence
    .. code-block:: mini
 
       count2(1 .. 60000;) random::by(swap("cat"))
-      :> {"t" is 29864, "c" is 9944, "a" is 20192}
+      :> {"a" is 20013, "t" is 29902, "c" is 10085}
 
 
 :mini:`meth (Sequence: sequence):random(...): any | nil`

@@ -1964,85 +1964,9 @@ static ml_value_t *decode_variable(ml_cbor_reader_t *Reader, int Count, ml_value
 	return (ml_value_t *)Variable;
 }
 
-static void vlq64_encode(ml_stringbuffer_t *Buffer, int64_t Value) {
-	unsigned char Bytes[9];
-	uint64_t V;
-	if (Value < 0) {
-		V = (~(uint64_t)Value << 1) + 1;
-	} else {
-		V = (uint64_t)Value << 1;
-	}
-	int N;
-	if (V <= 240) {
-		Bytes[0] = V;
-		N = 1;
-	} else if (V <= 2287) {
-		Bytes[0] = ((V - 240) >> 8) + 241;
-		Bytes[1] = (V - 240) & 255;
-		N = 2;
-	} else if (V <= 67823) {
-		Bytes[0] = 249;
-		Bytes[1] = (V - 2288) >> 8;
-		Bytes[2] = (V - 2288) & 255;
-		N = 3;
-	} else if (V <= 16777215) {
-		Bytes[0] = 250;
-		Bytes[1] = V >> 16;
-		Bytes[2] = (V >> 8) & 255;
-		Bytes[3] = V & 255;
-		N = 4;
-	} else if (V <= 4294967295) {
-		Bytes[0] = 251;
-		Bytes[1] = (V >> 24) & 255;
-		Bytes[2] = (V >> 16) & 255;
-		Bytes[3] = (V >> 8) & 255;
-		Bytes[4] = V & 255;
-		N = 5;
-	} else if (V <= 1099511627775) {
-		Bytes[0] = 252;
-		Bytes[1] = (V >> 32) & 255;
-		Bytes[2] = (V >> 24) & 255;
-		Bytes[3] = (V >> 16) & 255;
-		Bytes[4] = (V >> 8) & 255;
-		Bytes[5] = V & 255;
-		N = 6;
-	} else if (V <= 281474976710655) {
-		Bytes[0] = 253;
-		Bytes[1] = (V >> 40) & 255;
-		Bytes[2] = (V >> 32) & 255;
-		Bytes[3] = (V >> 24) & 255;
-		Bytes[4] = (V >> 16) & 255;
-		Bytes[5] = (V >> 8) & 255;
-		Bytes[6] = V & 255;
-		N = 7;
-	} else if (V <= 72057594037927935) {
-		Bytes[0] = 254;
-		Bytes[1] = (V >> 48) & 255;
-		Bytes[2] = (V >> 40) & 255;
-		Bytes[3] = (V >> 32) & 255;
-		Bytes[4] = (V >> 24) & 255;
-		Bytes[5] = (V >> 16) & 255;
-		Bytes[6] = (V >> 8) & 255;
-		Bytes[7] = V & 255;
-		N = 8;
-	} else {
-		Bytes[0] = 255;
-		Bytes[1] = (V >> 54) & 255;
-		Bytes[2] = (V >> 48) & 255;
-		Bytes[3] = (V >> 40) & 255;
-		Bytes[4] = (V >> 32) & 255;
-		Bytes[5] = (V >> 24) & 255;
-		Bytes[6] = (V >> 16) & 255;
-		Bytes[7] = (V >> 8) & 255;
-		Bytes[8] = V & 255;
-		N = 9;
-	}
-	ml_stringbuffer_write(Buffer, (const char *)Bytes, N);
-}
-
 static void vlq64_encode_string(ml_stringbuffer_t *Buffer, const char *Value) {
 	int Length = strlen(Value);
-	vlq64_encode(Buffer, Length);
+	ml_stringbuffer_encode_vlq64(Buffer, Length);
 	ml_stringbuffer_write(Buffer, Value, Length);
 }
 
@@ -2058,10 +1982,10 @@ static int ml_closure_find_decl(ml_stringbuffer_t *Buffer, inthash_t *Decls, ml_
 	int Next = ml_closure_find_decl(Buffer, Decls, Decl->Next);
 	int Index = Decls->Size - Decls->Space;
 	vlq64_encode_string(Buffer, Decl->Ident);
-	vlq64_encode(Buffer, Next);
-	vlq64_encode(Buffer, Decl->Source.Line);
-	vlq64_encode(Buffer, Decl->Index);
-	vlq64_encode(Buffer, Decl->Flags);
+	ml_stringbuffer_encode_vlq64(Buffer, Next);
+	ml_stringbuffer_encode_vlq64(Buffer, Decl->Source.Line);
+	ml_stringbuffer_encode_vlq64(Buffer, Decl->Index);
+	ml_stringbuffer_encode_vlq64(Buffer, Decl->Flags);
 	inthash_insert(Decls, (uintptr_t)Decl, (void *)(uintptr_t)Index);
 	return Index;
 }
@@ -2075,14 +1999,14 @@ static int ml_stringbuffer_copy(ml_stringbuffer_t *Buffer, const char *String, s
 
 static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer, ml_closure_info_t *Info) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	vlq64_encode(Buffer, ML_BYTECODE_VERSION);
+	ml_stringbuffer_encode_vlq64(Buffer, ML_BYTECODE_VERSION);
 	vlq64_encode_string(Buffer, Info->Name ?: "");
 	vlq64_encode_string(Buffer, Info->Source ?: "");
-	vlq64_encode(Buffer, Info->StartLine);
-	vlq64_encode(Buffer, Info->FrameSize);
-	vlq64_encode(Buffer, Info->NumParams);
-	vlq64_encode(Buffer, Info->NumUpValues);
-	vlq64_encode(Buffer, Info->Flags & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS));
+	ml_stringbuffer_encode_vlq64(Buffer, Info->StartLine);
+	ml_stringbuffer_encode_vlq64(Buffer, Info->FrameSize);
+	ml_stringbuffer_encode_vlq64(Buffer, Info->NumParams);
+	ml_stringbuffer_encode_vlq64(Buffer, Info->NumUpValues);
+	ml_stringbuffer_encode_vlq64(Buffer, Info->Flags & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS));
 	const char *Params[Info->NumParams];
 	stringmap_foreach(Info->Params, Params, (void *)ml_closure_info_param_fn);
 	for (int I = 0; I < Info->NumParams; ++I) vlq64_encode_string(Buffer, Params[I]);
@@ -2157,13 +2081,13 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 		default: __builtin_unreachable();
 		}
 	}
-	vlq64_encode(Buffer, Decls->Size - Decls->Space);
+	ml_stringbuffer_encode_vlq64(Buffer, Decls->Size - Decls->Space);
 	ml_stringbuffer_drain(DeclBuffer, Buffer, (void *)ml_stringbuffer_copy);
-	vlq64_encode(Buffer, DeclsIndex);
-	vlq64_encode(Buffer, (Info->Halt - Base) + BaseOffset);
-	vlq64_encode(Buffer, Return);
+	ml_stringbuffer_encode_vlq64(Buffer, DeclsIndex);
+	ml_stringbuffer_encode_vlq64(Buffer, (Info->Halt - Base) + BaseOffset);
+	ml_stringbuffer_encode_vlq64(Buffer, Return);
 	int Line = Info->Entry->Line;
-	vlq64_encode(Buffer, Info->Entry->Line - Info->StartLine);
+	ml_stringbuffer_encode_vlq64(Buffer, Info->Entry->Line - Info->StartLine);
 	ml_value_t *Values = ml_list();
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
@@ -2171,46 +2095,46 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 			continue;
 		}
 		if (Inst->Line != Line) {
-			vlq64_encode(Buffer, MLI_LINK);
-			vlq64_encode(Buffer, Inst->Line - Line);
+			ml_stringbuffer_encode_vlq64(Buffer, MLI_LINK);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst->Line - Line);
 			Line = Inst->Line;
 		}
-		vlq64_encode(Buffer, Inst->Opcode);
+		ml_stringbuffer_encode_vlq64(Buffer, Inst->Opcode);
 		switch (MLInstTypes[Inst->Opcode]) {
 		case MLIT_NONE:
 			Inst += 1;
 			break;
 		case MLIT_INST:
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			Inst += 2;
 			break;
 		case MLIT_INST_CONFIG: {
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
 			const char *Name = ml_config_name(Inst[2].Data) ?: "<unknown>";
 			int NameLength = strlen(Name);
-			vlq64_encode(Buffer, NameLength);
+			ml_stringbuffer_encode_vlq64(Buffer, NameLength);
 			ml_stringbuffer_write(Buffer, Name, NameLength);
 			Inst += 3;
 			break;
 		}
 		case MLIT_INST_COUNT:
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
-			vlq64_encode(Buffer, Inst[2].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[2].Count);
 			Inst += 3;
 			break;
 		case MLIT_INST_COUNT_DECL:
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
-			vlq64_encode(Buffer, Inst[2].Count);
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[2].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
 			Inst += 4;
 			break;
 		case MLIT_COUNT_COUNT:
-			vlq64_encode(Buffer, Inst[1].Count);
-			vlq64_encode(Buffer, Inst[2].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[1].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[2].Count);
 			Inst += 3;
 			break;
 		case MLIT_COUNT:
-			vlq64_encode(Buffer, Inst[1].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[1].Count);
 			Inst += 2;
 			break;
 		case MLIT_VALUE:
@@ -2219,47 +2143,47 @@ static void ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *Writer,
 			break;
 		case MLIT_VALUE_COUNT:
 			ml_list_put(Values, Inst[1].Value);
-			vlq64_encode(Buffer, Inst[2].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[2].Count);
 			Inst += 3;
 			break;
 		case MLIT_VALUE_COUNT_DATA:
 			ml_list_put(Values, Inst[1].Value);
-			vlq64_encode(Buffer, Inst[2].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[2].Count);
 			Inst += 4;
 			break;
 		case MLIT_COUNT_CHARS:
-			vlq64_encode(Buffer, Inst[1].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[1].Count);
 			ml_stringbuffer_write(Buffer, Inst[2].Chars, Inst[1].Count);
 			Inst += 3;
 			break;
 		case MLIT_DECL:
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[1].Decls));
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[1].Decls));
 			Inst += 2;
 			break;
 		case MLIT_COUNT_DECL:
-			vlq64_encode(Buffer, Inst[1].Count);
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[2].Decls));
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[1].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[2].Decls));
 			Inst += 3;
 			break;
 		case MLIT_COUNT_COUNT_DECL:
-			vlq64_encode(Buffer, Inst[1].Count);
-			vlq64_encode(Buffer, Inst[2].Count);
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[1].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[2].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
 			Inst += 4;
 			break;
 		case MLIT_CLOSURE: {
 			ml_closure_info_t *Info = Inst[1].ClosureInfo;
 			Info->Type = MLClosureInfoT;
 			ml_list_put(Values, (ml_value_t *)Info);
-			vlq64_encode(Buffer, Info->NumUpValues);
-			for (int N = 0; N < Info->NumUpValues; ++N) vlq64_encode(Buffer, Inst[2 + N].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Info->NumUpValues);
+			for (int N = 0; N < Info->NumUpValues; ++N) ml_stringbuffer_encode_vlq64(Buffer, Inst[2 + N].Count);
 			Inst += 2 + Info->NumUpValues;
 			break;
 		}
 		case MLIT_SWITCH: {
-			vlq64_encode(Buffer, Inst[1].Count);
+			ml_stringbuffer_encode_vlq64(Buffer, Inst[1].Count);
 			for (int N = 0; N < Inst[1].Count; ++N) {
-				vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[2].Insts[N]->Label));
+				ml_stringbuffer_encode_vlq64(Buffer, (uintptr_t)inthash_search(Labels, Inst[2].Insts[N]->Label));
 			}
 			Inst += 3;
 			break;
@@ -2330,7 +2254,7 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes, int Length) {
 		break;
 	case 255:
 		N = 9;
-		if (Length >= N) X = ((uint64_t)Bytes[1] << 54) + ((uint64_t)Bytes[2] << 48) + ((uint64_t)Bytes[3] << 40) + ((uint64_t)Bytes[4] << 32) + ((uint64_t)Bytes[5] << 24) + ((uint64_t)Bytes[6] << 16) + ((uint64_t)Bytes[7] << 8) + Bytes[8];
+		if (Length >= N) X = ((uint64_t)Bytes[1] << 56) + ((uint64_t)Bytes[2] << 48) + ((uint64_t)Bytes[3] << 40) + ((uint64_t)Bytes[4] << 32) + ((uint64_t)Bytes[5] << 24) + ((uint64_t)Bytes[6] << 16) + ((uint64_t)Bytes[7] << 8) + Bytes[8];
 		break;
 	}
 	if (X % 2) {
