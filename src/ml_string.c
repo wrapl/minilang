@@ -6030,6 +6030,20 @@ done:;
 	return Result;
 }
 
+void ml_stringbuffer_move(ml_stringbuffer_t *Dest, ml_stringbuffer_t *Source) {
+	if (!Dest->Head) {
+		Dest->Head = Source->Head;
+		Dest->Tail = Source->Tail;
+		Dest->Length = Source->Length;
+		Dest->Space = Source->Space;
+		Dest->Start = Source->Start;
+		Source->Head = Source->Tail = NULL;
+		Source->Length = Source->Space = Source->Start = 0;
+	} else {
+		ml_stringbuffer_drain(Source, Dest, (void *)ml_stringbuffer_write);
+	}
+}
+
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	return ml_simple_inline(AppendMethod, 2, Buffer, Value);
 }

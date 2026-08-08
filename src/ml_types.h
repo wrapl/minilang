@@ -1053,6 +1053,8 @@ static inline const char *ml_stringbuffer_start(ml_stringbuffer_t *Buffer) {
 
 int ml_stringbuffer_drain(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 
+void ml_stringbuffer_move(ml_stringbuffer_t *Dest, ml_stringbuffer_t *Source);
+
 // Defines for old function names
 
 #define ml_stringbuffer_add ml_stringbuffer_write

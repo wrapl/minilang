@@ -960,6 +960,12 @@ ML_METHODX("copy", MLStreamT, MLStreamT) {
 	return State->read((ml_state_t *)State, Source, State->Buffer, ML_STRINGBUFFER_NODE_SIZE);
 }
 
+ML_METHOD("copy", MLStringBufferT, MLStringBufferT) {
+	int Length = ((ml_stringbuffer_t *)Args[0])->Length;
+	ml_stringbuffer_move((ml_stringbuffer_t *)Args[1], (ml_stringbuffer_t *)Args[0]);
+	return ml_integer(Length);
+}
+
 ML_METHODX("copy", MLStreamT, MLStreamT, MLIntegerT) {
 //<Source
 //<Destination
