@@ -5925,7 +5925,7 @@ int ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
 	if (!Buffer->Length) return EOF;
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	int Start = Buffer->Start;
-	unsigned char Char = Node->Chars[Start++];
+	unsigned char Char = (unsigned char)Node->Chars[Start++];
 	if (--Buffer->Length) {
 		if (Start == ML_STRINGBUFFER_NODE_SIZE) {
 			Buffer->Head = Node->Next;
