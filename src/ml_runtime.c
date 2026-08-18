@@ -1337,7 +1337,9 @@ ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice) {
 	Scheduler->Base.fill = (ml_scheduler_fill_fn)ml_default_scheduler_fill;
 	Scheduler->Base.sleep = ml_scheduler_default_sleep;
 	Scheduler->Base.Queue = ml_scheduler_queue(Slice);
+#ifdef ML_TIMESCHED
 	Scheduler->Base.Preempt = MLPreempt;
+#endif
 	pthread_cond_init(Scheduler->Available, NULL);
 	ml_context_set_static(Context, ML_SCHEDULER_INDEX, Scheduler);
 #ifndef ML_TIMESCHED

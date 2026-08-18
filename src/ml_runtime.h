@@ -364,7 +364,9 @@ struct ml_scheduler_t {
 #ifdef ML_HOSTTHREADS
 	ml_scheduler_block_t *Resume;
 #endif
+#ifdef ML_TIMESCHED
 	uint64_t Preempt;
+#endif
 };
 
 ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice);
