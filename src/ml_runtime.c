@@ -1343,7 +1343,7 @@ ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice) {
 	pthread_cond_init(Scheduler->Available, NULL);
 	ml_context_set_static(Context, ML_SCHEDULER_INDEX, Scheduler);
 #ifndef ML_TIMESCHED
-	ml_context_set_static(Context, ML_COUNTER_INDEX, &Scheduler->Queue->Counter);
+	ml_context_set_static(Context, ML_COUNTER_INDEX, &Scheduler->Base.Queue->Counter);
 #endif
 	return (ml_scheduler_t *)Scheduler;
 }
