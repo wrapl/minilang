@@ -37,7 +37,7 @@ file
    Waits for the subprocess to finish and returns the exit status.
 
 
-:mini:`fun mlfilet, symlink(Arg₁: string, Arg₂: string)`
+:mini:`fun file::symlink(Arg₁: string, Arg₂: string)`
    *TBD*
 
 

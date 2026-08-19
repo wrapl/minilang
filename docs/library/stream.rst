@@ -45,12 +45,12 @@ stream
    *TBD*
 
 
+:mini:`meth (Stream: stream::fd):write(Source: address): integer`
+   Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
+
+
 :mini:`type stream::seek < enum`
    *TBD*
-
-
-:mini:`meth (Stream: stream::fd):read(Dest: buffer): integer`
-   Reads from :mini:`Stream` into :mini:`Dest` returning the actual number of bytes read.
 
 
 :mini:`type stream::fd < stream`
@@ -107,6 +107,10 @@ stream
 
 :mini:`meth (Source: stream):copy(Destination: stream, Count: integer): integer`
    Copies upto :mini:`Count` bytes from :mini:`Source` to :mini:`Destination`.
+
+
+:mini:`meth (Arg₁: string::buffer):copy(Arg₂: string::buffer)`
+   *TBD*
 
 
 :mini:`meth (Source: stream):copy(Destination: stream): integer`
@@ -173,8 +177,8 @@ stream
    *TBD*
 
 
-:mini:`meth (Stream: stream::fd):write(Source: address): integer`
-   Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
+:mini:`meth (Stream: stream::fd):read(Dest: buffer): integer`
+   Reads from :mini:`Stream` into :mini:`Dest` returning the actual number of bytes read.
 
 
 :mini:`meth (Arg₁: stream):writeu16(Arg₂: integer, Arg₃: byte::order)`

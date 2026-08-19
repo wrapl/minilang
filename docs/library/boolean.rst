@@ -146,7 +146,7 @@ boolean
    Returns :mini:`true` if :mini:`Value` is not :mini:`nil`,  otherwise returns :mini:`false`.
 
 
-:mini:`fun mlbooleant, value(Arg₁: any)`
+:mini:`fun boolean::value(Arg₁: any)`
    *TBD*
 
 

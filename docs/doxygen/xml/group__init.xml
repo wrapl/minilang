@@ -19,7 +19,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1696" column="6" declfile="src/ml_types.h" declline="1696" declcolumn="6"/>
+        <location file="src/ml_types.h" line="1702" column="6" declfile="src/ml_types.h" declline="1702" declcolumn="6"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="define">
@@ -32,7 +32,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1700" column="9" bodyfile="src/ml_types.h" bodystart="1700" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1706" column="9" bodyfile="src/ml_types.h" bodystart="1706" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>

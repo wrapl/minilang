@@ -530,7 +530,12 @@ fun process(FileName) do
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
 				let Kind := Line[1, I]
-				var Name := Line[I + 1, J]:lower
+				var Name := if Line % r"^ML_FUNCTION" then
+					Line[I + 1, J]:lower
+				else
+					let (Type, Export) := Line[I + 1, J] / ","
+					'{type_name(Type)}::{Export:trim}'
+				end
 				var Category := DefaultCategory
 				let Params := []
 				var Return := []

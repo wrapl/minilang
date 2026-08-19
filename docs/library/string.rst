@@ -38,14 +38,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       5 * "abc" :> "abcabcabcabcabc"
 
 
-:mini:`meth stringtable(Arg₁: string)`
-   *TBD*
-
-
-:mini:`type string::table`
-   *TBD*
-
-
 :mini:`fun regex(String: string): regex | error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
@@ -53,6 +45,10 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       regex("[0-9]+") :> /[0-9]+/
       regex("[0-9") :> error("RegexError", "Missing ']'")
+
+
+:mini:`type string::table`
+   *TBD*
 
 
 :mini:`fun string(Value: any): string`
@@ -64,6 +60,24 @@ When creating a substring,  the first index is inclusive and second index is exc
       string(nil) :> "nil"
       string("Hello world!\n") :> "Hello world!\n"
       string([1, 2, 3]) :> "[1, 2, 3]"
+
+
+:mini:`meth (Arg₁: string::buffer):encode_vlq64(Arg₂: integer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):decode_vlq64`
+   *TBD*
+
+
+:mini:`meth (Buffer: string::buffer):writeu64(Value: integer): buffer`
+   Writes :mini:`Value` to :mini:`Buffer` as an 64-bit unsigned value. Uses the platform byte order.
+
+   .. code-block:: mini
+
+      let B := string::buffer() :> <string::buffer>
+      B:writeu64(12345) :> <string::buffer>
+      B:rest :> "90\0\0\0\0\0\0"
 
 
 :mini:`meth (Buffer: string::buffer):write64(Value: integer, Arg₃: byte::order): buffer`
@@ -88,14 +102,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "90\0\0\0\0\0\0"
 
 
-:mini:`meth (Buffer: string::buffer):writeu64(Value: integer): buffer`
-   Writes :mini:`Value` to :mini:`Buffer` as an 64-bit unsigned value. Uses the platform byte order.
-
-   .. code-block:: mini
-
-      let B := string::buffer() :> <string::buffer>
-      B:writeu64(12345) :> <string::buffer>
-      B:rest :> "90\0\0\0\0\0\0"
+:mini:`type string::charset < sequence`
+   *TBD*
 
 
 :mini:`meth (Buffer: string::buffer):readu64: integer`
@@ -129,7 +137,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:read64 :> 8031924123371070792
 
 
-:mini:`type string::charset < sequence`
+:mini:`meth (Arg₁: string::charset):count`
    *TBD*
 
 
@@ -719,7 +727,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       "The cat snored as he slept":find(r"s[a-z]+", -6) :> 22
 
 
-:mini:`meth (Arg₁: string::charset):count`
+:mini:`meth stringtable(Arg₁: string)`
    *TBD*
 
 
@@ -1364,11 +1372,11 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
-:mini:`meth stringtable()`
+:mini:`meth (Arg₁: visitor):const(Arg₂: buffer)`
    *TBD*
 
 
-:mini:`meth (Arg₁: visitor):const(Arg₂: buffer)`
+:mini:`meth stringtable()`
    *TBD*
 
 
