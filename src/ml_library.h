@@ -53,6 +53,7 @@ void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot)
 
 #define ML_LIBRARY_ENTRY0(NAME) \
 ML_EXTERN const char ml_config_hash[]; \
+ML_EXTERN const int ml_api_version[]; \
 \
 const char ml_config_hash[] = ML_CONFIG_HASH; \
 const int ml_api_version[3] = {MINILANG_VERSION}; \
@@ -75,6 +76,7 @@ void CONCAT3(ml_, NAME, entry)(ml_state_t *Caller, ml_value_t **Slot)
 
 #define ML_LIBRARY_ENTRY0(NAME) \
 ML_EXTERN const char ml_config_hash[]; \
+ML_EXTERN const int ml_api_version[]; \
 \
 const char ml_config_hash[] = ML_CONFIG_HASH; \
 const int ml_api_version[3] = {MINILANG_VERSION}; \
