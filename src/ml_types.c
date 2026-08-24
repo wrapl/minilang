@@ -1032,6 +1032,21 @@ ML_FUNCTIONX(MLVisit) {
 	return ml_call(Caller, Visitor->Fn, 2, Args2);
 }
 
+struct ml_visitor_state_t {
+	ml_state_t Base;
+	ml_visitor_state_t *Next;
+	ml_visitor_t *Visitor;
+	uintptr_t Value;
+};
+
+static void ml_visitor_state_run(ml_visitor_state_t *State, ml_value_t *Value) {
+	ml_visitor_t *Visitor = State->Visitor;
+	inthash_insert(Visitor->Cache, State->Value, Value);
+	State->Next = Visitor->States;
+	Visitor->States = State;
+	ML_CONTINUE(State->Base.Caller, Value);
+}
+
 static void ml_visitor_call(ml_state_t *Caller, ml_visitor_t *Visitor, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Value = ml_deref(Args[0]);
@@ -1050,7 +1065,18 @@ static void ml_visitor_call(ml_state_t *Caller, ml_visitor_t *Visitor, int Count
 #endif
 		inthash_insert(Visitor->Cache, (uintptr_t)Value, Visitor->Error);
 		Visitor->Args[1] = Value;
-		return ml_call(Caller, Visitor->Fn, 2, Visitor->Args);
+		ml_visitor_state_t *State = Visitor->States;
+		if (State) {
+			Visitor->States = State->Next;
+		} else {
+			State = new(ml_visitor_state_t);
+			State->Visitor = Visitor;
+			State->Base.run = (ml_state_fn)ml_visitor_state_run;
+		}
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Value = (uintptr_t)Value;
+		return ml_call(State, Visitor->Fn, 2, Visitor->Args);
 	}
 }
 
@@ -1080,7 +1106,7 @@ ML_FUNCTIONX(MLCopy) {
 //<Value:any
 //<Fn?:function
 //>any
-// Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy, Value)` to each value. If omitted, :mini:`Fn` defaults to :mini:`:copy`.
+// Equivalent to :mini:`visit(Value, Fn or :copy)`.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_visitor_t *Visitor = new(ml_visitor_t);
 	Visitor->Type = MLVisitorT;

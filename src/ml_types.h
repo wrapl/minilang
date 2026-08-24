@@ -210,9 +210,12 @@ int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
 int ml_is_subtype0(ml_type_t *T, ml_type_t *U) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
+typedef struct ml_visitor_state_t ml_visitor_state_t;
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Fn, *Error;
+	ml_visitor_state_t *States;
 	ml_value_t *Args[2];
 	inthash_t Cache[1];
 } ml_visitor_t;

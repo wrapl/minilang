@@ -9,161 +9,11 @@ general
 
 .. rst-class:: mini-api
 
-:mini:`fun mlprint()`
-   *TBD*
-
-
 :mini:`meth :WeakMapT()`
    *TBD*
 
 
-:mini:`fun findall(Value: any, Filter?: boolean|type): list`
-   Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
-
-
-:mini:`meth (Arg₁: keyboardevent):location`
-   *TBD*
-
-
-:mini:`fun mlafter(Arg₁: number, Arg₂: function)`
-   *TBD*
-
-
-:mini:`fun mlevent(Arg₁: string, Arg₂: string, Arg₃: function)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):canvasY`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):canvasX`
-   *TBD*
-
-
-:mini:`type uievent < event`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):targetX`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):movementY`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):movementX`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):buttons`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):button`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):meta`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):alt`
-   *TBD*
-
-
-:mini:`meth (Visitor: visitor):copy(Value: any): any`
-   Default visitor implementation,  just returns :mini:`Value`.
-
-
-:mini:`meth (Arg₁: mouseevent):ctrl`
-   *TBD*
-
-
-:mini:`meth (Visitor: visitor):const(Value: any): any`
-   Default visitor implementation,  just returns :mini:`Value`.
-
-
-:mini:`meth (Arg₁: mouseevent):clientX`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):screenY`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):screenX`
-   *TBD*
-
-
-:mini:`type weakmap`
-   *TBD*
-
-
-:mini:`type visitor < function`
-   Used to apply a transformation recursively to values.
-   
-   :mini:`fun (V: visitor)(Value: any,  Result: any): any`
-      Adds the pair :mini:`(Value,  Result)` to :mini:`V`'s cache and returns :mini:`Result`.
-   
-   :mini:`fun (V: visitor)(Value: any): any`
-      Visits :mini:`Value` with :mini:`V` returning the result.
-
-
 :mini:`meth (Arg₁: weakmap):insert(Arg₂: string)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: keyboardevent):repeat`
-   *TBD*
-
-
-:mini:`type weakmaptoken`
-   *TBD*
-
-
-:mini:`meth (Arg₁: keyboardevent):alt`
-   *TBD*
-
-
-:mini:`meth (Visitor: visitor):visit(Value: any): any`
-   Default visitor implementation,  just returns :mini:`nil`.
-
-
-:mini:`meth (Arg₁: keyboardevent):ctrl`
-   *TBD*
-
-
-:mini:`type focusevent < event`
-   *TBD*
-
-
-:mini:`meth (Arg₁: keyboardevent):code`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):targetY`
-   *TBD*
-
-
-:mini:`meth (Arg₁: keyboardevent):timestamp`
-   *TBD*
-
-
-:mini:`type keyboardevent < event`
-   *TBD*
-
-
-:mini:`type event`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):shift`
-   *TBD*
-
-
-:mini:`meth (Arg₁: mouseevent):clientY`
    *TBD*
 
 
@@ -171,36 +21,36 @@ general
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Var₁`.
 
 
-:mini:`meth (Arg₁: mouseevent):timestamp`
+:mini:`type weakmap`
    *TBD*
 
 
-:mini:`type mouseevent < event`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: weakmaptoken)`
    *TBD*
 
 
-:mini:`meth (Arg₁: keyboardevent):meta`
+:mini:`type weakmaptoken`
    *TBD*
 
 
-:mini:`meth (Arg₁: keyboardevent):shift`
-   *TBD*
+:mini:`meth (Visitor: visitor):visit(Value: any): any`
+   Default visitor implementation,  just returns :mini:`nil`.
 
 
 :mini:`fun call(Fn: any, Arg₁: any, ..., Argₙ: any): any`
    Returns :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
-:mini:`meth (Arg₁: keyboardevent):key`
-   *TBD*
+:mini:`meth (Visitor: visitor):const(Value: any): any`
+   Default visitor implementation,  just returns :mini:`Value`.
 
 
 :mini:`fun deref(Value: any): any`
    Returns the dereferenced value of :mini:`Value`.
 
 
-:mini:`fun replace(Var₁: any, ..., Varₙ: any, Value: any)`
-   Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
+:mini:`meth (Visitor: visitor):copy(Value: any): any`
+   Default visitor implementation,  just returns :mini:`Value`.
 
 
 :mini:`fun isconstant(Value: any): any | nil`
@@ -217,8 +67,14 @@ general
       isconstant((1, [2], 3)) :> nil
 
 
-:mini:`meth (Arg₁: keyboardevent):locale`
-   *TBD*
+:mini:`type visitor < function`
+   Used to apply a transformation recursively to values.
+   
+   :mini:`fun (V: visitor)(Value: any,  Result: any): any`
+      Adds the pair :mini:`(Value,  Result)` to :mini:`V`'s cache and returns :mini:`Result`.
+   
+   :mini:`fun (V: visitor)(Value: any): any`
+      Visits :mini:`Value` with :mini:`V` returning the result.
 
 
 :mini:`fun cas(Var: any, Old: any, New: any): any`
@@ -237,19 +93,19 @@ general
    Functional equivalent of :mini:`Var := Value`.
 
 
-:mini:`fun visit(Value: any, Fn: function): any`
-   Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
+:mini:`fun replace(Var₁: any, ..., Varₙ: any, Value: any)`
+   Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
 
 
 :mini:`fun copy(Value: any, Fn?: function): any`
-   Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:copy`.
+   Equivalent to :mini:`visit(Value,  Fn or :copy)`.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: weakmaptoken)`
-   *TBD*
+:mini:`fun findall(Value: any, Filter?: boolean|type): list`
+   Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 
 
-:mini:`type wheelevent < event`
-   *TBD*
+:mini:`fun visit(Value: any, Fn: function): any`
+   Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
 
 

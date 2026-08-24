@@ -21,6 +21,9 @@
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "wasm"
+
 #ifdef ML_MATH
 #include "ml_math.h"
 #include "ml_array.h"
