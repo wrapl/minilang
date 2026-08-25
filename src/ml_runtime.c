@@ -58,19 +58,6 @@ void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, do
 	Scheduler->add(Scheduler, State, Result);
 }
 
-void ml_sleep(ml_state_t *Caller, double Duration, ml_value_t *Result) {
-	if (Duration <= 0) ML_RETURN(MLNil);
-	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
-	return Scheduler->sleep(Scheduler, Caller, Duration, Result);
-}
-
-ML_FUNCTIONX(MLSleep) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLRealT);
-	double Duration = ml_real_value(Args[0]);
-	return ml_sleep(Caller, Duration, Count > 1 ? Args[1] : MLNil);
-}
-
 static ml_scheduler_t DefaultScheduler = {
 	.add = default_swap,
 	.sleep = ml_scheduler_default_sleep
@@ -227,9 +214,16 @@ ml_result_state_t *ml_result_state(ml_context_t *Context) {
 	return State;
 }
 
+static
+#ifdef ML_HOSTTHREADS
+__thread
+#endif
+ml_context_t *ThreadContext;
+
 #ifdef ML_TRAMPOLINE
 static ml_scheduler_queue_t *MLRootQueue;
 #endif
+
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, MLRootContext}, NULL};
 	ml_call(&State, Value, Count, Args);
@@ -256,6 +250,19 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
 	return Result;
 }
 
+void ml_sleep(ml_state_t *Caller, double Duration, ml_value_t *Result) {
+	if (Duration <= 0) ML_RETURN(MLNil);
+	ml_scheduler_t *Scheduler = ml_context_get_scheduler(Caller->Context);
+	return Scheduler->sleep(Scheduler, Caller, Duration, Result);
+}
+
+ML_FUNCTIONX(MLSleep) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLRealT);
+	double Duration = ml_real_value(Args[0]);
+	return ml_sleep(Caller, Duration, Count > 1 ? Args[1] : MLNil);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_context_t Context[1];
@@ -276,8 +283,8 @@ ml_state_t *ml_state(ml_state_t *Caller) {
 #if defined(ML_TIMESCHED) || defined(ML_TRAMPOLINE)
 
 void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
-#ifdef ML_TIMESCHED
 	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
+#ifdef ML_TIMESCHED
 	if (Scheduler->Preempt < MLPreempt) {
 		Scheduler->Preempt = MLPreempt;
 		Scheduler->add(Scheduler, State, Value);
@@ -285,7 +292,6 @@ void ml_state_continue(ml_state_t *State, ml_value_t *Value) {
 		return State->run(State, Value);
 	}
 #else
-	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
 	Scheduler->add(Scheduler, State, Value);
 #endif
 }
@@ -1266,7 +1272,6 @@ int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_va
 
 ml_scheduler_queue_t *ml_scheduler_queue(int Slice) {
 	ml_scheduler_queue_t *Queue = new(ml_scheduler_queue_t);
-
 	ml_queue_block_t *Block = new(ml_queue_block_t);
 	Block->Next = Block;
 	Queue->WriteBlock = Queue->ReadBlock = Block;
@@ -1296,7 +1301,7 @@ typedef struct {
 	pthread_cond_t Available[1];
 } ml_default_scheduler_t;
 
-ml_queued_state_t ml_default_scheduler_next(ml_default_scheduler_t *Scheduler) {
+static ml_queued_state_t ml_default_scheduler_next(ml_default_scheduler_t *Scheduler) {
 	ml_scheduler_queue_t *Queue = Scheduler->Base.Queue;
 #ifdef ML_HOSTTHREADS
 	pthread_mutex_lock(Queue->Lock);
@@ -1309,7 +1314,7 @@ ml_queued_state_t ml_default_scheduler_next(ml_default_scheduler_t *Scheduler) {
 	return Next;
 }
 
-int ml_default_scheduler_add(ml_default_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value) {
+static int ml_default_scheduler_add(ml_default_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value) {
 	int Fill = ml_scheduler_queue_add(Scheduler->Base.Queue, State, Value);
 #ifdef ML_HOSTTHREADS
 	if (Fill == 1) pthread_cond_signal(Scheduler->Available);
@@ -1317,12 +1322,12 @@ int ml_default_scheduler_add(ml_default_scheduler_t *Scheduler, ml_state_t *Stat
 	return Fill;
 }
 
-void ml_default_scheduler_run(ml_default_scheduler_t *Scheduler) {
+static void ml_default_scheduler_run(ml_default_scheduler_t *Scheduler) {
 	ml_queued_state_t Queued = ml_default_scheduler_next(Scheduler);
 	Queued.State->run(Queued.State, Queued.Value);
 }
 
-int ml_default_scheduler_fill(ml_default_scheduler_t *Scheduler) {
+static int ml_default_scheduler_fill(ml_default_scheduler_t *Scheduler) {
 	return Scheduler->Base.Queue->Fill;
 }
 
@@ -1340,7 +1345,9 @@ ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice) {
 #ifdef ML_TIMESCHED
 	Scheduler->Base.Preempt = MLPreempt;
 #endif
+#ifdef ML_HOSTTHREADS
 	pthread_cond_init(Scheduler->Available, NULL);
+#endif
 	ml_context_set_static(Context, ML_SCHEDULER_INDEX, Scheduler);
 #ifndef ML_TIMESCHED
 	ml_context_set_static(Context, ML_COUNTER_INDEX, &Scheduler->Base.Queue->Counter);
