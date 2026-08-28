@@ -14,9 +14,16 @@ static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
 	return (long)Boolean;
 }
 
+static int ml_boolean_compare(ml_boolean_t *A, ml_boolean_t *B, ml_compare_chain_t *Chain) {
+	if (A->Value < B->Value) return -1;
+	if (A->Value > B->Value) return 1;
+	return 0;
+}
+
 ML_TYPE(MLBooleanT, (), "boolean",
 // A boolean value (either :mini:`true` or :mini:`false`).
-	.hash = (void *)ml_boolean_hash
+	.hash = (void *)ml_boolean_hash,
+	.compare = (void *)ml_boolean_compare
 );
 
 int ml_boolean_value(const ml_value_t *Value) {

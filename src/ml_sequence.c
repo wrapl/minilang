@@ -127,12 +127,41 @@ ML_FUNCTION(MLChained) {
 	return ml_chained(Count, Args);
 }
 
+static long ml_chained_function_hash(ml_chained_function_t *Chained, ml_hash_chain_t *Chain) {
+	long Hash = ml_hash_chain(Chained->Entries[0], Chain);
+	for (ml_value_t **Entries = Chained->Entries + 1; *Entries; ++Entries) {
+		Hash <<= 1;
+		Hash ^= ml_hash_chain(*Entries, Chain);
+	}
+	return Hash;
+}
+
+static int ml_chained_function_compare(ml_chained_function_t *A, ml_chained_function_t *B, ml_compare_chain_t *Chain) {
+	ml_value_t **EntriesA = A->Entries;
+	ml_value_t **EntriesB = B->Entries;
+	for (;;) {
+		ml_value_t *EntryA = *EntriesA++;
+		ml_value_t *EntryB = *EntriesB++;
+		if (!EntryA) {
+			if (!EntryB) return 0;
+			return -1;
+		} else if (!EntryB) {
+			return 1;
+		}
+		int Compare = ml_compare_chain(EntryA, EntryB, Chain);
+		if (Compare) return Compare;
+	}
+	return 0;
+}
+
 ML_TYPE(MLChainedT, (MLFunctionT, MLSequenceT), "chained",
 // A chained function or sequence, consisting of a base function or sequence and any number of additional functions or filters.
 //
 // When used as a function or sequence, the base is used to produce an initial result, then the additional functions are applied in turn to the result.
 //
 // Filters do not affect the result but will shortcut a function call or skip an iteration if :mini:`nil` is returned. I.e. filters remove values from a sequence that fail a condition without affecting the values that pass.
+	.hash = (void *)ml_chained_function_hash,
+	.compare = (void *)ml_chained_function_compare,
 	.call = (void *)ml_chained_function_call,
 	.Constructor = (ml_value_t *)MLChained
 );
@@ -176,9 +205,12 @@ ML_DESERIALIZER("->") {
 	return ml_chained(Count, Args);
 }
 
-static ml_value_t *ml_chained_function_compare(ml_chained_function_t *A, ml_chained_function_t *B) {
+ML_METHOD("<>", MLChainedT, MLChainedT) {
+//!internal
+	ml_chained_function_t *A = (ml_chained_function_t *)Args[0];
+	ml_chained_function_t *B = (ml_chained_function_t *)Args[1];
 	// TODO: Replace this with a state to remove ml_simple_call
-	ml_value_t *Args[2];
+	ml_value_t *Args2[2];
 	for (int I = 0;; ++I) {
 		if (!A->Entries[I]) {
 			if (!B->Entries[I]) return (ml_value_t *)Zero;
@@ -186,21 +218,14 @@ static ml_value_t *ml_chained_function_compare(ml_chained_function_t *A, ml_chai
 		} else if (!B->Entries[I]) {
 			return (ml_value_t *)One;
 		} else {
-			Args[0] = A->Entries[I];
-			Args[1] = B->Entries[I];
-			ml_value_t *C = ml_simple_call(CompareMethod, 2, Args);
+			Args2[0] = A->Entries[I];
+			Args2[1] = B->Entries[I];
+			ml_value_t *C = ml_simple_call(CompareMethod, 2, Args2);
 			if (ml_is_error(C)) return C;
 			if (ml_integer_value(C)) return C;
 		}
 	}
 	return (ml_value_t *)Zero;
-}
-
-ML_METHOD("<>", MLChainedT, MLChainedT) {
-//!internal
-	ml_chained_function_t *A = (ml_chained_function_t *)Args[0];
-	ml_chained_function_t *B = (ml_chained_function_t *)Args[1];
-	return ml_chained_function_compare(A, B);
 }
 
 typedef struct {

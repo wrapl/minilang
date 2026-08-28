@@ -134,16 +134,15 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 
 #define ml_simple_inline(VALUE, COUNT, ARGS ...) ({ \
-	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
+	ml_simple_call((ml_value_t *)(VALUE), COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args);
+#define ml_inline_wait(CONTEXT, VALUE, COUNT, ARGS ...) ({ \
+	ml_call_wait(CONTEXT, (ml_value_t *)(VALUE), COUNT, (ml_value_t **)(void *[]){ARGS}); \
+})
 
-typedef struct ml_call_wait_state_t ml_call_wait_state_t;
-
-ml_call_wait_state_t *ml_call_wait_state(ml_context_t *Context);
-
-ml_value_t *ml_call_state_wait(ml_call_wait_state_t *State);
+ml_value_t *ml_assign_wait(ml_context_t *Context, ml_value_t *Ref, ml_value_t *Value);
 
 typedef struct {
 	ml_state_t Base;
@@ -327,6 +326,8 @@ void ml_sleep(ml_state_t *State, double Duration, ml_value_t *Result);
 static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
 }
+
+void ml_scheduler_run(ml_scheduler_t *Scheduler);
 
 #ifdef ML_HOSTTHREADS
 

@@ -22,6 +22,17 @@ static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+static int ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B, ml_compare_chain_t *Chain) {
+	int Size = A->Size < B->Size ? A->Size : B->Size;
+	for (int I = 0; I < Size; ++I) {
+		int Compare = ml_compare_chain(A->Values[I], B->Values[I], Chain);
+		if (Compare) return Compare;
+	}
+	if (A->Size < B->Size) return -1;
+	if (A->Size > B->Size) return 1;
+	return 0;
+}
+
 static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 	if (Ref->NoRefs) return (ml_value_t *)Ref;
 	for (int I = 0; I < Ref->Size; ++I) {
@@ -163,6 +174,7 @@ ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 // :mini:`(Tuple: tuple)(Arg/1, ..., Arg/n)`
 //    Returns :mini:`(Tuple[1](Arg/1, ..., Arg/n), ..., Tuple[k](Arg/1, ..., Arg/n))`
 	.hash = (void *)ml_tuple_hash,
+	.compare = (void *)ml_tuple_compare,
 	.deref = (void *)ml_tuple_deref,
 	.assign = (void *)ml_tuple_assign,
 	.call = (void *)ml_tuple_call,
@@ -343,19 +355,6 @@ ml_value_t *ml_tuplev(size_t Size, ...) {
 	Tuple->Type = MLTupleT;
 #endif
 	return (ml_value_t *)Tuple;
-}
-
-ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
-	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (function) return function(Value, Index);
-	Value = ml_deref(Value);
-	function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (function) return function(Value, Index);
-	return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
-}
-
-static ml_value_t *ML_TYPED_FN(ml_unpack, MLNilT, ml_value_t *Value, int Index) {
-	return MLNil;
 }
 
 ML_METHOD("size", MLTupleT) {
@@ -570,9 +569,15 @@ static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index
 	return Tuple->Values[Index - 1];
 }
 
-static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
+ML_METHOD("<>", MLTupleT, MLTupleT) {
+//<Tuple/1
+//<Tuple/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Tuple/1` is less than, equal to or greater than :mini:`Tuple/2` using lexicographical ordering.
+	ml_tuple_t *A = (ml_tuple_t *)Args[0];
+	ml_tuple_t *B = (ml_tuple_t *)Args[1];
 	// TODO: Replace this with a state to remove ml_simple_call
-	ml_value_t *Args[2];
+	ml_value_t *Args2[2];
 	ml_value_t *Result;
 	int N;
 	if (A->Size > B->Size) {
@@ -586,21 +591,13 @@ static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
 		Result = (ml_value_t *)Zero;
 	}
 	for (int I = 0; I < N; ++I) {
-		Args[0] = A->Values[I];
-		Args[1] = B->Values[I];
-		ml_value_t *C = ml_simple_call(CompareMethod, 2, Args);
+		Args2[0] = A->Values[I];
+		Args2[1] = B->Values[I];
+		ml_value_t *C = ml_simple_call(CompareMethod, 2, Args2);
 		if (ml_is_error(C)) return C;
 		if (ml_integer_value(C)) return C;
 	}
 	return Result;
-}
-
-ML_METHOD("<>", MLTupleT, MLTupleT) {
-//<Tuple/1
-//<Tuple/2
-//>integer
-// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Tuple/1` is less than, equal to or greater than :mini:`Tuple/2` using lexicographical ordering.
-	return ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]);
 }
 
 ML_TYPE(MLComparisonStateT, (MLStateT), "comparison_state");

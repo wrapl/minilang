@@ -44,9 +44,19 @@ static long ml_time_hash(ml_time_t *Time, ml_hash_chain_t *Chain) {
 	return (long)Time->Value->tv_sec;
 }
 
+static int ml_time_compare(ml_time_t *TimeA, ml_time_t *TimeB, ml_compare_chain_t *Chain) {
+	double Diff = difftime(TimeA->Value->tv_sec, TimeB->Value->tv_sec);
+	if (Diff < 0) return -1;
+	if (Diff > 0) return 1;
+	if (TimeA->Value->tv_nsec < TimeB->Value->tv_nsec) return -1;
+	if (TimeA->Value->tv_nsec > TimeB->Value->tv_nsec) return 1;
+	return 0;
+}
+
 ML_TYPE(MLTimeT, (), "time",
 // An instant in time with nanosecond resolution.
-	.hash = (void *)ml_time_hash
+	.hash = (void *)ml_time_hash,
+	.compare = (void *)ml_time_compare
 );
 
 void ml_time_value(ml_value_t *Value, struct timespec *Time) {
@@ -620,15 +630,6 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLNilT) {
 	return MLSome;
 }
 
-static int ml_time_compare(ml_time_t *TimeA, ml_time_t *TimeB) {
-	double Diff = difftime(TimeA->Value->tv_sec, TimeB->Value->tv_sec);
-	if (Diff < 0) return -1;
-	if (Diff > 0) return 1;
-	if (TimeA->Value->tv_nsec < TimeB->Value->tv_nsec) return -1;
-	if (TimeA->Value->tv_nsec > TimeB->Value->tv_nsec) return 1;
-	return 0;
-}
-
 ML_METHOD("<>", MLTimeT, MLTimeT) {
 //<A
 //<B
@@ -636,14 +637,14 @@ ML_METHOD("<>", MLTimeT, MLTimeT) {
 // Compares the times :mini:`A` and :mini:`B` and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively.
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	ml_time_t *TimeB = (ml_time_t *)Args[1];
-	return ml_integer(ml_time_compare(TimeA, TimeB));
+	return ml_integer(ml_time_compare(TimeA, TimeB, NULL));
 }
 
 #define ml_comp_method_time_time(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLTimeT, MLTimeT) { \
 		ml_time_t *TimeA = (ml_time_t *)Args[0]; \
 		ml_time_t *TimeB = (ml_time_t *)Args[1]; \
-		return ml_time_compare(TimeA, TimeB) SYMBOL 0 ? Args[1] : MLNil; \
+		return ml_time_compare(TimeA, TimeB, NULL) SYMBOL 0 ? Args[1] : MLNil; \
 	}
 
 ml_comp_method_time_time("=", ==);

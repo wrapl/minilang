@@ -1017,6 +1017,10 @@ ML_METHODX("append", MLStringBufferT, MLSliceT, MLStringT) {
 	return ml_call(State, AppendMethod, 2, State->Args);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLSliceT, ml_value_t *Slice, int Index) {
+	return ml_slice_index(Slice, Index);
+}
+
 typedef struct {
 	ml_type_t *Type;
 	ml_slice_t *Slice;

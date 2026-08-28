@@ -2219,6 +2219,8 @@ void update_prefix(update_row_fn_t Update, int PrefixDegree, ml_array_dimension_
 	return Args[0]; \
 }
 
+int ml_array_compare(ml_array_t *A, ml_array_t *B);
+
 #define UPDATE_METHODS(ATYPE, CTYPE, FROM_VAL, FORMAT) \
 UPDATE_METHOD(Set, set, ATYPE, CTYPE, FROM_VAL, FORMAT); \
 UPDATE_METHOD(Add, add, ATYPE, CTYPE, FROM_VAL, FORMAT); \
@@ -2439,6 +2441,7 @@ ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 /*@array::PREFIX
 */ \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.compare = (void *)ml_array_compare, \
 ); \
 \
 ML_INIT(ml_methodx_by_value(MLArray ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
@@ -2455,6 +2458,7 @@ ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT),
 //    Sets the values in :mini:`A` to those in :mini:`B`, broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.compare = (void *)ml_array_compare, \
 ); \
 \
 ML_INIT(ml_methodx_by_value(MLArrayMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
@@ -2465,6 +2469,7 @@ ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" 
 /*@vector::PREFIX
 */ \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.compare = (void *)ml_array_compare, \
 ); \
 \
 ML_INIT(ml_methodx_by_value(MLVector ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
@@ -2476,6 +2481,7 @@ ML_TYPE(MLVectorMutable ## SUFFIX, (MLVector ## SUFFIX, MLVectorMutable ## PAREN
 // A vector of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.compare = (void *)ml_array_compare, \
 ); \
 \
 ML_INIT(ml_methodx_by_value(MLVectorMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
@@ -2486,6 +2492,7 @@ ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" 
 /*@matrix::PREFIX
 */ \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.compare = (void *)ml_array_compare, \
 ); \
 \
 ML_INIT(ml_methodx_by_value(MLMatrix ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \
@@ -2497,6 +2504,7 @@ ML_TYPE(MLMatrixMutable ## SUFFIX, (MLMatrix ## SUFFIX, MLMatrixMutable ## PAREN
 // A matrix of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.compare = (void *)ml_array_compare, \
 ); \
 \
 ML_INIT(ml_methodx_by_value(MLMatrixMutable ## SUFFIX->Constructor, (void *)(intptr_t)FORMAT, ml_array_typed_new_fnx_list, MLListT, NULL)) \

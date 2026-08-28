@@ -361,6 +361,25 @@ static long ml_partial_function_hash(ml_partial_function_t *Partial, ml_hash_cha
 	return Hash;
 }
 
+static int ml_partial_function_compare(ml_partial_function_t *A, ml_partial_function_t *B, ml_compare_chain_t *Chain) {
+	int Compare = ml_compare_chain(A->Function, B->Function, Chain);
+	if (Compare) return Compare;
+	int Count = A->Count < B->Count ? A->Count : B->Count;
+	for (int I = 0; I < Count; ++I) {
+		if (!A->Args[I]) {
+			if (B->Args[I]) return -1;
+		} else if (!B->Args[I]) {
+			return 1;
+		} else {
+			Compare = ml_compare_chain(A->Args[I], B->Args[I], Chain);
+			if (Compare) return Compare;
+		}
+	}
+	if (A->Count < B->Count) return -1;
+	if (A->Count > B->Count) return 1;
+	return 0;
+}
+
 static void __attribute__ ((noinline)) ml_partial_function_copy_args(ml_partial_function_t *Partial, int CombinedCount, ml_value_t **CombinedArgs, int Count, ml_value_t **Args) {
 	ml_value_t *Copy[Count];
 	memcpy(Copy, Args, Count * sizeof(ml_value_t *));
@@ -404,6 +423,7 @@ ML_FUNCTION(MLFunctionPartial) {
 
 ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "function::partial",
 	.hash = (void *)ml_partial_function_hash,
+	.compare = (void *)ml_partial_function_compare,
 	.call = (void *)ml_partial_function_call,
 	.Constructor = (ml_value_t *)MLFunctionPartial
 );
@@ -536,9 +556,11 @@ ML_METHODV("[]", MLFunctionPartialT) {
 	return ml_chainedv(2, Args[0], Partial);
 }
 
-static ml_value_t *ml_partial_function_compare(ml_partial_function_t *A, ml_partial_function_t *B) {
+ML_METHOD("<>", MLFunctionPartialT, MLFunctionPartialT) {
+	ml_partial_function_t *A = (ml_partial_function_t *)Args[0];
+	ml_partial_function_t *B = (ml_partial_function_t *)Args[1];
 	// TODO: Replace this with a state to remove ml_simple_call
-	ml_value_t *Args[2];
+	ml_value_t *Args2[2];
 	ml_value_t *Result;
 	int N;
 	if (A->Count > B->Count) {
@@ -551,20 +573,20 @@ static ml_value_t *ml_partial_function_compare(ml_partial_function_t *A, ml_part
 		N = A->Count;
 		Result = (ml_value_t *)Zero;
 	}
-	Args[0] = A->Function;
-	Args[1] = B->Function;
-	ml_value_t *C = ml_simple_call(CompareMethod, 2, Args);
+	Args2[0] = A->Function;
+	Args2[1] = B->Function;
+	ml_value_t *C = ml_simple_call(CompareMethod, 2, Args2);
 	if (ml_is_error(C)) return C;
 	if (ml_integer_value(C)) return C;
 	for (int I = 0; I < N; ++I) {
-		Args[0] = A->Args[I];
-		Args[1] = B->Args[I];
-		if (!Args[0]) {
-			if (Args[1]) return (ml_value_t *)NegOne;
-		} else if (!Args[1]) {
+		Args2[0] = A->Args[I];
+		Args2[1] = B->Args[I];
+		if (!Args2[0]) {
+			if (Args2[1]) return (ml_value_t *)NegOne;
+		} else if (!Args2[1]) {
 			return (ml_value_t *)One;
 		} else {
-			ml_value_t *C = ml_simple_call(CompareMethod, 2, Args);
+			ml_value_t *C = ml_simple_call(CompareMethod, 2, Args2);
 			if (ml_is_error(C)) return C;
 			if (ml_integer_value(C)) return C;
 		}
@@ -572,22 +594,26 @@ static ml_value_t *ml_partial_function_compare(ml_partial_function_t *A, ml_part
 	return Result;
 }
 
-ML_METHOD("<>", MLFunctionPartialT, MLFunctionPartialT) {
-	ml_partial_function_t *A = (ml_partial_function_t *)Args[0];
-	ml_partial_function_t *B = (ml_partial_function_t *)Args[1];
-	return ml_partial_function_compare(A, B);
-}
-
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value;
 } ml_value_function_t;
+
+static long ml_value_function_hash(ml_value_function_t *Function, ml_hash_chain_t *Chain) {
+	return ml_hash_chain(Function->Value, Chain) * 17;
+}
+
+static long ml_value_function_compare(ml_value_function_t *A, ml_value_function_t *B, ml_compare_chain_t *Chain) {
+	return ml_compare_chain(A->Value, B->Value, Chain);
+}
 
 static void ml_value_function_call(ml_state_t *Caller, ml_value_function_t *Function, int Count, ml_value_t **Args) {
 	ML_RETURN(Function->Value);
 }
 
 ML_TYPE(MLFunctionValueT, (MLFunctionT), "function::value",
+	.hash = (void *)ml_value_function_hash,
+	.compare = (void *)ml_value_function_compare,
 	.call = (void *)ml_value_function_call
 );
 

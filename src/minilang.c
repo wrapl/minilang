@@ -641,7 +641,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_state_t *Main = ml_state(NULL);
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
-	if (SliceSize) ml_default_scheduler_init(Main->Context, SliceSize);
+	ml_scheduler_t *Scheduler = ml_default_scheduler_init(Main->Context, SliceSize);
 #endif
 #ifdef Linux
 #ifdef ML_JSON
@@ -681,10 +681,8 @@ int main(int Argc, const char *Argv[]) {
 		ml_console(Main->Context, (ml_getter_t)ml_stringmap_global_get, MLGlobals, "--> ", "... ");
 	}
 #ifdef ML_SCHEDULER
-	for (;;) {
-		ml_scheduler_t *Scheduler = ml_context_get_static(Main->Context, ML_SCHEDULER_INDEX);
-		Scheduler->run(Scheduler);
-	}
+	Scheduler = ml_context_get_scheduler(Main->Context);
+	ml_scheduler_run(Scheduler);
 #endif
 	return 0;
 }

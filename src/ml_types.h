@@ -58,6 +58,13 @@ struct ml_hash_chain_t {
 	int Index;
 };
 
+typedef struct ml_compare_chain_t ml_compare_chain_t;
+
+struct ml_compare_chain_t {
+	ml_compare_chain_t *Previous;
+	ml_value_t *A, *B;
+};
+
 #ifdef ML_GENERICS
 
 typedef struct ml_generic_rule_t ml_generic_rule_t;
@@ -71,6 +78,7 @@ struct ml_type_t {
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	void (*assign)(ml_state_t *, ml_value_t *, ml_value_t *);
+	int (*compare)(ml_value_t *, ml_value_t *, ml_compare_chain_t *);
 	void (*iterate)(ml_state_t *Caller, ml_value_t *Value);
 	void (*iter_value)(ml_state_t *Caller, ml_value_t *Iter);
 	void (*iter_key)(ml_state_t *Caller, ml_value_t *Iter);
@@ -100,6 +108,8 @@ long ml_value_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 
 void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value);
 
+int ml_default_compare(ml_value_t *A, ml_value_t *B, ml_compare_chain_t *Chain);
+
 long ml_type_hash(ml_type_t *Type);
 void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args);
 
@@ -110,6 +120,7 @@ void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **A
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
+	.compare = ml_default_compare, \
 	.iterate = ml_iterate, \
 	.iter_value = ml_iter_value, \
 	.iter_key = ml_iter_key, \
@@ -290,6 +301,12 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 
 static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
+}
+
+int ml_compare_chain(ml_value_t *A, ml_value_t *B, ml_compare_chain_t *Chain);
+
+static inline int ml_compare(ml_value_t *A, ml_value_t *B) {
+	return ml_compare_chain(A, B, NULL);
 }
 
 #define SHA256_BLOCK_SIZE 32

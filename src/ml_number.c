@@ -81,10 +81,19 @@ static long ml_complex_hash(ml_complex_t *Complex, ml_hash_chain_t *Chain) {
 	return (long)creal(Complex->Value);
 }
 
+static int ml_complex_compare(ml_complex_t *A, ml_complex_t *B, ml_compare_chain_t *Chain) {
+	if (creal(A->Value) < creal(B->Value)) return -1;
+	if (creal(A->Value) > creal(B->Value)) return 1;
+	if (cimag(A->Value) < cimag(B->Value)) return -1;
+	if (cimag(A->Value) > cimag(B->Value)) return 1;
+	return 0;
+}
+
 ML_TYPE(MLComplexT, (MLNumberT), "complex");
 
 ML_TYPE(MLComplexDoubleT, (MLComplexT), "complex::double",
 	.hash = (void *)ml_complex_hash,
+	.compare = (void *)ml_complex_compare,
 	.NoInherit = 1
 );
 
@@ -444,9 +453,20 @@ static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_integer64_value(Value);
 }
 
+static int ml_integer64_compare(ml_integer_t *A, ml_integer_t *B, ml_compare_chain_t *Chain) {
+#ifdef ML_BIGINT
+	return mpz_cmp(A->Value, B->Value);
+#else
+	if (A->Value < B->Value) return -1;
+	if (A->Value > B->Value) return 1;
+	return 0;
+#endif
+}
+
 ML_TYPE(MLInteger64T, (MLIntegerT), "integer64",
 //!internal
 	.hash = (void *)ml_integer64_hash,
+	.compare = (void *)ml_integer64_compare,
 	.NoInherit = 1
 );
 
@@ -520,9 +540,47 @@ static long ml_rational64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 #endif
 }
 
+static int cmp_rational(rat64_t A, rat64_t B) {
+	if (A.Num == B.Num && A.Den == B.Den) return 0;
+#ifdef __SIZEOF_INT128__
+	__int128 AD = A.Num * B.Den;
+	__int128 CB = B.Num * A.Den;
+	if (AD < CB) return -1;
+	if (AD > CB) return 1;
+	return 0;
+#else
+	int Sign = 1;
+	if (A.Num < 0) {
+		if (B.Num >= 0) return -1;
+		A.Num = -A.Num;
+		B.Num = -B.Num;
+		Sign = -1;
+	} else if (B.Num < 0) {
+		return 1;
+	}
+	uint64_t AD[4], CB[4];
+	__mul128(AD, A.Num, B.Den);
+	__mul128(CB, B.Num, A.Den);
+	for (int I = 4; --I >= 0;) {
+		if (AD[I] < CB[I]) return -Sign;
+		if (AD[I] > CB[I]) return Sign;
+	}
+	return 0;
+#endif
+}
+
+static int ml_rational64_compare(ml_rational_t *A, ml_rational_t *B, ml_compare_chain_t *Chain) {
+#ifdef ML_BIGINT
+	return mpq_cmp(A->Value, B->Value);
+#else
+	return cmp_rational(A->Value, B->Value);
+#endif
+}
+
 ML_TYPE(MLRational64T, (MLRationalT), "rational64",
 //!internal
 	.hash = (void *)ml_rational64_hash,
+	.compare = (void *)ml_rational64_compare,
 	.NoInherit = 1
 );
 
@@ -784,6 +842,16 @@ static long ml_integer64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_integer64_value(Value);
 }
 
+static int ml_integer64_compare(ml_integer_t *A, ml_integer_t *B, ml_compare_chain_t *Chain) {
+#ifdef ML_BIGINT
+	return mpz_cmp(A->Value, B->Value);
+#else
+	if (A->Value < B->Value) return -1;
+	if (A->Value > B->Value) return 1;
+	return 0;
+#endif
+}
+
 static void ml_integer64_call(ml_state_t *Caller, ml_value_t *Integer, int Count, ml_value_t **Args) {
 	long Index = ml_integer64_value(Integer);
 	if (Index <= 0) Index += Count + 1;
@@ -803,6 +871,7 @@ ML_TYPE(MLInteger64T, (MLIntegerT), "integer",
 //$= 4("a", "b", "c")
 //$= 0("a", "b", "c")
 	.hash = (void *)ml_integer64_hash,
+	.compare = (void *)ml_integer64_compare,
 	.call = (void *)ml_integer64_call
 );
 
@@ -839,8 +908,21 @@ static long ml_double_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)ml_double_value(Value);
 }
 
+#ifndef ML_NANBOXING
+
+static int ml_double_compare(ml_double_t *A, ml_double_t *B, ml_compare_chain_t *Chain) {
+	if (A->Value < B->Value) return -1;
+	if (A->Value > B->Value) return 1;
+	return 0;
+}
+
+#endif
+
 ML_TYPE(MLDoubleT, (MLRealT), "double",
 	.hash = (void *)ml_double_hash,
+#ifndef ML_NANBOXING
+	.compare = (void *)ml_double_compare,
+#endif
 	.NoInherit = 1
 );
 
@@ -2357,35 +2439,6 @@ static void __mul128(uint64_t C[4], uint64_t A, uint64_t B) {
 	C[3] = Temp >> 32;
 	C[3] += C[2] >> 32;
 	C[2] &= 0xFFFFFFFF;
-}
-
-static int cmp_rational(rat64_t A, rat64_t B) {
-	if (A.Num == B.Num && A.Den == B.Den) return 0;
-#ifdef __SIZEOF_INT128__
-	__int128 AD = A.Num * B.Den;
-	__int128 CB = B.Num * A.Den;
-	if (AD < CB) return -1;
-	if (AD > CB) return 1;
-	return 0;
-#else
-	int Sign = 1;
-	if (A.Num < 0) {
-		if (B.Num >= 0) return -1;
-		A.Num = -A.Num;
-		B.Num = -B.Num;
-		Sign = -1;
-	} else if (B.Num < 0) {
-		return 1;
-	}
-	uint64_t AD[4], CB[4];
-	__mul128(AD, A.Num, B.Den);
-	__mul128(CB, B.Num, A.Den);
-	for (int I = 4; --I >= 0;) {
-		if (AD[I] < CB[I]) return -Sign;
-		if (AD[I] > CB[I]) return Sign;
-	}
-	return 0;
-#endif
 }
 
 ML_METHOD("<>", MLRationalT, MLRationalT) {
@@ -4213,8 +4266,25 @@ static long ml_decimal_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_integer_value(Value);
 }
 
+static int ml_decimal_compare(ml_decimal_t *A, ml_decimal_t *B, ml_compare_chain_t *Chain) {
+	if (A->Scale > B->Scale) {
+		mpz_t Unscaled;
+		mpz_ui_pow_ui(Unscaled, 10, A->Scale - B->Scale);
+		mpz_mul(Unscaled, Unscaled, B->Unscaled);
+		return mpz_cmp(A->Unscaled, Unscaled);
+	}
+	if (A->Scale < B->Scale) {
+		mpz_t Unscaled;
+		mpz_ui_pow_ui(Unscaled, 10, B->Scale - A->Scale);
+		mpz_mul(Unscaled, Unscaled, A->Unscaled);
+		return mpz_cmp(Unscaled, B->Unscaled);
+	}
+	return mpz_cmp(A->Unscaled, B->Unscaled);
+}
+
 ML_TYPE(MLDecimalT, (MLRealT), "decimal",
-	.hash = (void *)ml_decimal_hash
+	.hash = (void *)ml_decimal_hash,
+	.compare = (void *)ml_decimal_compare
 );
 
 ml_value_t *ml_decimal(ml_value_t *Unscaled, int32_t Scale) {

@@ -960,6 +960,12 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Type + Value->Value;
 }
 
+static int ml_enum_value_compare(ml_enum_value_t *A, ml_enum_value_t *B, ml_compare_chain_t *Chain) {
+	if (A->Value < B->Value) return -1;
+	if (A->Value > B->Value) return 1;
+	return 0;
+}
+
 ML_TYPE(MLEnumValueT, (), "enum-value");
 //@enum::value
 // An instance of an enumeration type.
@@ -1029,6 +1035,7 @@ have_enum:
 	Enum->Base.iter_key = ml_iter_key;
 	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.compare = (void *)ml_enum_value_compare;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
@@ -1606,6 +1613,16 @@ ML_METHOD("prev", MLEnumValueT) {
 
 //!flags
 
+static long ml_flags_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) {
+	return (long)Value->Type + Value->Value;
+}
+
+static int ml_flags_value_compare(ml_flags_value_t *A, ml_flags_value_t *B, ml_compare_chain_t *Chain) {
+	if (A->Value < B->Value) return -1;
+	if (A->Value > B->Value) return 1;
+	return 0;
+}
+
 static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_value_t **Args) {
 	ml_flags_value_t *Value = new(ml_flags_value_t);
 	Value->Type = Flags;
@@ -1667,7 +1684,8 @@ have_flags:
 	Flags->Base.iter_value = ml_iter_value;
 	Flags->Base.iter_key = ml_iter_key;
 	Flags->Base.iter_next = ml_iter_next;
-	Flags->Base.hash = (void *)ml_enum_value_hash;
+	Flags->Base.hash = (void *)ml_flags_value_hash;
+	Flags->Base.compare = (void *)ml_flags_value_compare;
 	Flags->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;

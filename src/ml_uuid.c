@@ -13,9 +13,14 @@ static long ml_uuid_hash(ml_uuid_t *UUID, ml_hash_chain_t *Chain) {
 	return *(long *)UUID->Value;
 }
 
+static int ml_uuid_compare(ml_uuid_t *A, ml_uuid_t *B, ml_compare_chain_t *Chain) {
+	return uuid_compare(A->Value, B->Value);
+}
+
 ML_TYPE(MLUUIDT, (), "uuid",
 // A UUID.
-	.hash = (void *)ml_uuid_hash
+	.hash = (void *)ml_uuid_hash,
+	.compare = (void *)ml_uuid_compare
 );
 
 ml_value_t *ml_uuid(const uuid_t Value) {

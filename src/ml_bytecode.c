@@ -1533,6 +1533,13 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+static int ml_closure_compare(ml_value_t *A, ml_value_t *B, ml_compare_chain_t *Chain) {
+	char Hash1[SHA256_BLOCK_SIZE], Hash2[SHA256_BLOCK_SIZE];
+	ml_value_sha256(A, NULL, (unsigned char *)Hash1);
+	ml_value_sha256(B, NULL, (unsigned char *)Hash2);
+	return memcmp(Hash1, Hash2, SHA256_BLOCK_SIZE);
+}
+
 ML_FUNCTION(MLClosure) {
 //@closure
 //<Original
@@ -1554,6 +1561,7 @@ ML_FUNCTION(MLClosure) {
 ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 // A Minilang function.
 	.hash = ml_closure_hash,
+	.compare = ml_closure_compare,
 	.call = (void *)ml_closure_call,
 	.Constructor = (ml_value_t *)MLClosure
 );

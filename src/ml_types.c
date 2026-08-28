@@ -286,6 +286,12 @@ void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
 	ML_ERROR("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
 }
 
+int ml_default_compare(ml_value_t *A, ml_value_t *B, ml_compare_chain_t *Chain) {
+	if (A < B) return -1;
+	if (A > B) return 1;
+	return 0;
+}
+
 void ml_type_init(ml_type_t *Type, ...) {
 	int Rank = Type->Rank;
 	va_list Args;
@@ -306,6 +312,7 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	ml_type_init(Type, Parent, NULL);
 	Type->Name = Name;
 	Type->hash = Parent->hash;
+	Type->compare = Parent->compare;
 	Type->call = Parent->call;
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
@@ -401,6 +408,7 @@ ml_type_t *ml_union_type(int NumTypes, ml_type_t *Types[]) {
 	}
 	*Name = 0;
 	Type->Base.hash = ml_default_hash;
+	Type->Base.compare = ml_default_compare;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
@@ -425,6 +433,7 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 	Type->Base.Type = MLTypeUnionT;
 	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Name, Type2->Name);
 	Type->Base.hash = ml_default_hash;
+	Type->Base.compare = ml_default_compare;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
@@ -450,6 +459,7 @@ ML_METHOD("|", MLTypeUnionT, MLTypeT) {
 	Type->Base.Type = MLTypeUnionT;
 	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Base.Name, Type2->Name);
 	Type->Base.hash = ml_default_hash;
+	Type->Base.compare = ml_default_compare;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
@@ -475,6 +485,7 @@ ML_METHOD("|", MLTypeT, MLTypeUnionT) {
 	Type->Base.Type = MLTypeUnionT;
 	GC_asprintf((char **)&Type->Base.Name, "%s|%s", Type1->Name, Type2->Base.Name);
 	Type->Base.hash = ml_default_hash;
+	Type->Base.compare = ml_default_compare;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
@@ -498,6 +509,7 @@ ML_METHOD("?", MLTypeT) {
 	Type->Base.Type = MLTypeUnionT;
 	GC_asprintf((char **)&Type->Base.Name, "%s|nil", Type1->Name);
 	Type->Base.hash = ml_default_hash;
+	Type->Base.compare = ml_default_compare;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
@@ -521,6 +533,7 @@ ML_METHOD("?", MLTypeUnionT) {
 	Type->Base.Type = MLTypeUnionT;
 	GC_asprintf((char **)&Type->Base.Name, "%s|nil", Type1->Base.Name);
 	Type->Base.hash = ml_default_hash;
+	Type->Base.compare = ml_default_compare;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
 	Type->Base.assign = ml_default_assign;
@@ -617,6 +630,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.Type = MLTypeGenericT;
 	Type->Base.Name = Name;
 	Type->Base.hash = Base->hash;
+	Type->Base.compare = Base->compare;
 	Type->Base.call = Base->call;
 	Type->Base.deref = Base->deref;
 	Type->Base.assign = Base->assign;
@@ -1008,6 +1022,19 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 	ML_RETURN(Value);
 }
 
+ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
+	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
+	if (function) return function(Value, Index);
+	Value = ml_deref(Value);
+	function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
+	if (function) return function(Value, Index);
+	return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
+}
+
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLNilT, ml_value_t *Value, int Index) {
+	return MLNil;
+}
+
 // Copying //
 
 //!general
@@ -1286,6 +1313,22 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_typeof(Value)->hash(Value, NewChain);
 }
 
+int ml_compare_chain(ml_value_t *A, ml_value_t *B, ml_compare_chain_t *Chain) {
+	ml_type_t *TypeA = ml_typeof(A);
+	ml_type_t *TypeB = ml_typeof(B);
+	if (TypeA < TypeB) return -1;
+	if (TypeA > TypeB) return 1;
+	for (ml_compare_chain_t *Link = Chain; Link; Link = Link->Previous) {
+		if (Link->A == A) {
+			if (Link->B < B) return -1;
+			if (Link->B > B) return 1;
+			return 0;
+		}
+	}
+	ml_compare_chain_t NewChain[1] = {{Chain, A, B}};
+	return TypeA->compare(A, B, NewChain);
+}
+
 void ml_value_sha256(ml_value_t *Value, ml_hash_chain_t *Chain, unsigned char Hash[SHA256_BLOCK_SIZE]) {
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
 		if (Link->Value == Value) {
@@ -1347,6 +1390,11 @@ ML_METHOD("#", MLAnyT) {
 // Returns a hash for :mini:`Value` for use in lookup tables, etc.
 	ml_value_t *Value = Args[0];
 	return ml_integer(ml_typeof(Value)->hash(Value, NULL));
+}
+
+ML_FUNCTION(MLCompare) {
+	ML_CHECK_ARG_COUNT(2);
+	return ml_integer(ml_compare(Args[0], Args[1]));
 }
 
 ML_METHOD("=", MLAnyT, MLAnyT) {
@@ -2666,5 +2714,6 @@ void ml_init(const char *ExecName, stringmap_t *Globals) {
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);
 		stringmap_insert(Globals, "weakref", MLWeakRefT);
+		stringmap_insert(Globals, "compare", MLCompare);
 	}
 }

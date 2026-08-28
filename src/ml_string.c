@@ -1039,6 +1039,16 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+static int ml_string_compare(ml_string_t *A, ml_string_t *B, ml_compare_chain_t *Chain) {
+	if (A->Length < B->Length) {
+		return memcmp(A->Value, B->Value, A->Length) ?: -1;
+	} else if (A->Length > B->Length) {
+		return memcmp(A->Value, B->Value, B->Length) ?: 1;
+	} else {
+		return memcmp(A->Value, B->Value, B->Length);
+	}
+}
+
 ML_METHOD_DECL(AppendMethod, "append");
 
 typedef struct {
@@ -1077,6 +1087,7 @@ ML_FUNCTIONX(MLString) {
 ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
 // A string of characters in UTF-8 encoding.
 	.hash = (void *)ml_string_hash,
+	.compare = (void *)ml_string_compare,
 	.Constructor = (ml_value_t *)MLString,
 	.NoInherit = 1
 );
@@ -4866,6 +4877,10 @@ static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+static int ml_regex_compare(ml_regex_t *A, ml_regex_t *B, ml_compare_chain_t *Chain) {
+	return strcmp(A->Pattern, B->Pattern);
+}
+
 ML_FUNCTION(MLRegex) {
 //@regex
 //<String
@@ -4922,6 +4937,7 @@ ML_TYPE(MLRegexT, (MLFunctionT), "regex",
 // A regular expression.
 	.hash = (void *)ml_regex_hash,
 	.call = (void *)ml_regex_call,
+	.compare = (void *)ml_regex_compare,
 	.Constructor = (ml_value_t *)MLRegex
 );
 
