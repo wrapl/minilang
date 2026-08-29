@@ -53,6 +53,10 @@ any
    Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are exactly the same instance and :mini:`nil` otherwise.
 
 
+:mini:`fun mlcompare(Arg₁: any, Arg₂: any)`
+   *TBD*
+
+
 :mini:`meth #(Value: any): integer`
    Returns a hash for :mini:`Value` for use in lookup tables,  etc.
 

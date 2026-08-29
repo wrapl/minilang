@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="859" column="17" bodyfile="src/ml_types.h" bodystart="859" bodyend="-1"/>
+        <location file="src/ml_types.h" line="879" column="17" bodyfile="src/ml_types.h" bodystart="879" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__real__interval__t_1a2dddecc38b11adf00c657fb5f3acd39b" prot="public" static="no" mutable="no">
         <type>double</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="860" column="8" bodyfile="src/ml_types.h" bodystart="860" bodyend="-1"/>
+        <location file="src/ml_types.h" line="880" column="8" bodyfile="src/ml_types.h" bodystart="880" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__real__interval__t_1af684a78bb3c742b04a5b196836bb3d84" prot="public" static="no" mutable="no">
         <type>double</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="860" column="14" bodyfile="src/ml_types.h" bodystart="860" bodyend="-1"/>
+        <location file="src/ml_types.h" line="880" column="14" bodyfile="src/ml_types.h" bodystart="880" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -92,7 +92,7 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="858" column="1" bodyfile="src/ml_types.h" bodystart="858" bodyend="861"/>
+    <location file="src/ml_types.h" line="878" column="1" bodyfile="src/ml_types.h" bodystart="878" bodyend="881"/>
     <listofallmembers>
       <member refid="structml__real__interval__t_1af684a78bb3c742b04a5b196836bb3d84" prot="public" virt="non-virtual"><scope>ml_real_interval_t</scope><name>Limit</name></member>
       <member refid="structml__real__interval__t_1a2dddecc38b11adf00c657fb5f3acd39b" prot="public" virt="non-virtual"><scope>ml_real_interval_t</scope><name>Start</name></member>

@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="201" column="12" bodyfile="src/ml_runtime.h" bodystart="201" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="196" column="12" bodyfile="src/ml_runtime.h" bodystart="196" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__source__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="202" column="5" bodyfile="src/ml_runtime.h" bodystart="202" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="197" column="5" bodyfile="src/ml_runtime.h" bodystart="197" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__source__t_1aa5e9ff602562a4d62d6a811e4bf1c88a" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -43,14 +43,14 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_runtime.h" line="202" column="10" bodyfile="src/ml_runtime.h" bodystart="202" bodyend="-1"/>
+        <location file="src/ml_runtime.h" line="197" column="10" bodyfile="src/ml_runtime.h" bodystart="197" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="src/ml_runtime.h" line="200" column="1" bodyfile="src/ml_runtime.h" bodystart="200" bodyend="203"/>
+    <location file="src/ml_runtime.h" line="195" column="1" bodyfile="src/ml_runtime.h" bodystart="195" bodyend="198"/>
     <listofallmembers>
       <member refid="structml__source__t_1af5b2cae791582f6f4f975f6b25290977" prot="public" virt="non-virtual"><scope>ml_source_t</scope><name>Line</name></member>
       <member refid="structml__source__t_1a760b4e07b204e4852e7fb55e25567623" prot="public" virt="non-virtual"><scope>ml_source_t</scope><name>Name</name></member>

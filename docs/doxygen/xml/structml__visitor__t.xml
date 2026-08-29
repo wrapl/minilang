@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="214" column="11" bodyfile="src/ml_types.h" bodystart="214" bodyend="-1"/>
+        <location file="src/ml_types.h" line="227" column="11" bodyfile="src/ml_types.h" bodystart="227" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__visitor__t_1aa85b2e42606f43856f7d3d4b2c6a7c1d" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="215" column="12" bodyfile="src/ml_types.h" bodystart="215" bodyend="-1"/>
+        <location file="src/ml_types.h" line="228" column="12" bodyfile="src/ml_types.h" bodystart="228" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__visitor__t_1a9a034c75157b61d25306623e27aa2c51" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -43,7 +43,21 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="215" column="15" bodyfile="src/ml_types.h" bodystart="215" bodyend="-1"/>
+        <location file="src/ml_types.h" line="228" column="15" bodyfile="src/ml_types.h" bodystart="228" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structml__visitor__t_1a02e35d6ff83a5c25baa4e411a16b4c4a" prot="public" static="no" mutable="no">
+        <type>ml_visitor_state_t *</type>
+        <definition>ml_visitor_state_t* States</definition>
+        <argsstring></argsstring>
+        <name>States</name>
+        <qualifiedname>ml_visitor_t::States</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_types.h" line="229" column="20" bodyfile="src/ml_types.h" bodystart="229" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__visitor__t_1a4603dbc58adeaccef892a449fb6dbe58" prot="public" static="no" mutable="no">
         <type><ref refid="structml__value__t" kindref="compound">ml_value_t</ref> *</type>
@@ -57,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="216" column="12" bodyfile="src/ml_types.h" bodystart="216" bodyend="-1"/>
+        <location file="src/ml_types.h" line="230" column="12" bodyfile="src/ml_types.h" bodystart="230" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__visitor__t_1abd3e2b6e39e0da33965b815ab9a3338e" prot="public" static="no" mutable="no">
         <type><ref refid="structinthash__t" kindref="compound">inthash_t</ref></type>
@@ -71,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="217" column="11" bodyfile="src/ml_types.h" bodystart="217" bodyend="-1"/>
+        <location file="src/ml_types.h" line="231" column="11" bodyfile="src/ml_types.h" bodystart="231" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -128,12 +142,13 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="213" column="1" bodyfile="src/ml_types.h" bodystart="213" bodyend="218"/>
+    <location file="src/ml_types.h" line="226" column="1" bodyfile="src/ml_types.h" bodystart="226" bodyend="232"/>
     <listofallmembers>
       <member refid="structml__visitor__t_1a4603dbc58adeaccef892a449fb6dbe58" prot="public" virt="non-virtual"><scope>ml_visitor_t</scope><name>Args</name></member>
       <member refid="structml__visitor__t_1abd3e2b6e39e0da33965b815ab9a3338e" prot="public" virt="non-virtual"><scope>ml_visitor_t</scope><name>Cache</name></member>
       <member refid="structml__visitor__t_1a9a034c75157b61d25306623e27aa2c51" prot="public" virt="non-virtual"><scope>ml_visitor_t</scope><name>Error</name></member>
       <member refid="structml__visitor__t_1aa85b2e42606f43856f7d3d4b2c6a7c1d" prot="public" virt="non-virtual"><scope>ml_visitor_t</scope><name>Fn</name></member>
+      <member refid="structml__visitor__t_1a02e35d6ff83a5c25baa4e411a16b4c4a" prot="public" virt="non-virtual"><scope>ml_visitor_t</scope><name>States</name></member>
       <member refid="structml__visitor__t_1adc2425604820d582fc01c79ba56f8999" prot="public" virt="non-virtual"><scope>ml_visitor_t</scope><name>Type</name></member>
     </listofallmembers>
   </compounddef>

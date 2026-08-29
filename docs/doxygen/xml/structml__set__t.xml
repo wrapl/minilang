@@ -15,7 +15,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1503" column="11" bodyfile="src/ml_types.h" bodystart="1503" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1522" column="11" bodyfile="src/ml_types.h" bodystart="1522" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1aab29c9778d2c2d6211fbe1b37d0b0571" prot="public" static="no" mutable="no">
         <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
@@ -29,7 +29,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1504" column="15" bodyfile="src/ml_types.h" bodystart="1504" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1523" column="15" bodyfile="src/ml_types.h" bodystart="1523" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1ae61f9825d1926037683c02c1789b45bf" prot="public" static="no" mutable="no">
         <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
@@ -43,7 +43,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1504" column="20" bodyfile="src/ml_types.h" bodystart="1504" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1523" column="20" bodyfile="src/ml_types.h" bodystart="1523" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1a698de0e27a79959e0d07ebc3063f9386" prot="public" static="no" mutable="no">
         <type><ref refid="structml__set__node__t" kindref="compound">ml_set_node_t</ref> *</type>
@@ -57,21 +57,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1504" column="25" bodyfile="src/ml_types.h" bodystart="1504" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="variable" id="structml__set__t_1a7c08387c13dd996bac9f9aea2f89aefd" prot="public" static="no" mutable="no">
-        <type><ref refid="structml__method__cached__t" kindref="compound">ml_method_cached_t</ref> *</type>
-        <definition>ml_method_cached_t* Cached</definition>
-        <argsstring></argsstring>
-        <name>Cached</name>
-        <qualifiedname>ml_set_t::Cached</qualifiedname>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/ml_types.h" line="1505" column="20" bodyfile="src/ml_types.h" bodystart="1505" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1523" column="25" bodyfile="src/ml_types.h" bodystart="1523" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1af06eb7b9b70be91dadd4f12ebcaed796" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -85,7 +71,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1506" column="5" bodyfile="src/ml_types.h" bodystart="1506" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1524" column="5" bodyfile="src/ml_types.h" bodystart="1524" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="structml__set__t_1a8e0c8267c109b3360503553133355dbc" prot="public" static="no" mutable="no">
         <type>ml_set_order_t</type>
@@ -99,7 +85,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/ml_types.h" line="1507" column="16" bodyfile="src/ml_types.h" bodystart="1507" bodyend="-1"/>
+        <location file="src/ml_types.h" line="1525" column="16" bodyfile="src/ml_types.h" bodystart="1525" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -110,27 +96,6 @@
       <node id="4">
         <label>inthash_t</label>
         <link refid="structinthash__t"/>
-      </node>
-      <node id="7">
-        <label>ml_method_cached_t</label>
-        <link refid="structml__method__cached__t"/>
-        <childnode refid="7" relation="usage">
-          <edgelabel>MethodNext</edgelabel>
-          <edgelabel>Next</edgelabel>
-        </childnode>
-        <childnode refid="8" relation="usage">
-          <edgelabel>Method</edgelabel>
-        </childnode>
-        <childnode refid="3" relation="usage">
-          <edgelabel>Callback</edgelabel>
-        </childnode>
-      </node>
-      <node id="8">
-        <label>ml_method_t</label>
-        <link refid="structml__method__t"/>
-        <childnode refid="2" relation="usage">
-          <edgelabel>Type</edgelabel>
-        </childnode>
       </node>
       <node id="6">
         <label>ml_set_node_t</label>
@@ -158,9 +123,6 @@
           <edgelabel>Head</edgelabel>
           <edgelabel>Root</edgelabel>
           <edgelabel>Tail</edgelabel>
-        </childnode>
-        <childnode refid="7" relation="usage">
-          <edgelabel>Cached</edgelabel>
         </childnode>
       </node>
       <node id="2">
@@ -193,9 +155,8 @@
         <link refid="structstringmap__t"/>
       </node>
     </collaborationgraph>
-    <location file="src/ml_types.h" line="1502" column="1" bodyfile="src/ml_types.h" bodystart="1502" bodyend="1508"/>
+    <location file="src/ml_types.h" line="1521" column="1" bodyfile="src/ml_types.h" bodystart="1521" bodyend="1526"/>
     <listofallmembers>
-      <member refid="structml__set__t_1a7c08387c13dd996bac9f9aea2f89aefd" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Cached</name></member>
       <member refid="structml__set__t_1aab29c9778d2c2d6211fbe1b37d0b0571" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Head</name></member>
       <member refid="structml__set__t_1a8e0c8267c109b3360503553133355dbc" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Order</name></member>
       <member refid="structml__set__t_1a698de0e27a79959e0d07ebc3063f9386" prot="public" virt="non-virtual"><scope>ml_set_t</scope><name>Root</name></member>
