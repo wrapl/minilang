@@ -73,6 +73,20 @@
         </inbodydescription>
         <location file="src/ml_object.h" line="32" column="17" bodyfile="src/ml_object.h" bodystart="32" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="variable" id="structml__class__t_1a208fa5e1d58269b878f2c67d37a40633" prot="public" static="no" mutable="no">
+        <type><ref refid="structml__field__info__t" kindref="compound">ml_field_info_t</ref> **</type>
+        <definition>ml_field_info_t ** Keys</definition>
+        <argsstring></argsstring>
+        <name>Keys</name>
+        <qualifiedname>ml_class_t::Keys</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="32" column="24" bodyfile="src/ml_object.h" bodystart="32" bodyend="-1"/>
+      </memberdef>
       <memberdef kind="variable" id="structml__class__t_1ad221667156a88d2210ab522cd4857bd7" prot="public" static="no" mutable="no">
         <type><ref refid="structstringmap__t" kindref="compound">stringmap_t</ref></type>
         <definition>stringmap_t Names[1]</definition>
@@ -101,6 +115,20 @@
         </inbodydescription>
         <location file="src/ml_object.h" line="34" column="5" bodyfile="src/ml_object.h" bodystart="34" bodyend="-1"/>
       </memberdef>
+      <memberdef kind="variable" id="structml__class__t_1a8413954d5db7416381ff3ab873237c02" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NumKeys</definition>
+        <argsstring></argsstring>
+        <name>NumKeys</name>
+        <qualifiedname>ml_class_t::NumKeys</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/ml_object.h" line="34" column="15" bodyfile="src/ml_object.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -124,6 +152,7 @@
         </childnode>
         <childnode refid="6" relation="usage">
           <edgelabel>Fields</edgelabel>
+          <edgelabel>Keys</edgelabel>
         </childnode>
         <childnode refid="5" relation="usage">
           <edgelabel>Names</edgelabel>
@@ -179,8 +208,10 @@
       <member refid="structml__class__t_1a0754a32f4ccbfc83511ece65254e3a5e" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Defaults</name></member>
       <member refid="structml__class__t_1abe63bfb65f252c406d1885ab2bfdeb93" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Fields</name></member>
       <member refid="structml__class__t_1a0e184c195424c58941a7356d4bebe8f1" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Initializer</name></member>
+      <member refid="structml__class__t_1a208fa5e1d58269b878f2c67d37a40633" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Keys</name></member>
       <member refid="structml__class__t_1ad221667156a88d2210ab522cd4857bd7" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>Names</name></member>
       <member refid="structml__class__t_1a0b4a5fc671df8ad2881096927bfacce8" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>NumFields</name></member>
+      <member refid="structml__class__t_1a8413954d5db7416381ff3ab873237c02" prot="public" virt="non-virtual"><scope>ml_class_t</scope><name>NumKeys</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

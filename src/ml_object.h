@@ -29,9 +29,9 @@ struct ml_field_info_t {
 struct ml_class_t {
 	ml_type_t Base;
 	ml_value_t *Initializer, *Defaults, *Call;
-	ml_field_info_t *Fields;
+	ml_field_info_t *Fields, **Keys;
 	stringmap_t Names[1];
-	int NumFields;
+	int NumFields, NumKeys;
 };
 
 struct ml_field_t {

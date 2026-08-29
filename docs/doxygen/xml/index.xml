@@ -88,8 +88,10 @@
     <member refid="structml__class__t_1a0754a32f4ccbfc83511ece65254e3a5e" kind="variable"><name>Defaults</name></member>
     <member refid="structml__class__t_1a45dc058b3d3caf83f458f9ba9e3b3b3e" kind="variable"><name>Call</name></member>
     <member refid="structml__class__t_1abe63bfb65f252c406d1885ab2bfdeb93" kind="variable"><name>Fields</name></member>
+    <member refid="structml__class__t_1a208fa5e1d58269b878f2c67d37a40633" kind="variable"><name>Keys</name></member>
     <member refid="structml__class__t_1ad221667156a88d2210ab522cd4857bd7" kind="variable"><name>Names</name></member>
     <member refid="structml__class__t_1a0b4a5fc671df8ad2881096927bfacce8" kind="variable"><name>NumFields</name></member>
+    <member refid="structml__class__t_1a8413954d5db7416381ff3ab873237c02" kind="variable"><name>NumKeys</name></member>
   </compound>
   <compound refid="structml__closure__info__t" kind="struct"><name>ml_closure_info_t</name>
     <member refid="structml__closure__info__t_1adc2425604820d582fc01c79ba56f8999" kind="variable"><name>Type</name></member>

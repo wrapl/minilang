@@ -54,6 +54,7 @@
         </childnode>
         <childnode refid="7" relation="usage">
           <edgelabel>Fields</edgelabel>
+          <edgelabel>Keys</edgelabel>
         </childnode>
         <childnode refid="6" relation="usage">
           <edgelabel>Names</edgelabel>

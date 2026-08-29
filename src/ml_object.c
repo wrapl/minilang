@@ -384,6 +384,7 @@ ml_type_t *ml_class(const char *Name) {
 		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
 	}
 	Class->Base.hash = ml_default_hash;
+	Class->Base.compare = ml_default_compare;
 	Class->Base.call = ml_default_call;
 	Class->Base.deref = ml_default_deref;
 	Class->Base.assign = ml_default_assign;
@@ -422,6 +423,30 @@ static long ml_object_hash(ml_object_t *Object, ml_hash_chain_t *Chain) {
 		Hash ^= ml_hash_chain(Field, Chain);
 	}
 	return Hash;
+}
+
+static long ml_fields_hash(ml_object_t *Object, ml_hash_chain_t *Chain) {
+	ml_class_t *Class = Object->Type;
+	long Hash = 5381;
+	for (const char *P = Class->Base.Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	ml_field_info_t **Keys = Class->Keys;
+	for (int I = Class->NumKeys; --I >= 0; ++Keys) {
+		ml_value_t *Field = Object->Fields[Keys[0]->Index].Value;
+		Hash ^= ml_hash_chain(Field, Chain);
+	}
+	return Hash;
+}
+
+static int ml_fields_compare(ml_object_t *A, ml_object_t *B, ml_compare_chain_t *Chain) {
+	ml_class_t *Class = A->Type;
+	ml_field_info_t **Keys = Class->Keys;
+	for (int I = Class->NumKeys; --I >= 0; ++Keys) {
+		ml_value_t *FieldA = A->Fields[Keys[0]->Index].Value;
+		ml_value_t *FieldB = B->Fields[Keys[0]->Index].Value;
+		int Compare = ml_compare_chain(FieldA, FieldB, Chain);
+		if (Compare) return Compare;
+	}
+	return 0;
 }
 
 static void ml_object_call(ml_state_t *Caller, ml_object_t *Object, int Count, ml_value_t **Args) {
@@ -485,6 +510,31 @@ static ml_value_t *ML_TYPED_FN(ml_class_modify, MLStringT, ml_context_t *Context
 	return ml_error("ValueError", "Unknown option %s", ml_string_value(Option));
 }
 
+static ml_value_t *ml_class_set_key_fields(ml_class_t *Class, ml_value_t *Value) {
+	typeof(ml_class_set_key_fields) *function = ml_typed_fn_get(ml_typeof(Value), ml_class_set_key_fields);
+	if (function) return function(Class, Value);
+	return ml_error("TypeError", "Unexpected key fields: <%s>", ml_typeof(Value)->Name);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_class_set_key_fields, MLNilT, ml_class_t *Class, ml_value_t *Value) {
+	Class->Base.hash = ml_value_hash;
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_class_set_key_fields, MLListT, ml_class_t *Class, ml_value_t *Value) {
+	Class->NumKeys = ml_list_length(Value);
+	ml_field_info_t **Fields = Class->Keys = anew(ml_field_info_t *, Class->NumKeys);
+	ML_LIST_FOREACH(Value, Iter) {
+		if (!ml_is(Iter->Value, MLMethodT)) return ml_error("TypeError", "Unexpected key field: <%s>", ml_typeof(Iter->Value)->Name);
+		ml_field_info_t *Field = stringmap_search(Class->Names, ml_method_name(Iter->Value));
+		if (!Field) return ml_error("NameError", "Unknown key field: %s", ml_method_name(Iter->Value));
+		*Fields++ = Field;
+	}
+	Class->Base.hash = (void *)ml_fields_hash;
+	Class->Base.compare = (void *)ml_fields_compare;
+	return NULL;
+}
+
 ML_FUNCTIONZ(MLClass) {
 //!object
 //@class
@@ -531,6 +581,7 @@ ML_FUNCTIONZ(MLClass) {
 		Class->Base.Type = MLNamedTypeT;
 		GC_asprintf((char **)&Class->Base.Name, "named-%s:%lx", NativeType->Name, (uintptr_t)Class);
 		Class->Base.hash = NativeType->hash;
+		Class->Base.compare = NativeType->compare;
 		Class->Base.call = NativeType->call;
 		Class->Base.deref = NativeType->deref;
 		Class->Base.assign = NativeType->assign;
@@ -587,6 +638,7 @@ ML_FUNCTIONZ(MLClass) {
 		Class->Base.Type = MLClassT;
 #endif
 		Class->Base.hash = ml_default_hash;
+		Class->Base.compare = ml_default_compare;
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
@@ -596,6 +648,7 @@ ML_FUNCTIONZ(MLClass) {
 		Class->Base.iter_next = ml_iter_next;
 		ml_value_t *Constructor = ml_cfunctionz(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
+		ml_value_t *KeyFields = NULL;
 		for (int I = 0; I < Count; ++I) {
 			if (ml_is(Args[I], MLNamesT)) {
 				ML_NAMES_FOREACH(Args[I], Iter) {
@@ -605,6 +658,8 @@ ML_FUNCTIONZ(MLClass) {
 					stringmap_insert(Class->Base.Exports, Name, Value);
 					if (!strcmp(Name, "of")) {
 						Class->Base.Constructor = Value;
+					} else if (!strcmp(Name, "key")) {
+						KeyFields = ml_deref(Value);
 					} else if (!strcmp(Name, "#") || !strcmp(Name, "hash")) {
 						Value = ml_deref(Value);
 						if (ml_is(Value, MLStringT)) {
@@ -634,6 +689,10 @@ ML_FUNCTIONZ(MLClass) {
 				ml_value_t *Error = ml_class_modify(Caller->Context, Class, ml_deref(Args[I]));
 				if (Error) ML_RETURN(Error);
 			}
+		}
+		if (KeyFields) {
+			ml_value_t *Error = ml_class_set_key_fields(Class, KeyFields);
+			if (Error) ML_RETURN(Error);
 		}
 		if (Class->Initializer && Class->Defaults) ML_ERROR("CallError", "Only one of init and defaults can be specified");
 		if (Id) {
@@ -748,6 +807,7 @@ ml_value_t *ml_watched_field(ml_value_t *Callback) {
 	Watcher->Base.iter_key = ml_iter_key;
 	Watcher->Base.iter_next = ml_iter_next;
 	Watcher->Base.hash = ml_default_hash;
+	Watcher->Base.compare = ml_default_compare;
 	ml_type_init((ml_type_t *)Watcher, MLFieldMutableT, NULL);
 	Watcher->Callback = Callback;
 	return (ml_value_t *)Watcher;
@@ -896,6 +956,7 @@ ml_class_t *ml_pseudo_class(const char *Name, const uuid_t Id) {
 		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
 	}
 	Class->Base.hash = ml_default_hash;
+	Class->Base.compare = ml_default_compare;
 	Class->Base.call = ml_default_call;
 	Class->Base.deref = ml_default_deref;
 	Class->Base.assign = ml_default_assign;
@@ -1192,6 +1253,7 @@ ml_enum_t *ml_enum_alloc(ml_type_t *Type, const char *Name) {
 	Enum->Base.iter_key = ml_iter_key;
 	Enum->Base.iter_next = ml_iter_next;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.compare = (void *)ml_enum_value_compare;
 	Enum->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
@@ -1754,10 +1816,6 @@ ML_TYPE(MLFlagsT, (MLTypeT), "flags",
 	.Constructor = (ml_value_t *)MLFlags
 );
 
-static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) {
-	return (long)Value->Type + Value->Value;
-}
-
 ML_TYPE(MLFlagsValueT, (), "flag-value");
 //@flags::value
 // An instance of a flags type.
@@ -1857,7 +1915,8 @@ ml_flags_t *ml_flags_alloc(const char *Name) {
 	Flags->Base.iter_value = ml_iter_value;
 	Flags->Base.iter_key = ml_iter_key;
 	Flags->Base.iter_next = ml_iter_next;
-	Flags->Base.hash = (void *)ml_flag_value_hash;
+	Flags->Base.hash = (void *)ml_flags_value_hash;
+	Flags->Base.compare = (void *)ml_flags_value_compare;
 	Flags->Base.call = ml_default_call;
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;

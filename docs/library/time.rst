@@ -283,7 +283,7 @@ Provides time and date operations.
 
    .. code-block:: mini
 
-      time() :> 2026-08-29T10:44:10.730791
+      time() :> 2026-08-29T16:30:09.299472
 
 
 :mini:`meth time(Seconds: integer, Nanoseconds: integer): time`
