@@ -247,7 +247,6 @@ static void ml_map_template_call(ml_state_t *Caller, ml_map_t *Template, int Cou
 	}
 	if (MaxIndex >= Count) ML_ERROR("CallError", "Mismatched call to map template");
 	ml_map_t *Map = (ml_map_t *)ml_map();
-	Map->Cached = Template->Cached;
 	Map->Size = Template->Size;
 	Map->Order = Template->Order;
 	if (MaxIndex >= 0) ml_map_template_call2(Template, Map, Count, Args, MaxIndex + 1);
@@ -366,16 +365,6 @@ ML_METHODV("grow", MLMapMutableT, MLNamesT) {
 	return Map;
 }
 
-extern ml_value_t *CompareMethod;
-
-static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
-	ml_method_cached_t *Cached =  ml_method_check_cached(NULL, (ml_method_t *)CompareMethod, Map->Cached, 2, Args);
-	if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
-	Map->Cached = Cached;
-	return ml_simple_call(Cached->Callback, 2, Args);
-	//return ml_simple_call(CompareMethod, 2, Args);
-}
-
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 	ml_map_node_t *Node = Map->Root;
 	long Hash = ml_typeof(Key)->hash(Key, NULL);
@@ -386,10 +375,7 @@ static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 		} else if (Hash > Node->Hash) {
 			Compare = 1;
 		} else {
-			ml_value_t *Args[2] = {Key, Node->Key};
-			ml_value_t *Result = ml_map_compare(Map, Args);
-			if (ml_is_error(Result)) return NULL;
-			Compare = ml_integer_value(Result);
+			Compare = ml_compare(Key, Node->Key);
 		}
 		if (!Compare) {
 			return Node;
@@ -518,9 +504,7 @@ static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, ml
 	} else if (Hash > Parent->Hash) {
 		Compare = 1;
 	} else {
-		ml_value_t *Args[2] = {Key, Parent->Key};
-		ml_value_t *Result = ml_map_compare(Map, Args);
-		Compare = ml_integer_value(Result);
+		Compare = ml_compare(Key, Parent->Key);
 	}
 	if (!Compare) {
 		if (Node) Parent->Value = Node->Value;
@@ -606,9 +590,7 @@ static ml_value_t *ml_map_remove_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 	} else if (Hash > Node->Hash) {
 		Compare = 1;
 	} else {
-		ml_value_t *Args[2] = {Key, Node->Key};
-		ml_value_t *Result = ml_map_compare(Map, Args);
-		Compare = ml_integer_value(Result);
+		Compare = ml_compare(Key, Node->Key);
 	}
 	ml_value_t *Removed = MLNil;
 	if (!Compare) {
@@ -2077,85 +2059,6 @@ ML_METHOD("><", MLMapT, MLMapT) {
 		if (!ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
 	}
 	return Map;
-}
-
-typedef struct {
-	ml_state_t Base;
-	ml_value_t *Map1, *Map2, *Map3;
-	ml_map_node_t **Nodes1, **Nodes2;
-	ml_methods_t *Methods;
-	ml_method_cached_t *Cached;
-	ml_map_node_t **Source, **Dest;
-	ml_map_node_t **IndexA, **LimitA, **IndexB, **LimitB;
-	ml_map_node_t **Target, **Limit;
-	ml_value_t *Args[2];
-	size_t Count1, Count2;
-	size_t Index1, Index2;
-	size_t Length, BlockSize;
-} ml_map_split_state_t;
-
-static void ml_map_split_sort1_run(ml_map_split_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_map_node_t **Target = State->Target;
-	if (Value != MLNil) {
-		ml_map_node_t **Index = State->IndexA;
-		*Target++ = *Index++;
-		if (Index < State->LimitA) {
-			State->Target = Target;
-			State->IndexA = Index;
-			State->Args[0] = Index[0]->Key;
-			State->Args[1] = State->IndexB[0]->Key;
-			ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)CompareMethod, State->Cached, 2, State->Args);
-			if (!Cached) ML_CONTINUE(State->Base.Caller, ml_no_method_error((ml_method_t *)CompareMethod, 2, State->Args));
-			State->Cached = Cached;
-			return ml_call(State, Cached->Callback, 2, State->Args);
-		}
-		Target = mempcpy(Target, State->IndexB, (State->LimitB - State->IndexB) * sizeof(ml_slice_node_t));
-	} else {
-		ml_map_node_t **Index = State->IndexB;
-		*Target++ = *Index++;
-		if (Index < State->LimitB) {
-			State->Target = Target;
-			State->IndexB = Index;
-			State->Args[0] = State->IndexA[0]->Key;
-			State->Args[1] = Index[0]->Key;
-			ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)CompareMethod, State->Cached, 2, State->Args);
-			if (!Cached) ML_CONTINUE(State->Base.Caller, ml_no_method_error((ml_method_t *)CompareMethod, 2, State->Args));
-			State->Cached = Cached;
-			return ml_call(State, Cached->Callback, 2, State->Args);
-		}
-		Target = mempcpy(Target, State->IndexA, (State->LimitA - State->IndexA) * sizeof(ml_slice_node_t));
-	}
-	size_t Remaining = State->Limit - Target;
-	size_t BlockSize = State->BlockSize;
-	ml_map_node_t **IndexA = State->LimitB;
-	if (Remaining <= BlockSize) {
-		memcpy(Target, State->LimitB, Remaining * sizeof(ml_slice_node_t));
-		BlockSize *= 2;
-		Remaining = State->Length;
-		if (Remaining <= BlockSize) {
-			State->Nodes1 = State->Dest;
-			// Sort 2nd map nodes
-
-		}
-		State->BlockSize = BlockSize;
-		ml_map_node_t **Temp = State->Source;
-		IndexA = State->Source = State->Dest;
-		Target = State->Dest = Temp;
-		State->Limit = Target + State->Length;
-	}
-	State->Target = Target;
-	State->IndexA = IndexA;
-	ml_map_node_t **IndexB = IndexA + BlockSize;
-	State->LimitA = State->IndexB = IndexB;
-	Remaining -= BlockSize;
-	State->LimitB = IndexB + (Remaining < BlockSize ? Remaining : BlockSize);
-	State->Args[0] = IndexA[0]->Key;
-	State->Args[1] = IndexB[0]->Key;
-	ml_method_cached_t *Cached = ml_method_check_cached(State->Methods, (ml_method_t *)CompareMethod, State->Cached, 2, State->Args);
-	if (!Cached) ML_CONTINUE(State->Base.Caller, ml_no_method_error((ml_method_t *)CompareMethod, 2, State->Args));
-	State->Cached = Cached;
-	return ml_call(State, Cached ? Cached->Callback : CompareMethod, 2, State->Args);
 }
 
 ML_METHOD("<=>", MLMapT, MLMapT) {

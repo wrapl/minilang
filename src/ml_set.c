@@ -141,16 +141,6 @@ ML_METHODVX("grow", MLSetMutableT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
 }
 
-extern ml_value_t *CompareMethod;
-
-static inline ml_value_t *ml_set_compare(ml_set_t *Set, ml_value_t **Args) {
-	ml_method_cached_t *Cached =  ml_method_check_cached(NULL, (ml_method_t *)CompareMethod, Set->Cached, 2, Args);
-	if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
-	Set->Cached = Cached;
-	return ml_simple_call(Cached->Callback, 2, Args);
-	//return ml_simple_call(CompareMethod, 2, Args);
-}
-
 static ml_set_node_t *ml_set_find_node(ml_set_t *Set, ml_value_t *Key) {
 	ml_set_node_t *Node = Set->Root;
 	long Hash = ml_typeof(Key)->hash(Key, NULL);
@@ -161,10 +151,7 @@ static ml_set_node_t *ml_set_find_node(ml_set_t *Set, ml_value_t *Key) {
 		} else if (Hash > Node->Hash) {
 			Compare = 1;
 		} else {
-			ml_value_t *Args[2] = {Key, Node->Key};
-			ml_value_t *Result = ml_set_compare(Set, Args);
-			if (ml_is_error(Result)) return NULL;
-			Compare = ml_integer_value(Result);
+			Compare = ml_compare(Key, Node->Key);
 		}
 		if (!Compare) {
 			return Node;
@@ -293,9 +280,7 @@ static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, ml
 	} else if (Hash > Parent->Hash) {
 		Compare = 1;
 	} else {
-		ml_value_t *Args[2] = {Key, Parent->Key};
-		ml_value_t *Result = ml_set_compare(Set, Args);
-		Compare = ml_integer_value(Result);
+		Compare = ml_compare(Key, Parent->Key);
 	}
 	if (!Compare) return Parent;
 	ml_set_node_t **Slot = Compare < 0 ? &Parent->Left : &Parent->Right;
@@ -371,9 +356,7 @@ static ml_value_t *ml_set_remove_internal(ml_set_t *Set, ml_set_node_t **Slot, l
 	} else if (Hash > Node->Hash) {
 		Compare = 1;
 	} else {
-		ml_value_t *Args[2] = {Key, Node->Key};
-		ml_value_t *Result = ml_set_compare(Set, Args);
-		Compare = ml_integer_value(Result);
+		Compare = ml_compare(Key, Node->Key);
 	}
 	ml_value_t *Removed = MLNil;
 	if (!Compare) {

@@ -1376,7 +1376,6 @@ extern ml_type_t MLMapTemplateT[];
 struct ml_map_t {
 	ml_type_t *Type;
 	ml_map_node_t *Head, *Tail, *Root;
-	ml_method_cached_t *Cached;
 	int Size;
 	ml_map_order_t Order;
 };
@@ -1522,7 +1521,6 @@ extern ml_type_t MLSetT[];
 struct ml_set_t {
 	ml_type_t *Type;
 	ml_set_node_t *Head, *Tail, *Root;
-	ml_method_cached_t *Cached;
 	int Size;
 	ml_set_order_t Order;
 };
