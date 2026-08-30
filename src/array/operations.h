@@ -1,0 +1,38 @@
+#ifndef OPERATIONS_H
+#define OPERATIONS_H
+
+typedef void (*operation_t)(void *, const void *, int);
+
+#define OPERATION_IMPL(NAME, OP, TARGET, SOURCE) \
+\
+static void operation_ ## NAME(void *Target, const void *Source, int Count) { \
+	TARGET *Target1 = (TARGET *)Target; \
+	SOURCE *Source1 = (SOURCE *)Source; \
+	for (int I = Count; --I >= 0; ++Source1, ++Target1) *Target1 = OP(*Target1, *Source1); \
+}
+
+#define OPERATION_IMPL_TARGET_BASE(NAME, OP, TARGET) \
+OPERATION_IMPL(NAME, OP, TARGET, uint8_t) \
+OPERATION_IMPL(NAME, OP, TARGET, int8_t) \
+OPERATION_IMPL(NAME, OP, TARGET, uint16_t) \
+OPERATION_IMPL(NAME, OP, TARGET, int16_t) \
+OPERATION_IMPL(NAME, OP, TARGET, uint32_t) \
+OPERATION_IMPL(NAME, OP, TARGET, int32_t) \
+OPERATION_IMPL(NAME, OP, TARGET, uint64_t) \
+OPERATION_IMPL(NAME, OP, TARGET, int64_t) \
+OPERATION_IMPL(NAME, OP, TARGET, float) \
+OPERATION_IMPL(NAME, OP, TARGET, double)
+
+#define OPERATION_IMPL_BASE(NAME, OP) \
+OPERATION_IMPL_TARGET(NAME, OP, uint8_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int8_t) \
+OPERATION_IMPL_TARGET(NAME, OP, uint16_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int16_t) \
+OPERATION_IMPL_TARGET(NAME, OP, uint32_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int32_t) \
+OPERATION_IMPL_TARGET(NAME, OP, uint64_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int64_t) \
+OPERATION_IMPL_TARGET(NAME, OP, float) \
+OPERATION_IMPL_TARGET(NAME, OP, double)
+
+#endif
