@@ -1,188 +1,87 @@
-#include "../ml_array.h"
-#include "types.h"
+#ifndef OPERATIONS_H
+#define OPERATIONS_H
 
-#define _ARRAY_TYPE_MAX(CTYPE, LEFT, RIGHT) CONCAT2(CTYPE, ARRAY_TYPE_MAX_ ## LEFT ## _ ## RIGHT)
+#include <stdint.h>
 
-#define INFIX_ROW_IMPL(NAME, OP, CTYPE, METH, LEFT, RIGHT) \
+#ifdef COMPLEX_OPERATIONS
+
+#include <complex.h>
+
+typedef complex float complex_float;
+typedef complex double complex_double;
+
+#endif
+
+typedef void (*operation_t)(void *, const void *, int);
+
+#define OPERATION_IMPL_FNS(NAME, OP, TARGET, SOURCE) \
 \
-static void NAME ## _row_ ## LEFT ## _ ## RIGHT(_ARRAY_TYPE_MAX(CTYPE, LEFT, RIGHT) *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
-	int Size = LeftDimension->Size; \
-	if (LeftDimension->Indices) { \
-		const int *LeftIndices = LeftDimension->Indices; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				LEFT Left = *(LEFT *)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
-				RIGHT Right = *(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride); \
-				*(Target++) = OP(Left, Right); \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = 0; I < Size; ++I) { \
-				LEFT Left = *(LEFT *)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
-				RIGHT Right = *(RIGHT *)RightData; \
-				*(Target++) = OP(Left, Right); \
-				RightData += RightStride; \
-			} \
-		} \
-	} else { \
-		int LeftStride = LeftDimension->Stride; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				LEFT Left = *(LEFT *)LeftData; \
-				RIGHT Right = *(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride); \
-				*(Target++) = OP(Left, Right); \
-				LeftData += LeftStride; \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = Size; --I >= 0;) { \
-				LEFT Left = *(LEFT *)LeftData; \
-				RIGHT Right = *(RIGHT *)RightData; \
-				*(Target++) = OP(Left, Right); \
-				LeftData += LeftStride; \
-				RightData += RightStride; \
-			} \
-		} \
-	} \
+static void operation_ ## NAME ## _ ## TARGET ## _ ## SOURCE(void *Target, const void *Source, int Count) { \
+	TARGET *Target1 = (TARGET *)Target; \
+	SOURCE *Source1 = (SOURCE *)Source; \
+	for (int I = Count; --I >= 0; ++Source1, ++Target1) *Target1 = OP(*Target1, *Source1); \
+} \
+\
+static void operation_ ## NAME ## _ ## TARGET ## _ ## SOURCE ## 1(void *Target, const void *Source, int Count) { \
+	TARGET *Target1 = (TARGET *)Target; \
+	SOURCE Source1 = *(SOURCE *)Source; \
+	for (int I = Count; --I >= 0; ++Source1, ++Target1) *Target1 = OP(*Target1, Source1); \
 }
 
-#define ml_number(X) _Generic(X, ml_value_t *: ml_nop, double: ml_real, default: ml_integer)(X)
+#define OPERATION_IMPL_TARGET_BASE(NAME, OP, TARGET) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, uint8_t) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, int8_t) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, uint16_t) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, int16_t) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, uint32_t) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, int32_t) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, uint64_t) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, int64_t)
 
-#define INFIX_ROW_VALUE_IMPL(NAME, OP, CTYPE, METH, FN, RIGHT) \
-\
-static void NAME ## _row_any_ ## RIGHT(_ARRAY_TYPE_MAX(CTYPE, any, RIGHT) *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
-	int Size = LeftDimension->Size; \
-	if (LeftDimension->Indices) { \
-		const int *LeftIndices = LeftDimension->Indices; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Left = *(ml_value_t **)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
-				ml_value_t *Right = ml_number(*(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride)); \
-				*(Target++) = FN(METH(Left, Right)); \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Left = *(ml_value_t **)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
-				ml_value_t *Right = ml_number(*(RIGHT *)RightData); \
-				*(Target++) = FN(METH(Left, Right)); \
-				RightData += RightStride; \
-			} \
-		} \
-	} else { \
-		int LeftStride = LeftDimension->Stride; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Left = *(ml_value_t **)LeftData; \
-				ml_value_t *Right = ml_number(*(RIGHT *)(RightData + RightIndices[I] * RightDimension->Stride)); \
-				*(Target++) = FN(METH(Left, Right)); \
-				LeftData += LeftStride; \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = Size; --I >= 0;) { \
-				ml_value_t *Left = *(ml_value_t **)LeftData; \
-				ml_value_t *Right = ml_number(*(RIGHT *)RightData); \
-				*(Target++) = FN(METH(Left, Right)); \
-				LeftData += LeftStride; \
-				RightData += RightStride; \
-			} \
-		} \
-	} \
-}
+#if defined(COMPLEX_OPERATIONS)
+#define OPERATION_IMPL_TARGET(NAME, OP, TARGET) \
+OPERATION_IMPL_TARGET_BASE(NAME, OP, TARGET) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, float) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, double) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, complex_float) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, complex_double)
+#elif defined(REAL_OPERATIONS)
+#define OPERATION_IMPL_TARGET(NAME, OP, TARGET) \
+OPERATION_IMPL_TARGET_BASE(NAME, OP, TARGET) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, float) \
+OPERATION_IMPL_FNS(NAME, OP, TARGET, double)
+#else
+#define OPERATION_IMPL_TARGET(NAME, OP, TARGET) \
+OPERATION_IMPL_TARGET_BASE(NAME, OP, TARGET)
+#endif
 
-#define ml_number_value(T, X) _Generic(T, double: ml_real_value, default: ml_integer_value)(X)
+#define OPERATION_IMPL_BASE(NAME, OP) \
+OPERATION_IMPL_TARGET(NAME, OP, uint8_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int8_t) \
+OPERATION_IMPL_TARGET(NAME, OP, uint16_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int16_t) \
+OPERATION_IMPL_TARGET(NAME, OP, uint32_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int32_t) \
+OPERATION_IMPL_TARGET(NAME, OP, uint64_t) \
+OPERATION_IMPL_TARGET(NAME, OP, int64_t) \
+OPERATION_IMPL_TARGET(NAME, OP, float) \
+OPERATION_IMPL_TARGET(NAME, OP, double)
 
-#define INFIX_ROW_IMPL_VALUE(NAME, OP, CTYPE, METH, FN, LEFT) \
-\
-static void NAME ## _row_ ## LEFT ## _any(_ARRAY_TYPE_MAX(CTYPE, LEFT, any) *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
-	int Size = LeftDimension->Size; \
-	if (LeftDimension->Indices) { \
-		const int *LeftIndices = LeftDimension->Indices; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Left = ml_number(*(LEFT *)(LeftData + LeftIndices[I] * LeftDimension->Stride)); \
-				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
-				*(Target++) = FN(METH(Left, Right)); \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Left = ml_number(*(LEFT *)(LeftData + LeftIndices[I] * LeftDimension->Stride)); \
-				ml_value_t *Right = *(ml_value_t **)RightData; \
-				*(Target++) = FN(METH(Left, Right)); \
-				RightData += RightStride; \
-			} \
-		} \
-	} else { \
-		int LeftStride = LeftDimension->Stride; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Left = ml_number(*(LEFT *)LeftData); \
-				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
-				*(Target++) = FN(METH(Left, Right)); \
-				LeftData += LeftStride; \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = Size; --I >= 0;) { \
-				ml_value_t *Left = ml_number(*(LEFT *)LeftData); \
-				ml_value_t *Right = *(ml_value_t **)RightData; \
-				*(Target++) = FN(METH(Left, Right)); \
-				LeftData += LeftStride; \
-				RightData += RightStride; \
-			} \
-		} \
-	} \
-}
+#if defined(COMPLEX_OPERATIONS)
+#define OPERATION_IMPL(NAME, OP) \
+OPERATION_IMPL_BASE(NAME, OP) \
+OPERATION_IMPL_TARGET(NAME, OP, float) \
+OPERATION_IMPL_TARGET(NAME, OP, double) \
+OPERATION_IMPL_TARGET(NAME, OP, complex_float) \
+OPERATION_IMPL_TARGET(NAME, OP, complex_double)
+#elif defined(REAL_OPERATIONS)
+#define OPERATION_IMPL(NAME, OP) \
+OPERATION_IMPL_BASE(NAME, OP) \
+OPERATION_IMPL_TARGET(NAME, OP, float) \
+OPERATION_IMPL_TARGET(NAME, OP, double)
+#else
+#define OPERATION_IMPL(NAME, OP) \
+OPERATION_IMPL_BASE(NAME, OP)
+#endif
 
-#define INFIX_ROW_VALUE_IMPL_VALUE(NAME, OP, CTYPE, METH, FN) \
-\
-static void NAME ## _row_any_any(_ARRAY_TYPE_MAX(CTYPE, any, any) *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \
-	int Size = LeftDimension->Size; \
-	if (LeftDimension->Indices) { \
-		const int *LeftIndices = LeftDimension->Indices; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
-				ml_value_t *Left = *(ml_value_t **)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
-				*(Target++) = FN(METH(Left, Right)); \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Right = *(ml_value_t **)RightData; \
-				ml_value_t *Left = *(ml_value_t **)(LeftData + LeftIndices[I] * LeftDimension->Stride); \
-				*(Target++) = FN(METH(Left, Right)); \
-				RightData += RightStride; \
-			} \
-		} \
-	} else { \
-		int LeftStride = LeftDimension->Stride; \
-		if (RightDimension->Indices) { \
-			const int *RightIndices = RightDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				ml_value_t *Right = *(ml_value_t **)(RightData + RightIndices[I] * RightDimension->Stride); \
-				ml_value_t *Left = *(ml_value_t **)LeftData; \
-				*(Target++) = FN(METH(Left, Right)); \
-				LeftData += LeftStride; \
-			} \
-		} else { \
-			int RightStride = RightDimension->Stride; \
-			for (int I = Size; --I >= 0;) { \
-				ml_value_t *Right = *(ml_value_t **)RightData; \
-				ml_value_t *Left = *(ml_value_t **)LeftData; \
-				*(Target++) = FN(METH(Left, Right)); \
-				LeftData += LeftStride; \
-				RightData += RightStride; \
-			} \
-		} \
-	} \
-}
+#endif

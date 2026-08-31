@@ -4267,6 +4267,7 @@ static long ml_decimal_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 static int ml_decimal_compare(ml_decimal_t *A, ml_decimal_t *B, ml_compare_chain_t *Chain) {
+#ifdef ML_BIGINT
 	if (A->Scale > B->Scale) {
 		mpz_t Unscaled;
 		mpz_ui_pow_ui(Unscaled, 10, A->Scale - B->Scale);
@@ -4280,6 +4281,13 @@ static int ml_decimal_compare(ml_decimal_t *A, ml_decimal_t *B, ml_compare_chain
 		return mpz_cmp(Unscaled, B->Unscaled);
 	}
 	return mpz_cmp(A->Unscaled, B->Unscaled);
+#else
+	double ScaledA = A / exp10(A->Scale);
+	double ScaledB = B / exp10(B->Scale);
+	if (ScaledA < ScaledB) return -1;
+	if (ScaledA > ScaledB) return 1;
+	return 0;
+#endif
 }
 
 ML_TYPE(MLDecimalT, (MLRealT), "decimal",
