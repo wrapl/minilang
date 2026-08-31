@@ -4282,8 +4282,8 @@ static int ml_decimal_compare(ml_decimal_t *A, ml_decimal_t *B, ml_compare_chain
 	}
 	return mpz_cmp(A->Unscaled, B->Unscaled);
 #else
-	double ScaledA = A / exp10(A->Scale);
-	double ScaledB = B / exp10(B->Scale);
+	double ScaledA = A->Unscaled / exp10(A->Scale);
+	double ScaledB = B->Unscaled / exp10(B->Scale);
 	if (ScaledA < ScaledB) return -1;
 	if (ScaledA > ScaledB) return 1;
 	return 0;
