@@ -4262,6 +4262,10 @@ ML_DESERIALIZER("real-switch") {
 
 #ifdef ML_DECIMAL
 
+#if defined(Android) || defined(Darwin)
+#define exp10(X) pow(10, X)
+#endif
+
 static long ml_decimal_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_integer_value(Value);
 }
@@ -4320,10 +4324,6 @@ ML_METHOD("scale", MLDecimalT) {
 	ml_decimal_t *Decimal = (ml_decimal_t *)Args[0];
 	return ml_integer(Decimal->Scale);
 }
-
-#if defined(Android) || defined(Darwin)
-#define exp10(X) pow(10, X)
-#endif
 
 static int64_t ML_TYPED_FN(ml_integer_value, MLDecimalT, ml_decimal_t *Decimal) {
 #ifdef ML_BIGINT
