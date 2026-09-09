@@ -34,9 +34,6 @@ static ml_value_t *ml_variable_deref(ml_variable_t *Variable) {
 }
 
 static void ml_variable_assign(ml_state_t *Caller, ml_variable_t *Variable, ml_value_t *Value) {
-	if (Variable->VarType && !ml_is(Value, Variable->VarType)) {
-		ML_ERROR("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
-	}
 	Variable->Value = Value;
 	ML_RETURN(Value);
 }
@@ -49,11 +46,29 @@ ML_TYPE(MLVariableT, (), "variable",
 	.assign = (void *)ml_variable_assign
 );
 
+static void ml_typed_variable_assign(ml_state_t *Caller, ml_variable_t *Variable, ml_value_t *Value) {
+	if (!ml_is(Value, Variable->VarType)) {
+		ML_ERROR("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
+	}
+	Variable->Value = Value;
+	ML_RETURN(Value);
+}
+
+ML_TYPE(MLTypedVariableT, (MLVariableT), "variable::typed",
+	.hash = (void *)ml_variable_hash,
+	.deref = (void *)ml_variable_deref,
+	.assign = (void *)ml_typed_variable_assign
+);
+
 ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {
 	ml_variable_t *Variable = new(ml_variable_t);
-	Variable->Type = MLVariableT;
+	if (Type) {
+		Variable->Type = MLTypedVariableT;
+		Variable->VarType = Type;
+	} else {
+		Variable->Type = MLVariableT;
+	}
 	Variable->Value = Value;
-	Variable->VarType = Type;
 	return (ml_value_t *)Variable;
 }
 
@@ -228,8 +243,6 @@ static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Calle
 
 static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	if (!Suspension->Suspend) ML_CONTINUE(Caller, MLNil);
-	//Suspension->Top[-2] = Suspension->Top[-1];
-	//--Suspension->Top;
 	Suspension->Base.Caller = Caller;
 	Suspension->Base.Context = Caller->Context;
 	ML_CONTINUE(Suspension, MLNil);

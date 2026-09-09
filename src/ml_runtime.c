@@ -1503,7 +1503,7 @@ typedef struct {
 } ml_wait_state_t;
 
 ml_value_t *ml_wait(ml_wait_state_t *State) {
-	if (State->Value) return Value;
+	if (State->Value) return State->Value;
 	ml_scheduler_t *Scheduler = ml_context_get_scheduler(State->Base.Context);
 	while (!State->Value) Scheduler->run(Scheduler);
 	return State->Value;
@@ -1516,10 +1516,9 @@ static void ml_wait_fast_fn(ml_wait_state_t *State, ml_value_t *Value) {
 }
 
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
-	ml_wait_state_t State = {{
-		{NULL, NULL, (ml_state_fn)ml_wait_fast_fn, Context},
-		NULL
-	}, NULL};
+	ml_wait_state_t State = {0,};
+	State.Block.Base.run = (ml_state_fn)ml_wait_fast_fn;
+	State.Block.Base.Context = Context;
 	ml_call(&State, Fn, Count, Args);
 	return ml_wait(&State);
 }
