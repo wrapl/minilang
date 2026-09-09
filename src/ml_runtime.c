@@ -1517,17 +1517,26 @@ static void ml_wait_fast_fn(ml_wait_state_t *State, ml_value_t *Value) {
 
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args) {
 	ml_wait_state_t State = {0,};
+#ifdef ML_HOSTTHREADS
 	State.Block.Base.run = (ml_state_fn)ml_wait_fast_fn;
 	State.Block.Base.Context = Context;
+#else
+	State.Base.run = (ml_state_fn)ml_wait_fast_fn;
+	State.Base.Context = Context;
+#endif
 	ml_call(&State, Fn, Count, Args);
 	return ml_wait(&State);
 }
 
 ml_value_t *ml_assign_wait(ml_context_t *Context, ml_value_t *Ref, ml_value_t *Value) {
-	ml_wait_state_t State = {{
-		{NULL, NULL, (ml_state_fn)ml_wait_fast_fn, Context},
-		NULL
-	}, NULL};
+	ml_wait_state_t State = {0,};
+#ifdef ML_HOSTTHREADS
+	State.Block.Base.run = (ml_state_fn)ml_wait_fast_fn;
+	State.Block.Base.Context = Context;
+#else
+	State.Base.run = (ml_state_fn)ml_wait_fast_fn;
+	State.Base.Context = Context;
+#endif
 	ml_assign(&State, Ref, Value);
 	return ml_wait(&State);
 }
