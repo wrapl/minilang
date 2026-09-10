@@ -910,6 +910,20 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 	return ml_cbor_encode(Value);
 }
 
+#ifdef ML_GENERICS
+
+static void ML_TYPED_FN(ml_cbor_write, MLTypeGenericT, ml_cbor_writer_t *Writer, ml_type_t *Type) {
+	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
+	int NumArgs = ml_generic_type_num_args(Type);
+	minicbor_write_array(Writer, NumArgs + 1);
+	minicbor_write_string(Writer, 7);
+	Writer->WriteFn(Writer->Data, (void *)"generic", 7);
+	ml_type_t **Args = ml_generic_type_args(Type);
+	for (int I = 0; I < NumArgs; ++I) ml_cbor_write(Writer, (ml_value_t *)Args[I]);
+}
+
+#endif
+
 static void ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Global) {
 	minicbor_write_tag(Writer, ML_CBOR_TAG_OBJECT);
 	minicbor_write_array(Writer, 1);
@@ -1792,6 +1806,15 @@ ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value, voi
 	return ml_deserialize(Type, Count - 1, Args + 1);
 }
 
+#ifdef ML_GENERICS
+
+static ml_value_t *ml_cbor_object_generic(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLTypeT);
+	return (ml_value_t *)ml_generic_type(Count, (ml_type_t **)Args);
+}
+
+#endif
+
 static ml_value_t *ml_cbor_object_some(ml_cbor_reader_t *Reader, int Count, ml_value_t **Args) {
 	return MLSome;
 }
@@ -1855,6 +1878,9 @@ ML_ENUM2_WITH_ID(CborTagsT, "cbor::tags",
 );
 
 void ml_cbor_init(stringmap_t *Globals) {
+#ifdef ML_GENERICS
+	ml_cbor_default_object("generic", ml_cbor_object_generic);
+#endif
 	ml_cbor_default_object("some", ml_cbor_object_some);
 	ml_cbor_default_object("tuple", ml_cbor_object_tuple);
 	ml_cbor_default_object("names", ml_cbor_object_names);
