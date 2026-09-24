@@ -126,7 +126,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 					ML_ERROR("ValueError", "Class %s does not have field %s", Class->Base.Name, Name);
 				}
 				ml_field_t *Field = &Object->Fields[Info->Index];
-				ml_value_t *Value = *++Arg2;
+				ml_value_t *Value = ml_deref(*++Arg2);
 				if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Field->Value);
 				Field->Value = Value;
 			}
