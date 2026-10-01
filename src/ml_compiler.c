@@ -5191,7 +5191,9 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 		int EOL = 0;
 		do {
 			mlc_expr_t *Arg;
-			if (ml_parse2(Parser, MLT_FUN)) {
+			switch (ml_current2(Parser)) {
+			case MLT_FUN:
+				ml_next(Parser);
 				if (ml_parse(Parser, MLT_IDENT)) {
 					ml_value_t *Names = ml_names();
 					ml_names_add(Names, ml_string(Parser->Ident, -1));
@@ -5205,10 +5207,12 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 					ml_accept(Parser, MLT_LEFT_PAREN);
 					Arg = ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
 				}
-			} else {
+				break;
+			default:
 				Arg = ml_parse_expression(Parser, EXPR_DEFAULT);
-				if (!Arg) break;
+				break;
 			}
+			if (!Arg) break;
 			if (Expected.Token != EndToken) {
 				ArgsSlot[0] = Arg;
 				Parser->ExpectedDelimiter = Expected.Prev;
