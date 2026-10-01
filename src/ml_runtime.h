@@ -352,18 +352,24 @@ void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
 int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
 
+typedef enum {
+	ML_SCHEDULER_EVENT_NONE,
+	ML_SCHEDULER_EVENT_JOIN,
+	ML_SCHEDULER_EVENT_EXIT,
+	ML_SCHEDULER_EVENT_SWAP
+} ml_scheduler_event_t;
+
 struct ml_scheduler_t {
 	ml_scheduler_add_fn add;
 	ml_scheduler_run_fn run;
 	ml_scheduler_fill_fn fill;
 	ml_scheduler_sleep_fn sleep;
 	ml_scheduler_queue_t *Queue;
-#ifdef ML_HOSTTHREADS
-	ml_scheduler_block_t *Resume;
-#endif
+	void *EventData;
 #ifdef ML_TIMESCHED
 	uint64_t Preempt;
 #endif
+	ml_scheduler_event_t Event;
 };
 
 ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice);

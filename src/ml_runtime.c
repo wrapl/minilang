@@ -1379,11 +1379,6 @@ static ml_scheduler_thread_t *NextThread = NULL;
 static int MaxIdleThreads = 8, NumIdleThreads = 0;
 static pthread_mutex_t ThreadLock[1] = {PTHREAD_MUTEX_INITIALIZER};
 
-static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
-	ml_scheduler_block_t *Block = (ml_scheduler_block_t *)State;
-	Block->Scheduler->Resume = Block;
-}
-
 static void *ml_scheduler_thread_fn(void *Data) {
 #ifdef Darwin
 	pthread_setname_np("minilang");
@@ -1394,9 +1389,11 @@ static void *ml_scheduler_thread_fn(void *Data) {
 	GC_add_roots(MLArgCache, MLArgCache + ML_ARG_CACHE_SIZE);
 	for (;;) {
 		Scheduler->run(Scheduler);
-		if (Scheduler->Resume) {
-			ml_scheduler_block_t *Block = Scheduler->Resume;
-			Scheduler->Resume = NULL;
+		switch (Scheduler->Event) {
+		case ML_SCHEDULER_EVENT_JOIN: {
+			ml_scheduler_block_t *Block = Scheduler->EventData;
+			Scheduler->Event = ML_SCHEDULER_EVENT_NONE;
+			Scheduler->EventData = NULL;
 #ifdef Darwin
 			dispatch_semaphore_signal(Block->Ready);
 #else
@@ -1417,6 +1414,8 @@ static void *ml_scheduler_thread_fn(void *Data) {
 			--NumIdleThreads;
 			pthread_mutex_unlock(ThreadLock);
 			Scheduler = Thread.Scheduler;
+			break;
+		}
 		}
 	}
 	return NULL;
@@ -1442,6 +1441,12 @@ void ml_scheduler_split(ml_scheduler_t *Scheduler) {
 		pthread_attr_destroy(&Attr);
 	}
 	pthread_mutex_unlock(ThreadLock);
+}
+
+static void ml_scheduler_thread_resume(ml_state_t *State, ml_value_t *Value) {
+	ml_scheduler_block_t *Block = (ml_scheduler_block_t *)State;
+	Block->Scheduler->Event = ML_SCHEDULER_EVENT_JOIN;
+	Block->Scheduler->EventData = Block;
 }
 
 void ml_scheduler_join(ml_scheduler_t *Scheduler) {
@@ -1471,7 +1476,8 @@ typedef struct {
 
 static void ml_wait_slow_fn(ml_wait_state_t *State, ml_value_t *Value) {
 	State->Value = Value;
-	State->Block.Scheduler->Resume = &State->Block;
+	State->Block.Scheduler->Event = ML_SCHEDULER_EVENT_JOIN;
+	State->Block.Scheduler->EventData = &State->Block;
 }
 
 ml_value_t *ml_wait(ml_wait_state_t *State) {
@@ -2151,9 +2157,11 @@ void ml_scheduler_run(ml_scheduler_t *Scheduler) {
 #ifdef ML_HOSTTHREADS
 	for (;;) {
 		Scheduler->run(Scheduler);
-		if (Scheduler->Resume) {
-			ml_scheduler_block_t *Block = Scheduler->Resume;
-			Scheduler->Resume = NULL;
+		switch (Scheduler->Event) {
+		case ML_SCHEDULER_EVENT_JOIN: {
+			ml_scheduler_block_t *Block = Scheduler->EventData;
+			Scheduler->Event = ML_SCHEDULER_EVENT_NONE;
+			Scheduler->EventData = NULL;
 #ifdef Darwin
 			dispatch_semaphore_signal(Block->Ready);
 #else
@@ -2166,10 +2174,16 @@ void ml_scheduler_run(ml_scheduler_t *Scheduler) {
 			pthread_cond_wait(Thread.Resume, ThreadLock);
 			pthread_mutex_unlock(ThreadLock);
 			Scheduler = Thread.Scheduler;
+			break;
+		}
 		}
 	}
 #else
-	for (;;) Scheduler->run(Scheduler);
+	for (;;) {
+		Scheduler->run(Scheduler);
+		switch (Scheduler->Event) {
+		}
+	}
 #endif
 }
 
