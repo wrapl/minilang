@@ -170,6 +170,10 @@ static int ML_TYPED_FN(ml_value_is_constant, MLObjectT, ml_object_t *Value) {
 	return 1;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLObjectT, ml_object_t *Object, int Index) {
+	return Index <= Object->Type->NumFields ? Object->Fields[Index].Value : MLNil;
+}
+
 ML_METHOD("::", MLObjectT, MLStringT) {
 //<Object
 //<Field
