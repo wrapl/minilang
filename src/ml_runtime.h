@@ -137,9 +137,50 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 	ml_simple_call((ml_value_t *)(VALUE), COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
-typedef struct ml_wait_state_t ml_wait_state_t;
+typedef struct ml_scheduler_t ml_scheduler_t;
 
-ml_wait_state_t *ml_wait_state(ml_context_t *Context);
+#ifdef ML_HOSTTHREADS
+
+#ifdef Darwin
+#include <dispatch/dispatch.h>
+#else
+#include <semaphore.h>
+#endif
+
+typedef struct {
+	ml_state_t Base;
+	ml_scheduler_t *Scheduler;
+#ifdef Darwin
+	dispatch_semaphore_t Ready;
+#else
+	sem_t Ready[1];
+#endif
+} ml_scheduler_block_t;
+
+#endif
+
+typedef struct {
+#ifdef ML_HOSTTHREADS
+	ml_scheduler_block_t Block;
+#else
+	ml_state_t Base;
+#endif
+	ml_value_t *Value;
+} ml_wait_state_t;
+
+void ml_wait_fast_fn(ml_wait_state_t *State, ml_value_t *Value);
+
+#ifdef ML_HOSTTHREADS
+#define ML_WAIT_STATE(NAME, CONTEXT) \
+	ml_wait_state_t NAME[1] = {0,}; \
+	NAME->Block.Base.Context = CONTEXT; \
+	NAME->Block.Base.run = (ml_state_fn)ml_wait_fast_fn;
+#else
+#define ML_WAIT_STATE(NAME, CONTEXT) \
+	ml_wait_state_t NAME[1] = {0,}; \
+	NAME->Base.Context = CONTEXT; \
+	NAME->Base.run = (ml_state_fn)ml_wait_fast_fn;
+#endif
 
 ml_value_t *ml_wait(ml_wait_state_t *State);
 
@@ -318,7 +359,6 @@ extern volatile uint64_t MLPreempt;
 
 #endif
 
-typedef struct ml_scheduler_t ml_scheduler_t;
 
 typedef void (*ml_scheduler_sleep_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result);
 typedef void (*ml_scheduler_wake_fn)(ml_scheduler_t *Scheduler, void *Data);
@@ -332,12 +372,6 @@ static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 }
 
 int ml_scheduler_run(ml_scheduler_t *Scheduler);
-
-#ifdef ML_HOSTTHREADS
-
-typedef struct ml_scheduler_block_t ml_scheduler_block_t;
-
-#endif
 
 typedef struct {
 	ml_state_t *State;

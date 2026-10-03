@@ -7697,7 +7697,7 @@ ml_value_t *ml_compile_static(const char *Source, int Line, const char *Code, co
 		}
 		exit(-1);
 	}
-	ml_wait_state_t *State = ml_wait_state(MLRootContext);
+	ML_WAIT_STATE(State, MLRootContext);
 	ml_function_compile((ml_state_t *)State, Expr, StaticCompiler, Parameters);
 	ml_value_t *Value = ml_wait(State);
 	return Value;

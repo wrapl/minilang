@@ -1290,28 +1290,12 @@ void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
 
 #ifdef ML_HOSTTHREADS
 
-#ifdef Darwin
-#include <dispatch/dispatch.h>
-#else
-#include <semaphore.h>
-#endif
-
 typedef struct ml_scheduler_thread_t ml_scheduler_thread_t;
 
 struct ml_scheduler_thread_t {
 	ml_scheduler_thread_t *Next;
 	ml_scheduler_t *Scheduler;
 	pthread_cond_t Resume[1];
-};
-
-struct ml_scheduler_block_t {
-	ml_state_t Base;
-	ml_scheduler_t *Scheduler;
-#ifdef Darwin
-	dispatch_semaphore_t Ready;
-#else
-	sem_t Ready[1];
-#endif
 };
 
 static ml_scheduler_thread_t *NextThread = NULL;
@@ -1404,11 +1388,6 @@ void ml_scheduler_join(ml_scheduler_t *Scheduler) {
 #endif
 }
 
-struct ml_wait_state_t {
-	ml_scheduler_block_t Block;
-	ml_value_t *Value;
-};
-
 static void ml_wait_slow_fn(ml_wait_state_t *State, ml_value_t *Value) {
 	State->Value = Value;
 	State->Block.Scheduler->Resume = &State->Block;
@@ -1437,11 +1416,6 @@ ml_value_t *ml_wait(ml_wait_state_t *State) {
 
 #else
 
-struct ml_wait_state_t {
-	ml_state_t Base;
-	ml_value_t *Value;
-};
-
 ml_value_t *ml_wait(ml_wait_state_t *State) {
 	if (State->Value) return State->Value;
 	ml_scheduler_t *Scheduler = ml_context_get_scheduler(State->Base.Context);
@@ -1451,7 +1425,7 @@ ml_value_t *ml_wait(ml_wait_state_t *State) {
 
 #endif
 
-static void ml_wait_fast_fn(ml_wait_state_t *State, ml_value_t *Value) {
+void ml_wait_fast_fn(ml_wait_state_t *State, ml_value_t *Value) {
 	State->Value = Value;
 }
 
