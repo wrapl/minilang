@@ -236,8 +236,7 @@ ML_FUNCTIONX(MLConsole) {
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)console_run;
 	State->File = fdopen(Fd, "r+");
-	ml_scheduler_t *Scheduler = ml_context_get_static(Caller->Context, ML_SCHEDULER_INDEX);
-	Scheduler->add(Scheduler, (ml_state_t *)State, MLNil);
+	ml_state_schedule((ml_state_t *)State, MLNil);
 	ML_RETURN(MLNil);
 }
 
@@ -682,7 +681,7 @@ int main(int Argc, const char *Argv[]) {
 	}
 #ifdef ML_SCHEDULER
 	Scheduler = ml_context_get_scheduler(Main->Context);
-	ml_scheduler_run(Scheduler);
+	return ml_scheduler_run(Scheduler);
 #endif
 	return 0;
 }

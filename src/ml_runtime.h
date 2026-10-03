@@ -137,6 +137,12 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 	ml_simple_call((ml_value_t *)(VALUE), COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
+typedef struct ml_wait_state_t ml_wait_state_t;
+
+ml_wait_state_t *ml_wait_state(ml_context_t *Context);
+
+ml_value_t *ml_wait(ml_wait_state_t *State);
+
 ml_value_t *ml_call_wait(ml_context_t *Context, ml_value_t *Fn, int Count, ml_value_t **Args);
 #define ml_inline_wait(CONTEXT, VALUE, COUNT, ARGS ...) ({ \
 	ml_call_wait(CONTEXT, (ml_value_t *)(VALUE), COUNT, (ml_value_t **)(void *[]){ARGS}); \
@@ -314,10 +320,8 @@ extern volatile uint64_t MLPreempt;
 
 typedef struct ml_scheduler_t ml_scheduler_t;
 
-typedef int (*ml_scheduler_add_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, ml_value_t *Value);
-typedef void (*ml_scheduler_run_fn)(ml_scheduler_t *Scheduler);
-typedef int (*ml_scheduler_fill_fn)(ml_scheduler_t *Scheduler);
 typedef void (*ml_scheduler_sleep_fn)(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result);
+typedef void (*ml_scheduler_wake_fn)(ml_scheduler_t *Scheduler, void *Data);
 
 void ml_scheduler_default_sleep(ml_scheduler_t *Scheduler, ml_state_t *State, double Duration, ml_value_t *Result);
 
@@ -327,7 +331,7 @@ static inline ml_scheduler_t *ml_context_get_scheduler(ml_context_t *Context) {
 	return (ml_scheduler_t *)ml_context_get_static(Context, ML_SCHEDULER_INDEX);
 }
 
-void ml_scheduler_run(ml_scheduler_t *Scheduler);
+int ml_scheduler_run(ml_scheduler_t *Scheduler);
 
 #ifdef ML_HOSTTHREADS
 
@@ -352,32 +356,46 @@ void ml_scheduler_queue_inspect(ml_scheduler_queue_t *Queue, void *Data, void (*
 ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
 int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
 
-typedef enum {
-	ML_SCHEDULER_EVENT_NONE,
-	ML_SCHEDULER_EVENT_JOIN,
-	ML_SCHEDULER_EVENT_EXIT,
-	ML_SCHEDULER_EVENT_SWAP
-} ml_scheduler_event_t;
+typedef struct ml_queue_block_t ml_queue_block_t;
+
+#ifdef Wasm
+#define QUEUE_BLOCK_SIZE 16
+#else
+#define QUEUE_BLOCK_SIZE 128
+#endif
+
+struct ml_queue_block_t {
+	ml_queued_state_t States[QUEUE_BLOCK_SIZE];
+	ml_queue_block_t *Next;
+};
+
+struct ml_scheduler_queue_t {
+	//ml_scheduler_t Base;
+	ml_queue_block_t *WriteBlock, *ReadBlock;
+#ifdef ML_HOSTTHREADS
+	pthread_mutex_t Lock[1];
+	pthread_cond_t Available[1];
+#endif
+	uint64_t Counter, Slice;
+	int WriteIndex, ReadIndex, Space, Fill;
+};
 
 struct ml_scheduler_t {
-	ml_scheduler_add_fn add;
-	ml_scheduler_run_fn run;
-	ml_scheduler_fill_fn fill;
+	ml_scheduler_wake_fn wake;
 	ml_scheduler_sleep_fn sleep;
-	ml_scheduler_queue_t *Queue;
-	void *EventData;
+	void *WakeData;
+#ifdef ML_HOSTTHREADS
+	ml_scheduler_block_t *Resume;
+#endif
+	ml_scheduler_queue_t Queue[1];
 #ifdef ML_TIMESCHED
 	uint64_t Preempt;
 #endif
-	ml_scheduler_event_t Event;
 };
 
 ml_scheduler_t *ml_default_scheduler_init(ml_context_t *Context, int Slice);
 
-static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
-	ml_scheduler_t *Scheduler = (ml_scheduler_t *)ml_context_get_static(State->Context, ML_SCHEDULER_INDEX);
-	Scheduler->add(Scheduler, State, Value);
-}
+void ml_state_schedule(ml_state_t *State, ml_value_t *Value);
 
 #ifdef ML_SCHEDULER
 extern ml_cfunctionx_t MLAtomic[];

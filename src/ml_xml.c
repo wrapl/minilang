@@ -116,7 +116,6 @@ ML_FUNCTION(MLXmlEscape) {
 //<String:string
 //>string
 // Escapes characters in :mini:`String`.
-//$- import: xml("fmt/xml")
 //$= xml::escape("\'1 + 2 > 3 & 2 < 4\'")
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -2180,6 +2179,371 @@ ML_METHOD("append", MLStringBufferT, MLXmlElementT, MLXmlT, MLNilT) {
 	return Error ?: MLSome;
 }
 
+typedef enum {
+	XML_TEXT,
+	XML_TAG_START,
+	XML_ELEMENT_NAME,
+	XML_TAG_AFTER_NAME,
+	XML_TAG_END_NAME,
+	XML_ATTRIB_NAME,
+	XML_ATTRIB_EQUALS,
+	XML_ATTRIB_QUOTE,
+	XML_ATTRIB_VALUE,
+	XML_CLOSE_SLASH,
+	XML_ENTITY_NAME,
+	XML_CHAR_REF,
+	XML_CHAR_REF_HEX,
+	XML_MARKUP_START,
+	XML_COMMENT_DASH1,
+	XML_COMMENT,
+	XML_COMMENT_DASH2,
+	XML_CDATA_PREFIX,
+	XML_CDATA_BODY,        /* Inside <![CDATA[ ... */
+	XML_CDATA_SUFFIX,
+	XML_PI_BODY,           /* Inside <? ... ?> */
+	XML_PI_QUESTION        /* Saw ? inside PI */
+} xml_state_t;
+
+typedef enum {
+	XML_EVENT_WAIT,
+	XML_EVENT_ERROR,
+	XML_EVENT_TAG,
+	XML_EVENT_ATTRIBUTE,
+	XML_EVENT_CLOSE,
+	XML_EVENT_TEXT,
+	XML_EVENT_ENTITY,
+	XML_EVENT_INSTRUCTION
+} xml_event_t;
+
+typedef struct {
+	ml_value_t *Value;
+	const char *Next, *End;
+	ml_stringbuffer_t *Content;
+	ml_stringbuffer_t Buffer[1];
+	union {
+		uint32_t CodePoint;
+		uint32_t Index;
+	};
+	xml_state_t State, EntityState;
+	char Quote;
+} xml_scanner_t;
+
+void xml_scan_input(xml_scanner_t *Scanner, const char *Next, size_t Size) {
+	Scanner->Next = Next;
+	Scanner->End = Next + Size;
+}
+
+xml_event_t xml_scan_next(xml_scanner_t *Scanner) {
+	static const char CDataPrefix[] = "[CDATA[";
+	static const char CDataSuffix[] = "]]";
+	static const char CommentDashes[] = "--";
+	const char *Next = Scanner->Next, *End = Scanner->End;
+	while (Next < End) {
+		const char *Start = Next;
+		switch (Scanner->State) {
+		case XML_TEXT: xml_text:
+			for (; Next < End; ++Next) {
+				if (*Next == '<') {
+					ml_stringbuffer_write(Scanner->Content, Start, Next - Start);
+					Start = ++Next;
+					Scanner->State = XML_TAG_START;
+					goto xml_tag_start;
+				}
+				if (*Next == '&') {
+					ml_stringbuffer_write(Scanner->Content, Start, Next - Start);
+					Start = ++Next;
+					Scanner->State = XML_ENTITY_NAME;
+					Scanner->EntityState = XML_TEXT;
+					goto xml_entity_name;
+				}
+			}
+			ml_stringbuffer_write(Scanner->Content, Start, Next - Start);
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_TAG_START: xml_tag_start:
+			switch (*Next) {
+			case '/': Scanner->State = XML_TAG_END_NAME; ++Next; goto xml_tag_end_name;
+			case '!': Scanner->State = XML_MARKUP_START; Start = ++Next; goto xml_markup_start;
+			case '?': Scanner->State = XML_PI_BODY; Start = ++Next; goto xml_pi_body;
+			case 'a' ... 'z': case 'A' ... 'Z': case '_': case ':':
+				Scanner->State = XML_ELEMENT_NAME;
+				goto xml_element_name;
+			}
+			Scanner->Value = ml_error("XMLError", "Invalid character after <: %c", *Next);
+			return XML_EVENT_ERROR;
+		case XML_ELEMENT_NAME: xml_element_name:
+			for (; Next < End; ++Next) {
+				switch (*Next) {
+				case '>':
+					ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+					Scanner->Value = ml_stringbuffer_get_value(Scanner->Buffer);
+					Scanner->Next = Next + 1;
+					Scanner->State = XML_TEXT;
+					return XML_EVENT_TAG;
+				case '/':
+					ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+					Scanner->Value = ml_stringbuffer_get_value(Scanner->Buffer);
+					Scanner->Next = Next + 1;
+					Scanner->State = XML_CLOSE_SLASH;
+					return XML_EVENT_TAG;
+				case ' ': case '\t': case '\r': case '\n':
+					ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+					Scanner->Value = ml_stringbuffer_get_value(Scanner->Buffer);
+					Scanner->Next = Next + 1;
+					Scanner->State = XML_TAG_AFTER_NAME;
+					return XML_EVENT_TAG;
+				default:
+					break;
+				}
+			}
+			ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_TAG_AFTER_NAME:
+			for (; Next < End; ++Next) {
+				switch (*Next) {
+				case '>':
+					Start = ++Next;
+					Scanner->State = XML_TEXT;
+					goto xml_text;
+				case '/':
+					++Next;
+					Scanner->State = XML_CLOSE_SLASH;
+					goto xml_close_slash;
+				case ' ': case '\t': case '\r': case '\n':
+					break;
+				case 'a' ... 'z': case 'A' ... 'Z': case '_': case ':':
+					Start = Next;
+					Scanner->State = XML_ATTRIB_NAME;
+					goto xml_attribute_name;
+				default:
+					Scanner->Value = ml_error("XMLError", "Invalid character in tag: %c", *Next);
+					return XML_EVENT_ERROR;
+				}
+			}
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_TAG_END_NAME: xml_tag_end_name:
+			for (; Next < End; ++Next) {
+				switch (*Next) {
+				case '>':
+					ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+					Scanner->Value = ml_stringbuffer_get_value(Scanner->Buffer);
+					Scanner->Next = Next + 1;
+					Scanner->State = XML_TEXT;
+					return XML_EVENT_CLOSE;
+				case 'a' ... 'z': case 'A' ... 'Z': case '_': case ':':
+					break;
+				default:
+					Scanner->Value = ml_error("XMLError", "Invalid character in tag: %c", *Next);
+					return XML_EVENT_ERROR;
+				}
+			}
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_ATTRIB_NAME: xml_attribute_name:
+			for (; Next < End; ++Next) {
+				switch (*Next) {
+				case ' ': case '\t': case '\r': case '\n':
+					ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+					Scanner->Value = ml_stringbuffer_get_value(Scanner->Buffer);
+					++Next;
+					Scanner->State = XML_ATTRIB_EQUALS;
+					goto xml_attribute_equals;
+				case '=':
+					ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+					Scanner->Value = ml_stringbuffer_get_value(Scanner->Buffer);
+					++Next;
+					Scanner->State = XML_ATTRIB_QUOTE;
+					goto xml_attribute_quote;
+				default:
+					break;
+				}
+			}
+			ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_ATTRIB_EQUALS: xml_attribute_equals:
+			for (; Next < End; ++Next) {
+				switch (*Next) {
+				case ' ': case '\t': case '\r': case '\n':
+					break;
+				case '=':
+					++Next;
+					Scanner->State = XML_ATTRIB_QUOTE;
+					goto xml_attribute_quote;
+				default:
+					Scanner->Value = ml_error("XMLError", "Invalid character in tag: %c", *Next);
+					return XML_EVENT_ERROR;
+				}
+			}
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_ATTRIB_QUOTE: xml_attribute_quote:
+			for (; Next < End; ++Next) {
+				switch (*Next) {
+				case ' ': case '\t': case '\r': case '\n':
+					break;
+				case '\'':
+					Scanner->Quote = '\'';
+					Start = ++Next;
+					Scanner->State = XML_ATTRIB_VALUE;
+					Scanner->Content = (ml_stringbuffer_t *)ml_stringbuffer();
+					goto xml_attribute_value;
+				case '\"':
+					Scanner->Quote = '\"';
+					Start = ++Next;
+					Scanner->State = XML_ATTRIB_VALUE;
+					Scanner->Content = (ml_stringbuffer_t *)ml_stringbuffer();
+					goto xml_attribute_value;
+				default:
+					Scanner->Value = ml_error("XMLError", "Invalid character in tag: %c", *Next);
+					return XML_EVENT_ERROR;
+				}
+			}
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_ATTRIB_VALUE: xml_attribute_value:
+			for (; Next < End; ++Next) {
+				if (*Next == Scanner->Quote) {
+					ml_stringbuffer_write(Scanner->Content, Start, Next - Start);
+					Scanner->Next = ++Next;
+					Scanner->State = XML_TAG_AFTER_NAME;
+					return XML_EVENT_ATTRIBUTE;
+				}
+				if (*Next == '&') {
+					ml_stringbuffer_write(Scanner->Content, Start, Next - Start);
+					Start = ++Next;
+					Scanner->State = XML_ENTITY_NAME;
+					Scanner->EntityState = XML_ATTRIB_VALUE;
+					goto xml_entity_name;
+				}
+			}
+			ml_stringbuffer_write(Scanner->Content, Start, Next - Start);
+			return XML_EVENT_WAIT;
+		case XML_CLOSE_SLASH: xml_close_slash:
+			if (Next == End) return XML_EVENT_WAIT;
+			if (*Next != '>') {
+				Scanner->Value = ml_error("XMLError", "Invalid character in tag: %c", *Next);
+				return XML_EVENT_ERROR;
+			}
+			Scanner->Next = Next + 1;
+			Scanner->State = XML_TEXT;
+			Scanner->Content = (ml_stringbuffer_t *)ml_stringbuffer();
+			return XML_EVENT_CLOSE;
+		case XML_ENTITY_NAME: xml_entity_name:
+			for (; Next < End; ++Next) {
+				switch (*Next) {
+				case ';':
+					ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+					Scanner->Next = ++Next;
+					Scanner->State = Scanner->EntityState;
+					return XML_EVENT_ENTITY;
+
+				}
+			}
+			ml_stringbuffer_write(Scanner->Buffer, Start, Next - Start);
+			Scanner->Next = Next;
+			return XML_EVENT_WAIT;
+		case XML_CHAR_REF: xml_char_ref:;
+			break;
+		case XML_CHAR_REF_HEX: xml_char_ref_hex:;
+			break;
+		case XML_MARKUP_START: xml_markup_start:;
+			break;
+		case XML_COMMENT_DASH1:
+
+		case XML_COMMENT:
+
+		case XML_COMMENT_DASH2:
+
+		case XML_CDATA_PREFIX:
+
+		case XML_CDATA_BODY:
+
+		case XML_CDATA_SUFFIX:
+
+		case XML_PI_BODY: xml_pi_body:;
+			break;
+		case XML_PI_QUESTION:
+
+		}
+	}
+	Scanner->Next = Next;
+	return XML_EVENT_WAIT;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Source, *Callback, *Buffer;
+	xml_scanner_t Scanner[1];
+	ml_value_t *Args[3];
+} xml_scan_t;
+
+ML_TYPE(MLXmlScanT, (), "xml::scan");
+
+static void xml_scan_read(xml_scan_t *Scan, ml_value_t *Value);
+
+static void xml_scan_event(xml_scan_t *Scan, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Scan->Base.Caller, Value);
+	switch(xml_scan_next(Scan->Scanner)) {
+	case XML_EVENT_WAIT:
+		Scan->Base.run = (ml_state_fn)xml_scan_read;
+		return ml_stream_read((ml_state_t *)Scan, Scan->Source, ml_buffer_value(Scan->Buffer), 256);
+	case XML_EVENT_ERROR:
+		ML_CONTINUE(Scan->Base.Caller, Scan->Scanner->Value);
+	case XML_EVENT_TAG:
+		Scan->Args[0] = ml_method("tag");
+		Scan->Args[1] = Scan->Scanner->Value;
+		return ml_call((ml_state_t *)Scan, Scan->Callback, 2, Scan->Args);
+	case XML_EVENT_ATTRIBUTE:
+		Scan->Args[0] = ml_method("attribute");
+		Scan->Args[1] = Scan->Scanner->Value;
+		Scan->Args[2] = (ml_value_t *)Scan->Scanner->Content;
+		return ml_call((ml_state_t *)Scan, Scan->Callback, 3, Scan->Args);
+	case XML_EVENT_CLOSE:
+		Scan->Args[0] = ml_method("close");
+		return ml_call((ml_state_t *)Scan, Scan->Callback, 1, Scan->Args);
+	case XML_EVENT_TEXT:
+		Scan->Args[0] = ml_method("text");
+		Scan->Args[1] = (ml_value_t *)Scan->Scanner->Content;
+		return ml_call((ml_state_t *)Scan, Scan->Callback, 2, Scan->Args);
+	case XML_EVENT_ENTITY:
+		Scan->Args[0] = ml_method("entity");
+		Scan->Args[1] = (ml_value_t *)Scan->Scanner->Buffer;
+		Scan->Args[2] = (ml_value_t *)Scan->Scanner->Content;
+		return ml_call((ml_state_t *)Scan, Scan->Callback, 3, Scan->Args);
+	case XML_EVENT_INSTRUCTION:
+		Scan->Args[0] = ml_method("instruction");
+		Scan->Args[1] = (ml_value_t *)Scan->Scanner->Content;
+		return ml_call((ml_state_t *)Scan, Scan->Callback, 2, Scan->Args);
+	}
+}
+
+static void xml_scan_read(xml_scan_t *Scan, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(Scan->Base.Caller, Value);
+	size_t Size = ml_integer_value(Value);
+	if (!Size) ML_CONTINUE(Scan->Base.Caller, MLNil);
+	xml_scan_input(Scan->Scanner, ml_buffer_value(Scan->Buffer), ml_integer_value(Value));
+	Scan->Base.run = (ml_state_fn)xml_scan_event;
+	return xml_scan_event(Scan, MLNil);
+}
+
+ML_METHODX(MLXmlScanT, MLStreamT, MLFunctionT) {
+	xml_scan_t *Scan = new(xml_scan_t);
+	Scan->Base.Type = MLXmlScanT;
+	Scan->Base.Caller = Caller;
+	Scan->Base.Context = Caller->Context;
+	Scan->Base.run = (ml_state_fn)xml_scan_read;
+	Scan->Source = Args[0];
+	Scan->Callback = Args[1];
+	Scan->Buffer = ml_buffer(snew(256), 256);
+	Scan->Scanner->State = XML_TEXT;
+	Scan->Scanner->Buffer[0] = ML_STRINGBUFFER_INIT;
+	Scan->Scanner->Content = (ml_stringbuffer_t *)ml_stringbuffer();
+	return ml_stream_read((ml_state_t *)Scan, Scan->Source, ml_buffer_value(Scan->Buffer), 256);
+}
+
 typedef struct xml_stack_t xml_stack_t;
 
 struct xml_stack_t {
@@ -2917,6 +3281,7 @@ void ml_xml_init(stringmap_t *Globals) {
 	ml_method_by_name("prev", PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 	ml_method_by_name("<", PrevSiblingMethod, recursive_adjacent, MLXmlSequenceT, NULL);
 #endif
+	stringmap_insert(MLXmlT->Exports, "scan", MLXmlScanT);
 	stringmap_insert(MLXmlT->Exports, "parse", MLXmlParse);
 	stringmap_insert(MLXmlT->Exports, "escape", MLXmlEscape);
 	stringmap_insert(MLXmlT->Exports, "text", MLXmlTextT);

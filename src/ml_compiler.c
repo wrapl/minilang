@@ -7697,17 +7697,10 @@ ml_value_t *ml_compile_static(const char *Source, int Line, const char *Code, co
 		}
 		exit(-1);
 	}
-	ml_result_state_t State[1] = {{{MLStateT, NULL, (ml_state_fn)ml_result_state_run, MLRootContext}, NULL}};
+	ml_wait_state_t *State = ml_wait_state(MLRootContext);
 	ml_function_compile((ml_state_t *)State, Expr, StaticCompiler, Parameters);
-#ifdef ML_TRAMPOLINE
-	ml_scheduler_t *Scheduler = ml_context_get_static(MLRootContext, ML_SCHEDULER_INDEX);
-	while (!State->Value) Scheduler->run(Scheduler);
-#endif
-	if (!State->Value) {
-		fprintf(stderr, "Fatal: Error compiling internal code at %s:%d\n", Source, Line);
-		exit(-1);
-	}
-	return State->Value;
+	ml_value_t *Value = ml_wait(State);
+	return Value;
 }
 
 static void ml_inline_call_macro_fn(ml_state_t *Caller, void *Value, int Count, ml_value_t **Args) {
